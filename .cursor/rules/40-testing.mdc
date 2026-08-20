@@ -1,0 +1,67 @@
+---
+description: Testing conventions and the tests this product specifically requires
+globs: ["**/*Test*.cs", "**/*Tests.cs", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"]
+alwaysApply: false
+---
+
+# Testing conventions
+
+> Strategy lives in `docs/development/nfr.md` and the `qa-engineer` agent definition. This file is conventions.
+
+## By layer
+
+| Layer | Approach |
+|---|---|
+| Domain | Pure unit tests, no I/O |
+| Application | Use cases against fake ports |
+| Infrastructure | Testcontainers against real MongoDB — not driver mocks |
+| API | `WebApplicationFactory` endpoint tests |
+| Architecture | Automated dependency-direction rules |
+| Client | Vitest + React Testing Library |
+| E2E | Playwright (web), device testing (mobile) |
+
+## Naming
+
+- C#: `Method_Scenario_ExpectedOutcome`
+- TS: `describe('thing') → it('does X when Y')`
+
+Test behaviour, not implementation. A test that breaks on a refactor without a behaviour change is testing the wrong thing.
+
+## Tests this product specifically requires
+
+These exist because each guards a mistake that is easy to make and expensive to discover.
+
+**Band rounding — table-driven, covering the asymmetric cases:**
+
+| Sections | Mean | Expected |
+|---|---|---|
+| 6.5, 6.5, 5.0, 7.0 | 6.25 | 6.5 |
+| 6.0, 6.5, 7.0, 7.5 | 6.75 | **7.0** ← naive rounding gives 6.5 |
+| 4.0, 3.5, 4.0, 4.0 | 3.875 | 4.0 |
+| 7.5, 8.0, 8.0, 8.0 | 7.875 | 8.0 |
+
+**Timer authority** — submit after the deadline, submit with a forged client timestamp, pause the client clock. All rejected server-side.
+
+**Idempotency** — replay with the same key yields one result, one entitlement consumption, one AI job. Same key + different body → `409`.
+
+**Offline and resume** — queue offline, reconnect, replay; a stale replay must not overwrite newer state. Kill the app mid-exam and resume — timer corrected, not paused.
+
+**ZIP hostile fixtures — keep these in the repository:**
+path traversal · absolute path · symlink · nested bomb · 10 KB→10 GB entry · 100,000 entries · null byte in filename · reserved name (`CON.json`) · `.png` containing an executable · deeply nested JSON · undeclared asset · checksum mismatch · one valid package.
+
+**AI output validation** — band `9.5`, band `6.3`, band as string, missing criterion, extra field, truncated JSON, prose instead of JSON, fabricated evidence quote, band contradicting features, empty feedback.
+
+## Never call a live AI provider in a test
+
+Fixtures only. Tests must run with **no credentials** — and there are none in this repository by design. A test that needs a provider key is a test that cannot run in CI.
+
+## Determinism
+
+- No `DateTime.Now` / `Date.now()` in code under test — inject a clock.
+- No random values without a fixed seed.
+- No test order dependencies.
+- No sleeps — wait on conditions.
+
+## Coverage
+
+Coverage percentage is not a goal. Cover **the failure paths**: expired sessions, interrupted recordings, failed evaluations, offline saves, malformed packages. That is where this product's risk actually sits, and where teams routinely have no tests at all.

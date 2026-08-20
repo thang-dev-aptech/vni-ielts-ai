@@ -1,0 +1,76 @@
+---
+description: C# and ASP.NET Core coding conventions
+globs: ["**/*.cs", "**/*.csproj", "**/*.sln"]
+alwaysApply: false
+---
+
+# .NET backend conventions
+
+> Rationale lives in `docs/architecture/backend-architecture.md`. This file is conventions only.
+
+## Project layout
+
+```
+Vni.Ielts.Domain/          entities, value objects, IELTS rules. No dependencies.
+Vni.Ielts.Application/     use cases, port interfaces, DTOs.
+Vni.Ielts.Infrastructure/  Mongo repos, AI adapters, storage.
+Vni.Ielts.Api/             controllers, auth, DI wiring.
+Vni.Ielts.Worker/          background job host.
+```
+
+Dependencies point **inward only**. `Domain` references nothing.
+
+Organise by **feature** inside each project (`Identity/`, `Exams/`, `Sessions/`, `Evaluation/`, `Cms/`, `Rewards/`) — not by technical type (`Services/`, `Handlers/`, `Interfaces/`).
+
+## The boundary rule
+
+**No `[Bson*]` attributes, `ObjectId`, `BsonDocument`, or any driver type on domain entities.** Persistence models live in `Infrastructure` and map to domain entities.
+
+```csharp
+// Domain — clean
+public sealed class ExamSession
+{
+    public ExamSessionId Id { get; private set; }
+    public DateTimeOffset DeadlineAt { get; private set; }
+    public bool IsWithinDeadline(DateTimeOffset serverNow) => serverNow <= DeadlineAt;
+}
+
+// Infrastructure — persistence concerns isolated here
+internal sealed class ExamSessionDocument
+{
+    [BsonId] public ObjectId Id { get; set; }
+}
+```
+
+## Style
+
+- File-scoped namespaces.
+- `sealed` by default on classes not designed for inheritance.
+- `record` for DTOs and value objects; `class` for entities with identity.
+- Nullable reference types enabled; do not suppress warnings with `!` without a comment explaining why.
+- `async`/`await` throughout; always accept and pass `CancellationToken`.
+- Never `async void` except for event handlers.
+- Prefer `IReadOnlyList<T>` / `IReadOnlyCollection<T>` on public surfaces.
+
+## Types that carry meaning
+
+- **Strongly-typed IDs** (`ExamSessionId`, not `string` or `ObjectId`).
+- **`BandScore` value type**, not `double`. Reject invalid values at construction — valid bands are the closed set `0, 0.5, … 9`.
+- **`DateTimeOffset` in UTC**, never `DateTime`. Exam deadlines cross timezones.
+- **`decimal` for scores and money-like values**, never `float`/`double`.
+
+## Timing
+
+Timing values come from the server clock. **Never accept a client-supplied timestamp** for `startedAt`, `deadlineAt`, or submission time. Reject late submissions with `409 SESSION_EXPIRED`.
+
+## Band rounding
+
+The overall-band rule has asymmetric special cases (`.25` → up to half band, `.75` → up to whole band). **Do not use a generic rounding helper** — it gets `.75` wrong. Give it a dedicated function and a table-driven test.
+
+## Testing
+
+- xUnit. One assert concept per test; name as `Method_Scenario_ExpectedOutcome`.
+- Domain: pure unit tests, no I/O.
+- Infrastructure: Testcontainers against real MongoDB, not mocks of the driver.
+- Architecture tests enforcing dependency direction — these are not optional.
+- **Never assert against a live AI provider.** Fixtures only.

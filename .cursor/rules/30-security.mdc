@@ -1,0 +1,78 @@
+---
+description: Security-sensitive coding patterns for untrusted input, AI output, and credentials
+alwaysApply: true
+---
+
+# Security coding rules
+
+> Threat analysis lives in `docs/security/`. This file is the coding rules that follow from it.
+
+## What is untrusted
+
+Four sources. Two are easy to mistake for safe:
+
+| Source | Note |
+|---|---|
+| Learner clients | Obvious |
+| **Learner content (essays, transcripts)** | Authenticated — but fed to a model that grades them. Direct incentive to attack |
+| **Admin-uploaded ZIPs** | "Only admins can upload" narrows *who*, not *what*. Admin accounts are compromise targets |
+| AI provider responses | Non-deterministic output from an external system |
+
+## Credentials
+
+**Never write a credential file.** No `.env`, `.pem`, `.key`, `credentials.json`, or any real secret value in this repository. Write a `.example` file and keep real values in the environment.
+
+**No AI provider credentials at all** until the owner selects a provider — the Claude API is excluded by owner decision. A PreToolUse hook blocks these writes; do not work around it.
+
+## Untrusted input
+
+**Validate before extracting** (ZIP). Read the central directory, enforce entry-count / uncompressed-size / compression-ratio caps, canonicalise every path, reject symlinks — all before writing a byte.
+
+**Canonicalise paths; do not string-match `".."`.** Encoding tricks, mixed separators, and Unicode normalisation defeat string checks.
+
+```csharp
+var destination = Path.GetFullPath(Path.Combine(root, entry.FullName));
+if (!destination.StartsWith(Path.GetFullPath(root) + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+    throw new PackageValidationException("PATH_ESCAPE", entry.FullName);
+```
+
+**Never use a client-supplied filename as a storage key.** Object keys are server-generated.
+
+**Sanitise on render, not on store.** Exam content from packages is untrusted at render time.
+
+## AI output
+
+**Validate every response against a schema**, assuming the provider's enforcement failed.
+
+**Band values are `enum`, never `minimum`/`maximum`** — numerical constraints are commonly unsupported, and a range permits invalid values like `6.3`.
+
+**Never clamp an out-of-range value.** Reject it. Clamping turns a visible fault into a plausible-looking wrong score nobody investigates.
+
+**Recompute derived values in code.** Never trust model arithmetic.
+
+**Learner content is data, never instruction.** Rubric in the system prompt; learner text delimited in a user turn; strip the delimiter sequence from learner input.
+
+**Never send names, emails, or user IDs to an AI provider.** Evaluation needs the response, not the identity — and it is a cross-border transfer of personal data under Vietnam's PDPL.
+
+## API
+
+- **Idempotency key required** on every state-changing endpoint.
+- **`404`, not `403`**, for resources not visible to the requester — existence disclosure enables enumeration.
+- **Authorise every resource access** against the requesting user. Non-sequential IDs.
+- **Rate limit by authenticated identity**, not IP alone. IP is shared and rotatable.
+- **Never rate-limit a learner out of an in-progress exam.**
+- Object storage access only via short-lived signed URLs scoped to a single object.
+
+## Auth
+
+- Argon2id for password hashing.
+- Short-lived access tokens; refresh rotation with **reuse detection** — a replayed refresh token revokes the family.
+- PKCE for mobile OIDC (public clients cannot hold a secret).
+- **Never auto-link identities on matching email.** Require explicit confirmation — silent linking is an account-takeover vector.
+- Never trust a client-supplied role, permission, or profile claim.
+
+## Logging
+
+Never log tokens, passwords, full request bodies containing learner content, or provider credentials. Log correlation IDs and stable error codes.
+
+Error responses carry a stable code and a safe message — never a stack trace, an internal path, or a specific validation limit value.

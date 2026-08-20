@@ -1,0 +1,76 @@
+---
+description: React, TypeScript, and Capacitor client conventions
+globs: ["**/*.ts", "**/*.tsx", "**/*.jsx", "capacitor.config.*"]
+alwaysApply: false
+---
+
+# Client conventions — React + TypeScript + Capacitor
+
+> Rationale lives in `docs/architecture/client-architecture.md`. This file is conventions only.
+
+## Workspace layout
+
+```
+apps/learner    Web + Android + iOS (Capacitor)
+apps/admin      Admin CMS (web only)
+packages/api-client   generated from OpenAPI
+packages/domain       shared types, band display, validation
+packages/ui           shared components
+```
+
+The Admin CMS is **not** bundled into mobile binaries.
+
+## TypeScript
+
+- `strict: true`. No `any` — use `unknown` and narrow.
+- Prefer `type` for unions and function shapes, `interface` for object contracts that may be extended.
+- Never hand-write API types — import from `packages/api-client`, generated from OpenAPI.
+- Exhaustive `switch` on discriminated unions with a `never` guard.
+- Discriminated unions over boolean flags for state (`{status: 'saving'} | {status: 'queued'}`, not `isSaving` + `isQueued`).
+
+## React
+
+- Function components with hooks. No class components.
+- Colocate component, styles, and test.
+- Custom hooks for anything stateful and reusable; prefix `use`.
+- Keys from stable IDs, never array index.
+- **No `dangerouslySetInnerHTML` for content derived from exam packages** — that content is untrusted.
+
+## The states that must exist
+
+Every screen implements its full state set from `docs/ux/screen-inventory.md`. Specifically:
+
+| State | Requirement |
+|---|---|
+| **Offline / queued** | A save indicator must never show "Saved" for an answer sitting in a local queue. Queued is a distinct visual state |
+| **Evaluation pending** | Writing/Speaking are async — show partial results rather than blocking on the slowest module |
+| **Evaluation failed** | Show as failed. **Never render a fabricated or placeholder score** |
+| **Empty** | Every list needs a first-run empty state with a next action |
+| **Permission denied** | Microphone denial gives recovery instructions, not a dead end |
+
+## Timer
+
+The client timer is **display only**. Render from the local clock; reconcile against the `X-Server-Time` response header on every response **and on every resume from background**. The server decides whether a submission was in time.
+
+## Audio — Capacitor
+
+**Speaking capture uses a native Capacitor plugin. Never the WebView `MediaRecorder` API.**
+
+WKWebView mutes the microphone shortly after the app backgrounds, and iOS/Android WebView produce different formats. Handle both `audio/m4a` (iOS) and `audio/webm` (Android). Handle the plugin's interruption events, distinguishing system `INTERRUPTED` from user `PAUSED`.
+
+→ `docs/decisions/0006-speaking-audio-capture-native-plugin.md`
+
+## Network
+
+- Uploads are chunked and resumable — show real progress, never an indeterminate spinner.
+- Answer saves queue offline and replay with revision numbers so a stale replay cannot overwrite newer state.
+- Every state-changing request carries an `Idempotency-Key`.
+- Clients must **tolerate unknown enum values** from the API — mobile apps cannot be force-updated.
+
+## Accessibility
+
+Keyboard navigable, screen-reader usable, never signalling time pressure by colour alone. This is a testing product; real DOM was a deciding factor in the stack choice — use it.
+
+## Internationalisation
+
+All user-facing strings through i18n from the start. UI language is undecided (`[OPEN QUESTION]` M-4) and retrofitting is expensive.

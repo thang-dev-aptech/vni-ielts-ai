@@ -1,0 +1,68 @@
+# ── Secrets — never commit ────────────────────────────────────────────
+# CLAUDE.md rule 6: AI credentials never enter this repository.
+# A PreToolUse hook blocks writes to .env*; this is the second line of defence.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+appsettings.*.local.json
+
+# .mcp.json holds live API keys in plaintext (MCP server headers).
+# Keep it local. If the team needs a shared template, commit .mcp.example.json
+# with the key values blanked.
+.mcp.json
+
+# ── macOS ─────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ── .NET (from Phase 4) ───────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+TestResults/
+*.coverage
+*.trx
+
+# ── Node / clients (from Phase 5) ─────────────────────────────────────
+node_modules/
+dist/
+build/
+.vite/
+.next/
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Capacitor / mobile (from Phase 9) ─────────────────────────────────
+ios/App/Pods/
+ios/App/App/public/
+android/.gradle/
+android/app/build/
+android/local.properties
+*.keystore
+*.jks
+GoogleService-Info.plist
+google-services.json
+
+# ── Editors ───────────────────────────────────────────────────────────
+.idea/
+.vs/
+*.swp
+*.swo
+
+# ── Local scratch ─────────────────────────────────────────────────────
+tmp/
+*.local

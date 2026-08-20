@@ -1,0 +1,57 @@
+---
+description: Project orientation for VNI IELTS AI — what this repo is and where the canonical rules live
+alwaysApply: true
+---
+
+# VNI IELTS AI — project context
+
+> **Canonical source of truth is `docs/`.** These Cursor rules cover editor-time coding conventions only. Architecture, domain rules, and decisions live in `docs/` and are not repeated here. When this file and `docs/` disagree, `docs/` wins.
+
+AI-powered IELTS examination platform for VNI Education. Targets: learner Web, Android, iOS, Admin CMS, and a central backend API.
+
+## Current phase
+
+**Phase 1 — UI/UX. There is no application code yet, and that is intentional.**
+
+Do not scaffold projects, create `.csproj` or `package.json`, or write feature code until requirements are frozen. See `docs/development/roadmap.md`.
+
+The HTML prototype lives outside this repository and is plain HTML/CSS/JavaScript — **no React exists yet**, despite ADR-0002 selecting it.
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | .NET 10 / ASP.NET Core, modular monolith |
+| Clients | Capacitor 8 + React + TypeScript (one source, four targets) |
+| Database | MongoDB now → PostgreSQL after requirement freeze |
+| AI provider | **Undecided. Claude API excluded by owner decision** |
+
+## Invariants that constrain code
+
+Stated here because they change what you write. Rationale is in `docs/`.
+
+1. **Exam timing is server-authoritative.** Client timers display; they never decide. → `docs/decisions/0007-server-authoritative-exam-timer.md`
+2. **AI output is never trusted application state.** Validate against a schema before use. → `docs/ai/output-contracts.md`
+3. **Uploaded ZIPs are untrusted input.** Validate before extracting. → `docs/security/zip-ingestion-security.md`
+4. **IELTS band tables are configuration, not code.** → `docs/domain/band-scoring.md`
+5. **No AI provider type in the domain layer.** Ports in `Application`, adapters in `Infrastructure`. → `docs/decisions/0005-ai-provider-abstraction.md`
+6. **No hosted-LLM API call and no AI credentials** until the owner selects a provider. If a task requires one, stop and say so.
+7. **Domain entities carry no persistence attributes.** → `docs/decisions/0004-persistence-abstraction-boundary.md`
+8. **Reading and Listening band scores come from the answer key, never from a model.** AI may generate an explanation; the explanation can never change a band. → `docs/requirements/confirmed.md` A-11
+9. **Full Test and Single Skill are different modes.** Full Test: "Next" advances to the next skill *in the same session* (Reading → Listening → Writing → Speaking). Single Skill: the CTA is "new test", and it never auto-advances. → `docs/requirements/confirmed.md` E-11…E-13
+
+## Marking uncertainty
+
+Never resolve an ambiguity silently. Tag it: `[ASSUMPTION]` · `[OPEN QUESTION]` · `[NEEDS VALIDATION]` · `[TECHNICAL RISK]` · `[BUSINESS DECISION]`
+
+Owner-blocking items go to `docs/requirements/assumptions-and-open-questions.md`.
+
+Requirements and technology choices additionally carry exactly one status — `CONFIRMED` · `EXISTING` · `PROPOSED` · `UNCONFIRMED`. Canonical definitions and source precedence: `docs/README.md`. **Do not infer a requirement from the prototype, an older document, or a third-party review.**
+
+## Where things live
+
+```
+docs/       canonical — architecture, domain, decisions, research
+.claude/    Claude Code agents, commands, project skills
+.cursor/    these rules — editor conventions only
+```
