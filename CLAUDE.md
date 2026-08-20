@@ -130,6 +130,8 @@ assets/brand/  Logo and brand colour constraints
 
 No application source directories exist yet. That is intentional.
 
-**Under version control since 2026-08-20.** Two deletions before that were permanent — 191 files on 2026-08-18 and 4 on 2026-08-20. There is **no remote yet**, so disk failure still loses everything. → risk `R13` in [`docs/requirements/risks-and-dependencies.md`](docs/requirements/risks-and-dependencies.md)
+**Under version control since 2026-08-20**, pushed to a private GitHub repository. Two deletions before that were permanent — 191 files on 2026-08-18 and 4 on 2026-08-20. → risk `R13` in [`docs/requirements/risks-and-dependencies.md`](docs/requirements/risks-and-dependencies.md)
+
+**Before committing, run `python3 scripts/check-docs.py`.** CI runs the same checks and fails the build on a broken link, a status qualifier, a `CONFIRMED` row without a Source, or a credential-shaped string.
 
 `.mcp.json` is gitignored: it holds a live API key in plaintext. Never commit it.

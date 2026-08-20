@@ -189,9 +189,12 @@ Facebook Login requires app review for some permissions, and Meta has repeatedly
 
 **Severity: High · Likelihood: Certain — it happened twice · Owner: Engineering · Status: RESOLVED**
 
-`git init` on 2026-08-20, initial commit `d8a3749` on `main`, 75 files tracked. The risk class below is closed; the history is kept because it explains why two bodies of work no longer exist.
+`git init` on 2026-08-20, pushed to a **private GitHub repository** the same day:
+`https://github.com/thang-dev-aptech/vni-ielts-ai`. The risk class is closed; the history below is kept because it explains why two bodies of work no longer exist.
 
-**Remaining exposure:** the repository is **local only**. Disk failure or an accidental directory delete still loses everything. A remote (GitHub private, or any hosted git) closes that half, and it also unblocks CI/CD, which has no meaningful form without one.
+**What this now covers:** accidental deletion, bad bulk edits, disk failure, and a reviewable history of every decision.
+
+**Still worth doing:** the repository belongs to a personal account. If VNI wants organisational ownership and continuity independent of one person, transfer it to an organisation.
 
 ---
 
@@ -216,7 +219,9 @@ The exposure grows as the documentation gets better: a repository whose main ass
 
 > **Recommendation: revoke it.** It is a Google Stitch key, and Stitch was evaluated and dropped ([`../development/next-actions.md`](../development/next-actions.md) T3) — so it is an unused credential carrying pure downside. If a shared MCP configuration is wanted later, commit a `.mcp.example.json` with values blanked.
 
-**Still open:** no remote. See the remaining-exposure note above.
+**CI now enforces what was previously checked by hand.** `.github/workflows/docs.yml` runs `scripts/check-docs.py` on every push and pull request: relative-link integrity, links to deleted files, status qualifiers, duplicated canonical definitions, `CONFIRMED` rows without a Source, credential-shaped strings in tracked files, and stale phase claims.
+
+This matters more than it looks for a documentation repository. The conventions in [`../README.md`](../README.md) were previously enforced by whoever remembered them; now a violation fails the build.
 
 ---
 

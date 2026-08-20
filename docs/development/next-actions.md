@@ -128,8 +128,11 @@ Claude Design**, không phải mã ứng dụng.
 **20/08/2026 — 4 file.** Bốn prompt Claude Design (`design-prompts.md`, `design-prompts-v2.md`,
 `prompt-hoan-thien-man-con-lai.md`, `v2-web-design-audit.md`) trỏ tới canvas project đã ngừng dùng.
 
-> **Repo đã vào git ngày 20/08/2026** (commit `d8a3749`, nhánh `main`, 75 file). Trước đó không có version control — đó là lý do cả hai lần xoá đều vĩnh viễn.
-> **Chưa có remote**, nên hỏng ổ đĩa vẫn mất hết. → `R13` trong [`../requirements/risks-and-dependencies.md`](../requirements/risks-and-dependencies.md)
+> **Repo đã vào git và đẩy lên GitHub private ngày 20/08/2026** — `thang-dev-aptech/vni-ielts-ai`.
+> Trước đó không có version control; đó là lý do cả hai lần xoá đều vĩnh viễn. `R13` đã đóng.
+>
+> **Trước khi commit, chạy `python3 scripts/check-docs.py`.** CI chạy đúng bộ kiểm đó và fail build nếu
+> có link gãy, qualifier trong status, dòng `CONFIRMED` thiếu Source, hoặc chuỗi giống credential.
 
 ---
 

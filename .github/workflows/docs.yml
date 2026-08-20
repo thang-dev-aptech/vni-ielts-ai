@@ -1,0 +1,32 @@
+name: Documentation checks
+
+# This repository is documentation-only, so the documentation *is* the product.
+# These checks encode the conventions in docs/README.md — broken links, status
+# qualifiers, CONFIRMED rows without a Source, duplicated canonical definitions,
+# committed secrets — so they are enforced rather than remembered.
+#
+# Run the same checks locally before committing:
+#     python3 scripts/check-docs.py
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check documentation integrity
+        run: python3 scripts/check-docs.py
