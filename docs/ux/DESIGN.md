@@ -1,24 +1,30 @@
 # DESIGN.md — ngôn ngữ thiết kế web VNI IELTS AI
 
-> Rút từ token đã duyệt (artboard `3x`, chốt Q1 ngày 19/08/2026) và `styles.css` đang sống
-> trong prototype `/Users/metacom/Documents/VNI/VNI IELTS AI Web design`.
+> Rút từ token đã duyệt (artboard `3x`, chốt Q1 ngày 19/08/2026) và `styles.css` của prototype
+> tại `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — prototype **đã đóng băng 20/08/2026**.
 > Prototype nằm **ngoài** repo này. File này là bản sao có thẩm quyền của hệ thiết kế,
 > để lần sinh màn sau không trôi lệch như nhánh Inter + gradient tím.
 
 ## Trạng thái từng phần
 
-File này **không đồng nhất một trạng thái**. Phần ràng buộc đã chốt; phần thẩm mỹ thì chưa.
+File này **không đồng nhất một trạng thái**. Hướng thẩm mỹ đã được chủ sản phẩm chốt; các ràng buộc kỹ thuật có hiệu lực với mọi bản build nhưng giữ `PROPOSED` chờ xác nhận gộp tại requirement freeze — xem ghi chú dưới bảng.
 
 | Phần | Status | Căn cứ |
 |---|---|---|
-| Bảng token màu + tỉ lệ tương phản đã đo | **CONFIRMED** | Token đã duyệt, artboard `3x`, chốt Q1 19/08/2026 |
-| Font Archivo + JetBrains Mono | **CONFIRMED** | Đã kiểm subset `vietnamese` trên Google Fonts CSS API |
-| Thang cỡ chữ đóng + sàn 14px + `line-height` ≥ 1.5 | **CONFIRMED** | Ràng buộc kỹ thuật cho tiếng Việt, đã tái phát ba lần khi để tự quyết |
-| Bốn luật sản phẩm → quy tắc thiết kế | **CONFIRMED** | Dẫn xuất từ ADR-0007 và các quyết định nghiệp vụ |
+| Bảng token màu + tỉ lệ tương phản đã đo | **PROPOSED** | Duyệt tại phiên làm việc 19/08/2026 (chốt Q1, artboard `3x`) — biên bản chưa ghi danh người duyệt, chưa đủ chuẩn nguồn cho `CONFIRMED` |
+| Font Archivo + JetBrains Mono | **PROPOSED** | Ràng buộc kỹ thuật đã kiểm chứng — subset `vietnamese` trên Google Fonts CSS API. Không phải phát biểu của chủ sản phẩm |
+| Thang cỡ chữ đóng + sàn 14px + `line-height` ≥ 1.5 | **PROPOSED** | Ràng buộc kỹ thuật cho tiếng Việt, đã tái phát ba lần khi để tự quyết. Không phải phát biểu của chủ sản phẩm |
+| Bốn luật sản phẩm → quy tắc thiết kế | **PROPOSED** | Dẫn xuất từ [ADR-0007](../decisions/0007-server-authoritative-exam-timer.md) — Accepted — và các quyết định nghiệp vụ đã ghi. Quyết định gốc là `EXISTING`; phần diễn dịch thành quy tắc thiết kế là đặc tả |
 | **Hướng thiết kế: C · Thẻ mềm** | **CONFIRMED** | Chủ sản phẩm chọn **20/08/2026**, sau khi khảo sát 4 design system. → [§ Hướng đã chốt](#hướng-đã-chốt--c--thẻ-mềm) |
-| Thang spacing 4px | **CONFIRMED** | Đi kèm quyết định trên |
+| Thang spacing 4px | **PROPOSED** | Một phần của hướng C; nội dung đi kèm quyết định 20/08 nhưng chưa có phát biểu riêng của chủ sản phẩm cho thang này |
 
 **T1 đã đóng 20/08/2026.** File này giờ khóa cả ràng buộc lẫn hướng.
+
+> **Vì sao nhiều dòng là `PROPOSED` dù đã nghiệm thu qua T1:** quy tắc nguồn trong
+> [`../README.md` § Sourcing rule](../README.md) yêu cầu `CONFIRMED` phải trích được phát biểu
+> nguyên văn của chủ sản phẩm — các dòng trên không có. `PROPOSED` ở đây đo **độ truy vết của nguồn**,
+> không đo độ bắt buộc: những ràng buộc này **vẫn có hiệu lực với mọi bản build**. Nâng lên `CONFIRMED`
+> bằng một lần xác nhận gộp của chủ sản phẩm tại requirement freeze (dùng `/req`).
 
 ### File này áp cho đâu
 
@@ -211,7 +217,7 @@ Writing: đếm từ trực tiếp; dưới ngưỡng dùng `--warn` (thông tin
 16. Thiết kế màn gói / nạp tiền trước khi B-3 và B-4 được chốt. *(Màn token thì được — `T-1` đã CONFIRMED — nhưng **không được hiện số token cụ thể** cho tới khi `B-5b` có câu trả lời.)*
 17. Module ngoài tài liệu: Vocabulary, Grammar, vai giáo viên, thanh toán (MVP).
 18. **Animation khi chuyển đáp án.** Hiện lại phần chữ đang lưu bằng hoạt ảnh làm mất tập trung giữa lúc đọc. Trạng thái lưu phải đổi tại chỗ, không diễn hoạt. *(Khớp L1; đề xuất từ bản nhận xét 20/08.)*
-19. **Nhầm "token đã chốt" thành "hướng thiết kế đã chốt".** Bảng màu và thang cỡ chữ là CONFIRMED; gu tổng thể vẫn UNCONFIRMED.
+19. **Trích DESIGN.md như thể mọi phần đều là quyết định của chủ sản phẩm.** Chỉ hướng **C · Thẻ mềm** là `CONFIRMED`; các ràng buộc kỹ thuật là `PROPOSED` có hiệu lực — xem bảng trạng thái đầu file, đừng nâng cấp chúng khi trích dẫn.
 20. **Khoảng cách ngoài thang 4px.** Bảy giá trị `6 10 11 14 18 22 28px` bị cấm — chúng chiếm 47 lần dùng trong `styles.css` và là nguồn gốc của việc mỗi màn tự chế một cỡ.
 21. **Đổ bóng để tạo độ sâu.** Dùng lớp nền `--page` / `--card` / `--sunk`. Cả bốn design system đã khảo sát đều bỏ shadow; ta đang dùng 31 chỗ.
 22. **Hai hệ thiết kế cho học viên và CMS.** Một ngôn ngữ, hai chế độ mật độ — `comfortable` và `compact`. `admin/` đã dùng chung `client/styles.css`, giữ nguyên như vậy.
@@ -223,7 +229,7 @@ Writing: đếm từ trực tiếp; dưới ngưỡng dùng `--warn` (thông tin
 
 ## Hướng thiết kế — nghiên cứu 20/08/2026
 
-`PROPOSED`. Chủ sản phẩm chọn một hướng ở cuối mục này thì hướng đó thành `CONFIRMED` và **T1 đóng**.
+Chủ sản phẩm đã chọn hướng **C · Thẻ mềm** ngày 20/08/2026 — hướng đó là `CONFIRMED` và **T1 đã đóng**. Mục này giữ lại làm hồ sơ khảo sát: chọn reference theo tiêu chí nào, và vì sao loại từng ứng viên.
 
 ### Cách chọn reference: theo *bài toán*, không theo *ngành*
 
@@ -292,7 +298,7 @@ hệ này đều thay bằng **lớp nền**. Ta đã có sẵn ba lớp `--page
 
 ---
 
-## Thang spacing — `PROPOSED`, phần thiếu quan trọng nhất
+## Thang spacing — đơn vị gốc 4px
 
 Đơn vị gốc **4px**, theo Mercury · Ventriloc · Duolingo. Thang đóng, **cấm giá trị ngoài thang**:
 
@@ -464,8 +470,9 @@ Mọi màu hoặc font mượn từ bất kỳ nguồn nào phải qua **hai c�
 2. **Kiểm subset `vietnamese`** — trên Google Fonts CSS API hoặc bảng glyph. `Outfit` từng trượt đúng
    bài kiểm này và làm rơi dấu giữa chừng một từ.
 
-> **Claude không tự chọn hướng.** Ba hướng trên là `PROPOSED`. Hướng chủ sản phẩm chọn mới là
-> `CONFIRMED`, và đó là điều kiện đóng T1.
+> **Claude không tự chọn hướng.** Ba hướng được trình dưới dạng `PROPOSED` tại thời điểm khảo sát;
+> chủ sản phẩm chọn **C · Thẻ mềm** ngày 20/08/2026 — điều kiện đóng T1 đã hoàn thành. Giữ nguyên
+> quy trình này cho mọi quyết định thẩm mỹ sau: Claude trình ứng viên có bằng chứng, chủ sản phẩm chọn.
 
 ---
 

@@ -1,0 +1,19 @@
+{
+  "name": "@vni/types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "3.2.4",
+    "@vni/config": "workspace:*",
+    "typescript": "5.9.2"
+  }
+}

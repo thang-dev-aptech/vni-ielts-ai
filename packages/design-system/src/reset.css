@@ -1,0 +1,153 @@
+/*
+ * VNI IELTS AI — base element styles
+ *
+ * Not a generic reset. This file encodes the hard typographic constraints from
+ * docs/ux/DESIGN.md § "Kiểu chữ tiếng Việt". Three defects recurred three
+ * times when tooling was left to decide: Vietnamese uppercase (which strips
+ * diacritics), 11px text, and line-height below 1.5.
+ *
+ * Lock them in CSS, not in a prompt.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  font-weight: var(--w-body);
+  color: var(--ink-2);
+  background: var(--page);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  color: var(--ink);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  /* Tightening past -0.01em makes diacritics collide with the next glyph. */
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: var(--t-32);
+  font-weight: var(--w-display);
+  line-height: var(--lh-display);
+}
+h2 {
+  font-size: var(--t-24);
+}
+h3 {
+  font-size: var(--t-20);
+}
+h4 {
+  font-size: var(--t-18);
+}
+
+p,
+ul,
+ol {
+  margin: 0;
+}
+
+a {
+  color: var(--acc);
+  text-decoration: none;
+  transition: color var(--dur) var(--ease);
+}
+a:hover {
+  color: var(--acc-700);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+/*
+ * Every digit goes through this. Without tabular-nums the exam clock changes
+ * width every second, which reads as the layout twitching.
+ */
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Small labels. NOT uppercase — text-transform: uppercase strips Vietnamese
+ * diacritics on many renderers, which is why it is banned outright rather
+ * than discouraged. Weight and letter-spacing carry the emphasis instead.
+ */
+.label {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/*
+ * Enforcement, not decoration. Any element carrying Vietnamese text must not
+ * be uppercased. This selector makes an accidental one visible in review
+ * rather than shipping silently.
+ */
+[lang='vi'] {
+  text-transform: none !important;
+}
+
+:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/* Depth is three background layers plus a hairline border. There is no
+ * shadow token in this system; all four surveyed design systems dropped
+ * shadows, and the prototype's 31 uses are a measurement of the problem,
+ * not a pattern to continue. */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--pad-card);
+}
+
+.sunk {
+  background: var(--sunk);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+}
+
+.container {
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--s-5);
+}
+
+.measure {
+  max-width: var(--measure);
+}

@@ -66,3 +66,13 @@ google-services.json
 # ── Local scratch ─────────────────────────────────────────────────────
 tmp/
 *.local
+
+# ── Added with the monorepo, 2026-08-20 ───────────────────────────────
+coverage/
+.turbo/
+.pnpm-store/
+playwright-report/
+test-results/
+# Generated from contracts/openapi — a hand edit here is a build failure,
+# so the generated output is not tracked. → packages/api-client
+packages/api-client/src/generated/

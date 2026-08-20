@@ -24,7 +24,7 @@ The HTML prototype lives outside this repository and is plain HTML/CSS/JavaScrip
 | Backend | .NET 10 / ASP.NET Core, modular monolith |
 | Clients | Capacitor 8 + React + TypeScript (one source, four targets) |
 | Database | MongoDB now → PostgreSQL after requirement freeze |
-| AI provider | **Undecided. Claude API excluded by owner decision** |
+| AI provider | **LLM: GPT (OpenAI) + Gemini (Google) — selected 2026-08-20; Claude API excluded. Speech-to-text undecided (M-26)** |
 
 ## Invariants that constrain code
 
@@ -35,7 +35,7 @@ Stated here because they change what you write. Rationale is in `docs/`.
 3. **Uploaded ZIPs are untrusted input.** Validate before extracting. → `docs/security/zip-ingestion-security.md`
 4. **IELTS band tables are configuration, not code.** → `docs/domain/band-scoring.md`
 5. **No AI provider type in the domain layer.** Ports in `Application`, adapters in `Infrastructure`. → `docs/decisions/0005-ai-provider-abstraction.md`
-6. **No hosted-LLM API call and no AI credentials** until the owner selects a provider. If a task requires one, stop and say so.
+6. **No AI credentials in this repository, ever** — keys live in environment configuration. Testing routes through a third-party `baseURL` reseller with **synthetic data only**. If a task requires a live AI call, stop and say so.
 7. **Domain entities carry no persistence attributes.** → `docs/decisions/0004-persistence-abstraction-boundary.md`
 8. **Reading and Listening band scores come from the answer key, never from a model.** AI may generate an explanation; the explanation can never change a band. → `docs/requirements/confirmed.md` A-11
 9. **Full Test and Single Skill are different modes.** Full Test: "Next" advances to the next skill *in the same session* (Reading → Listening → Writing → Speaking). Single Skill: the CTA is "new test", and it never auto-advances. → `docs/requirements/confirmed.md` E-11…E-13

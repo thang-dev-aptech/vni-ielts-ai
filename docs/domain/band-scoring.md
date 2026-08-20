@@ -68,6 +68,11 @@ Task 2 is weighted more heavily than Task 1 in the official Writing band. `[NEED
 
 ### Speaking criteria
 
+> Speaking AI scoring itself is `UNCONFIRMED` (`A-14` → `M-26` in
+> [`../requirements/assumptions-and-open-questions.md`](../requirements/assumptions-and-open-questions.md)).
+> This section records the official criteria so the model is ready **if** the owner keeps Speaking —
+> it is not evidence that Speaking evaluation is in scope.
+
 | Criterion | Assesses |
 |---|---|
 | Fluency and Coherence | Flow, hesitation, self-correction, logical sequencing |
@@ -104,7 +109,20 @@ This rule *is* officially specified and stable, so it belongs in code:
 | 7.5 | 8.0 | 8.0 | 8.0 | 7.875 | **8.0** | `.875` → nearest is 8.0 |
 | 6.0 | 6.5 | 7.0 | 7.5 | 6.75 | **7.0** | `.75` → up to whole band |
 
-> **Do not implement this with a generic "round half up" helper.** The `.25` and `.75` cases are asymmetric special rules — naive rounding to the nearest 0.5 gets the `.75` row wrong (it would yield 6.5, not 7.0). This rule needs its own function and its own unit tests covering exactly the rows above.
+> **Do not reach for `Math.Round`.** This rule needs its own function and its own table-driven test
+> covering exactly the rows above.
+>
+> **`[CORRECTED 2026-08-20]`** An earlier version of this note said naive rounding gets the `.75` row
+> wrong. That is true only of *truncation*. Measured against both cases:
+>
+> | Strategy | `.25` → want 6.5 | `.75` → want 7.0 |
+> |---|---|---|
+> | `MidpointRounding.ToEven` — **the .NET default for `Math.Round`** | **6.0 ✗** | 7.0 ✓ |
+> | `MidpointRounding.AwayFromZero` on the half-band grid | 6.5 ✓ | 7.0 ✓ |
+> | Truncation, `Math.Floor(mean * 2) / 2` | **6.0 ✗** | **6.5 ✗** |
+>
+> The dangerous one is `ToEven`, because it is what `Math.Round` does when no mode is named — and it
+> fails on **`.25`**, not `.75`. A test covering only the `.75` row would pass against it. Cover both.
 
 ---
 

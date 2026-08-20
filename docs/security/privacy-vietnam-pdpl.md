@@ -55,22 +55,20 @@ Four consequences, all currently unresolved under `B-6`:
 
 `B-11` (data residency) sits downstream of this analysis: if the answer is that learner data must stay in Vietnam, it constrains every storage and hosting choice and should be settled **before** any vendor commitment.
 
-`[NEEDS VALIDATION]` Whether voice recordings are classified as *sensitive* personal data under the PDPL's specific definitions — and whether an education platform falls within Decree 53's localisation scope — both require legal confirmation. Both would raise the obligations.
-
 ---
 
-## Engineering consequences already applied
+## Engineering consequences — required by design
 
-These are designed in, not deferred:
+Nothing is built yet; these are obligations the design already carries, not controls in operation:
 
-| Principle | How it is applied |
+| Principle | How the design must apply it |
 |---|---|
 | **Data minimisation** | Prompts contain the response only. **No names, emails, or user IDs are ever sent to an AI provider** ([`ai-security.md`](ai-security.md)) |
 | **Purpose limitation** | Audio is used for evaluation. Any other use — model training, analytics — is a separate decision requiring separate consent |
 | **Storage limitation** | Audio retention policy required (`[ASSUMPTION]` M-2: 90 days, then delete audio and retain transcript plus scores) |
 | **Transfer minimisation** | Features and transcripts are preferred over raw audio where the pipeline permits |
 | **Provider substitutability** | The port design means a provider can be replaced — including with a self-hosted one — without touching domain logic ([ADR-0005](../decisions/0005-ai-provider-abstraction.md)) |
-| **Auditability** | Every evaluation records what was sent, to which provider, when |
+| **Auditability** | Every evaluation must record what was sent, to which provider, when |
 
 The last point is worth emphasising: `AiJob` recording provider, timestamp, and `featureSnapshot` is not only useful for debugging — it is the evidence base for demonstrating what was transferred, which a CTIA requires.
 

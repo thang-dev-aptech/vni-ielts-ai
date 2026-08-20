@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vni-ielts.example/schemas/exam/1.0.json",
+  "title": "VNI IELTS exam definition, package format v1",
+  "description": "The single definition of a valid exam. Three producers validate against this file and no other: the development seeder, the ZIP importer, and in-place CMS authoring. Two definitions of validity would drift, and the drift surfaces as a learner mid-attempt hitting a question the renderer cannot draw. See ADR-0008 and ADR-0012.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formatVersion", "title", "variant", "timingProfile", "scoringProfile", "sections"],
+
+  "properties": {
+    "formatVersion": {
+      "description": "Minor versions are additive; unknown optional fields are ignored rather than rejected, which is what lets content authored against a newer minor import into an older backend. A major version outside the supported range is rejected explicitly.",
+      "type": "string",
+      "pattern": "^1\\.[0-9]+$"
+    },
+    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "variant": {
+      "description": "Academic and General Training differ in Reading and Writing Task 1, and their ScoringProfiles differ by variant rather than only by version. H-1 currently assumes Academic only.",
+      "enum": ["academic", "general"]
+    },
+    "description": { "type": "string", "maxLength": 2000 },
+
+    "timingProfile": { "$ref": "#/$defs/timingProfile" },
+    "scoringProfile": { "$ref": "#/$defs/scoringProfile" },
+
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": { "$ref": "#/$defs/section" }
+    }
+  },
+
+  "$defs": {
+    "module": { "enum": ["reading", "listening", "writing", "speaking"] },
+
+    "band": {
+      "description": "Bands are whole and half steps only. Declared as a closed enum rather than a numeric range, both because a range permits 6.3 and 7.77 which are not band scores, and because structured-output implementations commonly honour enum while ignoring minimum/maximum.",
+      "type": "number",
+      "enum": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9]
+    },
+
+    "timingProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sections"],
+      "properties": {
+        "sections": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "reading": { "$ref": "#/$defs/sectionTiming" },
+            "listening": { "$ref": "#/$defs/sectionTiming" },
+            "writing": { "$ref": "#/$defs/sectionTiming" },
+            "speaking": { "$ref": "#/$defs/speakingTiming" }
+          }
+        }
+      }
+    },
+
+    "sectionTiming": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["durationSeconds"],
+      "properties": {
+        "durationSeconds": { "type": "integer", "minimum": 1, "maximum": 21600 },
+        "transferTimeSeconds": {
+          "description": "Listening only. Extra time after the audio ends to copy answers onto the answer sheet.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600
+        }
+      }
+    },
+
+    "speakingTiming": {
+      "description": "Whether Speaking is one continuous session or three separately-submitted parts is H-1, still open. This shape supports both: the parts array carries per-part timing either way, and only the Full Test chaining semantics differ.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parts"],
+      "properties": {
+        "parts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["part", "responseSeconds"],
+            "properties": {
+              "part": { "type": "integer", "minimum": 1, "maximum": 3 },
+              "prepSeconds": { "type": "integer", "minimum": 0, "maximum": 300 },
+              "responseSeconds": { "type": "integer", "minimum": 1, "maximum": 1800 }
+            }
+          }
+        }
+      }
+    },
+
+    "scoringProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rawToBand"],
+      "properties": {
+        "rawToBand": {
+          "description": "Raw score to band, per section. Attached to the exam version rather than to code, because boundaries are equated per test version. H-4 (where VNI's tables come from) is open; the format supports them either way. Coverage of the full raw range is checked in code, not by this schema — an incomplete table silently produces wrong bands inside the gap.",
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "reading": { "$ref": "#/$defs/bandTable" },
+            "listening": { "$ref": "#/$defs/bandTable" }
+          }
+        },
+        "criterionWeights": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "writing": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "task1": { "type": "number", "minimum": 0 },
+                "task2": { "type": "number", "minimum": 0 }
+              }
+            }
+          }
+        },
+        "answerMatching": { "$ref": "#/$defs/answerMatching" }
+      }
+    },
+
+    "bandTable": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["minRaw", "band"],
+        "properties": {
+          "minRaw": { "type": "integer", "minimum": 0, "maximum": 40 },
+          "band": { "$ref": "#/$defs/band" }
+        }
+      }
+    },
+
+    "answerMatching": {
+      "description": "Answer-key comparison is a common source of unfair marking, so the rules are configuration rather than code. Spelling tolerance defaults to off because IELTS penalises misspelling.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "caseSensitive": { "type": "boolean", "default": false },
+        "trimWhitespace": { "type": "boolean", "default": true },
+        "collapseInnerWhitespace": { "type": "boolean", "default": true },
+        "allowSpellingVariants": { "type": "boolean", "default": false },
+        "numericEquivalence": {
+          "description": "Treats 1,000 and 1000 as the same answer.",
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["module", "order", "parts"],
+      "properties": {
+        "module": { "$ref": "#/$defs/module" },
+        "order": { "type": "integer", "minimum": 1 },
+        "parts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/part" } }
+      }
+    },
+
+    "part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["order", "kind"],
+      "properties": {
+        "order": { "type": "integer", "minimum": 1 },
+        "kind": { "enum": ["passage", "recording", "task", "speaking-part"] },
+        "title": { "type": "string", "maxLength": 300 },
+        "body": {
+          "description": "Passage text or task prompt. Rendered in every client, so it is untrusted content: sanitise on render, never on store, and never through dangerouslySetInnerHTML. Threat T17.",
+          "type": "string"
+        },
+        "audio": { "$ref": "#/$defs/assetRef" },
+        "image": { "$ref": "#/$defs/assetRef" },
+        "transcript": { "type": "string" },
+        "taskNumber": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "partNumber": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "cueCard": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["topic"],
+          "properties": {
+            "topic": { "type": "string", "minLength": 1 },
+            "bullets": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "constraints": { "$ref": "#/$defs/constraints" },
+        "rubricRef": { "type": "string" },
+        "questions": { "type": "array", "items": { "$ref": "#/$defs/question" } }
+      }
+    },
+
+    "assetRef": {
+      "description": "A relative path inside the package. Never a URL, and never used as a storage key — object keys are server-generated so a client-supplied filename cannot influence where a file lands.",
+      "type": "string",
+      "pattern": "^assets/[A-Za-z0-9._\\-/]+$",
+      "maxLength": 300
+    },
+
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxWords": {
+          "description": "NO MORE THAN TWO WORDS. An over-length answer is marked wrong, so this is a scoring rule and must be exact.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "minWords": { "type": "integer", "minimum": 1, "maximum": 1000 }
+      }
+    },
+
+    "question": {
+      "type": "object",
+      "required": ["id", "order", "type"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9\\-]{0,63}$" },
+        "order": { "type": "integer", "minimum": 1 },
+        "type": {
+          "description": "The frozen MVP taxonomy. Each type is five surfaces: an authoring editor, a learner renderer, an answer-key shape, a validator, and a scoring rule. Adding one is a minor version bump; changing one after its editor exists is not cheap.",
+          "enum": [
+            "multiple-choice",
+            "multiple-select",
+            "true-false-notgiven",
+            "yes-no-notgiven",
+            "matching",
+            "completion",
+            "short-answer",
+            "labelling",
+            "essay-task",
+            "speaking-response"
+          ]
+        },
+        "prompt": { "type": "string" },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "text"],
+            "properties": {
+              "key": { "type": "string", "minLength": 1, "maxLength": 8 },
+              "text": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "constraints": { "$ref": "#/$defs/constraints" },
+        "answerKey": { "$ref": "#/$defs/answerKey" }
+      },
+
+      "allOf": [
+        {
+          "description": "Auto-scored types must carry an answer key. Without this a question silently scores zero for everyone, which looks like a hard question rather than a broken import.",
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "multiple-choice",
+                  "multiple-select",
+                  "true-false-notgiven",
+                  "yes-no-notgiven",
+                  "matching",
+                  "completion",
+                  "short-answer",
+                  "labelling"
+                ]
+              }
+            }
+          },
+          "then": { "required": ["answerKey"] }
+        },
+        {
+          "description": "AI-evaluated types must NOT carry one. An answer key here would imply a deterministic path that does not exist.",
+          "if": { "properties": { "type": { "enum": ["essay-task", "speaking-response"] } } },
+          "then": { "not": { "required": ["answerKey"] } }
+        },
+        {
+          "description": "A choice question needs options to choose from.",
+          "if": { "properties": { "type": { "enum": ["multiple-choice", "multiple-select"] } } },
+          "then": { "required": ["options"] }
+        }
+      ]
+    },
+
+    "answerKey": {
+      "description": "Never sent to the client before scoring. If a client can score locally the exam is unscoreable. Threat T7.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["accepted"],
+      "properties": {
+        "accepted": {
+          "description": "Any accepted answer. A string for a single value; an array of strings for multiple-select, where every member must be present; an object for matching pairs.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              { "type": "string", "minLength": 1 },
+              { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["left", "right"],
+                "properties": {
+                  "left": { "type": "string", "minLength": 1 },
+                  "right": { "type": "string", "minLength": 1 }
+                }
+              }
+            ]
+          }
+        },
+        "matchingOverrides": { "$ref": "#/$defs/answerMatching" }
+      }
+    }
+  }
+}

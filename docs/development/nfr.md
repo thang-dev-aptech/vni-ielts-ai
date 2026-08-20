@@ -13,12 +13,12 @@ Requirement §12, with **MVP** and **future scale** deliberately separated. Requ
 | Concurrent exam sessions | `[ASSUMPTION]` low hundreds | Thousands |
 | Approach | Stateless API, scale horizontally | Same, plus read replicas |
 | Workers | Scale **independently** of the API | Autoscale on queue depth |
-| Database | Single MongoDB **node** — see the transaction caveat below | Replica set → PostgreSQL with replicas |
+| Database | Single MongoDB node, **configured as a replica set (`rs0`)** — see below | Multi-node replica set → PostgreSQL with replicas |
 | Storage | Object storage from day one | CDN for exam assets |
 
 **API and worker scale separately.** This is the main reason they are separate processes: a burst of Speaking submissions needs more workers, not more API instances.
 
-> `[OPEN QUESTION]` **H-10 — "single instance" needs qualifying.** MongoDB supports multi-document transactions **only on a replica set**, and token deduction plus session creation must be atomic or a retry debits twice (threat `T22`).
+> **`H-10` RESOLVED 2026-08-20 → [ADR-0011](../decisions/0011-mongodb-single-node-replica-set.md).** The "single instance" wording above is superseded: one *node*, but configured as a replica set. Original reasoning retained below. MongoDB supports multi-document transactions **only on a replica set**, and token deduction plus session creation must be atomic or a retry debits twice (threat `T22`).
 >
 > A **single-node replica set** costs essentially nothing — one process, one configuration flag — and makes transactions available. Recommendation: run one from development onward, *and* design token deduction as a single atomic ledger update so it does not depend on the transaction either way. → [`../database/strategy-mongodb-to-postgresql.md`](../database/strategy-mongodb-to-postgresql.md)
 

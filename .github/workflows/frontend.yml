@@ -1,0 +1,70 @@
+name: Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      [
+        'apps/**',
+        'packages/**',
+        'plugins/**',
+        'package.json',
+        'pnpm-*.yaml',
+        '.github/workflows/frontend.yml',
+      ]
+  pull_request:
+    paths:
+      [
+        'apps/**',
+        'packages/**',
+        'plugins/**',
+        'package.json',
+        'pnpm-*.yaml',
+        '.github/workflows/frontend.yml',
+      ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      # packages/api-client is generated from contracts/openapi. A hand edit
+      # there is a build failure, not a patch — four first-party clients stay
+      # type-safe against one source only if the generator is the sole author.
+      - name: Generated client is not hand-edited
+        run: |
+          if git ls-files --error-unmatch packages/api-client/src/generated >/dev/null 2>&1; then
+            echo "::error::packages/api-client/src/generated is tracked in git."
+            echo "It is generated from contracts/openapi and must stay untracked."
+            exit 1
+          fi
+          echo "OK — generated output is not tracked."

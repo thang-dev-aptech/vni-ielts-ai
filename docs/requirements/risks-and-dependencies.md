@@ -58,7 +58,7 @@ Student voice recordings are personal data, and voice is a strong biometric iden
 
 ## R3 · Mobile audio capture failure in WebView
 
-**Severity: High · Likelihood: Certain if unmitigated · Owner: Engineering · Status: Mitigated by design**
+**Severity: High · Likelihood: Certain if unmitigated · Owner: Engineering · Status: Mitigation designed (ADR-0006 accepted) — not built, device validation blocked on Xcode**
 
 Capacitor runs the app in a WebView. WebView audio capture on iOS has documented behaviour that is disqualifying for a timed speaking exam:
 
@@ -122,7 +122,7 @@ Learner writing and speech transcripts are fed to an LLM. A learner can write *"
 
 ## R8 · Client-side exam timer manipulation
 
-**Severity: Medium · Likelihood: High · Owner: Engineering · Status: Mitigated by design**
+**Severity: Medium · Likelihood: High · Owner: Engineering · Status: Mitigation designed (ADR-0007 accepted) — not built**
 
 A client-controlled timer can be paused, reset, or rewound by anyone with developer tools.
 
@@ -142,13 +142,103 @@ Two symmetric failure modes. Migrating before the domain model stabilises means 
 
 ---
 
-## R10 · iOS build capability is not provisioned
+## R10 · iOS build capability is not provisioned ✅ procurement resolved 2026-08-20
 
-**Severity: Medium · Likelihood: Certain · Owner: Product / IT**
+**Severity: Low (was Medium) · Owner: Product / IT · Status: procured, setup outstanding**
 
-Xcode is not installed on the development machine (Command Line Tools only), so iOS builds, simulator testing, and device testing are all currently impossible. This also blocks device validation of R3's mitigation — the single highest-risk technical assumption in the product.
+**Resolved:** the product owner confirmed on 2026-08-20 that **Xcode and an Apple Developer account
+are procured**. This closes the expensive, slow half — the half that required a purchase order and
+an approval wait — and converts native-audio validation from *blocked* to *startable*.
 
-**Mitigation:** provision a full Xcode install and an Apple Developer account before Phase 9. Validate native audio capture on physical devices as early as possible, ideally during Phase 4 rather than Phase 9.
+**What the procurement did and did not buy.** It did not remove a step from the Speaking dependency
+chain; it removed a **serialisation constraint**. Device validation was previously the tail of a
+chain that could not begin until procurement cleared. It is now parallel work.
+
+**Outstanding, and each is hours rather than weeks:**
+
+| Item | State, verified by inspection 2026-08-20 |
+|---|---|
+| Xcode on the build machine | ❌ `xcode-select -p` returns `/Library/Developer/CommandLineTools`. No `xcodebuild`, no `simctl`. Swift 6.2.3 compiles from CLT, but an iOS app cannot be built |
+| CocoaPods | ❌ Absent. Likely irrelevant — Capacitor 8 defaults to SPM for new iOS projects — but confirm against the chosen audio plugin's distribution rather than assuming |
+| **Physical iOS and Android devices** | ❓ Unconfirmed, and **required**. A simulator cannot answer `V-1`, `V-6`, or `V-7`: each is about real-hardware behaviour — microphone state after `applicationDidEnterBackground` with the device locked, an interruption raised by a genuine incoming call, and a real input level from a real microphone |
+
+**The obligation survives the procurement.** `F-1` made Speaking committed scope, so if device
+validation still does not happen, the mobile phase begins with an unvalidated assumption about the
+riskiest component in the product — at the point where fixing it is most expensive, and where the
+fix would reopen a scope decision rather than a technical one. Procurement removed the excuse, not
+the work. → `R14`
+
+---
+
+## R14 · Android build capability is not provisioned
+
+**Severity: Medium · Likelihood: Certain · Owner: IT · Raised 2026-08-20**
+
+**Android Studio and the Android SDK are not installed** and `ANDROID_HOME` is unset, verified by
+inspection. Java 21.0.8 is present. This was previously recorded in
+[`../architecture/client-architecture.md`](../architecture/client-architecture.md) only as
+*"Android Studio/SDK presence not verified"*; it is now verified absent.
+
+Android is **half** of the native-audio validation work, and it is not the easy half to skip:
+
+- [ADR-0006](../decisions/0006-speaking-audio-capture-native-plugin.md) requires validating Android
+  `AudioManager` audio-focus handling, which is a different mechanism from iOS `AVAudioSession`
+  interruption events — evidence from one platform is not evidence for the other.
+- The backend must accept **both** `audio/m4a` (AAC, iOS) and `audio/webm` (Opus, Android). The
+  platforms genuinely differ, and that divergence has to be exercised, not assumed.
+
+**Mitigation:** install Android Studio and the SDK alongside the outstanding Xcode setup in `R10`,
+and obtain a physical Android device. Cheap, and currently untracked — which is the actual risk
+here: attention went to the iOS blocker while this one sat unnoticed.
+
+---
+
+## R15 · A shadowing mongod silently defeated the replica-set requirement ✅ guarded 2026-08-20
+
+**Severity: was High · Likelihood: Certain · Owner: Engineering · Status: structurally guarded**
+
+**What happened.** On the first day of implementation the API connected to a Homebrew
+`mongodb-community@7.0` running since 2026-08-06 and bound to `127.0.0.1:27017`, rather than to the
+project's container. Docker binds `0.0.0.0`; the Homebrew daemon binds the more specific
+`127.0.0.1`; `localhost` resolves to the latter.
+
+**Why it was dangerous rather than merely annoying.** Everything worked. Registration, login,
+refresh rotation and refresh-token reuse detection all passed end to end — against a **standalone
+node with no transaction support at all** (`NoReplicationEnabled`). Nothing would have failed until
+token deduction met the retry concurrency mobile clients generate by design, at which point a learner
+is debited twice (`T22`). This is [ADR-0011](../decisions/0011-mongodb-single-node-replica-set.md)'s
+central warning arriving in practice within hours of the first commit.
+
+A contributing mistake was ours: the development connection string carried `directConnection=true`,
+which tells the driver to skip topology discovery — the very step that would have reported the node
+was not a replica set.
+
+**Three fixes, in increasing order of durability:**
+
+| | Fix | Durability |
+|---|---|---|
+| 1 | Container mapped to host port **27018**, avoiding the contested port entirely | Local only |
+| 2 | Development connection string points at 27018 | Local only |
+| 3 | **A startup guard that refuses to boot against a node without `setName`** | **The real fix** |
+
+Fix 3 is what matters. It runs `hello` during initialisation and throws with a diagnostic naming the
+port, the likely cause, and the `lsof` command to confirm it. A configuration mistake that only
+surfaces in production is not one you catch by being careful, so it is a boot failure — the same
+reasoning as the JWT signing-key guard. Verified by pointing the API deliberately at the standalone
+node and confirming it refuses to start.
+
+> **A note on `directConnection=true`, which is back in the development connection string.** The
+> single-node replica set advertises itself as `localhost:27017` — its address *inside* the
+> container — so a driver doing topology discovery from the host dials that and lands back on the
+> Homebrew daemon. `directConnection` is the correct answer for a remapped single-node set, and it
+> is safe here only *because* the guard exists: `hello` still reports `setName` on a direct
+> connection, so the check is unaffected.
+
+**This is `R11`'s pattern, not a new one.** A shadowing installation reporting success while the
+intended one sits unused. It has now occurred twice on this machine with two different tools, and a
+third instance surfaced during the same session: the host `mongosh` is broken because Node 25.2.1 is
+missing `libsimdjson`. **Treat "it works on my machine" as unverified until the *identity* of the
+thing serving the request is confirmed, not merely its response.**
 
 ---
 
@@ -240,6 +330,6 @@ This matters more than it looks for a documentation repository. The conventions 
 | Exam content source | Phase 5/6 | Product | Undecided |
 | Band conversion tables | Phase 6 | Product | Undecided |
 | Object storage account | Phase 4 | Product / IT | Not provisioned — vendor blocked on `B-11` (data residency) |
-| **Version control for this repository** | **Now** | Engineering | **Not in place — R13** |
+| Version control for this repository | Done | Engineering | In place since 2026-08-20 — R13 resolved |
 | Data residency decision (`B-11`) | Phase 4 | Product / Legal | Undecided — constrains hosting and storage |
 | Token charging policy (`B-5`) | Phase 6 | Product | Undecided — blocks entitlement logic |

@@ -460,10 +460,10 @@ Màn này nguy hiểm theo một kiểu riêng: nó hấp dẫn tới mức ngư
 | Vòng đời dữ liệu | Thời hạn giữ audio · thời hạn giữ audit | Audio: `[ASSUMPTION]` M-2, 90 ngày |
 | Hạn mức nhập gói | Các ngưỡng ZIP | Sửa được nhưng **không hiển thị ra thông điệp lỗi** |
 | Cờ tính năng | Bật/tắt drill, dictation, thông báo | Chờ M-12 · M-13 · M-14 |
-| Nhà cung cấp AI | Chọn provider, giới hạn tốc độ | **Khoá cho tới khi B-1 được chốt**. Màn hiện trạng thái "chưa chọn", không hiện ô nhập khoá API |
+| Nhà cung cấp AI | Provider, giới hạn tốc độ | **B-1 đã chốt LLM 20/08/2026 — GPT + Gemini**; STT còn mở (M-26). Màn hiện provider ở dạng **chỉ đọc**, không hiện ô nhập khoá API |
 
-Ô nhập khoá API **không được dựng**, kể cả dạng giả lập trong demo. Không có khoá AI provider nào được
-đưa vào repo này cho tới khi chủ sản phẩm chọn nhà cung cấp.
+Ô nhập khoá API **không được dựng**, kể cả dạng giả lập trong demo. Khoá AI provider không bao giờ
+nằm trong repo này — chỉ trong cấu hình môi trường (CLAUDE.md quy tắc 6).
 
 Mọi thay đổi cấu hình ghi audit kèm giá trị trước và sau.
 

@@ -11,15 +11,25 @@ Targets: End-user Web · Android · iOS · Admin CMS · central Backend API.
 
 ## Current phase
 
-**Phase 1 — UI/UX.** Phase 0 (research and foundation) is complete. The application is **not** being built yet.
+**Phase 4 — implementation, foundation stage.** The **requirement freeze happened on 2026-08-20** (`F-1`…`F-5` in [`docs/requirements/confirmed.md`](docs/requirements/confirmed.md)), which lifted the no-application-code rule.
 
-The sequence is: UI/UX prototype → product review → **requirement freeze** → technical specification → implementation.
+**The freeze was partial, and the distinction governs what may be built.** It settled *scope* — Speaking AI scoring, AI Chat, AI-assisted parsing, live token spending, and in-place CMS authoring are all in the first release. It did **not** settle the rules inside them: token amounts (`B-5a`/`B-5b`), chat scope (`B-6a`), parse accuracy (`B-7b`), Speaking depth (`H-3`) are all still open.
 
-Until requirements are frozen, do not write application code, schemas, or migrations. Produce research, decisions, and specifications instead. See [`docs/development/roadmap.md`](docs/development/roadmap.md).
+> **An unresolved policy becomes a configured seam with a null implementation — never an invented default** (`G-11`). Build the ledger without prices. Build the entitlement check without a charging rule. Bind the Writing criterion set from configuration rather than hard-coding `H-8`'s assumed four.
+
+**Three things still block broadly, and one of them blocks Phase 1 work that was never finished:**
+
+| Blocker | Blocks |
+|---|---|
+| `B-2` PDPL cross-border position | Production launch of every AI capability |
+| `B-8` adjudicate the UI/UX review | Task `T2` (screen inventory) → the question-type taxonomy → **every learner exam screen and the CMS authoring editor** |
+| `H-1` Speaking — one session or three submissions? | The shape of `SectionAttempt`, a core entity of the exam engine |
+
+Do not build the Reading, Listening, Writing, Speaking or Results screens, the CMS authoring editor, or any AI adapter until the blocker above it clears. See [`docs/development/next-actions.md`](docs/development/next-actions.md).
 
 A clickable HTML prototype lives **outside this repository** at `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — `client/` (21 learner screens) and `admin/` (14 CMS screens), written as plain HTML/CSS/JavaScript. Google Stitch was evaluated and dropped.
 
-> **No application source code exists.** An architecture document is not evidence of implementation, and an ADR is not evidence of a business requirement. → [`docs/README.md` § Documented is not implemented](docs/README.md)
+> **Most of this product is still unbuilt.** Foundation scaffolding exists as of 2026-08-20 — monorepo, backend solution with the persistence-boundary tests, design system, local infrastructure. No domain logic, no endpoints, no screens. An architecture document is not evidence of implementation, and an ADR is not evidence of a business requirement. → [`docs/README.md` § Documented is not implemented](docs/README.md)
 
 ## ▶ Start here: the task queue
 
@@ -126,9 +136,22 @@ docs/          Canonical source of truth (research, architecture, decisions)
 .claude/       Agents, commands, project skills, hooks
 .cursor/       Editor-time coding conventions
 assets/brand/  Logo and brand colour constraints
+
+apps/web/      Learner app — Web, and the Capacitor source for Android and iOS
+apps/admin/    Admin CMS — web only, never bundled into a mobile binary
+packages/      design-system · types · config  (ui, api-client reserved)
+plugins/       Native Capacitor plugins — audio capture, per ADR-0006
+backend/       .NET 10 solution: Domain · Application · Infrastructure · Api · Worker
+contracts/     OpenAPI spec and JSON Schemas — shared by backend, both clients, CI
+fixtures/      Hostile ZIP packages and recorded AI responses, kept per docs/security
+infra/docker/  Local stack: MongoDB rs0 + MinIO
 ```
 
-No application source directories exist yet. That is intentional.
+**There is no `apps/mobile`, and that is deliberate.** iOS and Android are Capacitor targets of `apps/web` ([ADR-0002](docs/decisions/0002-client-capacitor-react.md)). A third codebase would fork the exam UI, which is the surface where divergence is most expensive.
+
+`apps/web` and `apps/admin` share tokens, primitives, and the API client. They do **not** share screens — learner UI runs at `comfortable` density, the CMS at `compact`. Divergent layouts are expected; divergent colours, type scale, spacing units, or API types are a defect.
+
+`packages/api-client` is **generated** from `contracts/openapi`. A hand edit there is a build failure, not a patch.
 
 **Under version control since 2026-08-20**, pushed to a private GitHub repository. Two deletions before that were permanent — 191 files on 2026-08-18 and 4 on 2026-08-20. → risk `R13` in [`docs/requirements/risks-and-dependencies.md`](docs/requirements/risks-and-dependencies.md)
 

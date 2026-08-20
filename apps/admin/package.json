@@ -1,0 +1,27 @@
+{
+  "name": "@vni/admin",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Admin CMS — web only, never bundled into a mobile binary",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vni/design-system": "workspace:*",
+    "@vni/types": "workspace:*",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.1",
+    "@vitejs/plugin-react": "5.0.4",
+    "@vni/config": "workspace:*",
+    "typescript": "5.9.2",
+    "vite": "7.1.9"
+  }
+}

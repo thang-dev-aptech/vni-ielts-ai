@@ -93,7 +93,7 @@ Sources: [Apple Developer Forums — WKWebView microphone muted in background](h
 
 ### Mitigation — mandatory
 
-**Speaking capture is implemented as a native Capacitor plugin. The WebView `MediaRecorder` API is never used for exam recording.** ([ADR-0006](../decisions/0006-speaking-audio-capture-native-plugin.md))
+**Speaking capture must be implemented as a native Capacitor plugin. The WebView `MediaRecorder` API must never be used for exam recording.** ([ADR-0006](../decisions/0006-speaking-audio-capture-native-plugin.md)) Nothing is built yet — this is the accepted decision, not a description of running code.
 
 Verified capabilities available in existing plugins:
 

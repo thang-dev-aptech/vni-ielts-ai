@@ -22,7 +22,7 @@ Four sources. Two are easy to mistake for safe:
 
 **Never write a credential file.** No `.env`, `.pem`, `.key`, `credentials.json`, or any real secret value in this repository. Write a `.example` file and keep real values in the environment.
 
-**No AI provider credentials at all** until the owner selects a provider — the Claude API is excluded by owner decision. A PreToolUse hook blocks these writes; do not work around it.
+**No AI provider credentials in this repository — ever.** Providers were selected 2026-08-20 (GPT + Gemini; the Claude API is excluded); keys live in environment configuration only, and testing routes through a third-party `baseURL` reseller carrying **synthetic data only**. A PreToolUse hook blocks these writes; do not work around it.
 
 ## Untrusted input
 

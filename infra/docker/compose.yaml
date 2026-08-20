@@ -1,0 +1,106 @@
+# Local development stack.
+#
+# Mongo runs as a SINGLE-NODE REPLICA SET (rs0), not a standalone node.
+#
+# This is remedy (a) for H-10. nfr.md specifies a "single MongoDB instance",
+# but MongoDB supports multi-document transactions only on a replica set — and
+# debiting the token ledger while creating an exam session must be atomic or an
+# aggressive mobile retry debits twice (threat T22).
+#
+# The trap is that on a standalone node the code WORKS in development. The
+# failure only appears under retry concurrency, which mobile clients generate
+# by design. Running rs0 everywhere costs one process and one flag, and makes
+# transactions behave identically in every environment.
+#
+# Remedy (b) — designing deduction as one atomic update on a single ledger
+# document — is a code decision and is done regardless. Both, not either.
+#
+# → docs/database/strategy-mongodb-to-postgresql.md § H-10
+
+name: vni-ielts
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: vni-mongo
+    command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '27017']
+    ports:
+      # 27018 on the HOST, not 27017.
+      #
+      # A Homebrew mongodb-community was found bound to 127.0.0.1:27017 on this
+      # machine (running since 6 Aug). Docker binds 0.0.0.0, and 127.0.0.1 is
+      # the more specific match, so `localhost:27017` silently resolved to the
+      # Homebrew standalone instead of this container.
+      #
+      # Everything appeared to work — register, login, refresh rotation, reuse
+      # detection all passed against it. But a standalone node has no
+      # transactions, so token deduction would have been non-atomic in
+      # production and the failure would only have shown up under the retry
+      # concurrency mobile clients generate by design.
+      #
+      # This is trap T2 from the master plan, and the same shadowing pattern as
+      # R11. The port move avoids the collision; the startup guard in
+      # DependencyInjection.InitialiseInfrastructureAsync is what actually
+      # prevents a recurrence. → R15
+      - '27018:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # Initiates the replica set on first run, then reports healthy once a
+      # PRIMARY has been elected. Idempotent: re-running rs.initiate() on an
+      # already-initiated set throws, which the catch swallows.
+      test: >
+        mongosh --quiet --eval "
+          try { rs.status().ok } catch (e) {
+            rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}).ok
+          }
+        "
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+
+  minio:
+    image: minio/minio:latest
+    container_name: vni-minio
+    command: server /data --console-address ":9001"
+    environment:
+      # Local development only. Real credentials never enter this repository
+      # and never enter a compose file. → CLAUDE.md rule 6
+      MINIO_ROOT_USER: vni-local
+      MINIO_ROOT_PASSWORD: vni-local-dev-only
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Creates the buckets the application expects. Layout is BY RETENTION CLASS,
+  # not by content type: PDPL storage limitation and data-subject deletion both
+  # have to reach object storage, and a retention-shaped layout makes deletion
+  # a policy on a prefix rather than a scan.
+  # → docs/architecture/system-architecture.md § Object storage
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 vni-local vni-local-dev-only &&
+      mc mb --ignore-existing local/vni-audio-90d &&
+      mc mb --ignore-existing local/vni-artifacts-2y &&
+      mc mb --ignore-existing local/vni-exam-assets &&
+      mc mb --ignore-existing local/vni-documents &&
+      mc mb --ignore-existing local/vni-packages &&
+      echo 'buckets ready'
+      "
+
+volumes:
+  mongo-data:
+  minio-data:

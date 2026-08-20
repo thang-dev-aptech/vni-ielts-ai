@@ -1,6 +1,6 @@
 name: Documentation checks
 
-# This repository is documentation-only, so the documentation *is* the product.
+# The documentation is canonical for this project, so it is gated like code.
 # These checks encode the conventions in docs/README.md — broken links, status
 # qualifiers, CONFIRMED rows without a Source, duplicated canonical definitions,
 # committed secrets — so they are enforced rather than remembered.

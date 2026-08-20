@@ -97,6 +97,43 @@ An internal token currency. The concepts are confirmed; **no amounts and no char
 
 > **T-2 carries a known platform limitation.** No target platform reports share completion ([ADR-0009](../decisions/0009-share-gating-not-verifiable.md)). The business intent is confirmed; how a share is verified is not. Do not resolve this by dropping the feature — that is the owner's call. → `M-27`
 
+## Requirement freeze — scope decisions, 2026-08-20
+
+The product owner declared the requirement freeze on 2026-08-20 and made five scope calls in the
+same session. They settle **whether a capability is in the first release**. They do **not** settle
+the rules inside it — where a rule is still open, the row names the decision that carries it.
+
+> **This distinction is the `M-27` pattern and it matters.** "Speaking is AI-scored" is a scope
+> statement; "Speaking is scored at depth level B against four criteria" is a rule, and nobody has
+> said it. Reading a scope decision as though it answered the rules is how invented business logic
+> gets into a codebase.
+
+| ID | Decision | Status | Source |
+|---|---|---|---|
+| F-1 | **Speaking is AI-scored and is in the first release.** Closes the scope half of `M-26`; supersedes the `UNCONFIRMED` on `A-14` | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
+| F-2 | **AI Chat is in the first release.** Closes `B-6f` | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
+| F-3 | **AI-assisted exam parsing is in the first release.** `I-15a` was already confirmed; this sets its timing | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
+| F-4 | **Token spending is live in the first release** — the ledger is not built dormant. Confirms `T-3` operates at launch | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
+| F-5 | **The CMS authors and edits exam content in place.** Closes `M-16` toward the authoring branch, and answers `H-2`: VNI authors its own content | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
+
+### What each one leaves open
+
+| Decision | Still unresolved inside it |
+|---|---|
+| F-1 Speaking | `H-3` evaluation depth · `M-5` part delivery model · `M-6` interruption response window · `M-7` re-record policy · `H-1` **one continuous session or three separately-submitted parts** · `V-10` ASR selection |
+| F-2 AI Chat | `B-6a` scope · `B-6b` provider · `B-6c` token cost · `B-6d` retention · `B-6e` PDPL position |
+| F-3 AI Parse | `B-7a` input/output scope · `B-7b` accuracy threshold · `B-7c` failure ownership · `B-9` mandatory admin review |
+| F-4 Token | `B-5a` which operations are charged · `B-5b` amounts · `M-27` share verification · `M-21` admin adjustment |
+| F-5 CMS authoring | The authoring screen group has **no UX specification** — [`../ux/cms-spec.md`](../ux/cms-spec.md) specifies 29 screens and none of them is an editor, because it was written while `M-16` was open |
+
+> **`H-1`'s Speaking sub-question is now structural.** Whether Speaking is one continuous session or
+> three separately-submitted parts decides the shape of `SectionAttempt` itself — one attempt with
+> internal part timings, or three attempts with three deadlines and three upload lifecycles. While
+> Speaking was `UNCONFIRMED` this was a deferrable detail. F-1 makes it a blocking modelling
+> decision. → [`assumptions-and-open-questions.md`](assumptions-and-open-questions.md) `H-1`
+
+---
+
 ## Authentication
 
 | ID | Requirement |

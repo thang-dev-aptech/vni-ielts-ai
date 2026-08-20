@@ -12,9 +12,11 @@ Session mới chỉ cần đọc file này. Mọi thứ cần biết đều nằ
 
 | | |
 |---|---|
-| Phase hiện tại | **Phase 1 — UI/UX** |
-| Task đang mở | **T2 · Danh sách màn + luồng nghiệp vụ** — chủ sản phẩm chỉ định 20/08/2026 |
-| Task đã xong | **T0 · Chuẩn hóa tài liệu + rà soát stack** (20/08) · **T1 · `DESIGN.md`** (20/08 — hướng **C · Thẻ mềm** đã chốt) |
+| Phase hiện tại | **Phase 4 — Nền tảng triển khai** (Phase 2 chốt yêu cầu đã diễn ra 20/08/2026) |
+| Task đang mở | **T5 giai đoạn B · Engine thi qua API** — theo [ADR-0012](../decisions/0012-learner-first-sequencing.md) |
+| Task đã xong | **T4 · Stage 0 Foundation** (20/08) — monorepo, CI, design system, khung backend + test kiến trúc, Mongo `rs0`, auth slice S1 chạy end-to-end |
+| Task còn nợ từ Phase 1 | **T2 · Danh sách màn + luồng nghiệp vụ** — vẫn chưa xong, **chặn** mọi màn thi và Track A. Xem T2 bên dưới |
+| Task đã xong | **T0 · Chuẩn hóa tài liệu + rà soát stack** (20/08) · **T1 · `DESIGN.md`** (20/08 — hướng **C · Thẻ mềm** đã chốt) · **Final audit + đợt fix hậu audit** (20/08 — roadmap cập nhật theo brief 20/08; DESIGN.md về đúng chuẩn nguồn; quét sạch wording "B-1 chưa chốt" và "đã triển khai"; gate CONFIRMED-Source trong CI mở rộng toàn repo) |
 | **Rủi ro cho T2** | **`B-8`** — 22 đề xuất UI/UX chưa phán quyết, trong đó **8 cái đổi cấu trúc màn**. Xem cảnh báo trong T2 |
 | Chủ sản phẩm chỉ đạo làm trước | **Đặc tả CMS**: [`../ux/cms-spec.md`](../ux/cms-spec.md) (29 màn / 9 nhóm, trong đó 14 màn độc lập) |
 | Prototype học viên | **21 màn** trong `client/`. Thiếu hẳn: màn 11 · Lộ trình. Màn 13 · Trước khi bắt đầu được nhúng vào từng màn thi thay vì tách file — chấp nhận được |
@@ -216,7 +218,176 @@ trên mã đó. Chúng là số đo cho biết *vì sao* cần thang spacing, kh
 
 ---
 
-## T2 · Dựng lại danh sách màn và luồng — 🔄 đang mở
+## T5 · Hoàn thiện end-user — 🔄 đang mở
+
+**Thứ tự:** end-user trước, CMS sau → [ADR-0012](../decisions/0012-learner-first-sequencing.md).
+
+**Ràng buộc cứng:** nội dung đề nạp qua `contracts/schemas/exam.schema.json`, không phải object graph
+viết tay. Seeder, nhập ZIP, và soạn tại chỗ đều là *producer* của cùng một `ExamVersion` bản nháp qua
+**cùng một bộ kiểm**.
+
+**Quy tắc cổng — áp cho từng mục, không phải cuối task:**
+
+> Một mục chỉ đóng khi qua **cả bốn**: ① test xanh · ② **đọc lại code với con mắt tấn công**
+> · ③ **đo thứ đo được** (timing, giới hạn, hành vi đồng thời) · ④ **bắn thật vào API/UI đang chạy**.
+>
+> Hai vòng audit đầu tiên tìm được 12 rủi ro trên một codebase mà **100% test đang xanh**. Chín trong
+> số đó chỉ lộ ra ở bước ② và ③. "Test pass" chứng minh những gì người viết nghĩ ra để kiểm, không
+> chứng minh hệ thống an toàn.
+
+---
+
+### Giai đoạn A — Hoàn thiện end-user — ✅ **XONG 20/08/2026**
+
+Một người lạ mở web, tự đăng ký, xác minh, đăng nhập, đi lại, xem hồ sơ, đổi ngôn ngữ, đăng xuất —
+**không cần `curl`**. Đã tự đi hết vòng bằng trình duyệt, không chỉ đọc code.
+
+| # | Việc | Xong |
+|---|---|---|
+| A1 | `packages/ui` — Button · Field · Alert · Card · Spinner · EmptyState · ErrorState · PageHeader | ✅ |
+| A2 | i18n `vi`/`en` gõ kiểu chặt — thiếu một key ở một ngôn ngữ là **lỗi biên dịch** | ✅ |
+| A3 | React Router + guard cần-đăng-nhập / chỉ-khách | ✅ |
+| A4 | Màn đăng ký | ✅ |
+| A5 | Màn xác minh email | ✅ |
+| A6 | App shell — header, điều hướng, footer, skip-link | ✅ |
+| A7 | Trang chủ | ✅ |
+| A8 | Trang hồ sơ | ✅ |
+| A9 | 404 + ErrorBoundary | ✅ |
+| A10 | 31 test frontend (12 types · 12 ui · 7 luồng) | ✅ |
+
+#### Ba lỗi tìm ra trong lúc làm — đáng đọc trước khi viết màn mới
+
+**1 · Hai nguồn điều hướng đánh nhau.** `RequireAnonymous` chuyển hướng về trang chủ ngay khi trạng
+thái đổi, **đè lên** đích người dùng định vào. Ai mở link tới `/ho-so` khi chưa đăng nhập thì sau khi
+đăng nhập bị ném về trang chủ. Cách sửa **không** phải làm trang điều hướng nhanh hơn, mà là để **một
+chỗ** quyết định — hai nguồn sự thật về điều hướng luôn tạo cuộc đua mà kẻ thắng phụ thuộc thứ tự
+render. *Test bắt được.*
+
+**2 · Màn xác minh treo vĩnh viễn.** API trả 400 đúng, UI đứng ở "Đang xác minh…". StrictMode gọi
+effect hai lần: lần một bắn request rồi đặt `attempted.current`, cleanup đặt `cancelled = true`, lần
+hai thoát sớm — kết quả trả về bị vứt bỏ. **Test không bắt được** vì nó render `<App/>` trần trong khi
+`main.tsx` bọc StrictMode. *Môi trường test khác môi trường thật.* Test giờ render trong StrictMode.
+
+**3 · "VI" hiện hai lần** trên header — chỉ nhìn ảnh chụp mới thấy.
+
+> **Bài học chung:** ① test xanh · ② đọc lại với con mắt tấn công · ③ **đo** · ④ **bắn thật vào
+> UI/API đang chạy**. Lỗi 2 và 3 chỉ lộ ở bước ④.
+
+---
+
+### ~~Giai đoạn A (mô tả gốc)~~ — giữ để tra cứu
+
+**Mục tiêu:** một người lạ mở web lên, tự đăng ký, xác minh, đăng nhập, đi lại trong app, sửa hồ sơ,
+đăng xuất — **không cần `curl`, không cần ai hướng dẫn**.
+
+| # | Việc | Cổng cần qua |
+|---|---|---|
+| A1 | `packages/ui` — Button · Input · Card · Alert · Spinner · EmptyState · ErrorState · PageHeader | Mọi component dùng token, không hard-code màu/cỡ chữ |
+| A2 | **i18n** từ màn đầu tiên, `vi` + `en` | Không còn chuỗi hard-code; `M-4` chưa chốt nên phải là **cấu trúc**, không phải chọn ngôn ngữ |
+| A3 | **React Router** — tuyến công khai vs tuyến cần đăng nhập | Gõ thẳng URL khi chưa đăng nhập → chuyển hướng, **không nháy nội dung**; đăng nhập xong quay lại đúng trang định vào |
+| A4 | **Màn đăng ký** | Trùng email → 409 hiển thị đúng · mật khẩu yếu báo rõ · **retry mạng không tạo hai tài khoản** |
+| A5 | **Màn xác minh email** (đọc token từ query) | Token dùng lần hai → thông báo **giống hệt** token bịa |
+| A6 | **App shell**: header + điều hướng + footer, và **chrome riêng cho phiên thi** | Chrome phiên thi không có link thoát — là chuyện của tuyến, không phải render có điều kiện |
+| A7 | **Trang chủ** — lời chào, trạng thái xác minh, lối vào các mục | Mục chưa xây hiện **EmptyState trung thực**, không phải nút chết |
+| A8 | **Trang hồ sơ** — xem thông tin, đổi tên hiển thị, đăng xuất | Đổi tên xong `/me` phản ánh ngay |
+| A9 | **404 + ErrorBoundary** | Lỗi render không làm trắng màn |
+| A10 | **Test component + luồng** (vitest + testing-library) | Phủ: chuyển hướng, lỗi 409, replay, i18n |
+
+**Chưa làm ở giai đoạn A:** màn thi (chặn bởi `B-8`) · dictation/tài liệu/bài viết (cần backend nội dung) · CMS.
+
+### Giai đoạn B — Engine thi (API trước, màn hình sau)
+
+`B-8` chặn **màn thi**, không chặn **engine**. Phần dưới làm và kiểm chứng qua API được ngay.
+
+| # | Việc | Cổng cần qua |
+|---|---|---|
+| B1 | **Seeder** nạp `fixtures/exams/reading-demo.json` vào Mongo qua schema | Đề sai schema bị từ chối kèm JSON Pointer, không ghi gì vào DB |
+| B2 | Lưu trữ `ExamDefinition`/`ExamVersion` + `POST /exams`, `GET /exams/{id}` | Bản nháp **không** xuất hiện với học viên |
+| B3 | `POST /exams/{id}/sessions` — kiểm entitlement, tạo phiên | **Trừ token và tạo phiên phải nguyên tử**; retry 5 lần → một phiên, một lần trừ |
+| B4 | `PUT /sessions/{id}/answers/{qid}` với `revision` | Replay bản cũ **không** ghi đè bản mới |
+| B5 | `POST /sessions/{id}/next-section` | Không tham số nào cho client chọn skill; deadline mỗi section **tươi** |
+| B6 | `POST /sessions/{id}/submit` | Nộp trễ 1 giây → `409 SESSION_EXPIRED` |
+| B7 | Chấm R/L + `GET /results/{id}` | **Tắt hẳn provider AI, R/L vẫn ra band** — test hồi quy vĩnh viễn |
+
+### Giai đoạn C — Rủi ro đã biết, chưa đóng
+
+Ghi ra để không bị quên. Mỗi mục là một rủi ro thật, không phải "nice to have".
+
+| # | Rủi ro | Vì sao chưa đóng | Mức |
+|---|---|---|---|
+| C1 | **Không có khoá theo tài khoản khi đăng nhập sai nhiều lần** | Rate limit giờ nới lỏng có chủ ý (120/phút) để không khoá nhầm cả dải NAT — nên **credential stuffing nhắm một tài khoản không bị chặn**. Cần bộ đếm sai theo tài khoản ở tầng ứng dụng, nơi biết địa chỉ email | **CAO** — `T4`/`T5` |
+| C2 | Idempotency **đệm toàn bộ response trong RAM** | Không giới hạn kích thước. Response hiện nhỏ, nhưng một `ExamVersion` 40 câu thì không | TRUNG BÌNH |
+| C3 | **Không có test tự động cho middleware** | Idempotency, rate limit, `X-Server-Time` mới chỉ kiểm bằng `curl` tay. Refactor sẽ không ai bắt được | **CAO** |
+| C4 | **Chưa có nhà cung cấp email production** | Cơ chế token xong; phần gửi mới log ở DEV. API **từ chối khởi động ngoài Development** — có chủ ý | TRUNG BÌNH — chặn deploy |
+| C5 | Không ép HTTPS / HSTS | `nfr.md` yêu cầu từ MVP | TRUNG BÌNH |
+| C6 | Quyền nằm trong token → thu hồi trễ tới 15 phút | Đã cân nhắc và chấp nhận; đó là lý do access token ngắn. Ghi lại để không ai "tối ưu" thành 8 tiếng | THẤP — có chủ ý |
+| C7 | Chưa có `AuditEvent` | `C-12` yêu cầu | TRUNG BÌNH |
+| C8 | **Chưa test chịu tải và test bảo mật** | Cần endpoint engine thi tồn tại đã — bắn vào domain thuần sẽ đo sai thứ | Sau giai đoạn B |
+
+### Giai đoạn D — Sau khi B xong
+
+| # | Việc |
+|---|---|
+| D1 | **Test chịu tải**: phiên thi đồng thời, autosave dồn dập, nộp bài. Đối chiếu ngưỡng `nfr.md` |
+| D2 | **Test bảo mật**: IDOR trên phiên người khác · replay nộp bài · giả mạo deadline · rò rỉ answer key trước khi chấm · leo thang quyền |
+| D3 | Sinh OpenAPI + thay client viết tay bằng `packages/api-client` |
+| D4 | Màn thi R/L/W/S + Kết quả — **chỉ sau khi `B-8` được phán quyết** |
+
+### Không làm ở T5
+
+CMS (hoãn theo ADR-0012) · adapter AI (chờ spike `V-11`) · Speaking (chờ `H-1` + ASR `V-10`) · màn thi (chờ `B-8`).
+
+---
+
+## ~~T5 (bản cũ)~~ — thay bằng danh sách trên
+
+### Bản cũ, giữ để tra cứu
+
+
+**Quyết định thứ tự:** làm end-user trước, CMS sau → [ADR-0012](../decisions/0012-learner-first-sequencing.md).
+
+**Ràng buộc cứng, đây là lý do ADR tồn tại:** nội dung đề nạp vào **phải đi qua
+`contracts/schemas/exam.schema.json`**, không phải object graph viết tay. Seeder, nhập gói ZIP, và
+soạn tại chỗ trong CMS đều là *producer* của cùng một `ExamVersion` bản nháp qua **cùng một bộ kiểm**.
+Nạp bằng JSON tuỳ ý sẽ tái tạo đúng cái trôi lệch mà thứ tự cũ sinh ra để ngăn.
+
+**Definition of Done**
+- [ ] `contracts/schemas/exam.schema.json` — 10 loại câu hỏi, `rawToBand`, `timingProfile`, `answerMatching`
+- [ ] Seeder nạp đề **qua schema**, từ chối file không hợp lệ với finding có đường dẫn JSON Pointer
+- [ ] Domain: `ExamDefinition` · `ExamVersion` · `Section` · `SectionPart` · `Question` · `AnswerKey` · `ScoringProfile` · `TimingProfile` — bất biến sau khi xuất bản
+- [ ] Phiên thi: `startedAt`/`deadlineAt` **suy ra từ đồng hồ server**, deadline riêng mỗi section, không bao giờ mang deadline cũ sang section sau
+- [ ] Lưu đáp án theo `revision`, nộp bài idempotent, quá hạn trả `409 SESSION_EXPIRED`
+- [ ] Chấm Reading/Listening theo answer key — **không có AI trong đường chấm**
+- [ ] Luật làm tròn band có **hàm riêng + test bảng** phủ `.25` và `.75`
+- [ ] Test chịu tải: phiên thi đồng thời, autosave, nộp bài
+- [ ] Test bảo mật: giả mạo đồng hồ, IDOR phiên thi, replay nộp bài, rò rỉ answer key
+
+**Chưa làm ở T5** — màn thi R/L/W/S + Kết quả (chặn bởi `B-8` → T2) · CMS (hoãn theo ADR-0012) · adapter AI (chờ `V-11`).
+
+---
+
+## T4 · Stage 0 — Nền tảng triển khai — ✅ xong 20/08/2026
+
+Chốt yêu cầu 20/08/2026 (`F-1`…`F-5`) mở khoá giai đoạn xây dựng. Master plan đầy đủ nằm ngoài repo;
+phần dưới là những gì **bắt đầu được ngay** và **chắc chắn không phải làm lại**.
+
+**Nguyên tắc chi phối:** chỉ dựng thứ không phụ thuộc vào quyết định còn mở. Chính sách chưa chốt thì
+làm thành **khe cắm có cấu hình với triển khai rỗng** — không bao giờ bịa giá trị mặc định (`G-11`).
+
+**Definition of Done**
+- [ ] Monorepo pnpm workspaces · Node 24 · .NET 10 · lint · format · test runner
+- [ ] `docker compose` chạy được: MongoDB **single-node replica set `rs0`** + MinIO
+- [ ] Khung backend 5 project + **test kiến trúc chặn `Domain`/`Application` tham chiếu Mongo hoặc vendor** — và phải **kiểm chứng test đó fail** khi cố tình vi phạm
+- [ ] `packages/design-system` sinh từ `DESIGN.md` hướng C — token màu, thang chữ sàn 14px, thang spacing 4px, ba lớp nền, hai chế độ mật độ
+- [ ] CI xanh trên solution rỗng, gồm cả `check-docs.py`
+- [ ] Ghi ADR cho `H-10` — `rs0` khắp nơi **và** trừ token bằng một cập nhật nguyên tử trên một document
+
+**Không làm ở T4** (còn chặn): màn thi Reading/Listening/Writing/Speaking/Kết quả (`B-8` → T2) ·
+trình soạn đề CMS (chưa chốt taxonomy, chưa có đặc tả màn) · adapter AI (chờ spike `V-11`).
+
+---
+
+## T2 · Dựng lại danh sách màn và luồng — 🔄 vẫn nợ, chặn Track A
 
 Bản cũ đã xoá 18/08. Cần dựng lại `screen-inventory.md` và `user-flows.md`.
 

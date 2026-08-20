@@ -1,95 +1,165 @@
 # VNI IELTS AI
 
-AI-powered IELTS examination and assessment platform for **VNI Education**.
+AI-powered IELTS examination and assessment platform for VNI Education.
+Learner Web · Android · iOS · Admin CMS · central Backend API.
 
-Learners take timed IELTS-style examinations across all four modules — Reading, Listening, Writing, Speaking — on Web, Android, and iOS, and receive AI-assisted evaluation with band scores and feedback. Administrators manage users, exams, and content through a web CMS, including bulk exam import.
-
----
-
-## Status: Phase 1 — UI/UX
-
-**The application is not being built yet.** This repository currently contains research, architecture decisions, and the AI-assisted development environment. There is no application source code, and that is intentional.
-
-The delivery sequence is:
-
-```
-Phase 0  Research & foundation          ✅ complete
-Phase 1  UI/UX prototype                ← you are here
-Phase 2  Product review → requirement freeze
-Phase 3  Technical specification
-Phase 4+ Implementation
-```
-
-A clickable HTML prototype exists **outside this repository** at `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — `client/` (21 learner screens) and `admin/` (14 CMS screens), written as plain HTML/CSS/JavaScript. Google Stitch was evaluated and dropped; see [`docs/development/next-actions.md`](docs/development/next-actions.md) T3.
-
-See [`docs/development/roadmap.md`](docs/development/roadmap.md) for the full phase breakdown.
+> **Read [`CLAUDE.md`](CLAUDE.md) first** — current phase and the eleven non-negotiable rules.
+> Canonical engineering knowledge is in [`docs/`](docs/README.md).
+> The work queue is [`docs/development/next-actions.md`](docs/development/next-actions.md).
 
 ---
 
-## Start here
+## What actually works today
 
-| If you want to… | Read |
+Verified end to end on 2026-08-20 by driving the running application, not by reading the code.
+
+| Capability | State |
 |---|---|
-| Understand the product and the hard problems | [`docs/product/executive-summary.md`](docs/product/executive-summary.md) |
-| Know what is actually decided vs. still open | [`docs/requirements/confirmed.md`](docs/requirements/confirmed.md) and [`assumptions-and-open-questions.md`](docs/requirements/assumptions-and-open-questions.md) |
-| Understand the system shape | [`docs/architecture/system-architecture.md`](docs/architecture/system-architecture.md) |
-| Understand the AI evaluation design | [`docs/ai/ai-architecture.md`](docs/ai/ai-architecture.md) |
-| See why a decision was made | [`docs/decisions/`](docs/decisions/) |
-| Work on this repo with Claude Code or Cursor | [`CLAUDE.md`](CLAUDE.md) and [`docs/development/ai-assisted-development.md`](docs/development/ai-assisted-development.md) |
+| Register from the web UI | ✅ |
+| Email verification — issue, redeem once, expire after 24h | ✅ *(no email provider yet — see below)* |
+| Sign in · sign out · session survives reload | ✅ |
+| Automatic token refresh, with **refresh-token reuse detection** | ✅ |
+| Routing, protected routes, deep-link return after sign-in | ✅ |
+| Vietnamese / English interface | ✅ |
+| Home · Profile · 404 · error boundary | ✅ |
+| Server-authoritative clock reconciliation (`X-Server-Time`) | ✅ |
+| Rate limiting · idempotency · request size caps · problem-details errors | ✅ |
+| Reading/Listening scoring, band tables, answer matching, session timing | ✅ **domain only — no HTTP endpoints yet** |
+| Exam screens · dictation · documents · articles · token · CMS | ❌ not built |
 
-Full documentation index: [`docs/README.md`](docs/README.md)
+**Nothing in the exam-taking UI exists.** It is blocked on `B-8` — a third-party UI/UX review
+carrying 22 proposals, 8 of which change the structure of the Reading, Listening, Writing, Speaking
+and Results screens. Building those screens before that adjudication means building them twice.
+
+### Two honest gaps
+
+**No production email sender.** The verification token mechanism is complete and tested; delivery is
+a port with only a development implementation that writes the link to the server log. **The API
+refuses to start outside `Development`** until a real provider is wired — the alternative is
+registering users who can never verify while the API reports that a message was sent.
+
+**106 backend tests and 31 frontend tests pass, and that is not the same as "no risks".** Two audit
+passes over a fully-green codebase found twelve real defects, nine of which no test would have
+caught. See [`docs/development/next-actions.md`](docs/development/next-actions.md) § Giai đoạn C for
+the ones still open.
 
 ---
 
-## Planned stack
+## Prerequisites
 
-| Layer | Technology | Notes |
+| Tool | Version | Note |
 |---|---|---|
-| Backend API | .NET 10 / ASP.NET Core | LTS until 2028-11-14 |
-| Clients | Capacitor 8 + React + TypeScript | One source → Web, Android, iOS, Admin CMS |
-| Speaking capture | Native Capacitor audio plugin | **Not** WebView `MediaRecorder` — see [ADR-0006](docs/decisions/0006-speaking-audio-capture-native-plugin.md) |
-| Database (Phase 1) | MongoDB 7 | Deliberately temporary while the domain model evolves |
-| Database (target) | PostgreSQL 16+ | Adopted after requirement freeze |
-| LLM evaluation | **GPT (OpenAI) + Gemini (Google)** | Selected 2026-08-20. Claude API excluded by owner decision |
-| Speech-to-text | **Undecided** | Only needed if Speaking stays in scope. Requires word-level timings |
+| Node | 24+ | `.nvmrc` pins the major |
+| pnpm | 10.15 | `corepack enable && corepack prepare pnpm@10.15.0 --activate` |
+| .NET SDK | 10.0.100 | `backend/global.json` pins it |
+| Docker | with Compose v2 | MongoDB and MinIO |
+| Python | 3.12 | documentation checks |
 
 ---
 
-## Local toolchain
+## Running it
 
-Verified present on the current development machine:
+Three terminals.
 
-| Tool | Version |
-|---|---|
-| .NET SDK | 10.0.100 |
-| Node.js / npm | 24.19.0 / 11.17.0 |
-| Python | 3.12.13 |
-| Docker | 27.3.1 |
-| MongoDB | 7.0.26 |
-| PostgreSQL | 16.11 |
-| Java (Temurin) | 21.0.8 |
-| git | 2.55.0 (Homebrew) |
+```bash
+# 1 · infrastructure — MongoDB (replica set) + MinIO
+pnpm install
+pnpm infra:up
 
-> A standalone git-scm.com install from 2017 was shadowing Homebrew's git via `/usr/local/bin/git`, so `git --version` reported 2.15.0 despite 2.55.0 being installed. Resolved with `brew link --overwrite git`. If a tool reports an unexpectedly old version, check `which -a <tool>` before reinstalling — see [`docs/requirements/risks-and-dependencies.md`](docs/requirements/risks-and-dependencies.md) R11.
+# 2 · API
+cd backend/src/Vni.Ielts.Api
+export Jwt__SigningKey="local-dev-only-signing-key-not-a-secret-32b+"
+dotnet run
 
-### Known gaps — provisioning required
+# 3 · learner web
+pnpm --filter @vni/web dev
+```
 
-- **Xcode is not installed** (Command Line Tools only). iOS builds and device testing are blocked until a full Xcode install and an Apple Developer account are provisioned. This is independent of the client framework choice — and it currently blocks validating the highest-risk technical assumption in the product (native audio capture).
-- **Android Studio / Android SDK** — not verified present. Java 21 is available, which is a prerequisite but not sufficient.
-- **No AI provider credentials.** Providers were selected 2026-08-20 (GPT + Gemini), but **no keys may ever be committed to this repository** — they live in environment configuration, and a PreToolUse hook enforces it. Testing runs through a third-party `baseURL` reseller and may carry **synthetic data only**. See [CLAUDE.md](CLAUDE.md) rule 6.
+Open **http://localhost:5173**.
+
+To register: fill the form, then read the verification link from **terminal 2** — it prints
+`Verification token for <address>: <token>`. Open
+`http://localhost:5173/xac-minh?token=<token>`.
+
+`pnpm infra:reset` drops the database volumes for a clean start.
+
+### The signing key
+
+`Jwt__SigningKey` is supplied through the environment and is **never committed** — the `.gitignore`
+blocks `.env*`, a PreToolUse hook blocks writes to it, and CI scans for credential-shaped strings.
+Any value of 32 bytes or more works locally. The API refuses to start without one, on purpose: a
+misconfigured key that only surfaces at first sign-in is a production incident, while one that
+refuses to boot is a deployment failure — the cheaper of the two.
 
 ---
 
-## Documentation conventions
+## Checks
 
-Unresolved items are tagged inline so nothing is decided silently:
+Everything CI runs, runnable locally:
 
-`[ASSUMPTION]` · `[OPEN QUESTION]` · `[NEEDS VALIDATION]` · `[TECHNICAL RISK]` · `[BUSINESS DECISION]`
+```bash
+python3 scripts/check-docs.py    # links, status taxonomy, CONFIRMED sources, secret scan
+pnpm format:check                # app code only — docs/ is hand-written and excluded
+pnpm typecheck
+pnpm test                        # 31 frontend tests
+pnpm build
 
-Items tagged `[BUSINESS DECISION]` require the product owner and are collected in [`docs/requirements/assumptions-and-open-questions.md`](docs/requirements/assumptions-and-open-questions.md).
+cd backend
+dotnet test tests/Vni.Ielts.Architecture.Tests   # the persistence boundary
+dotnet test                                       # 106 tests
+```
 
 ---
 
-## License
+## Four things to know before changing anything
 
-Proprietary — VNI Education. All rights reserved.
+**MongoDB runs as a single-node replica set (`rs0`) on host port 27018, not 27017.**
+Transactions require a replica set, and debiting the token ledger while creating an exam session must
+be atomic. Port 27018 avoids a collision found on the original development machine, where a Homebrew
+`mongod` on 27017 silently received every write for an afternoon — everything worked, on a node with
+no transaction support. The API now refuses to start against a non-replica-set node.
+→ [ADR-0011](docs/decisions/0011-mongodb-single-node-replica-set.md), risk `R15`
+
+**`Vni.Ielts.Domain` and `Vni.Ielts.Application` may not reference a storage driver or a vendor SDK.**
+The one strict boundary in the system, and what keeps the MongoDB→PostgreSQL migration a rewrite of a
+single project. Enforced by `backend/tests/Vni.Ielts.Architecture.Tests`, which fails the build by
+name. → [ADR-0004](docs/decisions/0004-persistence-abstraction-boundary.md)
+
+**Exam content is loaded through `contracts/schemas/exam.schema.json` and nothing else.**
+The seeder, the future ZIP importer, and future in-place CMS authoring are three producers of one
+draft `ExamVersion` through one validator. Loading ad-hoc JSON shaped for whatever renders
+conveniently reintroduces exactly the drift this ordering exists to prevent.
+→ [ADR-0012](docs/decisions/0012-learner-first-sequencing.md)
+
+**The overall-band rounding rule has its own function and its own table-driven test.**
+It is asymmetric — a mean ending in `.25` rounds up to the next half band, `.75` up to the next whole
+band — and `Math.Round` defaults to `MidpointRounding.ToEven`, which gets the `.25` case wrong.
+→ [`docs/domain/band-scoring.md`](docs/domain/band-scoring.md)
+
+---
+
+## Layout
+
+```
+apps/web        Learner app — Web, and the Capacitor source for Android and iOS
+apps/admin      Admin CMS — web only, deferred (ADR-0012)
+packages/       design-system · ui · types · config   (api-client reserved)
+plugins/        Native Capacitor plugins — audio capture per ADR-0006
+backend/        Domain · Application · Infrastructure · Api · Worker
+contracts/      JSON Schemas shared by backend, clients, and CI
+fixtures/       Demo exams, hostile ZIP packages, recorded AI responses
+infra/docker/   Local stack
+docs/           Canonical
+```
+
+There is deliberately no `apps/mobile` — iOS and Android are Capacitor targets of `apps/web`
+([ADR-0002](docs/decisions/0002-client-capacitor-react.md)).
+
+---
+
+## The prototype is not this repository
+
+A frozen clickable HTML prototype lives **outside** the repo at `../VNI IELTS AI Web design`. It is
+evidence of *what has been thought about and how it was presented* — never a source of business
+rules, and never a source of code. It contains no React. Do not edit it; it was frozen by owner
+decision on 2026-08-20.

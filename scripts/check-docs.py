@@ -124,19 +124,31 @@ def check_canonical(files: list[Path]) -> None:
 
 
 # ── 5 · Every CONFIRMED row cites a Source ────────────────────────────────
-def check_sources() -> None:
-    path = ROOT / "docs/requirements/confirmed.md"
-    if not path.exists():
+# Any table row whose own status cell is CONFIRMED (plain or bold) must be
+# traceable to the product owner, wherever in the repository it appears —
+# the 2026-08-20 audit found unsourced CONFIRMED rows outside confirmed.md.
+# Cells that merely mention CONFIRMED alongside other text (cross-references
+# like "**CONFIRMED** (`T-2`)") deliberately do not match.
+# docs/README.md is exempt: its taxonomy table defines the status itself.
+CONFIRMED_CELL = re.compile(r"\|\s*\*{0,2}CONFIRMED\*{0,2}\s*\|")
+OWNER_MARKERS = ("Owner brief", "Owner decision", "Chủ sản phẩm", "chủ sản phẩm")
+
+
+def check_sources(files: list[Path]) -> None:
+    if not (ROOT / "docs/requirements/confirmed.md").exists():
         fail("missing file", "docs/requirements/confirmed.md")
         return
     total = missing = 0
-    for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        if "| CONFIRMED |" not in line:
+    for path in files:
+        if rel(path) == "docs/README.md":
             continue
-        total += 1
-        if "Owner brief" not in line and "Owner decision" not in line:
-            missing += 1
-            fail("CONFIRMED without Source", f"docs/requirements/confirmed.md:{lineno}")
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if not CONFIRMED_CELL.search(line):
+                continue
+            total += 1
+            if not any(marker in line for marker in OWNER_MARKERS):
+                missing += 1
+                fail("CONFIRMED without Source", f"{rel(path)}:{lineno}")
     notes.append(f"{total} CONFIRMED rows, {total - missing} with a traceable Source")
 
 
@@ -247,7 +259,7 @@ def main() -> int:
     check_deleted(files)
     check_qualifiers(files)
     check_canonical(files)
-    check_sources()
+    check_sources(files)
     check_secrets()
     check_phase(files)
 

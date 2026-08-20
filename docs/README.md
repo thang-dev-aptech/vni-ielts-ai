@@ -83,7 +83,7 @@ When sources disagree, higher wins:
 8. Deprecated working notes            ← no authority
 ```
 
-**Tier 1 — decisions made in session.** When the owner states a new decision mid-conversation, it carries the authority of tier 2 and **must be written into the documentation before work continues**. A decision that lives only in chat history does not exist.
+**Tier 1 — decisions made in session.** When the owner states a new decision mid-conversation, it is tier 1 — the highest authority — and **must be written into the documentation before work continues**. A decision that lives only in chat history does not exist.
 
 **Tier 6 — third-party reviews.** A review document forwarded by the owner with "take a look at this" is a set of suggestions, not requirements. Its items default to **UNCONFIRMED** until the owner rules on them.
 
@@ -104,6 +104,13 @@ Every unresolved item carries exactly one tag. Never resolve an ambiguity silent
 | `[NEEDS VALIDATION]` | A claim we believe but have not verified against a primary source. | Engineering |
 | `[TECHNICAL RISK]` | A known technical hazard with a described mitigation. | Engineering |
 | `[BUSINESS DECISION]` | Not an engineering question. Requires a policy or commercial choice. | Product owner |
+
+Two further markers record **history**, not open work:
+
+| Marker | Meaning |
+|---|---|
+| `[SUPERSEDED <date>]` | A higher-precedence source overrode this item. The item is kept, per § Source precedence |
+| `[NEEDS RE-CONFIRMATION <date>]` | A newer owner statement addressed the same subject but said less; the older detail awaits restating by the owner rather than assumed continuity |
 
 All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 **[`requirements/assumptions-and-open-questions.md`](requirements/assumptions-and-open-questions.md)** — that file is the product owner's action list.
@@ -153,7 +160,7 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 - [`security/privacy-vietnam-pdpl.md`](security/privacy-vietnam-pdpl.md) — Vietnamese data protection compliance
 
 ### UX
-- [`ux/DESIGN.md`](ux/DESIGN.md) — design language. Direction **C · Soft Card** confirmed 2026-08-20; tokens, 4px spacing scale, type scale, and the four product laws all CONFIRMED
+- [`ux/DESIGN.md`](ux/DESIGN.md) — design language. Direction **C · Soft Card** CONFIRMED 2026-08-20; tokens, spacing/type scale, and the four product laws are binding engineering constraints held at `PROPOSED` — bundled owner confirmation due at requirement freeze
 - [`ux/cms-spec.md`](ux/cms-spec.md) — Admin CMS screens, states, permission matrix, import and AI-inspection flows
 - A clickable HTML prototype lives **outside this repo**: `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — `client/` (21 screens) and `admin/` (14 screens). Feature comparison: [`product/web-demo-feature-map.md`](product/web-demo-feature-map.md).
 
@@ -178,7 +185,7 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 | [0002](decisions/0002-client-capacitor-react.md) | Clients on Capacitor 8 + React + TypeScript | Accepted — re-evaluated 2026-08-20, unchanged |
 | [0003](decisions/0003-database-mongodb-first-postgresql-target.md) | MongoDB for Phase 1, PostgreSQL as target | Accepted |
 | [0004](decisions/0004-persistence-abstraction-boundary.md) | One strict persistence boundary, not full Clean Architecture | Accepted |
-| [0005](decisions/0005-ai-provider-abstraction.md) | **AI provider deferred; port abstraction mandatory** | Accepted (provider deferred) |
+| [0005](decisions/0005-ai-provider-abstraction.md) | **AI port abstraction mandatory** — the provider deferral was resolved 2026-08-20: GPT + Gemini, see S-5 | Accepted |
 | [0006](decisions/0006-speaking-audio-capture-native-plugin.md) | Speaking capture via native plugin, not WebView `MediaRecorder` | Accepted |
 | [0007](decisions/0007-server-authoritative-exam-timer.md) | Server-authoritative exam timing | Accepted |
 | [0008](decisions/0008-exam-package-format-v1.md) | Exam package format v1 | Accepted |

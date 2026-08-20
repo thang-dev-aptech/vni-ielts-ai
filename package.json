@@ -1,0 +1,32 @@
+{
+  "name": "vni-ielts-ai",
+  "private": true,
+  "version": "0.0.0",
+  "description": "VNI IELTS AI — learner web, admin CMS, and shared packages",
+  "packageManager": "pnpm@10.15.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "dev": "pnpm -r --parallel --if-present dev",
+    "test": "pnpm -r --if-present test",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "docs:check": "python3 scripts/check-docs.py",
+    "infra:up": "docker compose -f infra/docker/compose.yaml up -d",
+    "infra:down": "docker compose -f infra/docker/compose.yaml down",
+    "infra:reset": "docker compose -f infra/docker/compose.yaml down -v"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2",
+    "typescript": "5.9.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

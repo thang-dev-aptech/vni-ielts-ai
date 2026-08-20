@@ -341,4 +341,4 @@ Four things that must be settled before any of this is built:
 - **Free-form input is the widest injection surface in the product.** Unlike an essay, the learner is *intentionally* addressing the model. → threat `T24` in [`../security/threat-model.md`](../security/threat-model.md)
 - **Rate limiting must be separate from exam endpoints.** `nfr.md` requires generous limits for in-session content reads so a timed exam is never throttled. Chat must not inherit that generosity.
 
-`[PROPOSED]` port `IChatCompletion`, with streaming support. No provider may be selected until `B-1` is resolved, and the Claude API is excluded by owner decision.
+`[PROPOSED]` port `IChatCompletion`, with streaming support. `B-1` selected GPT + Gemini for LLM **evaluation** (2026-08-20); whether chat uses the same providers is its own open decision (`B-6b`). The Claude API is excluded by owner decision.

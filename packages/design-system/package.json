@@ -1,0 +1,14 @@
+{
+  "name": "@vni/design-system",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CSS custom properties and base element styles, generated from docs/ux/DESIGN.md direction C",
+  "exports": {
+    "./tokens.css": "./src/tokens.css",
+    "./reset.css": "./src/reset.css",
+    "./index.css": "./src/index.css"
+  },
+  "files": [
+    "src"
+  ]
+}

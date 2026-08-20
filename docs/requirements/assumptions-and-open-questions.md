@@ -134,7 +134,7 @@ Six independent decisions follow:
 | **B-6c** | **Token cost** — is chat charged? Links to `B-5a` |
 | **B-6d** | **Retention** — how long is chat history kept? |
 | **B-6e** | **PDPL** — chat logs are personal data; sending them to a foreign provider is a cross-border transfer with the same CTIA obligation as audio (`B-2`) |
-| **B-6f** | **MVP priority** — in the first release, or later? |
+| ~~**B-6f**~~ | ~~**MVP priority** — in the first release, or later?~~ **RESOLVED 2026-08-20: in the first release.** → `F-2` in [`confirmed.md`](confirmed.md) |
 
 Chat is the only AI feature here with **no natural cost ceiling** — a learner can send unlimited
 messages, unlike an exam which has a fixed number of submissions. → [`../ai/cost-model.md`](../ai/cost-model.md)
@@ -222,7 +222,28 @@ This determines the AI output schema and the rubric versioning strategy.
 
 ---
 
-### M-26 · Speaking AI scoring — keep or drop? `[BUSINESS DECISION]`
+### M-26 · Speaking AI scoring — **RESOLVED 2026-08-20** ✅ keep
+
+**Decision (product owner, requirement-freeze session):** **Speaking is AI-scored and is in the
+first release.** Recorded as `F-1` in [`confirmed.md`](confirmed.md); supersedes the `UNCONFIRMED`
+on `A-14`.
+
+**Consequences that are now committed rather than contingent:**
+
+- ADR-0006's native-audio-plugin risk (`V-1`, `V-6`, `V-7`) is load-bearing, not insurance.
+- `V-10` — an ASR provider exposing **word-level timings** — becomes a hard blocking selection.
+- `H-3` (evaluation depth) reopens, exactly as this entry predicted it would.
+- `H-1`'s Speaking sub-question is promoted from a detail to a **blocking modelling decision** —
+  see `H-1` below.
+
+**Still unresolved inside the decision:** `H-3` · `M-5` · `M-6` · `M-7` · `V-10`.
+
+`speaking-pipeline.md` was produced under the older assumption and is a **design**, not settled
+scope detail — the scope statement above does not confirm any specific pipeline depth.
+
+---
+
+### ~~M-26 (original entry)~~ — retained for the record
 **Blocks:** Phase 7 scope, the cost model, and the value of ADR-0006.
 
 The 2026-08-20 brief listed AI scoring for **Reading, Listening, Writing** and explicitly instructed:
@@ -281,7 +302,12 @@ The official IELTS format is verified and documented. VNI's own exam *configurat
 - ~~Full 4-module mock exams, single-module practice, or both?~~ **RESOLVED 2026-08-20: both.** Full Test and Single Skill are two distinct modes → `E-11`…`E-13` in [`confirmed.md`](confirmed.md)
 - **Academic only, or also General Training?** They differ in Reading and Writing Task 1. `[ASSUMPTION]` Academic only. **Still open.**
 - How many exams at launch? **Still open.**
-- Are Speaking parts delivered as one continuous session or three separately-submitted tasks? This materially changes the session model and the audio pipeline. **Still open** — and now also depends on `M-26` (whether Speaking is AI-scored at all).
+- **Are Speaking parts delivered as one continuous session, or three separately-submitted tasks?**
+  **Still open — and now BLOCKING.** `M-26` resolved on 2026-08-20 to keep Speaking (`F-1`), which
+  removes the "it may not matter" escape this question previously had. It decides the shape of
+  `SectionAttempt` itself: one attempt carrying internal part timings, or three attempts with three
+  server-derived deadlines and three upload lifecycles. That is a core entity of the exam engine,
+  not a Speaking-phase detail, so it must be answered **before** the session model is built.
 
 **Assumption made meanwhile:** exam structure is fully configuration-driven, so most answers here become data rather than code changes. → [`../domain/ielts-exam-structure.md`](../domain/ielts-exam-structure.md)
 
@@ -297,10 +323,13 @@ Recorded as `E-12` in [`confirmed.md`](confirmed.md).
 
 ---
 
-### H-2 · Exam content source `[OPEN QUESTION]`
-Does VNI author content in the CMS, license it, or bulk-import an existing library?
+### H-2 · Exam content source — **RESOLVED 2026-08-20** ✅
 
-This determines whether CMS authoring tools or the ZIP import pipeline is the Phase 5 priority. They are substantially different bodies of work.
+**Decision (product owner):** **VNI authors content in the CMS**, alongside the ZIP import pipeline.
+Recorded as `F-5` in [`confirmed.md`](confirmed.md); this is the same decision as `M-16`.
+
+Both bodies of work are therefore in scope. They are **not** alternatives, and they must converge on
+one draft write model and one validator — see `M-16` for why.
 
 ---
 
@@ -476,7 +505,28 @@ quản trị. Cùng câu hỏi này áp cho việc khoá tài khoản khi học 
 
 ---
 
-### M-16 · CMS có soạn và sửa câu hỏi tại chỗ không `[BUSINESS DECISION]`
+### M-16 · CMS có soạn và sửa câu hỏi tại chỗ không — **ĐÃ QUYẾT 2026-08-20** ✅ có
+
+**Quyết định (chủ sản phẩm, phiên chốt yêu cầu):** **CMS soạn và sửa nội dung đề tại chỗ.**
+Ghi thành `F-5` trong [`confirmed.md`](confirmed.md). Đồng thời trả lời **H-2**: VNI tự soạn nội dung.
+
+Đây là nhánh (2) trong bảng dưới — nhánh đắt hơn. Hệ quả, nêu thẳng vì mục này từng gọi đó là
+*"câu hỏi tốn kém nhất trong danh sách"*:
+
+- Cần trình soạn thảo cho **mười loại câu hỏi**, quản lý asset, kiểm tính hợp lệ khi soạn, và một
+  quy trình nháp/duyệt chạy song song với luồng nhập gói.
+- **Đặc tả giao diện cho nhóm màn này chưa tồn tại.** [`../ux/cms-spec.md`](../ux/cms-spec.md) đặc
+  tả 29 màn và **không màn nào là trình soạn thảo** — màn 3.3 cố ý để chỉ-đọc vì lúc viết `M-16`
+  còn mở. Đây là việc phải làm trước khi dựng, không phải việc phát sinh khi dựng.
+- Ràng buộc kiến trúc: nhập gói, soạn tại chỗ, và AI parse **đều** sinh ra một `ExamVersion` bản
+  nháp và **phải đi qua cùng một bộ kiểm hợp lệ**. Hai định nghĩa "đề hợp lệ" sẽ trôi lệch, và lệch
+  đó lộ ra dưới dạng học viên đang thi gặp câu hỏi mà giao diện không vẽ được.
+- Trình soạn thảo chỉ tác động lên **bản nháp**. Version đã xuất bản là bất biến; "sửa" nghĩa là
+  tạo version N+1.
+
+---
+
+### ~~M-16 (mục gốc)~~ — giữ lại để tra cứu
 C-5 ghi "quản lý câu hỏi" nhưng không nói là **soạn** hay chỉ **xem**. Đây là câu hỏi tốn kém nhất trong
 danh sách này.
 
@@ -538,7 +588,8 @@ Mỗi lần bấm "chạy lại" là một lần gọi provider có tính phí t
 **Cần quyết:** có hạn mức theo người dùng hoặc theo ngày không · ai duyệt khi vượt · CMS có cần màn theo
 dõi chi phí AI không.
 
-Phụ thuộc **B-1** — chưa chọn nhà cung cấp thì chưa có đơn giá.
+**B-1** đã chốt provider (GPT + Gemini, 20/08/2026), nhưng đơn giá thực tế chưa đo — xem `V-11`/`V-12`
+và [`../ai/cost-model.md`](../ai/cost-model.md).
 
 ---
 
@@ -591,7 +642,21 @@ Accept a **MongoDB-backed queue** for MVP, or adopt a dedicated broker now?
 minute, which does not justify operating a separate broker. Revisit when *measured* queue depth or job
 latency exceeds the targets in [`../development/nfr.md`](../development/nfr.md) — not on prediction.
 
-### H-10 · MongoDB deployment topology `[OPEN QUESTION]`
+### H-10 · MongoDB deployment topology — **RESOLVED 2026-08-20** ✅ → [ADR-0011](../decisions/0011-mongodb-single-node-replica-set.md)
+
+**Decision:** **both remedies.** Run a single-node replica set (`rs0`) in every environment starting
+with local development, **and** design token deduction as one atomic update on a single ledger
+document so it needs no transaction either way.
+
+Verified on the local stack the same day rather than inferred: `rs.status()` reports set `rs0`,
+state `PRIMARY`, and a two-collection transaction commits.
+
+`F-4` (live token spending in the first release) is what turned this from a deferrable question into
+a launch requirement.
+
+---
+
+### ~~H-10 (original entry)~~ — retained for the record
 **A real contradiction between two current documents.** `nfr.md` specifies a *"Single MongoDB
 instance"* for MVP, but MongoDB supports multi-document transactions **only on a replica set**.
 
@@ -615,12 +680,12 @@ S3-compatible API, so the vendor stays swappable.
 
 | ID | Item | Status |
 |---|---|---|
-| V-1 | Native Capacitor audio plugin behaviour on physical iOS and Android devices, including backgrounding and phone-call interruption | `[NEEDS VALIDATION]` — plugin capabilities documented, not device-tested. **Blocked: no Xcode installed** |
+| V-1 | Native Capacitor audio plugin behaviour on physical iOS and Android devices, including backgrounding and phone-call interruption | `[NEEDS VALIDATION]` — plugin capabilities documented, not device-tested. **Unblocked 2026-08-20: Xcode and Apple Developer account procured.** Remaining: install Xcode on the build machine, install Android Studio + SDK (`R14`), and obtain **physical** devices — a simulator cannot answer this |
 | V-2 | Third-party ASR pricing and word-error-rate figures | `[NEEDS VALIDATION]` — sourced from aggregator benchmarks, not vendor contracts |
 | V-3 | Whether an ASR provider's accuracy holds on Vietnamese-accented English | `[NEEDS VALIDATION]` — general benchmarks do not predict this. Requires a held-out sample of real VNI learner audio |
 | V-4 | Resumable upload behaviour on unstable mobile networks | `[NEEDS VALIDATION]` |
 | V-5 | Facebook SSO availability and app-review requirements for this use case | `[NEEDS VALIDATION]` |
-| V-6 | Whether iOS and Android report an interruption **cause** (incoming call vs another app taking audio focus), or only that an interruption occurred | `[NEEDS VALIDATION]` — screen 7.5 defaults to the cause-unknown wording precisely because this may not be knowable. **Blocked with V-1: no Xcode** |
+| V-6 | Whether iOS and Android report an interruption **cause** (incoming call vs another app taking audio focus), or only that an interruption occurred | `[NEEDS VALIDATION]` — screen 7.5 defaults to the cause-unknown wording precisely because this may not be knowable. **Unblocked with V-1, 2026-08-20**; that default stands until the device spike says otherwise |
 | V-7 | Whether the audio plugin exposes a usable input **level** during recording | `[NEEDS VALIDATION]` — without it, screen 7.4's silent-microphone detection cannot exist and a dead mic is discovered only after the attempt |
 | V-8 | Resumable/chunked upload mechanism — which approach survives an unstable mobile connection | `[NEEDS VALIDATION]` — refines V-4 into a specific mechanism choice |
 | V-10 | Whether the selected vendors' audio APIs expose **word-level timings** — a hard requirement for the deterministic fluency features. Only matters if `M-26` keeps Speaking | `[NEEDS VALIDATION]` — do not assume audio support implies word timings |

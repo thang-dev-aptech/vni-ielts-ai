@@ -1,0 +1,155 @@
+/*
+ * VNI IELTS AI — design tokens
+ *
+ * Generated from docs/ux/DESIGN.md, direction C "Thẻ mềm", chosen by the
+ * product owner on 2026-08-20.
+ *
+ * This file is NOT ported from the prototype's client/styles.css. The
+ * prototype was frozen on 2026-08-20 and diverges deliberately: it carries 31
+ * shadows, 17 ad-hoc spacing values, and 118 inline font-size declarations.
+ * DESIGN.md applies to the real build; those divergences are requirements for
+ * this file, not debt to carry over.
+ *
+ * Every colour pair below was measured, not eyeballed. Do not add a colour
+ * without a measured contrast ratio against the surface it sits on.
+ */
+
+:root {
+  /* ── Ink ─────────────────────────────────────────────────────────────
+   * --ink    16.7 on --page · white on --ink is 18.2
+   * --ink-2   8.6 on #fff
+   * --muted   5.36 on #fff · 4.93 on --page
+   */
+  --ink: #17161a;
+  --ink-2: #4a4950;
+  --muted: #6b6a71;
+
+  /* ── Surfaces ────────────────────────────────────────────────────────
+   * Depth comes from these three layers plus a hairline border.
+   * There are no shadow tokens, and that is deliberate — see below.
+   */
+  --page: #f6f5f3;
+  --card: #ffffff;
+  --sunk: #faf9f7;
+  --line: #e6e4e0;
+  --line-2: #efedea;
+
+  /* ── Accent ──────────────────────────────────────────────────────────
+   * The VNI logo blue #2A6FB1 (hue 209.3°) reaches only 4.96 on light —
+   * borderline, and unusable for small text. --acc keeps the hue and drops
+   * the lightness: hue 211.4°, a 2.1° shift, and 5.5 on #fff.
+   */
+  --acc: #2867ac;
+  --acc-700: #1c4b7e;
+  --acc-soft: #eef4fb;
+  --acc-line: #cfe0f1;
+
+  /* Required. Without it the canvas tooling's focus ring falls back to red. */
+  --color-accent: var(--acc);
+
+  /* ── Status ──────────────────────────────────────────────────────────
+   * --warn is INFORMATIONAL (clock at level 2–3, word count short).
+   * --bad is ONLY for something that has actually broken. Product law L1
+   * forbids using it for time passing.
+   */
+  --warn: #9a4e07;
+  --warn-soft: #fdf1e3;
+  --ok: #1e7a3c;
+  --ok-soft: #e4f4e9;
+  --bad: #b3261e;
+  --bad-soft: #fce9e7;
+
+  /* ── Brand — surfaces only, never text ───────────────────────────────
+   * Orange reaches 2.39 and green 2.79 on light; the threshold is 4.5.
+   * White text on orange is 2.53. If you fill a block with either of these,
+   * the text on it MUST be black (--ink).
+   */
+  --brand-blue: #2a6fb1;
+  --brand-orange: #f48634;
+  --brand-green: #16ad54;
+
+  /* ── Type ────────────────────────────────────────────────────────────
+   * Both families verified to carry a `vietnamese` subset via the Google
+   * Fonts CSS API. Outfit was rejected for lacking one — diacritics fell
+   * back mid-word. Any future font must be checked the same way.
+   */
+  --font: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Closed scale. Values outside it are a defect, half-pixels especially.
+   * 13px is for ASCII only (codes, IDs). 14px is the floor for any
+   * Vietnamese string. */
+  --t-13: 13px;
+  --t-14: 14px;
+  --t-16: 16px;
+  --t-18: 18px;
+  --t-20: 20px;
+  --t-24: 24px;
+  --t-32: 32px;
+  --t-44: 44px;
+  --t-60: 60px;
+
+  /* >= 1.5 below 32px, because stacked diacritics (ế ộ ằ) collide with the
+   * line above at anything tighter. 1.2 at 32px and up is the one exception. */
+  --lh-body: 1.5;
+  --lh-display: 1.2;
+
+  /* Archivo ships 400–800. 700 is for display >= 32px only; 800 is unused. */
+  --w-body: 400;
+  --w-label: 500;
+  --w-emph: 600;
+  --w-display: 700;
+
+  /* ── Spacing — 4px base, closed scale ────────────────────────────────
+   * 6 / 10 / 11 / 14 / 18 / 22 / 28px are dropped outright; they accounted
+   * for 47 uses in the prototype and belonged to no scale.
+   */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 72px;
+
+  /* ── Geometry ────────────────────────────────────────────────────────*/
+  --r-lg: 18px;
+  --r-md: 12px;
+  --r-sm: 8px;
+  --r-pill: 999px;
+
+  --container: 1200px;
+  --measure: 720px; /* reading column ceiling */
+  --nav-h: 72px;
+
+  /* ── Motion ──────────────────────────────────────────────────────────*/
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur: 180ms;
+
+  /* ── Density: comfortable (learner) ──────────────────────────────────*/
+  --pad-card: var(--s-6);
+  --gap-section: var(--s-8);
+  --gap-item: var(--s-3);
+}
+
+/* CMS, question navigators, dashboards. One language, two densities —
+ * this is what lets the admin app share the learner stylesheet. */
+[data-density='compact'] {
+  --pad-card: var(--s-4);
+  --gap-section: var(--s-7);
+  --gap-item: var(--s-2);
+}
+
+/* Inside an exam session: comfortable, but tighter section rhythm. An exam
+ * screen needs to be more compact than a marketing page without becoming as
+ * dense as the CMS. */
+[data-surface='exam'] {
+  --gap-section: var(--s-7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0ms;
+  }
+}

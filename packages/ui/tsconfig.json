@@ -1,0 +1,5 @@
+{
+  "extends": "@vni/config/tsconfig.react.json",
+  "compilerOptions": { "types": ["vitest/globals"] },
+  "include": ["src"]
+}
