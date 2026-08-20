@@ -128,8 +128,8 @@ Claude Design**, không phải mã ứng dụng.
 **20/08/2026 — 4 file.** Bốn prompt Claude Design (`design-prompts.md`, `design-prompts-v2.md`,
 `prompt-hoan-thien-man-con-lai.md`, `v2-web-design-audit.md`) trỏ tới canvas project đã ngừng dùng.
 
-> **Repo vẫn không nằm dưới version control.** Đây là lý do cả hai lần xoá đều vĩnh viễn.
-> → rủi ro `R13` trong [`../requirements/risks-and-dependencies.md`](../requirements/risks-and-dependencies.md).
+> **Repo đã vào git ngày 20/08/2026** (commit `d8a3749`, nhánh `main`, 75 file). Trước đó không có version control — đó là lý do cả hai lần xoá đều vĩnh viễn.
+> **Chưa có remote**, nên hỏng ổ đĩa vẫn mất hết. → `R13` trong [`../requirements/risks-and-dependencies.md`](../requirements/risks-and-dependencies.md)
 
 ---
 

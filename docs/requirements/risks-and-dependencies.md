@@ -185,11 +185,19 @@ Facebook Login requires app review for some permissions, and Meta has repeatedly
 
 ---
 
-## R13 · This repository is not under version control
+## R13 · Version control ✅ resolved 2026-08-20
 
-**Severity: High · Likelihood: Certain — it has already happened twice · Owner: Engineering**
+**Severity: High · Likelihood: Certain — it happened twice · Owner: Engineering · Status: RESOLVED**
 
-`[TECHNICAL RISK]` There is no git repository here. Every deletion is permanent, and every edit overwrites the only copy.
+`git init` on 2026-08-20, initial commit `d8a3749` on `main`, 75 files tracked. The risk class below is closed; the history is kept because it explains why two bodies of work no longer exist.
+
+**Remaining exposure:** the repository is **local only**. Disk failure or an accidental directory delete still loses everything. A remote (GitHub private, or any hosted git) closes that half, and it also unblocks CI/CD, which has no meaningful form without one.
+
+---
+
+### The original risk, for the record
+
+`[TECHNICAL RISK]` There was no git repository. Every deletion was permanent, and every edit overwrote the only copy.
 
 This is not a theoretical exposure:
 
@@ -202,11 +210,13 @@ The 2026-08-18 loss is instructive in a way the file count understates. The *dec
 
 The exposure grows as the documentation gets better: a repository whose main asset *is* its documentation has all of its value in files that nothing is protecting.
 
-**Mitigation:** `git init`, commit the current state, and commit before each subsequent editing session. This costs minutes and removes the risk class entirely — no branching strategy or remote is required to get the benefit, though a remote also covers disk failure.
+**Mitigation applied:** `git init`, `.gitignore` covering secrets and future .NET/Node/Capacitor artifacts, initial commit of the full documentation baseline.
 
-**Consequence if unresolved:** the next design reversal, refactor, or mistaken bulk edit is as unrecoverable as the last two. Every session that edits documentation without it is drawing from the same well.
+**Found during the initial commit — needs owner action.** `.mcp.json` in the project root contains a **live Google API key in plaintext**. It was excluded from version control via `.gitignore`, but exclusion is not revocation: the key still exists on disk and in any prior backup or copy of this directory.
 
-**Related:** this also blocks CI/CD, which has no meaningful form without a repository, and it makes the review workflow in [`../development/ai-assisted-development.md`](../development/ai-assisted-development.md) unenforceable — there is no diff to review.
+> **Recommendation: revoke it.** It is a Google Stitch key, and Stitch was evaluated and dropped ([`../development/next-actions.md`](../development/next-actions.md) T3) — so it is an unused credential carrying pure downside. If a shared MCP configuration is wanted later, commit a `.mcp.example.json` with values blanked.
+
+**Still open:** no remote. See the remaining-exposure note above.
 
 ---
 
