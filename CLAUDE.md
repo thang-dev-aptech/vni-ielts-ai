@@ -157,4 +157,6 @@ infra/docker/  Local stack: MongoDB rs0 + MinIO
 
 **Before committing, run `python3 scripts/check-docs.py`.** CI runs the same checks and fails the build on a broken link, a status qualifier, a `CONFIRMED` row without a Source, or a credential-shaped string.
 
-`.mcp.json` is gitignored: it holds a live API key in plaintext. Never commit it.
+`.mcp.json` was **deleted on 2026-08-20**. It held a live Google credential for the Google Stitch MCP server — a tool this project evaluated and dropped — so the key served nothing. It stays in `.gitignore`: if the file returns, it must not be committed.
+
+> **Deleting the file is not revoking the key.** The credential still exists on Google's side and in any prior backup or copy of this directory until it is revoked in the Google Cloud Console. → `R16` in [`docs/requirements/risks-and-dependencies.md`](docs/requirements/risks-and-dependencies.md)

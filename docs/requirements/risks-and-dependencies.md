@@ -242,6 +242,38 @@ thing serving the request is confirmed, not merely its response.**
 
 ---
 
+---
+
+## R16 · A live credential on disk, for a tool the project no longer uses
+
+**Severity: Medium · Likelihood: Certain · Owner: Product / IT · Status: file removed, key outstanding**
+
+`.mcp.json` in the project root held a **live Google credential in plaintext**, configuring the
+**Google Stitch** MCP server. Stitch was evaluated and dropped as a design tool earlier in Phase 1,
+so the key authorises a service this project does not use.
+
+| Step | State |
+|---|---|
+| Excluded from git | ✅ 2026-08-20 |
+| Git history scanned for the value | ✅ 0 matches |
+| File deleted from disk | ✅ 2026-08-20 |
+| **Key revoked at the provider** | ❌ **outstanding — owner action** |
+
+**Deleting the file is not revoking the key.** The credential stays valid on Google's side until
+revoked, and it may survive in a Time Machine snapshot, a Spotlight index, a prior copy of this
+directory, or shell history. Anyone recovering one of those recovers a working key.
+
+**This is the cheapest open risk on the list to close.** The key protects nothing the project needs,
+so revoking it costs nothing and breaks nothing. Revoke it in the Google Cloud Console; the masked
+value was recorded at deletion time so it can be picked out among other keys without ever being
+written down in full.
+
+> **A pattern worth naming, because it has now appeared three times here.** `R11` (a 2017 git
+> shadowing a current one), `R15` (a stray mongod receiving every write), and this item are the same
+> shape: **a control that looks like it solved the problem while the actual exposure is untouched.**
+> `.gitignore` protects the repository, not the secret. A green check on the wrong thing is worse
+> than no check, because it stops anyone looking.
+
 ## R11 · Shadowed toolchain installations ✅ resolved (git), pattern remains
 
 **Severity: Low–Medium · Owner: IT · Status: git resolved 2026-08-17**
@@ -305,13 +337,9 @@ The exposure grows as the documentation gets better: a repository whose main ass
 
 **Mitigation applied:** `git init`, `.gitignore` covering secrets and future .NET/Node/Capacitor artifacts, initial commit of the full documentation baseline.
 
-**Found during the initial commit — needs owner action.** `.mcp.json` in the project root contains a **live Google API key in plaintext**. It was excluded from version control via `.gitignore`, but exclusion is not revocation: the key still exists on disk and in any prior backup or copy of this directory.
-
-> **Recommendation: revoke it.** It is a Google Stitch key, and Stitch was evaluated and dropped ([`../development/next-actions.md`](../development/next-actions.md) T3) — so it is an unused credential carrying pure downside. If a shared MCP configuration is wanted later, commit a `.mcp.example.json` with values blanked.
-
-**CI now enforces what was previously checked by hand.** `.github/workflows/docs.yml` runs `scripts/check-docs.py` on every push and pull request: relative-link integrity, links to deleted files, status qualifiers, duplicated canonical definitions, `CONFIRMED` rows without a Source, credential-shaped strings in tracked files, and stale phase claims.
-
-This matters more than it looks for a documentation repository. The conventions in [`../README.md`](../README.md) were previously enforced by whoever remembered them; now a violation fails the build.
+The credential exposure discovered at the same time is tracked separately as `R16` — it is a
+different risk with a different owner, and burying it inside "version control" is how it would get
+marked resolved along with the thing that actually was.
 
 ---
 
