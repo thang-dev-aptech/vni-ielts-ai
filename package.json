@@ -8,17 +8,20 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "build": "pnpm -r --if-present build",
-    "dev": "pnpm -r --parallel --if-present dev",
+    "infra": "docker compose -f infra/docker/compose.yaml up -d",
+    "api": "dotnet run --project backend/src/Vni.Ielts.Api",
+    "dev": "pnpm --filter @vni/web dev",
+    "dev:admin": "pnpm --filter @vni/admin dev",
+    "infra:stop": "docker compose -f infra/docker/compose.yaml down",
+    "infra:reset": "docker compose -f infra/docker/compose.yaml down -v",
+    "check": "pnpm docs:check && pnpm format:check && pnpm typecheck && pnpm test && pnpm test:api",
     "test": "pnpm -r --if-present test",
-    "lint": "pnpm -r --if-present lint",
+    "test:api": "dotnet test backend --nologo",
     "typecheck": "pnpm -r --if-present typecheck",
+    "docs:check": "python3 scripts/check-docs.py",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "docs:check": "python3 scripts/check-docs.py",
-    "infra:up": "docker compose -f infra/docker/compose.yaml up -d",
-    "infra:down": "docker compose -f infra/docker/compose.yaml down",
-    "infra:reset": "docker compose -f infra/docker/compose.yaml down -v"
+    "build": "pnpm -r --if-present build && dotnet build backend --nologo"
   },
   "devDependencies": {
     "prettier": "3.6.2",

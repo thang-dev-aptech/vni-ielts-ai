@@ -59,20 +59,14 @@ the ones still open.
 
 ## Running it
 
-Three terminals.
+Three terminals, one command each.
 
 ```bash
-# 1 · infrastructure — MongoDB (replica set) + MinIO
 pnpm install
-pnpm infra:up
 
-# 2 · API
-cd backend/src/Vni.Ielts.Api
-export Jwt__SigningKey="local-dev-only-signing-key-not-a-secret-32b+"
-dotnet run
-
-# 3 · learner web
-pnpm --filter @vni/web dev
+pnpm infra     # 1 · MongoDB (replica set) + MinIO
+pnpm api       # 2 · backend API
+pnpm dev       # 3 · learner web
 ```
 
 Open **http://localhost:5173**.
@@ -81,32 +75,53 @@ To register: fill the form, then read the verification link from **terminal 2** 
 `Verification token for <address>: <token>`. Open
 `http://localhost:5173/xac-minh?token=<token>`.
 
-`pnpm infra:reset` drops the database volumes for a clean start.
+| Command | What it does |
+|---|---|
+| `pnpm infra` | Start MongoDB and MinIO |
+| `pnpm infra:stop` | Stop them, keeping data |
+| `pnpm infra:reset` | Stop and **drop the volumes** — a clean database |
+| `pnpm api` | Backend API on :5099 |
+| `pnpm dev` | Learner web on :5173 |
+| `pnpm dev:admin` | Admin CMS — a stub today |
+| `pnpm check` | Everything CI runs |
+
+> **Do not name a script `up`.** `pnpm up` is a built-in alias for `pnpm update`, so `pnpm up` would
+> quietly update dependencies instead of starting Docker — and print a plausible success message
+> while doing it. Found by running it against a stopped stack and noticing no container appeared.
 
 ### The signing key
 
-`Jwt__SigningKey` is supplied through the environment and is **never committed** — the `.gitignore`
-blocks `.env*`, a PreToolUse hook blocks writes to it, and CI scans for credential-shaped strings.
-Any value of 32 bytes or more works locally. The API refuses to start without one, on purpose: a
-misconfigured key that only surfaces at first sign-in is a production incident, while one that
-refuses to boot is a deployment failure — the cheaper of the two.
+In **Development** the API generates a random signing key per run if none is supplied, and says so on
+startup. Nothing to export, nothing to paste. The trade-off is stated in that message: sessions do not
+survive a restart, so you will be signed out when the API reloads. Set `Jwt__SigningKey` in the
+environment if you want them to persist.
 
----
+Outside Development a missing or short key is a **startup failure**, on purpose. A misconfigured key
+that only surfaces when a real user tries to sign in is a production incident; one that refuses to
+boot is a deployment failure, and that is the cheaper of the two. Credentials come from the
+environment and never from a committed file — the `.gitignore` blocks `.env*`, a hook blocks writes
+to it, and CI scans for credential-shaped strings.
 
 ## Checks
 
 Everything CI runs, runnable locally:
 
 ```bash
-python3 scripts/check-docs.py    # links, status taxonomy, CONFIRMED sources, secret scan
-pnpm format:check                # app code only — docs/ is hand-written and excluded
+pnpm check      # docs · format · typecheck · 31 frontend tests · 106 backend tests
+```
+
+Or individually:
+
+```bash
+pnpm docs:check      # links, status taxonomy, CONFIRMED sources, secret scan
+pnpm format:check    # app code only — docs/ is hand-written and excluded
 pnpm typecheck
-pnpm test                        # 31 frontend tests
+pnpm test            # 31 frontend tests
+pnpm test:api        # 106 backend tests
 pnpm build
 
-cd backend
-dotnet test tests/Vni.Ielts.Architecture.Tests   # the persistence boundary
-dotnet test                                       # 106 tests
+# The one rule the PostgreSQL migration depends on, on its own:
+dotnet test backend/tests/Vni.Ielts.Architecture.Tests
 ```
 
 ---

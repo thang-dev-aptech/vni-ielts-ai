@@ -30,16 +30,40 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<VniExceptionHandler>();
 
-// Rejecting the placeholder signing key at startup rather than at first login.
-// A misconfigured key that only surfaces when a user tries to sign in is a
-// production incident; one that refuses to boot is a deployment failure, which
-// is the cheaper of the two.
+// The signing key: generated locally, demanded everywhere else.
+//
+// A misconfigured key that only surfaces when someone tries to sign in is a
+// production incident; one that refuses to boot is a deployment failure, and
+// that is the cheaper of the two. So outside Development this throws.
+//
+// Inside Development it generates one instead. Requiring every developer to
+// export a variable before the API would start bought nothing: the value was
+// not secret, everyone pasted the same literal from the README, and the only
+// real effect was a confusing first-run failure. A per-run random key is
+// strictly better — nothing to leak, nothing to paste, nothing to accidentally
+// carry into a real deployment.
+//
+// The cost is stated out loud below rather than left to be discovered.
 var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+
 if (string.IsNullOrWhiteSpace(jwt.SigningKey) || jwt.SigningKey.Length < 32)
 {
-    throw new InvalidOperationException(
-        "Jwt:SigningKey is missing or shorter than 32 bytes. Supply it through environment "
-        + "configuration — never a committed file. See CLAUDE.md rule 6.");
+    if (!builder.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException(
+            "Jwt:SigningKey is missing or shorter than 32 bytes. Supply it through environment "
+            + "configuration — never a committed file. See CLAUDE.md rule 6.");
+    }
+
+    jwt.SigningKey = Convert.ToBase64String(
+        System.Security.Cryptography.RandomNumberGenerator.GetBytes(48));
+
+    builder.Configuration[$"{JwtOptions.SectionName}:SigningKey"] = jwt.SigningKey;
+
+    Console.WriteLine(
+        "[dev] No Jwt:SigningKey supplied, so one was generated for this run.\n"
+        + "[dev] Existing sessions do not survive a restart — you will be signed out.\n"
+        + "[dev] Set Jwt__SigningKey in the environment to keep sessions across restarts.");
 }
 
 builder.Services
