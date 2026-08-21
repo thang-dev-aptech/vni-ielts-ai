@@ -41,14 +41,14 @@ export function AppShell() {
             gap: 'var(--s-5)',
           }}
         >
-          <Link to={Paths.home} style={{ color: 'var(--ink)', fontWeight: 700 }}>
+          <Link to={Paths.dashboard} style={{ color: 'var(--ink)', fontWeight: 700 }}>
             {t('app.name')}
           </Link>
 
           <nav style={{ display: 'flex', gap: 'var(--s-4)', flex: 1 }}>
             {status === 'signed-in' && (
               <>
-                <ShellLink to={Paths.home} label={t('nav.home')} />
+                <ShellLink to={Paths.dashboard} label={t('nav.home')} />
                 <ShellLink to={Paths.profile} label={t('nav.profile')} />
               </>
             )}

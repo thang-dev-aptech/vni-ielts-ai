@@ -7,7 +7,9 @@
  * breaks every bookmark and every shared link.
  */
 export const Paths = {
+  /** Public landing page. A signed-in visitor is sent to `dashboard` instead. */
   home: '/',
+  dashboard: '/hoc',
   signIn: '/dang-nhap',
   signUp: '/dang-ky',
   verifyEmail: '/xac-minh',

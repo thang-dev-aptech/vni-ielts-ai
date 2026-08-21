@@ -73,8 +73,10 @@ describe('a signed-out visitor', () => {
 
     render(<App />);
 
-    // The heading, not just any text — proves the sign-in page actually rendered.
-    expect(await screen.findByRole('heading', { name: /đăng nhập|sign in/i })).toBeInTheDocument();
+    // The heading, not just any text — proves the auth page actually rendered.
+    expect(
+      await screen.findByRole('heading', { name: /chào mừng trở lại|welcome back/i }),
+    ).toBeInTheDocument();
   });
 
   it('lands on the page they originally asked for after signing in', async () => {
@@ -90,9 +92,9 @@ describe('a signed-out visitor', () => {
     render(<App />);
 
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText(/email/i), 'a@example.com');
-    await user.type(screen.getByLabelText(/mật khẩu|password/i), 'mat-khau-du-dai-2026');
-    await user.click(screen.getByRole('button', { name: /đăng nhập|sign in/i }));
+    await user.type(await screen.findByLabelText(/^email$/i), 'a@example.com');
+    await user.type(screen.getByLabelText(/^(mật khẩu|password)$/i), 'mat-khau-du-dai-2026');
+    await user.click(screen.getByRole('button', { name: /^(đăng nhập|sign in)$/i, hidden: false }));
 
     expect(await screen.findByRole('heading', { name: /hồ sơ|profile/i })).toBeInTheDocument();
     expect(window.location.pathname).toBe('/ho-so');
@@ -153,7 +155,9 @@ describe('a signed-in learner', () => {
 
     render(<App />);
 
-    expect(screen.queryByRole('button', { name: /đăng nhập|sign in/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /chào mừng trở lại|welcome back/i }),
+    ).not.toBeInTheDocument();
 
     // TypeScript narrows `resolveMe` to undefined because it cannot see the
     // assignment happening inside the fetch stub. The read is genuine.

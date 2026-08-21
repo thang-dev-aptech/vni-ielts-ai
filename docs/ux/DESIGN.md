@@ -1,5 +1,48 @@
 # DESIGN.md — ngôn ngữ thiết kế web VNI IELTS AI
 
+> ## ⚠️ `[SUPERSEDED 2026-08-21]` — hướng thiết kế đã đổi, tài liệu này chưa cập nhật
+>
+> Chủ sản phẩm chốt một bộ thiết kế mới và chỉ đạo dựng thẳng vào sản phẩm. Nguồn:
+> `../VNI IELTS AI Web design/redesign/` — `login.html` và `vni-ielts-home-redesign.html`.
+> Đã port sang `apps/web/src/styles/`.
+>
+> **Chủ sản phẩm sẽ viết lại tài liệu này để khớp bộ mới.** Cho tới lúc đó, chỗ nào file này và
+> `apps/web/src/styles/` mâu thuẫn thì **CSS trong sản phẩm là ý định đúng**, file này là bản cũ.
+>
+> ### Bốn thứ đã đổi
+>
+> | | Bản cũ, hướng C | Bản mới |
+> |---|---|---|
+> | Font | Archivo | **Nunito** — kiểm Google Fonts CSS API 21/08/2026, **có** subset `vietnamese`, không lặp lỗi Outfit |
+> | Shadow | Bỏ hẳn, thay bằng ba lớp nền | **Dùng lại**, gồm cả nút dày `0 4px 0` |
+> | Bo góc | 18px | 20–22px |
+> | Màu chính | `--acc #2867ac` xanh dương | `--green #10b050` xanh lá |
+>
+> ### Số đo cần dùng khi bạn viết lại
+>
+> Đo bằng công thức WCAG, không đoán:
+>
+> | Cặp | Tỉ lệ | Ngưỡng 4.5 |
+> |---|---|---|
+> | ink `#252525` trên trắng | 15.33 | ✓ |
+> | muted `#6e6e6e` trên `--surface` | 4.82 | ✓ |
+> | blue `#2070b0` trên trắng | 5.24 | ✓ |
+> | **chữ trắng trên `#10b050`** — nút chính trang landing | **2.86** | **✗** |
+> | **chữ trắng trên `#18a957`** — nút chính trang auth | **3.06** | **✗** |
+> | yellow `#f0a24a` trên trắng | 2.11 | ✗ |
+>
+> **Nút hành động chính chưa đạt chuẩn tương phản.** Hai cách sửa giữ nguyên diện mạo: đổi chữ nút
+> sang gần-đen (`#162219` trên `#10b050` đạt **7.9**), hoặc hạ tối nền xuống khoảng `#357a00`
+> (đạt 5.34) nếu muốn giữ chữ trắng. Hiện **để nguyên theo thiết kế** đúng chỉ đạo.
+>
+> Vàng và cam nên làm **mảng nền có chữ đen**, không làm màu chữ trên nền trắng — trùng đúng kết
+> luận repo đã ghi cho màu logo VNI.
+>
+> Một chi tiết đã kiểm: file `redesign/vni-ielts-home-redesign.css` **không được HTML tham chiếu**
+> và mang bảng màu khác (`#58cc02`). Đó là bản cũ; bản thật nằm trong `<style>` inline.
+
+---
+
 > Rút từ token đã duyệt (artboard `3x`, chốt Q1 ngày 19/08/2026) và `styles.css` của prototype
 > tại `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — prototype **đã đóng băng 20/08/2026**.
 > Prototype nằm **ngoài** repo này. File này là bản sao có thẩm quyền của hệ thiết kế,
