@@ -39,6 +39,44 @@ public interface IEmailVerificationTokens
 public interface IVerificationMessageSender
 {
     Task SendAsync(Email address, string token, CancellationToken ct);
+
+    /// <summary>
+    /// The "forgot password" message.
+    ///
+    /// <para>
+    /// A second method rather than a second port, because the two share
+    /// everything that matters — the same provider, the same PDPL position,
+    /// the same missing production implementation. Splitting them would mean
+    /// choosing an email vendor twice.
+    /// </para>
+    /// </summary>
+    Task SendPasswordResetAsync(Email address, string token, CancellationToken ct);
+}
+
+/// <summary>
+/// Password-reset tokens.
+///
+/// <para>
+/// Deliberately separate from <see cref="IEmailVerificationTokens"/> rather
+/// than a shared table with a purpose column. A verification token proves an
+/// address is reachable; a reset token hands over an account. Sharing storage
+/// means one bug in a filter lets one be redeemed as the other, and the
+/// consequences are not comparable.
+/// </para>
+///
+/// <para>
+/// <b>One hour, not twenty-four.</b> A reset link sits in a mailbox that may
+/// itself be shared or compromised, and the window in which it is worth
+/// anything to an attacker should be the window in which its owner is actually
+/// using it. → threat T5
+/// </para>
+/// </summary>
+public interface IPasswordResetTokens
+{
+    Task<string> IssueAsync(UserId userId, CancellationToken ct);
+
+    /// <summary>Single use. Expired, spent and never-existed are one answer.</summary>
+    Task<UserId?> RedeemAsync(string token, CancellationToken ct);
 }
 
 public sealed record VerifyEmailCommand(string Token);

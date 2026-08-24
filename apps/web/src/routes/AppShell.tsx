@@ -32,16 +32,43 @@ export function AppShell() {
           background: 'var(--card)',
         }}
       >
+        {/* `minHeight`, not `height`, and it wraps.
+
+            The row holds brand, nav, language and sign-out — 370px of content
+            that will not fit the 292px a 320px phone leaves after padding, so
+            every page in the app scrolled sideways. Wrapping is the honest
+            fix: nothing is hidden and nothing is truncated. DESIGN.md's 72px
+            header still holds wherever the row fits on one line, which is
+            every width from about 400px up.
+
+            A narrow-screen header probably wants a real design — a drawer, or
+            a bottom bar — rather than a second row. That is a design decision
+            and it is not made here. */}
         <div
           className="container"
           style={{
-            height: 'var(--nav-h)',
+            minHeight: 'var(--nav-h)',
             display: 'flex',
+            flexWrap: 'wrap',
             alignItems: 'center',
-            gap: 'var(--s-5)',
+            gap: 'var(--s-3) var(--s-5)',
+            paddingBlock: 'var(--s-2)',
           }}
         >
-          <Link to={Paths.dashboard} style={{ color: 'var(--ink)', fontWeight: 700 }}>
+          {/* 44px of tap area, not 25px. The text is unchanged — the height
+              comes from centring inside a taller box, so this costs nothing
+              visually and makes the control reachable with a thumb. iOS and
+              Android both put the comfortable minimum at 44. */}
+          <Link
+            to={Paths.dashboard}
+            style={{
+              color: 'var(--ink)',
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              minHeight: 44,
+            }}
+          >
             {t('app.name')}
           </Link>
 
@@ -63,6 +90,7 @@ export function AppShell() {
             aria-label="Language / Ngôn ngữ"
             style={{
               padding: 'var(--s-2) var(--s-3)',
+              minHeight: 44,
               fontSize: 'var(--t-14)',
               color: 'var(--ink-2)',
               border: '1px solid var(--line)',
@@ -116,6 +144,9 @@ function ShellLink({ to, label }: { to: string; label: string }) {
       style={({ isActive }) => ({
         color: isActive ? 'var(--ink)' : 'var(--muted)',
         fontWeight: isActive ? 600 : 500,
+        display: 'inline-flex',
+        alignItems: 'center',
+        minHeight: 44,
         // Never colour alone: the active item keeps an underline so the state
         // survives the greyscale test.
         textDecoration: isActive ? 'underline' : 'none',

@@ -88,4 +88,70 @@ internal sealed class LoggingVerificationMessageSender(
             address.Value, token);
         return Task.CompletedTask;
     }
+
+    public Task SendPasswordResetAsync(
+        Vni.Ielts.Domain.Identity.Email address, string token, CancellationToken ct)
+    {
+        logger.LogWarning(
+            "DEV ONLY — no email was sent. Password reset token for {Address}: {Token}",
+            address.Value, token);
+        return Task.CompletedTask;
+    }
+}
+
+/// <summary>
+/// Password-reset tokens, stored hashed with a one-hour TTL.
+///
+/// A near-copy of the verification store above, and deliberately not shared
+/// with it: a token that proves an address is reachable and a token that hands
+/// over an account should not be able to be confused for one another by a
+/// mistake in a single filter. → threat T5
+/// </summary>
+internal sealed class MongoPasswordResetTokens(IMongoDatabase db, IClock clock) : IPasswordResetTokens
+{
+    private const string CollectionName = "password_reset_tokens";
+    private static readonly TimeSpan Lifetime = TimeSpan.FromHours(1);
+
+    private IMongoCollection<BsonDocument> Tokens => db.GetCollection<BsonDocument>(CollectionName);
+
+    public async Task<string> IssueAsync(UserId userId, CancellationToken ct)
+    {
+        var token = Base64Url(RandomNumberGenerator.GetBytes(32));
+
+        await Tokens.InsertOneAsync(new BsonDocument
+        {
+            ["_id"] = Hash(token),
+            ["userId"] = userId.Value,
+            ["createdAt"] = clock.UtcNow.UtcDateTime,
+            ["expiresAt"] = clock.UtcNow.Add(Lifetime).UtcDateTime,
+        }, cancellationToken: ct);
+
+        return token;
+    }
+
+    public async Task<UserId?> RedeemAsync(string token, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return null;
+
+        var claimed = await Tokens.FindOneAndDeleteAsync(
+            Builders<BsonDocument>.Filter.And(
+                Builders<BsonDocument>.Filter.Eq("_id", Hash(token)),
+                Builders<BsonDocument>.Filter.Gt("expiresAt", clock.UtcNow.UtcDateTime)),
+            cancellationToken: ct);
+
+        return claimed is null ? null : new UserId(claimed["userId"].AsString);
+    }
+
+    public static async Task EnsureIndexesAsync(IMongoDatabase database, CancellationToken ct) =>
+        await database.GetCollection<BsonDocument>(CollectionName).Indexes.CreateOneAsync(
+            new CreateIndexModel<BsonDocument>(
+                Builders<BsonDocument>.IndexKeys.Ascending("expiresAt"),
+                new CreateIndexOptions { Name = "ttl_password_reset", ExpireAfter = TimeSpan.Zero }),
+            cancellationToken: ct);
+
+    private static string Hash(string token) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+
+    private static string Base64Url(byte[] bytes) =>
+        Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 }

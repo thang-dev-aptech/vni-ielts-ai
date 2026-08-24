@@ -67,7 +67,9 @@ The owner re-scoped AI scoring on 2026-08-20. Where the new statement says less 
 | A-12a | AI feedback must not include band prediction, detailed skill breakdown, personalised roadmap, AI tutor, or grammar coach | PROPOSED | Owner disowned this line as analysis-authored on 2026-08-20 → `B-10` |
 | A-12b | Exact output contract for AI feedback (`score` · `feedback` · `mistakes` · `suggestions` · `explanation`) | PROPOSED | → `B-10` |
 | A-13a | Writing is band-scored by AI | CONFIRMED | Owner brief, verbatim: *"reading, writing, listening sẽ cho AI chấm"* |
-| A-13b | Writing is scored against the four IELTS criteria (TR/TA · CC · LR · GRA) | UNCONFIRMED | A-3 asserted this; the 2026-08-20 re-scoping did not restate it → `H-8` |
+| A-13b | Writing is scored against the four IELTS criteria (TR/TA · CC · LR · GRA) | CONFIRMED | Owner decision in session, 2026-08-21, verbatim: *"sẽ chấm theo cách chấm của ielts luôn chứ không phải là chấm bừa"* — closes `H-8` |
+| A-13c | **Every criterion band carries a basis**: at least one span quoted from the learner's own submission, checked server-side to occur in that submission | CONFIRMED | Owner decision in session, 2026-08-21, verbatim: *"phải có cơ sở đến chấm và cho điểm chứ ko phải chấm bừa"* |
+| A-13d | AI marking stands on its own — **no human re-mark before a band reaches the learner**. This is a practice product; accuracy is the requirement, not a second marker | CONFIRMED | Owner decision in session, 2026-08-21, verbatim: *"đây là luyện tập nên cứ chấm 1 cách chuẩn nhất là được"* |
 | A-14 | **Speaking is AI-scored** | UNCONFIRMED | Owner brief: *"Speaking: nếu chưa có business rule chính thức thì KHÔNG tự quyết định, ghi rõ UNCONFIRMED"* → `M-26` |
 
 > **A-11 has an architectural consequence that is deliberately kept out of this page:** whether a Reading/Listening `Evaluation` needs an `AiJob` at all is a design question, recorded as `PROPOSED` in [`../domain/domain-model.md`](../domain/domain-model.md). The requirement here is only about where the band comes from.
@@ -82,6 +84,18 @@ The owner re-scoped AI scoring on 2026-08-20. Where the new statement says less 
 | M-25 | **AI Chat** is in product scope | CONFIRMED | Owner brief, verbatim: *"thêm 1 cái nữa là chat với AI"*. Scope, provider, token cost, retention, and MVP priority are all UNCONFIRMED → `B-6` |
 
 > **Scope discipline for these four.** The owner described each in one sentence and explicitly warned against expansion — dictation must not become a listening-learning system, articles must not become a social feed, documents need no editor. Anything beyond the sentence above is `UNCONFIRMED`.
+
+## Public site structure — added 2026-08-21
+
+How the confirmed modules are surfaced to a visitor and to a signed-in learner. These decide *shape*, not scope — every module named here was already confirmed on 2026-08-20.
+
+| ID | Requirement | Status | Source |
+|---|---|---|---|
+| N-1 | **Each module is a page with an address of its own**, not a section of the landing page. Documents is `/documents`; Articles is `/articles`, and one article is `/articles/<slug>` | CONFIRMED | Chủ sản phẩm 21/08/2026, nguyên văn: *"mỗi 1 module là 1 trang, ví dụ tài liệu 1 trang riêng để học sinh tải tài liệu, bài viết cũng 1 trang riêng chứ không phải để dạng SPA"* |
+| N-2 | **The header navigation shows every destination whenever the row fits.** "Thêm" is an overflow control that appears only when the row has genuinely run out of width — it is never a fixed split | CONFIRMED | Chủ sản phẩm 21/08/2026, nguyên văn: *"mục thêm chỉ dành cho là khi menu bị thiếu responsive mới thành thêm chứ bình thường đủ thì cứ hiển thị đầy đủ ra"* |
+| N-3 | Documents and Articles are readable **without an account**; the landing page keeps a three-item preview of each that links through | PROPOSED | Engineering choice, not an owner statement. The library is what a visitor is deciding on, and `M-23`/`M-24` describe reading and downloading rather than a gated entitlement. If the owner wants either behind sign-in, that is a one-line change to the route |
+
+> **N-2 is a measurement, not a breakpoint.** Label widths change with the interface language, the font and the reader's zoom, so no fixed width can say how many fit — see `OverflowNav` in `apps/web`. `M-4` (a second interface language) would move those widths again.
 
 ## Token — added 2026-08-20
 
@@ -144,6 +158,8 @@ the rules inside it — where a rule is still open, the row names the decision t
 | AU-4 | Backend provides centralised authentication and authorisation |
 | AU-5 | Do not over-engineer before requirements are finalised |
 | AU-6 | The identity layer must accommodate **multiple** SSO providers without rework — do not hard-wire a single provider (owner brief 2026-08-20) |
+| AU-7 | **One email address is one account.** A social sign-in on an address that already has an account links to it rather than creating a second one — *"sẽ là 2 tài khoàn chung luôn nếu cùng gmail chỉ khác phương thức đăng nhập thôi"* (chủ sản phẩm, 21/08/2026). Silent only where the provider verifies the address → [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md) |
+| AU-8 | **Google is the only social provider in scope.** Facebook and Microsoft are deferred until the product is polished — *"trước mắt chỉ làm cho google thôi mấy phần khác bỏ hoàn thiện mượt app rồi bổ sung thêm"* (chủ sản phẩm, 21/08/2026). This supersedes the earlier same-day instruction to build Facebook alongside Google |
 
 ## Admin CMS
 
@@ -162,6 +178,38 @@ the rules inside it — where a rule is still open, the row names the decision t
 | C-11 | System configuration |
 | C-12 | Audit logs where appropriate |
 | C-13 | RBAC, with a clean permission model. Example permissions given (`exam.read`, `exam.create`, `exam.update`, `exam.delete`, `exam.publish`) are **not** final |
+
+### CMS content operations — added 2026-08-24
+
+Nine decisions taken in session on 2026-08-24, reframing the CMS from an administrative dashboard
+into the system that produces everything the learner sees. Full working-out in
+[`../ux/cms-content-operations.md`](../ux/cms-content-operations.md).
+
+> **Working decisions, revisited at each phase gate.** The owner stated on the same day: *"mình
+> không khoá gì hết, đều có thể thay đổi theo từng giai đoạn làm để phù hợp với bài toán mình đề
+> ra"*. They are `CONFIRMED` because they are owner decisions with a source — not because they are
+> irreversible. What is *not* cheap to reverse is listed separately in
+> [`../ux/cms-content-operations.md`](../ux/cms-content-operations.md) §0.4, and published-version
+> immutability is the item on that list that protects every band score already issued.
+
+| ID | Requirement | Status | Source |
+|---|---|---|---|
+| C-14 | The CMS is the platform's **content-operations system** — the tool the content, academic and admin team use to create and control what learners see. Not a generic CMS, and not a centre-management system | CONFIRMED | Chủ sản phẩm, 24/08/2026, nguyên văn: *"CMS này phục vụ đội ngũ phía sau sản phẩm — content, giáo viên/academic, admin"* |
+| C-15 | A **teacher is an exam author**, not a class manager. The role is `exam-author`: create · edit own · delete own draft · preview · submit for review · view own analytics | CONFIRMED | Chủ sản phẩm, 24/08/2026, nguyên văn: *"tôi sẽ khóa scope teacher = content author"*. Splits `M-11` into `M-11a`/`M-11b` |
+| C-16 | **`academic-lead` approves or returns; it never publishes.** Admin is the last hand before production | CONFIRMED | Chủ sản phẩm, 24/08/2026, nguyên văn: *"academic-lead chỉ Approve / Return, Admin Publish"* |
+| C-17 | `content-editor` becomes **Content Manager** — articles, documents, dictation, media. It no longer means "the person who writes exams" | CONFIRMED | Chủ sản phẩm, 24/08/2026, nguyên văn: *"chuyển thành: Content Manager"* |
+| C-18 | **One content lifecycle across every content type.** Exam · Article · Document · Dictation share the same states, verbs and audit vocabulary | CONFIRMED | Chủ sản phẩm, 24/08/2026, nguyên văn: *"CMS có một mental model thống nhất"* |
+| C-19 | Exam lifecycle states: `DRAFT` → `IN_REVIEW` → `RETURNED` → `APPROVED` → `PUBLISHED` → `UNPUBLISHED`. A published version stays immutable; correcting content means a new version | CONFIRMED | Chủ sản phẩm, 24/08/2026 — vòng đời nêu trong chỉ đạo cùng ngày |
+| C-20 | Permission keys follow `<resource>.<action>[.<scope>]`, and **ownership scope is part of the model** — an author edits only their own drafts | CONFIRMED | Chủ sản phẩm, 24/08/2026, chốt `Đ5` |
+| C-21 | An author sees **aggregated, anonymised** analytics for their own exams. No route from analytics to an identifiable learner | CONFIRMED | Chủ sản phẩm, 24/08/2026, chốt `Đ6` |
+| C-22 | The authoring editor targets the **ten question types frozen in `exam.schema.json`** and writes through that schema. It does not wait on `B-8` | CONFIRMED | Chủ sản phẩm, 24/08/2026, nguyên văn: *"CMS nên là UI editor của exam.schema.json"* |
+| C-23 | **Four content sources, one validator**: manual authoring · JSON import · ZIP import · AI parsing all converge on the same schema gate, then the same review queue | CONFIRMED | Chủ sản phẩm, 24/08/2026, nguyên văn: *"như vậy sau này AI không cần xây một workflow riêng"*. Generalises `I-16` |
+| C-25 | **Three seeded operator roles, not five**: `exam-author` · `academic-lead` · `admin`. `content-manager` and `support` fold into `admin` until a person actually holds either job. Their permission keys stay in the model, so splitting one out later is a seed row rather than a deployment | CONFIRMED | Chủ sản phẩm, 24/08/2026, nguyên văn: *"hiện tại đang nhiều role quá tối giản thêm đi"*. Narrows `C-17`; the two separations in `C-15` and `C-16` are explicitly preserved |
+| C-24 | The CMS is a **content workspace**, not a CRUD dashboard — the authoring surface is a structure/editor/validation layout, not a table leading to a long form | CONFIRMED | Chủ sản phẩm, 24/08/2026, nguyên văn: *"Nên làm kiểu content workspace"* |
+
+> **`C-23` closes `B-9`.** Admin Review before publication is no longer a recommendation authored by
+> analysis — it is the confirmed shape of the pipeline, and it applies to every source of content
+> rather than only to AI-produced content.
 
 ## Automated exam import
 
@@ -190,7 +238,7 @@ the rules inside it — where a rule is still open, the row names the decision t
 | I-15b | Extraction targets: skill · sections · questions · answers · content · metadata · audio/image/file relationships | PROPOSED | Owner disowned this list as analysis-authored on 2026-08-20 → `B-7a` |
 | I-15c | Output contract, accuracy threshold, and ownership of mis-parses | UNCONFIRMED | → `B-7b`, `B-7c` |
 | I-15d | Implementation approach (LLM pipeline, model, prompt, schema) | PROPOSED | Format v1 does **not** cover this — see [`../architecture/exam-package-format.md`](../architecture/exam-package-format.md) |
-| I-16 | AI-produced content passes **Admin Review → Approve → Publish** before it reaches learners | PROPOSED | Owner disowned this line as analysis-authored on 2026-08-20. Strongly recommended — without it a mis-parse ships a broken exam to a real candidate → `B-9` |
+| I-16 | AI-produced content passes **Review → Approve → Publish** before it reaches learners | CONFIRMED | Chủ sản phẩm, 24/08/2026. Disowned on 2026-08-20 as analysis-authored, then confirmed in a stronger form: the gate applies to **every** content source, not only AI → `C-23`, closing `B-9` |
 
 > **I-15a is confirmed; how far it goes is not.** The existing package format v1 assumes a ZIP that is *already* schema-correct. AI parsing raw source material is a materially different capability and needs its own design.
 

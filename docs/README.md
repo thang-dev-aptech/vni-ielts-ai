@@ -162,18 +162,21 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 ### UX
 - [`ux/DESIGN.md`](ux/DESIGN.md) — design language. Direction **C · Soft Card** CONFIRMED 2026-08-20; tokens, spacing/type scale, and the four product laws are binding engineering constraints held at `PROPOSED` — bundled owner confirmation due at requirement freeze
 - [`ux/cms-spec.md`](ux/cms-spec.md) — Admin CMS screens, states, permission matrix, import and AI-inspection flows
+- [`ux/cms-content-operations.md`](ux/cms-content-operations.md) — the CMS as the platform's content-operations system: content model, the unified draft → review → approve → publish lifecycle, the permission and role model behind it, and the authoring workspace. Role and lifecycle decisions confirmed 2026-08-24; the schema and screen proposals are `PROPOSED`
 - A clickable HTML prototype lives **outside this repo**: `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — `client/` (21 screens) and `admin/` (14 screens). Feature comparison: [`product/web-demo-feature-map.md`](product/web-demo-feature-map.md).
 
 > The four Claude Design prompt/audit files that used to live in `ux/` were **deleted on 2026-08-20**. They targeted a discontinued canvas project and had become the largest source of misdirection in the repository.
 
 ### API
 - [`api/api-design-principles.md`](api/api-design-principles.md) — versioning, errors, idempotency, pagination
+- [`api/sso-contract.md`](api/sso-contract.md) — social sign-in, as the client sees it: four endpoints and every error code
 
 ### Development
 - **[`development/next-actions.md`](development/next-actions.md) — ▶ the current task queue. Start here.**
 - [`development/ai-assisted-development.md`](development/ai-assisted-development.md) — Claude Code + Cursor setup and division of labour
 - [`development/agent-orchestration.md`](development/agent-orchestration.md) — who owns what, what runs in parallel
 - [`development/skill-inventory.md`](development/skill-inventory.md) — classified plugin/skill inventory
+- [`development/sso-provider-setup.md`](development/sso-provider-setup.md) — registering the Google OAuth client and loading the keys
 - [`development/nfr.md`](development/nfr.md) — non-functional requirements, MVP vs. future scale
 - [`development/roadmap.md`](development/roadmap.md) — phase plan
 

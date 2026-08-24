@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
@@ -27,8 +28,33 @@ namespace Vni.Ielts.Infrastructure.Content;
 /// </summary>
 public sealed class ExamPackageReader(JsonSchema schema)
 {
+    /// <summary>
+    /// One built schema per file, per process.
+    ///
+    /// <b>Not an optimisation — a correctness fix.</b> <c>JsonSchema.FromFile</c>
+    /// registers the document by its <c>$id</c> in a process-global registry,
+    /// and a second registration of the same id throws
+    /// <i>"Overwriting registered schemas is not permitted"</i>. That is
+    /// invisible while one host builds the schema once, and it took out five
+    /// integration tests the moment a second <c>WebApplicationFactory</c>
+    /// started in the same process.
+    ///
+    /// Caching also stops a multi-megabyte schema being parsed on every boot,
+    /// but that is the smaller half.
+    /// </summary>
+    private static readonly ConcurrentDictionary<string, Lazy<JsonSchema>> SchemaCache = new();
+
     public static ExamPackageReader FromSchemaFile(string schemaPath) =>
-        new(JsonSchema.FromFile(schemaPath));
+        new(SchemaCache.GetOrAdd(
+            Path.GetFullPath(schemaPath),
+            // Lazy, not a bare factory. `GetOrAdd` does not promise to invoke
+            // its factory only once — two callers racing on a cold key both
+            // run it, and the loser's `JsonSchema.FromFile` is the second
+            // registration that throws. Which is exactly what happened: xUnit
+            // starts test classes in parallel, so two hosts booted together.
+            path => new Lazy<JsonSchema>(
+                () => JsonSchema.FromFile(path), LazyThreadSafetyMode.ExecutionAndPublication))
+            .Value);
 
     /// <summary>
     /// Validates and converts. Findings carry a JSON Pointer path so an author
@@ -209,8 +235,12 @@ public sealed class ExamPackageReader(JsonSchema schema)
         return new ScoringProfile(
             tables,
             s["answerMatching"] is JsonObject m ? ConvertMatching(m) : AnswerMatchingRules.Default,
-            s["criterionWeights"]?["writing"]?["task1"]?.GetValue<decimal>() ?? 1m,
-            s["criterionWeights"]?["writing"]?["task2"]?.GetValue<decimal>() ?? 2m);
+            // No `?? 1m` / `?? 2m` here. A package that omits the weighting
+            // carries no weighting; substituting the documented assumption at
+            // the boundary is how an open question becomes an answer nobody
+            // decided. ScoringProfile refuses at the point of use instead.
+            s["criterionWeights"]?["writing"]?["task1"]?.GetValue<decimal>(),
+            s["criterionWeights"]?["writing"]?["task2"]?.GetValue<decimal>());
     }
 
     private static TimingProfile ConvertTiming(JsonObject t)

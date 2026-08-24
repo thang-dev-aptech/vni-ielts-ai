@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.RateLimiting;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Identity;
+using Vni.Ielts.Domain.Common;
 
 namespace Vni.Ielts.Api.Endpoints;
 
@@ -13,6 +14,8 @@ public sealed record RegisterRequest(string Email, string Password, string Displ
 public sealed record LoginRequest(string Email, string Password);
 public sealed record RefreshRequest(string RefreshToken);
 public sealed record VerifyEmailRequest(string Token);
+public sealed record ForgotPasswordRequest(string Email);
+public sealed record ResetPasswordRequest(string Token, string NewPassword);
 
 public sealed record SessionResponse(
     string AccessToken,
@@ -23,7 +26,15 @@ public sealed record SessionResponse(
     string DisplayName);
 
 public sealed record MeResponse(
-    string UserId, string DisplayName, bool EmailVerified, IReadOnlyCollection<string> Permissions);
+    string UserId,
+    string DisplayName,
+    string? Email,
+    bool EmailVerified,
+    string? Phone,
+    IReadOnlyCollection<string> Permissions,
+    /// <summary>Lower-case provider keys this account can sign in with: email, google.</summary>
+    IReadOnlyCollection<string> Providers,
+    bool HasPassword);
 
 public static class AuthEndpoints
 {
@@ -49,6 +60,16 @@ public static class AuthEndpoints
         group.MapPost("/verify", Verify)
             .WithName("VerifyEmail")
             .WithSummary("Redeem an email verification token")
+            .RequireRateLimiting(RateLimitPolicies.Authentication);
+
+        group.MapPost("/forgot-password", ForgotPassword)
+            .WithName("ForgotPassword")
+            .WithSummary("Send a password reset link, if the address has an account")
+            .RequireRateLimiting(RateLimitPolicies.Authentication);
+
+        group.MapPost("/reset-password", ResetPasswordEndpoint)
+            .WithName("ResetPassword")
+            .WithSummary("Redeem a reset link and set a new password")
             .RequireRateLimiting(RateLimitPolicies.Authentication);
 
         app.MapGet("/api/v1/me", Me).WithName("Me").WithTags("Identity").RequireAuthorization();
@@ -116,14 +137,71 @@ public static class AuthEndpoints
             error => ApiProblem.From(error, http));
     }
 
-    private static Ok<MeResponse> Me(ClaimsPrincipal principal) =>
-        TypedResults.Ok(new MeResponse(
-            principal.UserId() ?? string.Empty,
-            principal.DisplayName(),
-            principal.EmailVerified(),
-            principal.Permissions()));
+    /// <summary>
+    /// The caller's account.
+    ///
+    /// <para>
+    /// <b>This now reads the database, and that is a deliberate change.</b> It
+    /// used to answer entirely from the validated token, which was free. But
+    /// which providers are linked cannot travel in a token that lives fifteen
+    /// minutes: someone who links Google must see it immediately, not when the
+    /// access token next rolls over. Permissions still come from the token,
+    /// where the fifteen-minute staleness is a documented trade.
+    /// </para>
+    /// </summary>
+    /// <summary>
+    /// <b>Always 202, whatever happened.</b> Telling the caller whether the
+    /// address exists would make this a free account-enumeration oracle, and
+    /// nobody legitimate needs the answer — they are about to go and look in
+    /// their mailbox either way. → threat T4
+    /// </summary>
+    private static async Task<IResult> ForgotPassword(
+        [FromBody] ForgotPasswordRequest request,
+        RequestPasswordReset handler,
+        CancellationToken ct)
+    {
+        await handler.HandleAsync(new RequestPasswordResetCommand(request.Email), ct);
+        return Results.Accepted();
+    }
 
-    private static SessionResponse ToSession(LoginResult r) => new(
+    private static async Task<IResult> ResetPasswordEndpoint(
+        [FromBody] ResetPasswordRequest request,
+        ResetPassword handler,
+        HttpContext http,
+        CancellationToken ct)
+    {
+        var result = await handler.HandleAsync(
+            new ResetPasswordCommand(request.Token, request.NewPassword), ct);
+
+        return result.Match(
+            userId => Results.Ok(new { userId = userId.Value }),
+            error => ApiProblem.From(error, http));
+    }
+
+    private static async Task<IResult> Me(
+        ClaimsPrincipal principal, GetMyAccount handler, CancellationToken ct)
+    {
+        if (principal.UserId() is not { } id) return Results.Unauthorized();
+
+        var account = await handler.HandleAsync(new UserId(id), ct);
+        if (account is null) return Results.Unauthorized();
+
+        return Results.Ok(new MeResponse(
+            account.UserId.Value,
+            account.DisplayName,
+            account.Email,
+            account.EmailVerified,
+            account.Phone,
+            principal.Permissions(),
+            account.Providers,
+            account.HasPassword));
+    }
+
+    /// <summary>
+    /// Internal rather than private because social sign-in returns the same
+    /// body. One shape, one place it is built. → ADR-0014
+    /// </summary>
+    internal static SessionResponse ToSession(LoginResult r) => new(
         r.Tokens.AccessToken,
         r.Tokens.AccessTokenExpiresAt,
         r.Tokens.RefreshToken,

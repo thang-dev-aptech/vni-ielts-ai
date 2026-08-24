@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Domain.Common;
@@ -21,6 +22,44 @@ internal sealed class MongoUserRepository(MongoContext ctx) : IUserRepository
 
     public async Task<bool> EmailExistsAsync(Email email, CancellationToken ct) =>
         await ctx.Users.Find(u => u.Email == email.Value).AnyAsync(ct);
+
+    /// <summary>
+    /// A page of accounts for the CMS.
+    ///
+    /// Paged from the start rather than "list them all and filter in the UI":
+    /// the second works on the fifty accounts a dev database holds and falls
+    /// over in the first real week.
+    /// </summary>
+    public async Task<(IReadOnlyList<User> Users, long Total)> ListAsync(
+        string? search, int skip, int take, CancellationToken ct)
+    {
+        var filter = Builders<UserDocument>.Filter.Empty;
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            // Escaped before it reaches a regex. An unescaped search box hands
+            // the database a pattern chosen by the caller, and `(a+)+$` is the
+            // classic way to hang one.
+            var pattern = System.Text.RegularExpressions.Regex.Escape(search.Trim());
+
+            filter = Builders<UserDocument>.Filter.Or(
+                Builders<UserDocument>.Filter.Regex(
+                    u => u.Email, new BsonRegularExpression(pattern, "i")),
+                Builders<UserDocument>.Filter.Regex(
+                    u => u.DisplayName, new BsonRegularExpression(pattern, "i")));
+        }
+
+        var total = await ctx.Users.CountDocumentsAsync(filter, cancellationToken: ct);
+
+        var documents = await ctx.Users
+            .Find(filter)
+            .SortByDescending(u => u.CreatedAt)
+            .Skip(skip)
+            .Limit(take)
+            .ToListAsync(ct);
+
+        return ([.. documents.Select(d => d.ToDomain())], total);
+    }
 
     /// <summary>
     /// Inserts, translating a unique-index violation into a domain-meaningful
@@ -70,8 +109,21 @@ internal sealed class MongoUserIdentityRepository(MongoContext ctx) : IUserIdent
         return [.. docs.Select(d => d.ToDomain())];
     }
 
-    public Task AddAsync(UserIdentity identity, CancellationToken ct) =>
-        ctx.UserIdentities.InsertOneAsync(identity.ToDocument(), cancellationToken: ct);
+    public async Task AddAsync(UserIdentity identity, CancellationToken ct)
+    {
+        try
+        {
+            await ctx.UserIdentities.InsertOneAsync(identity.ToDocument(), cancellationToken: ct);
+        }
+        catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            // ux_identities_provider_subject. The unique index is what actually
+            // enforces one identity per provider account; this turns losing the
+            // race into something the use case can handle.
+            throw new DuplicateIdentityException(
+                identity.Provider.ToString(), identity.ProviderUserId, e);
+        }
+    }
 
     public Task SaveAsync(UserIdentity identity, CancellationToken ct) =>
         ctx.UserIdentities.ReplaceOneAsync(

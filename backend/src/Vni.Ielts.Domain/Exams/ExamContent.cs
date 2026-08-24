@@ -212,9 +212,44 @@ public sealed record AnswerMatchingRules(
 public sealed record ScoringProfile(
     IReadOnlyDictionary<ExamModule, IReadOnlyList<BandBoundary>> RawToBand,
     AnswerMatchingRules Matching,
-    decimal WritingTask1Weight = 1m,
-    decimal WritingTask2Weight = 2m)
+    decimal? WritingTask1Weight = null,
+    decimal? WritingTask2Weight = null)
 {
+    /// <summary>
+    /// The relative weight of Writing Task 1 and Task 2, or a refusal.
+    ///
+    /// <b>Nullable on purpose, and this used to default to 1 and 2.</b>
+    /// `docs/domain/band-scoring.md` records the two-to-one split as
+    /// `[ASSUMPTION]` carrying `[NEEDS VALIDATION]`: Task 2 is known to weigh
+    /// more, but IELTS does not publish the exact ratio the way it publishes
+    /// the overall-band rule. A default turned that open question into a
+    /// silent answer — every exam version without an explicit weighting got
+    /// marked on a guess, and nothing anywhere said so.
+    ///
+    /// So it refuses, in the same way <see cref="BandFor"/> refuses a raw
+    /// score its table does not cover. A Writing band that combines two tasks
+    /// needs the ratio; an exam version that does not carry one is incomplete
+    /// content, not an invitation to pick a number. → `G-11`
+    /// </summary>
+    public (decimal Task1, decimal Task2) RequireWritingTaskWeights()
+    {
+        if (WritingTask1Weight is { } t1 && WritingTask2Weight is { } t2)
+        {
+            if (t1 <= 0m || t2 <= 0m)
+                throw new InvalidOperationException(
+                    "Writing task weights must be positive. Refusing to combine two task bands "
+                    + $"on a weighting of {t1}:{t2}.");
+
+            return (t1, t2);
+        }
+
+        throw new InvalidOperationException(
+            "This exam version declares no Writing task weighting, and there is no default to "
+            + "fall back on — the official Task 1 : Task 2 ratio is not published, so a default "
+            + "would be a guess applied silently. Set scoring.criterionWeights.writing on the "
+            + "exam version. Refusing to invent a weighting.");
+    }
+
     /// <summary>
     /// The band for a raw score. Boundaries are sorted descending and the
     /// first whose threshold is met wins.

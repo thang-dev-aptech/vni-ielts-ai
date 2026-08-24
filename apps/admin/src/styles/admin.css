@@ -1,0 +1,1049 @@
+/* The CMS surface.
+ *
+ * <b>One design language, two densities.</b> Every token here comes from
+ * `@vni/design-system`, and `index.html` sets `data-density="compact"` — which
+ * is exactly what that mode was added for. A second design system for the
+ * admin is anti-pattern 22, and the cost of it is two places to fix every
+ * contrast bug.
+ *
+ * The hard constraints apply here as they do on the learner side: 14px floor
+ * for Vietnamese, line-height at least 1.5 below 32px, no uppercase on
+ * Vietnamese strings, no text/background pair under 4.5. An operator reads
+ * this screen for eight hours; it needs the floor more than the learner app,
+ * not less.
+ *
+ * Tables reflow rather than scroll sideways — anti-pattern 15 — except where a
+ * matrix genuinely cannot, and there the scroll is on the table's own wrapper
+ * so the page itself never moves.
+ */
+
+body {
+  background: var(--page);
+}
+
+.cms {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  align-items: stretch;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+
+.cms-rail {
+  border-right: 1px solid var(--line);
+  background: var(--card);
+}
+
+.cms-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border-bottom: 1px solid var(--line-2);
+}
+
+.cms-brand img {
+  width: 32px;
+  height: 32px;
+}
+
+.cms-brand strong {
+  display: block;
+  font-size: var(--t-14);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.cms-brand span span {
+  display: block;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-nav {
+  padding: var(--s-3);
+}
+
+.cms-nav-group + .cms-nav-group {
+  margin-top: var(--s-4);
+}
+
+/* Weight and tracking, never uppercase — capitalising Vietnamese strips the
+   diacritics on many renderers. */
+.cms-nav-title {
+  margin: 0 0 var(--s-2);
+  padding-inline: var(--s-3);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  letter-spacing: 0.04em;
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  min-height: 40px;
+  padding-inline: var(--s-3);
+  border-radius: var(--r-md);
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  text-decoration: none;
+}
+
+.cms-nav-item:hover {
+  background: var(--sunk);
+  color: var(--ink);
+}
+
+.cms-nav-item.is-active {
+  background: var(--acc-soft);
+  color: var(--acc-700);
+}
+
+/* An entry whose feature does not exist yet still navigates — to a screen that
+   explains what it is waiting on. The chip is what stops that being a
+   surprise. */
+.cms-pending {
+  padding: 2px var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--warn-soft);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--warn);
+}
+
+/* ── Body ───────────────────────────────────────────────────────────────── */
+
+.cms-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cms-top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-4);
+  min-height: 56px;
+  padding-inline: var(--s-5);
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+
+.cms-who {
+  text-align: right;
+}
+
+.cms-who strong {
+  display: block;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.cms-who span {
+  display: block;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-main {
+  flex: 1;
+  padding: var(--s-5);
+  max-width: 1180px;
+}
+
+.cms-head {
+  margin-bottom: var(--s-5);
+}
+
+.cms-head h1 {
+  margin: 0;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.cms-head p {
+  margin: var(--s-2) 0 0;
+  max-width: var(--measure);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+/* ── Controls ───────────────────────────────────────────────────────────── */
+
+.cms-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.cms-search {
+  flex: 1;
+  min-width: 200px;
+  min-height: 40px;
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.cms-primary,
+.cms-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding-inline: var(--s-4);
+  border-radius: var(--r-md);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Solid, and white text is now allowed on it.
+ *
+ * This was a soft green with dark-green text, and the comment said white
+ * measured 2.86 on it — true of `#10b050`, which the accent used to resolve
+ * to. `palette.css` moved `--acc` to `#06803a`, the same fill the learner app
+ * uses for its own primary button: white on it measures 5.05, so the CTA can
+ * carry the weight a CTA should. Re-measure before changing the accent again;
+ * the two facts are tied together. */
+.cms-primary {
+  border: 1px solid var(--acc);
+  background: var(--acc);
+  color: #fff;
+}
+
+.cms-primary:hover {
+  border-color: var(--acc-700);
+  background: var(--acc-700);
+}
+
+.cms-secondary {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+}
+
+.cms-primary:disabled,
+.cms-secondary:disabled {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.cms-signout {
+  min-height: 36px;
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+/* ── Tiles, panels, tables ──────────────────────────────────────────────── */
+
+.cms-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-3);
+  margin-bottom: var(--s-5);
+}
+
+.cms-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  color: inherit;
+  text-decoration: none;
+}
+
+.cms-tile-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-32);
+  font-weight: var(--w-display);
+  line-height: var(--lh-display);
+  color: var(--ink);
+}
+
+.cms-tile-label {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-tile-note {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-panel {
+  padding: var(--s-5);
+  margin-bottom: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+}
+
+.cms-panel h2 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-18);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.cms-notes {
+  margin: 0;
+  padding-left: var(--s-5);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-notes li + li {
+  margin-top: var(--s-2);
+}
+
+.cms-muted {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-alert {
+  margin: var(--s-3) 0 0;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.cms-alert.is-bad {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+/* The scroll lives on the wrapper, never on the page. */
+.cms-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+}
+
+.cms-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.cms-table th,
+.cms-table td {
+  padding: var(--s-3) var(--s-4);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.cms-table th {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--muted);
+  background: var(--sunk);
+}
+
+.cms-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.cms-table .num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.cms-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-modules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.cms-module {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 2px var(--s-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--sunk);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-module b {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Three states, each with its own word: a status column read in greyscale, or
+   by someone who cannot separate the hues, still says which rows are live. */
+.cms-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--s-2);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.cms-badge.is-published,
+.cms-badge.is-active {
+  border-color: #bfe3cd;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.cms-badge.is-draft {
+  border-color: #e0c49b;
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.cms-empty {
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--sunk);
+  text-align: center;
+}
+
+.cms-empty h3 {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.cms-empty p {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* ── Version timeline ───────────────────────────────────────────────────── */
+
+.cms-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cms-version {
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+}
+
+.cms-version-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+
+.cms-version-no {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-18);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.cms-table.is-inner {
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.cms-version-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+
+/* ── Import ─────────────────────────────────────────────────────────────── */
+
+.cms-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-3);
+  margin: 0 0 var(--s-4);
+}
+
+.cms-facts dt {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-facts dd {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.cms-drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  padding: var(--s-4);
+  border: 1px dashed var(--line);
+  border-radius: var(--r-lg);
+  background: var(--sunk);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.cms-drop input {
+  display: none;
+}
+
+.cms-stages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: stage;
+}
+
+.cms-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+}
+
+.cms-stage-no {
+  flex: none;
+  width: var(--s-6);
+  height: var(--s-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-stage strong {
+  display: block;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+/* ── Permission matrix ──────────────────────────────────────────────────── */
+
+.cms-matrix code {
+  font-family: var(--mono);
+  font-size: var(--t-13);
+}
+
+.cms-matrix-role {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cms-matrix-group th {
+  padding-top: var(--s-4);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: var(--card);
+}
+
+.cms-matrix-cell {
+  text-align: center;
+}
+
+/* A tick and a dash, not a coloured cell: half the screenshots of this table
+   end up pasted into a ticket in greyscale. */
+.cms-yes {
+  font-weight: var(--w-display);
+  color: var(--ok);
+}
+
+.cms-no {
+  color: var(--muted);
+}
+
+/* ── Auth screens ───────────────────────────────────────────────────────── */
+
+.cms-auth {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--s-5);
+  background: var(--page);
+}
+
+.cms-auth-card {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+}
+
+.cms-auth-card img {
+  width: 40px;
+  height: 40px;
+}
+
+.cms-auth-card h1 {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.cms-auth-card p {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.cms-field span {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-field input {
+  min-height: 40px;
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+code {
+  font-family: var(--mono);
+  font-size: var(--t-13);
+}
+
+/* ── Narrow ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+  .cms-tiles,
+  .cms-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .cms {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cms-rail {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .cms-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+
+  .cms-nav-group + .cms-nav-group {
+    margin-top: 0;
+  }
+
+  .cms-nav-title {
+    display: none;
+  }
+
+  .cms-tiles,
+  .cms-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── Confirmation, and what happened after ──────────────────────────────── */
+
+/*
+ * A dialog for every write.
+ *
+ * Publishing, locking an account and changing a role all take effect for
+ * somebody else, and all three are recorded under the operator's name. The
+ * step between deciding and doing is cheap; the mis-click is not.
+ */
+.cms-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(23 26 24 / 44%);
+}
+
+.cms-dialog {
+  position: fixed;
+  z-index: 41;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(480px, calc(100vw - var(--s-6)));
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  box-shadow: 0 18px 48px rgb(23 26 24 / 22%);
+}
+
+/* Body line-height, not display: `--lh-display` is 1.2, and the scale reserves
+ * that for 32px and up. At 20px, stacked diacritics (ế ộ ằ) touch the line
+ * above — measured on this dialog, which is the one place in the CMS where a
+ * heading is a full Vietnamese sentence. */
+.cms-dialog h2 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-20);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.cms-dialog-body p {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+  margin-top: var(--s-5);
+}
+
+/*
+ * The destructive action, marked by colour AND by being the thing the sentence
+ * above already named. Colour alone is not a signal — a red button in a locale
+ * that reads red as auspicious is just a button.
+ */
+.cms-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding-inline: var(--s-4);
+  border: 1px solid #edc3bf;
+  border-radius: var(--r-md);
+  background: var(--bad-soft);
+  color: var(--bad);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.cms-danger:disabled {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+/* Said once, then gone. A banner that persists becomes furniture. */
+.cms-flash {
+  margin: 0 0 var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.cms-flash.is-ok {
+  border-color: #bfe3cd;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.cms-flash.is-bad {
+  border-color: #edc3bf;
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.cms-link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--acc-700);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── One account ────────────────────────────────────────────────────────── */
+
+.cms-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--s-4);
+  align-items: start;
+}
+
+.cms-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.cms-panel-head h2 {
+  margin: 0;
+}
+
+.cms-panel-actions {
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+/* Label above value, one pair per row — a detail list, not the 3-up summary. */
+.cms-detail-list {
+  display: grid;
+  grid-template-columns: minmax(120px, auto) minmax(0, 1fr);
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+}
+
+.cms-detail-list dt {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-detail-list dd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.cms-role-list {
+  list-style: none;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+}
+
+.cms-role-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--line);
+}
+
+.cms-role-name {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+/* ── Recent activity ────────────────────────────────────────────────────── */
+
+.cms-activity {
+  list-style: none;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+}
+
+.cms-activity li {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+  gap: var(--s-2) var(--s-4);
+  align-items: baseline;
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.cms-activity-when {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.cms-activity-what {
+  color: var(--ink);
+}
+
+.cms-activity-who {
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+/* Three columns need the width; one column stacked is still readable. */
+@media (max-width: 720px) {
+  .cms-activity li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cms-field-inline {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-field-inline select {
+  min-height: 40px;
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.cms-nowrap {
+  white-space: nowrap;
+}

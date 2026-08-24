@@ -20,6 +20,16 @@ public readonly record struct Error(string Code, string Detail, ErrorKind Kind)
     public static Error Conflict(string code, string detail) => new(code, detail, ErrorKind.Conflict);
     public static Error Unauthorized(string code, string detail) => new(code, detail, ErrorKind.Unauthorized);
     public static Error Forbidden(string code, string detail) => new(code, detail, ErrorKind.Forbidden);
+
+    /// <summary>
+    /// Refused because the caller has tried too often.
+    ///
+    /// Distinct from the HTTP rate limiter, which rejects before any use case
+    /// runs. This one comes from a use case that knows something the pipeline
+    /// cannot — which account is being attacked.
+    /// </summary>
+    public static Error TooManyRequests(string code, string detail) =>
+        new(code, detail, ErrorKind.TooManyRequests);
 }
 
 public enum ErrorKind
@@ -29,6 +39,7 @@ public enum ErrorKind
     Conflict,
     Unauthorized,
     Forbidden,
+    TooManyRequests,
 }
 
 public readonly struct Result<T>

@@ -23,8 +23,35 @@ internal sealed class FakeUserRepository : IUserRepository
     public Task<bool> EmailExistsAsync(Email email, CancellationToken ct) =>
         Task.FromResult(_byId.Values.Any(u => u.Email == email));
 
+    /// <summary>
+    /// Set to make the next <see cref="AddAsync"/> lose the unique-index race,
+    /// which is the only way to exercise the concurrent-signup path. The flag
+    /// clears itself so the retry inside the handler succeeds, exactly as the
+    /// real index behaves once the winner has committed.
+    /// </summary>
+    public bool ThrowDuplicateOnNextAdd { get; set; }
+
+    public Task<(IReadOnlyList<User> Users, long Total)> ListAsync(
+        string? search, int skip, int take, CancellationToken ct)
+    {
+        var matches = _byId.Values
+            .Where(u => string.IsNullOrWhiteSpace(search)
+                || u.Email.Value.Contains(search, StringComparison.OrdinalIgnoreCase)
+                || u.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        return Task.FromResult<(IReadOnlyList<User>, long)>(
+            ([.. matches.Skip(skip).Take(take)], matches.Count));
+    }
+
     public Task AddAsync(User user, CancellationToken ct)
     {
+        if (ThrowDuplicateOnNextAdd)
+        {
+            ThrowDuplicateOnNextAdd = false;
+            throw new DuplicateEmailException(user.Email.Value);
+        }
+
         _byId[user.Id.Value] = user;
         return Task.CompletedTask;
     }
@@ -49,8 +76,25 @@ internal sealed class FakeUserIdentityRepository : IUserIdentityRepository
         Task.FromResult<IReadOnlyList<UserIdentity>>(
             [.. _all.Where(i => i.UserId == userId)]);
 
+    /// <summary>
+    /// Identity to insert behind the caller's back on the next
+    /// <see cref="AddAsync"/>, so the unique index rejects theirs. This is the
+    /// only way to reproduce two tabs finishing a sign-in at the same instant.
+    /// </summary>
+    public UserIdentity? LoseNextAddTo { get; set; }
+
     public Task AddAsync(UserIdentity identity, CancellationToken ct)
     {
+        if (LoseNextAddTo is not null)
+        {
+            var winner = LoseNextAddTo;
+            LoseNextAddTo = null;
+            _all.Add(winner);
+
+            throw new DuplicateIdentityException(
+                identity.Provider.ToString(), identity.ProviderUserId);
+        }
+
         _all.Add(identity);
         return Task.CompletedTask;
     }
@@ -125,8 +169,21 @@ internal sealed class FakeTokenService : ITokenService
         Task.FromResult<Result<RefreshOutcome>>(
             Error.Unauthorized(ErrorCodes.RefreshTokenInvalid, "not configured"));
 
-    public Task RevokeFamilyAsync(UserId userId, string familyId, CancellationToken ct) =>
-        Task.CompletedTask;
+    public List<(UserId User, string Family)> RevokedFamilies { get; } = [];
+
+    public Task RevokeFamilyAsync(UserId userId, string familyId, CancellationToken ct)
+    {
+        RevokedFamilies.Add((userId, familyId));
+        return Task.CompletedTask;
+    }
+
+    public List<(UserId User, string Kept)> RevokedAllExcept { get; } = [];
+
+    public Task<int> RevokeAllExceptAsync(UserId userId, string keepFamilyId, CancellationToken ct)
+    {
+        RevokedAllExcept.Add((userId, keepFamilyId));
+        return Task.FromResult(3);
+    }
 
     public Task RevokeAllForUserAsync(UserId userId, CancellationToken ct)
     {
@@ -138,4 +195,139 @@ internal sealed class FakeTokenService : ITokenService
 internal sealed class FixedClock(DateTimeOffset now) : IClock
 {
     public DateTimeOffset UtcNow { get; } = now;
+}
+
+/// <summary>
+/// A provider whose behaviour is set per test.
+///
+/// <para>
+/// <see cref="AssertsEmailVerification"/> is settable here and deliberately
+/// <b>not</b> settable in production code — it is a fact about a provider's
+/// protocol, not a policy. Making it configurable in the fake is what lets one
+/// test class cover both the Google-shaped and Facebook-shaped cases without
+/// two adapters. → ADR-0013
+/// </para>
+/// </summary>
+internal sealed class FakeExternalIdentityProvider(
+    IdentityProvider provider = IdentityProvider.Google,
+    bool assertsEmailVerification = true) : IExternalIdentityProvider
+{
+    public IdentityProvider Provider { get; } = provider;
+    public bool AssertsEmailVerification { get; } = assertsEmailVerification;
+
+    public string Key => Provider.ToString().ToLowerInvariant();
+
+    /// <summary>What the exchange returns. Null means the exchange fails.</summary>
+    public ExternalIdentity? Result { get; set; }
+
+    public AuthorizationRequest? LastRequest { get; private set; }
+    public string? LastCode { get; private set; }
+    public string? LastVerifier { get; private set; }
+    public string? LastNonce { get; private set; }
+
+    public Task<Uri> BuildAuthorizationUrlAsync(AuthorizationRequest request, CancellationToken ct)
+    {
+        LastRequest = request;
+        return Task.FromResult(new Uri(
+            $"https://provider.example/authorize?state={request.State}"
+            + $"&code_challenge={request.CodeChallenge}&nonce={request.Nonce}"));
+    }
+
+    public Task<Result<ExternalIdentity>> ExchangeCodeAsync(
+        string code, string codeVerifier, string nonce, CancellationToken ct)
+    {
+        LastCode = code;
+        LastVerifier = codeVerifier;
+        LastNonce = nonce;
+
+        return Task.FromResult<Result<ExternalIdentity>>(
+            Result is null
+                ? Error.Unauthorized(ErrorCodes.SsoExchangeFailed, "Sign-in could not be completed.")
+                : Result);
+    }
+}
+
+internal sealed class FakeProviderRegistry(params IExternalIdentityProvider[] providers)
+    : IExternalIdentityProviderRegistry
+{
+    public IReadOnlyCollection<IExternalIdentityProvider> Enabled { get; } = providers;
+
+    public bool TryResolve(string providerKey, out IExternalIdentityProvider provider)
+    {
+        provider = Enabled.FirstOrDefault(
+            p => string.Equals(p.Provider.ToString(), providerKey, StringComparison.OrdinalIgnoreCase))!;
+        return provider is not null;
+    }
+}
+
+/// <summary>
+/// In-memory, and single-use like the real one — a state store that hands the
+/// same value back twice provides no CSRF protection, so the fake must not be
+/// more forgiving than the implementation it stands in for.
+/// </summary>
+internal sealed class FakeSsoStateStore : ISsoStateStore
+{
+    private readonly Dictionary<string, SsoState> _states = [];
+
+    public Task StoreAsync(SsoState state, CancellationToken ct)
+    {
+        _states[state.State] = state;
+        return Task.CompletedTask;
+    }
+
+    public Task<SsoState?> ConsumeAsync(string state, CancellationToken ct)
+    {
+        if (!_states.Remove(state, out var found))
+            return Task.FromResult<SsoState?>(null);
+
+        return Task.FromResult<SsoState?>(found);
+    }
+}
+
+internal sealed class FakeHandoffCodeStore : IHandoffCodeStore
+{
+    private readonly Dictionary<string, UserId> _codes = [];
+    private int _next;
+
+    public Task<string> IssueAsync(UserId userId, CancellationToken ct)
+    {
+        var code = $"handoff-{++_next}";
+        _codes[code] = userId;
+        return Task.FromResult(code);
+    }
+
+    public Task<UserId?> ConsumeAsync(string code, CancellationToken ct) =>
+        Task.FromResult(_codes.Remove(code, out var userId) ? userId : (UserId?)null);
+}
+
+/// <summary>
+/// The login throttle, counting in memory.
+///
+/// Mirrors the production threshold rather than picking a convenient small
+/// one: a test that locks after two failures would pass against an
+/// implementation that locks after two, which is not the behaviour shipped.
+/// </summary>
+internal sealed class FakeLoginThrottle : ILoginThrottle
+{
+    private const int MaxFailures = 10;
+    private readonly Dictionary<string, int> _failures = new(StringComparer.OrdinalIgnoreCase);
+
+    public IReadOnlyDictionary<string, int> Failures => _failures;
+
+    public Task<bool> IsLockedAsync(string email, CancellationToken ct) =>
+        Task.FromResult(_failures.GetValueOrDefault(Key(email)) >= MaxFailures);
+
+    public Task RecordFailureAsync(string email, CancellationToken ct)
+    {
+        _failures[Key(email)] = _failures.GetValueOrDefault(Key(email)) + 1;
+        return Task.CompletedTask;
+    }
+
+    public Task ClearAsync(string email, CancellationToken ct)
+    {
+        _failures.Remove(Key(email));
+        return Task.CompletedTask;
+    }
+
+    private static string Key(string email) => email.Trim().ToLowerInvariant();
 }

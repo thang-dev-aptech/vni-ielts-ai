@@ -598,67 +598,8 @@ input {
 }
 
 /* SSO Primary (Google) */
-.sso-primary {
-  min-height: 50px;
-  display: grid;
-  grid-template-columns: 24px 1fr 20px;
-  align-items: center;
-  width: 100%;
-  padding: 0 18px;
-  border: 1.5px solid #d4ded7;
-  border-radius: 14px;
-  background: #fff;
-  color: #23352a;
-  font-size: 13.5px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: all 0.16s ease;
-  box-shadow: var(--shadow-sm);
-}
-.sso-primary:hover {
-  border-color: #aec5b5;
-  background: #fafdfb;
-  box-shadow: 0 8px 20px rgba(25, 66, 41, 0.08);
-  transform: translateY(-1px);
-}
-.sso-primary svg {
-  width: 20px;
-  height: 20px;
-}
 
 /* Secondary Providers: Facebook, Microsoft, SSO Key */
-.providers {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 10px;
-}
-.sso-btn {
-  min-height: 46px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  border: 1.5px solid var(--line);
-  border-radius: 12px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 900;
-  color: #38483d;
-  transition: all 0.16s ease;
-}
-.sso-btn:hover {
-  background: #f7faf8;
-  border-color: #bccbc0;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(20, 50, 30, 0.06);
-}
-.sso-btn svg {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-}
 
 /* SSO Key Active Modal/Form */
 .sso-key-box {
@@ -953,30 +894,8 @@ input {
 
 /* The "soon" badge on a disabled provider button. Without an explicit
    nowrap it wrapped onto two lines and pushed the button out of shape. */
-.sso-soon {
-  margin-left: auto;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #eef1ef;
-  color: #6b7a70;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-  text-transform: none;
-}
 
 /* A disabled provider reads as unavailable rather than merely inert. */
-.sso-primary:disabled,
-.sso-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-}
-.sso-primary:disabled:hover,
-.sso-btn:disabled:hover {
-  transform: none;
-}
 
 /* Forgot-password is not built. Rendered so the layout matches the design,
    but styled as unavailable rather than as a link that goes nowhere. */
@@ -1020,4 +939,554 @@ input {
   color: #1a5f92;
   font-size: 13px;
   font-weight: 600;
+}
+
+/* The real VNI mark replaces the four CSS dots the design used as a stand-in.
+   `alt=""` on the image because the wordmark beside it already names the brand —
+   two announcements of "VNI Education" in a row helps nobody.
+
+   It sits on a white chip because the mark's blue, orange and green all sink
+   into this panel's dark green at 36px. Putting a coloured logo on a light
+   plate over a dark ground is what brand guidelines normally call for, and it
+   is the same reason the logo is never recoloured to fit a background. */
+.brand-logo-mark {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex: none;
+}
+.brand-logo-chip {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Social sign-in — rebuilt.
+
+   The first pass laid Google out as a three-column grid
+   (`24px 1fr 20px`), which centred the label in the middle column and
+   left it floating with the icon marooned at the edge. It also carried
+   a grey "sắp có" chip inside the button and dropped the whole block to
+   opacity .55, so the panel read as broken rather than as not-yet-built.
+
+   Now: one equal row, icon and label as a single centred unit, full
+   opacity, and one honest line underneath explaining the state. An
+   unavailable control should look deliberate, not damaged.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Auto-fit rather than a fixed three columns: the row holds one provider
+   today (AU-8) and should not leave two empty cells beside it, nor need
+   editing when a provider is added back. */
+.sso-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sso-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 13px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+.sso-btn svg {
+  width: 19px;
+  height: 19px;
+  flex: none;
+}
+
+.sso-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  border-color: #b9cdc0;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Not-yet-built, not broken. Full opacity, a plain cursor, and the
+   explanation lives once below the row instead of inside each button. */
+.sso-btn:disabled {
+  cursor: default;
+  color: #5d6b62;
+  background: #fbfcfb;
+}
+.sso-btn:disabled svg {
+  opacity: 0.62;
+}
+
+.sso-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 11px 0 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.sso-note::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--yellow);
+  flex: none;
+}
+
+@media (max-width: 460px) {
+  .sso-row {
+    grid-template-columns: 1fr;
+  }
+  .sso-btn {
+    justify-content: flex-start;
+    padding: 0 16px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Form fields — tightened.
+
+   The ported layout stacked tall inputs with generous gaps, which reads
+   as sparse on the register tab where there are three of them plus a
+   hint. The original design carried an icon inside each input; that got
+   lost in the rewrite and is restored here, because it is what makes a
+   bare rounded rectangle read as a field.
+   ════════════════════════════════════════════════════════════════ */
+
+.field {
+  margin-bottom: 14px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #56655c;
+}
+
+.input-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 13px;
+  background: #fff;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+.input-box:focus-within {
+  border-color: var(--green);
+  /* A ring rather than a thicker border, so the field does not shift by a
+     pixel when focused — that jump is what makes a form feel unsteady. */
+  box-shadow: 0 0 0 3px rgba(24, 169, 87, 0.15);
+}
+.input-box.has-error {
+  border-color: #c2372c;
+}
+.input-box.has-error:focus-within {
+  box-shadow: 0 0 0 3px rgba(194, 55, 44, 0.14);
+}
+
+.input-box input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.input-box input::placeholder {
+  color: #9aa79f;
+  font-weight: 500;
+}
+
+.field-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: #93a399;
+}
+.input-box:focus-within .field-icon {
+  color: var(--green);
+}
+
+.toggle-pass {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #93a399;
+  cursor: pointer;
+}
+.toggle-pass:hover {
+  background: #f1f5f2;
+  color: var(--ink);
+}
+.toggle-pass svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* ── Password strength ───────────────────────────────────────────
+   The policy is a 12-character minimum with no composition rules, which
+   is unusual enough that people assume they have typed something wrong.
+   A meter makes the rule visible while typing instead of after a
+   rejected submit. */
+.pw-meter {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+.pw-seg {
+  height: 4px;
+  flex: 1;
+  border-radius: 999px;
+  background: #e6ece8;
+  transition: background 0.2s ease;
+}
+.pw-seg.on-weak {
+  background: #e08a3c;
+}
+.pw-seg.on-ok {
+  background: #d3b13a;
+}
+.pw-seg.on-good {
+  background: var(--green);
+}
+.pw-label {
+  margin: 6px 2px 0;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.pw-label.weak {
+  color: #a2611f;
+}
+.pw-label.ok {
+  color: #8a7318;
+}
+/* `--green-dark` measures 4.30 as text on white — under the threshold, and
+   this is a 13px status label. #14743d measures 5.84. */
+.pw-label.good {
+  color: #14743d;
+}
+
+/* ── Terms line ──────────────────────────────────────────────────*/
+.terms-note {
+  margin: 4px 0 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Two corrections, appended so the ported design above stays readable
+   as the original.
+
+   1 · SIZES. `DESIGN.md` sets a hard 14px floor for any Vietnamese
+       string — 13px is reserved for ASCII-only strings like codes. The
+       ported form ran labels at 10.5–12px and the divider at 9.5px,
+       which is below that floor on stacked diacritics (ế ộ ằ) and is
+       what makes the panel feel cramped.
+
+       Only the FORM side is raised. The decorative panel on the left is
+       a mock screenshot at its own scale and is aria-hidden, so its
+       small type is deliberate and is left alone.
+
+   2 · SCROLL. The shell was `min-height: 100vh` on both columns, so a
+       tall form pushed the whole PAGE into scroll and dragged the fixed
+       artwork up with it. Now the shell is exactly one viewport and the
+       form panel scrolls inside itself — the artwork stays put, which is
+       the point of a split-screen layout.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 1 · Type sizes, form side only ──────────────────────────────*/
+
+.tab-btn {
+  font-size: 15px;
+}
+
+.auth-head h2 {
+  font-size: 27px;
+}
+.auth-head p {
+  font-size: 15px;
+}
+
+.field label {
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.input-box input {
+  font-size: 16px;
+}
+.input-box input::placeholder {
+  font-size: 15px;
+}
+
+.sso-btn {
+  font-size: 14px;
+}
+.sso-note {
+  font-size: 14px;
+}
+
+.divider {
+  font-size: 13px; /* ASCII-adjacent label, but bumped from 9.5px */
+  letter-spacing: 0.06em;
+}
+
+.field-error,
+.field-hint,
+.pw-label,
+.terms-note,
+.auth-note,
+.form-error {
+  font-size: 14px;
+}
+
+.signup,
+.forgot {
+  font-size: 14px;
+}
+
+.submit-btn {
+  font-size: 16px;
+  min-height: 52px;
+}
+
+/* ── 2 · One viewport, form scrolls inside ───────────────────────*/
+
+@media (min-width: 901px) {
+  .auth-shell {
+    height: 100vh;
+    /* dvh tracks the mobile URL bar; the fallback above covers browsers
+       that do not know it. Both are kept — dropping the vh line would
+       leave older browsers with no height at all. */
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .auth-visual {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .auth-panel {
+    min-height: 0;
+    /* The form is what scrolls, not the page. `justify-content: center`
+       would clip the top of a form taller than the panel, so it centres
+       only while there is room — `margin: auto` on the container does
+       that without the clipping. */
+    justify-content: flex-start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-block: 40px;
+  }
+
+  .auth-container {
+    margin-block: auto;
+  }
+}
+
+/* Below the split breakpoint the two panels stack, and a fixed height
+   would trap the form. Ordinary page scroll is correct there. */
+@media (max-width: 900px) {
+  .auth-shell,
+  .auth-visual,
+  .auth-panel {
+    height: auto;
+    overflow: visible;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   "This address already has an account" — 21/08/2026
+   ──────────────────────────────────────────────────────────────── */
+
+/*
+ * A signpost, not an error.
+ *
+ * It used to be red text under the email field, which said the right words in
+ * the wrong voice: nothing is wrong with what the person typed, they simply
+ * already have the account they are trying to create. Red also gave them
+ * nowhere to go, and the way out — sign in, possibly with Google — was
+ * invisible.
+ */
+.form-notice {
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid #cfe0f1;
+  border-radius: 14px;
+  background: #eef4fb;
+}
+
+.form-notice p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1c4b7e;
+}
+
+.form-notice-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 0 16px;
+  border: 1px solid #b6d2ea;
+  border-radius: 12px;
+  background: #fff;
+  color: #1c4b7e;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.form-notice-action:hover {
+  background: #f7fbff;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Password screens — 21/08/2026
+   ──────────────────────────────────────────────────────────────── */
+
+/*
+ * Forgot and reset get their own plain layout rather than the split-screen
+ * auth panel. Someone arriving here has a single job and usually arrived from
+ * their mailbox; the marketing half of that screen is not helping them.
+ */
+.auth-simple {
+  width: min(440px, calc(100% - 32px));
+  margin: 72px auto;
+  padding: 32px;
+  border: 1px solid #e6e4e0;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(20 40 30 / 0.07);
+}
+
+.auth-simple h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.5;
+  color: #17161a;
+}
+
+.auth-simple p {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a4950;
+}
+
+.auth-simple-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #e6e4e0;
+  border-radius: 12px;
+  color: #17161a;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.password-field {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.password-field > span {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #17161a;
+}
+
+.password-field input {
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1.5px solid #e6e4e0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #17161a;
+}
+
+.password-field input:focus-visible {
+  outline: 2px solid #16ad54;
+  outline-offset: 1px;
+}
+
+.password-field small {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b6a71;
+}
+
+.password-submit {
+  min-height: 48px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 12px;
+  background: #16ad54;
+  /* Black on the brand green, never white — white measures 2.53:1 there.
+     → DESIGN.md palette */
+  color: #06210f;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.password-submit:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* The forgot-password link is a real link now. It used to be a disabled span
+   with a "not built" tooltip, which was honest and useless. */
+.forgot {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: #2867ac;
 }

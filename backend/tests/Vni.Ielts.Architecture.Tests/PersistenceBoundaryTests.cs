@@ -49,6 +49,13 @@ public sealed class PersistenceBoundaryTests
         "Google.Apis",
         "Azure.AI",
         "Amazon",
+        // Identity-provider token handling. The SSO adapters validate ID
+        // tokens against a provider's JWKS, and that machinery belongs in
+        // Infrastructure for the same reason a Mongo driver type does: the
+        // sign-in rules in Application are about accounts, not about JWT
+        // signatures. → ADR-0014
+        "Microsoft.IdentityModel",
+        "System.IdentityModel",
     ];
 
     [Fact]

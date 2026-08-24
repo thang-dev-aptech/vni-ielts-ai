@@ -8,8 +8,12 @@ namespace Vni.Ielts.Domain.Identity;
 /// <c>ann@example.com</c> compare as different, one person ends up with two
 /// accounts; if they compare as the same without verification, an attacker
 /// controlling a social account bearing a victim's address inherits the
-/// victim's account. So: normalise consistently, and never link on a match
-/// alone — see the 409 branch in the registration flow.
+/// victim's account.
+///
+/// So: normalise consistently, and never link on a match <i>alone</i>. M-1 was
+/// resolved on 2026-08-21 toward one account per address, which makes this
+/// comparison load-bearing — but a match only links when the identity provider
+/// itself asserts the address is verified. → ADR-0013
 /// </summary>
 public readonly record struct Email
 {

@@ -1,0 +1,932 @@
+/* Exam surfaces: the library, a sitting, and its results.
+ *
+ * <b>The clock is the reason this file has rules other pages do not.</b>
+ * Product law L1: a countdown never turns red, never blinks, never animates.
+ * Red means something has broken; time passing has not broken anything, and a
+ * pulsing red number in the last minute of a reading test costs marks. The
+ * three levels below differ by SIZE, BORDER and a WORD — three channels, so
+ * the state survives being printed in greyscale and survives a learner who
+ * cannot distinguish the hues at all.
+ *
+ * <b>The save chip differs by shape as well as colour</b> (L2). Only "đã lưu"
+ * carries a tick, because a learner who sees a tick stops checking — a tick
+ * over work still sitting on the device is data loss the interface caused.
+ *
+ * Everything else follows the shared system: 4px spacing, the closed type
+ * scale, a 14px floor for Vietnamese, and no text/background pair under 4.5.
+ */
+
+/* ── The library ────────────────────────────────────────────────────────── */
+
+.exam-modes {
+  display: inline-flex;
+  gap: var(--s-1);
+  padding: var(--s-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+}
+
+.exam-mode {
+  min-height: 40px;
+  padding-inline: var(--s-4);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.exam-mode.is-active {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.exam-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exam-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--card);
+}
+
+.exam-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.exam-card-head h2 {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.exam-modules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exam-module {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+}
+
+.exam-module-icon,
+.exam-bar-icon,
+.result-icon {
+  flex: none;
+  width: var(--s-6);
+  height: var(--s-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+}
+
+.exam-module-icon {
+  width: var(--s-7);
+  height: var(--s-7);
+  border-radius: 14px;
+}
+
+.exam-module-text,
+.result-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.exam-module-text strong,
+.result-text strong {
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.exam-module-text span,
+.result-text span {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.exam-start {
+  flex: none;
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.exam-start:hover:not(:disabled) {
+  background: var(--sunk);
+}
+
+/* Dark ink on the green, not white: white on this family measures 2.86. */
+.exam-start.is-primary {
+  align-self: flex-start;
+  border-color: #c4e6d2;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.exam-start:disabled {
+  color: var(--muted);
+  cursor: progress;
+}
+
+.exam-note,
+.exam-error {
+  margin: 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.exam-note {
+  color: var(--muted);
+}
+
+.exam-error {
+  padding: var(--s-3) var(--s-4);
+  border-radius: 14px;
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+/* ── A sitting ──────────────────────────────────────────────────────────── */
+
+.exam-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--ink);
+}
+
+/*
+ * Three things and nothing else: which section, whether it is saved, how long
+ * is left. No brand, no navigation, no account menu — each of those is a way
+ * to walk out of a timed exam by accident.
+ */
+.exam-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+
+.exam-bar-section {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.exam-bar-section strong {
+  display: block;
+  font-size: var(--t-16);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.exam-bar-title {
+  display: block;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The clock. Never red, never animated — see the note at the top. */
+.exam-clock {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s-1);
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.exam-clock.level-2 {
+  font-size: var(--t-32);
+  line-height: var(--lh-display);
+  border-color: var(--warn);
+}
+
+.exam-clock.level-3 {
+  font-size: var(--t-44);
+  line-height: var(--lh-display);
+  border-width: 2px;
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.exam-clock-note {
+  font-family: var(--font);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--warn);
+  white-space: nowrap;
+}
+
+/* Four states, four shapes. Only `saved` has a tick. */
+.save-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--s-6);
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--sunk);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.save-chip.is-idle {
+  border-color: transparent;
+  background: transparent;
+  padding: 0;
+}
+
+.save-chip.is-saved {
+  border-color: #bfe3cd;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+/* Dashed, and no tick: the work is on the device, not on the server. */
+.save-chip.is-queued {
+  border-style: dashed;
+  border-color: #d9b98f;
+  background: transparent;
+  color: var(--warn);
+}
+
+.save-chip.is-sending {
+  background: var(--card);
+  color: var(--muted);
+}
+
+/* The only place --bad appears on this page. Something actually broke. */
+.save-chip.is-failed {
+  border-color: #e7b4b0;
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.exam-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s-5);
+  align-items: start;
+  width: min(1360px, calc(100% - var(--s-6)));
+  margin-inline: auto;
+  padding-block: var(--s-5);
+}
+
+.exam-passage,
+.exam-questions {
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--card);
+}
+
+/* The passage scrolls inside its own pane so the questions stay put. */
+.exam-passage {
+  position: sticky;
+  top: calc(var(--s-8) + var(--s-4));
+  max-height: calc(100vh - var(--s-8) - var(--s-7));
+  overflow-y: auto;
+}
+
+.exam-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.exam-part {
+  min-height: 40px;
+  padding-inline: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.exam-part.is-active {
+  background: var(--acc-soft);
+  border-color: var(--acc-line);
+  color: var(--acc-700);
+}
+
+.exam-passage-title {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+/* A reading column, held to a measure. Full-bleed prose across a wide monitor
+   is where the eye loses its place between lines. */
+.exam-passage-body {
+  max-width: var(--measure);
+  font-size: var(--t-16);
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+.exam-passage-body p {
+  margin: 0 0 var(--s-4);
+}
+
+.exam-cue {
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+}
+
+.exam-cue h2 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-18);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.exam-cue ul {
+  margin: 0;
+  padding-left: var(--s-5);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.exam-questions-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.exam-questions-head h2 {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.exam-question-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exam-question {
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+  /* No transition, no highlight on change. Animating an answer as it saves is
+     movement in the corner of the eye of someone reading. → anti-pattern 18 */
+}
+
+.exam-question-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+
+.exam-question-number {
+  flex: none;
+  width: var(--s-6);
+  height: var(--s-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.exam-question-head p {
+  margin: 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.q-choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.q-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.q-choice.is-picked {
+  border-color: var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc-700);
+}
+
+.q-choice input {
+  margin-top: var(--s-1);
+  accent-color: var(--acc);
+}
+
+.q-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.q-text input,
+.q-essay {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.q-essay {
+  width: 100%;
+  resize: vertical;
+}
+
+.q-hint {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.exam-foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--line);
+  background: var(--card);
+}
+
+.exam-foot-note,
+.exam-expired {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.exam-expired {
+  color: var(--warn);
+  font-weight: var(--w-emph);
+}
+
+.exam-submit {
+  min-height: 44px;
+  padding-inline: var(--s-6);
+  border: 1px solid #c4e6d2;
+  border-radius: 14px;
+  background: var(--ok-soft);
+  color: var(--ok);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.exam-submit:disabled {
+  color: var(--muted);
+  cursor: progress;
+}
+
+.exam-fallback {
+  margin: auto;
+  padding: var(--s-6);
+  text-align: center;
+}
+
+.exam-fallback h1 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.exam-fallback p {
+  margin: 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* ── Listening player ───────────────────────────────────────────────────── */
+
+.audio {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--sunk);
+}
+
+.audio-button {
+  flex: none;
+  width: var(--s-8);
+  height: var(--s-8);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--acc-line);
+  border-radius: var(--r-pill);
+  background: var(--acc-soft);
+  color: var(--acc-700);
+  cursor: pointer;
+}
+
+.audio-button:disabled {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.audio-body {
+  flex: 1;
+  min-width: 0;
+}
+
+/*
+ * A progress indicator, not a control. There is no thumb, no pointer cursor
+ * and no handler — a Listening section whose audio can be scrubbed is a
+ * reading comprehension of a transcript the candidate writes themselves.
+ */
+.audio-track {
+  height: var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--line-2);
+  overflow: hidden;
+}
+
+.audio-fill {
+  height: 100%;
+  background: var(--acc);
+}
+
+.audio-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.audio-failed {
+  margin: 0 0 var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-radius: 14px;
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.exam-transfer {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+/* ── Writing ────────────────────────────────────────────────────────────── */
+
+.word-count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.word-count .num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  color: var(--ink);
+}
+
+/* Warn, never bad. A short essay is unfinished, not broken. */
+.word-count.is-short,
+.word-count.is-short .num {
+  color: var(--warn);
+}
+
+/* ── Speaking ───────────────────────────────────────────────────────────── */
+
+.rec {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.rec-start,
+.rec-stop {
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.rec-start:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.rec-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.rec-label {
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/*
+ * The one steady dot on the page, and it does not pulse.
+ *
+ * A blinking recording light next to a running clock is exactly the panic L1
+ * bans on the clock itself; the state is already carried by the word
+ * "Đang ghi âm" and by the count beside it.
+ */
+.rec-dot {
+  width: var(--s-3);
+  height: var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--bad);
+}
+
+/* Inside the card, and labelled — never on the chrome beside the section
+   clock. Two clocks in one place cannot be told apart. → L1 */
+.rec-clock {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.rec-stored {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s-6);
+  padding-inline: var(--s-3);
+  border: 1px solid #bfe3cd;
+  border-radius: var(--r-pill);
+  background: var(--ok-soft);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ok);
+}
+
+.rec-error {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--bad);
+}
+
+/* ── Results ────────────────────────────────────────────────────────────── */
+
+.result-overall {
+  display: flex;
+  flex-wrap: wrap;
+  /* Centre, not baseline: the value is a 44px mono glyph beside a 16px label,
+     and an em dash sits high in its own box — on the baseline it floated above
+     the words it belongs to. */
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-5);
+  border: 1px solid #c4e6d2;
+  border-radius: 20px;
+  background: var(--ok-soft);
+}
+
+.result-overall-label {
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.result-overall-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-44);
+  font-weight: var(--w-display);
+  line-height: var(--lh-display);
+  color: var(--ink);
+}
+
+.result-overall-note {
+  flex-basis: 100%;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.result-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.result-band {
+  flex: none;
+  min-width: var(--s-7);
+  text-align: right;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+/* ── Narrow ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  /* One column, passage first. It stops being sticky: two sticky panes in one
+     scroll on a phone is a fight the reader always loses. */
+  .exam-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .exam-passage {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .exam-body {
+    width: min(1360px, calc(100% - var(--s-4)));
+  }
+
+  .exam-bar {
+    flex-wrap: wrap;
+    padding-inline: var(--s-4);
+  }
+
+  .exam-passage,
+  .exam-questions {
+    padding: var(--s-4);
+  }
+
+  .exam-module {
+    flex-wrap: wrap;
+  }
+
+  .exam-start {
+    width: 100%;
+  }
+
+  .exam-submit {
+    width: 100%;
+  }
+}

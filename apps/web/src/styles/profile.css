@@ -1,0 +1,1008 @@
+/* Profile — learner account and learning status.
+ *
+ * Rebuilt 21/08/2026 against the owner's review. The previous pass fixed the
+ * colour and the type; this one fixes the shape. Four findings, kept because
+ * each is the sort of thing that grows back:
+ *
+ * <b>A 160px green band carrying nothing.</b> Brand colour used as a mass
+ * rather than as a signal — the largest element on the page, and the only one
+ * with no information in it. Shortening it to 80px would have kept a smaller
+ * version of the same mistake, so it is gone. Green now appears on the
+ * eyebrow, the active tab, the rails and the primary button, and nowhere else.
+ *
+ * <b>The void below the fold was structural.</b> A tall left card beside a
+ * short right column leaves an L-shaped hole, and `min-height: 100vh` padded
+ * that out to a whole screen. Balancing the columns closed it without adding
+ * anything whose only job was to fill space.
+ *
+ * <b>The card was tall because it repeated itself.</b> Two stacked pills, an
+ * account-type line that said nothing, a section heading inside a card that
+ * was already about that section, and an alert restating the tag two rows
+ * below it. All four are gone; the height came down roughly a third.
+ *
+ * <b>Security, devices and progress were one flat strip.</b> Two of those are
+ * account actions and one is a learning view. The strip now labels the two
+ * groups and rules between them, which keeps `?tab=progress` working — the
+ * dashboard rail links to it — while showing the difference.
+ *
+ * Constraints unchanged and still enforced: 14px floor for Vietnamese,
+ * line-height >= 1.5 below 32px, the 4px spacing scale, and no measured
+ * text/background pair under 4.5.
+ */
+
+.profile-page {
+  /*
+   * Page-scoped tokens: one place to retune this surface without reaching
+   * into the shared system. The owner's brief proposed a different palette;
+   * each requested value is recorded beside the one actually used.
+   *
+   * --pf-green   brief said #58CC02. Not used: the live product green is
+   *              #10b050 across the landing page, auth and the dashboard, and
+   *              #58CC02 comes from `redesign/vni-ielts-home-redesign.css`,
+   *              which DESIGN.md records as an unreferenced stale file. It is
+   *              also Duolingo's exact green, which the brief itself rules
+   *              out. Change this one line if the whole product moves.
+   * --pf-line    brief said #E1E8E5; --line keeps this page identical to the
+   *              dashboard and the landing footer.
+   * text tokens  brief said #273238 / #68767D / #9AA4A8. The first two are
+   *              close to --ink / --ink-2 and are not worth a second scale;
+   *              #9AA4A8 measures 2.55 on white and cannot carry text at all,
+   *              so it is used for nothing here.
+   */
+  --pf-green: #10b050;
+  --pf-green-ink: var(--ok);
+  --pf-green-soft: var(--ok-soft);
+  --pf-line: var(--line);
+  --pf-radius: 20px;
+  --pf-radius-sm: 14px;
+  /* "Shadow rất nhẹ" — a hairline does the separating, this only lifts. */
+  --pf-shadow: 0 2px 8px rgb(20 40 30 / 0.05);
+  --pf-aside: 280px;
+
+  /* Kept only so a short page does not expose the white body behind it;
+     the content no longer relies on it to look finished. */
+  min-height: calc(100vh - 74px);
+  padding-block: var(--s-6) var(--s-8);
+  background: var(--page);
+}
+
+.profile-shell {
+  width: min(var(--container), calc(100% - var(--s-6)));
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+
+.profile-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Page header ──────────────────────────────────────────────────────── */
+
+.profile-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+/* Green as a signal at label size — the whole budget for brand colour above
+   the fold, where it used to be 160px of fill. */
+.profile-eyebrow {
+  margin: 0;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  letter-spacing: 0.04em;
+  line-height: var(--lh-body);
+  color: var(--pf-green-ink);
+}
+
+/*
+ * 32px, not the 36-40px the brief asked for. The type scale is closed and
+ * 36 and 40 are not on it; 32 is the step below 44, and 44 would tower over
+ * the 24px section headings beneath it.
+ */
+.profile-title {
+  margin: 0;
+  font-size: var(--t-32);
+  font-weight: var(--w-display);
+  line-height: var(--lh-display);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.profile-lead {
+  margin: 0;
+  max-width: var(--measure);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* ── Two columns ──────────────────────────────────────────────────────── */
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: var(--pf-aside) minmax(0, 1fr);
+  gap: var(--s-5);
+  align-items: start;
+}
+
+/* Row two starts a new pair rather than flowing into row one's cells. */
+.profile-nav {
+  grid-column: 1;
+}
+
+.profile-main {
+  grid-column: 2;
+}
+
+/* ── Left: the person ─────────────────────────────────────────────────── */
+
+.profile-card {
+  padding: var(--s-5);
+  border: 1px solid var(--pf-line);
+  border-radius: var(--pf-radius);
+  background: var(--card);
+  box-shadow: var(--pf-shadow);
+  text-align: center;
+}
+
+/* Retired with the green band; the markup no longer emits it. */
+.profile-card-banner,
+.profile-card-body {
+  display: contents;
+}
+
+.profile-card-avatar {
+  width: 72px;
+  height: 72px;
+  margin-inline: auto;
+  display: grid;
+  place-items: center;
+  /* A rounded square, matching the header avatar. Two shapes for one identity
+     reads as two different accounts. */
+  border-radius: 20px;
+  color: #fff;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  /* 1.5, not --lh-display. The 1.2 exception is for display type at 32px and
+     up; at 24px an audit flags it, and grid centring makes the taller line box
+     cost nothing here. */
+  line-height: var(--lh-body);
+}
+
+.profile-name {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* Role and state on one line. `is-ok` is --ok on white at 5.3, `is-warn` is
+   --warn on white at 6.2 — both carry a word, so neither depends on colour. */
+.profile-status {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.profile-status .is-ok {
+  color: var(--pf-green-ink);
+}
+
+.profile-status .is-warn {
+  color: var(--warn);
+}
+
+/* ── Personal details, inside the card ────────────────────────────────── */
+
+.profile-info {
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line-2);
+  text-align: left;
+}
+
+/*
+ * Hidden, not deleted: the heading still labels the group for a screen reader,
+ * it just no longer spends a row saying "Thông tin cá nhân" inside a card that
+ * is entirely personal information. Every row underneath names itself.
+ */
+.profile-info-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.profile-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  min-width: 0;
+  padding-block: var(--s-2);
+}
+
+.profile-info-icon {
+  flex: none;
+  width: var(--s-6);
+  height: var(--s-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--sunk);
+  color: var(--muted);
+}
+
+.profile-info-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-info-label {
+  display: block;
+  font-size: var(--t-14);
+  color: var(--muted);
+  line-height: var(--lh-body);
+}
+
+.profile-info-value {
+  display: block;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--ink);
+  line-height: var(--lh-body);
+  /* A 32-character identifier has no break opportunity of its own and will
+     otherwise push the column wider than the phone. */
+  overflow-wrap: anywhere;
+}
+
+/* Retired: the email row states the same thing two lines below, and the
+   dashboard already carries the consequence. Kept as a rule because other
+   panels still use the class. */
+.profile-alert {
+  margin-top: var(--s-4);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  text-align: left;
+}
+
+/* ── Right: goal and skills ───────────────────────────────────────────── */
+
+.profile-goal {
+  padding: var(--s-5);
+  border: 1px solid var(--pf-line);
+  border-radius: var(--pf-radius);
+  background: var(--card);
+  box-shadow: var(--pf-shadow);
+}
+
+.profile-goal-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+
+.profile-goal-head h2 {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+/* An absence, not a fault — neutral, never --bad. */
+.goal-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid var(--pf-line);
+  border-radius: var(--r-pill);
+  background: var(--sunk);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.goal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+}
+
+.goal-stat {
+  padding: var(--s-3);
+  border-radius: var(--pf-radius-sm);
+  background: var(--sunk);
+}
+
+.goal-stat-label {
+  display: block;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.goal-stat-value {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+/*
+ * Drawn empty on purpose.
+ *
+ * A bar filled to 0% asserts a measurement of nothing. An empty track asserts
+ * no measurement, which is the true statement while the exam engine does not
+ * exist. When there is a band to show, this gains a fill element and the `—`
+ * beside it becomes a number.
+ */
+.goal-rail,
+.goal-skill-rail {
+  height: var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--sunk);
+  border: 1px solid var(--line-2);
+}
+
+/* Labelled, because an unlabelled 8px track under three em dashes reads as a
+   stray divider rather than as the progress line the brief asked for. */
+.goal-progress {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+}
+
+.goal-progress-label {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.goal-progress-value {
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.goal-rail {
+  margin-top: var(--s-2);
+}
+
+.goal-note {
+  margin: var(--s-3) 0 0;
+  max-width: var(--measure);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.goal-skills-title {
+  margin: var(--s-5) 0 0;
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line-2);
+  font-size: var(--t-18);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+/* One component, four rows — not four cards. The brief is right that four
+   different treatments for four peer skills is four times the reading work. */
+.goal-skills {
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.goal-skill {
+  display: grid;
+  grid-template-columns: var(--s-6) 108px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-3);
+  /* An empty rail stretched across 900px reads as a widget that failed to
+     load. Held to a measure, the same rail reads as "nothing recorded yet". */
+  max-width: 520px;
+}
+
+.goal-skill-icon {
+  width: var(--s-6);
+  height: var(--s-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--acc-soft);
+  color: var(--acc);
+}
+
+.goal-skill-name {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.goal-skill-value {
+  min-width: var(--s-6);
+  text-align: right;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* ── Below: account and learning modules ──────────────────────────────── */
+
+/*
+ * Tabs and panel are one card, not a row of floating chips above a second
+ * card. Detached tabs make the reader work out which panel they belong to;
+ * attached ones answer it before the question is asked.
+ */
+.profile-main {
+  border: 1px solid var(--pf-line);
+  border-radius: var(--pf-radius);
+  background: var(--card);
+  box-shadow: var(--pf-shadow);
+}
+
+.profile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-3);
+  border: 1px solid var(--pf-line);
+  border-radius: var(--pf-radius);
+  background: var(--card);
+  box-shadow: var(--pf-shadow);
+}
+
+/* The hierarchy the brief asked for, said in words rather than implied by
+   spacing. Not uppercase — that strips Vietnamese diacritics. */
+.profile-nav-group {
+  margin: var(--s-3) 0 var(--s-1);
+  padding-inline: var(--s-3);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  letter-spacing: 0.04em;
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.profile-nav-group:first-child {
+  margin-top: 0;
+}
+
+.profile-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding-inline: var(--s-3);
+  border-radius: var(--pf-radius-sm);
+  color: var(--ink-2);
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.profile-tab svg {
+  flex: none;
+  color: currentColor;
+}
+
+.profile-tab:hover {
+  background: var(--card);
+  color: var(--ink);
+}
+
+/* "Active phải rõ nhưng không quá nặng": a soft green fill and green text,
+   measured at 4.7. The same treatment as the dashboard rail's active item, so
+   the two surfaces mean the same thing by the same signal. */
+.profile-tab.is-active {
+  background: var(--pf-green-soft);
+  color: var(--pf-green-ink);
+}
+
+.profile-panel {
+  padding: var(--s-6);
+}
+
+.profile-panel-title {
+  margin: 0;
+  font-size: var(--t-18);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.profile-panel-lead {
+  margin: var(--s-2) 0 0;
+  max-width: var(--measure);
+  font-size: var(--t-14);
+  color: var(--muted);
+  line-height: var(--lh-body);
+}
+
+/*
+ * The empty state, given room rather than apologised for.
+ *
+ * A thin dashed box in a large card reads as something failing to load. These
+ * sections are empty because the exam engine is not built, which is a fact
+ * worth stating calmly and at a readable size.
+ */
+.profile-empty {
+  margin-top: var(--s-5);
+  padding: var(--s-6);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+  text-align: center;
+}
+
+.profile-empty h3 {
+  margin: 0;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.profile-empty p {
+  margin: var(--s-2) auto 0;
+  max-width: 46ch;
+  font-size: var(--t-14);
+  color: var(--muted);
+  line-height: var(--lh-body);
+}
+
+.profile-device {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+}
+
+.profile-device-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.profile-device div {
+  display: grid;
+  gap: var(--s-1);
+  min-width: 0;
+}
+
+.profile-device strong {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.profile-device span {
+  font-size: var(--t-14);
+  color: var(--muted);
+  line-height: var(--lh-body);
+}
+
+/* ── Narrow ───────────────────────────────────────────────────────────── */
+
+/*
+ * Tablet: one column, in source order — person, goal, module nav, panel.
+ * That is the order someone reads the page in anyway, so nothing has to be
+ * reordered to make it work.
+ */
+@media (max-width: 960px) {
+  .profile-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profile-nav,
+  .profile-main {
+    grid-column: 1;
+  }
+
+  /* Stacked, the nav is a strip rather than a column: two rows of pills read
+     as navigation, one tall list of three reads as content. */
+  .profile-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .profile-nav-group {
+    margin: 0;
+  }
+
+  /* Full width, the card's contents would sit in a 780px line with the avatar
+     centred over one end of it. Held to a measure they stay a card. */
+  .profile-card > * {
+    max-width: 520px;
+    margin-inline: auto;
+  }
+
+  .profile-info {
+    max-width: 520px;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-shell {
+    width: min(var(--container), calc(100% - var(--s-4)));
+    gap: var(--s-4);
+  }
+
+  .profile-card,
+  .profile-goal,
+  .profile-panel {
+    padding: var(--s-4);
+  }
+
+  /* Three across becomes one down. Two 90px columns would put "Ngày thi dự
+     kiến" on three lines to save a row that is not worth saving. */
+  .goal-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The rail goes, not the name. An empty rail carries no information at any
+     width, while an icon on its own does not tell a phone user which skill
+     the row is about — Reading and Writing are two pictures of paper. */
+  .goal-skill {
+    grid-template-columns: var(--s-6) minmax(0, 1fr) auto;
+  }
+
+  .goal-skill-rail {
+    display: none;
+  }
+
+  /* One-handed reach: the primary action spans the column rather than sitting
+     in the corner of it. */
+  .password-submit {
+    width: 100%;
+  }
+}
+
+/* ── Devices ──────────────────────────────────────────────────────────── */
+
+/* The bulk action sits above the list, not below it: it is what someone who
+   has just spotted a stranger's device actually wants, and putting it after
+   170 rows would be hiding it behind the problem. */
+.device-signout-all {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: var(--s-4);
+  padding-inline: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.device-signout-all:hover,
+.device-signout-all:focus-visible {
+  border-color: #e7c4c1;
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.device-more {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: var(--s-3);
+  border: 1px dashed var(--line);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.device-more:hover {
+  background: var(--sunk);
+}
+
+.device-list {
+  display: grid;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+  padding: 0;
+  list-style: none;
+}
+
+.device-list .profile-device {
+  margin-top: 0;
+}
+
+.profile-device strong {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+/* "This device" is a fact, not a status — quiet, and not green, because green
+   here would read as "safe" about a device the reader is meant to judge. */
+.device-current {
+  padding-inline: var(--s-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--muted);
+  font-size: var(--t-14);
+  font-weight: var(--w-label);
+  line-height: var(--lh-body);
+}
+
+.device-signout {
+  margin-left: auto;
+  flex: none;
+  min-height: 44px;
+  padding-inline: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+/* Red on contact only, same rule as sign-out in the account menu: ending
+   someone else's session is destructive, but it is not the thing this panel is
+   for, and a row of red buttons would read as a page full of warnings. */
+.device-signout:hover,
+.device-signout:focus-visible {
+  border-color: #e7c4c1;
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.device-signout:disabled {
+  cursor: progress;
+  color: var(--muted);
+}
+
+.profile-panel-error {
+  margin-top: var(--s-4);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* The verified / not-verified tag under the address. */
+.profile-info-tag {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--s-1);
+  padding-inline: var(--s-2);
+  border-radius: var(--r-pill);
+  font-size: var(--t-14);
+  font-weight: var(--w-label);
+  line-height: var(--lh-body);
+}
+
+.profile-info-tag.is-ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.profile-info-tag.is-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.profile-info-value.is-empty {
+  font-weight: var(--w-body);
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .device-signout {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .device-list .profile-device {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Password panel ───────────────────────────────────────────────────── */
+
+.password-form {
+  margin-top: var(--s-5);
+  max-width: 400px;
+}
+
+.profile-panel-ok {
+  margin-top: var(--s-4);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--ok-soft);
+  color: var(--ok);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.password-note {
+  margin-top: var(--s-4);
+  font-size: var(--t-14);
+  color: var(--muted);
+  line-height: var(--lh-body);
+}
+
+/* ── Editable contact rows ────────────────────────────────────────────── */
+
+/*
+ * The actions inside an information row are text-weight, not buttons in the
+ * usual sense. A card whose every field carries a solid button reads as a
+ * form; these are things you can do, offered quietly next to the fact they
+ * change.
+ */
+.info-action {
+  align-self: flex-start;
+  min-height: 44px;
+  margin-top: var(--s-1);
+  padding: 0 var(--s-3);
+  margin-inline-start: calc(var(--s-3) * -1);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--acc);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.info-action:hover,
+.info-action:focus-visible {
+  background: var(--acc-soft);
+}
+
+.info-action:disabled {
+  color: var(--muted);
+  cursor: progress;
+}
+
+.info-action.is-primary {
+  color: var(--ok);
+}
+
+.info-action.is-primary:hover,
+.info-action.is-primary:focus-visible {
+  background: var(--ok-soft);
+}
+
+.info-hint {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-14);
+  color: var(--muted);
+  line-height: var(--lh-body);
+}
+
+.info-error {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-14);
+  color: var(--bad);
+  line-height: var(--lh-body);
+}
+
+.phone-edit {
+  margin-top: var(--s-1);
+}
+
+.phone-edit input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  font: inherit;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.phone-edit input:focus-visible {
+  outline: 2px solid var(--brand-green);
+  outline-offset: 1px;
+}
+
+.phone-edit-actions {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.phone-edit-actions .info-action {
+  margin-inline-start: 0;
+}
+
+/* Value and its one action on the same line. A field with a single thing you
+   can do to it does not need that thing on a row of its own. */
+.info-value-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.info-action.is-inline {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  font-size: var(--t-14);
+}
+
+.info-action.is-inline:hover,
+.info-action.is-inline:focus-visible {
+  background: transparent;
+  text-decoration: underline;
+}

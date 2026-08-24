@@ -20,19 +20,36 @@ public sealed record LoginResult(TokenPair Tokens, UserId UserId, string Display
 /// The one exception is a suspended account, which reports itself. Someone
 /// whose access was withdrawn needs to know that is what happened rather than
 /// resetting a password that was never wrong.
+///
+/// <b>Bounded guessing.</b> Ten consecutive failures for one address lock it
+/// for fifteen minutes. The HTTP rate limiter cannot do this job — it
+/// partitions on IP and has to stay loose because of carrier NAT, and
+/// credential stuffing spreads a few guesses per account across many addresses
+/// precisely to stay under such a limit. → threats T4, T5
 /// </summary>
 public sealed class LoginWithPassword(
     IUserRepository users,
     IUserIdentityRepository identities,
     IPasswordHasher hasher,
     IPermissionResolver permissions,
-    ITokenService tokens)
+    ITokenService tokens,
+    ILoginThrottle throttle)
 {
     private static readonly Error Invalid = Error.Unauthorized(
         ErrorCodes.InvalidCredentials, "Email address or password is incorrect.");
 
+    private static readonly Error Locked = Error.TooManyRequests(
+        ErrorCodes.TooManyAttempts,
+        "Too many failed sign-in attempts for this address. Try again in a few minutes.");
+
     public async Task<Result<LoginResult>> HandleAsync(LoginCommand command, CancellationToken ct)
     {
+        // Before the hash, deliberately: under an attack the point is to stop
+        // spending an Argon2id derivation per guess. The check keys on the
+        // submitted address whether or not it exists, so it cannot become an
+        // account-existence oracle — every address locks the same way.
+        if (await throttle.IsLockedAsync(command.Email ?? string.Empty, ct)) return Locked;
+
         if (!Email.TryCreate(command.Email, out var email))
         {
             // Still burn a hash. Returning early on a malformed address makes
@@ -50,18 +67,31 @@ public sealed class LoginWithPassword(
             // account, an account with only a social identity, and an email
             // identity somehow missing its hash.
             hasher.Verify(command.Password ?? string.Empty, _dummyHash.Value);
+            await throttle.RecordFailureAsync(email.Value, ct);
             return Invalid;
         }
 
         if (!hasher.Verify(command.Password ?? string.Empty, identity.PasswordHash))
+        {
+            await throttle.RecordFailureAsync(email.Value, ct);
             return Invalid;
+        }
 
         var user = await users.FindByIdAsync(identity.UserId, ct);
         if (user is null)
+        {
+            await throttle.RecordFailureAsync(email.Value, ct);
             return Invalid;
+        }
 
         if (!user.CanAuthenticate)
             return Error.Forbidden(ErrorCodes.AccountSuspended, "This account has been suspended.");
+
+        // Cleared only on a sign-in that actually succeeds. A suspended
+        // account returns above without clearing, so an attacker cannot use a
+        // correct password on a locked-out suspended account to reset the
+        // counter.
+        await throttle.ClearAsync(email.Value, ct);
 
         var granted = await permissions.ResolveAsync(user, ct);
         var pair = await tokens.IssueAsync(user, granted, familyId: null, ct);

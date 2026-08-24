@@ -9,7 +9,13 @@ using Vni.Ielts.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
+
+// The token service records which device a sign-in came from, and only an HTTP
+// request knows that. Infrastructure must not reference ASP.NET Core, so the
+// Api supplies it through a port. → RequestDevice
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<Vni.Ielts.Application.Identity.IRequestDevice, RequestDevice>();
 builder.Services.AddVniRateLimiting();
 
 // A request body cap, enforced by Kestrel before a byte reaches application
@@ -116,6 +122,10 @@ var app = builder.Build();
 // throttled client still needs a correct clock.
 app.UseMiddleware<ServerTimeMiddleware>();
 
+// Also early: an error response and a 429 need these as much as a 200 does,
+// and both are produced before any endpoint runs.
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
@@ -138,6 +148,11 @@ app.UseRateLimiter();
 app.UseMiddleware<IdempotencyMiddleware>();
 
 app.MapAuthEndpoints();
+app.MapSsoEndpoints();
+app.MapAccountEndpoints();
+app.MapExamEndpoints();
+app.MapDictationEndpoints();
+app.MapAdminEndpoints();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" })).WithTags("Ops");
 

@@ -1,12 +1,18 @@
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using Microsoft.Extensions.DependencyInjection;
+using Vni.Ielts.Application.Dictation;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Identity;
 using Vni.Ielts.Infrastructure.Persistence;
+using Vni.Ielts.Infrastructure.Content;
+using Vni.Ielts.Infrastructure.Persistence.Exams;
 using Vni.Ielts.Infrastructure.Persistence.Identity;
 using Vni.Ielts.Infrastructure.Security;
+using Vni.Ielts.Infrastructure.Security.Sso;
+using Microsoft.Extensions.Logging;
 
 namespace Vni.Ielts.Infrastructure;
 
@@ -19,11 +25,17 @@ namespace Vni.Ielts.Infrastructure;
 /// </summary>
 public static class DependencyInjection
 {
+    /// <param name="isDevelopment">
+    /// Passed in rather than read from an environment variable here, so the
+    /// one switch that can turn on a fake sign-in provider is gated by the
+    /// host's own notion of its environment.
+    /// </param>
     public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services, IConfiguration configuration)
+        this IServiceCollection services, IConfiguration configuration, bool isDevelopment = false)
     {
         services.Configure<MongoOptions>(configuration.GetSection(MongoOptions.SectionName));
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.Configure<SsoOptions>(configuration.GetSection(SsoOptions.SectionName));
 
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<MongoContext>();
@@ -32,6 +44,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, Argon2idPasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IEmailVerificationTokens, MongoEmailVerificationTokens>();
+        services.AddScoped<IPasswordResetTokens, MongoPasswordResetTokens>();
 
         // No production email sender exists yet. Registering the logging one
         // unconditionally would mean a production deployment silently never
@@ -39,18 +52,147 @@ public static class DependencyInjection
         // must opt in, and Program.cs only does so outside Production.
         services.AddScoped<IVerificationMessageSender, LoggingVerificationMessageSender>();
 
+        services.AddScoped<IExamCatalogue, MongoExamCatalogue>();
+        services.AddScoped<IExamSessionRepository, MongoExamSessionRepository>();
+        services.AddScoped<IAnswerSheetStore, MongoAnswerSheetStore>();
+        services.AddScoped<IRecordingStore, GridFsRecordingStore>();
+        services.AddScoped<ISectionResultStore, MongoSectionResultStore>();
+
+        services.AddScoped<ListExams>();
+        services.AddScoped<StartExamSession>();
+        services.AddScoped<GetExamSession>();
+        services.AddScoped<SaveAnswers>();
+        services.AddScoped<AdvanceSection>();
+        services.AddScoped<SubmitExamSession>();
+        services.AddScoped<GetSessionResults>();
+        services.AddScoped<ListMySittings>();
+
+        // Development only: it publishes what it loads, which is a reviewed
+        // administrative act anywhere else.
+        if (isDevelopment) services.AddScoped<DevelopmentExamSeeder>();
+
+        // Development only: real packages carry their media into object
+        // storage, which is what MinIO is in the local stack for.
+        if (isDevelopment) services.AddSingleton<IExamAssetStore, FixtureAssetStore>();
+
+        // Dictation has no authoring surface yet, so its content is a file
+        // read once at startup rather than a repository over an empty table.
+        services.AddSingleton<IDictationCatalogue, FixtureDictationCatalogue>();
+        services.AddSingleton<IDictationAssetStore, FixtureDictationAssetStore>();
+        services.AddScoped<ListDictationSets>();
+        services.AddScoped<GetDictationSet>();
+        services.AddScoped<CheckDictationSentence>();
+
         services.AddScoped<IUserRepository, MongoUserRepository>();
         services.AddScoped<IUserIdentityRepository, MongoUserIdentityRepository>();
         services.AddScoped<IRoleRepository, MongoRoleRepository>();
         services.AddScoped<IPermissionResolver, MongoPermissionResolver>();
 
+        services.AddScoped<IAuditLog, MongoAuditLog>();
+        services.AddScoped<ILoginThrottle, MongoLoginThrottle>();
+        services.AddScoped<ISessionDirectory, MongoSessionDirectory>();
+        services.AddScoped<ISsoStateStore, MongoSsoStateStore>();
+        services.AddScoped<IHandoffCodeStore, MongoHandoffCodeStore>();
+
         services.AddScoped<RegisterUser>();
         services.AddScoped<LoginWithPassword>();
         services.AddScoped<RefreshTokens>();
         services.AddScoped<VerifyEmail>();
+        services.AddScoped<StartSsoSignIn>();
+        services.AddScoped<SignInWithSso>();
+        services.AddScoped<CompleteSsoSignIn>();
+        services.AddScoped<GetMyAccount>();
+        services.AddScoped<ListSessions>();
+        services.AddScoped<RevokeSession>();
+        services.AddScoped<RevokeOtherSessions>();
+        services.AddScoped<RequestPasswordReset>();
+        services.AddScoped<ResetPassword>();
+        services.AddScoped<SetPassword>();
+        services.AddScoped<SetPhone>();
+        services.AddScoped<ChangeEmail>();
+        services.AddScoped<ResendVerification>();
+
+        AddSsoProviders(services, configuration, isDevelopment);
 
         return services;
     }
+
+    /// <summary>
+    /// Registers one adapter per configured provider, and nothing for the
+    /// providers this deployment has no credentials for.
+    ///
+    /// <para>
+    /// Singletons on purpose. Each adapter owns an <c>HttpClient</c> and a
+    /// discovery-document cache; creating them per request would mean a
+    /// metadata fetch and a fresh socket pool on every sign-in.
+    /// </para>
+    /// </summary>
+    private static void AddSsoProviders(
+        IServiceCollection services, IConfiguration configuration, bool isDevelopment)
+    {
+        var sso = configuration.GetSection(SsoOptions.SectionName).Get<SsoOptions>() ?? new SsoOptions();
+        var timeout = TimeSpan.FromSeconds(Math.Clamp(sso.ProviderTimeoutSeconds, 1, 60));
+
+        // The stub is an unauthenticated route to a session. Refusing to start
+        // is the only safe response to finding it switched on in a real
+        // deployment — the alternative is an authentication bypass that nobody
+        // notices because everything appears to work.
+        if (sso.EnableStubProvider && !isDevelopment)
+        {
+            throw new InvalidOperationException(
+                "Sso:EnableStubProvider is on outside Development. It signs in a fixed account "
+                + "without contacting any provider, which is a complete authentication bypass.");
+        }
+
+        // <b>Real credentials win.</b> The stub exists because no client
+        // secret is available yet, so the moment one is, it has served its
+        // purpose. The earlier order was the other way round, and it meant
+        // that supplying a real client id and secret changed nothing at all —
+        // the flag stayed on from appsettings.Development.json and silently
+        // kept the fake provider. That is a confusing failure precisely when
+        // someone is trying to verify their first real sign-in.
+        if (sso.Google.IsConfigured)
+        {
+            services.AddSingleton<IExternalIdentityProvider>(provider =>
+            {
+                var loggers = provider.GetRequiredService<ILoggerFactory>();
+                loggers.CreateLogger("Vni.Ielts.Sso").LogInformation(
+                    "Google sign-in is using real credentials for client {ClientId}.",
+                    Redact(sso.Google.ClientId));
+
+                return GoogleProvider.Create(sso.Google, timeout, loggers);
+            });
+        }
+        else if (sso.EnableStubProvider)
+        {
+            services.AddSingleton<IExternalIdentityProvider>(provider =>
+            {
+                provider.GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("Vni.Ielts.Sso")
+                    .LogWarning(
+                        "DEV ONLY — Google sign-in is faked. No credentials are configured, so "
+                        + "every Google sign-in returns the same test account without contacting "
+                        + "Google. Set Sso__Google__ClientId and Sso__Google__ClientSecret to use "
+                        + "the real thing.");
+
+                return new StubIdentityProvider(sso);
+            });
+        }
+
+        // Facebook (AU-3) is deliberately absent rather than half-wired. Its
+        // web login is OAuth 2.0 with a Graph profile call and no ID token, so
+        // it is a different adapter, and it cannot assert email_verified —
+        // which changes what the linking rule is allowed to do. → ADR-0013
+
+        services.AddSingleton<IExternalIdentityProviderRegistry, ProviderRegistry>();
+    }
+
+    /// <summary>
+    /// A client id is not a secret, but it is still an identifier worth not
+    /// printing whole into a log that may be shipped somewhere.
+    /// </summary>
+    private static string Redact(string clientId) =>
+        clientId.Length <= 8 ? "…" : clientId[..8] + "…";
 
     /// <summary>
     /// Creates indexes and seeds the system roles.
@@ -68,6 +210,17 @@ public static class DependencyInjection
         await ctx.AssertReplicaSetAsync(ct);
         await ctx.EnsureIndexesAsync(ct);
         await MongoEmailVerificationTokens.EnsureIndexesAsync(ctx.Database, ct);
+        await MongoPasswordResetTokens.EnsureIndexesAsync(ctx.Database, ct);
+        await MongoSsoStateStore.EnsureIndexesAsync(ctx.Database, ct);
+        await MongoHandoffCodeStore.EnsureIndexesAsync(ctx.Database, ct);
+        await MongoAuditLog.EnsureIndexesAsync(ctx.Database, ct);
+        await MongoLoginThrottle.EnsureIndexesAsync(ctx.Database, ct);
+
+        // Development only, and registered only there — see AddInfrastructure.
+        // It loads fixtures/exams through the package reader, which is the same
+        // validator the ZIP importer and CMS authoring go through.
+        if (scope.ServiceProvider.GetService<DevelopmentExamSeeder>() is { } seeder)
+            await seeder.SeedAsync(ct);
 
         var roles = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
         foreach (var (name, permissions) in SeedRoles)

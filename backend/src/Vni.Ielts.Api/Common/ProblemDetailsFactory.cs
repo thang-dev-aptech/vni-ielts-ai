@@ -29,6 +29,7 @@ public static class ApiProblem
             // oracle. → threat T19
             ErrorKind.NotFound => StatusCodes.Status404NotFound,
             ErrorKind.Conflict => StatusCodes.Status409Conflict,
+            ErrorKind.TooManyRequests => StatusCodes.Status429TooManyRequests,
             _ => StatusCodes.Status500InternalServerError,
         };
 
@@ -74,6 +75,7 @@ public static class ApiProblem
         ErrorKind.Forbidden => "Not permitted",
         ErrorKind.NotFound => "Not found",
         ErrorKind.Conflict => "Conflict",
+        ErrorKind.TooManyRequests => "Too many requests",
         _ => "Unexpected error",
     };
 

@@ -28,6 +28,9 @@ public sealed class RefreshTokensTests
 
         public Task RevokeFamilyAsync(UserId u, string f, CancellationToken ct) => Task.CompletedTask;
 
+        public Task<int> RevokeAllExceptAsync(UserId userId, string keepFamilyId, CancellationToken ct) =>
+            Task.FromResult(0);
+
         public Task RevokeAllForUserAsync(UserId userId, CancellationToken ct)
         {
             RevokedAllFor.Add(userId);

@@ -61,6 +61,27 @@ public static class PermissionKeys
     public const string ConfigUpdate = "config.update";
 
     public const string AuditRead = "audit.read";
+
+    /// <summary>
+    /// Every key, in the order the CMS's permission matrix renders its columns.
+    ///
+    /// <b>Derived here, not restated in the client.</b> The matrix needs a
+    /// column for a permission no role holds yet, and a second list in
+    /// TypeScript is a second thing to forget when a key is added — the column
+    /// would simply not appear, and nobody would notice until someone tried to
+    /// grant it.
+    /// </summary>
+    public static readonly IReadOnlyList<string> All =
+    [
+        ExamRead, ExamCreate, ExamUpdate, ExamDelete, ExamPublish, ExamUnpublish,
+        PackageUpload, PackageRead, PackageDelete,
+        EvaluationRead, EvaluationRerun, EvaluationOverride,
+        LearnerContentRead,
+        UserRead, UserUpdate, UserSuspend, UserDelete, UserExport,
+        RoleRead, RoleAssign, RoleManage,
+        ConfigRead, ConfigUpdate,
+        AuditRead,
+    ];
 }
 
 /// <summary>

@@ -64,7 +64,9 @@ Both are assessed against four equally-weighted criteria, each scored on the 0�
 | Lexical Resource | Vocabulary range and accuracy |
 | Grammatical Range and Accuracy | Structure variety and correctness |
 
-Task 2 is weighted more heavily than Task 1 in the official Writing band. `[NEEDS VALIDATION]` — the exact official weighting should be confirmed before implementation. `[ASSUMPTION]` Task 2 carries roughly twice the weight of Task 1; the weighting lives in the `ScoringProfile`, not in code.
+Task 2 is weighted more heavily than Task 1 in the official Writing band. `[OPEN QUESTION]` `H-8b` — the exact ratio is not published the way the overall-band rule is.
+
+**It has no default, and that is deliberate.** The 1:2 assumption used to be a default value in three places — the `ScoringProfile` record, the Mongo document, and the package reader's `?? 2m`. The effect was that every exam version without an explicit weighting was marked on a guess, and nothing said so. `ScoringProfile.RequireWritingTaskWeights()` now throws instead, in the same way `BandFor` refuses a raw score its table does not cover. → `G-11`
 
 ### Speaking criteria
 
@@ -84,7 +86,9 @@ Fluency and Coherence is the criterion a bare transcript represents *worst* — 
 
 ### From criteria to a section band
 
-`[ASSUMPTION]` The four criterion bands are averaged and rounded to the nearest half band, with `.25` rounding up to the next half band and `.75` up to the next whole band — mirroring the official overall-band rule. The exact official criterion-aggregation rule is not published in the same detail. This is configuration in the `ScoringProfile`, not code.
+`[ASSUMPTION]` The four criterion bands are averaged and rounded to the nearest half band, with `.25` rounding up to the next half band and `.75` up to the next whole band — mirroring the official overall-band rule. The exact official criterion-aggregation rule is not published in the same detail.
+
+Implemented in `CriterionMarking.Aggregate`, which delegates to `BandScore.Overall` so the asymmetric rounding has exactly one implementation and one table-driven test. Mirroring the published rule is a defensible choice where inventing a different one would not be — but it remains an assumption, and it is distinct from `H-8b`, which is a genuine unknown rather than a mirrored rule.
 
 ---
 

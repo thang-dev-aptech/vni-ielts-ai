@@ -1,0 +1,1871 @@
+/*
+ * Luyện 4 kỹ năng — `/practice`.
+ *
+ * <b>Nothing here declares a colour that is not already a token or a measured
+ * skill ink.</b> The brief offered a teal/indigo palette; the repository has a
+ * brand (green `#10b050`, blue `#2070b0`) and four measured skill identities in
+ * `skills.ts`, and the brief itself says to prefer existing tokens. A second
+ * palette on one page is how a design system becomes two design systems.
+ *
+ * <b>The whole file exists to make one region louder than the rest.</b> The
+ * page's failure was that the practice area and six marketing sections all
+ * weighed the same. The workspace sits on its own ground, in a wider container,
+ * directly under a deliberately short hero; everything below it uses the
+ * shared `.section` rhythm from `landing.css` unchanged.
+ */
+
+/*
+ * ── Rank order ──────────────────────────────────────────────────────────
+ *
+ * <b>Type scale is the strongest signal on a page, and it was pointing the
+ * wrong way.</b> The workspace heading was 26px/800 while the five SEO
+ * headings below it were 40px/900 and the final call to action was 45px/900 —
+ * so the block the page exists for was the *quietest* named thing on it, and
+ * the section the brief ranks last was the second loudest. A tinted ground and
+ * a wider container, which is what this file was relying on, are the two
+ * weakest signals available.
+ *
+ * These caps apply only under `.prac-page`, so the landing page's display
+ * headings are untouched.
+ */
+.prac-page .section-heading h2 {
+  font-size: clamp(24px, 2.2vw, 30px);
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+  font-weight: 800;
+}
+
+/* Last in the brief's rank order, so it sits under the SEO headings rather
+   than over them. It was 45px — the second-loudest element on the page. */
+.prac-page .cta-box h2 {
+  font-size: clamp(22px, 2vw, 25px);
+  line-height: 1.35;
+}
+
+/*
+ * Anchor targets clear the sticky header.
+ *
+ * `#work` landed with the top 43px of the skill cards — the words "Reading",
+ * "Listening", "Writing", "Speaking" — sliced in half by a 75px sticky header.
+ */
+.prac-work,
+.how-section {
+  scroll-margin-top: 92px;
+}
+
+/* ── Breadcrumb ─────────────────────────────────────────────────────────── */
+
+.crumbs {
+  border-bottom: 1px solid rgb(229 229 229 / 60%);
+  background: #fff;
+}
+
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  /* 14px is the floor for Vietnamese diacritics and it applies here too, even
+     though a breadcrumb is the least-read row on the page. */
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/*
+ * The separator is drawn, not typed — but drawn is not the same as silent.
+ *
+ * Chrome exposes `::before` content to the accessibility tree, so `content:
+ * '›'` was announced between every crumb exactly like the literal character it
+ * replaced. The `/ ''` suffix is CSS alt text: it gives the generated content
+ * an empty accessible name.
+ */
+.crumbs li + li::before {
+  content: '›' / '';
+  margin-right: 6px;
+  color: #9aa39b;
+}
+
+/* #5f675f on white measures 5.85. */
+.crumbs a {
+  color: #5f675f;
+}
+
+/*
+ * 30px of target, not 19.
+ *
+ * WCAG 2.5.8 asks for 24×24 at AA; the 44px this project uses elsewhere would
+ * make the breadcrumb taller than the hero's eyebrow, which is the one thing
+ * the brief says this row must not do. The padding buys the AA minimum and
+ * keeps the row at 38px overall.
+ */
+.crumbs a,
+.crumbs [aria-current='page'] {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+}
+
+.crumbs a:hover {
+  color: #1e7a3c;
+  text-decoration: underline;
+}
+
+.crumbs [aria-current='page'] {
+  color: #1c211d;
+}
+
+/* ── Hero ───────────────────────────────────────────────────────────────── */
+
+/*
+ * <b>Short.</b> The brief's one hard constraint on this block — "Hero không
+ * được quá cao" — is the same complaint that produced the rebuild: the reader
+ * came to sit a paper, and every pixel here is a pixel between them and it.
+ * 44px of padding, a two-line headline, one sentence, two buttons.
+ */
+/*
+ * <b>It was not short.</b> Measured at 449px on a laptop, 712px on a tablet and
+ * 701px on a phone — so at no width was a single practice card visible above
+ * the fold, and on a tablet the entire first screen was the hero with 340px of
+ * it given to a drawing *of the workspace* that sits 400px below. The brief's
+ * one hard constraint on this block, and the comment here claimed it was met.
+ */
+.prac-hero {
+  padding: 30px 0 28px;
+  background:
+    radial-gradient(circle at 88% 12%, rgb(16 176 80 / 9%) 0%, transparent 42%),
+    linear-gradient(180deg, #f3f9f4 0%, rgb(255 255 255 / 0) 100%);
+  border-bottom: 1px solid rgb(229 229 229 / 60%);
+}
+
+.prac-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.prac-hero-copy h1 {
+  margin: 12px 0 0;
+  /*
+   * <b>`ch` under-measures Vietnamese.</b> It is the width of `0`, which is
+   * narrower than the average Vietnamese glyph, so `26ch` was not 26 characters
+   * of this string — "theo đúng mục tiêu của bạn" still broke, leaving "bạn"
+   * alone on a third line at 390px and again between 1024 and 1200. 22ch fits
+   * the longer of the two lines the `<br>` makes at every width.
+   */
+  max-width: 22ch;
+  font-size: clamp(28px, 3.6vw, 42px);
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.prac-hero-copy h1 span {
+  color: var(--green-dark);
+}
+
+.prac-hero-copy p {
+  margin: 14px 0 0;
+  max-width: 56ch;
+  color: #5f675f;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.prac-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/*
+ * <b>The drawing was setting the hero's height.</b> A 420×300 viewBox at 100%
+ * of a 600px column renders 430px tall, and with `align-items: center` that is
+ * what the whole block became — 410px, of which the copy needed 280. Capping
+ * it hands the height back to the text and puts the first practice card above
+ * the fold on a 1280×800 laptop.
+ */
+.prac-hero-art {
+  max-width: 400px;
+  margin-left: auto;
+}
+
+.prac-hero-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── Workspace ──────────────────────────────────────────────────────────── */
+
+/*
+ * Its own ground, and a wider container than the reading sections below.
+ *
+ * The brief asks that the practice area outrank the SEO content. Two things do
+ * that here and neither is a colour: this block sits on a tinted field while
+ * every section under it sits on white, and it is the only block on the page
+ * that reaches 1280px.
+ */
+.prac-work {
+  padding: 32px 0 44px;
+  background: #f4f7f3;
+  border-bottom: 1px solid #e6ebe4;
+}
+
+.prac-work > .container {
+  width: min(1280px, calc(100% - 40px));
+}
+
+.work {
+  display: grid;
+  gap: 20px;
+}
+
+/* ── Skill selector ─────────────────────────────────────────────────────── */
+
+.skill-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/*
+ * A card, and a real control.
+ *
+ * <b>Colour is never the only signal.</b> The chosen one takes its skill's
+ * tint, a 2px ink border and a visible tick — three channels, so the state
+ * survives greyscale. 104px keeps it inside the brief's 100–120px band.
+ */
+.skill-pick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 104px;
+  padding: 16px;
+  border: 2px solid #e3e9e2;
+  border-radius: 18px;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.skill-pick:hover {
+  transform: translateY(-2px);
+  border-color: #cfe0d3;
+}
+
+.skill-pick.is-active {
+  box-shadow: 0 6px 18px rgb(32 41 35 / 8%);
+}
+
+.skill-pick-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 14px;
+  transition: transform 0.2s ease;
+}
+
+.skill-pick:hover .skill-pick-icon {
+  transform: scale(1.04);
+}
+
+.skill-pick-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.skill-pick-text strong {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+/* #5f675f measures 5.85 on white and 5.1 on the palest of the four tints. */
+.skill-pick-meta {
+  color: #5f675f;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.skill-pick-tick {
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* ── Workspace bar ──────────────────────────────────────────────────────── */
+
+.work-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.work-title {
+  margin: 0;
+  /* The loudest heading below the h1, because it names the block the page is
+     for. It was 26px against five 40px SEO headings underneath it. */
+  font-size: clamp(26px, 2.6vw, 33px);
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
+  color: #1c211d;
+}
+
+.work-count {
+  margin: 4px 0 0;
+  max-width: 60ch;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+/*
+ * A segmented control, sized like one.
+ *
+ * Two modes and one either/or. `E-11` makes them different offers, so this is
+ * the first control on the workspace and not a dropdown buried in the filters.
+ */
+.work-modes {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #e0e6de;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.work-mode {
+  min-height: 44px;
+  padding-inline: 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #4d554e;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.work-mode:hover {
+  background: #f1f5f0;
+}
+
+/* `--green-dark` measures 4.30 against white — under the threshold, and this
+   is a label. `--green-btn` measures 4.80. → `landing.css` */
+.work-mode.is-active {
+  background: var(--green-btn);
+  color: #fff;
+}
+
+/* ── Split: filters beside the grid ─────────────────────────────────────── */
+
+.work-split {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.work-filter-toggle {
+  display: none;
+}
+
+.filters {
+  position: sticky;
+  /* Clears the sticky site header (74px) with room to breathe. */
+  top: 92px;
+  padding: 18px;
+  border: 1px solid #e3e9e2;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.filters-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.filters-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.5;
+  color: #1c211d;
+}
+
+.filters-clear {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1e7a3c;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.filters-none {
+  margin: 0;
+  color: #5f675f;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.filter-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.filter-group + .filter-group {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eef2ed;
+}
+
+.filter-group legend {
+  padding: 0;
+  margin-bottom: 8px;
+  color: #4d554e;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+/* 44px of target: the whole row, not the 16px box. */
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding-inline: 6px;
+  margin-inline: -6px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.filter-option:hover {
+  background: #f5f8f4;
+}
+
+.filter-option input {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  accent-color: var(--green-dark);
+  cursor: pointer;
+}
+
+.filter-option-label {
+  flex: 1;
+  min-width: 0;
+  color: #2b332c;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* #5f675f on #f1f5f0 measures 5.4. */
+.filter-option-count {
+  color: #5f675f;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/*
+ * An option that would return nothing keeps its count visible.
+ *
+ * Hiding it would leave the reader wondering where the control went; greying
+ * it with the `0` still legible says the shelf is empty for that value. 4.6 at
+ * 60% opacity, so "disabled" does not mean "unreadable".
+ */
+.filter-option.is-empty {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.filter-option.is-empty input {
+  cursor: not-allowed;
+}
+
+/* ── Practice grid ──────────────────────────────────────────────────────── */
+
+.prac-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * The card the page is for.
+ *
+ * A hairline, an 18px radius, and no shadow until hover — the brief asks for
+ * "shadow rất nhẹ hoặc không shadow", and a grid of six shadowed cards on a
+ * tinted ground reads as six floating objects.
+ */
+.prac-card {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border: 1px solid #e3e9e2;
+  border-radius: 18px;
+  background: #fff;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.prac-card:hover {
+  transform: translateY(-2px);
+  border-color: #cfe0d3;
+  box-shadow: 0 8px 20px rgb(32 41 35 / 8%);
+}
+
+.prac-card:focus-within {
+  border-color: #cfe0d3;
+}
+
+.prac-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.prac-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+/* #14743d on #e4f7eb measures 5.26. */
+.prac-badge.is-full-badge {
+  background: var(--green-soft);
+  color: #14743d;
+}
+
+/* #5f675f on white measures 5.85. */
+.prac-variant {
+  color: #5f675f;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/*
+ * The loudest thing on the card, and the only loud thing on it.
+ *
+ * Weight 800 against everything else at 600 or below. A grid of these is
+ * scanned by title; the metadata is looked at once a title has been chosen.
+ */
+.prac-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.prac-lead {
+  margin: 0 0 16px;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/*
+ * `margin-top: auto` is what keeps the buttons on one line across a row.
+ *
+ * A single-skill card has no description and a full-test card does, so two
+ * cards side by side differ in height by a paragraph. Pushing the metadata and
+ * the button to the bottom means the row's buttons align whatever is above
+ * them — which is the thing the eye actually tracks when scanning a grid.
+ */
+.prac-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin: auto 0 16px;
+  padding: 0;
+  list-style: none;
+  color: #5f675f;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.prac-meta-value {
+  font-weight: 800;
+  color: #2b332c;
+}
+
+.prac-meta-marking {
+  padding-left: 14px;
+  border-left: 1px solid #e3e9e2;
+}
+
+/*
+ * The one saturated element on the card.
+ *
+ * <b>`--green-btn`, not `--green-dark`.</b> White on `--green-dark` measures
+ * **4.30** and on `--green` **2.86** — the second is the failure `landing.css`
+ * records at the top of the file, and the first is the near-miss I wrote 4.60
+ * beside before measuring it. 4.80 is what this label actually needs.
+ */
+.prac-start {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  align-self: flex-start;
+  min-height: 44px;
+  padding-inline: 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--green-btn);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.5;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.prac-start:hover:not(:disabled) {
+  background: #076c2c;
+}
+
+.prac-start:disabled {
+  background: #7fae90;
+  cursor: progress;
+}
+
+.prac-card:hover .prac-start span {
+  transform: translateX(3px);
+}
+
+.prac-start span {
+  transition: transform 0.2s ease;
+}
+
+/* ── Gate, notes, errors ────────────────────────────────────────────────── */
+
+.work-gate {
+  padding: 30px 26px;
+  border: 1px solid #e3e9e2;
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+}
+
+.work-gate h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  color: #1c211d;
+}
+
+.work-gate p {
+  max-width: 58ch;
+  margin: 0 auto;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.65;
+}
+
+.work-gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.work-note {
+  margin: 0 0 14px;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* #a3311c on #fdece8 measures 5.4. `--bad` is reserved for something that has
+   broken, and a failed start is exactly that. */
+.work-error {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #fdece8;
+  color: #a3311c;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* ── Pagination ─────────────────────────────────────────────────────────── */
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.pager-list {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pager-step,
+.pager-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: 12px;
+  border: 1px solid #e0e6de;
+  border-radius: 12px;
+  background: #fff;
+  color: #2b332c;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* `[aria-disabled]` rather than `:disabled` — the controls stay focusable so a
+   page turn does not drop keyboard focus. → `Pagination` */
+.pager-step:not([aria-disabled='true']):hover,
+.pager-page:not([aria-disabled='true']):hover {
+  background: #f1f5f0;
+  border-color: #cfe0d3;
+}
+
+/*
+ * #8a938c measured 3.17 — WCAG exempts disabled controls, so it is not a
+ * failure, but "Trước" on page 1 was genuinely hard to read. #6e766f measures
+ * 4.62 and still reads as inactive: it has no hover, no pointer cursor and
+ * `aria-disabled`.
+ */
+.pager-step[aria-disabled='true'] {
+  color: #6e766f;
+  cursor: default;
+}
+
+.pager-page.is-current {
+  background: var(--green-btn);
+  border-color: var(--green-btn);
+  color: #fff;
+  cursor: default;
+}
+
+.pager-gap {
+  min-width: 24px;
+  text-align: center;
+  color: #8a938c;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ── Giới thiệu ─────────────────────────────────────────────────────────── */
+
+/*
+ * Narrower than the workspace, and that is the hierarchy.
+ *
+ * Reading prose wants ~70 characters a line; the practice grid wants width.
+ * Letting the SEO block run to 1280px would make it the widest thing on a page
+ * whose point is the block above it.
+ */
+.intro-wrap {
+  width: min(1040px, calc(100% - 40px));
+}
+
+.intro-body {
+  max-width: 72ch;
+}
+
+.intro-body p {
+  margin: 0 0 16px;
+  color: #4d554e;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+
+.intro-body h3 {
+  margin: 26px 0 8px;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.intro-body ul {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  color: #4d554e;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.75;
+}
+
+.intro-body li + li {
+  margin-top: 6px;
+}
+
+/* ── Bốn kỹ năng ────────────────────────────────────────────────────────── */
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.overview-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border: 1px solid #e3e9e2;
+  border-radius: 18px;
+  background: #fff;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.overview-card:hover {
+  transform: translateY(-2px);
+  border-color: #cfe0d3;
+  box-shadow: 0 8px 20px rgb(32 41 35 / 8%);
+}
+
+.overview-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  transition: transform 0.2s ease;
+}
+
+.overview-card:hover .overview-icon {
+  transform: scale(1.04);
+}
+
+.overview-card h3 {
+  margin: 16px 0 8px;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.overview-card p {
+  flex: 1;
+  margin: 0 0 16px;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.overview-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid #eef2ed;
+}
+
+/* Each skill's own ink, every pair measured in `skills.ts` at 5.5 and up. */
+.overview-marking {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.overview-go {
+  color: #1e7a3c;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.overview-card:hover .overview-go {
+  text-decoration: underline;
+}
+
+/* ── Cách luyện ─────────────────────────────────────────────────────────── */
+
+.how-section {
+  background: var(--surface);
+}
+
+/*
+ * Five steps on a rail. The rail is what makes them a sequence rather than a
+ * feature grid — drawn on the container so it cannot overshoot the first and
+ * last markers.
+ */
+.steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 26px 0 0;
+  list-style: none;
+}
+
+/*
+ * The rail runs marker to marker.
+ *
+ * `left: 10%; right: 10%` was a guess at where the first and last markers sit;
+ * they sit at the centre of a five-column track, which is one tenth of the
+ * grid *plus* its share of the gaps — so the line overshot both ends. This
+ * derives the inset from the same numbers the grid uses.
+ */
+.steps::before {
+  content: '';
+  position: absolute;
+  top: 9px;
+  left: calc((100% - 4 * 14px) / 10 + 0px);
+  right: calc((100% - 4 * 14px) / 10 + 0px);
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #cfe0d3 0 8px, transparent 8px 15px);
+}
+
+.step {
+  position: relative;
+  padding: 22px 18px 18px;
+  border: 1px solid #e3e9e2;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.step::before {
+  content: '';
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  border: 2px solid #cfe0d3;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.step-n {
+  display: block;
+  margin-bottom: 8px;
+  color: #1e7a3c;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+}
+
+.step h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.step p {
+  margin: 0;
+  color: #5f675f;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ── FAQ ────────────────────────────────────────────────────────────────── */
+
+.faq {
+  display: grid;
+  gap: 10px;
+}
+
+.faq-item {
+  border: 1px solid #e3e9e2;
+  border-radius: 14px;
+  background: #fff;
+  transition: border-color 0.2s ease;
+}
+
+.faq-item.is-open {
+  border-color: #cfe0d3;
+}
+
+.faq-q {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/* The whole row is the target, not the caret. */
+.faq-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 18px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+}
+
+.faq-trigger:hover {
+  color: #1e7a3c;
+}
+
+.faq-caret {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: #f1f5f0;
+  color: #4d554e;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.faq-item.is-open .faq-caret {
+  background: var(--green-soft);
+  color: #14743d;
+}
+
+.faq-a {
+  padding: 0 18px 18px;
+  animation: faq-open 0.22s ease;
+}
+
+.faq-a p {
+  margin: 0;
+  max-width: 76ch;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.faq-a em {
+  font-style: normal;
+  font-weight: 800;
+  color: #5b4b9e;
+}
+
+@keyframes faq-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-a {
+    animation: none;
+  }
+
+  .skill-pick,
+  .skill-pick-icon,
+  .prac-card,
+  .prac-start,
+  .prac-start span,
+  .overview-card,
+  .overview-icon {
+    transition: none;
+  }
+
+  .skill-pick:hover,
+  .skill-pick:hover .skill-pick-icon,
+  .prac-card:hover,
+  .prac-card:hover .prac-start span,
+  .overview-card:hover,
+  .overview-card:hover .overview-icon {
+    transform: none;
+  }
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 1080px) {
+  /* The sidebar is the first thing to go: a 236px column beside a two-card
+     grid leaves each card too narrow to hold a title on one line. */
+  .work-split {
+    grid-template-columns: 1fr;
+  }
+
+  /*
+   * `inline-flex` on a grid item in a `1fr` column still stretches — it
+   * rendered as a 936px white rounded rectangle with six centred characters,
+   * which reads as an empty search field rather than as a button.
+   */
+  .work-filter-toggle {
+    display: inline-flex;
+    justify-self: start;
+    width: fit-content;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding-inline: 16px;
+    border: 1px solid #e0e6de;
+    border-radius: 12px;
+    background: #fff;
+    color: #2b332c;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  /* The state has a shape, not just a colour: the label carries the count and
+     the caret turns. The 8px green dot it replaces was colour alone, and its
+     aria-label concatenated into the button name as "Bộ lọc đang có bộ lọc". */
+  .work-filter-caret {
+    font-size: 15px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+
+  .work-filter-toggle[aria-expanded='true'] .work-filter-caret {
+    transform: rotate(180deg);
+  }
+
+  .work-side {
+    display: none;
+  }
+
+  .work-side.is-open {
+    display: block;
+  }
+
+  .filters {
+    position: static;
+  }
+
+  /* Two across at this width, so the panel reads as a toolbar rather than as
+     a column that has fallen over. */
+  /*
+   * Flex, not grid.
+   *
+   * The column version stretched `1fr` tracks to fill the row — at 1024px the
+   * panel became four columns with two of them empty, about 750px of white
+   * inside a bordered card. Switching the tracks to `max-content` did not fix
+   * it either: the full-width header forces every track to exist, so
+   * `auto-fit` had nothing to collapse. A wrapping flex row simply ends where
+   * the last group ends.
+   */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 36px;
+    align-items: flex-start;
+  }
+
+  .filters-head {
+    flex: 0 0 100%;
+    margin-bottom: 4px;
+  }
+
+  .filter-group {
+    min-width: 170px;
+  }
+
+  .filter-group + .filter-group {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .prac-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /*
+   * Gone below 980px, not shrunk.
+   *
+   * It is `aria-hidden` decoration, so it costs nothing to drop — and stacked,
+   * it was 340px of the only screen a tablet reader sees before the workspace,
+   * spent on a picture of the workspace.
+   */
+  .prac-hero-art {
+    display: none;
+  }
+
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* A horizontal rail through a wrapped grid points nowhere. */
+  .steps::before,
+  .step::before {
+    display: none;
+  }
+
+  .steps {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .skill-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .prac-grid,
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .prac-hero {
+    padding: 32px 0 30px;
+  }
+
+  .prac-work {
+    padding: 24px 0 34px;
+  }
+
+  .prac-hero-ctas .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /*
+   * Four cards in a row that scrolls, not four squeezed into 350px.
+   *
+   * The brief is explicit — "Không làm 4 skill card quá nhỏ trên mobile" — and
+   * a 2×2 grid at this width gives each card about 160px, which is not enough
+   * for "Nghe chép chính tả"-length labels beside a 46px icon.
+   */
+  .skill-picker {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    /* The row bleeds to the screen edges so the last card does not look
+       clipped by a margin. */
+    margin-inline: -20px;
+    padding: 4px 20px;
+    scrollbar-width: none;
+  }
+
+  .skill-picker::-webkit-scrollbar {
+    display: none;
+  }
+
+  .skill-pick {
+    flex: 0 0 auto;
+    width: 210px;
+    scroll-snap-align: start;
+  }
+
+  .work-bar {
+    align-items: stretch;
+  }
+
+  .work-modes {
+    width: 100%;
+  }
+
+  .work-mode {
+    flex: 1;
+    padding-inline: 8px;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .faq-trigger {
+    font-size: 15px;
+  }
+
+  /*
+   * The divider goes when the row wraps.
+   *
+   * `.prac-meta` is a wrapping flex row, and at this width the marking lands on
+   * a second line — where its `border-left` is no longer *between* two things.
+   * It read as a stray vertical stroke under the question count.
+   */
+  .prac-meta-marking {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* ── Additions from the 24/08 review ────────────────────────────────────── */
+
+/*
+ * The two mode labels, one of which is only for narrow screens.
+ * "Luyện từng kỹ năng" wraps inside a 144px pill at 390px, and a wrapped
+ * segmented control is a defect the brief names by name.
+ */
+.work-mode-short {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .work-mode-long {
+    display: none;
+  }
+
+  .work-mode-short {
+    display: inline;
+  }
+}
+
+/*
+ * A full test's per-module minutes.
+ *
+ * This is what the card says instead of a sentence every full-test card shared
+ * verbatim. Each key is the skill's initial on its own tint, so the row reads
+ * without the colours as well as with them, and the full skill name is in the
+ * accessible text beside it.
+ */
+.prac-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.prac-parts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: #f4f7f3;
+}
+
+.prac-part-key {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* #2b332c on #f4f7f3 measures 11.9. */
+.prac-part-min {
+  color: #2b332c;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* Keeps the variant on the right when there is no badge on the left. */
+.prac-card-lead {
+  display: block;
+}
+
+/*
+ * The marking rule is binary, so it gets two treatments and not four.
+ *
+ * It was painted in each skill's own ink, which put "Chấm theo đáp án" in blue
+ * on one card and orange on the next — two colours for one identical fact.
+ * #14663a measures 5.98 on white, #5b4b9e measures 7.13.
+ */
+.overview-marking {
+  color: #14663a;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.overview-marking.is-ai {
+  color: #5b4b9e;
+}
+
+/*
+ * <b>Smooth scrolling was the one motion on this page that ignored the
+ * setting.</b> `landing.css` sets `html { scroll-behavior: smooth }`
+ * unguarded, and this page adds three anchor jumps, one of which travels
+ * 4500px. Everything authored here is already guarded.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .work-filter-caret {
+    transition: none;
+  }
+}
+
+/*
+ * A full test is a different kind of object from a single-skill paper, and the
+ * card was saying so with a badge alone.
+ *
+ * The class was written by the component and had no rule behind it. A 2px edge
+ * in the section's own green is the second channel — it survives greyscale,
+ * where a green badge beside a blue one does not.
+ */
+.prac-card.is-full {
+  border: 2px solid #cfe0d3;
+}
+
+.prac-card.is-full:hover {
+  border-color: #a8cdb4;
+}
+
+/*
+ * A single-skill card has no badge, so its top row holds only the variant.
+ * At the full card's 12px it left a band of empty white above the title with
+ * one small grey word in it.
+ */
+.prac-card:not(.is-full) .prac-card-top {
+  margin-bottom: 2px;
+}
+
+/*
+ * ════════════════════════════════════════════════════════════════════════
+ * ── Surface & depth (24/08, đợt 2) ─────────────────────────────────────
+ * ════════════════════════════════════════════════════════════════════════
+ *
+ * `[QUYẾT ĐỊNH]` chủ sản phẩm, 24/08/2026: *"trông vẫn còn đơn điệu quá css
+ * đẹp thêm cho trang này đi"*. Everything above this line is the structural
+ * pass — rank order, contrast, keyboard, empty states. This block is the
+ * decorative one, and it is additive and removable: no rule here changes a
+ * measured colour pair, a font size, a heading level or a hero height, so
+ * none of the review's fixes are at risk from it.
+ *
+ * <b>Three devices, reused from `landing.css` rather than invented.</b> A dot
+ * grid, two soft blurred lights, and one drawn underline — the same three
+ * things that took the landing page from "too much white space" to finished.
+ * Reusing them here is what keeps the two pages looking like one product
+ * instead of two.
+ *
+ * <b>Colour comes from the skill, not from a new palette.</b> `SkillSelector`,
+ * `PracticeCard` and `SkillsOverview` now carry `--sk-tint`/`--sk-ink` as
+ * inline CSS variables — the same measured pairs `skills.ts` already defines —
+ * so every glow, bar and ring below is the skill's own identity, not a sixth
+ * colour added to the page.
+ */
+
+/* ── Hero: a ground instead of a gradient fade ──────────────────────────── */
+
+.prac-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: #f8faf7;
+  background-image:
+    radial-gradient(circle at 88% 6%, rgb(16 176 80 / 13%) 0%, transparent 42%),
+    radial-gradient(circle at 6% 96%, rgb(32 112 176 / 9%) 0%, transparent 38%),
+    radial-gradient(#dbe6da 1.1px, transparent 1.1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    26px 26px;
+}
+
+/*
+ * Two blurred lights, clipped to the hero by its own `overflow: hidden` —
+ * they cannot leak into the workspace band below, and being pseudo-elements
+ * rather than DOM nodes they add nothing to the page's height.
+ */
+.prac-hero::before,
+.prac-hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+.prac-hero::before {
+  top: -22%;
+  right: -8%;
+  width: 320px;
+  height: 320px;
+  background: rgb(16 176 80 / 16%);
+}
+
+.prac-hero::after {
+  bottom: -46%;
+  left: 4%;
+  width: 260px;
+  height: 260px;
+  background: rgb(32 112 176 / 12%);
+}
+
+/* Lifts the mock interface off the ground it sits on — the one shadow on this
+   page that reads as "premium" rather than as a card that needs separating
+   from its neighbours, because there are no neighbours here to separate it
+   from. */
+.prac-hero-art svg {
+  filter: drop-shadow(0 22px 34px rgb(20 41 27 / 12%));
+}
+
+/* ── Workspace band: a stage, not a flat tint ───────────────────────────── */
+
+.prac-work {
+  position: relative;
+  isolation: isolate;
+  background-color: #f4f7f3;
+  background-image:
+    radial-gradient(circle at 92% 0%, rgb(16 176 80 / 7%) 0%, transparent 36%),
+    radial-gradient(circle at 2% 100%, rgb(32 112 176 / 6%) 0%, transparent 34%),
+    radial-gradient(#d6e2d4 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    24px 24px;
+  /* A hairline of light along the top edge — the seam where the hero's pale
+     ground meets this slightly deeper one, which otherwise read as a flat
+     colour swap rather than as one surface stepping down. */
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 70%);
+}
+
+/* ── Skill picker: glow keyed to the skill, not a second palette ───────── */
+
+.skill-pick {
+  position: relative;
+  overflow: hidden;
+}
+
+/* A soft wash of the skill's own tint, low enough to sit under the icon and
+   text without touching their measured contrast — box-shadow and background
+   are not what `bgOf()` reads when checking text-on-background. */
+.skill-pick::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(120px 90px at 14% 0%, var(--sk-tint), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.skill-pick:hover::before {
+  opacity: 0.6;
+}
+
+.skill-pick.is-active {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 55%),
+    0 10px 24px -8px color-mix(in srgb, var(--sk-ink) 35%, transparent);
+}
+
+.skill-pick-icon {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sk-ink) 14%, transparent);
+}
+
+.skill-pick.is-active .skill-pick-icon {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--sk-ink) 18%, transparent),
+    0 4px 10px -3px color-mix(in srgb, var(--sk-ink) 45%, transparent);
+}
+
+/* The tick becomes a small filled disc instead of a bare glyph — the same
+   channel the border and the tint already carry, drawn a third way so the
+   state reads even in a screenshot cropped to just this corner. */
+/* 14px, not 12 — the floor holds even for a single glyph in a decorative,
+   `aria-hidden` badge, because the alternative is one more exception to
+   remember. 24px of disc keeps the mark from looking cramped at that size. */
+.skill-pick-tick {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--sk-ink);
+  color: #fff;
+  font-size: 14px;
+}
+
+/* ── Practice cards: a thin spine in the skill's colour ─────────────────── */
+
+.prac-card {
+  position: relative;
+  overflow: hidden;
+}
+
+/*
+ * A single-skill card takes a two-stop bar from its skill's tint into its
+ * ink — the same gradient direction as the skill-pick glow, so the two
+ * controls read as one system. A full-test card gets a fixed four-stop bar
+ * naming the four skills it actually sits, in the order they run — decorative
+ * and also literally true, which is the difference between decoration and
+ * clutter.
+ */
+.prac-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--sk-tint, #eef4fb), var(--sk-ink, #cfe0d3));
+}
+
+.prac-card.is-full::before {
+  background: linear-gradient(
+    90deg,
+    #2867ac 0%,
+    #2867ac 25%,
+    #9a4e07 25%,
+    #9a4e07 50%,
+    #5b4b9e 50%,
+    #5b4b9e 75%,
+    #a8324f 75%,
+    #a8324f 100%
+  );
+}
+
+.prac-badge.is-full-badge {
+  box-shadow: inset 0 0 0 1px rgb(20 116 61 / 14%);
+}
+
+.prac-part-key {
+  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+/* ── Controls: a sheen, not a shadow — no fill colour changes, so every
+   contrast pair measured against these stays exactly what it was. ─────── */
+
+.work-mode.is-active,
+.prac-start,
+.pager-page.is-current {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 22%),
+    0 3px 8px -2px rgb(10 132 56 / 30%);
+}
+
+.filters {
+  box-shadow:
+    0 1px 2px rgb(32 41 35 / 4%),
+    0 10px 24px -12px rgb(32 41 35 / 10%);
+}
+
+/* ── FAQ: the open item names itself a third way ────────────────────────── */
+
+.faq-item.is-open {
+  box-shadow: inset 3px 0 0 var(--green-dark);
+}
+
+/* ── Overview and resource cards: the same glow the skill picker uses ──── */
+
+.overview-card,
+.prac-page .resource-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.overview-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(140px 100px at 100% 0%, var(--sk-tint), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.overview-card:hover::before {
+  opacity: 0.55;
+}
+
+.overview-card:hover {
+  box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--sk-ink) 30%, transparent);
+}
+
+.overview-icon {
+  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+/*
+ * A resource card has no per-item colour, so its glow is the brand green
+ * rather than a skill's — it is a shelf of reading material, not a fourth
+ * copy of the skill grid.
+ */
+.prac-page .resource-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(140px 100px at 0% 0%, var(--green-soft), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.prac-page .resource-card:hover::before {
+  opacity: 0.7;
+}
+
+/* ── SEO sections: the same rhythm the landing page already uses ───────── */
+
+/*
+ * `.landing .section::before` in `landing.css` is scoped to the landing
+ * page's own `.landing` wrapper, so it never reached `.prac-page`. Same two
+ * devices — a pair of low-opacity washes, and a dot-grid band on every other
+ * section — kept in their own rule so a change to one page's texture does not
+ * silently change the other's.
+ */
+.prac-page .section,
+.prac-page .faq-section {
+  position: relative;
+  isolation: isolate;
+}
+
+.prac-page .section::before,
+.prac-page .faq-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 10% 15%, rgb(16 176 80 / 5%), transparent 40%),
+    radial-gradient(circle at 90% 85%, rgb(32 112 176 / 4%), transparent 38%);
+}
+
+.prac-page .section:nth-of-type(even)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='34' height='34' viewBox='0 0 34 34' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1.1' fill='%23102a1a' fill-opacity='0.045'/%3E%3C/svg%3E");
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+}
+
+/* ── One drawn underline, on the final call to action and nowhere else ──── */
+
+/*
+ * The CTA heading already carries a `<span>` — `Chọn <span>một kỹ năng</span>
+ * và bắt đầu…` — so this needs no markup change. Landing's own rule holds
+ * here too: once on the page, on the section asking for the actual action,
+ * or a flourish becomes a template.
+ */
+.prac-page .cta-box h2 span {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 6px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8.4C42 3.6 96 2.4 197 5.6' fill='none' stroke='%2310b050' stroke-width='3.4' stroke-linecap='round' opacity='0.55'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  background-size: 100% 9px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-pick::before,
+  .overview-card::before,
+  .prac-page .resource-card::before {
+    transition: none;
+  }
+}

@@ -19,6 +19,7 @@ internal static class IdentityMappers
         Email = user.Email.Value,
         EmailVerified = user.EmailVerified,
         DisplayName = user.DisplayName,
+        Phone = user.Phone?.Value,
         Status = user.Status.ToString(),
         CreatedAt = user.CreatedAt.UtcDateTime,
         RoleIds = [.. user.RoleIds.Select(r => r.Value)],
@@ -29,6 +30,7 @@ internal static class IdentityMappers
         Email.Create(doc.Email),
         doc.EmailVerified,
         doc.DisplayName,
+        doc.Phone is null ? null : PhoneNumber.Create(doc.Phone),
         Enum.TryParse<UserStatus>(doc.Status, out var status) ? status : UserStatus.Active,
         // Mongo stores UTC. Re-attaching Zero offset rather than letting
         // DateTime.Kind decide, because an Unspecified kind here silently

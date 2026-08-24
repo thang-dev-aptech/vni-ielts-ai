@@ -9,6 +9,12 @@
 *.pfx
 credentials.json
 secrets.json
+
+# Google hands you this file at the moment an OAuth client is created, and the
+# browser drops it wherever downloads go — which on 2026-08-21 was the root of
+# this repository, one `git add .` from being permanent. The real copy belongs
+# outside the project entirely. → docs/development/sso-provider-setup.md
+client_secret*.json
 appsettings.*.local.json
 
 # .mcp.json holds live API keys in plaintext (MCP server headers).
@@ -76,3 +82,6 @@ test-results/
 # Generated from contracts/openapi — a hand edit here is a build failure,
 # so the generated output is not tracked. → packages/api-client
 packages/api-client/src/generated/
+
+# Screenshots from browser sweeps. Working artefacts, not deliverables.
+.shots/

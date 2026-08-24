@@ -47,10 +47,14 @@ public static class RateLimitPolicies
             // that looks exactly like the attack it was meant to stop.
             //
             // So this bound is deliberately loose. It exists to stop a crude
-            // flood, not to stop credential stuffing — that needs a PER-ACCOUNT
-            // lockout, which belongs in the application layer where the
-            // submitted address is known, and is not built yet.
-            // → threat T4/T5, tracked as a todo
+            // flood, not to stop credential stuffing.
+            //
+            // Credential stuffing is stopped by `ILoginThrottle` instead — a
+            // per-address consecutive-failure lockout in the application layer,
+            // which is the only layer that knows WHICH account is being
+            // attacked. The two controls are complements, not alternatives:
+            // this one bounds traffic from an address, that one bounds guesses
+            // against an account. → threats T4, T5
             options.AddPolicy(Authentication, http => Fixed(http.PartitionKey(), permit: 120, minutes: 1));
 
             // Same NAT reasoning, but registration is genuinely rare per person

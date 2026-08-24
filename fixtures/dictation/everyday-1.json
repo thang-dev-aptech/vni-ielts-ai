@@ -1,0 +1,37 @@
+{
+  "id": "everyday-1",
+  "title": "Câu hằng ngày — bộ 1",
+  "description": "Sáu câu ngắn ở tốc độ chậm. Audio do macOS `say` sinh ra, không phải giọng thu thật.",
+  "sentences": [
+    {
+      "order": 1,
+      "audio": "assets/sentence-1.m4a",
+      "text": "The library opens at half past eight every weekday morning."
+    },
+    {
+      "order": 2,
+      "audio": "assets/sentence-2.m4a",
+      "text": "She has been studying environmental science for three years."
+    },
+    {
+      "order": 3,
+      "audio": "assets/sentence-3.m4a",
+      "text": "Please submit your assignment before Friday afternoon."
+    },
+    {
+      "order": 4,
+      "audio": "assets/sentence-4.m4a",
+      "text": "The conference was postponed until the following month."
+    },
+    {
+      "order": 5,
+      "audio": "assets/sentence-5.m4a",
+      "text": "Most of the participants arrived earlier than expected."
+    },
+    {
+      "order": 6,
+      "audio": "assets/sentence-6.m4a",
+      "text": "He explained the results clearly and answered every question."
+    }
+  ]
+}

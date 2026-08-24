@@ -37,6 +37,18 @@ public sealed class MongoContext
     internal IMongoCollection<RefreshTokenDocument> RefreshTokens =>
         _db.GetCollection<RefreshTokenDocument>("refresh_tokens");
 
+    internal IMongoCollection<Exams.ExamVersionDocument> ExamVersions =>
+        _db.GetCollection<Exams.ExamVersionDocument>("exam_versions");
+
+    internal IMongoCollection<Exams.ExamSessionDocument> ExamSessions =>
+        _db.GetCollection<Exams.ExamSessionDocument>("exam_sessions");
+
+    internal IMongoCollection<Exams.AnswerSheetDocument> AnswerSheets =>
+        _db.GetCollection<Exams.AnswerSheetDocument>("answer_sheets");
+
+    internal IMongoCollection<Exams.SectionResultDocument> SectionResults =>
+        _db.GetCollection<Exams.SectionResultDocument>("section_results");
+
     /// <summary>
     /// Refuses to start against a node that cannot do transactions.
     ///
@@ -167,6 +179,30 @@ public sealed class MongoContext
                     Name = "ttl_idempotency",
                     ExpireAfter = TimeSpan.FromHours(24),
                 }),
+            cancellationToken: ct);
+
+        // The catalogue listing filters on status and sorts by title.
+        await ExamVersions.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.ExamVersionDocument>(
+                Builders<Exams.ExamVersionDocument>.IndexKeys
+                    .Ascending(v => v.Status)
+                    .Ascending(v => v.Title),
+                new CreateIndexOptions { Name = "ix_exam_versions_status_title" }),
+            cancellationToken: ct);
+
+        // "Bài đang làm dở" and the attempt history both read by this.
+        await ExamSessions.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.ExamSessionDocument>(
+                Builders<Exams.ExamSessionDocument>.IndexKeys
+                    .Ascending(s => s.UserId)
+                    .Descending(s => s.StartedAt),
+                new CreateIndexOptions { Name = "ix_exam_sessions_user_started" }),
+            cancellationToken: ct);
+
+        await SectionResults.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.SectionResultDocument>(
+                Builders<Exams.SectionResultDocument>.IndexKeys.Ascending(r => r.SessionId),
+                new CreateIndexOptions { Name = "ix_section_results_session" }),
             cancellationToken: ct);
 
         // Expired tokens remove themselves. A TTL index does this without a

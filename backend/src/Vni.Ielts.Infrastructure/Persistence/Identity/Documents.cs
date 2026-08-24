@@ -35,6 +35,11 @@ internal sealed class UserDocument
     [BsonElement("displayName")]
     public string DisplayName { get; set; } = string.Empty;
 
+    /// <summary>Normalised to `+84…`. Absent until the learner adds one.</summary>
+    [BsonElement("phone")]
+    [BsonIgnoreIfNull]
+    public string? Phone { get; set; }
+
     [BsonElement("status")]
     public string Status { get; set; } = "Active";
 
@@ -138,4 +143,25 @@ internal sealed class RefreshTokenDocument
 
     [BsonElement("createdAt")]
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>
+    /// The browser or app that asked for this token, verbatim.
+    ///
+    /// <para>
+    /// Stored so the account owner can recognise their own sessions — "Chrome
+    /// trên macOS" is only derivable from this string. It is parsed into a
+    /// label when the list is read rather than at write time, so improving the
+    /// parser does not require a migration.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>No IP address sits beside it, deliberately.</b> An IP would not help
+    /// anyone recognise a device — it changes with every network — and it is
+    /// exactly the field that turns a session list into location history.
+    /// → PDPL, <c>B-2</c>
+    /// </para>
+    /// </summary>
+    [BsonElement("userAgent")]
+    [BsonIgnoreIfNull]
+    public string? UserAgent { get; set; }
 }

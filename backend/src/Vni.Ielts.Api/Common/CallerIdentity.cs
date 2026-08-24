@@ -53,9 +53,22 @@ public static class CallerIdentity
     public static string DisplayName(this ClaimsPrincipal principal) =>
         principal.FindFirst("name")?.Value ?? string.Empty;
 
+    /// <summary>The signed-in address. Used by the audit trail to name the actor.</summary>
+    public static string? Email(this ClaimsPrincipal principal) =>
+        principal.FindFirst("email")?.Value;
+
     public static bool EmailVerified(this ClaimsPrincipal principal) =>
         principal.FindFirst("email_verified")?.Value == "true";
 
     public static IReadOnlyCollection<string> Permissions(this ClaimsPrincipal principal) =>
         [.. principal.FindAll("perm").Select(c => c.Value)];
+
+    /// <summary>
+    /// The refresh-token family this access token was issued into.
+    ///
+    /// It is what lets the device list say "this one is you" — and, more
+    /// importantly, refuse to end the session doing the asking.
+    /// </summary>
+    public static string? FamilyId(this ClaimsPrincipal principal) =>
+        principal.FindFirst("fam")?.Value;
 }

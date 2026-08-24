@@ -52,7 +52,7 @@ public sealed class UserIdentity
     /// this is the normalised address; for a social provider it is the stable
     /// subject claim — never the email, which a user can change at the provider.
     /// </summary>
-    public string ProviderUserId { get; }
+    public string ProviderUserId { get; private set; }
 
     /// <summary>Argon2id. Null for every provider except Email.</summary>
     public string? PasswordHash { get; private set; }
@@ -96,5 +96,52 @@ public sealed class UserIdentity
         if (string.IsNullOrWhiteSpace(passwordHash))
             throw new ArgumentException("A password hash is required.", nameof(passwordHash));
         PasswordHash = passwordHash;
+    }
+
+    /// <summary>
+    /// Removes the password, leaving the identity unusable for sign-in.
+    ///
+    /// <para>
+    /// This exists for one situation and should not be reached for by anything
+    /// else: a social identity is being linked to an account whose email
+    /// address was never verified. Registration creates a <c>User</c> before
+    /// the address is proven, so anyone can register an address they do not
+    /// own and set a password on it. If that account is later merged with a
+    /// provider-verified sign-in for the same address, the squatter's password
+    /// would keep working on the real owner's account. → ADR-0013, threat T1
+    /// </para>
+    ///
+    /// <para>
+    /// Clearing the hash rather than deleting the identity is deliberate: the
+    /// row records that this address was once registered directly, which is
+    /// worth keeping. <see cref="LoginWithPassword"/> already treats a null
+    /// hash as indistinguishable from an unknown account.
+    /// </para>
+    /// </summary>
+    /// <summary>
+    /// Follows a change of the account's email address.
+    ///
+    /// <para>
+    /// <b>This has to happen or password sign-in breaks silently.</b> For the
+    /// email provider, <see cref="ProviderUserId"/> <i>is</i> the normalised
+    /// address, and that is what <c>LoginWithPassword</c> looks up — not
+    /// <c>User.Email</c>. Change one without the other and the account still
+    /// exists, still shows the new address in its profile, and can no longer
+    /// be signed in to with a password at either address.
+    /// </para>
+    /// </summary>
+    public void ChangeEmailAddress(Email email)
+    {
+        if (Provider != IdentityProvider.Email)
+            throw new InvalidOperationException("Only an email identity is keyed by an address.");
+
+        ProviderUserId = email.Value;
+    }
+
+    public void ClearPassword()
+    {
+        if (Provider != IdentityProvider.Email)
+            throw new InvalidOperationException("Only an email identity carries a password.");
+        PasswordHash = null;
     }
 }

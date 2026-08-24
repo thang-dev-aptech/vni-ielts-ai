@@ -11,6 +11,10 @@
 >
 > Soạn 19/08/2026, sau khi khảo sát prototype học viên. Prototype hiện **không có màn admin nào** —
 > toàn bộ nội dung dưới đây là dựng mới từ tài liệu.
+>
+> **Đọc kèm [`cms-content-operations.md`](cms-content-operations.md)** (24/08/2026). Tài liệu này
+> đặc tả *bề mặt màn hình* của CMS; tài liệu kia đặt ra *mô hình nội dung, vòng đời duyệt, và bộ
+> vai* mà các màn ở đây phải phục vụ. Chỗ nào hai bên khác nhau thì bản 24/08 thắng.
 
 ---
 
@@ -75,7 +79,12 @@ là một lần migrate. Chốt quy ước lúc duyệt bảng này, đừng đ�
 
 ### Vai đề xuất
 
-`[ASSUMPTION]` Ba vai. Không thêm vai giáo viên — M-11 đã chốt ngoài phạm vi bản đầu.
+> **Đã bị thay thế 24/08/2026.** Bảng dưới là bản 19/08, khi `M-11` còn chốt *không có vai giáo
+> viên*. Chủ sản phẩm đã tách `M-11` làm hai ngày 24/08: vai **quản lớp** vẫn ngoài phạm vi
+> (`M-11a`), vai **soạn đề** vào phạm vi (`M-11b`). Bộ vai hiện hành — `exam-author` ·
+> `academic-lead` · `content-manager` · `support` · `admin` — và ma trận quyền đầy đủ nằm ở
+> [`cms-content-operations.md`](cms-content-operations.md) §5. Giữ bảng này lại để đọc được lịch sử
+> quyết định, **không dùng để triển khai**.
 
 | Quyền | `admin` | `content-editor` | `support` |
 |---|:---:|:---:|:---:|

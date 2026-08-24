@@ -69,7 +69,7 @@ afterEach(() => {
 describe('a signed-out visitor', () => {
   it('is redirected from a protected route to sign in', async () => {
     mockFetch(() => json({}, 401));
-    window.history.pushState({}, '', '/ho-so');
+    window.history.pushState({}, '', '/profile');
 
     render(<App />);
 
@@ -79,16 +79,28 @@ describe('a signed-out visitor', () => {
     ).toBeInTheDocument();
   });
 
-  it('lands on the page they originally asked for after signing in', async () => {
-    // Losing the destination is the failure here. Someone opening a link to
-    // their profile should end up at their profile, not at a generic home page.
+  it('lands on the main page after signing in, even from a deep link', async () => {
+    // <b>This assertion is the reverse of what it used to be, on purpose.</b>
+    //
+    // It used to prove that someone opening a link to their profile ended up
+    // at their profile — deep-link preservation, itself the fix for a real
+    // bug. `[QUYẾT ĐỊNH]` chủ sản phẩm 21/08/2026 overrides it: signing in
+    // stays on the main page, full stop. The owner reported the old behaviour
+    // twice as "login still jumps to the dashboard", because from the outside
+    // being returned to a page you were bounced from is indistinguishable from
+    // being thrown at one.
+    //
+    // What it costs is worth keeping visible: a shared link to a protected
+    // page no longer survives sign-in. The `from` state is still recorded and
+    // the API still accepts `returnTo`, so this is one line to reverse.
     mockFetch((url) => {
       if (url.includes('/auth/login')) return json(session);
       if (url.includes('/api/v1/me')) return json(me);
+      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       return json({}, 404);
     });
 
-    window.history.pushState({}, '', '/ho-so');
+    window.history.pushState({}, '', '/profile');
     render(<App />);
 
     const user = userEvent.setup();
@@ -96,8 +108,31 @@ describe('a signed-out visitor', () => {
     await user.type(screen.getByLabelText(/^(mật khẩu|password)$/i), 'mat-khau-du-dai-2026');
     await user.click(screen.getByRole('button', { name: /^(đăng nhập|sign in)$/i, hidden: false }));
 
-    expect(await screen.findByRole('heading', { name: /hồ sơ|profile/i })).toBeInTheDocument();
-    expect(window.location.pathname).toBe('/ho-so');
+    await waitFor(() => expect(window.location.pathname).toBe('/'));
+  });
+
+  it('stays on the main page when signing in without a destination in mind', async () => {
+    // The counterpart to the test above, and the one that pins the 21/08
+    // decision: with no deep link to return to, signing in must leave you
+    // exactly where you were. The two sign-in routes — this form and the
+    // Google callback — reach that answer by different code, and for a while
+    // they disagreed: the form stayed, Google jumped to the dashboard.
+    mockFetch((url) => {
+      if (url.includes('/auth/login')) return json(session);
+      if (url.includes('/api/v1/me')) return json(me);
+      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
+      return json({}, 404);
+    });
+
+    window.history.pushState({}, '', '/login');
+    render(<App />);
+
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText(/^email$/i), 'a@example.com');
+    await user.type(screen.getByLabelText(/^(mật khẩu|password)$/i), 'mat-khau-du-dai-2026');
+    await user.click(screen.getByRole('button', { name: /^(đăng nhập|sign in)$/i, hidden: false }));
+
+    await waitFor(() => expect(window.location.pathname).toBe('/'));
   });
 
   it('reports a rejected verification token instead of spinning forever', async () => {
@@ -106,7 +141,7 @@ describe('a signed-out visitor', () => {
     mockFetch(() =>
       json({ code: 'VERIFICATION_TOKEN_INVALID', detail: 'no longer valid', status: 400 }, 400),
     );
-    window.history.pushState({}, '', '/xac-minh?token=da-dung-roi');
+    window.history.pushState({}, '', '/verify-email?token=da-dung-roi');
 
     render(<App />);
 
@@ -118,7 +153,7 @@ describe('a signed-out visitor', () => {
     // The link arrives by email. Requiring a session to open it would strand
     // anyone who verifies from a different device.
     mockFetch(() => json({ userId: 'user-1', emailVerified: true }));
-    window.history.pushState({}, '', '/xac-minh?token=abc');
+    window.history.pushState({}, '', '/verify-email?token=abc');
 
     render(<App />);
 
@@ -132,12 +167,22 @@ describe('a signed-in learner', () => {
   });
 
   it('is sent home when opening the sign-in page', async () => {
-    mockFetch((url) => (url.includes('/api/v1/me') ? json(me) : json({}, 404)));
-    window.history.pushState({}, '', '/dang-nhap');
+    // "Home" means the main page, not the dashboard. `[QUYẾT ĐỊNH]` chủ sản
+    // phẩm 21/08/2026 — signing in no longer jumps anywhere; the same page
+    // simply swaps its sign-in buttons for an account menu. This assertion
+    // used to look for the dashboard greeting, and updating it is the point of
+    // the change rather than a casualty of it.
+    mockFetch((url) => {
+      if (url.includes('/api/v1/me')) return json(me);
+      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
+      return json({}, 404);
+    });
+    window.history.pushState({}, '', '/login');
 
     render(<App />);
 
-    expect(await screen.findByRole('heading', { name: /xin chào|hello/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Học viên/ })).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/');
   });
 
   it('never sees the sign-in form flash while the session is being restored', async () => {
@@ -150,6 +195,7 @@ describe('a signed-in learner', () => {
           resolveMe = resolve;
         });
       }
+      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       return json({}, 404);
     });
 
@@ -163,7 +209,7 @@ describe('a signed-in learner', () => {
     // assignment happening inside the fetch stub. The read is genuine.
     (resolveMe as ((r: Response) => void) | undefined)?.(json(me));
     await waitFor(() =>
-      expect(screen.getByRole('heading', { name: /xin chào|hello/i })).toBeInTheDocument(),
+      expect(screen.getByRole('button', { name: /Học viên/ })).toBeInTheDocument(),
     );
   });
 });

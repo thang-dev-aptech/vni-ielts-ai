@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\Vni.Ielts.Application\Vni.Ielts.Application.csproj" />
@@ -14,6 +14,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Where the Google client secret lives during development.
+
+         The id is a pointer, not a secret: the values sit outside the
+         repository entirely, under ~/.microsoft/usersecrets/<id>/, and are
+         loaded automatically only when the environment is Development. That
+         is what makes it possible to run a real Google sign-in locally
+         without a .env file, which .gitignore and a PreToolUse hook both
+         block anyway. → CLAUDE.md rule 6, docs/development/sso-provider-setup.md -->
+    <UserSecretsId>7ef8200d-2eb5-4a26-974f-b9ab754ba109</UserSecretsId>
   </PropertyGroup>
 
 </Project>

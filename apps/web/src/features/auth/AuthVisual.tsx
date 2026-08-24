@@ -17,11 +17,8 @@ export function AuthVisual() {
     <section className="auth-visual">
       <div className="visual-top">
         <Link className="auth-brand" to={Paths.home}>
-          <span className="brand-mark">
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
+          <span className="brand-logo-chip">
+            <img className="brand-logo-mark" src="/favicon-192.png" alt="" width={26} height={26} />
           </span>
           <span className="brand-name">
             VNI EDUCATION<b>LEARN BETTER</b>

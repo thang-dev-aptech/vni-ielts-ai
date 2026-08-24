@@ -176,11 +176,19 @@ Two of its proposals conflict with settled decisions and need explicit adjudicat
 
 ---
 
-### B-9 · Is Admin Review mandatory before publishing? `[BUSINESS DECISION]`
-**Blocks:** the CMS import flow.
+### B-9 · Is Admin Review mandatory before publishing? — **RESOLVED 2026-08-24** ✅ yes, and wider
 
-`I-16` proposes AI-produced content must pass **Admin Review → Approve → Publish**. This is currently
-`PROPOSED`, not confirmed.
+**Decision (chủ sản phẩm, 24/08/2026):** mandatory, and **not only for AI-produced content**. Every
+content source — manual authoring, JSON import, ZIP import, AI parsing — passes the same schema gate,
+lands as a draft, and goes through the same review queue before an admin publishes it. → `C-23`,
+`C-19`, and [`../ux/cms-content-operations.md`](../ux/cms-content-operations.md) §3.3
+
+Two authorities, deliberately separate: `academic-lead` approves or returns, **admin publishes**.
+
+The original question and its engineering argument are kept below, because the reasoning is what the
+review gate has to keep satisfying.
+
+`I-16` proposed AI-produced content must pass **Admin Review → Approve → Publish**.
 
 **Engineering recommendation: make it mandatory.** AI parsing output *becomes exam content*. Without a
 review gate, a mis-parse ships a broken exam to a real candidate mid-attempt, and the failure surfaces
@@ -213,12 +221,29 @@ H-7a must be answered first; H-7b is a consequence of it.
 
 ---
 
-### H-8 · Does Writing use the four IELTS criteria? `[OPEN QUESTION]`
-`A-3` asserted TR/TA · CC · LR · GRA. The 2026-08-20 re-scoping confirmed *"writing sẽ cho AI chấm"*
-but did not restate the criteria. Recorded as `A-13b`, status `UNCONFIRMED`.
+### H-8 · Does Writing use the four IELTS criteria? — **RESOLVED 2026-08-21** ✅ yes
 
-This determines the AI output schema and the rubric versioning strategy.
-→ [`../ai/output-contracts.md`](../ai/output-contracts.md)
+**Decision (product owner, in session):** *"sẽ chấm theo cách chấm của ielts luôn chứ không phải là
+chấm bừa phải có cơ sở đến chấm và cho điểm chứ ko phải chấm bừa và đây là luyện tập nên cứ chấm 1
+cách chuẩn nhất là được"*.
+
+Recorded as `A-13b` (four criteria), `A-13c` (every band carries a quoted basis) and `A-13d` (no
+human re-mark) in [`confirmed.md`](confirmed.md).
+
+**What this settled, and what it did not.** It answered the criterion set, and it answered the
+question that had been open under a different name — *who stands behind an AI band*. The answer is
+not a person: it is the rubric plus a citation the learner can look up. That closes the loop `M-11`
+left open when the teacher role went out of scope.
+
+It did **not** settle three things, and each is now tracked separately:
+
+| Still open | Why it matters |
+|---|---|
+| `H-8a` **Where the band descriptors come from** | IELTS publishes them, but copyright is held jointly by British Council · IDP · Cambridge and the publication states no third-party reuse terms. Embedding them verbatim in a commercial product is a legal question. Three options: use the public version pending legal review · VNI writes its own descriptors · seek permission. `Rubric.DescriptorSource` records the answer per version so it is always possible to tell which evaluations were produced under which one |
+| `H-8b` **Task 1 : Task 2 weighting** | Task 2 weighs more, but IELTS does not publish the ratio the way it publishes the overall-band rule. Previously defaulted to 1:2 in three places; all three now refuse instead. → `G-11` |
+| `H-8c` **The calibration set** | *"Chuẩn nhất"* is a claim about accuracy, and accuracy is only measurable against essays a human has already marked. Needs 30–50 Writing scripts marked by an experienced IELTS teacher, held out of every prompt, re-scored on each model / prompt / rubric change. Nothing in the schema substitutes for it. → [`../security/ai-security.md`](../security/ai-security.md) § Calibration set |
+
+→ [`../ai/output-contracts.md`](../ai/output-contracts.md) checks 4, 5 and 9
 
 ---
 
@@ -365,9 +390,24 @@ This determines whether `Evaluation` needs a full review workflow and audit trai
 
 ## Medium impact — resolve before the relevant phase
 
-### M-1 · Account linking across identity providers `[OPEN QUESTION]`
-If a user registers with email and later signs in with Google using the same address, is that one account or two? Auto-linking is convenient and a known account-takeover vector; manual linking is safer and worse UX.
-`[ASSUMPTION]` Link only after verified email ownership, never silently.
+### M-1 · Account linking across identity providers `RESOLVED 2026-08-21`
+**The question was:** if a user registers with email and later signs in with Google using the same address, is that one account or two? Auto-linking is convenient and a known account-takeover vector (`T1`); manual linking is safer and worse UX.
+
+**Decision — chủ sản phẩm, 21/08/2026:** *"sẽ là 2 tài khoàn chung luôn nếu cùng gmail chỉ khác phương thức đăng nhập thôi"*. One email is one account: a social sign-in on a matching address links to the existing account instead of creating a second one, and the provider becomes an additional login method.
+
+Silent linking is conditional on the provider asserting the address is verified, and a link into an account whose own email was never verified additionally clears that account's password and revokes its sessions — closing the *reverse* takeover, where an attacker registers the victim's address first and waits. Facebook asserts nothing about the address, so it still returns `IDENTITY_LINK_REQUIRED`. → [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md)
+
+> The earlier `[ASSUMPTION]` here read *"link only after verified email ownership, never silently"*. It was **wrong about the owner's intent** — linking is silent for the person signing in. What survived from it is the provider-side half: verification is still required, it is just the *provider* that supplies it rather than a confirmation screen.
+
+### M-29 · Xác minh số điện thoại `RESOLVED 2026-08-21`
+**Câu hỏi:** số điện thoại người học nhập vào có phải xác minh bằng OTP không?
+
+**Quyết định — chủ sản phẩm, 21/08/2026:** *"không bắt xác minh OTP ở hiện tại"*. Số điện thoại là
+thông tin **tự khai**: lưu như người dùng nhập, chuẩn hoá về `+84…`, và **không mang nhãn "đã xác
+minh"** ở bất kỳ đâu trên giao diện — có test riêng canh điều đó.
+
+Hệ quả nếu sau này đổi ý: cần một nhà cung cấp SMS, chi phí theo tin nhắn, và số điện thoại vào diện
+dữ liệu cá nhân phải khai trong hồ sơ `B-2`.
 
 ### M-2 · Audio retention period `[BUSINESS DECISION]`
 How long are student voice recordings kept after evaluation? Interacts directly with B-2 (PDPL), storage cost, and any future model-calibration work.
@@ -419,7 +459,28 @@ An AI evaluation fails after all retries. If taking an exam consumed a credit, i
 
 Depends on B-4. Screen 8.5 shows a labelled placeholder rather than a policy.
 
-### M-11 · Vai giáo viên — ~~`[BUSINESS DECISION]`~~ **ĐÃ QUYẾT: ngoài phạm vi bản đầu**
+### M-11 · Vai giáo viên — **TÁCH LÀM HAI 2026-08-24**
+
+Câu hỏi gốc gộp hai vai rất khác nhau dưới một cái tên. Ngày 24/08/2026 chủ sản phẩm tách chúng ra,
+và hai nửa có hai câu trả lời ngược nhau.
+
+#### M-11a · Giáo viên **quản lớp** — **ngoài phạm vi**, giữ nguyên quyết định 18/08/2026
+
+Giao bài cho lớp, theo dõi bài làm của từng học viên, vào lớp bằng mã. Cần `Class`, `Assignment`,
+quan hệ giáo viên–học viên, và 8–12 màn. Nguyên văn 24/08: *"không kéo CMS sang LMS/quản lý lớp"*.
+
+#### M-11b · Giáo viên **soạn đề** — **trong phạm vi**, quyết 2026-08-24 ✅
+
+**Quyết định (chủ sản phẩm, 24/08/2026):** có vai `exam-author`, nguyên văn: *"tôi sẽ khóa scope
+teacher = content author"*. Lý do nghiệp vụ do chủ sản phẩm nêu: đề gửi cho admin đẩy lên CMS thì
+admin chưa chắc có kiến thức IELTS, nên người có chuyên môn phải soạn trực tiếp.
+
+Việc của vai này: tạo đề → soạn câu hỏi → tải audio/ảnh → đặt đáp án → xem thử → nộp duyệt. Không
+xuất bản, không đọc dữ liệu học viên, không thấy bản nháp của người khác.
+→ `C-15`, và [`../ux/cms-content-operations.md`](../ux/cms-content-operations.md)
+
+**Bối cảnh của quyết định 18/08/2026 giữ lại nguyên văn dưới đây**, vì nó vẫn là lý lẽ đang bảo vệ
+`M-11a`.
 
 **Quyết định 18/08/2026 (chủ sản phẩm):** bản đầu **không có vai giáo viên**. Chỉ làm sản phẩm
 cho học viên tự luyện.
@@ -556,7 +617,17 @@ Ba quyền này là ba đường ngắn nhất tới thiệt hại thật.
 
 ---
 
-### M-18 · Xem thử đề bản nháp như học viên `[OPEN QUESTION]`
+### M-18 · Xem thử đề bản nháp như học viên — **RESOLVED 2026-08-24** ✅ có
+
+**Quyết định (chủ sản phẩm, 24/08/2026):** có. Bước **Preview** nằm ngay trong luồng làm việc của
+người soạn đề mà chủ sản phẩm mô tả: *tạo đề → soạn câu hỏi → upload audio/image → thiết lập answer
+→ **Preview** → submit review*. Với người soạn thì đây không còn là tuỳ chọn — soạn mà không thấy
+được thứ mình vừa tạo là soạn mù.
+
+Còn mở ở mức chi tiết: phiên thử **không tính giờ, không lưu kết quả, không vào lịch sử** là khuyến
+nghị kỹ thuật; xác nhận khi dựng màn.
+
+Bối cảnh gốc giữ lại:
 Xuất bản là hành động không lùi được về mặt nội dung (sửa = tạo version mới). Người duyệt gần như chắc
 chắn cần **thi thử** bản nháp trước khi cho ra.
 
@@ -599,6 +670,53 @@ khi chưa có quy tắc là mời gọi việc phát minh luật nghiệp vụ n
 
 **Cần quyết cùng B-4:** admin có được cộng/trừ thủ công không, có cần lý do bắt buộc không, ghi vào
 `RewardLedgerEntry` với `reason` nào.
+
+---
+
+## Surfaced by the CMS content-operations reframing (2026-08-24)
+
+Four questions raised by the content-first CMS design. Full context in
+[`../ux/cms-content-operations.md`](../ux/cms-content-operations.md).
+
+### M-30 · Practice Test và Mock Test khác Full Test ở chỗ nào `[BUSINESS DECISION]`
+
+`E-11` chốt **hai** chế độ: Full Test và Single Skill. Cây sản phẩm chủ sản phẩm đưa ra ngày 24/08 có
+**ba** mục dưới "Luyện đề": Full Test · Practice Test · Mock Test — cộng thêm nhánh "Học IELTS" theo
+từng kỹ năng, vốn khớp với Single Skill.
+
+**Vì sao không tự quyết được, và vì sao nó đắt nếu đoán sai:**
+
+| Nếu ba tên khác nhau ở… | Thì… |
+|---|---|
+| **Nội dung** — Mock là bộ đề riêng, sát đề thật hơn | Đề phải mang thêm một thuộc tính phân loại, và nó nằm trong schema |
+| **Cách làm bài** — Mock bấm giờ thật, không xem đáp án giữa chừng, không tạm dừng | Đây là **luật của phiên thi**, đề không cần biết gì cả |
+| **Cả hai** | Cần cả thuộc tính lẫn luật phiên, và phải định nghĩa tổ hợp nào hợp lệ |
+
+Hiện `mode` là khái niệm của **phiên thi**, không phải của nội dung. Không thêm gì vào schema cho tới
+khi có câu trả lời — `G-11`: chính sách chưa chốt thì làm thành khe cắm, không bịa mặc định.
+
+### M-31 · Media dùng chung tham chiếu kiểu gì `[OPEN QUESTION]`
+
+`assetRef` hiện là **đường dẫn tương đối trong gói** (`assets/…`), cố ý không phải URL và cố ý không
+dùng làm khoá lưu trữ. Soạn tại chỗ không có gói nào để trỏ vào, và Media Library dùng chung một
+audio cho nhiều đề thì đường dẫn theo gói nghĩa là mỗi đề một bản sao.
+
+**Khuyến nghị:** mở rộng `assetRef` thành hai dạng — giữ `assets/<path>` cho gói nhập, thêm
+`media/<id>` cho soạn tại chỗ — kèm một luật bắt buộc: **nội dung của media đã được một phiên bản đã
+xuất bản tham chiếu là bất biến**. Không có luật đó, Media Library thành cửa sau để sửa một đề đang
+có người thi.
+
+### M-32 · Danh mục chủ đề lấy từ đâu `[BUSINESS DECISION]`
+
+Lọc đề theo chủ đề chỉ dùng được nếu chủ đề là **danh mục có sẵn**, không phải ô nhập tự do — tag tự
+do rã thành `Environment`, `environment`, `Môi trường` trong vài tháng. Danh sách khởi đầu là việc
+của chuyên môn IELTS, không phải của kỹ thuật.
+
+### M-33 · Ngưỡng số lượt tối thiểu trước khi hiện thống kê `[OPEN QUESTION]`
+
+Thống kê theo câu hỏi chỉ hiện khi đủ số lượt làm bài. Dưới ngưỡng thì hiện "chưa đủ dữ liệu" thay vì
+phần trăm — với 3 lượt thì *"67% làm sai"* vừa vô nghĩa vừa gần như chỉ đích danh người làm. Đây là
+lựa chọn giữa hữu ích sớm và an toàn dữ liệu; không có con số chuẩn ngành cho ngữ cảnh này.
 
 ---
 
@@ -691,6 +809,7 @@ S3-compatible API, so the vendor stays swappable.
 | V-10 | Whether the selected vendors' audio APIs expose **word-level timings** — a hard requirement for the deterministic fluency features. Only matters if `M-26` keeps Speaking | `[NEEDS VALIDATION]` — do not assume audio support implies word timings |
 | V-11 | **Structured-output conformance on both GPT and Gemini** against the actual schemas in `output-contracts.md`. Verify before committing to run both in production | `[NEEDS VALIDATION]` — a schema that silently degrades on one vendor produces failed evaluations at full price |
 | V-12 | Reseller `baseURL` behaviour: uptime, rate limits, **retention and logging policy**, model-version pinning | `[NEEDS VALIDATION]` — determines whether synthetic-data-only is sufficient protection |
+| V-13 | **Whether the CMS is served from a separate origin from the learner app.** They deliberately share one `localStorage` session key so an operator is not asked to sign in twice — which only works on one origin, and then the learner app's JavaScript can read an operator's token. The learner app is the larger attack surface, and `M-24` Articles will render authored content | `[TECHNICAL RISK]` surfaced by the 2026-08-21 security review — decide before the CMS carries real operator accounts, because splitting origins later invalidates every signed-in session |
 | V-9 | Duende IdentityServer commercial licence threshold, **if** anyone proposes adopting it | `[NEEDS VALIDATION]` — the recommendation is to defer it entirely at MVP, so this only matters if that is challenged |
 
 ---

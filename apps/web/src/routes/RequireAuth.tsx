@@ -52,13 +52,25 @@ export function RequireAuth() {
 export function RequireAnonymous() {
   const { status } = useAuth();
   const { t } = useI18n();
-  const location = useLocation();
 
   if (status === 'loading') return <Spinner label={t('common.loading')} />;
 
   if (status === 'signed-in') {
-    const intended = (location.state as { from?: { pathname: string } } | null)?.from?.pathname;
-    return <Navigate to={intended ?? Paths.home} replace />;
+    // Always the main page, never the page they were bounced from.
+    //
+    // `[QUYẾT ĐỊNH]` chủ sản phẩm, 21/08/2026, said twice: signing in stays on
+    // the main page. Returning someone to the protected page they had asked
+    // for is the more sophisticated behaviour and it is what this guard used
+    // to do — but it is indistinguishable, from the outside, from the jump the
+    // owner asked to remove: open `/dashboard` while signed out, sign in, and
+    // you are on the dashboard again.
+    //
+    // <b>What this costs, stated plainly:</b> a shared link to a protected
+    // page no longer survives the sign-in. Someone opening a link to their
+    // profile signs in and lands on the main page instead. The `from` state is
+    // still recorded below and the backend still carries `returnTo`, so this
+    // is one line to reverse if that trade turns out to be the wrong way round.
+    return <Navigate to={Paths.home} replace />;
   }
 
   return <Outlet />;

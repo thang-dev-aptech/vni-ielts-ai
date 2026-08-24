@@ -1,0 +1,844 @@
+/*
+ * Module pages — Tài liệu and Bài viết.
+ *
+ * `[QUYẾT ĐỊNH]` chủ sản phẩm, 21/08/2026: *"mỗi 1 module là 1 trang"*. These
+ * two used to be blocks on the landing page and are now `/documents` and
+ * `/articles`.
+ *
+ * <b>Nothing here redefines a token.</b> Every colour, radius and shadow comes
+ * from the variables `landing.css` declares, which is what keeps a page added
+ * later from quietly becoming a second design. Where a component already
+ * exists — `.article-card`, `.doc-card`, `.btn` — this file extends it rather
+ * than restating it.
+ */
+
+/* Labels that a screen reader needs and the layout does not. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Page head ───────────────────────────────────────────────────
+   Shorter than the landing hero on purpose. This is the top of a list, not a
+   pitch: the reader came here for the list, so the head says which list it is
+   and gets out of the way. */
+/*
+ * A header for a page whose job is a list.
+ *
+ * <b>It was 54px of padding under a 44px headline over a two-line lead — about
+ * 450px before the reader saw a single article.</b> That proportion belongs to
+ * a landing page, where the header IS the content. On an index it is a toll
+ * booth.
+ *
+ * Two thirds the height, and the headline drops from 44px/900 to 34px/800.
+ */
+.page-hero {
+  padding: 40px 0 28px;
+  background: linear-gradient(180deg, var(--green-soft) 0%, rgba(255, 255, 255, 0) 100%);
+  border-bottom: 1px solid rgba(229, 229, 229, 0.7);
+}
+
+/*
+ * <b>It has to outrank the headings under it, and for a day it did not.</b>
+ * `.section-heading h2` was capped at 53px and reduced to 44 on 24/08; this
+ * H1 caps at 34. On `/practice` that made the page's own title the smallest
+ * of eight headings, and on `/dictation` the third loudest.
+ *
+ * The fix is on this side rather than on `.section-heading`, because the
+ * display heading in a marketing section is doing a different job from the
+ * label at the top of a list — see `.page-body .section-heading h2` below,
+ * which brings the sections down to meet this rather than the other way
+ * round. 46px keeps the "top of a list, not a pitch" restraint the original
+ * comment argues for while still being the loudest thing on the page.
+ */
+.page-hero h1 {
+  margin: 10px 0 0;
+  max-width: 24ch;
+  font-size: clamp(30px, 3.8vw, 46px);
+  line-height: 1.16;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.page-hero p {
+  margin: 10px 0 0;
+  max-width: 58ch;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.page-body {
+  padding-top: 26px;
+}
+
+/*
+ * Section headings on a module page sit under an H1, not under the page's
+ * whole reason for existing. The landing page's 44px display size is right
+ * where the heading *is* the content and wrong here, where it is a divider
+ * between blocks of a page that already introduced itself.
+ */
+.page-hero ~ .section .section-heading h2,
+.page-hero ~ .faq-section .section-heading h2 {
+  font-size: clamp(26px, 2.6vw, 34px);
+  line-height: 1.2;
+}
+
+/* ── Filters ─────────────────────────────────────────────────────
+   A search field and one exclusive category. Nothing is a dropdown: with seven
+   options a row of chips shows the whole choice at once, and a select would
+   hide six of them behind a tap. */
+.filter-bar {
+  justify-content: space-between;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+  margin-bottom: 18px;
+}
+
+.filter-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 1 320px;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  color: #8a938c;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.filter-search:focus-within {
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(16, 176, 80, 0.14);
+}
+
+.filter-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  /* Not 14px. Anything under 16px makes iOS Safari zoom the page on focus,
+     and the reader then has to pinch back out to see the results. */
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip {
+  min-height: 38px;
+  padding: 0 14px;
+  /* 1px, not 2. Seven of these in a row at 2px is a fence. */
+  border: 1px solid #e0e5de;
+  border-radius: 999px;
+  background: var(--paper);
+  color: #55605a;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.filter-chip:hover {
+  border-color: color-mix(in srgb, var(--green) 45%, var(--line));
+  color: var(--ink);
+}
+
+/* Colour is not the only signal — the active chip is also the only filled one,
+   so it still reads as chosen in greyscale or to someone who cannot separate
+   the green from the grey. */
+.filter-chip.is-active {
+  border-color: transparent;
+  /* White on --green-dark measured 4.3. #06803a measures 5.05. */
+  background: #06803a;
+  color: #fff;
+  font-weight: 700;
+}
+
+/*
+ * The result count sits in the filter row, not on a line under it.
+ *
+ * It is a live region — the list changing under a filter is invisible to
+ * someone who cannot see it change — but that does not require it to occupy
+ * forty vertical pixels above the content it describes.
+ */
+.filter-count {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #6f786f;
+  white-space: nowrap;
+}
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: 54px 24px;
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.empty-state p {
+  margin: 0;
+  max-width: 44ch;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* ── Document list ───────────────────────────────────────────────
+   Rows, not a card grid. A document is chosen by comparing one line against
+   the next — title, format, size — and rows put those in columns that line up.
+   The three-card grid on the landing page is a display of samples; this is a
+   list somebody is scanning. */
+/*
+ * A file list, built as a list.
+ *
+ * <b>It was nine floating cards, each 190px tall for three lines of text.</b>
+ * Five documents filled a laptop screen. One bordered box per row, separated
+ * by a 12px gap, on a page that is already a light surface — so every row drew
+ * its own frame and none of them helped, because a frame distinguishes an
+ * object from its surroundings and here every object was identical.
+ *
+ * One surface, hairline separators, rows that size to their content. Ten
+ * documents now fit where five did, which is the difference between scanning a
+ * library and paging through one.
+ */
+.doc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #e6eae4;
+  border-radius: 14px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.doc-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 18px;
+  transition: background 0.15s ease;
+}
+
+.doc-row + .doc-row {
+  border-top: 1px solid #eef1ec;
+}
+
+.doc-row:hover {
+  background: #fafbf9;
+}
+
+.doc-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 700, not 900. The filename is the loudest thing in the row and nothing else
+   in it needs to compete. */
+.doc-main h2 {
+  margin: 0 0 3px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.doc-main p {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.doc-meta {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #6f786f;
+}
+
+/* Separators are drawn, not typed: a middle dot between list items would be
+   read aloud, and "PDF dot 4,2 MB dot 68 trang" is not what anyone needs. */
+.doc-meta li + li {
+  position: relative;
+  padding-left: 15px;
+}
+
+.doc-meta li + li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #c9d1ca;
+  transform: translateY(-50%);
+}
+
+.doc-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: none;
+}
+
+/* Not a disabled button. A control that looks pressable and refuses teaches
+   people to distrust the ones that work. */
+/*
+ * Plain text, not a pill.
+ *
+ * Every row in the library says "Sắp có" today, because no file has been
+ * published. Nine identical filled chips down the right edge read as nine
+ * buttons and invite nine presses; the same nine words in muted text read as
+ * a state, which is what they are.
+ */
+.doc-pending {
+  color: #6f786f;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* The landing page's three sample cards, which are links now. */
+.doc-card-text {
+  display: block;
+  min-width: 0;
+}
+
+.doc-card-title {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.doc-card-summary {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.article-date {
+  /* Was 12px at #889288, which measured 3.22 on white. Both under the floor:
+     14px for Vietnamese, 4.5 for any text. #6b756b measures 4.79. */
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: #6b756b;
+}
+
+/* ── One article ─────────────────────────────────────────────────
+   A single column at reading measure. Nothing beside the text: the page has
+   one job, and a sidebar next to a 5-minute piece is furniture. */
+.article-hero h1 {
+  max-width: 24ch;
+}
+
+/* `width: fit-content` on a flex item rather than `inline-flex`: the way out
+   is its own line, and inline-flex let the category tag sit down beside it. */
+.back-link {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #1e7a3c;
+}
+
+.article-hero .article-tag {
+  margin-bottom: 14px;
+}
+
+.article-byline {
+  margin: 16px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.article-column {
+  /* 68 characters is the upper end of comfortable; Vietnamese runs a little
+     wider than English at the same character count because of the diacritics,
+     so this sits at the low end of the range rather than the middle. */
+  width: min(70ch, calc(100% - 40px));
+}
+
+.article-column p {
+  margin: 0 0 20px;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.78;
+  color: #313a34;
+}
+
+.article-lead {
+  font-size: 19px !important;
+  font-weight: 700 !important;
+  color: var(--ink) !important;
+  padding-left: 18px;
+  border-left: 4px solid var(--green);
+}
+
+.related-section {
+  background: var(--surface);
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .page-hero {
+    padding: 40px 0 26px;
+  }
+
+  /* The row becomes a stack: at this width the columns are one word wide and
+     the actions were being squeezed to a scrollbar. */
+  .doc-row {
+    flex-wrap: wrap;
+  }
+
+  .doc-actions {
+    width: 100%;
+    padding-left: 62px;
+  }
+
+  .doc-actions .btn {
+    flex: 1;
+  }
+
+  .filter-search {
+    flex-basis: 100%;
+  }
+
+  .article-column p {
+    font-size: 16px;
+  }
+}
+
+/*
+ * ── Luyện 4 kỹ năng ─────────────────────────────────────────────────────
+ *
+ * The picker that lived here is gone. `/practice` was rebuilt on 24/08 around
+ * a real workspace — skill selector, mode switch, facet filters, a card grid
+ * and a pager — and all of its styling lives in `practice.css` beside the
+ * components. Twenty-seven rules were removed with it; dead CSS is how a later
+ * reader concludes a class is still in play. → `styles/practice.css`
+ */
+
+/* ── Học miễn phí ───────────────────────────────────────────────────────── */
+
+.free-section {
+  background: #f7f9f6;
+}
+
+.free-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.free-list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.free-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 22px;
+  border: 2px solid #e7ece5;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.free-list strong {
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.5;
+  color: #252525;
+}
+
+.free-list span {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.65;
+  color: #5c625c;
+}
+
+/* ── Bạn nhận được gì · Vì sao chọn VNI · Tài nguyên ────────────────────── */
+
+.learn-grid,
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.learn-card,
+.why-card {
+  padding: 26px;
+  border: 2px solid #e7ece5;
+  border-radius: 22px;
+  background: #fff;
+}
+
+.why-section {
+  background: #f7f9f6;
+}
+
+.why-num {
+  display: block;
+  margin-bottom: 12px;
+  color: #1e7a3c;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: -0.04em;
+}
+
+.learn-card h3,
+.why-card h3 {
+  margin: 0 0 10px;
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  color: #252525;
+}
+
+.learn-card p,
+.why-card p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.65;
+  color: #5c625c;
+}
+
+.learn-card em,
+.how-step em {
+  font-style: normal;
+  font-weight: 900;
+  color: #5b4b9e;
+}
+
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.resource-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 26px;
+  border: 2px solid #e7ece5;
+  border-radius: 22px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+}
+
+.resource-card:hover {
+  border-color: #bfe3cd;
+  color: inherit;
+}
+
+.resource-card h3 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  color: #252525;
+}
+
+.resource-card p {
+  margin: 0;
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.65;
+  color: #5c625c;
+}
+
+.resource-go {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.5;
+  color: #1e7a3c;
+}
+
+/* An outline button for the dark CTA panel — the hotline is the second action
+   there, and a second solid white button would compete with the first. */
+.btn-outline-white {
+  border: 2px solid rgb(255 255 255 / 55%);
+  background: transparent;
+  color: #fff;
+}
+
+.btn-outline-white:hover {
+  border-color: #fff;
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .free-grid,
+  .learn-grid,
+  .why-grid,
+  .resource-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Phân trang ─────────────────────────────────────────────────────────── */
+
+/*
+ * Nine per page is three full rows, so the grid never ends on a ragged one.
+ * The pager only renders when there is a second page — a single page with
+ * "1 / 1" and two dead arrows is furniture.
+ */
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.pager-step,
+.pager-number {
+  min-height: 44px;
+  border: 2px solid #e7ece5;
+  border-radius: 999px;
+  background: #fff;
+  color: #3f4740;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.pager-step {
+  padding-inline: 20px;
+}
+
+.pager-step:disabled {
+  color: #7b847b;
+  cursor: not-allowed;
+}
+
+.pager-step:not(:disabled):hover,
+.pager-number:hover {
+  border-color: #bfe3cd;
+}
+
+.pager-numbers {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pager-number {
+  min-width: 44px;
+  padding-inline: 10px;
+}
+
+.pager-number.is-active {
+  border-color: #10b050;
+  background: #e4f7eb;
+  color: #1e7a3c;
+}
+
+@media (max-width: 560px) {
+  .pager {
+    gap: 8px;
+  }
+
+  .pager-step {
+    padding-inline: 14px;
+  }
+}
+
+/* ── Kho tài liệu: hai kệ ───────────────────────────────────────────────── */
+
+/*
+ * Free and premium are separate lists rather than one list with a lock icon.
+ * A learner scanning the free shelf is then never reading titles they cannot
+ * open — which is the whole failure of a mixed list, and no amount of badge
+ * design fixes it.
+ */
+.shelf + .shelf {
+  margin-top: 48px;
+}
+
+.shelf-head {
+  margin-bottom: 20px;
+}
+
+.shelf-head h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  font-size: 25px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: -0.025em;
+  color: #252525;
+}
+
+.shelf-head p {
+  margin: 0;
+  max-width: 640px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.65;
+  color: #5c625c;
+}
+
+/* #55499b on #f0edfa measures 6.47. */
+.shelf-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #f0edfa;
+  color: #55499b;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+.shelf.is-premium {
+  padding: 30px;
+  border: 2px dashed #d9d2ee;
+  border-radius: 26px;
+  background: #fbfaff;
+}
+
+.shelf-empty {
+  margin: 0;
+  padding: 20px;
+  border: 2px solid #e7ece5;
+  border-radius: 18px;
+  background: #f7f9f6;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.65;
+  color: #5c625c;
+}
+
+/*
+ * The way out of the premium shelf is a phone number, not a checkout.
+ * `B-4` and `B-5b` are open; a "Mua ngay" here would be a commitment nobody
+ * has made, and a disabled one would be a dead end.
+ */
+.shelf-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+  padding-top: 26px;
+  border-top: 2px solid #ece7f8;
+}
+
+@media (max-width: 560px) {
+  .shelf.is-premium {
+    padding: 22px 18px;
+  }
+}
+
+/* ── A header for a block that does work ────────────────────────────────── */
+
+/*
+ * The counterpart to `.section-heading`, which is a display treatment: centred,
+ * up to 53px, weight 900, the second line in green, and a full stop.
+ *
+ * <b>That treatment is correct on a section whose job is to persuade and wrong
+ * on one whose job is to be used.</b> A control panel under a poster reads as
+ * an afterthought, and the reader has to travel past the argument every time
+ * they come back to do the thing.
+ *
+ * Left-aligned because the content under it is left-aligned; 26px because it
+ * needs to outrank a card title and nothing else.
+ */
+.work-head {
+  margin-bottom: 26px;
+}
+
+.work-head h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  /* 26px is under the 32px threshold, so the 1.5 floor applies here too. */
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  color: #1c211d;
+}
+
+.work-head p {
+  margin: 8px 0 0;
+  max-width: 68ch;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #5f675f;
+}

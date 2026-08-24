@@ -15,21 +15,24 @@ Verified end to end on 2026-08-20 by driving the running application, not by rea
 
 | Capability | State |
 |---|---|
-| Register from the web UI | ✅ |
-| Email verification — issue, redeem once, expire after 24h | ✅ *(no email provider yet — see below)* |
-| Sign in · sign out · session survives reload | ✅ |
+| Register · verify email · sign in · sign out · session survives reload | ✅ *(no email provider yet — see below)* |
+| Google SSO, backend-mediated handoff code | ✅ |
 | Automatic token refresh, with **refresh-token reuse detection** | ✅ |
-| Routing, protected routes, deep-link return after sign-in | ✅ |
+| Landing page · profile · student dashboard · 404 · error boundary | ✅ |
+| **Luyện 4 kỹ năng** `/practice` — skill picker, facet filters, pager, start a sitting | ✅ |
+| **Nghe chép chính tả** `/dictation` — library, search, filters; exercise at `/dictation/:setId` | ✅ *(one seeded set — see `B-10`)* |
+| **Tài liệu** `/documents` · **Bài viết** `/articles` | ✅ *(seeded content, no CMS)* |
+| Exam runner and results screens | ⚠️ built against the API, **not adjudicated** — see below |
 | Vietnamese / English interface | ✅ |
-| Home · Profile · 404 · error boundary | ✅ |
-| Server-authoritative clock reconciliation (`X-Server-Time`) | ✅ |
-| Rate limiting · idempotency · request size caps · problem-details errors | ✅ |
-| Reading/Listening scoring, band tables, answer matching, session timing | ✅ **domain only — no HTTP endpoints yet** |
-| Exam screens · dictation · documents · articles · token · CMS | ❌ not built |
+| Server-authoritative clock, rate limiting, idempotency, problem-details errors | ✅ |
+| Reading/Listening scoring, band tables, session timing | ✅ |
+| AI scoring · token ledger · CMS authoring · ZIP import | ❌ not built |
 
-**Nothing in the exam-taking UI exists.** It is blocked on `B-8` — a third-party UI/UX review
-carrying 22 proposals, 8 of which change the structure of the Reading, Listening, Writing, Speaking
-and Results screens. Building those screens before that adjudication means building them twice.
+**The exam-taking screens are built and still blocked.** `B-8` — a third-party UI/UX review carrying
+22 proposals, 8 of which change the structure of the Reading, Listening, Writing, Speaking and
+Results screens — has not been adjudicated. The runner and results pages exist and drive the real
+API, so the engine is exercised end to end; treat their *layout* as provisional until that review is
+ruled on.
 
 ### Two honest gaps
 
@@ -38,7 +41,7 @@ a port with only a development implementation that writes the link to the server
 refuses to start outside `Development`** until a real provider is wired — the alternative is
 registering users who can never verify while the API reports that a message was sent.
 
-**106 backend tests and 31 frontend tests pass, and that is not the same as "no risks".** Two audit
+**269 backend tests and 200 frontend tests pass, and that is not the same as "no risks".** Two audit
 passes over a fully-green codebase found twelve real defects, nine of which no test would have
 caught. See [`docs/development/next-actions.md`](docs/development/next-actions.md) § Giai đoạn C for
 the ones still open.
@@ -54,6 +57,41 @@ the ones still open.
 | .NET SDK | 10.0.100 | `backend/global.json` pins it |
 | Docker | with Compose v2 | MongoDB and MinIO |
 | Python | 3.12 | documentation checks |
+
+---
+
+## Cloning it — what you need, and what you do not
+
+**No keys, no `.env`, no credentials.** A fresh clone runs locally with the four tools in the table
+above and nothing else. Everything the local stack needs is either committed (ports, database name,
+CORS origins, the seeded fixtures) or generated at startup.
+
+| Thing you might expect to need | Actually |
+|---|---|
+| A JWT signing key | **Generated per run** in Development if none is supplied. The API says so on startup. Set `Jwt__SigningKey` only if you want sessions to survive an API restart. |
+| A Google OAuth client | **Not needed.** `Sso:EnableStubProvider` is `true` in Development — the SSO flow is exercised against a stub. Wiring a real one is [`docs/development/sso-provider-setup.md`](docs/development/sso-provider-setup.md). |
+| An email provider | **Not needed, and not available.** The verification link is written to the API's terminal instead. |
+| An AI provider key | **Not needed.** No AI adapter exists yet — `B-2` (PDPL cross-border position) gates it. |
+| A MongoDB connection string | **Committed**, pointing at the Docker stack on `localhost:27018`. |
+| A `.env` file | **Blocked on purpose.** `.gitignore` blocks `.env*`, a hook blocks writes to it, and CI scans for credential-shaped strings. |
+
+So the whole setup is:
+
+```bash
+corepack enable && corepack prepare pnpm@10.15.0 --activate
+pnpm install
+```
+
+Then the three commands below.
+
+**Ports are pinned and that matters.** The learner app is fixed to **5173** and the CMS to **5174**,
+both with `strictPort`. The API's development CORS allowlist names those two ports by hand and cannot
+discover them, so a random port makes every API call fail CORS and presents as a broken sign-in
+rather than as a misconfigured port. If 5173 is busy, the dev server refuses to start — which is the
+intended failure, not a bug.
+
+**Docker is only needed to run the API.** `pnpm test`, `pnpm test:api`, `pnpm typecheck` and
+`pnpm build` all pass with nothing running — 269 backend tests included.
 
 ---
 
@@ -73,7 +111,7 @@ Open **http://localhost:5173**.
 
 To register: fill the form, then read the verification link from **terminal 2** — it prints
 `Verification token for <address>: <token>`. Open
-`http://localhost:5173/xac-minh?token=<token>`.
+`http://localhost:5173/verify-email?token=<token>`.
 
 | Command | What it does |
 |---|---|
@@ -107,7 +145,7 @@ to it, and CI scans for credential-shaped strings.
 Everything CI runs, runnable locally:
 
 ```bash
-pnpm check      # docs · format · typecheck · 31 frontend tests · 106 backend tests
+pnpm check      # docs · format · typecheck · 200 frontend tests · 269 backend tests
 ```
 
 Or individually:
@@ -116,8 +154,8 @@ Or individually:
 pnpm docs:check      # links, status taxonomy, CONFIRMED sources, secret scan
 pnpm format:check    # app code only — docs/ is hand-written and excluded
 pnpm typecheck
-pnpm test            # 31 frontend tests
-pnpm test:api        # 106 backend tests
+pnpm test            # 200 frontend tests
+pnpm test:api        # 269 backend tests
 pnpm build
 
 # The one rule the PostgreSQL migration depends on, on its own:

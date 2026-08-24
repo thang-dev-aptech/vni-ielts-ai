@@ -4,6 +4,8 @@ import { Alert, Button, Card, PageHeader, Spinner } from '@vni/ui';
 import { verifyEmail } from '../../lib/session.js';
 import { useI18n } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
+import { announceAccountChanged } from './accountEvents.js';
+import { useAuth } from './AuthContext.js';
 
 type State = 'verifying' | 'verified' | 'invalid' | 'missing' | 'offline';
 
@@ -18,6 +20,7 @@ type State = 'verifying' | 'verified' | 'invalid' | 'missing' | 'offline';
  */
 export function VerifyEmailPage() {
   const { t } = useI18n();
+  const { status, refreshUser } = useAuth();
   const [params] = useSearchParams();
   const token = params.get('token');
 
@@ -32,6 +35,13 @@ export function VerifyEmailPage() {
       try {
         await verifyEmail(token, crypto.randomUUID());
         setState('verified');
+
+        // Without these two lines the app contradicts itself: this screen says
+        // the address is verified while the profile, one navigation away,
+        // still says it is not. The first fixes this tab, the second fixes
+        // every other tab of the same browser.
+        void refreshUser().catch(() => {});
+        announceAccountChanged();
       } catch (error) {
         // A network failure and a rejected token need different advice —
         // retry versus request a new link.
@@ -67,7 +77,10 @@ export function VerifyEmailPage() {
         {state === 'verified' && (
           <>
             <Alert tone="success">{t('verify.success')}</Alert>
-            <Link to={Paths.signIn}>
+            {/* Somewhere useful, not always the sign-in form. Someone who
+                verified while already signed in has no reason to be sent to a
+                login page they will immediately be redirected away from. */}
+            <Link to={status === 'signed-in' ? Paths.profile : Paths.signIn}>
               <Button>{t('verify.continue')}</Button>
             </Link>
           </>

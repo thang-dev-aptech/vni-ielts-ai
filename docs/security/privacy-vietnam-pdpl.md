@@ -36,6 +36,18 @@ The platform processes personal data about Vietnamese residents, including two c
 
 **Sending any of this to a foreign ASR or LLM provider is a cross-border transfer of personal data.** That triggers the CTIA obligation and the associated penalty exposure.
 
+### Social sign-in is a transfer too, and a smaller one
+
+Added 2026-08-21, when Google sign-in was built. Pressing **Đăng nhập với Google** sends the learner's email address, IP address and user agent to Google, and receives back a name and a profile identifier. That is a cross-border transfer of identity data by any reading, and it belongs in the `B-2` filing.
+
+Three things distinguish it from the AI transfers above, and none of them makes it exempt:
+
+- **The data is identity data, not content.** No essay, no recording, no chat log, no result — the smallest category in the table.
+- **The learner initiates it explicitly**, at a Google-branded consent screen naming what is shared. That is much closer to satisfying a specificity requirement than a bundled terms acceptance, though it is Google's disclosure rather than ours.
+- **It is avoidable per learner.** Email and password registration is a complete alternative, so nobody is forced across the border to use the product. Keeping that path genuinely usable is what makes this true, which is one more reason password sign-in is not a legacy fallback.
+
+The scope requested is `openid email profile` and nothing more; widening it widens this paragraph. → [ADR-0014](../decisions/0014-backend-mediated-oidc-handoff-code.md), [`../development/sso-provider-setup.md`](../development/sso-provider-setup.md)
+
 ### AI Chat carries the same obligation as audio — and is harder to bound
 
 `M-25` adds an AI Chat module. Its privacy profile differs from every other feature here in one important way: **the product does not control what enters it.**

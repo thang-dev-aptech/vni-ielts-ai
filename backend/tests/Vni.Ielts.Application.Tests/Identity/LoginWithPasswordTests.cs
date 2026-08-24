@@ -18,7 +18,7 @@ public sealed class LoginWithPasswordTests
 
     private static async Task<(LoginWithPassword Sut, FakePasswordHasher Hasher, FakeTokenService Tokens, User User)>
         BuildAsync(string email = "hoc.vien@example.com", string password = "correct-horse-battery",
-                   bool suspended = false)
+                   bool suspended = false, FakeLoginThrottle? throttle = null)
     {
         var users = new FakeUserRepository();
         var identities = new FakeUserIdentityRepository();
@@ -34,7 +34,8 @@ public sealed class LoginWithPasswordTests
             UserIdentity.ForEmail(user.Id, address, hasher.Hash(password), Now), default);
 
         var sut = new LoginWithPassword(
-            users, identities, hasher, new FakePermissionResolver(PermissionKeys.ExamRead), tokens);
+            users, identities, hasher, new FakePermissionResolver(PermissionKeys.ExamRead),
+            tokens, throttle ?? new FakeLoginThrottle());
 
         return (sut, hasher, tokens, user);
     }
@@ -132,7 +133,8 @@ public sealed class LoginWithPasswordTests
             UserIdentity.ForSocial(user.Id, IdentityProvider.Google, "google-subject-123", Now), default);
 
         var sut = new LoginWithPassword(
-            users, identities, hasher, new FakePermissionResolver(), new FakeTokenService());
+            users, identities, hasher, new FakePermissionResolver(), new FakeTokenService(),
+            new FakeLoginThrottle());
 
         var result = await sut.HandleAsync(
             new LoginCommand("google.only@example.com", "anything"), default);
@@ -140,5 +142,77 @@ public sealed class LoginWithPasswordTests
         Assert.False(result.IsSuccess);
         // Not "this account uses Google" — that would confirm the address exists.
         Assert.Equal(ErrorCodes.InvalidCredentials, result.Error.Code);
+    }
+
+    // ── Bounded guessing ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Ten_wrong_passwords_lock_the_address()
+    {
+        var throttle = new FakeLoginThrottle();
+        var (sut, _, _, _) = await BuildAsync(throttle: throttle);
+
+        for (var attempt = 0; attempt < 10; attempt++)
+        {
+            var wrong = await sut.HandleAsync(
+                new LoginCommand("hoc.vien@example.com", "wrong"), default);
+            Assert.Equal(ErrorCodes.InvalidCredentials, wrong.Error.Code);
+        }
+
+        // The eleventh is refused before the password is even considered —
+        // note this one passes the CORRECT password and is still refused.
+        var locked = await sut.HandleAsync(
+            new LoginCommand("hoc.vien@example.com", "correct-horse-battery"), default);
+
+        Assert.False(locked.IsSuccess);
+        Assert.Equal(ErrorCodes.TooManyAttempts, locked.Error.Code);
+        Assert.Equal(ErrorKind.TooManyRequests, locked.Error.Kind);
+    }
+
+    [Fact]
+    public async Task An_address_with_no_account_is_counted_too()
+    {
+        // Otherwise the lockout becomes the account-enumeration oracle that
+        // every other branch of this handler works to avoid: an attacker would
+        // learn which addresses are registered by seeing which ones can lock.
+        var throttle = new FakeLoginThrottle();
+        var (sut, _, _, _) = await BuildAsync(throttle: throttle);
+
+        await sut.HandleAsync(new LoginCommand("nobody@example.com", "guess"), default);
+
+        Assert.Equal(1, throttle.Failures["nobody@example.com"]);
+    }
+
+    [Fact]
+    public async Task A_successful_sign_in_clears_the_count()
+    {
+        var throttle = new FakeLoginThrottle();
+        var (sut, _, _, _) = await BuildAsync(throttle: throttle);
+
+        await sut.HandleAsync(new LoginCommand("hoc.vien@example.com", "wrong"), default);
+        Assert.Equal(1, throttle.Failures["hoc.vien@example.com"]);
+
+        await sut.HandleAsync(
+            new LoginCommand("hoc.vien@example.com", "correct-horse-battery"), default);
+
+        Assert.Empty(throttle.Failures);
+    }
+
+    [Fact]
+    public async Task A_suspended_account_signing_in_correctly_does_not_clear_the_count()
+    {
+        // The suspended branch returns before the clear. Otherwise someone
+        // holding the right password for a suspended, locked-out account could
+        // reset the counter at will and keep guessing at everything else.
+        var throttle = new FakeLoginThrottle();
+        var (sut, _, _, _) = await BuildAsync(suspended: true, throttle: throttle);
+
+        await sut.HandleAsync(new LoginCommand("hoc.vien@example.com", "wrong"), default);
+
+        var suspended = await sut.HandleAsync(
+            new LoginCommand("hoc.vien@example.com", "correct-horse-battery"), default);
+
+        Assert.Equal(ErrorCodes.AccountSuspended, suspended.Error.Code);
+        Assert.Equal(1, throttle.Failures["hoc.vien@example.com"]);
     }
 }

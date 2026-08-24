@@ -21,6 +21,16 @@ namespace Vni.Ielts.Application.Identity;
 public interface IUserRepository
 {
     Task<User?> FindByIdAsync(UserId id, CancellationToken ct);
+
+    /// <summary>
+    /// A page of accounts for the CMS.
+    ///
+    /// Paged from the start rather than "list them all, filter in the UI":
+    /// the second one works on the fifty accounts a dev database holds and
+    /// falls over on the first real week.
+    /// </summary>
+    Task<(IReadOnlyList<User> Users, long Total)> ListAsync(
+        string? search, int skip, int take, CancellationToken ct);
     Task<User?> FindByEmailAsync(Email email, CancellationToken ct);
     Task<bool> EmailExistsAsync(Email email, CancellationToken ct);
     Task AddAsync(User user, CancellationToken ct);
@@ -68,6 +78,36 @@ public sealed record TokenPair(
     DateTimeOffset RefreshTokenExpiresAt);
 
 /// <summary>
+/// Counts consecutive failed sign-ins for one address, and refuses once there
+/// have been too many.
+///
+/// <b>Why this is not the rate limiter.</b> The HTTP limiter partitions on IP
+/// because sign-in happens before authentication, and its bound has to stay
+/// loose: Vietnamese carrier NAT and any school or office put large numbers of
+/// legitimate users behind one address, so a tight per-IP limit is a
+/// self-inflicted outage. A loose per-IP limit does nothing against credential
+/// stuffing, which spreads a few guesses per account across many accounts and
+/// many addresses. Stopping that needs a counter on the thing being attacked —
+/// the account. → threats T4, T5
+///
+/// <b>Keyed on the submitted address whether or not it exists.</b> Counting
+/// only real accounts would make the lockout itself an enumeration oracle:
+/// an attacker would learn which addresses are registered by seeing which ones
+/// can be locked. Every address behaves identically, so the 429 tells an
+/// attacker nothing that the 401 did not already tell them.
+/// </summary>
+public interface ILoginThrottle
+{
+    /// <summary>True while the address is in its cooldown.</summary>
+    Task<bool> IsLockedAsync(string email, CancellationToken ct);
+
+    Task RecordFailureAsync(string email, CancellationToken ct);
+
+    /// <summary>Called on a successful sign-in. A success clears the count.</summary>
+    Task ClearAsync(string email, CancellationToken ct);
+}
+
+/// <summary>
 /// Issues and validates tokens.
 ///
 /// Refresh tokens rotate, and rotation carries <b>reuse detection</b>: a
@@ -94,6 +134,18 @@ public interface ITokenService
     Task RevokeFamilyAsync(UserId userId, string familyId, CancellationToken ct);
 
     Task RevokeAllForUserAsync(UserId userId, CancellationToken ct);
+
+    /// <summary>
+    /// Ends every sign-in except one — "sign out everywhere else".
+    ///
+    /// <para>
+    /// A separate operation rather than a loop over the session list, and the
+    /// difference matters: someone reaching for this has usually just realised
+    /// a device is not theirs, and a loop leaves a window where half the
+    /// sessions are still live. One statement closes them together.
+    /// </para>
+    /// </summary>
+    Task<int> RevokeAllExceptAsync(UserId userId, string keepFamilyId, CancellationToken ct);
 }
 
 public sealed record RefreshOutcome(UserId UserId, string FamilyId);
@@ -106,4 +158,69 @@ public sealed record RefreshOutcome(UserId UserId, string FamilyId);
 public interface IPermissionResolver
 {
     Task<IReadOnlyCollection<string>> ResolveAsync(User user, CancellationToken ct);
+}
+
+/// <summary>
+/// What the current request says about the device it came from.
+///
+/// <para>
+/// A port because Infrastructure must not know about ASP.NET Core, and the
+/// only place a User-Agent exists is an HTTP request. The Api implements it.
+/// </para>
+///
+/// <para>
+/// <b>The user agent, and nothing else.</b> No IP address: the purpose here is
+/// letting someone recognise their own devices in a list, and an IP does not
+/// help with that — it changes on every network and it is the field that turns
+/// a session record into location history. Collecting less is the whole point.
+/// → PDPL, <c>B-2</c>
+/// </para>
+/// </summary>
+public interface IRequestDevice
+{
+    string? UserAgent { get; }
+}
+
+/// <summary>
+/// One sign-in, as the person who owns it would recognise it.
+///
+/// A "session" here is a <b>refresh-token family</b>. That is not a new
+/// concept invented for this screen: a family already means "one sign-in and
+/// everything it rotated into", and revoking one is already how reuse
+/// detection ends a compromised chain. Listing them is the same idea pointed
+/// at the account owner instead of at an attacker.
+/// </summary>
+/// <param name="IsCurrent">
+/// True for the family the calling token belongs to. The client needs this to
+/// avoid offering "sign out" on the session doing the asking, and to label it.
+/// </param>
+public sealed record LearnerSession(
+    string FamilyId,
+    string? UserAgent,
+    DateTimeOffset SignedInAt,
+    DateTimeOffset LastUsedAt,
+    DateTimeOffset ExpiresAt,
+    bool IsCurrent);
+
+public interface ISessionDirectory
+{
+    /// <summary>Live families only — revoked and expired ones are not devices anyone still has.</summary>
+    Task<IReadOnlyList<LearnerSession>> ListAsync(UserId userId, string? currentFamilyId, CancellationToken ct);
+}
+
+/// <summary>
+/// The audit trail.
+///
+/// <b>There is no update and no delete, and there never will be.</b> That is
+/// the interface making constraint 6 of the CMS specification structural: a
+/// caller cannot rewrite history because there is no method through which to
+/// try. → threat `T21`
+/// </summary>
+public interface IAuditLog
+{
+    Task AppendAsync(Vni.Ielts.Domain.Audit.AuditEntry entry, CancellationToken ct);
+
+    /// <summary>Newest first. Filters are optional and combine with AND.</summary>
+    Task<(IReadOnlyList<Vni.Ielts.Domain.Audit.AuditEntry> Entries, long Total)> ListAsync(
+        string? actorId, string? action, int skip, int take, CancellationToken ct);
 }

@@ -15,7 +15,7 @@
     "infra:stop": "docker compose -f infra/docker/compose.yaml down",
     "infra:reset": "docker compose -f infra/docker/compose.yaml down -v",
     "check": "pnpm docs:check && pnpm format:check && pnpm typecheck && pnpm test && pnpm test:api",
-    "test": "pnpm -r --if-present test",
+    "test": "pnpm -r --workspace-concurrency=1 --if-present test",
     "test:api": "dotnet test backend --nologo",
     "typecheck": "pnpm -r --if-present typecheck",
     "docs:check": "python3 scripts/check-docs.py",

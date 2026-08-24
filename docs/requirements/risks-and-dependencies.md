@@ -297,13 +297,27 @@ A CI runner would not inherit this developer machine's shadowing — meaning a v
 
 ---
 
-## R12 · Facebook SSO and platform review
+## R12 · Facebook SSO and platform review ✅ deferred out of scope 2026-08-21
 
-**Severity: Low–Medium · Likelihood: Medium · Owner: Product**
+**Severity: Low–Medium · Likelihood: Medium · Owner: Product · Status: NOT IN SCOPE**
 
 Facebook Login requires app review for some permissions, and Meta has repeatedly narrowed platform capabilities (see R1). Timelines are outside VNI's control.
 
-**Mitigation:** treat email and Google SSO as the launch-critical paths; make Facebook SSO independently deferrable. `[NEEDS VALIDATION]`
+**Mitigation, as taken:** email and Google SSO are the launch paths, and Facebook was made independently deferrable — then deferred. `AU-8`, 2026-08-21. The verified research on what building it would actually cost is kept in [`../development/sso-provider-setup.md`](../development/sso-provider-setup.md) §4 so the deferral does not have to be re-investigated.
+
+---
+
+## R17 · Shipping Google sign-in may oblige the iOS app to add another login option
+
+**Severity: Medium · Likelihood: Medium — depends on how Apple reads it · Owner: Product · Status: OPEN**
+
+App Store Review Guideline 4.8 names **Google Sign-In** among the services that trigger the rule: an app using one to establish the user's primary account *"must also offer as an equivalent option another login service"* that limits collection to name and email, **lets the user keep their email address private**, and does not collect in-app interactions for advertising without consent. → [App Store Review Guidelines §4.8](https://developer.apple.com/app-store/review/guidelines/), read 2026-08-21
+
+The exemption for an app that *"exclusively uses your company's own account setup and sign-in systems"* does not apply once Google sign-in ships — the word is *exclusively*. Whether VNI's own email-and-password registration satisfies the requirement instead is the open part: it collects only name and email and does no ad tracking, but it has no equivalent of Apple's private-relay address, which is the second bullet.
+
+**Why it matters here.** iOS is a Capacitor target of `apps/web` ([ADR-0002](../decisions/0002-client-capacitor-react.md)), so this is not a separate product's problem — the same sign-in screen ships to the App Store. It surfaces at *review*, not at build, which is the expensive moment to discover it.
+
+**Mitigation:** treat **Sign in with Apple** as a likely iOS requirement rather than a nice-to-have, and cost it into the mobile stage. Technically it is close to Google — Apple is an OpenID Connect provider, so `OpenIdConnectIdentityProvider` largely covers it; the differences are a signed-JWT client secret that expires, and a relay address that means the account's email may change. `[NEEDS VALIDATION]` — confirm with a real submission or an Apple representative before committing engineering time either way.
 
 ---
 

@@ -18,7 +18,7 @@ namespace Vni.Ielts.Infrastructure.Security;
 /// JWT access tokens plus rotating refresh tokens with reuse detection.
 /// </summary>
 internal sealed class JwtTokenService(
-    MongoContext ctx, IOptions<JwtOptions> options, IClock clock) : ITokenService
+    MongoContext ctx, IOptions<JwtOptions> options, IClock clock, IRequestDevice device) : ITokenService
 {
     private readonly JwtOptions _opt = options.Value;
 
@@ -38,7 +38,16 @@ internal sealed class JwtTokenService(
             new(JwtRegisteredClaimNames.Sub, user.Id.Value),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("n")),
             new("name", user.DisplayName),
+            // The address, so an audit entry can name the actor without a
+            // lookup — and stay readable after that account is renamed or
+            // deleted. A display name is user-editable and makes a poor
+            // record of who did something.
+            new("email", user.Email.Value),
             new("email_verified", user.EmailVerified ? "true" : "false"),
+            // The family this token belongs to. Without it the session list
+            // cannot say which entry is the device asking, and would offer
+            // "sign out this device" on the one you are holding.
+            new("fam", familyId),
         };
 
         // Permissions travel in the token so the API does not hit the database
@@ -76,10 +85,21 @@ internal sealed class JwtTokenService(
                 FamilyId = familyId,
                 ExpiresAt = refreshExpires.UtcDateTime,
                 CreatedAt = now.UtcDateTime,
+                // Trimmed rather than trusted: a User-Agent is attacker-supplied
+                // text of unbounded length, and it ends up rendered in a list.
+                UserAgent = Trim(device.UserAgent),
             },
             cancellationToken: ct);
 
         return new TokenPair(accessToken, accessExpires, refreshToken, refreshExpires);
+    }
+
+    private static string? Trim(string? userAgent)
+    {
+        if (string.IsNullOrWhiteSpace(userAgent)) return null;
+
+        var value = userAgent.Trim();
+        return value.Length > 400 ? value[..400] : value;
     }
 
     /// <summary>
@@ -132,6 +152,16 @@ internal sealed class JwtTokenService(
         }
 
         return new RefreshOutcome(new UserId(stored.UserId), stored.FamilyId);
+    }
+
+    public async Task<int> RevokeAllExceptAsync(UserId userId, string keepFamilyId, CancellationToken ct)
+    {
+        var result = await ctx.RefreshTokens.UpdateManyAsync(
+            t => t.UserId == userId.Value && t.FamilyId != keepFamilyId && t.RevokedAt == null,
+            Builders<RefreshTokenDocument>.Update.Set(t => t.RevokedAt, clock.UtcNow.UtcDateTime),
+            cancellationToken: ct);
+
+        return (int)result.ModifiedCount;
     }
 
     public Task RevokeFamilyAsync(UserId userId, string familyId, CancellationToken ct) =>
