@@ -18,7 +18,17 @@ public enum ExamModule { Reading, Listening, Writing, Speaking }
 
 public enum ExamVariant { Academic, General }
 
-public enum ExamVersionStatus { Draft, Published, Unpublished }
+/// <summary>
+/// The six states of the content lifecycle. → `C-19`, `docs/ux/cms-content-operations.md` §3.1
+///
+/// <c>Draft → InReview → Approved → Published → Unpublished</c>, with a
+/// <c>Returned</c> branch back to <c>Draft</c> (via <see cref="ExamVersion.Resume"/>)
+/// and an <c>Unapprove</c> escape from <c>Approved</c> back to <c>InReview</c>.
+/// Submitting is a soft freeze: an author cannot edit while <c>InReview</c>, and
+/// must withdraw first. Approval is not publication — only <c>admin</c> ships
+/// content to learners (`Đ4`).
+/// </summary>
+public enum ExamVersionStatus { Draft, InReview, Returned, Approved, Published, Unpublished }
 
 public enum QuestionType
 {
@@ -50,15 +60,22 @@ public static class QuestionTypeRules
 /// </summary>
 public sealed class ExamVersion
 {
+    private readonly List<ReviewNote> _reviewNotes;
+
     private ExamVersion(
         ExamVersionId id, ExamDefinitionId definitionId, int versionNumber,
-        string title, ExamVariant variant, ExamVersionStatus status,
-        DateTimeOffset? publishedAt, ScoringProfile scoring, TimingProfile timing,
-        IReadOnlyList<Section> sections)
+        string title, ExamVariant variant, ExamVersionStatus status, UserId createdBy,
+        UserId? submittedBy, DateTimeOffset? submittedAt,
+        UserId? reviewedBy, DateTimeOffset? reviewedAt, DateTimeOffset? publishedAt,
+        ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections,
+        IEnumerable<ReviewNote> reviewNotes)
     {
         Id = id; DefinitionId = definitionId; VersionNumber = versionNumber;
-        Title = title; Variant = variant; Status = status; PublishedAt = publishedAt;
+        Title = title; Variant = variant; Status = status; CreatedBy = createdBy;
+        SubmittedBy = submittedBy; SubmittedAt = submittedAt;
+        ReviewedBy = reviewedBy; ReviewedAt = reviewedAt; PublishedAt = publishedAt;
         Scoring = scoring; Timing = timing; Sections = sections;
+        _reviewNotes = [.. reviewNotes];
     }
 
     public ExamVersionId Id { get; }
@@ -67,26 +84,119 @@ public sealed class ExamVersion
     public string Title { get; }
     public ExamVariant Variant { get; }
     public ExamVersionStatus Status { get; private set; }
+
+    /// <summary>The author. Set once at creation and never reassigned — ownership does not transfer.</summary>
+    public UserId CreatedBy { get; }
+    public UserId? SubmittedBy { get; private set; }
+    public DateTimeOffset? SubmittedAt { get; private set; }
+    public UserId? ReviewedBy { get; private set; }
+    public DateTimeOffset? ReviewedAt { get; private set; }
     public DateTimeOffset? PublishedAt { get; private set; }
     public ScoringProfile Scoring { get; }
     public TimingProfile Timing { get; }
     public IReadOnlyList<Section> Sections { get; }
 
+    /// <summary>Append-only. → `docs/ux/cms-content-operations.md` §4.3</summary>
+    public IReadOnlyList<ReviewNote> ReviewNotes => _reviewNotes;
+
     public bool IsSittable => Status == ExamVersionStatus.Published;
 
     public static ExamVersion CreateDraft(
         ExamDefinitionId definitionId, int versionNumber, string title, ExamVariant variant,
-        ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections) =>
+        UserId createdBy, ScoringProfile scoring, TimingProfile timing,
+        IReadOnlyList<Section> sections) =>
         new(ExamVersionId.New(), definitionId, versionNumber, title, variant,
-            ExamVersionStatus.Draft, null, scoring, timing, sections);
+            ExamVersionStatus.Draft, createdBy, null, null, null, null, null,
+            scoring, timing, sections, []);
 
     public static ExamVersion Rehydrate(
         ExamVersionId id, ExamDefinitionId definitionId, int versionNumber, string title,
-        ExamVariant variant, ExamVersionStatus status, DateTimeOffset? publishedAt,
-        ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections) =>
-        new(id, definitionId, versionNumber, title, variant, status, publishedAt,
-            scoring, timing, sections);
+        ExamVariant variant, ExamVersionStatus status, UserId createdBy,
+        UserId? submittedBy, DateTimeOffset? submittedAt,
+        UserId? reviewedBy, DateTimeOffset? reviewedAt, DateTimeOffset? publishedAt,
+        ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections,
+        IEnumerable<ReviewNote>? reviewNotes = null) =>
+        new(id, definitionId, versionNumber, title, variant, status, createdBy,
+            submittedBy, submittedAt, reviewedBy, reviewedAt, publishedAt,
+            scoring, timing, sections, reviewNotes ?? []);
 
+    /// <summary>
+    /// Draft → InReview. A soft freeze: while under review the author cannot
+    /// edit — they must <see cref="Withdraw"/> first. Without this, a reviewer
+    /// is reading a document that is changing under them.
+    /// → `docs/ux/cms-content-operations.md` §3.1
+    /// </summary>
+    public void SubmitForReview(UserId by, DateTimeOffset now)
+    {
+        RequireStatus(ExamVersionStatus.Draft, "submitted for review");
+        Status = ExamVersionStatus.InReview;
+        SubmittedBy = by;
+        SubmittedAt = now;
+    }
+
+    /// <summary>InReview → Draft. The author pulling their own submission back for edits.</summary>
+    public void Withdraw()
+    {
+        RequireStatus(ExamVersionStatus.InReview, "withdrawn");
+        Status = ExamVersionStatus.Draft;
+        SubmittedBy = null;
+        SubmittedAt = null;
+    }
+
+    /// <summary>
+    /// InReview → Returned. Requires a non-empty note — an author who receives
+    /// a return with no explanation has to guess what to fix, and a guess
+    /// burns a whole review cycle on the wrong change.
+    /// → `docs/ux/cms-content-operations.md` P1-8
+    /// </summary>
+    public void Return(UserId by, string note, DateTimeOffset now)
+    {
+        RequireStatus(ExamVersionStatus.InReview, "returned");
+        if (string.IsNullOrWhiteSpace(note))
+            throw new InvalidOperationException("A return requires a non-empty note.");
+
+        Status = ExamVersionStatus.Returned;
+        ReviewedBy = by;
+        ReviewedAt = now;
+        _reviewNotes.Add(new ReviewNote(Guid.NewGuid().ToString("n"), by, note, null, now));
+    }
+
+    /// <summary>
+    /// InReview → Approved. Not publication — approval and publication are
+    /// separate authorities, held by different roles (`Đ4`).
+    /// </summary>
+    public void Approve(UserId by, DateTimeOffset now, string? note = null)
+    {
+        RequireStatus(ExamVersionStatus.InReview, "approved");
+        Status = ExamVersionStatus.Approved;
+        ReviewedBy = by;
+        ReviewedAt = now;
+        if (!string.IsNullOrWhiteSpace(note))
+            _reviewNotes.Add(new ReviewNote(Guid.NewGuid().ToString("n"), by, note, null, now));
+    }
+
+    /// <summary>Approved → InReview. Reopens a decision that was made too early.</summary>
+    public void Unapprove()
+    {
+        RequireStatus(ExamVersionStatus.Approved, "unapproved");
+        Status = ExamVersionStatus.InReview;
+        ReviewedBy = null;
+        ReviewedAt = null;
+    }
+
+    /// <summary>Returned → Draft. The author picking a returned submission back up to fix it.</summary>
+    public void Resume()
+    {
+        RequireStatus(ExamVersionStatus.Returned, "resumed");
+        Status = ExamVersionStatus.Draft;
+    }
+
+    /// <summary>
+    /// Not already Published → Published. This is the domain-level backstop
+    /// only — the real gate on "must have come from Approved" is enforced by
+    /// the caller (the CMS never offers a publish action from any other
+    /// state), the same division of labour this method has always had.
+    /// </summary>
     public void Publish(DateTimeOffset now)
     {
         if (Status == ExamVersionStatus.Published)
@@ -100,7 +210,18 @@ public sealed class ExamVersion
     /// terminating a timed exam mid-attempt is a scoring incident, not an
     /// administrative action. → `M-15`
     /// </summary>
-    public void Unpublish() => Status = ExamVersionStatus.Unpublished;
+    public void Unpublish()
+    {
+        RequireStatus(ExamVersionStatus.Published, "unpublished");
+        Status = ExamVersionStatus.Unpublished;
+    }
+
+    private void RequireStatus(ExamVersionStatus expected, string action)
+    {
+        if (Status != expected)
+            throw new InvalidOperationException(
+                $"Cannot be {action} from {Status} — this version must be {expected}.");
+    }
 
     public Section? Section(ExamModule module) =>
         Sections.FirstOrDefault(s => s.Module == module);
@@ -127,6 +248,15 @@ public sealed class ExamVersion
             Sections.Count > 0 ? Sections[0].Module
                 : throw new InvalidOperationException("An exam version has no sections."));
 }
+
+/// <summary>
+/// One review comment on an <see cref="ExamVersion"/>. Append-only, mirroring
+/// <c>AuditEntry</c> — a review history that can be edited or deleted proves
+/// nothing. <paramref name="Anchor"/> optionally names which question or
+/// section the note refers to (e.g. <c>"Câu 12"</c>); <c>null</c> for a
+/// general note. → `docs/ux/cms-content-operations.md` §4.3
+/// </summary>
+public sealed record ReviewNote(string Id, UserId AuthorId, string Body, string? Anchor, DateTimeOffset At);
 
 public sealed record Section(ExamModule Module, int Order, IReadOnlyList<SectionPart> Parts)
 {

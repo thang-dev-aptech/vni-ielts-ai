@@ -28,6 +28,8 @@ namespace Vni.Ielts.Api.Endpoints;
 /// anything. → `cms-spec.md` ràng buộc 6, threat `T21`
 /// </summary>
 public sealed record AssignRoleRequest(string RoleId, bool Grant);
+public sealed record ReturnExamRequest(string Note);
+public sealed record ApproveExamRequest(string? Note);
 
 public static class AdminEndpoints
 {
@@ -48,7 +50,11 @@ public static class AdminEndpoints
 
         group.MapGet("/exams", ExamsEndpoint)
             .WithName("AdminListExams")
-            .WithSummary("Every exam version, drafts included");
+            .WithSummary("Every exam version the caller can see, drafts included");
+
+        group.MapGet("/exams/{examVersionId}", ExamEndpoint)
+            .WithName("AdminGetExam")
+            .WithSummary("One exam version, with its review history");
 
         group.MapGet("/users", UsersEndpoint)
             .WithName("AdminListUsers")
@@ -66,9 +72,33 @@ public static class AdminEndpoints
             .WithName("AdminAudit")
             .WithSummary("Who did what, newest first");
 
+        group.MapPost("/exams/{examVersionId}/submit", SubmitEndpoint)
+            .WithName("AdminSubmitExam")
+            .WithSummary("Send a draft for review");
+
+        group.MapPost("/exams/{examVersionId}/withdraw", WithdrawEndpoint)
+            .WithName("AdminWithdrawExam")
+            .WithSummary("Pull a submission back to draft");
+
+        group.MapPost("/exams/{examVersionId}/return", ReturnEndpoint)
+            .WithName("AdminReturnExam")
+            .WithSummary("Send a submission back to its author with a note");
+
+        group.MapPost("/exams/{examVersionId}/approve", ApproveEndpoint)
+            .WithName("AdminApproveExam")
+            .WithSummary("Approve a submission — not the same as publishing it");
+
+        group.MapPost("/exams/{examVersionId}/unapprove", UnapproveEndpoint)
+            .WithName("AdminUnapproveExam")
+            .WithSummary("Reopen an approved version for further review");
+
+        group.MapPost("/exams/{examVersionId}/resume", ResumeEndpoint)
+            .WithName("AdminResumeExam")
+            .WithSummary("Pick a returned version back up as a draft");
+
         group.MapPost("/exams/{examVersionId}/publish", PublishEndpoint)
             .WithName("AdminPublishExam")
-            .WithSummary("Make a draft version sittable");
+            .WithSummary("Make an approved version sittable");
 
         group.MapPost("/exams/{examVersionId}/unpublish", UnpublishEndpoint)
             .WithName("AdminUnpublishExam")
@@ -92,25 +122,39 @@ public static class AdminEndpoints
     /// route.</b> `/api/v1/exams` filters to published in the query, because a
     /// learner must never be handed content nobody has reviewed. The CMS is
     /// the surface where an unreviewed draft is exactly what you came to look
-    /// at.
+    /// at — for whichever versions this caller is allowed to see.
+    ///
+    /// <b>Filtered in memory, not in the query.</b> Unlike
+    /// <c>ListSittableAsync</c>'s status filter, ownership here depends on the
+    /// caller, not on the data — the catalogue stays a small, cacheable,
+    /// caller-independent read, and "who can see this row" is decided once,
+    /// at the boundary, the same place every other permission check in this
+    /// file lives.
     /// </summary>
     private static async Task<IResult> ExamsEndpoint(
         ClaimsPrincipal principal, IExamCatalogue catalogue, CancellationToken ct)
     {
-        if (Denied(principal, PermissionKeys.ExamRead) is { } denial) return denial;
+        if (DeniedList(principal) is { } denial) return denial;
 
-        var versions = await catalogue.ListAllAsync(ct);
+        var all = await catalogue.ListAllAsync(ct);
+        var visible = principal.Permissions().Contains(PermissionKeys.ExamReadAny)
+            ? all
+            : all.Where(v => v.CreatedBy.Value == principal.UserId()).ToList();
 
         return Results.Ok(new
         {
-            exams = versions.Select(v => new
+            exams = visible.Select(v => new
             {
                 examVersionId = v.Id.Value,
                 definitionId = v.DefinitionId.Value,
                 versionNumber = v.VersionNumber,
                 title = v.Title,
                 variant = v.Variant.ToString().ToLowerInvariant(),
-                status = v.Status.ToString().ToLowerInvariant(),
+                status = v.Status.ToWire(),
+                createdBy = v.CreatedBy.Value,
+                submittedAt = v.SubmittedAt,
+                reviewedBy = v.ReviewedBy?.Value,
+                reviewedAt = v.ReviewedAt,
                 publishedAt = v.PublishedAt,
                 modules = v.Sections
                     .OrderBy(s => s.Order)
@@ -121,6 +165,48 @@ public static class AdminEndpoints
                         durationSeconds = (int)v.Timing.DurationFor(s.Module).TotalSeconds,
                     }),
             }),
+        });
+    }
+
+    /// <summary>Full detail for one version, including its review notes.</summary>
+    private static async Task<IResult> ExamEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue, CancellationToken ct)
+    {
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (DeniedRead(principal, version.CreatedBy) is { } denial) return denial;
+
+        return Results.Ok(new
+        {
+            examVersionId = version.Id.Value,
+            definitionId = version.DefinitionId.Value,
+            versionNumber = version.VersionNumber,
+            title = version.Title,
+            variant = version.Variant.ToString().ToLowerInvariant(),
+            status = version.Status.ToWire(),
+            createdBy = version.CreatedBy.Value,
+            submittedBy = version.SubmittedBy?.Value,
+            submittedAt = version.SubmittedAt,
+            reviewedBy = version.ReviewedBy?.Value,
+            reviewedAt = version.ReviewedAt,
+            publishedAt = version.PublishedAt,
+            reviewNotes = version.ReviewNotes.Select(n => new
+            {
+                id = n.Id,
+                authorId = n.AuthorId.Value,
+                body = n.Body,
+                anchor = n.Anchor,
+                at = n.At,
+            }),
+            modules = version.Sections
+                .OrderBy(s => s.Order)
+                .Select(s => new
+                {
+                    module = s.Module.ToString().ToLowerInvariant(),
+                    questionCount = s.Questions.Count(),
+                    durationSeconds = (int)version.Timing.DurationFor(s.Module).TotalSeconds,
+                }),
         });
     }
 
@@ -243,6 +329,165 @@ public static class AdminEndpoints
         });
     }
 
+    /// <summary>Draft → InReview. The author's own action — see <see cref="DeniedOwn"/>.</summary>
+    private static async Task<IResult> SubmitEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (DeniedOwn(principal, PermissionKeys.ExamSubmit, version.CreatedBy) is { } denial) return denial;
+
+        if (version.Status != ExamVersionStatus.Draft)
+            return Conflict("Chỉ bản nháp mới nộp duyệt được.");
+
+        var now = clock.UtcNow;
+        version.SubmitForReview(new UserId(principal.UserId()!), now);
+        await catalogue.UpsertAsync(version, ct);
+
+        await Record(audit, principal, AuditAction.ExamSubmitted, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", now, ct);
+
+        return Results.Ok(new { status = version.Status.ToWire(), submittedAt = version.SubmittedAt });
+    }
+
+    /// <summary>InReview → Draft. The author pulling their own submission back.</summary>
+    private static async Task<IResult> WithdrawEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (DeniedOwn(principal, PermissionKeys.ExamSubmit, version.CreatedBy) is { } denial) return denial;
+
+        if (version.Status != ExamVersionStatus.InReview)
+            return Conflict("Chỉ bài đang chờ duyệt mới rút về được.");
+
+        version.Withdraw();
+        await catalogue.UpsertAsync(version, ct);
+
+        await Record(audit, principal, AuditAction.ExamWithdrawn, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", clock.UtcNow, ct);
+
+        return Results.Ok(new { status = version.Status.ToWire() });
+    }
+
+    /// <summary>
+    /// InReview → Returned. Any reviewer's action, not the author's — see
+    /// <see cref="Denied(ClaimsPrincipal,string)"/>. Requires a note; the
+    /// domain method throws without one, but the check is repeated here to
+    /// return a 400 (a malformed request) rather than a 500 (an unexpected
+    /// server failure).
+    /// </summary>
+    private static async Task<IResult> ReturnEndpoint(
+        string examVersionId, ClaimsPrincipal principal, ReturnExamRequest request,
+        IExamCatalogue catalogue, IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.ExamReview) is { } denial) return denial;
+
+        if (string.IsNullOrWhiteSpace(request.Note))
+            return Results.Problem(
+                detail: "Trả lại cần kèm ghi chú.",
+                statusCode: StatusCodes.Status400BadRequest,
+                extensions: new Dictionary<string, object?> { ["code"] = ErrorCodes.ValidationFailed });
+
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (version.Status != ExamVersionStatus.InReview)
+            return Conflict("Chỉ bài đang chờ duyệt mới trả lại được.");
+
+        var now = clock.UtcNow;
+        version.Return(new UserId(principal.UserId()!), request.Note, now);
+        await catalogue.UpsertAsync(version, ct);
+
+        await Record(audit, principal, AuditAction.ExamReturned, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", now, ct);
+
+        return Results.Ok(new { status = version.Status.ToWire(), reviewedAt = version.ReviewedAt });
+    }
+
+    /// <summary>
+    /// InReview → Approved. Not publication — approval and publication are
+    /// separate authorities held by different roles (`Đ4`).
+    /// </summary>
+    private static async Task<IResult> ApproveEndpoint(
+        string examVersionId, ClaimsPrincipal principal, ApproveExamRequest request,
+        IExamCatalogue catalogue, IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.ExamReview) is { } denial) return denial;
+
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (version.Status != ExamVersionStatus.InReview)
+            return Conflict("Chỉ bài đang chờ duyệt mới duyệt được.");
+
+        var now = clock.UtcNow;
+        version.Approve(new UserId(principal.UserId()!), now, request.Note);
+        await catalogue.UpsertAsync(version, ct);
+
+        await Record(audit, principal, AuditAction.ExamApproved, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", now, ct);
+
+        return Results.Ok(new { status = version.Status.ToWire(), reviewedAt = version.ReviewedAt });
+    }
+
+    /// <summary>Approved → InReview. Reopens a decision that was made too early.</summary>
+    private static async Task<IResult> UnapproveEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.ExamReview) is { } denial) return denial;
+
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (version.Status != ExamVersionStatus.Approved)
+            return Conflict("Chỉ bài đã duyệt mới huỷ duyệt được.");
+
+        version.Unapprove();
+        await catalogue.UpsertAsync(version, ct);
+
+        await Record(audit, principal, AuditAction.ExamUnapproved, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", clock.UtcNow, ct);
+
+        return Results.Ok(new { status = version.Status.ToWire() });
+    }
+
+    /// <summary>Returned → Draft. The author picking a returned submission back up.</summary>
+    private static async Task<IResult> ResumeEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (DeniedOwn(principal, PermissionKeys.ExamUpdateOwn, version.CreatedBy) is { } denial)
+            return denial;
+
+        if (version.Status != ExamVersionStatus.Returned)
+            return Conflict("Chỉ bài bị trả lại mới tiếp tục sửa được.");
+
+        version.Resume();
+        await catalogue.UpsertAsync(version, ct);
+
+        await Record(audit, principal, AuditAction.ExamResumed, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", clock.UtcNow, ct);
+
+        return Results.Ok(new { status = version.Status.ToWire() });
+    }
+
+    /// <summary>
+    /// Approved → Published, or Unpublished → Published (republishing).
+    ///
+    /// <b>Supersedes whatever was published before it, in the same request.</b>
+    /// A definition has at most one live version — publishing this one and
+    /// leaving a sibling <c>Published</c> would mean two versions of the same
+    /// exam are both sittable, which is a state nothing downstream expects.
+    /// </summary>
     private static async Task<IResult> PublishEndpoint(
         string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue,
         IAuditLog audit, IClock clock, CancellationToken ct)
@@ -252,17 +497,34 @@ public static class AdminEndpoints
         var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
         if (version is null) return Results.NotFound();
 
-        if (version.Status == ExamVersionStatus.Published)
-            return Conflict("Version này đã được xuất bản.");
+        if (version.Status is not (ExamVersionStatus.Approved or ExamVersionStatus.Unpublished))
+            return Conflict("Chỉ bài đã duyệt hoặc đã gỡ xuất bản mới xuất bản được.");
 
         var now = clock.UtcNow;
+
+        var siblings = await catalogue.ListAllAsync(ct);
+        var previouslyPublished = siblings.FirstOrDefault(v =>
+            v.DefinitionId == version.DefinitionId
+            && v.Id != version.Id
+            && v.Status == ExamVersionStatus.Published);
+
+        if (previouslyPublished is not null)
+        {
+            previouslyPublished.Unpublish();
+            await catalogue.UpsertAsync(previouslyPublished, ct);
+
+            await Record(audit, principal, AuditAction.ExamUnpublished, "exam-version",
+                previouslyPublished.Id.Value,
+                $"{previouslyPublished.Title} v{previouslyPublished.VersionNumber}", now, ct);
+        }
+
         version.Publish(now);
         await catalogue.UpsertAsync(version, ct);
 
         await Record(audit, principal, AuditAction.ExamPublished, "exam-version",
             version.Id.Value, $"{version.Title} v{version.VersionNumber}", now, ct);
 
-        return Results.Ok(new { status = version.Status.ToString().ToLowerInvariant() });
+        return Results.Ok(new { status = version.Status.ToWire() });
     }
 
     /// <summary>
@@ -288,7 +550,7 @@ public static class AdminEndpoints
         await Record(audit, principal, AuditAction.ExamUnpublished, "exam-version",
             version.Id.Value, $"{version.Title} v{version.VersionNumber}", clock.UtcNow, ct);
 
-        return Results.Ok(new { status = version.Status.ToString().ToLowerInvariant() });
+        return Results.Ok(new { status = version.Status.ToWire() });
     }
 
     private static Task<IResult> SuspendEndpoint(
@@ -429,15 +691,68 @@ public static class AdminEndpoints
     /// there, hiding existence stops one learner enumerating another's
     /// sittings. Here the caller is a named operator who needs to be told they
     /// lack a permission — screen 1.2 of the specification exists precisely to
-    /// say so rather than to look broken.
+    /// say so rather than to look broken. The ownership-scoped checks below
+    /// keep this rule: an author who cannot see someone else's draft is told
+    /// they lack `exam.read.any`, not shown a 404 that pretends it does not
+    /// exist.
     /// </summary>
     private static IResult? Denied(ClaimsPrincipal principal, string permission)
     {
         if (principal.UserId() is null) return Results.Unauthorized();
+        return principal.Permissions().Contains(permission) ? null : Forbidden(permission);
+    }
 
-        if (principal.Permissions().Contains(permission)) return null;
+    /// <summary>
+    /// The ownership-scoped counterpart to <see cref="Denied(ClaimsPrincipal,string)"/>.
+    ///
+    /// Mirrors <c>apps/admin/src/lib/lifecycle.ts</c>'s <c>allows()</c> exactly:
+    /// the caller needs <paramref name="permission"/>, and is either the
+    /// resource's creator or holds <c>exam.update.any</c> — the single
+    /// override key every own-scoped transition defers to, not a matching
+    /// `.any` variant of each individual permission. That is a real asymmetry
+    /// with <see cref="DeniedRead"/> below, which does have its own `.any` key
+    /// (`exam.read.any`) — reading and acting are different permission
+    /// families with different override shapes, and this follows the shape
+    /// already pinned by the frontend's tests rather than inventing a more
+    /// uniform-looking one.
+    /// </summary>
+    private static IResult? DeniedOwn(ClaimsPrincipal principal, string permission, UserId createdBy)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
 
-        return Results.Problem(
+        var perms = principal.Permissions();
+        var allowed = perms.Contains(permission)
+            && (principal.UserId() == createdBy.Value || perms.Contains(PermissionKeys.ExamUpdateAny));
+
+        return allowed ? null : Forbidden(permission);
+    }
+
+    /// <summary>Can the caller list exams at all — either scope is enough; row filtering happens after.</summary>
+    private static IResult? DeniedList(ClaimsPrincipal principal)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+
+        var perms = principal.Permissions();
+        if (perms.Contains(PermissionKeys.ExamReadAny) || perms.Contains(PermissionKeys.ExamReadOwn))
+            return null;
+
+        return Forbidden(PermissionKeys.ExamReadOwn);
+    }
+
+    /// <summary>Can the caller read this one version — `exam.read.any`, or `exam.read.own` and ownership.</summary>
+    private static IResult? DeniedRead(ClaimsPrincipal principal, UserId createdBy)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+
+        var perms = principal.Permissions();
+        if (perms.Contains(PermissionKeys.ExamReadAny)) return null;
+        if (perms.Contains(PermissionKeys.ExamReadOwn) && principal.UserId() == createdBy.Value) return null;
+
+        return Forbidden(PermissionKeys.ExamReadAny);
+    }
+
+    private static IResult Forbidden(string permission) =>
+        Results.Problem(
             detail: $"This account does not hold {permission}.",
             statusCode: StatusCodes.Status403Forbidden,
             extensions: new Dictionary<string, object?>
@@ -445,5 +760,25 @@ public static class AdminEndpoints
                 ["code"] = ErrorCodes.PermissionDenied,
                 ["permission"] = permission,
             });
-    }
+}
+
+/// <summary>
+/// The wire form of <see cref="ExamVersionStatus"/> — kebab-case, matching
+/// <c>apps/admin/src/lib/lifecycle.ts</c>'s <c>ExamState</c> union exactly, so
+/// a future client switching off the mock store needs no translation layer.
+/// <c>Enum.ToString().ToLowerInvariant()</c> would produce <c>"inreview"</c>,
+/// not <c>"in-review"</c> — close enough to look right and wrong regardless.
+/// </summary>
+internal static class ExamVersionStatusExtensions
+{
+    public static string ToWire(this ExamVersionStatus status) => status switch
+    {
+        ExamVersionStatus.Draft => "draft",
+        ExamVersionStatus.InReview => "in-review",
+        ExamVersionStatus.Returned => "returned",
+        ExamVersionStatus.Approved => "approved",
+        ExamVersionStatus.Published => "published",
+        ExamVersionStatus.Unpublished => "unpublished",
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unmapped exam version status."),
+    };
 }

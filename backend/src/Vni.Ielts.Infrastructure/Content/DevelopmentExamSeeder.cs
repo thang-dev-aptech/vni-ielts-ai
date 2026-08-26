@@ -23,6 +23,18 @@ namespace Vni.Ielts.Infrastructure.Content;
 public sealed class DevelopmentExamSeeder(
     IExamCatalogue catalogue, IClock clock, ILogger<DevelopmentExamSeeder> logger)
 {
+    /// <summary>
+    /// Seeded fixtures need a real <c>CreatedBy</c> — the field is required,
+    /// not nullable — but there is no registered user at seed time to own
+    /// them. A fixed placeholder id, not a real account: nobody's own-scoped
+    /// permission will ever match it, so seeded exams behave like admin-owned
+    /// fixtures rather than silently becoming "yours" for whichever developer
+    /// registers first. Genuine per-author ownership testing waits on Phase 3
+    /// (the Question Builder), which is where exams get created by a real
+    /// operator through the API.
+    /// </summary>
+    private static readonly UserId SeedAuthor = new("seed-author");
+
     public async Task SeedAsync(CancellationToken ct)
     {
         if (LocateFixtures() is not { } directory)
@@ -51,7 +63,7 @@ public sealed class DevelopmentExamSeeder(
             var definitionId = new ExamDefinitionId($"seed-{slug}");
             var versionId = new ExamVersionId($"seed-{slug}-v1");
 
-            var result = reader.Read(await File.ReadAllTextAsync(file, ct), definitionId, 1);
+            var result = reader.Read(await File.ReadAllTextAsync(file, ct), definitionId, 1, SeedAuthor);
 
             if (!result.IsValid || result.Version is null)
             {
@@ -77,7 +89,12 @@ public sealed class DevelopmentExamSeeder(
                 draft.Title,
                 draft.Variant,
                 ExamVersionStatus.Published,
-                clock.UtcNow,
+                draft.CreatedBy,
+                submittedBy: null,
+                submittedAt: null,
+                reviewedBy: null,
+                reviewedAt: null,
+                publishedAt: clock.UtcNow,
                 draft.Scoring,
                 draft.Timing,
                 draft.Sections);

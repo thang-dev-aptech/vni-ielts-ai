@@ -72,6 +72,7 @@ google-services.json
 # ── Local scratch ─────────────────────────────────────────────────────
 tmp/
 *.local
+PROJECT_STRUCTURE.md
 
 # ── Added with the monorepo, 2026-08-20 ───────────────────────────────
 coverage/

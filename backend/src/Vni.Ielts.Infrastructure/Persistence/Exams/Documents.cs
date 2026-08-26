@@ -30,9 +30,31 @@ internal sealed class ExamVersionDocument
     [BsonElement("status")]
     public string Status { get; set; } = "Draft";
 
+    [BsonElement("createdBy")]
+    public string CreatedBy { get; set; } = string.Empty;
+
+    [BsonElement("submittedBy")]
+    [BsonIgnoreIfNull]
+    public string? SubmittedBy { get; set; }
+
+    [BsonElement("submittedAt")]
+    [BsonIgnoreIfNull]
+    public DateTime? SubmittedAt { get; set; }
+
+    [BsonElement("reviewedBy")]
+    [BsonIgnoreIfNull]
+    public string? ReviewedBy { get; set; }
+
+    [BsonElement("reviewedAt")]
+    [BsonIgnoreIfNull]
+    public DateTime? ReviewedAt { get; set; }
+
     [BsonElement("publishedAt")]
     [BsonIgnoreIfNull]
     public DateTime? PublishedAt { get; set; }
+
+    [BsonElement("reviewNotes")]
+    public List<ReviewNoteDocument> ReviewNotes { get; set; } = [];
 
     [BsonElement("timing")]
     public TimingDocument Timing { get; set; } = new();
@@ -42,6 +64,26 @@ internal sealed class ExamVersionDocument
 
     [BsonElement("sections")]
     public List<SectionDocument> Sections { get; set; } = [];
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class ReviewNoteDocument
+{
+    [BsonElement("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [BsonElement("authorId")]
+    public string AuthorId { get; set; } = string.Empty;
+
+    [BsonElement("body")]
+    public string Body { get; set; } = string.Empty;
+
+    [BsonElement("anchor")]
+    [BsonIgnoreIfNull]
+    public string? Anchor { get; set; }
+
+    [BsonElement("at")]
+    public DateTime At { get; set; }
 }
 
 [BsonIgnoreExtraElements]

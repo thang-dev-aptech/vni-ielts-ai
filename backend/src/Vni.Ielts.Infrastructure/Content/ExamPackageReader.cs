@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Infrastructure.Content;
@@ -60,7 +61,8 @@ public sealed class ExamPackageReader(JsonSchema schema)
     /// Validates and converts. Findings carry a JSON Pointer path so an author
     /// gets an addressable list of what to fix rather than a stack trace.
     /// </summary>
-    public ExamPackageResult Read(string json, ExamDefinitionId definitionId, int versionNumber)
+    public ExamPackageResult Read(
+        string json, ExamDefinitionId definitionId, int versionNumber, UserId createdBy)
     {
         JsonNode? node;
         try
@@ -87,7 +89,7 @@ public sealed class ExamPackageReader(JsonSchema schema)
         if (!evaluation.IsValid)
             return ExamPackageResult.Rejected(Collect(evaluation));
 
-        var version = Convert(node.AsObject(), definitionId, versionNumber);
+        var version = Convert(node.AsObject(), definitionId, versionNumber, createdBy);
 
         // Coverage is checked here rather than by the schema, which can
         // validate shape but not completeness. An incomplete rawToBand table
@@ -150,7 +152,8 @@ public sealed class ExamPackageReader(JsonSchema schema)
         return findings;
     }
 
-    private static ExamVersion Convert(JsonObject root, ExamDefinitionId definitionId, int versionNumber)
+    private static ExamVersion Convert(
+        JsonObject root, ExamDefinitionId definitionId, int versionNumber, UserId createdBy)
     {
         var variant = root["variant"]!.GetValue<string>() == "general"
             ? ExamVariant.General : ExamVariant.Academic;
@@ -161,7 +164,7 @@ public sealed class ExamPackageReader(JsonSchema schema)
             .ToList();
 
         return ExamVersion.CreateDraft(
-            definitionId, versionNumber, root["title"]!.GetValue<string>(), variant,
+            definitionId, versionNumber, root["title"]!.GetValue<string>(), variant, createdBy,
             ConvertScoring(root["scoringProfile"]!.AsObject()),
             ConvertTiming(root["timingProfile"]!.AsObject()),
             sections);

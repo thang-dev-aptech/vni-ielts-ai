@@ -30,10 +30,29 @@ namespace Vni.Ielts.Domain.Identity;
 /// </summary>
 public static class PermissionKeys
 {
-    public const string ExamRead = "exam.read";
+    // exam.read/update/delete are ownership-scoped rather than global keys —
+    // `Đ5`'s `<resource>.<action>[.<scope>]` convention. There is no bare
+    // `exam.read` etc.: every caller either sees their own content or
+    // everyone's, and a coarser key would let "can read" quietly mean "can
+    // read anything," which is exactly the ambiguity ownership scoping exists
+    // to remove. → docs/ux/cms-content-operations.md §4.1
+    public const string ExamReadOwn = "exam.read.own";
+    public const string ExamReadAny = "exam.read.any";
     public const string ExamCreate = "exam.create";
-    public const string ExamUpdate = "exam.update";
-    public const string ExamDelete = "exam.delete";
+    public const string ExamUpdateOwn = "exam.update.own";
+    public const string ExamUpdateAny = "exam.update.any";
+    public const string ExamDeleteOwn = "exam.delete.own";
+    public const string ExamDeleteAny = "exam.delete.any";
+
+    /// <summary>Submit for review, and withdraw a submission — same permission, opposite direction.</summary>
+    public const string ExamSubmit = "exam.submit";
+
+    /// <summary>Approve, return, or unapprove a submission under review.</summary>
+    public const string ExamReview = "exam.review";
+
+    /// <summary>See a draft as a learner would, before it is publishable.</summary>
+    public const string ExamPreview = "exam.preview";
+
     public const string ExamPublish = "exam.publish";
     public const string ExamUnpublish = "exam.unpublish";
 
@@ -73,7 +92,9 @@ public static class PermissionKeys
     /// </summary>
     public static readonly IReadOnlyList<string> All =
     [
-        ExamRead, ExamCreate, ExamUpdate, ExamDelete, ExamPublish, ExamUnpublish,
+        ExamReadOwn, ExamReadAny, ExamCreate, ExamUpdateOwn, ExamUpdateAny,
+        ExamDeleteOwn, ExamDeleteAny, ExamSubmit, ExamReview, ExamPreview,
+        ExamPublish, ExamUnpublish,
         PackageUpload, PackageRead, PackageDelete,
         EvaluationRead, EvaluationRerun, EvaluationOverride,
         LearnerContentRead,
@@ -85,14 +106,18 @@ public static class PermissionKeys
 }
 
 /// <summary>
-/// The three seeded roles. <c>M-11</c> settled that the first release has no
-/// teacher role, so there is deliberately no <c>Class</c>, no <c>Assignment</c>,
-/// and no teacher-student relationship anywhere in this model.
+/// The seeded roles. <c>M-11</c> settled that the first release has no
+/// class-management teacher role (<c>M-11a</c> stays out of scope), but a
+/// content-authoring one is in scope as <see cref="ExamAuthor"/> (<c>M-11b</c>,
+/// 24 Aug). <c>ContentEditor</c> and <c>Support</c> were folded into
+/// <see cref="Admin"/> the same day (<c>C-25</c>) — their permission keys
+/// still exist, so un-folding either back into its own seeded role later is a
+/// data change, not a redesign.
 /// </summary>
 public static class SystemRoles
 {
     public const string Learner = "learner";
+    public const string ExamAuthor = "exam-author";
+    public const string AcademicLead = "academic-lead";
     public const string Admin = "admin";
-    public const string ContentEditor = "content-editor";
-    public const string Support = "support";
 }

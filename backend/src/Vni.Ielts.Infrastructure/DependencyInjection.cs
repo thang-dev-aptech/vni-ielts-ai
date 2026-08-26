@@ -245,37 +245,56 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// The seeded roles. `M-11` settled that the first release has no teacher
-    /// role, so there is deliberately no fourth entry here.
+    /// The seeded roles. Reseeded 24 Aug (`C-25`) to the three-operator-role
+    /// model in <c>apps/admin/src/lib/permissions.ts</c>'s <c>ROLE_PRESETS</c> —
+    /// <c>content-editor</c> and <c>support</c> were retired in favour of
+    /// <see cref="SystemRoles.Admin"/> absorbing both; nothing here forecloses
+    /// reseeding either back as its own row later, since a role is a bag of
+    /// permissions, not a code path.
     ///
-    /// Note <c>learner</c> holds only <c>exam.read</c>. A learner's ability to
-    /// sit an exam is not a CMS permission — it is governed by entitlement and
-    /// session ownership, and conflating the two would put learner behaviour
-    /// behind the admin permission model.
+    /// Note <c>learner</c> holds only <c>exam.read.own</c>. A learner's ability
+    /// to sit an exam is not a CMS permission — it is governed by entitlement
+    /// and session ownership, and conflating the two would put learner
+    /// behaviour behind the admin permission model.
     /// </summary>
     private static readonly (string Name, string[] Permissions)[] SeedRoles =
     [
-        (SystemRoles.Learner, [PermissionKeys.ExamRead]),
+        (SystemRoles.Learner, [PermissionKeys.ExamReadOwn]),
 
-        (SystemRoles.ContentEditor,
+        (SystemRoles.ExamAuthor,
         [
-            PermissionKeys.ExamRead, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdate,
-            PermissionKeys.ExamDelete, PermissionKeys.PackageRead, PermissionKeys.PackageUpload,
-            PermissionKeys.EvaluationRead,
-            // Deliberately NOT ExamPublish — importing content and shipping it
-            // to learners are separate authorities. → threat T20
+            // Create and edit their own content; submit it for review; upload
+            // media and packages for it. No .any key, no exam.review, no
+            // exam.publish — an author cannot see, let alone ship, someone
+            // else's draft. → threat T20
+            PermissionKeys.ExamReadOwn, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdateOwn,
+            PermissionKeys.ExamDeleteOwn, PermissionKeys.ExamSubmit, PermissionKeys.ExamPreview,
+            PermissionKeys.PackageUpload, PermissionKeys.PackageRead,
         ]),
 
-        (SystemRoles.Support,
+        (SystemRoles.AcademicLead,
         [
-            PermissionKeys.ExamRead, PermissionKeys.PackageRead, PermissionKeys.EvaluationRead,
-            PermissionKeys.LearnerContentRead, PermissionKeys.UserRead,
+            // Everything an author has, on their own content, plus visibility
+            // into everyone's and the authority to approve or return it.
+            // Deliberately NOT ExamPublish — reviewing content and shipping it
+            // to learners are separate authorities (`Đ4`).
+            PermissionKeys.ExamReadOwn, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdateOwn,
+            PermissionKeys.ExamDeleteOwn, PermissionKeys.ExamSubmit, PermissionKeys.ExamPreview,
+            PermissionKeys.PackageUpload, PermissionKeys.PackageRead,
+            PermissionKeys.ExamReadAny, PermissionKeys.ExamUpdateAny, PermissionKeys.ExamReview,
+            PermissionKeys.EvaluationRead,
         ]),
 
         (SystemRoles.Admin,
         [
-            PermissionKeys.ExamRead, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdate,
-            PermissionKeys.ExamDelete, PermissionKeys.ExamPublish, PermissionKeys.ExamUnpublish,
+            // Everything an academic lead has, plus deletion of anyone's
+            // content, publish/unpublish authority, and the rest of the
+            // existing admin surface (content-editor's and support's former
+            // permissions included — see the type doc comment).
+            PermissionKeys.ExamReadOwn, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdateOwn,
+            PermissionKeys.ExamDeleteOwn, PermissionKeys.ExamSubmit, PermissionKeys.ExamPreview,
+            PermissionKeys.ExamReadAny, PermissionKeys.ExamUpdateAny, PermissionKeys.ExamReview,
+            PermissionKeys.ExamDeleteAny, PermissionKeys.ExamPublish, PermissionKeys.ExamUnpublish,
             PermissionKeys.PackageUpload, PermissionKeys.PackageRead, PermissionKeys.PackageDelete,
             PermissionKeys.EvaluationRead, PermissionKeys.EvaluationRerun,
             PermissionKeys.EvaluationOverride, PermissionKeys.LearnerContentRead,

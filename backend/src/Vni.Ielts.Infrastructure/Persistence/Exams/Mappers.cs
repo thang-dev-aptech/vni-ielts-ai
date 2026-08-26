@@ -32,7 +32,19 @@ internal static class ExamMappers
         Title = version.Title,
         Variant = version.Variant.ToString(),
         Status = version.Status.ToString(),
+        CreatedBy = version.CreatedBy.Value,
+        SubmittedBy = version.SubmittedBy?.Value,
+        SubmittedAt = version.SubmittedAt is { } sa ? Utc(sa) : null,
+        ReviewedBy = version.ReviewedBy?.Value,
+        ReviewedAt = version.ReviewedAt is { } ra ? Utc(ra) : null,
         PublishedAt = version.PublishedAt is { } at ? Utc(at) : null,
+        ReviewNotes =
+        [
+            .. version.ReviewNotes.Select(n => new ReviewNoteDocument
+            {
+                Id = n.Id, AuthorId = n.AuthorId.Value, Body = n.Body, Anchor = n.Anchor, At = Utc(n.At),
+            }),
+        ],
         Timing = new TimingDocument
         {
             Sections =
@@ -158,10 +170,17 @@ internal static class ExamMappers
             doc.Title,
             Enum.Parse<ExamVariant>(doc.Variant),
             Enum.Parse<ExamVersionStatus>(doc.Status),
+            new UserId(doc.CreatedBy),
+            doc.SubmittedBy is { } sb ? new UserId(sb) : null,
+            doc.SubmittedAt is { } sa ? Offset(sa) : null,
+            doc.ReviewedBy is { } rb ? new UserId(rb) : null,
+            doc.ReviewedAt is { } ra ? Offset(ra) : null,
             doc.PublishedAt is { } at ? Offset(at) : null,
             scoring,
             timing,
-            [.. doc.Sections.Select(ToDomain)]);
+            [.. doc.Sections.Select(ToDomain)],
+            [.. doc.ReviewNotes.Select(n =>
+                new ReviewNote(n.Id, new UserId(n.AuthorId), n.Body, n.Anchor, Offset(n.At)))]);
     }
 
     private static AnswerMatchingRules ToDomain(this MatchingRulesDocument doc) =>

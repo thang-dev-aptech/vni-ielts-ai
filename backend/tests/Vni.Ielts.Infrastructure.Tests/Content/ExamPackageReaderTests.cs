@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Infrastructure.Content;
 
@@ -30,7 +31,7 @@ public sealed class ExamPackageReaderTests
     }
 
     private static ExamPackageResult Read(string json) =>
-        Reader.Read(json, ExamDefinitionId.New(), 1);
+        Reader.Read(json, ExamDefinitionId.New(), 1, UserId.New());
 
     [Fact]
     public void The_committed_demo_exam_is_valid_against_the_committed_schema()

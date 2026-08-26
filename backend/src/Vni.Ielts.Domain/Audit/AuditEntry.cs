@@ -52,6 +52,12 @@ public enum AuditAction
 {
     ExamPublished,
     ExamUnpublished,
+    ExamSubmitted,
+    ExamWithdrawn,
+    ExamReturned,
+    ExamApproved,
+    ExamUnapproved,
+    ExamResumed,
     UserSuspended,
     UserReinstated,
     RoleAssigned,

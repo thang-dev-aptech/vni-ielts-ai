@@ -105,7 +105,7 @@ internal sealed class FakeUserIdentityRepository : IUserIdentityRepository
 internal sealed class FakeRoleRepository : IRoleRepository
 {
     private readonly List<Role> _all =
-        [Role.Create(SystemRoles.Learner, isSystem: true, [PermissionKeys.ExamRead])];
+        [Role.Create(SystemRoles.Learner, isSystem: true, [PermissionKeys.ExamReadOwn])];
 
     public Task<Role?> FindByIdAsync(RoleId id, CancellationToken ct) =>
         Task.FromResult(_all.FirstOrDefault(r => r.Id == id));

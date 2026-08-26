@@ -16,6 +16,7 @@ public sealed class ExamSessionTests
 {
     private static readonly DateTimeOffset T0 = new(2026, 8, 20, 9, 0, 0, TimeSpan.Zero);
     private static readonly UserId Learner = UserId.New();
+    private static readonly UserId Author = UserId.New();
 
     private static ExamVersion Version(params ExamModule[] modules)
     {
@@ -48,7 +49,7 @@ public sealed class ExamSessionTests
             AnswerMatchingRules.Default);
 
         var version = ExamVersion.CreateDraft(
-            ExamDefinitionId.New(), 1, "Test", ExamVariant.Academic, scoring, timing, sections);
+            ExamDefinitionId.New(), 1, "Test", ExamVariant.Academic, Author, scoring, timing, sections);
         version.Publish(T0.AddDays(-1));
         return version;
     }
@@ -59,7 +60,7 @@ public sealed class ExamSessionTests
         // Publishing is the only human review point in the pipeline. Sitting a
         // draft would route unreviewed content straight to a real candidate.
         var draft = ExamVersion.CreateDraft(
-            ExamDefinitionId.New(), 1, "Draft", ExamVariant.Academic,
+            ExamDefinitionId.New(), 1, "Draft", ExamVariant.Academic, Author,
             new ScoringProfile(new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(),
                 AnswerMatchingRules.Default),
             new TimingProfile(new Dictionary<ExamModule, int> { [ExamModule.Reading] = 60 }, null, []),

@@ -193,6 +193,18 @@ public sealed class SsoAppFactory : WebApplicationFactory<Program>
     private readonly string _database = $"vni_ielts_test_{Guid.NewGuid():n}";
 
     /// <summary>
+    /// The per-run database this factory's API instance is pointed at.
+    ///
+    /// Exposed so a test can reach in with its own <see cref="MongoClient"/>
+    /// for setup the HTTP surface has no self-service path for — granting a
+    /// role, for one: <c>POST /admin/users/{id}/roles</c> itself requires
+    /// <c>role.assign</c>, so a freshly-signed-in test user has no way to
+    /// reach it through the API alone, the same bootstrap problem a real
+    /// first admin has on a fresh clone.
+    /// </summary>
+    public string Database => _database;
+
+    /// <summary>
     /// Probed once per run. A developer without the infra stack up gets a
     /// skipped suite and a note saying how to start it, not a red build.
     /// </summary>

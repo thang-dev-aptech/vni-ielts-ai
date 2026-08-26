@@ -24,6 +24,14 @@
          exception: ID-token validation is the security-critical part of this
          layer and has to be exercised directly. -->
     <InternalsVisibleTo Include="Vni.Ielts.Infrastructure.Tests" />
+
+    <!-- Integration tests need to seed an ExamVersion with a specific
+         CreatedBy directly into Mongo — there is no create-exam endpoint yet
+         (Phase 3), so a real HTTP path does not exist to set one up. Reusing
+         ExamMappers.ToDocument() keeps the seeded shape identical to what the
+         real write path produces, instead of a hand-built BSON document
+         drifting from it. -->
+    <InternalsVisibleTo Include="Vni.Ielts.Integration.Tests" />
   </ItemGroup>
 
   <PropertyGroup>
