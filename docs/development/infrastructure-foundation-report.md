@@ -3537,6 +3537,112 @@ không kiểm gì cả.
 
 ---
 
+## F5.8 — vòng 6: pipeline xanh hoàn toàn, và bộ drill lộ ba lỗi nữa
+
+### 5.8.1 `VERDICT: PASS (27 passed · 0 failed · 0 not run)`
+
+Sau khi thêm `--install`, `scripts/verify.mjs` xanh **toàn bộ 27 stage** trên Linux — gồm
+`restore-drill`, `smoke` (production-mode), `images`, `security`, `e2e` và `skips`. Đây là lần đầu
+tiên toàn bộ pipeline Foundation chạy hết trên CI trong một commit.
+
+Job vẫn đỏ ở bước **sau** đó:
+
+```
+VERDICT: FAIL  (6 produced their failure · 1 did not · 2 not run)
+Certifies: nothing — drills were blocked, unavailable, skipped or failed
+```
+
+### 5.8.2 Ba lỗi trong bộ drill, hai cái là lỗi hạ tầng CI chứ không phải lỗi sản phẩm
+
+**(a) Tên container hardcode.**
+
+```
+-- restore-drill — Encrypted backup, restored into an isolated database
+drill: docker exec -i vni-mongo mongosh cannot reach mongodb://localhost:27017/?directConnection=true.
+   -> exit 2 — the drill did not produce its required failure
+```
+
+`failure-drills.mjs` ghi cứng `vni-mongo` — tên của compose — còn `verify.yml` dựng
+`vni-verify-mongo`. Harness kết luận "drill did not produce its required failure" trong khi đường
+backup hoàn toàn bình thường. Đây là cách đọc tệ nhất có thể của một sự cố hạ tầng.
+
+**(b) Hai drill không chạy được vì CI thiếu hạ tầng, không phải vì bị tắt.**
+
+`production-config-live` và `pitr-drill` là `optIn`. `pitr-drill` cần **agent PBM** và network
+`vni-ielts_default` — thứ mà hai lệnh `docker run` rời rạc không tạo ra.
+
+Vì `failure-drills.mjs` theo đúng nguyên tắc của `verify.mjs` (bất kỳ drill nào không chạy → PARTIAL →
+exit 2), sửa (a) một mình vẫn không đủ để bước này xanh.
+
+**Nên CI chuyển sang dùng chính stack compose.** `compose.yaml` đã dựng đúng thứ các drill cần: mongo
+với healthcheck tự `rs.initiate`, MinIO với bucket do `minio-init` tạo, PBM agent co-located, dưới
+project name `vni-ielts` — chính là nguồn của tên network `vni-ielts_default`. Mọi mặc định trong
+script khớp sẵn, và CI chạy đúng stack mà tài liệu setup bảo lập trình viên chạy.
+
+**Một cái bẫy bắt được trước khi đẩy, thay vì sau một vòng CI 12 phút.** `compose.yaml` cố ý bind
+`127.0.0.1` và `[::1]` (F1.5 — credential local ai cũng biết; `0.0.0.0` trên mạng dùng chung là hớ).
+Nhưng `compose.production.yaml` gọi stack qua `host.docker.internal`, khai bằng
+`extra_hosts: host-gateway`. **Trên Linux tên đó phân giải ra IP gateway của Docker bridge —
+172.17.0.1, không phải 127.0.0.1** — nên một database chỉ nghe loopback sẽ từ chối. Trên Docker
+Desktop tên đó được proxy khác đi, nên chuyện này không bao giờ lộ ra ở local; nó sẽ chỉ vỡ trên CI.
+
+Giải pháp là [`infra/docker/compose.ci.yaml`](../../infra/docker/compose.ci.yaml) — overlay **chỉ đổi
+đúng `ports`**, không đổi image, credential hay command nào. Dùng `!override` để thay danh sách thay
+vì nối thêm (nối thêm sẽ chiếm cùng một host port hai lần). Đã kiểm bằng lệnh chỉ parse:
+
+```
+$ docker compose -f compose.yaml -f compose.ci.yaml config     (Compose v5.3.0)
+  mongo: target 27017, published "27018", không còn host_ip
+```
+
+`--wait` chỉ nhận ba service chạy dài (`mongo minio pbm`), vì `minio-init` là container one-shot và
+`--wait` coi service thoát là service hỏng. Chạy nó riêng bằng `run --rm` cũng biến "bucket đã tồn
+tại" thành một exit code thay vì một tác dụng phụ không ai kiểm.
+
+**(c) `production-config-live` hỏng vì thiếu secret, không phải vì URL http.**
+
+Chạy local với `--include-live`, drill chết trong **313 ms**:
+
+```
+error while interpolating services.api.environment.Jwt__SigningKey:
+required variable VNI_JWT_SIGNING_KEY is missing a value
+```
+
+`note` của chính drill đã ghi *"VNI_JWT_SIGNING_KEY must be set"* — nhưng không có gì đặt nó.
+
+**Điểm đáng ghi: `expectOutputMatches` là thứ bắt được lỗi này.** Exit code là 1, đúng như drill mong
+đợi; chỉ có việc output không chứa `ClientBaseUrl` mới ngăn nó pass vì lý do hoàn toàn sai. Assertion
+đó đã tự chứng minh chỗ đứng của mình.
+
+Biến đang được kiểm là URL. Cấp sẵn một khóa hợp lệ để cô lập nó, và khóa của caller thắng khi có —
+`verify.yml` đặt giá trị riêng cho mỗi run.
+
+### 5.8.3 Bằng chứng local sau khi sửa
+
+```
+$ node scripts/failure-drills.mjs --include-live
+passed           object-storage-credential
+passed           mongo-connection-loss
+passed           worker-loop-dead
+passed           production-config-bad
+passed           dependency-timeout
+passed           pitr-drill
+passed           security-fixture
+not-applicable   restore-drill              declared for linux, darwin; this host is win32
+
+$ node scripts/failure-drills.mjs --drill=production-config-live
+status: passed   exitCode: 139   outputMatched: True   durationMs: 9756
+```
+
+`pitr-drill` **chạy được và xanh** khi có stack compose — đó là bằng chứng trực tiếp rằng việc chuyển
+CI sang compose là điều kiện đủ cho nó, không phải phỏng đoán.
+
+Trên máy Windows này, kết quả tốt nhất có thể vẫn là PARTIAL, vì `restore-drill` là
+`platforms: ['linux','darwin']` — MSYS `chmod 600` không có tác dụng nên guard quyền khóa của
+`backup.sh` chặn lại. Trên Linux CI nó áp dụng được và đã xanh ở vòng 6.
+
+---
+
 ## Báo cáo tổng cuối cùng
 
 Chỉ hoàn tất phần này sau khi mọi checkbox `F0…F5` đã đóng.

@@ -173,7 +173,26 @@ const DRILLS = [
     needsDocker: true,
     optIn: true,
     evidence: ['infra/docker/compose.production.yaml', 'backend/Dockerfile'],
-    note: 'Opt-in (--include-live). It builds the API image. VNI_JWT_SIGNING_KEY must be set, because compose treats it as required — the drill must fail on the http URL, not on a missing secret.',
+    // <b>The note below said this must be set; nothing set it.</b> Run with
+    // `--include-live` the drill died in 313 ms on
+    //
+    //   error while interpolating services.api.environment.Jwt__SigningKey:
+    //   required variable VNI_JWT_SIGNING_KEY is missing a value
+    //
+    // — compose refusing to interpolate, long before an image was built or a
+    // startup gate ran. `expectOutputMatches` is what caught it: the exit code
+    // was 1, exactly as the drill expects, and only the missing `ClientBaseUrl`
+    // in the output kept it from passing for the wrong reason. That assertion
+    // earned its place here.
+    //
+    // The variable under test is the URL. Supplying a valid key isolates it, so
+    // the drill fails for the one reason it exists to prove. A caller's own key
+    // wins where there is one — `verify.yml` sets a per-run value.
+    env: {
+      VNI_JWT_SIGNING_KEY:
+        process.env.VNI_JWT_SIGNING_KEY ?? 'failure-drill-only-not-a-secret-0000000000',
+    },
+    note: 'Opt-in (--include-live). It builds the API image. VNI_JWT_SIGNING_KEY is supplied by this drill, because compose treats it as required — the drill must fail on the http URL, not on a missing secret.',
   },
   {
     id: 'dependency-timeout',
@@ -218,10 +237,21 @@ const DRILLS = [
     // which runs green on Linux CI today. NOT-APPLICABLE still makes the run
     // PARTIAL, so it can never be mistaken for evidence.
     platforms: ['linux', 'darwin'],
+    // <b>The container name is a default, not a constant.</b> It was written
+    // as a bare `vni-mongo` — the compose name — and on a runner that had
+    // started its own container the drill died with
+    //
+    //   drill: docker exec -i vni-mongo mongosh cannot reach
+    //   mongodb://localhost:27017/?directConnection=true          exit 2
+    //
+    // reported as "the drill did not produce its required failure", which is
+    // the worst available reading: the backup path was fine and the harness
+    // said otherwise. `VNI_DRILL_SOURCE` is the same variable `pitr-drill.sh`
+    // already uses for this, so the two agree by construction.
     env: {
       VNI_MONGODUMP: 'docker run --rm --network host mongo:7 mongodump',
       VNI_MONGORESTORE: 'docker run --rm -i --network host mongo:7 mongorestore',
-      VNI_MONGOSH: 'docker exec -i vni-mongo mongosh',
+      VNI_MONGOSH: `docker exec -i ${process.env.VNI_DRILL_SOURCE ?? 'vni-mongo'} mongosh`,
       VNI_MONGOSH_URI: 'mongodb://localhost:27017/?directConnection=true',
     },
   },
