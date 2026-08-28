@@ -182,6 +182,28 @@ jobs:
       - name: Verify
         env:
           VNI_JWT_SIGNING_KEY: ${{ github.run_id }}-${{ github.run_attempt }}-verification-only-not-a-secret
+
+          # <b>The MongoDB tools are not installed on this runner, and the
+          # restore drill needs three of them.</b> It defaults `VNI_MONGOSH` to
+          # a bare `mongosh`, so the stage died on
+          #
+          #   drill: mongosh cannot reach
+          #   mongodb://localhost:27018/?directConnection=true      exit 2
+          #
+          # which reads like an unreachable database and is in fact a missing
+          # binary. `backend.yml` already solved this by borrowing the tools
+          # from the image the database itself runs; `verify.mjs` passes
+          # `process.env` through to every stage, so the same answer belongs
+          # here rather than hard-coded into the script — the container name
+          # differs between the two workflows.
+          #
+          # mongosh runs INSIDE the container, so its URI is the internal 27017;
+          # mongodump and mongorestore run beside it on the host network, so
+          # they use the published 27018 the script already defaults to.
+          VNI_MONGODUMP: docker run --rm --network host mongo:7 mongodump
+          VNI_MONGORESTORE: docker run --rm -i --network host mongo:7 mongorestore
+          VNI_MONGOSH: docker exec -i vni-verify-mongo mongosh
+          VNI_MONGOSH_URI: mongodb://localhost:27017/?directConnection=true
         run: node scripts/verify.mjs
 
       # F5.3. Separate from the pipeline because it is a different question:
