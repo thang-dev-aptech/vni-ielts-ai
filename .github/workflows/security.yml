@@ -31,6 +31,12 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      # CodeQL's `analyze` step reads the workflow run it is part of, to record
+      # which workflow produced an alert. Without `actions: read` it uploads the
+      # SARIF and then dies with `Resource not accessible by integration` on
+      # `GET /actions/runs/{id}` — a failure that looks like a scan failure and
+      # is not one. Required for private repositories; harmless on public ones.
+      actions: read
     strategy:
       fail-fast: false
       matrix:
@@ -69,6 +75,17 @@ jobs:
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # On a `pull_request` event gitleaks-action does not scan the checkout —
+      # it asks the API which commits the pull request contains, and scans
+      # those. The workflow-level `contents: read` does not cover that call, so
+      # the job died on `GET /pulls/{n}/commits` with 403 `Resource not
+      # accessible by integration` before gitleaks itself ever ran. That is a
+      # scanner that never executed, reported as a red check — the failure mode
+      # worth naming, because the opposite (a green check over an unrun
+      # scanner) is the one that would have been dangerous.
+      pull-requests: read
 
     steps:
       - uses: actions/checkout@v4
@@ -167,7 +184,7 @@ jobs:
         run: docker build -f apps/admin/Dockerfile -t vni-admin:scan .
 
       - name: Scan the API image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: vni-api:scan
           severity: 'HIGH,CRITICAL'
@@ -175,7 +192,7 @@ jobs:
           ignore-unfixed: true
 
       - name: Scan the worker image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: vni-worker:scan
           severity: 'HIGH,CRITICAL'
@@ -183,7 +200,7 @@ jobs:
           ignore-unfixed: true
 
       - name: Scan the learner image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: vni-web:scan
           severity: 'HIGH,CRITICAL'
@@ -191,7 +208,7 @@ jobs:
           ignore-unfixed: true
 
       - name: Scan the admin image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: vni-admin:scan
           severity: 'HIGH,CRITICAL'

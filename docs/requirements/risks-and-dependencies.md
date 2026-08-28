@@ -321,6 +321,30 @@ The exemption for an app that *"exclusively uses your company's own account setu
 
 ---
 
+## R18 · Two GitGuardian findings on PR #2 that nobody in the repository can read
+
+**Severity: Medium · Likelihood: Certain · Owner: Product / Engineering · Status: unread**
+
+The `GitGuardian Security Checks` app reports **"2 secrets were uncovered from the scan of 10 commits in your pull request"** on [PR #2](https://github.com/thang-dev-aptech/vni-ielts-ai/pull/2). The check run carries **no annotations** — `GET /check-runs/98917407175/annotations` returns `[]` — so the finding text, the files and the line numbers exist only inside the GitGuardian dashboard, which needs an account this repository's tooling does not have.
+
+An independent scan of the same ten commits found no real credential: token shapes for AWS, Google, OpenAI, Slack and GitHub; `-----BEGIN … PRIVATE KEY`; credentials embedded in URIs; high-entropy literals of 40 characters or more; and literal values assigned to secret-named keys. The 88-character base64 strings in the diff are `pnpm-lock.yaml` `sha512` integrity hashes, and the `accessToken: 'access-token'` matches are test placeholders.
+
+The most likely candidates are three occurrences of one local MinIO password, named to say exactly what it is:
+
+| File | Line | Value |
+|---|---|---|
+| `infra/docker/compose.yaml` | 94 | `MINIO_ROOT_PASSWORD: vni-local-dev-only` |
+| `infra/docker/pbm-config.yaml` | 27 | `secret-access-key: vni-local-dev-only` |
+| `infra/docker/compose.production.yaml` | 56–57 | `ObjectStorage__AccessKey: vni-local` and its secret |
+
+**No ignore rule was written, deliberately.** Suppressing a finding nobody has read is the surest way to silence the one that mattered, if the two are somewhere else entirely.
+
+**Mitigation:** the owner opens the GitGuardian dashboard for PR #2 and confirms what the two findings are. If they are the strings above, they are not live credentials and belong in a narrow, dated ignore rule that names them — the shape `security/vulnerability-allowlist.json` already uses. If they are anything else, treat it as `R16` was treated: **deleting a value is not revoking it.**
+
+**Adjacent, and separate from the scanner question:** a file named `compose.production.yaml` carrying literal credentials is a footgun regardless of what GitGuardian thinks. It is a smoke harness that boots the Production configuration profile against the local stack, and it is safe today only because every host in it (`host.docker.internal`, `*.invalid`) fails to resolve anywhere real. Someone copying it toward an actual deployment would carry the credentials with it.
+
+---
+
 ## R13 · Version control ✅ resolved 2026-08-20
 
 **Severity: High · Likelihood: Certain — it happened twice · Owner: Engineering · Status: RESOLVED**

@@ -3129,6 +3129,155 @@ nặng, kết quả drill có thể nhiễu như mục 7.
 
 ---
 
+## F5.5 — vòng CI thật đầu tiên (PR #2), và bốn lỗi chỉ CI mới thấy
+
+**1. Vì sao phải mở PR mới chạy được.** `security.yml` và `verify.yml` là hai file mới, chưa có trên
+nhánh mặc định. GitHub từ chối `workflow_dispatch` cho workflow chưa tồn tại trên default branch —
+`HTTP 404: workflow verify.yml not found on the default branch`. Chỉ trigger `pull_request` mới nạp
+được chúng. Đây là lý do mọi số liệu F4/F5 trước đó đều là **cục bộ**, và là lý do phần này tồn tại.
+
+**2. Kết quả vòng đầu.** Xanh: `Integrity (ubuntu-latest)`, `Integrity (windows-latest)`,
+`Dependency vulnerabilities`, `Build and verify`, `Build and test` (backend) và — lần đầu tiên —
+**`Real browser, real API` (E2E) xanh trên CI**, bộ test không chạy được ở máy local vì Chromium
+download hỏng do TLS interception (`UNABLE_TO_VERIFY_LEAF_SIGNATURE`). Đỏ: 5 job, phân tích dưới đây.
+
+### 5.5.1 `check-test-skips.mjs` — gate chưa từng chạy trong pipeline gọi nó
+
+```
+Portability gates (Windows) › Skip-gate self-check on this platform
+$ node scripts/check-test-skips.mjs --results _artifacts/verify/test-results
+error: Unknown argument: _artifacts/verify/test-results        exit 1
+```
+
+Parser chỉ tách theo `=`, nên chỉ hiểu `--flag=value`. Nhưng **khối Usage của chính file đó** (dòng
+21–22) và `.github/workflows/verify.yml:330` đều gọi bằng dạng cách. `scripts/verify.mjs` dùng dạng
+`=` nên qua được — vì vậy lỗi ẩn cho tới khi nhánh `verify.yml` chạy thật. Đây là dạng lỗi CI tệ
+nhất: **gate không chạy, và lý do không chạy trông giống như một phát hiện của gate**.
+
+Lỗi thứ hai, im lặng hơn, sửa cùng lúc: `--results=` đẩy chuỗi rỗng vào danh sách, khiến
+`results.length === 0` là false nên thư mục mặc định không bao giờ được thay vào; walk không thấy
+file nào và gate báo sạch trên **không có gì**. Nay `--flag` thiếu giá trị là lỗi.
+
+Thêm `pathToFileURL` main guard để `parseArgs` import được — không có guard thì import test sẽ chạy
+cả gate và gọi `process.exit`, và đó chính là lý do lỗi tham số này không có test nào bắt.
+
+```
+$ node --test scripts/check-test-skips.test.mjs
+# tests 9   # pass 9   # fail 0
+
+$ node scripts/check-test-skips.mjs --results _artifacts/verify/test-results
+Result files: 6   tests counted: 584   skips: 0 (0 unauthorized)
+OK — no unauthorized test skips.                                exit 0
+```
+
+**Negative proof.** Không dựng fault injection cho mục này, vì bằng chứng đỏ mạnh hơn đã có sẵn:
+chính CI đã chạy đúng argv đó trên code cũ và in `Unknown argument`. Test thứ 9
+(`the command line verify.yml actually runs is accepted end to end`) đọc argv **trực tiếp từ
+`verify.yml`** rồi chạy script thật, nên nếu ai đổi workflow sang dạng parser không hiểu, test đỏ —
+unit test thuần sẽ không bắt được điều đó.
+
+### 5.5.2 `verify-realtime.test.tsx` — một test làm đỏ ba job
+
+```
+Full pipeline (Linux) › Verify        Tests 1 failed | 251 passed (252)
+Build and test (Frontend) › Test      × updates when another tab announces the change  8065ms
+AssertionError: expected 'Chưa xác minh' to be 'Đã xác minh'
+```
+
+`AuthProvider` đăng ký `onAccountChanged` trong effect khóa theo `[status, refreshUser]`, nên
+subscription chỉ tồn tại **sau** khi session được khôi phục và commit. `waitFor` phía trên trả về
+ngay khi hàng email hiện ra — dưới máy tải nặng đó có thể là commit **trước** effect. Một lần
+`announceAccountChanged()` ở đó post vào channel chưa ai nghe, và khác với `focus` (người dùng tạo
+lại liên tục), **không có lần thứ hai**.
+
+Đúng cái bẫy mà test thứ tư ngay dưới đã ghi rõ trong comment và đã được sửa — test này có cùng hazard
+mà chưa được sửa cùng cách. Comment cũ còn hứa "longer than the default second" trong khi không
+truyền timeout nào, tức vẫn chạy trên mặc định 1000 ms.
+
+Sửa: announce **bên trong** `waitFor` + timeout 5000 ms. Là artifact của việc announce vài
+microsecond sau mount, không phải lỗi sản phẩm — trong trình duyệt thật tab kia announce rất lâu sau
+khi tab này mount xong.
+
+```
+$ npx vitest run                       (apps/web, đầy đủ)
+Test Files  27 passed (27)
+      Tests  252 passed (252)          82.73s
+```
+
+**Negative proof — bắt buộc, vì nới timeout là loại sửa dễ biến test thành vô nghĩa.** Chép test ra
+file probe tạm, `vi.mock` module `accountEvents.js` để `onAccountChanged` thành no-op (mô phỏng sản
+phẩm ngừng nghe channel), chạy, rồi xóa probe:
+
+```
+× updates when another tab announces the change            5078ms
+  → expected 'Chưa xác minh' to be 'Đã xác minh'
+✓ updates when the tab is returned to                        72ms
+Tests  1 failed | 3 passed (4)
+```
+
+Đỏ đúng thông điệp cũ, sau khi đốt hết 5 s ngân sách — assertion không rỗng. Test "tab được quay lại"
+vẫn xanh dưới cùng mock, đúng như mong đợi: nó đi qua listener `focus`, không qua channel. Worktree
+không bị phá; probe là file thêm rồi xóa, `git status` sạch sau đó.
+
+### 5.5.3 `SBOM per image` và `Foundation matrix gate` — hệ quả, không phải lỗi độc lập
+
+```
+sbom: FAIL — no image vni-ielts-api:02be5836…. Run scripts/verify-images.sh first.
+sbom: 4 image(s) produced no usable SBOM.
+```
+
+`verify.mjs` dừng đúng như thiết kế khi `frontend-test` đỏ — `frontend-test failed. Stopping — later
+stages read what this one produces.` — nên `images` không chạy và SBOM không có gì để đọc:
+`VERDICT: FAIL (10 passed · 1 failed · 1 not run)`. `Foundation matrix gate` đỏ vì cả hai chân
+matrix đỏ. Cả hai đều là hành vi đúng; sửa 5.5.2 và 5.5.1 là đủ, **không sửa gì trong hai job này**.
+
+### 5.5.4 Ba lỗi cấu hình workflow — quét bảo mật báo đỏ vì chưa từng chạy
+
+| Job | Lỗi thật | Sửa |
+|---|---|---|
+| `Secret scan` | `RequestError [HttpError]: Resource not accessible by integration` — 403 trên `GET /repos/…/pulls/2/commits` | job thiếu `pull-requests: read`. Trên `pull_request`, gitleaks-action không quét checkout mà **hỏi API xem PR gồm commit nào**; `contents: read` không phủ call đó |
+| `CodeQL (csharp)` và `(javascript-typescript)` | `Resource not accessible by integration` tại `analyze`, sau khi đã upload SARIF | thêm `actions: read` — `analyze` đọc workflow run để ghi nhận alert đến từ đâu |
+| `Image vulnerabilities` | `Unable to resolve action 'aquasecurity/trivy-action@0.28.0', unable to find version '0.28.0'` (đỏ sau 3 s) | tag không tồn tại. Đổi sang `v0.36.0` — bản mới nhất, xác nhận qua `gh api repos/aquasecurity/trivy-action/releases` |
+
+Điểm chung đáng ghi: **cả ba đều là scanner không chạy được, hiển thị y hệt scanner tìm thấy lỗi.**
+Chiều ngược lại — check xanh trên một scanner chưa từng chạy — mới là chiều nguy hiểm, và đó là lý
+do không job nào ở đây được phép `continue-on-error`.
+
+### 5.5.5 `GitGuardian Security Checks` — **chưa đóng, không tự kết luận**
+
+```
+2 secrets uncovered!  — 2 secrets were uncovered from the scan of 10 commits in your pull request.
+```
+
+Check run **không kèm annotation** (`/check-runs/98917407175/annotations` trả `[]`), nội dung nằm sau
+dashboard GitGuardian mà phiên này không đăng nhập được. Đã tự quét độc lập trên diff
+`origin/main...HEAD` (10 commit): shape AWS/Google/OpenAI/Slack/GitHub token, `-----BEGIN … PRIVATE
+KEY`, URI nhúng credential, chuỗi entropy cao ≥ 40 ký tự, và gán literal cho key tên dạng bí mật.
+**Không thấy credential thật.** Các chuỗi base64 88 ký tự trong diff là hash `sha512` integrity của
+`pnpm-lock.yaml`; các `accessToken: 'access-token'` là placeholder test.
+
+Hai ứng viên khả dĩ nhất, đều là **cùng một mật khẩu MinIO local**, đặt tên để tự nói ra điều đó:
+
+| File | Dòng | Giá trị |
+|---|---|---|
+| `infra/docker/compose.yaml` | 94 | `MINIO_ROOT_PASSWORD: vni-local-dev-only` |
+| `infra/docker/pbm-config.yaml` | 27 | `secret-access-key: vni-local-dev-only` |
+| `infra/docker/compose.production.yaml` | 56–57 | `ObjectStorage__AccessKey: vni-local` / `SecretKey: vni-local-dev-only` |
+
+`compose.production.yaml` **không phải deployment thật** — nó là harness boot Production profile trên
+stack local (`host.docker.internal`, host `.invalid`), nên credential trong đó đúng là của MinIO local.
+
+**Cố ý không viết file ignore cho GitGuardian.** Suppression cho phát hiện mà mình không đọc được là
+cách chắc chắn nhất để bịt đúng cái đáng lo, nếu hai finding thật ra nằm chỗ khác. Mục này giữ `[ ]`
+và cần chủ dự án mở dashboard xác nhận. → `R18` trong
+[`docs/requirements/risks-and-dependencies.md`](../requirements/risks-and-dependencies.md).
+
+**Rủi ro ghi nhận, ngoài phạm vi hàng đợi này (không tự sửa):** một file mang tên
+`compose.production.yaml` chứa credential literal là footgun — ai đó có thể chép nó về phía một
+deployment thật. Nó an toàn hôm nay chỉ vì mọi host trong đó không phân giải được.
+
+---
+
 ## Báo cáo tổng cuối cùng
 
 Chỉ hoàn tất phần này sau khi mọi checkbox `F0…F5` đã đóng.

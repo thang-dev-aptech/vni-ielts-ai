@@ -26,10 +26,23 @@
 
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, extname, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
+// `--flag=value` and `--flag value` both, and that is not politeness.
+//
+// The parser used to split on `=` and nothing else, so `--results <dir>` — the
+// form written in this file's own usage block above, and the form
+// `.github/workflows/verify.yml` calls it with — died on
+// `Unknown argument: <dir>`. The skip gate therefore never ran in the pipeline
+// that runs it, on either platform; the Windows matrix leg is simply where it
+// surfaced first, because the Linux leg had already failed earlier.
+//
+// An empty value is rejected rather than accepted, because the failure it
+// causes is silent: `--results=` pushes `''`, `args.results.length === 0` is
+// then false so the default directory is never substituted, walking `''` finds
+// no files, and the gate reports a clean run over nothing at all.
 function parseArgs(argv) {
   const args = {
     results: [],
@@ -38,9 +51,26 @@ function parseArgs(argv) {
     requireResults: false,
     now: new Date(),
   };
-  for (const raw of argv) {
-    const [key, ...rest] = raw.split('=');
-    const value = rest.join('=');
+
+  const takesValue = new Set(['--results', '--allowlist', '--json', '--now']);
+  const rest = [...argv];
+
+  while (rest.length > 0) {
+    const raw = rest.shift();
+    const eq = raw.indexOf('=');
+    const key = eq === -1 ? raw : raw.slice(0, eq);
+
+    let value = eq === -1 ? undefined : raw.slice(eq + 1);
+    if (takesValue.has(key) && value === undefined) {
+      // Space form. Only consume the next token if there is one and it is not
+      // itself a flag — `--results --require-results` is a missing value, not
+      // a directory named `--require-results`.
+      if (rest.length > 0 && !rest[0].startsWith('--')) value = rest.shift();
+    }
+    if (takesValue.has(key) && !value) {
+      throw new Error(`${key} needs a value`);
+    }
+
     switch (key) {
       case '--results':
         args.results.push(value);
@@ -63,10 +93,13 @@ function parseArgs(argv) {
         throw new Error(`Unknown argument: ${raw}`);
     }
   }
+
   if (args.results.length === 0)
     args.results.push(join(ROOT, '_artifacts', 'verify', 'test-results'));
   return args;
 }
+
+export { parseArgs };
 
 function walk(dir, out = []) {
   let entries;
@@ -313,12 +346,20 @@ function main() {
   console.log('OK — no unauthorized test skips.');
 }
 
-try {
-  main();
-} catch (error) {
-  // A malformed allowlist is a gate failure, not a stack trace. The exemption
-  // file is the one place a skip can be authorized, so it fails loud and
-  // readable rather than crashing the runner that called it.
-  console.error(`error: ${error.message}`);
-  process.exit(1);
+// Run only when invoked as a command. Without the guard, importing `parseArgs`
+// from a test runs the whole gate and calls `process.exit`, which is why the
+// argument bug this guard exists alongside had no test to catch it.
+const invokedDirectly =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (invokedDirectly) {
+  try {
+    main();
+  } catch (error) {
+    // A malformed allowlist is a gate failure, not a stack trace. The exemption
+    // file is the one place a skip can be authorized, so it fails loud and
+    // readable rather than crashing the runner that called it.
+    console.error(`error: ${error.message}`);
+    process.exit(1);
+  }
 }

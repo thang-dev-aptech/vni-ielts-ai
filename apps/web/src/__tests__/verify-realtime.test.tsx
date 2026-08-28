@@ -129,12 +129,39 @@ it('updates when another tab announces the change', async () => {
   await waitFor(() => expect(emailTag()).toBe('Chưa xác minh'));
 
   verified = true;
-  announceAccountChanged();
 
-  // Longer than the default second: the message crosses a BroadcastChannel —
-  // a real event-loop hop, not a synchronous call — and then a fetch has to
-  // come back. Passing alone and failing in a full run is what that looks like.
-  await waitFor(() => expect(emailTag()).toBe('Đã xác minh'));
+  /*
+   * <b>Announced inside the wait, for the reason spelled out on the focus test
+   * below — this test had the identical hazard and had not been given the
+   * identical fix.</b>
+   *
+   * `AuthProvider` subscribes to the channel in the effect keyed on
+   * `[status, refreshUser]`, so the subscription exists only after the session
+   * has been restored and committed. The `waitFor` above returns as soon as the
+   * row renders, which on a loaded machine can be the commit *before* that
+   * effect runs. A single `announceAccountChanged()` there posts into a channel
+   * nobody is listening on yet, and — unlike a focus event, which a user
+   * generates repeatedly — nothing ever sends a second one. The test then
+   * spends its entire budget waiting for a message that was already delivered
+   * to no one.
+   *
+   * That is why it passed run alone and failed inside the 27-file suite on CI:
+   * `expected 'Chưa xác minh' to be 'Đã xác minh'`. It is a timing artifact of
+   * announcing microseconds after mount, not a product defect — in a browser
+   * the other tab announces long after this one finished mounting.
+   *
+   * The explicit timeout is the second half. The old comment claimed to be
+   * "longer than the default second" while passing no timeout at all, so it was
+   * running on the default 1000 ms — for a BroadcastChannel hop plus a fetch
+   * round trip, on a runner already 90 seconds into a suite.
+   */
+  await waitFor(
+    () => {
+      act(() => announceAccountChanged());
+      expect(emailTag()).toBe('Đã xác minh');
+    },
+    { timeout: 5000 },
+  );
 });
 
 it('updates when the tab is returned to', async () => {
