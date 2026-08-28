@@ -143,7 +143,11 @@ jobs:
           # A live MinIO with no buckets is the other half of the same problem:
           # `A_missing_key_in_a_real_bucket_returns_null` needs the bucket to
           # exist, or it cannot distinguish itself from the test next to it.
-          docker run --rm --network host minio/mc:latest sh -c "
+          # `--entrypoint sh` is required: the mc image sets `mc` as its
+          # ENTRYPOINT, so a bare `sh -c` is handed to mc as an argument and
+          # comes back as `mc: <ERROR> `sh` is not a recognized command`.
+          # compose.yaml gets this right with `entrypoint: /bin/sh -c`.
+          docker run --rm --network host --entrypoint sh minio/mc:latest -c "
             mc alias set verify http://localhost:9000 vni-local vni-local-dev-only &&
             mc mb --ignore-existing verify/vni-exam-assets &&
             mc mb --ignore-existing verify/vni-audio-90d &&
