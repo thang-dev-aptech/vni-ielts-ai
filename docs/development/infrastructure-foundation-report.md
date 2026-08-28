@@ -2963,6 +2963,60 @@ agent.
 
 Hành vi này **đúng như F1.6 yêu cầu**: E2E **đỏ to** khi thiếu browser, không âm thầm skip.
 
+### F5.2 — lần chạy CI thật đầu tiên trên Linux (2026-08-28)
+
+Đã commit và push nhánh `feat/foundation-and-learner-auth`; `backend.yml` và `docs.yml` được
+`workflow_dispatch` trên đúng nhánh đó.
+
+**CI bắt được hai bug mà máy Windows không thể bắt.**
+
+**① `Permission denied`, exit 126 — 8 script commit ở mode `100644`.**
+```
+../scripts/otel-smoke.sh: Permission denied
+##[error]Process completed with exit code 126
+```
+Không sửa được bằng cách "nhớ `chmod +x`": dưới Git Bash trên Windows, MSYS `chmod` **không đổi mode
+thật** (đúng hành vi nền tảng khiến `restore-drill.sh` không chạy được ở đó), nên mọi script viết trên
+Windows đều được commit **không có bit thực thi**, và tác giả **không có tín hiệu cục bộ nào** — trên
+máy họ nó chạy tốt.
+
+`scripts/check-script-permissions.mjs` (mới, 6 test) nay chặn việc đó, và **nó tìm thêm 2 file mà lần
+CI đỏ chưa kịp chạm tới** — hai file nguy hiểm hơn:
+`apps/{web,admin}/docker-entrypoint.d/40-vni-runtime-config.sh`. nginx **chỉ chạy file có bit thực
+thi** trong thư mục đó, nên trên Linux hai container sẽ khởi động **bình thường** và phục vụ
+`env-config.js` rỗng — **âm thầm vô hiệu hoá toàn bộ runtime config của F2.6**. Một lỗi to còn may
+hơn thế.
+
+**② URI Mongo sai cổng trong bước OTLP smoke.**
+```
+SocketException (111): Connection refused   → API không bao giờ ready
+```
+Bước đó chạy **trên runner**, cần cổng đã publish (**27018**, chọn để khớp stack local), nhưng tôi đặt
+`27017` — sao chép từ bước restore-drill ngay phía trên, nơi 27017 **đúng** vì bước đó vào Mongo qua
+`docker exec` **bên trong** container. Một URI bị mang qua ranh giới đó mà không mang theo ý nghĩa.
+Đã **bỏ hẳn override** thay vì sửa: mặc định của script vốn là 27018.
+
+**Kết quả sau khi sửa — `Backend` xanh toàn bộ trên `ubuntu-latest`:**
+```
+ok  Shell scripts are executable in git      ← gate mới
+ok  Restore · Build · Architecture boundary
+ok  Domain tests · Application tests
+ok  Start MongoDB replica set
+ok  Infrastructure tests · Integration tests · Worker tests
+ok  Restore drill                            ← Linux-only, KHÔNG chạy được trên Windows
+ok  OpenTelemetry export smoke               ← đường dây OTLP trên runner thật
+ok  No test was skipped
+ok  Upload test results
+                                                              conclusion: success
+```
+`Documentation checks` cũng **xanh trên Linux** — xác nhận bản port Node của docs checker (F1.3) thật
+sự chạy đa nền tảng, không chỉ trên máy viết ra nó.
+
+**Ý nghĩa với các mục còn mở:** `restore-drill` (F3.4) và OTLP smoke (F4.1) nay **đã có bằng chứng
+CI**, không còn chỉ là số đo cục bộ. `security.yml` và `verify.yml` **vẫn chưa chạy được**: GitHub chỉ
+cho `workflow_dispatch` khi file workflow **đã có trên nhánh mặc định**, mà hai file này là file mới.
+Chúng cần một pull request (trigger `pull_request`) hoặc được merge vào `main` trước.
+
 ### F5.3 · Flaky-test burn-in — ĐÃ ĐÓNG (2026-08-28)
 
 **1. Kết quả:** đạt (cục bộ).
