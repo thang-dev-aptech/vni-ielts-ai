@@ -9,7 +9,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseArgs } from './check-test-skips.mjs';
+import { parseArgs, parseTrx } from './check-test-skips.mjs';
 
 test('--flag=value, the form scripts/verify.mjs uses', () => {
   const args = parseArgs(['--results=_artifacts/verify/test-results']);
@@ -97,4 +97,77 @@ test('the command line verify.yml actually runs is accepted end to end', async (
     output = `${error.stdout ?? ''}${error.stderr ?? ''}`;
     assert.doesNotMatch(output, /Unknown argument|needs a value/, output);
   }
+});
+
+// ── The TRX summary lies, and this gate used to believe it ──────────────────
+//
+// Real shape, taken from the CI artifact of run 33193503434: `<Counters>` says
+// notExecuted="0" while three `<UnitTestResult>` entries in the same document
+// say outcome="NotExecuted", and `dotnet test` printed `Skipped: 3` for it.
+const LYING_TRX = `<?xml version="1.0" encoding="UTF-8"?>
+<TestRun>
+  <Results>
+    <UnitTestResult testName="Suite.Passes" outcome="Passed" />
+    <UnitTestResult testName="Storage.S3ObjectStoreTests.A_missing_key_in_a_real_bucket_returns_null" duration="00:00:00.001" outcome="NotExecuted" />
+    <UnitTestResult outcome="NotExecuted" testName="Storage.S3ObjectStoreTests.Wrong_credentials_throw" />
+  </Results>
+  <ResultSummary outcome="Completed">
+    <Counters total="67" executed="64" passed="64" failed="0" notExecuted="0" />
+  </ResultSummary>
+</TestRun>`;
+
+test('a skip is reported even when Counters claims notExecuted="0"', () => {
+  // The exact defect: `if (notExecuted > 0)` guarded the per-result scan, so a
+  // zero in the summary meant the three real skips below it were never looked
+  // for. Six object-storage tests went unreported on every CI build this way.
+  const { skipped, total } = parseTrx('ci.trx', LYING_TRX);
+
+  assert.equal(total, 67);
+  assert.deepEqual(
+    skipped.map((s) => s.name).sort(),
+    [
+      'Storage.S3ObjectStoreTests.A_missing_key_in_a_real_bucket_returns_null',
+      'Storage.S3ObjectStoreTests.Wrong_credentials_throw',
+    ],
+    'a skip named in the body must be reported however the summary counts it',
+  );
+});
+
+test('both attribute orders are recognised, and neither is double-counted', () => {
+  // testName-before-outcome and outcome-before-testName are both present in the
+  // fixture above; two regexes read them and a Set has to reconcile the two.
+  const names = parseTrx('ci.trx', LYING_TRX).skipped.map((s) => s.name);
+  assert.equal(new Set(names).size, names.length, 'a skip was counted twice');
+});
+
+test('a passing run stays clean — the gate is not simply always red', () => {
+  const clean = `<TestRun><Results>
+    <UnitTestResult testName="Suite.Passes" outcome="Passed" />
+  </Results><ResultSummary><Counters total="1" executed="1" passed="1" notExecuted="0" /></ResultSummary></TestRun>`;
+
+  assert.deepEqual(parseTrx('clean.trx', clean).skipped, []);
+});
+
+test('a count with no names is still raised, not dropped', () => {
+  // The opposite direction: the summary sees a skip the body does not name.
+  // Unactionable, but silence would be worse.
+  const countOnly = `<TestRun><Results>
+    <UnitTestResult testName="Suite.Passes" outcome="Passed" />
+  </Results><ResultSummary><Counters total="3" executed="2" passed="2" notExecuted="1" /></ResultSummary></TestRun>`;
+
+  const { skipped } = parseTrx('count.trx', countOnly);
+  assert.equal(skipped.length, 1);
+  assert.match(skipped[0].name, /unnamed skip/);
+});
+
+test('names win over a smaller count rather than being truncated to it', () => {
+  const under = `<TestRun><Results>
+    <UnitTestResult testName="A" outcome="NotExecuted" />
+    <UnitTestResult testName="B" outcome="NotExecuted" />
+  </Results><ResultSummary><Counters total="2" executed="0" notExecuted="1" /></ResultSummary></TestRun>`;
+
+  assert.deepEqual(
+    parseTrx('under.trx', under).skipped.map((s) => s.name),
+    ['A', 'B'],
+  );
 });

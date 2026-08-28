@@ -3278,6 +3278,170 @@ deployment thật. Nó an toàn hôm nay chỉ vì mọi host trong đó không 
 
 ---
 
+## F5.6 — vòng CI thứ hai: cổng "No test was skipped" đã mù suốt từ đầu
+
+Vòng hai xanh thêm `Portability gates (Windows)`, `Full pipeline` chạy từ `10 passed · 1 failed` lên
+`16 passed · 1 failed`, và `Image vulnerabilities` lần đầu **thực sự quét**. Bốn phát hiện mới.
+
+### 5.6.1 Sáu test object storage chưa từng chạy trên CI, và cổng canh chúng báo 0
+
+Chuỗi lần ra rất dài, nên ghi theo đúng thứ tự phát hiện.
+
+`Full pipeline (Linux)` đỏ ở `backend-infrastructure`:
+
+```
+S3ObjectStoreTests.A_missing_key_in_a_real_bucket_returns_null [FAIL]
+Amazon.S3.AmazonS3Exception : The Access Key Id you provided does not exist in our records.
+Failed!  - Failed: 1, Passed: 66, Skipped: 0, Total: 67
+```
+
+`verify.yml` dựng MinIO bằng `MINIO_ROOT_USER=verifyuser` và
+`MINIO_ROOT_PASSWORD="$(openssl rand -hex 24)"`, **không export mật khẩu đó đi đâu cả**. Test xác thực
+bằng `vni-local` (hardcode, khớp `infra/docker/compose.yaml` — đúng file mà thông điệp skip của chúng
+bảo developer chạy). Nên MinIO từ chối tất.
+
+**Nguy hiểm hơn cái test đỏ là hai test xanh cạnh nó.** `A_bucket_that_does_not_exist_throws` và
+`Wrong_credentials_throw` đều assert có `AmazonS3Exception` — mà khi không credential nào đúng thì
+*mọi thứ* đều ném exception đó. Bộ ba sinh ra để phân biệt "không có object" với "sai khóa" lại không
+tự phân biệt được hai thứ đó trong chính môi trường ấy.
+
+Rồi câu hỏi tiếp: vì sao `backend.yml` xanh? Vì ở đó **không có MinIO nào cả**, nên cả sáu test
+(3 Infrastructure + 3 Integration `ObjectStorageHealthTests`) bị skip. Nhưng job vẫn in:
+
+```
+Skipped tests: 0
+```
+
+trong khi `dotnet test` in `Skipped: 3` cho đúng hai suite đó.
+
+**Nguyên nhân gốc, đo trên artifact thật của run 33193503434:** TRX logger ghi
+`<Counters … notExecuted="0" …/>` trong khi chính thân file đó chứa ba
+`<UnitTestResult … outcome="NotExecuted">`. Phần tử tổng kết và các kết quả trong cùng một tài liệu
+mâu thuẫn nhau, và phần tổng kết là bên sai. Bash trong `backend.yml` chỉ đọc `Counters`.
+
+Tệ hơn: `scripts/check-test-skips.mjs` — script được viết ra để thay đoạn bash đó — **cũng mù y hệt**,
+vì nó khóa toàn bộ phần quét theo tên sau `if (notExecuted > 0)`. Đã tự kiểm chứng trước khi sửa:
+
+```
+$ node scripts/check-test-skips.mjs --results <artifact CI> --require-results
+Result files: 6   tests counted: 585   skips: 0 (0 unauthorized)      exit 0
+```
+
+**Negative proof, trên chính dữ liệu CI thật, không dựng giả:**
+
+| Phiên bản gate | Trên artifact run 33193503434 |
+|---|---|
+| bash cũ trong `backend.yml` | `Skipped tests: 0` → exit 0 |
+| `check-test-skips.mjs` trước sửa | `skips: 0 (0 unauthorized)` → exit 0 |
+| `check-test-skips.mjs` sau sửa | `skips: 6 (6 unauthorized)` → **exit 1**, gọi đúng tên cả sáu |
+
+Positive control (không phải lúc nào cũng đỏ): trên trx local vừa chạy —
+`Result files: 3   tests counted: 248   skips: 0` → exit 0.
+
+**Đã sửa bốn chỗ:**
+
+1. `parseTrx` quét `outcome="NotExecuted"` **luôn luôn**, không phụ thuộc `Counters`; số skip lấy giá
+   trị lớn hơn giữa hai nguồn — nguồn nào thấy skip thì tin nguồn đó, không nguồn nào có quyền phủ
+   quyết nguồn kia. 5 regression test mới, gồm fixture đúng hình dạng nói dối của TRX.
+2. `backend.yml` bỏ bash mù, gọi thẳng `check-test-skips.mjs` (nó còn nêu tên từng test và chỉ cho
+   miễn trừ khi có owner + ngày hết hạn).
+3. `backend.yml` dựng MinIO thật (`vni-local`/`vni-local-dev-only`, tạo `vni-exam-assets` và
+   `vni-audio-90d`) và đặt `VNI_REQUIRE_MINIO=1` cho hai suite.
+4. `ObjectStorageProbe` trong Infrastructure.Tests biết `VNI_REQUIRE_MINIO` — trước đó chỉ có bản ở
+   Integration.Tests biết.
+
+`verify.yml` bỏ mật khẩu ngẫu nhiên. Nó không bảo vệ gì (MinIO này bound vào runner và bị hủy cùng
+job) và nó làm hỏng đúng bộ test quan trọng nhất.
+
+**Kết quả local, MinIO thật, cả hai cờ bật:**
+
+```
+Infrastructure   Failed: 0, Passed:  67, Skipped: 0, Total:  67
+Integration      Failed: 0, Passed: 168, Skipped: 0, Total: 168
+Worker           Failed: 0, Passed:  13, Skipped: 0, Total:  13
+```
+
+Trước đó là `64 passed / 3 skipped` và `165 passed / 3 skipped`.
+
+**Negative proof cho `VNI_REQUIRE_MINIO`** — dừng container MinIO local 15 giây rồi bật lại ngay
+(không xóa volume):
+
+```
+System.InvalidOperationException : VNI_REQUIRE_MINIO is set and no MinIO answered on localhost:9000.
+Failed!  - Failed: 3, Passed: 0, Skipped: 0, Total: 3
+```
+
+Đỏ, không phải skip — đúng ý đồ.
+
+### 5.6.2 `Image vulnerabilities` — quét thật lần đầu, và tìm ra thật
+
+```
+Scan the learner image → Total: 33 (HIGH: 31, CRITICAL: 2)
+```
+
+Toàn bộ đều **đã có bản vá** (`--ignore-unfixed` đang bật): openssl `3.3.3-r0` cần `3.3.7-r0`,
+c-ares `1.34.5-r0` cần `1.34.8-r0`. Pin digest F4.5 đã cũ.
+
+Đo tại chỗ bằng Trivy chạy trong Docker (binary không tải được về máy vì TLS interception — cùng
+nguyên nhân với Chromium và `pnpm audit`), đúng tham số CI:
+
+| Base image | HIGH/CRITICAL còn bản vá |
+|---|---:|
+| `nginx-unprivileged:1.27-alpine` (pin cũ) | **33** (HIGH 31, CRITICAL 2) — khớp CI chính xác |
+| `nginx-unprivileged:1.29-alpine` (tag mới nhất) | 12 (HIGH 12, CRITICAL 0) |
+| `1.29-alpine` + `apk --no-cache upgrade` | **0** |
+
+Nên **dời pin là cần nhưng không đủ**: image thượng nguồn được rebuild theo lịch riêng, còn Alpine
+phát hành bản vá gói giữa những lần rebuild đó. Đã dời pin sang `1.29-alpine` và thêm
+`apk --no-cache upgrade` vào runtime stage của cả `apps/web` và `apps/admin`.
+
+Cái giá, nói thẳng: `apk upgrade` phân giải lúc build, nên hai lần build từ cùng một digest có thể
+khác nhau. Đây là đánh đổi có chủ ý — digest vẫn cố định base layer và SBOM vẫn ghi đúng thứ đã ship,
+là phần F4.5 cần; thứ bị bỏ là ảo tưởng rằng một pin cũ vài tháng thì an toàn vì nó chính xác.
+
+Xác minh sau khi sửa, đúng cờ CI kể cả `--exit-code 1`:
+
+```
+vni-web:scan   -> 0 CVE HIGH/CRITICAL (exit 0)
+vni-admin:scan -> 0 CVE HIGH/CRITICAL (exit 0)
+
+$ node scripts/check-base-image-pins.mjs
+  4 Dockerfile(s), every base image pinned by digest              exit 0
+
+$ VNI_REQUIRE_DOCKER=1 bash scripts/verify-images.sh
+ok — vni-ielts-web   runs as uid 101, not root
+ok — vni-ielts-admin runs as uid 101, not root
+ok — same image, two containers, two different served configs      (web và admin)
+All image checks passed.
+```
+
+`USER root` cho một lệnh `apk` rồi trả về `USER nginx` không phá tính chất non-root — đã đo, không suy diễn.
+
+### 5.6.3 CodeQL — **không đóng được ở đây**
+
+```
+##[error]Please verify that the necessary features are enabled:
+         Code scanning is not enabled for this repository
+```
+
+Không phải lỗi quyền như vòng một. Đo 2026-08-29: repository là `private: true`,
+`advanced_security: null`. Code scanning trên private repo cần **GitHub Advanced Security**, một
+add-on trả phí. Không dòng YAML nào bật được nó.
+
+Đã chuyển thành configured seam theo `G-11`: job gated trên biến repository `ENABLE_CODE_SCANNING`,
+mặc định **skip** (đọc là "chưa chạy") thay vì đỏ vĩnh viễn (đọc là nhiễu, và rồi cả đội quen bỏ qua
+một cổng bảo mật). Bật biến lên là job chạy nguyên trạng. → `R19`
+
+**Foundation Ready không được hiểu là có phân tích tĩnh.** Đúng những query dự án này cần nhất —
+path traversal trong ZIP ingestion, injection trên đường AI — lại là những thứ hiện không có gì chạy.
+
+### 5.6.4 Còn lại
+
+`GitGuardian` vẫn như mục 5.5.5 — cần chủ dự án mở dashboard. Đáng ghi thêm: `Secret scan` (gitleaks)
+đã chạy thật ở vòng này và **báo sạch**, nên hai công cụ đang bất đồng.
+
+---
+
 ## Báo cáo tổng cuối cùng
 
 Chỉ hoàn tất phần này sau khi mọi checkbox `F0…F5` đã đóng.

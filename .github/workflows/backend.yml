@@ -113,13 +113,60 @@ jobs:
           docker logs vni-ci-mongo | tail -50
           exit 1
 
+      # ── Object storage ───────────────────────────────────────────────────
+      #
+      # <b>Added 2026-08-29, and it should have been here from the start.</b>
+      # Six tests — three in Infrastructure, three in Integration — exist to
+      # prove that object-storage readiness can tell "the object is not there"
+      # from "the credentials are wrong". With no MinIO on the runner all six
+      # were `SkippableFact`, so all six silently did not run on any CI build,
+      # while the step below reported `Skipped tests: 0` over them. → F5.5
+      #
+      # Credentials and buckets match `infra/docker/compose.yaml` exactly,
+      # because the tests name them and the skip message points a developer at
+      # that same file. They are a committed, publicly known local-dev password
+      # for a container that lives for the length of this job.
+      - name: Start MinIO
+        run: |
+          docker run -d --name vni-ci-minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=vni-local \
+            -e MINIO_ROOT_PASSWORD=vni-local-dev-only \
+            minio/minio:latest server /data
+
+          live=0
+          for _ in $(seq 1 60); do
+            if curl -fsS http://localhost:9000/minio/health/live >/dev/null 2>&1; then
+              live=1
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$live" -ne 1 ]; then
+            echo "::error::MinIO never became live."
+            docker logs vni-ci-minio | tail -50
+            exit 1
+          fi
+
+          # Only the buckets the tests actually name. `vni-exam-assets` is the
+          # "real bucket" a missing key is looked up in; `vni-audio-90d` is the
+          # dictation bucket the readiness probe checks alongside it.
+          docker run --rm --network host minio/mc:latest sh -c "
+            mc alias set ci http://localhost:9000 vni-local vni-local-dev-only &&
+            mc mb --ignore-existing ci/vni-exam-assets &&
+            mc mb --ignore-existing ci/vni-audio-90d &&
+            echo 'buckets ready'
+          "
+
       # VNI_REQUIRE_MONGO turns "no Mongo" from a skipped suite into a failed
       # run. Without it these tests are `SkippableFact`, which is right on a
       # laptop with no Docker up and wrong here: a green build that skipped
       # every concurrency test reports success over rules nothing checked.
+      # VNI_REQUIRE_MINIO says the same thing about object storage.
       - name: Infrastructure tests
         env:
           VNI_REQUIRE_MONGO: '1'
+          VNI_REQUIRE_MINIO: '1'
         run: >
           dotnet test tests/Vni.Ielts.Infrastructure.Tests
           --no-build --configuration Release
@@ -128,6 +175,7 @@ jobs:
       - name: Integration tests
         env:
           VNI_REQUIRE_MONGO: '1'
+          VNI_REQUIRE_MINIO: '1'
         run: >
           dotnet test tests/Vni.Ielts.Integration.Tests
           --no-build --configuration Release
@@ -182,27 +230,22 @@ jobs:
 
       # A skipped concurrency test is a hole in the gate, and a skip is not a
       # failure — so nothing else in this job would notice. This does.
+      #
+      # <b>This step used to be inline bash, and it was blind.</b> It read only
+      # the `<Counters notExecuted="…">` element, which the TRX logger writes as
+      # `0` even when individual `<UnitTestResult>` entries in the same file
+      # carry `outcome="NotExecuted"`. Measured on the run-33193503434 artifact:
+      # `notExecuted="0"` in Counters, three `outcome="NotExecuted"` results in
+      # the body of the same `.trx`. So it printed `Skipped tests: 0` over six
+      # genuinely skipped object-storage tests, on every build it ever ran.
+      #
+      # `scripts/check-test-skips.mjs` reads both, names each skipped test, and
+      # allows an exemption only with an owner and an expiry date. Its own
+      # header already said it existed to replace this bash; the replacement
+      # simply had not happened here. → F5.5
       - name: No test was skipped
         if: always()
-        run: |
-          shopt -s nullglob
-          files=(../test-results/*.trx)
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "::error::No .trx results were produced."
-            exit 1
-          fi
-
-          skipped=0
-          for f in "${files[@]}"; do
-            n=$(grep -o 'notExecuted="[0-9]*"' "$f" | head -1 | grep -o '[0-9]*' || echo 0)
-            skipped=$(( skipped + ${n:-0} ))
-          done
-
-          echo "Skipped tests: $skipped"
-          if [ "$skipped" -ne 0 ]; then
-            echo "::error::$skipped test(s) were skipped. The concurrency suites must run."
-            exit 1
-          fi
+        run: node ../scripts/check-test-skips.mjs --results ../test-results --require-results
 
       - name: Upload test results
         if: always()
@@ -212,6 +255,8 @@ jobs:
           path: test-results/
           if-no-files-found: warn
 
-      - name: Stop MongoDB
+      - name: Stop MongoDB and MinIO
         if: always()
-        run: docker rm -f vni-ci-mongo || true
+        run: |
+          docker rm -f vni-ci-mongo || true
+          docker rm -f vni-ci-minio || true

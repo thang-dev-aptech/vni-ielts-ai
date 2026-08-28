@@ -99,7 +99,7 @@ function parseArgs(argv) {
   return args;
 }
 
-export { parseArgs };
+export { parseArgs, parseTrx };
 
 function walk(dir, out = []) {
   let entries;
@@ -130,41 +130,56 @@ function walk(dir, out = []) {
 // unchanged for a decade, and this file has to run before `pnpm install` on
 // a clean checkout.
 
+// <b>`<Counters notExecuted>` is not trustworthy, and this gate was built on
+// it.</b>
+//
+// Measured on the real CI artifact from run 33193503434: the `.trx` for the
+// Infrastructure suite carries `<Counters … notExecuted="0" …/>` while its own
+// body holds three `<UnitTestResult … outcome="NotExecuted">` entries, and
+// `dotnet test` printed `Skipped: 3` for that same run. The summary element and
+// the results in the same document disagree, and the summary is the one that is
+// wrong.
+//
+// So the per-result scan runs ALWAYS rather than only when the counter says
+// there is something to find — that `if (notExecuted > 0)` guard is exactly why
+// six skipped object-storage tests went unreported on every build. The count is
+// the larger of the two readings: whichever source noticed a skip is believed,
+// and neither gets to veto the other.
 function parseTrx(file, text) {
   const skipped = [];
   let total = 0;
+
   const counters = text.match(/<Counters\b[^>]*\/>/);
+  let notExecuted = 0;
   if (counters) {
     const attr = (n) => {
       const m = counters[0].match(new RegExp(`${n}="(\\d+)"`));
       return m ? Number(m[1]) : 0;
     };
     total = attr('total');
-    const notExecuted = attr('notExecuted');
-    if (notExecuted > 0) {
-      // Name them where the document allows it; a count with no names is
-      // an alarm nobody can act on.
-      const named = [
-        ...text.matchAll(/<UnitTestResult\b[^>]*\btestName="([^"]*)"[^>]*\boutcome="NotExecuted"/g),
-      ]
-        .map((m) => m[1])
-        .concat(
-          [
-            ...text.matchAll(
-              /<UnitTestResult\b[^>]*\boutcome="NotExecuted"[^>]*\btestName="([^"]*)"/g,
-            ),
-          ].map((m) => m[1]),
-        );
-      const unique = [...new Set(named)];
-      if (unique.length > 0) {
-        for (const name of unique) skipped.push({ name, file, runner: 'dotnet' });
-      } else {
-        for (let i = 0; i < notExecuted; i += 1) {
-          skipped.push({ name: `<unnamed skip #${i + 1}>`, file, runner: 'dotnet' });
-        }
-      }
-    }
+    notExecuted = attr('notExecuted');
   }
+
+  // Both attribute orders: the TRX schema does not fix them, and a result whose
+  // `outcome` precedes its `testName` is just as skipped.
+  const named = [
+    ...[
+      ...text.matchAll(/<UnitTestResult\b[^>]*\btestName="([^"]*)"[^>]*\boutcome="NotExecuted"/g),
+    ].map((m) => m[1]),
+    ...[
+      ...text.matchAll(/<UnitTestResult\b[^>]*\boutcome="NotExecuted"[^>]*\btestName="([^"]*)"/g),
+    ].map((m) => m[1]),
+  ];
+
+  const unique = [...new Set(named)];
+  for (const name of unique) skipped.push({ name, file, runner: 'dotnet' });
+
+  // A count with no names is an alarm nobody can act on, but it is still an
+  // alarm — so it is raised rather than dropped.
+  for (let i = unique.length; i < notExecuted; i += 1) {
+    skipped.push({ name: `<unnamed skip #${i + 1}>`, file, runner: 'dotnet' });
+  }
+
   return { skipped, total };
 }
 

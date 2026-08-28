@@ -25,9 +25,31 @@ permissions:
 
 jobs:
   # ── Static analysis ────────────────────────────────────────────────────────
+  # <b>Off until someone with a budget turns it on, and that is a decision, not
+  # an oversight.</b>
+  #
+  # This job is correct and it cannot run here. Measured 2026-08-29:
+  # `repos/thang-dev-aptech/vni-ielts-ai` is `private: true` with
+  # `advanced_security: null`, and `analyze` fails with
+  #
+  #   Please verify that the necessary features are enabled: Code scanning is
+  #   not enabled for this repository
+  #
+  # Code scanning on a private repository needs GitHub Advanced Security, which
+  # is a paid add-on. Nothing in this file can enable it, and the two ways
+  # forward — buy GHAS, or make the repository public — both belong to the
+  # product owner.
+  #
+  # So it becomes a configured seam with the switch left off (`G-11`), rather
+  # than a permanently red check that everyone learns to scroll past. Set the
+  # repository variable `ENABLE_CODE_SCANNING` to `true` once GHAS is on and
+  # this runs unchanged. Until then the job SKIPS — which reads as "not run",
+  # not as "passed" — and `docs/development/infrastructure-foundation-report.md`
+  # records that Foundation Ready claims no static-analysis coverage. → R19
   codeql:
     name: CodeQL (${{ matrix.language }})
     runs-on: ubuntu-latest
+    if: vars.ENABLE_CODE_SCANNING == 'true'
     permissions:
       contents: read
       security-events: write

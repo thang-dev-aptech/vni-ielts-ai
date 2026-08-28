@@ -18,7 +18,29 @@ COPY . .
 RUN corepack enable && pnpm install --frozen-lockfile
 RUN pnpm --filter @vni/admin build
 
-FROM nginxinc/nginx-unprivileged:1.27-alpine@sha256:65e3e85dbaed8ba248841d9d58a899b6197106c23cb0ff1a132b7bfe0547e4c0 AS runtime
+FROM nginxinc/nginx-unprivileged:1.29-alpine@sha256:0c79d56aee561a1d81c63f00eee5fb5fe29279560cdc55e91425133104c7fbe6 AS runtime
+
+# <b>Patch the base, do not merely pin it.</b> F4.5 pins by digest so a build is
+# reproducible; this line exists because a pin alone is a promise to ship the
+# same known-vulnerable packages forever. Measured on 2026-08-29 with
+# `trivy image --severity HIGH,CRITICAL --ignore-unfixed`:
+#
+#   nginx-unprivileged:1.27-alpine   33 (HIGH 31, CRITICAL 2)  <- what CI failed on
+#   nginx-unprivileged:1.29-alpine   12 (HIGH 12, CRITICAL 0)  <- newest tag, still red
+#   1.29-alpine + apk upgrade         0
+#
+# So moving the pin forward was necessary and not sufficient: the upstream image
+# is rebuilt on its own schedule, and Alpine publishes package fixes between
+# those rebuilds. openssl was 3.3.3-r0 against a 3.3.7-r0 fix.
+#
+# The cost, stated plainly: `apk upgrade` resolves at build time, so two builds
+# of this Dockerfile from the same digest can differ. That is a deliberate trade
+# — the digest still fixes the base layer and the SBOM records exactly what
+# shipped, which is what F4.5 needs; what it gives up is the pretence that a
+# months-old pin is safe merely because it is exact.
+USER root
+RUN apk --no-cache upgrade
+USER nginx
 
 # --chown, and it has to be explicit — see apps/web/Dockerfile for why:
 # the base image's html directory is root-owned even though nginx itself

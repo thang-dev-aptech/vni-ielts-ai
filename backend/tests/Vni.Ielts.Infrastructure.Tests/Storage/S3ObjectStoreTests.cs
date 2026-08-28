@@ -91,6 +91,32 @@ internal static class ObjectStorageProbe
 
     private static readonly Lazy<bool> _available = new(() =>
     {
+        var reachable = Probe();
+
+        // <b>On CI, "no MinIO" is a failure, not a skip.</b> Without this the
+        // three object-store tests quietly did not run on any CI build — and
+        // the reason that went unnoticed for so long is worth recording: the
+        // `No test was skipped` gate in `backend.yml` read only the `<Counters
+        // notExecuted="…">` element of the `.trx`, which the TRX logger writes
+        // as `0` even when individual `<UnitTestResult>` entries carry
+        // `outcome="NotExecuted"`. So the gate printed `Skipped tests: 0` over
+        // three skipped tests, on every run.
+        //
+        // These are the tests that separate "the object is not there" from
+        // "the credentials are wrong" — the distinction the readiness probe is
+        // built on. A build that skips them proves nothing about it.
+        if (!reachable && Environment.GetEnvironmentVariable("VNI_REQUIRE_MINIO") == "1")
+        {
+            throw new InvalidOperationException(
+                "VNI_REQUIRE_MINIO is set and no MinIO answered on localhost:9000. This is "
+                + "deliberate: on CI these tests must run, not skip.");
+        }
+
+        return reachable;
+    });
+
+    private static bool Probe()
+    {
         try
         {
             using var client = new TcpClient();
@@ -101,5 +127,5 @@ internal static class ObjectStorageProbe
         {
             return false;
         }
-    });
+    }
 }

@@ -97,22 +97,58 @@ jobs:
           docker logs vni-verify-mongo | tail -50
           exit 1
 
+      # <b>The credentials are the ones the tests name, and the random password
+      # that used to be here was not a stricter choice — it was a broken one.</b>
+      #
+      # This step started MinIO as `verifyuser` with `openssl rand -hex 24`, and
+      # exported neither anywhere. The object-store tests authenticate as
+      # `vni-local` (they hardcode it, matching `infra/docker/compose.yaml`,
+      # which is also what their skip message tells a developer to run), so
+      # MinIO refused every one of them:
+      #
+      #   Amazon.S3.AmazonS3Exception : The Access Key Id you provided does not
+      #   exist in our records.
+      #
+      # Worse than the one red test: the two beside it went GREEN for the wrong
+      # reason. `A_bucket_that_does_not_exist_throws` and
+      # `Wrong_credentials_throw` both assert that an `AmazonS3Exception` is
+      # raised — and with no valid credentials at all, everything raises one.
+      # The trio whose entire purpose is to separate "no such object" from "bad
+      # key" could not itself tell the two apart in this environment.
+      #
+      # Nothing is protected by randomising it: this MinIO is bound to the
+      # runner and destroyed with the job.
       - name: Start MinIO
         run: |
           docker run -d --name vni-verify-minio -p 9000:9000 \
-            -e MINIO_ROOT_USER=verifyuser -e MINIO_ROOT_PASSWORD="$(openssl rand -hex 24)" \
+            -e MINIO_ROOT_USER=vni-local \
+            -e MINIO_ROOT_PASSWORD=vni-local-dev-only \
             minio/minio:latest server /data
 
+          live=0
           for _ in $(seq 1 60); do
             if curl -fsS http://localhost:9000/minio/health/live >/dev/null 2>&1; then
-              echo "MinIO is live."
-              exit 0
+              live=1
+              break
             fi
             sleep 1
           done
-          echo "::error::MinIO never became live."
-          docker logs vni-verify-minio | tail -50
-          exit 1
+
+          if [ "$live" -ne 1 ]; then
+            echo "::error::MinIO never became live."
+            docker logs vni-verify-minio | tail -50
+            exit 1
+          fi
+
+          # A live MinIO with no buckets is the other half of the same problem:
+          # `A_missing_key_in_a_real_bucket_returns_null` needs the bucket to
+          # exist, or it cannot distinguish itself from the test next to it.
+          docker run --rm --network host minio/mc:latest sh -c "
+            mc alias set verify http://localhost:9000 vni-local vni-local-dev-only &&
+            mc mb --ignore-existing verify/vni-exam-assets &&
+            mc mb --ignore-existing verify/vni-audio-90d &&
+            echo 'buckets ready'
+          "
 
       - name: Install
         run: pnpm install --frozen-lockfile

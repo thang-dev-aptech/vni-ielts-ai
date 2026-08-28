@@ -321,6 +321,27 @@ The exemption for an app that *"exclusively uses your company's own account setu
 
 ---
 
+## R19 · There is no static analysis, because it costs money on a private repository
+
+**Severity: Medium · Likelihood: Certain · Owner: Product · Status: switched off, awaiting a decision**
+
+`.github/workflows/security.yml` runs CodeQL with the `security-extended` query set over C# and TypeScript. It has never produced a result. Measured 2026-08-29: this repository is `private: true` with `advanced_security: null`, and `github/codeql-action/analyze` ends with **"Code scanning is not enabled for this repository"** after uploading its results.
+
+Code scanning on a private repository requires **GitHub Advanced Security**, a paid add-on. No workflow change can enable it. The two ways forward both belong to the owner:
+
+| Option | Consequence |
+|---|---|
+| Buy GHAS for this repository | CodeQL, secret scanning and dependency review all light up; recurring cost |
+| Make the repository public | Code scanning is free; the source, and its history, become world-readable — see `R16`, where a credential in history is still outstanding |
+
+**Making it public is not a cheap workaround while `R16` is open.** A repository's history is published with it, and the Google credential removed with `.mcp.json` has still not been revoked at the provider.
+
+The job is now gated on the repository variable `ENABLE_CODE_SCANNING`, so it **skips** rather than failing red. A skip reads as "did not run"; a permanently red check reads as noise, and the failure mode that matters here is a team learning to ignore a security check. Set the variable to `true` and the job runs unchanged.
+
+**What this costs today:** the queries this project most wants — path traversal in ZIP ingestion (`docs/security/zip-ingestion-security.md`), injection in the AI prompt path — are exactly the ones nothing is running. Foundation Ready must not be read as claiming static-analysis coverage.
+
+---
+
 ## R18 · Two GitGuardian findings on PR #2 that nobody in the repository can read
 
 **Severity: Medium · Likelihood: Certain · Owner: Product / Engineering · Status: unread**
