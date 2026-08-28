@@ -292,6 +292,15 @@ jobs:
       - name: Toolchain versions agree
         run: node scripts/check-toolchain-versions.mjs
 
+      # F5.2 — the Windows job is exactly where this belongs: a script authored
+      # here is committed non-executable by default (MSYS `chmod` does not take)
+      # and then dies on Linux with "Permission denied". Catching it on the
+      # platform that CAUSES it means the author sees it before Linux does.
+      - name: Shell scripts are executable in git
+        run: |
+          node --test scripts/check-script-permissions.test.mjs
+          node scripts/check-script-permissions.mjs
+
       - name: Install
         run: pnpm install --frozen-lockfile
 

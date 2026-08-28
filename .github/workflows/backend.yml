@@ -26,6 +26,13 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # F5.2 — before anything shells out. A script committed without the
+      # executable bit dies here with "Permission denied" (exit 126), and this
+      # job runs four of them. Failing by name beats failing at the step that
+      # happens to reach one first.
+      - name: Shell scripts are executable in git
+        run: node ../scripts/check-script-permissions.mjs
+
       - name: Restore
         run: dotnet restore
 
