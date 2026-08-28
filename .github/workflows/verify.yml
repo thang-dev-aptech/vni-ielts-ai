@@ -204,7 +204,19 @@ jobs:
           VNI_MONGORESTORE: docker run --rm -i --network host mongo:7 mongorestore
           VNI_MONGOSH: docker exec -i vni-verify-mongo mongosh
           VNI_MONGOSH_URI: mongodb://localhost:27017/?directConnection=true
-        run: node scripts/verify.mjs
+        # <b>`--install`, because PARTIAL is not PASS and that rule is right.</b>
+        #
+        # verify.mjs holds that a stage which did not run is never a stage that
+        # passed, so one skipped stage makes the whole run PARTIAL and exits 2.
+        # The `install` stage is opt-in, so the run came back
+        # `26 passed · 0 failed · 1 not run` — everything green and still red.
+        #
+        # The fix is to run the stage, not to teach the verdict to overlook it.
+        # A Foundation pipeline that never checks `pnpm install
+        # --frozen-lockfile` is missing a real clean-checkout guarantee, and the
+        # second install costs almost nothing after the step above has already
+        # populated the store.
+        run: node scripts/verify.mjs --install
 
       # F5.3. Separate from the pipeline because it is a different question:
       # `verify` asks whether the suite passes, burn-in asks whether it passes

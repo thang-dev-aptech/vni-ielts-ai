@@ -248,10 +248,20 @@ phase dependency đóng.
   - Định nghĩa API error/latency, readiness failure, queue depth/oldest age, worker failure, backup
     freshness và object-storage error.
   - Threshold chưa phải business decision được để trong config, không hard-code như requirement.
-- [x] **F4.4 · Dependency và static security gates**
+- [ ] **F4.4 · Dependency và static security gates** — *mở lại 29/08/2026, chờ quyết định chủ dự án*
   - Dependabot hằng tuần cho npm, NuGet, Docker và GitHub Actions.
   - CodeQL/SAST, secret scan và vulnerability scan chạy trong CI.
   - High/Critical chỉ được miễn bằng allowlist có lý do, owner và ngày hết hạn.
+  - **Đã chạy thật trên CI (PR #2, vòng 3–5):** `Dependency vulnerabilities` pass ·
+    `Secret scan` (gitleaks) pass · `Image vulnerabilities` pass sau khi vá 33 CVE có bản vá.
+  - **Chưa đạt — `CodeQL/SAST`.** Item này từng được đánh `[x]` dựa trên việc workflow *tồn tại*.
+    Lần chạy thật đầu tiên cho thấy nó chưa bao giờ phân tích được dòng code nào:
+    `Code scanning is not enabled for this repository`. Repository là `private` và
+    `advanced_security: null`; code scanning trên private repo cần **GitHub Advanced Security trả
+    phí**. Không dòng YAML nào bật được. Job đã thành configured seam gated trên biến
+    `ENABLE_CODE_SCANNING`, mặc định skip. → `R19`
+  - **Cần chủ dự án quyết:** mua GHAS, hay để repository public. Public **không** phải lối tắt rẻ khi
+    `R16` còn treo — lịch sử repo được công bố cùng nó và khóa Google vẫn chưa thu hồi.
 - [x] **F4.5 · Container supply chain**
   - Pin base image bằng digest, bỏ moving tag như `latest`.
   - Release artifact có SBOM, provenance và chữ ký Cosign keyless.
@@ -262,6 +272,8 @@ phase dependency đóng.
 - Local collector nhận được ít nhất một trace, metric và log tương quan từ API và worker.
 - Redaction test chứng minh dữ liệu nhạy cảm không xuất hiện trong log/telemetry export.
 - CodeQL, dependency audit, secret scan và image scan đều chạy được và fail trên fixture có chủ đích.
+  **Chưa đạt:** ba cái sau đã chạy thật trên CI; CodeQL không chạy được ở repository này (`R19`).
+  Đây là lý do F4 giữ `[ ]` — tiêu chí thiếu nằm ngoài repository, không phải chưa làm.
 - SBOM/provenance/signature gắn đúng immutable image digest.
 - Ghi báo cáo F4; sau đó mới đánh dấu F4 trong master checklist.
 

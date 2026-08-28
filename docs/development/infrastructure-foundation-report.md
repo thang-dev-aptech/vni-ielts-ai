@@ -3442,6 +3442,101 @@ path traversal trong ZIP ingestion, injection trên đường AI — lại là n
 
 ---
 
+## F5.7 — vòng 4 và 5: mọi cổng xanh trừ một verdict, và một item phải mở lại
+
+### 5.7.1 Vòng 4 — hai lỗi, một nguyên nhân, và là lỗi của tôi
+
+Cả `Build and test` (Backend) lẫn `Full pipeline` chết ở bước MinIO mới thêm:
+
+```
+mc: <ERROR> `sh` is not a recognized command. Get help using `--help` flag.
+```
+
+Image `minio/mc` đặt sẵn `mc` làm ENTRYPOINT, nên `docker run minio/mc sh -c "…"` đưa `sh` cho `mc`
+như một tham số. `infra/docker/compose.yaml` vốn làm đúng bằng `entrypoint: /bin/sh -c`; tôi viết lại
+bước đó mà không chép nửa quan trọng ấy.
+
+Lần này tái hiện tại máy **trước** khi đẩy — dạng cũ ra đúng thông điệp của CI, dạng mới in
+`buckets ready`. Đó chính là bước tôi bỏ qua ở vòng trước và nó tốn trọn một chu kỳ CI.
+
+Sau khi sửa, vòng 4 cho `Build and test` ×2 xanh và `Full pipeline` đi từ 16 lên **25 passed ·
+1 failed**, dừng ở:
+
+```
+drill: mongosh cannot reach mongodb://localhost:27018/?directConnection=true      exit 2
+```
+
+Đọc như "database không tới được", thực chất là **thiếu binary**: runner không cài MongoDB tools, còn
+`restore-drill.sh` mặc định `VNI_MONGOSH` là `mongosh` trần. `backend.yml` đã giải quyết từ trước bằng
+cách mượn tool từ chính image database đang chạy. `verify.mjs` merge `process.env` vào mọi stage, nên
+câu trả lời thuộc về workflow chứ không phải script — tên container khác nhau giữa hai nơi.
+
+Kiểm chứng trong giới hạn Windows cho phép: với env này drill **đi qua đúng chỗ CI chết** và in ra tên
+database tạm, rồi dừng ở hạn chế `chmod 600` của MSYS đã biết — thứ không tồn tại trên Linux.
+
+Nhân đó phát hiện thêm một lỗ: `verify.mjs` đặt `VNI_REQUIRE_MONGO` cho `backend-infrastructure` và
+`integration` nhưng **không đặt `VNI_REQUIRE_MINIO`**, nghĩa là sáu test object storage vẫn có thể
+skip xuyên qua pipeline Foundation kể cả sau khi `backend.yml` đã sửa.
+
+### 5.7.2 Vòng 5 — sáu test object storage thật sự chạy trên CI
+
+Toàn bộ check xanh trừ một. Số liệu lấy từ log run 33197759823, không chép lịch sử:
+
+| Suite | Kết quả trên CI |
+|---|---|
+| Architecture | `Passed: 10, Skipped: 0, Total: 10` |
+| Domain | `Passed: 157, Skipped: 0, Total: 157` |
+| Application | `Passed: 170, Skipped: 0, Total: 170` |
+| Infrastructure | `Passed: 67, Skipped: 0, Total: 67` |
+| Integration | `Passed: 168, Skipped: 0, Total: 168` |
+| Worker | `Passed: 13, Skipped: 0, Total: 13` |
+
+```
+── skips — No test was skipped without a dated, owned exemption
+Result files: 7   tests counted: 592   skips: 0 (0 unauthorized)
+OK — no unauthorized test skips.
+```
+
+**Đây là con số quan trọng nhất của cả hai vòng.** Ở vòng 2 cùng cổng này báo `Skipped tests: 0` trong
+khi sáu test đang bị bỏ qua. Giờ nó đọc 7 file, đếm 592 test, và số 0 là số 0 thật.
+
+Cùng vòng: `Portability gates (Windows)` pass · `Real browser, real API` pass · `Image
+vulnerabilities` pass · `Dependency vulnerabilities` pass · `Secret scan` pass · `Build and verify`
+pass · `Integrity` cả hai nền tảng pass. `restore-drill` xanh trên CI lần đầu tiên.
+
+### 5.7.3 `VERDICT: PARTIAL` — mọi thứ xanh mà vẫn đỏ
+
+```
+VERDICT: PARTIAL   (26 passed · 0 failed · 1 not run)
+── install — SKIPPED (opt-in stage; pass --install to include it)
+```
+
+`verify.mjs` giữ nguyên tắc **"a stage that did not run is never a stage that passed"**, nên một stage
+bị bỏ qua làm cả run thành PARTIAL và exit 2. Nguyên tắc này đúng và không được nới.
+
+Sửa bằng cách **cho stage đó chạy**, không phải dạy verdict ngó lơ nó: `verify.yml` gọi
+`node scripts/verify.mjs --install`. Một pipeline Foundation không bao giờ kiểm
+`pnpm install --frozen-lockfile` là thiếu một bảo đảm clean-checkout thật, và lần install thứ hai gần
+như không tốn gì sau khi bước Install phía trên đã nạp store.
+
+### 5.7.4 `F4.4` phải mở lại từ `[x]` về `[ ]`
+
+Item này từng được đánh dấu hoàn thành dựa trên việc workflow **tồn tại**. Vòng chạy thật đầu tiên cho
+thấy CodeQL chưa bao giờ phân tích được dòng code nào. Phase gate F4 đòi *"CodeQL, dependency audit,
+secret scan và image scan đều **chạy được**"*; ba cái sau giờ đã chạy thật và xanh, CodeQL thì không —
+vì lý do nằm ngoài repository (`R19`).
+
+Hệ quả, nói thẳng: **F4 chưa tick được, nên F5 cũng chưa** — final gate F5 đòi không còn item `[ ]`
+nào trong `F0…F5`. Foundation Ready chưa đạt, và điều còn thiếu là **một quyết định của chủ dự án**,
+không phải một đoạn code chưa viết.
+
+Đây cũng là bài học chung của cả `F5.5`–`F5.7`: **một workflow tồn tại không phải bằng chứng nó chạy,
+và một check xanh không phải bằng chứng nó đã kiểm cái gì.** Bốn cổng trong hàng đợi này —
+`No test was skipped`, `check-test-skips.mjs`, CodeQL, và ba test S3 — đều đã từng báo "ổn" trong khi
+không kiểm gì cả.
+
+---
+
 ## Báo cáo tổng cuối cùng
 
 Chỉ hoàn tất phần này sau khi mọi checkbox `F0…F5` đã đóng.
