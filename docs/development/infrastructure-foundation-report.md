@@ -3683,6 +3683,20 @@ Số liệu lấy từ log run 33201020573, không chép lịch sử.
 | Security/supply chain | `security.yml` + stage `security` + `sbom.sh` | 3/4 cổng | 0 | CodeQL skip | `security-reports`, 4 SBOM SPDX |
 | Backup/PITR restore | stage `restore-drill` + `failure-drills.mjs --include-live` | 9 drill | 0 | 0 | `VERDICT: PASS (9 produced their failure · 0 did not · 0 not run)` |
 
+**Lặp lại được, không phải một lần may.** Run
+[33202462743](https://github.com/thang-dev-aptech/vni-ielts-ai/actions/runs/33202462743) (vòng 8,
+commit `a8bc26a`) cho đúng ba verdict ấy trên một commit khác:
+
+```
+Result files: 7   tests counted: 592   skips: 0 (0 unauthorized)
+VERDICT: PASS   (27 passed · 0 failed · 0 not run)          Verify         15m7s
+VERDICT: PASS   (9 produced their failure · 0 did not · 0 not run)   Failure drills
+VERDICT: PASS                                                Security gate report
+```
+
+Hai lần xanh liên tiếp là bằng chứng chống flaky ở mức pipeline, bổ sung cho burn-in 10 vòng của
+`F5.3` vốn chỉ nhắm vào suite idempotency.
+
 **Cổng chống-skip, con số quan trọng nhất của cả hàng đợi:**
 
 ```
