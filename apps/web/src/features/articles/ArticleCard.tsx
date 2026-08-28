@@ -19,10 +19,17 @@ import { ARTICLE_CATEGORY_LABEL, type Article } from './articles.js';
  * reads as empty — and on a three-card preview that is true and the density
  * argument does not apply.
  *
- * So both are still here and the caller chooses: `cover` for a short row where
- * the cards are the section, the rule alone for a long list where they are an
- * index. The category colour is the same in either case, so the two forms are
- * visibly one component. → `ArticleCover`
+ * So both are still here and the caller chooses. <b>The rule this comment used
+ * to state was the opposite of what the code does</b> — it said `cover` was for
+ * a short row and the bare rule for a long index, while `ArticlesPage` passes
+ * `cover` to the nine-card index and `ArticlePage` leaves it off the
+ * three-card related row. The code is right and the sentence was stale: the
+ * 24/08 request was specifically for pictures on the article index, and the
+ * related row sits under a finished article where three more covers compete
+ * with the piece the reader is already in.
+ *
+ * The category colour is the same either way, so the two forms are visibly one
+ * component. → `ArticleCover`
  *
  * <b>The author is not on the card.</b> Every article is by the same academic
  * team, so printing it twelve times on one screen is a column of identical

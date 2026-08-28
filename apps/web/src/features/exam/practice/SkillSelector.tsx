@@ -62,9 +62,20 @@ export function SkillSelector({
     // every skill change.
     if (!strip || !card || strip.scrollWidth <= strip.clientWidth) return;
 
+    /*
+     * An explicit `behavior: 'smooth'` in JavaScript beats the CSS override.
+     *
+     * `practice.css` sets `html { scroll-behavior: auto }` under
+     * `prefers-reduced-motion`, and `useReveal` bails out of animating
+     * entirely — but `scrollTo` with an explicit behaviour ignores both. This
+     * was the one piece of motion on the page that did not honour the
+     * setting, and it is a horizontal slide of the whole skill row.
+     */
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
     strip.scrollTo({
       left: card.offsetLeft - strip.offsetLeft - 20,
-      behavior: 'smooth',
+      behavior: reduced ? 'auto' : 'smooth',
     });
   }, [selected]);
 
@@ -81,12 +92,29 @@ export function SkillSelector({
             : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
               ? -1
               : 0;
-        if (step === 0) return;
+        const jump = event.key === 'Home' ? 'first' : event.key === 'End' ? 'last' : null;
+        if (step === 0 && jump === null) return;
         event.preventDefault();
-        // With nothing selected the first arrow press selects the first card
-        // rather than the second — `indexOf(null)` is -1, and -1 + 1 is 0.
-        const at = selected === null ? -1 : SKILL_ORDER.indexOf(selected);
-        const next = SKILL_ORDER[(at + step + SKILL_ORDER.length) % SKILL_ORDER.length]!;
+
+        /*
+         * With nothing selected, either arrow lands on an end rather than
+         * counting from a phantom position.
+         *
+         * `indexOf(null)` is -1, and -1 + 1 is 0, so ArrowRight already gave
+         * the first card. ArrowLeft gave `(-1 - 1 + 4) % 4` = 2 — Writing,
+         * the third card, for no reason a reader could infer. Full-test mode
+         * is "nothing selected", so this is the state most people press an
+         * arrow from.
+         */
+        const last = SKILL_ORDER.length - 1;
+        const next =
+          jump !== null
+            ? SKILL_ORDER[jump === 'first' ? 0 : last]!
+            : selected === null
+              ? SKILL_ORDER[step === 1 ? 0 : last]!
+              : SKILL_ORDER[
+                  (SKILL_ORDER.indexOf(selected) + step + SKILL_ORDER.length) % SKILL_ORDER.length
+                ]!;
         onSelect(next);
         // Focus follows selection in a radio group, which is what makes the
         // arrow keys usable rather than merely functional.

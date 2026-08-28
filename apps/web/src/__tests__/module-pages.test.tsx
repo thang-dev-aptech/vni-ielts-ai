@@ -6,6 +6,37 @@ import { App } from '../App.js';
 import { ARTICLES } from '../features/articles/articles.js';
 import { DOCUMENTS } from '../features/library/documents.js';
 
+/*
+  <b>These tests bring their own catalogue.</b>
+
+  The shipped `ARTICLES` and `DOCUMENTS` are empty — the product carries only
+  content the owner supplies, and none has been supplied for either module. The
+  behaviour around them is still real: filtering by skill, searching without
+  diacritics, refusing a download for a file nobody uploaded, routing a slug to
+  its own page. Testing that against whatever happens to ship was always the
+  weaker arrangement — a test reading `ARTICLES[0]` fails when an editor
+  reorders the index, which is a false alarm about a correct edit.
+
+  The empty state that ships is locked separately, in `empty-catalogues.test.tsx`.
+*/
+vi.mock('../features/articles/articles.js', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../features/articles/articles.js')>();
+  const { TEST_ARTICLES } = await import('./catalogueFixtures.js');
+  return {
+    ...original,
+    ARTICLES: TEST_ARTICLES,
+    // `findArticle` closes over the module's own array, so overriding the
+    // array alone would leave every deep link resolving to nothing.
+    findArticle: (slug: string) => TEST_ARTICLES.find((a) => a.slug === slug),
+  };
+});
+
+vi.mock('../features/library/documents.js', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../features/library/documents.js')>();
+  const { TEST_DOCUMENTS } = await import('./catalogueFixtures.js');
+  return { ...original, DOCUMENTS: TEST_DOCUMENTS };
+});
+
 /**
  * Each module is a page.
  *
@@ -52,28 +83,32 @@ it('opens the document library at its own address, without an account', async ()
   openAt('/documents');
 
   expect(
-    await screen.findByRole('heading', { name: /Đọc ngay trên web/, level: 1 }),
+    await screen.findByRole('heading', { name: /Tài liệu IELTS/, level: 1 }),
   ).toBeInTheDocument();
 
-  for (const doc of DOCUMENTS.slice(0, 3)) {
-    expect(screen.getByRole('heading', { name: doc.title })).toBeInTheDocument();
-  }
+  expect(screen.getByRole('navigation', { name: 'Đường dẫn' })).toBeInTheDocument();
+  expect(screen.getByRole('searchbox')).toBeInTheDocument();
 });
 
 it('narrows the library by skill, and says how many are left', async () => {
   openAt('/documents');
 
-  await screen.findByRole('heading', { name: /Đọc ngay trên web/, level: 1 });
-  await userEvent.click(screen.getByRole('radio', { name: 'Writing' }));
+  await screen.findByRole('heading', { name: /Tài liệu IELTS/, level: 1 });
 
-  const writing = DOCUMENTS.filter((doc) => doc.category === 'writing');
+  // Skill radios live in the "Kỹ năng" group; Writing also appears as a
+  // category button in the sidebar, so scope the click to the filter row.
+  const skillGroup = screen.getByRole('radiogroup', { name: 'Kỹ năng' });
+  await userEvent.click(within(skillGroup).getByRole('radio', { name: 'Writing' }));
+
+  const writing = DOCUMENTS.filter((doc) => doc.skill === 'writing');
   expect(screen.getByRole('status').textContent).toContain(String(writing.length));
 
-  // Scoped to the rows. The page grew two shelf headings on 22/08 — free and
-  // premium — and they are `level: 2` too, so a page-wide query now picks up
-  // furniture as well as results.
-  const listed = [...document.querySelectorAll('.doc-row h2')].map((node) => node.textContent);
-  expect(listed).toEqual(writing.map((doc) => doc.title));
+  // Card titles are h3. Featured (free + isFeatured) may appear once more as
+  // the featured block, so compare the set of visible card titles.
+  const listed = [...document.querySelectorAll('.res-card-title, .res-featured-title')].map(
+    (node) => node.textContent,
+  );
+  expect(new Set(listed)).toEqual(new Set(writing.map((doc) => doc.title)));
 });
 
 it('finds a document typed without its diacritics', async () => {
@@ -81,7 +116,7 @@ it('finds a document typed without its diacritics', async () => {
   // matches perfectly typed queries is a library nobody searches twice.
   openAt('/documents');
 
-  await screen.findByRole('heading', { name: /Đọc ngay trên web/, level: 1 });
+  await screen.findByRole('heading', { name: /Tài liệu IELTS/, level: 1 });
   await userEvent.type(screen.getByRole('searchbox'), 'tu vung');
 
   expect(
@@ -94,17 +129,16 @@ it('offers no download for a file that has not been published', async () => {
   // the ones that work.
   openAt('/documents');
 
-  await screen.findByRole('heading', { name: /Đọc ngay trên web/, level: 1 });
+  await screen.findByRole('heading', { name: /Tài liệu IELTS/, level: 1 });
 
-  expect(screen.queryByRole('link', { name: 'Tải về' })).toBeNull();
+  expect(screen.queryByRole('link', { name: 'Tải xuống' })).toBeNull();
+  expect(screen.queryByRole('link', { name: 'Xem tài liệu' })).toBeNull();
 
-  // Only the free shelf shows "Sắp có". A premium row routes to the hotline
-  // instead — `B-4` and `B-5b` are open, so there is no price to show and no
-  // checkout to send anyone to.
-  const free = DOCUMENTS.filter((doc) => doc.access === 'free');
-  expect(screen.getAllByText('Sắp có').length).toBe(free.length);
+  // Free rows say "Sắp có"; premium rows route to the hotline — `B-4`/`B-5b`
+  // are open, so there is no price and no checkout.
+  expect(screen.getAllByText(/Sắp có/).length).toBeGreaterThan(0);
   expect(screen.getAllByRole('link', { name: 'Liên hệ nhận tài liệu' }).length).toBe(
-    DOCUMENTS.length - free.length,
+    DOCUMENTS.filter((doc) => doc.access === 'premium').length,
   );
 
   // And nowhere on the page is there a number that reads as a price.

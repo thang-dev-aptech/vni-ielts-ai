@@ -3,9 +3,9 @@ name: Backend
 on:
   push:
     branches: [main]
-    paths: ['backend/**', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'contracts/**', 'fixtures/**', '.github/workflows/backend.yml']
   pull_request:
-    paths: ['backend/**', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'contracts/**', 'fixtures/**', '.github/workflows/backend.yml']
   workflow_dispatch:
 
 permissions:
@@ -41,9 +41,141 @@ jobs:
       - name: Architecture boundary
         run: >
           dotnet test tests/Vni.Ielts.Architecture.Tests
-          --no-build --configuration Release --logger 'console;verbosity=normal'
-
-      - name: Unit tests
-        run: >
-          dotnet test tests/Vni.Ielts.Domain.Tests tests/Vni.Ielts.Application.Tests
           --no-build --configuration Release
+          --logger 'console;verbosity=normal'
+          --logger trx --results-directory ../test-results
+
+      # <b>One project per invocation, and that is not a style choice.</b>
+      # `dotnet test A B` fails on the .NET 10 SDK with
+      # `MSBUILD : error MSB1008: Only one project can be specified` — MSBuild
+      # takes the second path as a stray switch. This step carried both project
+      # paths, so it could not have run since the SDK moved.
+      - name: Domain tests
+        run: >
+          dotnet test tests/Vni.Ielts.Domain.Tests
+          --no-build --configuration Release
+          --logger trx --results-directory ../test-results
+
+      - name: Application tests
+        run: >
+          dotnet test tests/Vni.Ielts.Application.Tests
+          --no-build --configuration Release
+          --logger trx --results-directory ../test-results
+
+      # ── The concurrency gate ─────────────────────────────────────────────
+      #
+      # Everything above runs without a database, and until 2026-08-27 that was
+      # the whole backend job. So the Infrastructure and Integration suites —
+      # the ONLY tests that exercise the answer-sheet revision CAS, the
+      # section-transition compare-and-swap and the idempotency claim — had
+      # never run on CI at all. Every one of those is about two writers racing,
+      # and none of them can be written without a real replica set.
+      #
+      # A single-node replica set, not a standalone: MongoDB offers
+      # multi-document transactions only on a replica set, and on a standalone
+      # the code WORKS until it is put under the retry concurrency mobile
+      # clients generate by design. Same reasoning, same shape, as
+      # infra/docker/compose.yaml.
+      #
+      # Port 27018 on the host to match the local stack, so the tests need no
+      # environment-specific connection string. → R15
+      - name: Start MongoDB replica set
+        run: |
+          docker run -d --name vni-ci-mongo -p 27018:27017 mongo:7             --replSet rs0 --bind_ip_all --port 27017
+
+          for i in $(seq 1 30); do
+            if docker exec vni-ci-mongo mongosh --quiet --eval 'db.adminCommand({ping:1}).ok' >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+
+          docker exec vni-ci-mongo mongosh --quiet --eval             "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"
+
+          # Wait for a PRIMARY. Without this the first transaction races the
+          # election and fails for a reason that has nothing to do with the code.
+          for i in $(seq 1 30); do
+            if docker exec vni-ci-mongo mongosh --quiet --eval 'db.hello().isWritablePrimary' 2>/dev/null | grep -q true; then
+              echo "Replica set rs0 has a PRIMARY."
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "::error::rs0 never elected a PRIMARY."
+          docker logs vni-ci-mongo | tail -50
+          exit 1
+
+      # VNI_REQUIRE_MONGO turns "no Mongo" from a skipped suite into a failed
+      # run. Without it these tests are `SkippableFact`, which is right on a
+      # laptop with no Docker up and wrong here: a green build that skipped
+      # every concurrency test reports success over rules nothing checked.
+      - name: Infrastructure tests
+        env:
+          VNI_REQUIRE_MONGO: '1'
+        run: >
+          dotnet test tests/Vni.Ielts.Infrastructure.Tests
+          --no-build --configuration Release
+          --logger trx --results-directory ../test-results
+
+      - name: Integration tests
+        env:
+          VNI_REQUIRE_MONGO: '1'
+        run: >
+          dotnet test tests/Vni.Ielts.Integration.Tests
+          --no-build --configuration Release
+          --logger trx --results-directory ../test-results
+
+      # A backup nobody has restored is a hypothesis, and the failures that
+      # matter are the quiet ones — an archive that decrypts to nothing, a key
+      # that is not the key, an --oplog silently ignored on a standalone node.
+      # Every one of those looks exactly like a working backup until it is
+      # needed, so the drill runs on every build rather than on a calendar.
+      #
+      # mongodump and mongorestore come from the same image the database runs;
+      # the runner does not need the MongoDB tools installed. mongosh runs
+      # inside the already-started container, which is why its URI is the
+      # internal port rather than the published one.
+      - name: Restore drill
+        env:
+          VNI_MONGODUMP: docker run --rm --network host mongo:7 mongodump
+          VNI_MONGORESTORE: docker run --rm -i --network host mongo:7 mongorestore
+          VNI_MONGOSH: docker exec -i vni-ci-mongo mongosh
+          VNI_MONGOSH_URI: mongodb://localhost:27017/?directConnection=true
+        run: ../scripts/restore-drill.sh
+
+      # A skipped concurrency test is a hole in the gate, and a skip is not a
+      # failure — so nothing else in this job would notice. This does.
+      - name: No test was skipped
+        if: always()
+        run: |
+          shopt -s nullglob
+          files=(../test-results/*.trx)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::No .trx results were produced."
+            exit 1
+          fi
+
+          skipped=0
+          for f in "${files[@]}"; do
+            n=$(grep -o 'notExecuted="[0-9]*"' "$f" | head -1 | grep -o '[0-9]*' || echo 0)
+            skipped=$(( skipped + ${n:-0} ))
+          done
+
+          echo "Skipped tests: $skipped"
+          if [ "$skipped" -ne 0 ]; then
+            echo "::error::$skipped test(s) were skipped. The concurrency suites must run."
+            exit 1
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: test-results/
+          if-no-files-found: warn
+
+      - name: Stop MongoDB
+        if: always()
+        run: docker rm -f vni-ci-mongo || true

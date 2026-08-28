@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Alert, Button, Card, PageHeader, Spinner } from '@vni/ui';
+import { Spinner } from '@vni/ui';
+import { isUnreachable } from '../../lib/api.js';
 import { verifyEmail } from '../../lib/session.js';
 import { useI18n } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
 import { announceAccountChanged } from './accountEvents.js';
 import { useAuth } from './AuthContext.js';
+import { usePageTitle } from '../../routes/usePageTitle.js';
+import { AuthSimple } from './AuthSimple.js';
 
 type State = 'verifying' | 'verified' | 'invalid' | 'missing' | 'offline';
 
@@ -20,6 +23,7 @@ type State = 'verifying' | 'verified' | 'invalid' | 'missing' | 'offline';
  */
 export function VerifyEmailPage() {
   const { t } = useI18n();
+  usePageTitle(t('title.verifyEmail'));
   const { status, refreshUser } = useAuth();
   const [params] = useSearchParams();
   const token = params.get('token');
@@ -44,8 +48,11 @@ export function VerifyEmailPage() {
         announceAccountChanged();
       } catch (error) {
         // A network failure and a rejected token need different advice —
-        // retry versus request a new link.
-        setState(error instanceof TypeError ? 'offline' : 'invalid');
+        // retry versus request a new link. Telling someone their link is dead
+        // when the gateway hiccuped costs them the link they actually had, so
+        // three separate shapes of "we did not reach the API" all mean retry:
+        // fetch itself rejecting, a body that was not JSON, and a 5xx.
+        setState(isUnreachable(error) ? 'offline' : 'invalid');
       }
     })();
 
@@ -67,34 +74,66 @@ export function VerifyEmailPage() {
     // nothing left for a cancellation flag to protect against.
   }, [token]);
 
+  /*
+   * This page used to be mounted under `AppShell`, which made it the only
+   * screen in the product wearing a plain-text wordmark, a language `<select>`
+   * that exists nowhere else, and no site navigation at all. It is reached
+   * from an email client, by someone who has never seen the site — the worst
+   * possible screen to look like a different company's.
+   */
+  if (state === 'verified') {
+    return (
+      <AuthSimple title={t('verify.title')} focusOnMount>
+        <p className="auth-simple-alert is-ok">{t('verify.success')}</p>
+        {/* Somewhere useful, not always the sign-in form. Someone who
+            verified while already signed in has no reason to be sent to a
+            login page they will immediately be redirected away from. */}
+        <Link
+          className="auth-simple-action"
+          to={status === 'signed-in' ? Paths.profile : Paths.signIn}
+        >
+          {t('verify.continue')}
+        </Link>
+      </AuthSimple>
+    );
+  }
+
   return (
-    <div style={{ maxWidth: 480, marginInline: 'auto' }}>
-      <PageHeader title={t('verify.title')} />
+    <AuthSimple title={t('verify.title')} focusOnMount={state !== 'verifying'}>
+      {/*
+        <b>A div, because `Spinner` is one.</b> This was a `<p>`, which may only
+        contain phrasing content — so the browser closed the paragraph before
+        the spinner and produced a DOM neither this file nor the CSS describes.
+        It rendered, which is why it survived: the only complaint was a React
+        warning inside a test run that stayed green.
+      */}
+      {state === 'verifying' && (
+        <div className="auth-simple-busy">
+          <Spinner label={t('verify.busy')} />
+        </div>
+      )}
 
-      <Card>
-        {state === 'verifying' && <Spinner label={t('verify.busy')} />}
+      {/* Expired, already used, and never existed all land here on purpose —
+          distinguishing them would tell someone whether a guessed token was
+          ever real. */}
+      {state === 'invalid' && <p className="auth-simple-alert">{t('verify.invalid')}</p>}
 
-        {state === 'verified' && (
-          <>
-            <Alert tone="success">{t('verify.success')}</Alert>
-            {/* Somewhere useful, not always the sign-in form. Someone who
-                verified while already signed in has no reason to be sent to a
-                login page they will immediately be redirected away from. */}
-            <Link to={status === 'signed-in' ? Paths.profile : Paths.signIn}>
-              <Button>{t('verify.continue')}</Button>
-            </Link>
-          </>
-        )}
+      {state === 'missing' && <p className="auth-simple-alert">{t('verify.missing')}</p>}
 
-        {/* Expired, already used, and never existed all land here on purpose —
-            distinguishing them would tell someone whether a guessed token was
-            ever real. */}
-        {state === 'invalid' && <Alert tone="error">{t('verify.invalid')}</Alert>}
-
-        {state === 'missing' && <Alert tone="warning">{t('verify.missing')}</Alert>}
-
-        {state === 'offline' && <Alert tone="error">{t('common.notConnected')}</Alert>}
-      </Card>
-    </div>
+      {state === 'offline' && (
+        <>
+          <p className="auth-simple-alert">{t('common.notConnected')}</p>
+          {/* An outage is the one failure here that is worth retrying, so it
+              is the one that gets a control. */}
+          <button
+            className="auth-simple-action"
+            type="button"
+            onClick={() => window.location.reload()}
+          >
+            {t('common.retry')}
+          </button>
+        </>
+      )}
+    </AuthSimple>
   );
 }

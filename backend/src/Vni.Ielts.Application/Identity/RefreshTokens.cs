@@ -45,7 +45,8 @@ public sealed class RefreshTokens(
         var granted = await permissions.ResolveAsync(user, ct);
         // Continue the family rather than starting a new one, so reuse
         // detection still spans the whole chain of rotations.
-        var pair = await tokens.IssueAsync(user, granted, redeemed.Value.FamilyId, ct);
+        var pair = await tokens.IssueAsync(
+            user, granted, redeemed.Value.FamilyId, ct, redeemed.Value.RedeemedTokenHash);
 
         return new LoginResult(pair, user.Id, user.DisplayName);
     }

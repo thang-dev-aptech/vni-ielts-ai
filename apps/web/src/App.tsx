@@ -10,6 +10,7 @@ import { DictationPage } from './features/dictation/DictationPage.js';
 import { DictationSetPage } from './features/dictation/DictationSetPage.js';
 import { ExamResultsPage } from './features/exam/ExamResultsPage.js';
 import { ExamRunnerPage } from './features/exam/ExamRunnerPage.js';
+import { PracticeRunnerPage } from './features/exam/practice-runner/PracticeRunnerPage.js';
 import { PracticePage } from './features/exam/PracticePage.js';
 import { LearnerShell } from './features/chrome/LearnerShell.js';
 import { PublicShell } from './features/chrome/PublicShell.js';
@@ -20,7 +21,6 @@ import { StudentDashboardPage } from './features/student/StudentDashboardPage.js
 import { LandingPage } from './features/landing/LandingPage.js';
 import { ProfilePage } from './features/profile/ProfilePage.js';
 import { I18nProvider } from './i18n/index.js';
-import { AppShell } from './routes/AppShell.js';
 import { ErrorBoundary } from './routes/ErrorBoundary.js';
 import { NotFoundPage } from './routes/NotFoundPage.js';
 import { Paths } from './routes/paths.js';
@@ -47,7 +47,7 @@ export function App() {
               {/*
                 The public surfaces carry the redesign's own chrome — a
                 marketing header and footer — so they sit under PublicShell
-                rather than inside AppShell. Wrapping them would stack two
+                rather than inside a layout route. Wrapping them would stack two
                 headers.
 
                 `/` is one page for everyone. It used to send a signed-in
@@ -124,6 +124,14 @@ export function App() {
                 */}
                 <Route path={Paths.examSessionPattern} element={<ExamRunnerPage />} />
 
+                {/*
+                  Luyện đề — the same rule, a different runner. Two routes
+                  rather than one route with a flag, because the timed runner
+                  and the open-ended one have different failure rules and only
+                  one of them may ever refuse a write for being late. → `E-20`
+                */}
+                <Route path={Paths.practiceSessionPattern} element={<PracticeRunnerPage />} />
+
                 {/* Profile keeps the landing header: it is reached from the
                     public side of the product as often as from the app. */}
                 <Route element={<LearnerShell />}>
@@ -146,12 +154,20 @@ export function App() {
                 element={<Navigate to={`${Paths.profile}?tab=progress`} replace />}
               />
 
-              {/* Everything with the ordinary application chrome. */}
-              <Route element={<AppShell />}>
-                {/* Reachable either way: someone clicking a link from their
-                    inbox may or may not have a session open. */}
-                <Route path={Paths.verifyEmail} element={<VerifyEmailPage />} />
+              {/* Reachable either way: someone clicking a link from their
+                  inbox may or may not have a session open. It renders the
+                  shared auth shell itself, so it needs no layout route. */}
+              <Route path={Paths.verifyEmail} element={<VerifyEmailPage />} />
 
+              {/*
+                <b>404 wears the real header and footer.</b> It used to sit
+                under a shell nothing else used, which meant every dead link in
+                the product landed on a page with no site navigation, a
+                wordmark in plain text, and a language switcher that exists
+                nowhere else. A visitor who is already lost is the last person
+                to strand.
+              */}
+              <Route element={<PublicShell />}>
                 <Route path="/404" element={<NotFoundPage />} />
                 <Route path="*" element={<Navigate to="/404" replace />} />
               </Route>

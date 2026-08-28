@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Paths } from '../../routes/paths.js';
 import { useAuth } from '../auth/AuthContext.js';
@@ -39,16 +39,47 @@ export function SiteHeader() {
    */
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
+  const burger = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLElement>(null);
 
+  /*
+   * <b>Outside-click closes it, like every other panel in this header.</b>
+   *
+   * This effect used to register a `keydown` listener and nothing else, so the
+   * phone panel was the one disclosure in the product that stayed open when
+   * you tapped past it — while the account menu, the notification bell and
+   * "Thêm" all closed, because those three share `useDisclosure`. Two
+   * dismissal contracts in one header is, in that hook's own words, "a bug
+   * nobody reports and everybody feels".
+   *
+   * It is written here rather than by adopting `useDisclosure` because this
+   * panel is a sibling of its trigger rather than a child of a shared
+   * container, so the hook's `contains` check does not fit it.
+   */
   useEffect(() => {
     if (!menuOpen) return;
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setMenuOpen(false);
+      if (event.key !== 'Escape') return;
+      setMenuOpen(false);
+      burger.current?.focus();
+    }
+
+    function onPointerDown(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+      if (burger.current?.contains(target) === true) return;
+      if (panel.current?.contains(target) === true) return;
+      setMenuOpen(false);
     }
 
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('touchstart', onPointerDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('touchstart', onPointerDown);
+    };
   }, [menuOpen]);
 
   // A route change closes it. Fragments do not unmount anything and a route
@@ -92,11 +123,12 @@ export function SiteHeader() {
         </div>
 
         <button
+          ref={burger}
           className="menu-btn"
           type="button"
           aria-label={menuOpen ? 'Đóng menu' : 'Mở menu'}
           aria-expanded={menuOpen}
-          aria-controls={menuId}
+          {...(menuOpen ? { 'aria-controls': menuId } : {})}
           onClick={() => setMenuOpen((was) => !was)}
         >
           {menuOpen ? '✕' : '☰'}
@@ -107,7 +139,7 @@ export function SiteHeader() {
           landmarks with the same name are ambiguous to a screen reader listing
           them, even though only one of the two is ever visible at a width. */}
       {menuOpen && (
-        <nav className="mobile-nav" id={menuId} aria-label="Menu điều hướng">
+        <nav className="mobile-nav" id={menuId} ref={panel} aria-label="Menu điều hướng">
           {SITE_NAV.map((item) => (
             <NavDestination key={item.href} item={item} onNavigate={() => setMenuOpen(false)} />
           ))}

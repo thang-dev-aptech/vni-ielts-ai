@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ApiError } from '../../lib/api.js';
+import { ApiError, isUnreachable } from '../../lib/api.js';
 import { register, ssoProviders, startSso, type SsoProvider } from '../../lib/session.js';
 import { useI18n } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
 import { useAuth } from './AuthContext.js';
 import { AuthVisual } from './AuthVisual.js';
 import '../../styles/auth.css';
+import { usePageTitle } from '../../routes/usePageTitle.js';
 
 type Mode = 'login' | 'register';
 
@@ -29,7 +30,7 @@ type Mode = 'login' | 'register';
  * rather than a hopeful `onClick`.
  */
 export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
-  const { signIn } = useAuth();
+  const { adoptSession, signIn } = useAuth();
   const { t } = useI18n();
   const location = useLocation();
 
@@ -47,6 +48,28 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
   const returnTarget = null;
 
   const [mode, setMode] = useState<Mode>(initialMode);
+
+  /*
+   * <b>The panel follows the route, and it did not.</b> `/login` and
+   * `/register` render this same component at the same position, so React
+   * reuses the instance and `useState(initialMode)` keeps whatever it was
+   * first mounted with. Navigating from `/login` to `/register` — which the
+   * header's "Bắt đầu miễn phí" does — left the address bar saying register
+   * and the panel showing "Chào mừng trở lại" with a sign-in form under it.
+   *
+   * This is React's documented shape for adjusting state when a prop changes:
+   * compare during render and set, rather than an effect, so the corrected
+   * panel is what paints instead of one frame of the wrong one.
+   */
+  const [routeMode, setRouteMode] = useState<Mode>(initialMode);
+  if (initialMode !== routeMode) {
+    setRouteMode(initialMode);
+    setMode(initialMode);
+  }
+
+  // The tab follows the panel: the toggle inside the card swaps modes without
+  // navigating, so the title cannot be derived from the route alone.
+  usePageTitle(t(mode === 'login' ? 'title.signIn' : 'title.signUp'));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -54,6 +77,8 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
 
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  /** Synchronous re-entry guard. See `handleSubmit`. */
+  const inFlight = useRef(false);
 
   /**
    * "This address already has an account" is not a form error, it is a
@@ -68,7 +93,6 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
    */
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [registered, setRegistered] = useState(false);
 
   /**
    * One key per mounted page, generated once.
@@ -89,9 +113,41 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+
+    /*
+     * A ref, not the `busy` state, because `setBusy(true)` does not take
+     * effect until React re-renders — two fast Enter presses both got past a
+     * state check and sent two requests.
+     */
+    if (inFlight.current) return;
+
     setError(null);
     setFieldErrors({});
     setAlreadyRegistered(false);
+
+    /*
+     * Validate here rather than letting the server answer.
+     *
+     * The form is `noValidate`, which makes the `required` attributes inert,
+     * and nothing replaced them — so submitting an empty sign-in form did a
+     * round trip and came back "Email hoặc mật khẩu không đúng", telling
+     * someone their nonexistent credentials were wrong. The sibling page
+     * `/forgot-password` had the opposite problem: no `noValidate`, so it
+     * showed the browser's own bubble, unstyled and in the browser's language
+     * rather than the app's. One model, in the app's voice, on both.
+     */
+    const missing: Record<string, string> = {};
+    if (mode === 'register' && fullName.trim() === '') missing.fullName = t('signUp.nameRequired');
+    if (email.trim() === '') missing.email = t('auth.emailRequired');
+    if (password === '') missing.password = t('auth.passwordRequired');
+    if (Object.keys(missing).length > 0) {
+      setFieldErrors(missing);
+      const first = missing.fullName ? 'fullname' : missing.email ? 'email' : 'password';
+      document.getElementById(first)?.focus();
+      return;
+    }
+
+    inFlight.current = true;
     setBusy(true);
 
     try {
@@ -101,8 +157,26 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
         // back to whatever page the visitor originally asked for. Navigating
         // here as well would race it, and the guard would win.
       } else {
-        await register(email, password, fullName, idempotencyKey);
-        setRegistered(true);
+        /*
+         * <b>Registering signs you in, and lands you in the product.</b>
+         *
+         * `[QUYẾT ĐỊNH]` chủ sản phẩm, 27/08/2026: *"tạo tài khoản với email
+         * pass cho login như bình thường nhưng sẽ xác minh ở trang hồ sơ học
+         * sinh sau cũng được"*.
+         *
+         * What used to be here was `setRegistered(true)`, which swapped this
+         * panel for a "we have sent you a verification link" screen whose only
+         * control was a button back to the sign-in tab. Three things were
+         * wrong with it and only the third is about the owner's decision: it
+         * parked a new learner outside the app they had just joined, it made
+         * them type the same credentials a second time, and the link it
+         * promised is not sent by any environment that exists today.
+         *
+         * No navigation here, for the same reason the sign-in branch has none:
+         * `RequireAnonymous` owns the redirect, and a second one would race it.
+         */
+        const created = await register(email, password, fullName, idempotencyKey);
+        await adoptSession(created.session);
       }
     } catch (caught) {
       if (caught instanceof ApiError) {
@@ -111,6 +185,7 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
         setError(t('common.notConnected'));
       }
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }
@@ -141,7 +216,24 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
         );
         break;
       }
+      /*
+       * An outage is not a wrong password.
+       *
+       * The `default` arm below is deliberately vague, and that is right for
+       * every answer the server gives. It is wrong for the case where there
+       * was no answer: with the API down, every visitor was told "Email hoặc
+       * mật khẩu không đúng" and invited to check a credential that was fine.
+       * People reset passwords that worked and then call support.
+       *
+       * So the unreachable cases branch out first, before the deliberate
+       * vagueness applies.
+       */
+      /* falls through to the checks below */
       default:
+        if (isUnreachable(caught)) {
+          setError(t('common.notConnected'));
+          break;
+        }
         // Every sign-in failure the server can distinguish is deliberately
         // indistinguishable here too — wrong password, unknown address and a
         // malformed one all arrive as INVALID_CREDENTIALS.
@@ -153,61 +245,43 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
     }
   }
 
-  if (registered) {
-    return (
-      <main className="auth-shell">
-        <AuthVisual />
-        <section className="auth-panel">
-          <div className="auth-container">
-            <div className="auth-head">
-              <h2>{t('signUp.doneTitle')}</h2>
-              <p>{t('signUp.doneBody')}</p>
-            </div>
-            {import.meta.env.DEV && (
-              <p className="auth-note" role="status">
-                {t('signUp.devNotice')}
-              </p>
-            )}
-            <button className="button button-primary submit-btn" onClick={() => switchToLogin()}>
-              {t('nav.signIn')}
-            </button>
-          </div>
-        </section>
-      </main>
-    );
-
-    function switchToLogin() {
-      setRegistered(false);
-      switchMode('login');
-    }
-  }
-
   return (
     <main className="auth-shell">
       <AuthVisual />
 
       <section className="auth-panel">
         <div className="auth-container">
-          <div className="auth-tabs" role="tablist">
-            <button
+          {/*
+            <b>Links, not tabs.</b> This was `role="tablist"` with two
+            `role="tab"` buttons, no `aria-controls`, no `role="tabpanel"`
+            anywhere in the document, no roving tabindex and no arrow keys — a
+            screen reader announced "tab, 1 of 2" and then there was no panel
+            to move to. The ARIA promised a keyboard model that did not exist.
+
+            The buttons were also lying about the address: they swapped the
+            form in place while the URL stayed `/login`, so a reload put the
+            visitor back on the tab they had left. `/login` and `/register` are
+            two routes and always were; making the control a `Link` matches the
+            semantics to the truth and deletes the whole ARIA problem.
+          */}
+          <nav className="auth-tabs" aria-label={t('auth.tabsLabel')}>
+            <Link
               className={`tab-btn${mode === 'login' ? ' active' : ''}`}
-              type="button"
-              role="tab"
-              aria-selected={mode === 'login'}
-              onClick={() => switchMode('login')}
+              to={Paths.signIn}
+              replace
+              aria-current={mode === 'login' ? 'page' : undefined}
             >
               {t('auth.tabLogin')}
-            </button>
-            <button
+            </Link>
+            <Link
               className={`tab-btn${mode === 'register' ? ' active' : ''}`}
-              type="button"
-              role="tab"
-              aria-selected={mode === 'register'}
-              onClick={() => switchMode('register')}
+              to={Paths.signUp}
+              replace
+              aria-current={mode === 'register' ? 'page' : undefined}
             >
               {t('auth.tabRegister')}
-            </button>
-          </div>
+            </Link>
+          </nav>
 
           <div className="auth-head">
             <h2>{mode === 'login' ? t('auth.welcomeBack') : t('auth.createTitle')}</h2>
@@ -310,7 +384,16 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
 
             {mode === 'register' && <p className="terms-note">{t('auth.terms')}</p>}
 
-            <button className="button button-primary submit-btn" type="submit" disabled={busy}>
+            {/*
+              <b>`aria-busy`, not `disabled`.</b> Chrome blurs a focused
+              element the moment it becomes `disabled`, so pressing Enter to
+              sign in dropped focus to `<body>` — and after an error the
+              keyboard user was at the top of the document, five Tabs from the
+              field they needed to correct. Re-entry is guarded by the
+              `inFlight` ref instead, which is synchronous and therefore
+              stricter than the attribute ever was.
+            */}
+            <button className="button button-primary submit-btn" type="submit" aria-busy={busy}>
               {busy
                 ? mode === 'login'
                   ? t('signIn.busy')

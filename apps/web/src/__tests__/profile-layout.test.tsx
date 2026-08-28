@@ -111,15 +111,21 @@ it('lists the four skills as one component, not four different cards', async () 
 it('separates account actions from the learning view in the module nav', async () => {
   await openProfile();
 
-  const nav = screen.getByRole('navigation', { name: 'Mục hồ sơ' });
+  /*
+   * Two named landmarks, not one landmark with two paragraphs in it.
+   *
+   * The group labels were `<p>` elements. Visually they made the split; to a
+   * screen reader they said nothing at all, so the nav announced as six
+   * ungrouped links — which is the exact flat list the split was introduced to
+   * fix. Asserting on the landmark names is what keeps that honest: a `<p>`
+   * cannot satisfy this test.
+   */
+  const account = screen.getByRole('navigation', { name: 'Tài khoản' });
+  const learning = screen.getByRole('navigation', { name: 'Học tập' });
 
-  // The complaint was that security, devices and progress read as one flat
-  // group when two of them are account actions and one is a learning view.
-  expect(within(nav).getByText('Tài khoản')).toBeInTheDocument();
-  expect(within(nav).getByText('Học tập')).toBeInTheDocument();
-  expect(within(nav).getByRole('link', { name: /Bảo mật/ })).toBeInTheDocument();
-  expect(within(nav).getByRole('link', { name: /Thiết bị/ })).toBeInTheDocument();
-  expect(within(nav).getByRole('link', { name: /Tiến độ học tập/ })).toBeInTheDocument();
+  expect(within(account).getByRole('link', { name: /Bảo mật/ })).toBeInTheDocument();
+  expect(within(account).getByRole('link', { name: /Thiết bị/ })).toBeInTheDocument();
+  expect(within(learning).getByRole('link', { name: /Tiến độ học tập/ })).toBeInTheDocument();
 });
 
 it('keeps ?tab=progress addressable after the rename', async () => {

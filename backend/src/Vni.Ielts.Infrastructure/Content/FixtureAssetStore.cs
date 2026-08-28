@@ -41,7 +41,17 @@ public sealed class FixtureAssetStore : IExamAssetStore
         }
     }
 
-    public ExamAsset? Open(string reference)
+    /// <summary>
+    /// <b>Synchronous work behind an asynchronous signature, and that is
+    /// honest rather than lazy.</b> The port is async because object storage
+    /// needs it to be; a local file genuinely has nothing to await, and
+    /// wrapping the read in <c>Task.Run</c> to look busy would move it to a
+    /// thread-pool thread for no benefit.
+    /// </summary>
+    public Task<ExamAsset?> OpenAsync(string reference, CancellationToken ct) =>
+        Task.FromResult(Open(reference));
+
+    private ExamAsset? Open(string reference)
     {
         if (_root is null) return null;
 
@@ -62,6 +72,8 @@ public sealed class FixtureAssetStore : IExamAssetStore
 
         if (!File.Exists(resolved)) return null;
 
+        var file = new FileInfo(resolved);
+
         return new ExamAsset(
             File.OpenRead(resolved),
             Path.GetExtension(resolved).ToLowerInvariant() switch
@@ -76,6 +88,10 @@ public sealed class FixtureAssetStore : IExamAssetStore
                 // served as bytes, not as whatever a browser feels like
                 // sniffing it into.
                 _ => "application/octet-stream",
-            });
+            },
+            file.Length,
+            // Length and last-write, which is what a static file server uses.
+            // Enough for a browser to skip re-downloading unchanged audio.
+            $"\"{file.Length:x}-{file.LastWriteTimeUtc.Ticks:x}\"");
     }
 }

@@ -43,7 +43,7 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-function signedIn() {
+function signedIn(sittings?: unknown[]) {
   localStorage.setItem('vni.session', JSON.stringify(session));
   vi.stubGlobal(
     'fetch',
@@ -52,20 +52,38 @@ function signedIn() {
       if (url.includes('/api/v1/me/sessions')) return json({ sessions: [] });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
+      if (sittings !== undefined && url.includes('/api/v1/sessions')) return json({ sittings });
       return json({ code: 'NOT_FOUND', status: 404, title: '', detail: '' }, 404);
     }),
   );
 }
 
-async function openDashboard() {
-  signedIn();
+async function openDashboard(sittings?: unknown[]) {
+  signedIn(sittings);
   window.history.pushState({}, '', '/students/dashboard');
   render(
     <StrictMode>
       <App />
     </StrictMode>,
   );
-  return screen.findByRole('heading', { name: /Xin chào, Nguyễn Thị Đào/ });
+  await screen.findByRole('heading', { name: /Xin chào, Nguyễn Thị Đào/ });
+
+  /*
+   * <b>And then wait for the page to stop loading.</b>
+   *
+   * The greeting renders from `user`, which the session restore already has —
+   * so returning there left the dashboard's own two fetches, the catalogue and
+   * the history, still in flight after the test had ended. They landed during
+   * teardown, after `vi.unstubAllGlobals()` had put the real `fetch` back, and
+   * went to whatever was listening on localhost:5099. → the network gate in
+   * `test-setup.ts`
+   *
+   * `dash-now-title` is the first thing that cannot render until the history
+   * call has settled, in either direction.
+   */
+  await waitFor(() => expect(document.getElementById('dash-now-title')).not.toBeNull());
+
+  return screen.getByRole('heading', { name: /Xin chào, Nguyễn Thị Đào/ });
 }
 
 beforeEach(() => {
@@ -274,8 +292,15 @@ it('keeps the sidebar items named once it is folded to icons', async () => {
 
   expect(localStorage.getItem('vni.studentRail.collapsed')).toBe('true');
 
-  // `display: none` on the labels would take them out of the accessibility
-  // tree as well as out of sight, leaving a column of unlabelled icons.
+  /*
+   * Scoped to the rail. `display: none` on the labels would take them out of
+   * the accessibility tree as well as out of sight, leaving a column of
+   * unlabelled icons — that is what this checks. Searching the whole document
+   * for the names made it fail the moment the empty state grew a link to
+   * `/dictation`, which is a page working as intended, not a regression.
+   */
+  const rail = within(screen.getByRole('navigation', { name: 'Dành cho học sinh' }));
+
   for (const name of [
     'Tổng quan',
     'Luyện tập',
@@ -283,7 +308,167 @@ it('keeps the sidebar items named once it is folded to icons', async () => {
     'Buổi gần đây',
     'Phần khác',
   ]) {
-    expect(screen.getByRole('link', { name })).toBeInTheDocument();
+    expect(rail.getByRole('link', { name })).toBeInTheDocument();
   }
-  expect(screen.getByRole('button', { name: 'Hỏi đáp AI' })).toBeInTheDocument();
+  expect(rail.getByRole('button', { name: 'Hỏi đáp AI' })).toBeInTheDocument();
+});
+
+it('does not paint an expired sitting as a success', async () => {
+  /*
+   * The panel had one ground — the green this palette uses for "done, and it
+   * went well" — and wore it whether the clock was running or had run out.
+   * "Đã hết giờ" on a green card is the interface disagreeing with itself, and
+   * the colour is read before the words are.
+   */
+  await openDashboard([
+    {
+      sessionId: 'sit-1',
+      examVersionId: 'v1',
+      examTitle: 'Academic Practice Test 1',
+      variant: 'academic',
+      mode: 'single',
+      status: 'inprogress',
+      startedAt: new Date(Date.now() - 3_600_000).toISOString(),
+      submittedAt: null,
+      currentModule: 'reading',
+      // Already past.
+      deadlineAt: new Date(Date.now() - 60_000).toISOString(),
+      sections: [],
+      overallBand: null,
+    },
+  ]);
+
+  await screen.findByText(/Đã hết giờ/);
+
+  const panel = document.querySelector('.dash-now');
+  expect(panel).not.toBeNull();
+  expect(panel!.className).toContain('is-over');
+});
+
+it('keeps the four skills as a matched set, never three and one', async () => {
+  /*
+   * `auto-fit` resolved to three columns at the dashboard's own width and left
+   * Speaking alone on a second row. It is the right tool for a list nobody
+   * knows the length of; this list is IELTS and its length is settled.
+   */
+  await openDashboard();
+
+  const grid = document.querySelector('.dash-skill-grid');
+  expect(grid).not.toBeNull();
+
+  const columns = getComputedStyle(grid!).gridTemplateColumns.split(' ').length;
+  expect([1, 2, 4]).toContain(columns);
+});
+
+/**
+ * A catalogue the dashboard can actually read.
+ *
+ * `signedIn` answers 404 for `/api/v1/exams`, which is the right default for
+ * the tests above — they are about a page with nothing to offer. The two below
+ * are about a page that has something, so they need a catalogue.
+ */
+function signedInWithExams(exams: unknown[]) {
+  localStorage.setItem('vni.session', JSON.stringify(session));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/v1/exams')) return json({ exams });
+      if (url.includes('/api/v1/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me')) return json(me);
+      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
+      if (url.includes('/api/v1/sessions')) return json({ sittings: [] });
+      return json({ code: 'NOT_FOUND', status: 404, title: '', detail: '' }, 404);
+    }),
+  );
+
+  window.history.pushState({}, '', '/students/dashboard');
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}
+
+const FOUR_SKILLS = ['reading', 'listening', 'writing', 'speaking'] as const;
+
+/**
+ * The card you press decides the paper you get.
+ *
+ * <b>Every card on this page linked to a bare `/practice`.</b> The workspace
+ * defaults to Single Skill Reading, so the Full Test card opened one Reading
+ * paper — and all four skill cards opened Reading too, whichever was pressed.
+ * `PracticeWorkspace` had read `mode` and `skill` from the query since it was
+ * written; nothing was passing them.
+ *
+ * Asserting on the href rather than following it: the destination is what was
+ * wrong, and a test that clicks through ends up testing the workspace.
+ * → CLAUDE.md rule 10, `E-11`…`E-13`
+ */
+it('sends each card to the paper it advertises', async () => {
+  signedInWithExams([
+    {
+      examVersionId: 'v-full',
+      title: 'Đề đủ bốn kỹ năng',
+      variant: 'academic',
+      modules: FOUR_SKILLS.map((module) => ({ module, questionCount: 40 })),
+    },
+  ]);
+
+  await screen.findByRole('heading', { name: /Xin chào/ });
+
+  const fullCard = screen
+    .getByRole('heading', { name: 'Thi thử full 4 kỹ năng' })
+    .closest('article')!;
+
+  await waitFor(() =>
+    expect(within(fullCard).getByRole('link')).toHaveAttribute(
+      'href',
+      expect.stringContaining('mode=full'),
+    ),
+  );
+
+  for (const skill of FOUR_SKILLS) {
+    const links = screen.getAllByRole('link');
+    const match = links.find((a) => a.getAttribute('href')?.includes(`skill=${skill}`));
+
+    expect(match, `no card links to ${skill}`).toBeDefined();
+    expect(match).toHaveAttribute('href', expect.stringContaining('mode=single'));
+  }
+});
+
+/**
+ * Four single-skill papers are not a Full Test.
+ *
+ * The availability check took the union of every module in the catalogue, so
+ * four separate papers satisfied it — and the card then offered a sitting the
+ * engine cannot start, because a Full Test runs four skills in **one** session.
+ * The union is still the right question for the per-skill cards, which is why
+ * both live side by side rather than one replacing the other.
+ */
+it('offers Full Test only when one paper carries all four skills', async () => {
+  signedInWithExams(
+    FOUR_SKILLS.map((module, i) => ({
+      examVersionId: `v-${i}`,
+      title: `Đề ${module}`,
+      variant: 'academic',
+      modules: [{ module, questionCount: 40 }],
+    })),
+  );
+
+  await screen.findByRole('heading', { name: /Xin chào/ });
+
+  // Every skill is practisable, so the per-skill cards are live…
+  await waitFor(() =>
+    expect(
+      screen.getAllByRole('link').some((a) => a.getAttribute('href')?.includes('skill=speaking')),
+    ).toBe(true),
+  );
+
+  // …and Full Test is not, because no single paper runs all four.
+  const fullCard = screen
+    .getByRole('heading', { name: 'Thi thử full 4 kỹ năng' })
+    .closest('article')!;
+
+  expect(within(fullCard).queryByRole('link')).toBeNull();
 });

@@ -12,9 +12,14 @@
 export {
   ApiError,
   apiBase,
+  authedFetch,
   clockOffsetMs,
+  isUnreachable,
   request,
   serverNow,
+  setTokenRenewer,
+  TRANSPORT_ERROR,
+  type TokenRenewer,
   type ApiProblem,
   type RequestOptions,
 } from '@vni/auth';

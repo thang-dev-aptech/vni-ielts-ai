@@ -17,7 +17,9 @@ export interface FaqEntry {
  * through Capacitor onto exactly those WebViews.
  *
  * <b>Header button, region body, and the pair wired both ways.</b> The button
- * owns `aria-expanded` and `aria-controls`; the panel is a `region` labelled by
+ * owns `aria-expanded`, and `aria-controls` only while the panel exists —
+ * unmounting a closed panel and still naming it leaves the IDREF dangling in
+ * the state every reader meets first. The panel is a `region` labelled by
  * the button. That is what lets a screen reader answer "what is this panel" as
  * well as "is it open".
  *
@@ -46,7 +48,7 @@ export function FaqAccordion({ entries }: { entries: FaqEntry[] }) {
                 id={headId}
                 className="faq-trigger"
                 aria-expanded={isOpen}
-                aria-controls={panelId}
+                {...(isOpen ? { 'aria-controls': panelId } : {})}
                 onClick={() => setOpen(isOpen ? -1 : at)}
               >
                 <span>{entry.q}</span>

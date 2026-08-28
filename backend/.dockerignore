@@ -1,0 +1,14 @@
+# Everything the build does not need, and two things it must never receive.
+**/bin/
+**/obj/
+**/*.user
+
+# Test projects. The image is the published API; a test assembly in it is
+# attack surface and weight for nothing.
+tests/
+
+# <b>User secrets and any environment file.</b> A credential copied into an
+# image layer is a credential in every registry that image reaches, and it
+# survives being deleted in a later layer. → CLAUDE.md rule 6
+**/secrets.json
+**/.env*

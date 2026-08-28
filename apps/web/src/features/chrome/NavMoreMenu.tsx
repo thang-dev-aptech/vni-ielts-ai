@@ -24,13 +24,29 @@ export function NavMoreMenu({ label, items }: { label: string; items: NavItem[] 
 
   return (
     <div className="nav-more" ref={container}>
+      {/*
+        <b>`aria-haspopup="true"`, not `"menu"`.</b> `menu` plus `role="menu"`
+        plus `role="menuitem"` is a promise of the WAI-ARIA menu-button
+        pattern: focus moves into the panel on open, arrows move between items,
+        Home and End jump. None of it existed — measured, ArrowDown left focus
+        on the trigger and every item was its own tab stop. A screen reader
+        announced a keyboard model the component could not honour, which is
+        worse than announcing nothing.
+
+        This is a list of links in a disclosure. `aria-expanded` is the whole
+        contract, and it is one the component actually keeps.
+
+        `aria-controls` is spread in only while the panel exists: it is
+        rendered `{open && …}`, so while closed — the state a reader meets
+        first — the IDREF resolved to nothing.
+      */}
       <button
         ref={trigger}
         type="button"
         className="nav-more-trigger"
-        aria-haspopup="menu"
+        aria-haspopup="true"
         aria-expanded={open}
-        aria-controls={menuId}
+        {...(open ? { 'aria-controls': menuId } : {})}
         onClick={toggle}
       >
         {label}
@@ -40,13 +56,12 @@ export function NavMoreMenu({ label, items }: { label: string; items: NavItem[] 
       </button>
 
       {open && (
-        <div className="nav-more-menu" id={menuId} role="menu">
+        <div className="nav-more-menu" id={menuId}>
           {items.map((item) => (
             <NavDestination
               key={item.href}
               item={item}
               className="nav-more-item"
-              role="menuitem"
               withIcon
               onNavigate={close}
             />

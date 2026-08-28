@@ -34,10 +34,20 @@ export function DictationCard({ item }: { item: DictationItem }) {
       <div className="dset-card-body">
         <h3 className="dset-card-title">
           {/*
-            The whole card is not the link, the title is.
-            Opening a set is a plain navigation, so a link is right — but a
-            card-sized hit area swallows text selection, and someone reading a
-            description wants to be able to select a phrase from it.
+            One link, stretched over the card by a `::after { inset: 0 }` in
+            `dictation-page.css`.
+
+            The comment here used to claim the opposite — "the whole card is
+            not the link, the title is" — which stopped being true when the
+            overlay was added and left the next reader with two contradictory
+            accounts. What the overlay buys is a target the size of the card
+            while the accessible name stays the title alone, so a screen
+            reader announces "Câu hằng ngày — bộ 1, link" rather than reading
+            the description and the sentence count as part of the link text.
+
+            The cost is real and accepted: an overlay swallows text selection
+            inside the card. For a two-line description that is the right
+            trade; for an article body it would not be.
           */}
           <Link to={Paths.dictationSet(item.id)}>{item.title}</Link>
         </h3>

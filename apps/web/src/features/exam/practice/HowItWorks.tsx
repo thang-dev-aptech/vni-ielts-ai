@@ -26,7 +26,11 @@ const STEPS = [
   {
     n: '03',
     title: 'Làm bài',
-    body: 'Đồng hồ do máy chủ giữ nên nó không dừng khi bạn mất mạng — nhưng bài thì được lưu liên tục.',
+    /* "bài thì được lưu liên tục" overstated it: the runner has `queued` and
+       `failed` save states precisely because a save can fail. Saying it saves
+       *as you go* is true; saying it is continuous promises a guarantee the
+       network does not give. */
+    body: 'Đồng hồ do máy chủ giữ nên nó không dừng khi bạn mất mạng. Bài được gửi lên máy chủ trong lúc bạn làm, và thanh trạng thái trên đầu trang luôn nói phần cuối cùng đã lên tới nơi hay chưa.',
   },
   {
     n: '04',
@@ -36,7 +40,10 @@ const STEPS = [
   {
     n: '05',
     title: 'Làm lại',
-    body: 'Không giới hạn số lần. Mỗi lần là một buổi riêng và cả hai buổi đều nằm lại trong lịch sử.',
+    /* "cả hai buổi" was left over from a two-attempt example, in a sentence
+       that had just said retakes were unlimited — and "không giới hạn" is
+       itself a pricing promise `B-5a` has not made. */
+    body: 'Mỗi lần làm là một buổi riêng, và mọi buổi đều nằm lại trong lịch sử để bạn so lại về sau.',
   },
 ];
 

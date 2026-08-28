@@ -136,7 +136,7 @@ public sealed class ExamPackageReader(JsonSchema schema)
             if (section.Module is not (ExamModule.Reading or ExamModule.Listening))
                 continue;
 
-            var max = section.AutoScoredCount;
+            var max = section.AutoScoredMarks;
             if (!version.Scoring.CoversRange(section.Module, max, out var firstUncovered))
             {
                 findings.Add(new ValidationFinding(
@@ -198,7 +198,17 @@ public sealed class ExamPackageReader(JsonSchema schema)
         [.. (q["options"]?.AsArray() ?? []).Select(o =>
             new QuestionOption(o!["key"]!.GetValue<string>(), o["text"]!.GetValue<string>()))],
         q["constraints"]?["maxWords"]?.GetValue<int>(),
-        q["answerKey"] is JsonObject key ? ConvertAnswerKey(key) : null);
+        q["answerKey"] is JsonObject key ? ConvertAnswerKey(key) : null,
+        q["group"] is JsonObject group ? ConvertGroup(group) : null,
+        q["marks"]?.GetValue<int>() ?? 1);
+
+    private static QuestionGroup ConvertGroup(JsonObject g) => new(
+        g["id"]!.GetValue<string>(),
+        g["title"]?.GetValue<string>(),
+        g["instruction"]?.GetValue<string>(),
+        g["image"]?.GetValue<string>(),
+        g["text"]?.GetValue<string>(),
+        g["eachLetterOnce"]?.GetValue<bool>() ?? false);
 
     private static AnswerKey ConvertAnswerKey(JsonObject key) => new(
         [.. key["accepted"]!.AsArray().Select(a => a switch

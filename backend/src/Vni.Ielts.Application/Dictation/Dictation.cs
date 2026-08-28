@@ -18,8 +18,19 @@ public interface IDictationCatalogue
 /// <summary>Dictation audio. Same shape reasoning as <c>IExamAssetStore</c>.</summary>
 public interface IDictationAssetStore
 {
-    Stream? Open(string reference);
+    /// <summary>
+    /// Null when the reference resolves to nothing. Never throws on a bad path.
+    ///
+    /// Asynchronous for the same reason as <c>IExamAssetStore.OpenAsync</c>: a
+    /// blocking read against object storage on a request thread is how a slow
+    /// bucket becomes a thread-pool exhaustion.
+    /// </summary>
+    Task<DictationAsset?> OpenAsync(string reference, CancellationToken ct);
 }
+
+/// <summary>The caller owns the stream and must dispose it.</summary>
+public sealed record DictationAsset(
+    Stream Content, string ContentType, long? ContentLength = null, string? ETag = null);
 
 public sealed record DictationSetSummary(string Id, string Title, string Description, int SentenceCount);
 

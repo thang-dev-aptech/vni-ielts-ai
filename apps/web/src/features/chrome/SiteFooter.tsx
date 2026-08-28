@@ -68,17 +68,22 @@ export function SiteFooter() {
           {/* The same four modules as the header, in the same order. A footer
               that lists three of four is where someone concludes the fourth
               does not exist. */}
-          <h4>Sản phẩm</h4>
+          <h2>Sản phẩm</h2>
           <Link to={Paths.practice}>Luyện 4 kỹ năng</Link>
           <Link to={Paths.dictation}>Nghe chép chính tả</Link>
           <Link to={Paths.documents}>Tài liệu</Link>
         </div>
 
         <div>
-          <h4>Tài nguyên</h4>
+          <h2>Tài nguyên</h2>
           <Link to={Paths.articles}>Bài viết</Link>
-          <a href={`${Paths.practice}#faq`}>Câu hỏi thường gặp</a>
-          <a href="/#community">Cộng đồng</a>
+          {/* `Link`, not `<a>`. Both targets exist, so neither was dead — but
+              a bare anchor in an SPA tears the whole app down and reboots it,
+              re-restoring the auth session over the network to land on a
+              fragment two lines further down the same site. The other six
+              links in this footer were already `Link`s. */}
+          <Link to={`${Paths.practice}#faq`}>Câu hỏi thường gặp</Link>
+          <Link to="/#community">Cộng đồng</Link>
         </div>
 
         {/*
@@ -87,7 +92,7 @@ export function SiteFooter() {
           point is that it dials.
         */}
         <div className="footer-contact">
-          <h4>Liên hệ</h4>
+          <h2>Liên hệ</h2>
           <a href={Contact.phoneHref}>
             <span className="footer-ico">
               <PhoneIcon />

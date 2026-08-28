@@ -176,4 +176,232 @@ public sealed class SessionsTests(SsoAppFactory app) : IClassFixture<SsoAppFacto
             "google", me.GetProperty("providers").EnumerateArray().Select(p => p.GetString()));
         Assert.False(me.GetProperty("hasPassword").GetBoolean());
     }
+
+    /// <summary>
+    /// <b>A dropped response does not cost the learner their session.</b>
+    ///
+    /// Rotation marks a token used and issues its successor. If the response
+    /// carrying that successor never reaches the client — a phone leaving a
+    /// tunnel, a proxy timing out, a WebView the OS suspended mid-response —
+    /// the client retries with the only token it has, which is the one just
+    /// marked used. Reuse detection then did the one thing it must never do by
+    /// accident: it revoked the whole family and signed the learner out,
+    /// mid-exam, for a network blip. On a mobile network that is not an edge
+    /// case; it is Tuesday.
+    ///
+    /// The successor is what tells the two apart: never used means nobody ever
+    /// received it. → `I4.4`
+    /// </summary>
+    [SkippableFact]
+    public async Task A_retry_after_a_lost_refresh_response_keeps_the_session()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (_, refreshToken, client) = await SignInAsync(app, NewClient(Chrome));
+
+        // The rotation the client never hears the answer to.
+        var lost = await client.PostAsJsonAsync(
+            "/api/v1/auth/refresh", new { refreshToken });
+
+        lost.EnsureSuccessStatusCode();
+
+        // The client retries with the only token it has.
+        var retry = await client.PostAsJsonAsync(
+            "/api/v1/auth/refresh", new { refreshToken });
+
+        Assert.True(
+            retry.IsSuccessStatusCode,
+            $"A retry after a lost response answered {(int)retry.StatusCode}. Before this, a "
+            + "dropped packet revoked the whole family and signed the learner out mid-exam.");
+
+        var recovered = await retry.Content.ReadFromJsonAsync<JsonElement>();
+        var recoveredRefresh = recovered.GetProperty("refreshToken").GetString()!;
+
+        // And the session it hands back actually works.
+        var again = await client.PostAsJsonAsync(
+            "/api/v1/auth/refresh", new { refreshToken = recoveredRefresh });
+
+        Assert.True(again.IsSuccessStatusCode);
+    }
+
+    /// <summary>
+    /// And a token replayed after its successor was genuinely used still burns
+    /// the family down.
+    ///
+    /// <b>This is the pair that makes the recovery safe rather than a hole.</b>
+    /// If the successor <i>was</i> used, the client did receive it — so a
+    /// presentation of the parent is a second party holding a token from this
+    /// chain, one of them stole it, and nothing can tell which. That is exactly
+    /// what the family revocation is for and it still fires. → threat `T3`
+    /// </summary>
+    [SkippableFact]
+    public async Task A_replay_after_the_successor_was_used_still_revokes_the_family()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (_, stolen, client) = await SignInAsync(app, NewClient(Chrome));
+
+        // The legitimate client rotates, receives the successor, and uses it.
+        var first = await client.PostAsJsonAsync("/api/v1/auth/refresh", new { refreshToken = stolen });
+        first.EnsureSuccessStatusCode();
+
+        var successor = (await first.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("refreshToken").GetString()!;
+
+        var second = await client.PostAsJsonAsync(
+            "/api/v1/auth/refresh", new { refreshToken = successor });
+
+        second.EnsureSuccessStatusCode();
+
+        var live = (await second.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("refreshToken").GetString()!;
+
+        // Now somebody presents the original. The chain has moved on, so this
+        // is a second party holding a token from it.
+        var replay = await client.PostAsJsonAsync(
+            "/api/v1/auth/refresh", new { refreshToken = stolen });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, replay.StatusCode);
+
+        var code = (await replay.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("code").GetString();
+
+        Assert.Equal("REFRESH_TOKEN_REUSED", code);
+
+        /*
+         * <b>And the family is gone, not merely this request refused.</b> A
+         * refusal that left the live token working would leave the thief and
+         * the learner sharing a session, which is the state the whole mechanism
+         * exists to end.
+         */
+        var afterwards = await client.PostAsJsonAsync(
+            "/api/v1/auth/refresh", new { refreshToken = live });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, afterwards.StatusCode);
+    }
+
+    /// <summary>
+    /// Two retries of one lost response recover once, not twice.
+    ///
+    /// The recovery is claimed atomically, so whichever request clears the
+    /// successor pointer owns it and the other is an ordinary reuse. Reading
+    /// and then writing would let both through — under exactly the retry
+    /// pressure that produced the situation in the first place.
+    /// </summary>
+    [SkippableFact]
+    public async Task Two_retries_of_one_lost_response_recover_once()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (_, refreshToken, client) = await SignInAsync(app, NewClient(Chrome));
+
+        var lost = await client.PostAsJsonAsync("/api/v1/auth/refresh", new { refreshToken });
+        lost.EnsureSuccessStatusCode();
+
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        async Task<HttpResponseMessage> RetryAsync()
+        {
+            await gate.Task;
+            return await client.PostAsJsonAsync("/api/v1/auth/refresh", new { refreshToken });
+        }
+
+        var a = RetryAsync();
+        var b = RetryAsync();
+        gate.SetResult();
+
+        var results = await Task.WhenAll(a, b);
+
+        Assert.Equal(1, results.Count(r => r.IsSuccessStatusCode));
+    }
+
+
+    /// <summary>
+    /// <b>Signing out ends the credential, not just the browser's copy of it.</b>
+    ///
+    /// Until 2026-08-28 the client cleared `localStorage` and that was all of
+    /// it: the refresh-token family stayed live for its full thirty days. So
+    /// signing out on a shared machine, a library computer, or a phone being
+    /// handed on left a working credential behind — recoverable from a browser
+    /// profile backup, or from anything that had already copied the value.
+    /// → `I4.6`, threat `T3`
+    /// </summary>
+    [SkippableFact]
+    public async Task Signing_out_revokes_this_sessions_refresh_family()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (access, refreshToken, client) = await SignInAsync(app, NewClient(Chrome));
+
+        var logout = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/logout");
+        logout.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
+
+        var response = await client.SendAsync(logout);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        // The credential left on the machine no longer buys anything.
+        var reuse = await client.PostAsJsonAsync("/api/v1/auth/refresh", new { refreshToken });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, reuse.StatusCode);
+    }
+
+    /// <summary>
+    /// And it ends only the caller's own session.
+    ///
+    /// The family comes from the access token's `fam` claim, so there is no
+    /// parameter through which one session could end another's. Signing out on
+    /// a laptop must not sign the learner out of the phone they are sitting an
+    /// exam on — ending every device is a different, deliberate act with its
+    /// own screen.
+    /// </summary>
+    [SkippableFact]
+    public async Task Signing_out_leaves_the_other_devices_alone()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var laptop = NewClient(Chrome);
+        var (laptopAccess, _, _) = await SignInAsync(app, laptop);
+
+        var phone = NewClient(AndroidFirefox);
+        var (_, phoneRefresh, _) = await SignInAsync(app, phone);
+
+        var logout = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/logout");
+        logout.Headers.Authorization = new AuthenticationHeaderValue("Bearer", laptopAccess);
+
+        (await laptop.SendAsync(logout)).EnsureSuccessStatusCode();
+
+        var stillWorking = await phone.PostAsJsonAsync(
+            "/api/v1/auth/refresh", new { refreshToken = phoneRefresh });
+
+        Assert.True(
+            stillWorking.IsSuccessStatusCode,
+            "Signing out on one device ended another device's session. Ending every device is "
+            + "a different act, and it has its own screen.");
+    }
+
+    /// <summary>
+    /// Signing out twice is not an error.
+    ///
+    /// A button press that fails the second time is a button press people press
+    /// twice when the first one looked like it did nothing — and this is the one
+    /// operation that must never refuse, because refusing it leaves a live
+    /// credential on a machine somebody else is about to use.
+    /// </summary>
+    [SkippableFact]
+    public async Task Signing_out_twice_is_still_a_success()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (access, _, client) = await SignInAsync(app, NewClient(Chrome));
+
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            var logout = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/logout");
+            logout.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
+
+            Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(logout)).StatusCode);
+        }
+    }
+
 }

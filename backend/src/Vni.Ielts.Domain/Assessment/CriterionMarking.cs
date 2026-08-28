@@ -84,6 +84,21 @@ public enum MarkingFlag
 /// <b>The band on this object is computed here, never taken from the model.</b>
 /// → `docs/ai/output-contracts.md` check 5.
 /// </summary>
+/// <param name="TaskNumber">
+/// Which Writing task this marks, or null for a module marked as one unit.
+///
+/// <b>Writing is two markings, not one, and that is IELTS's shape rather than
+/// a modelling preference.</b> Task 1 and Task 2 are each assessed against the
+/// full set of four criteria and each earns its own band; the Writing band is
+/// those two combined on a ratio that is <i>not published</i> and that this
+/// codebase refuses to guess (`H-8b`, and <c>ScoringProfile</c> refuses in the
+/// same way). Marking a Writing section as a single unit would have quietly
+/// answered that question by averaging — the one outcome `G-11` forbids.
+///
+/// Speaking is genuinely one marking: four criteria, one band for the whole
+/// test, not one per part. So it carries null here, and the null is a fact
+/// about Speaking rather than a field nobody filled in.
+/// </param>
 public sealed record SectionMarking(
     ExamModule Module,
     string RubricVersion,
@@ -91,7 +106,8 @@ public sealed record SectionMarking(
     BandScore Band,
     BandScore? ReportedBand,
     IReadOnlyList<MarkingFlag> Flags,
-    IReadOnlyList<string> UngroundedEvidence)
+    IReadOnlyList<string> UngroundedEvidence,
+    int? TaskNumber = null)
 {
     /// <summary>
     /// Whether anything here needs a human to look at it.
@@ -131,11 +147,18 @@ public sealed record SectionMarking(
 /// </summary>
 public static class CriterionMarking
 {
+    /// <param name="taskNumber">
+    /// The Writing task being marked, or null for a module marked as one unit.
+    /// See the note on <see cref="SectionMarking.TaskNumber"/> — Writing is two
+    /// markings because IELTS assesses each task against all four criteria, and
+    /// combining them needs a ratio nobody has published.
+    /// </param>
     public static SectionMarking Mark(
         Rubric rubric,
         IReadOnlyList<ClaimedCriterion> claimed,
         decimal? reportedSectionBand,
-        string learnerSubmission)
+        string learnerSubmission,
+        int? taskNumber = null)
     {
         RequireExactCriterionSet(rubric, claimed);
 
@@ -175,7 +198,8 @@ public static class CriterionMarking
         if (ungrounded.Count > 0) flags.Add(MarkingFlag.EvidenceNotGrounded);
 
         return new SectionMarking(
-            rubric.Module, rubric.Version, assessments, recomputed, reported, flags, ungrounded);
+            rubric.Module, rubric.Version, assessments, recomputed, reported, flags, ungrounded,
+            taskNumber);
     }
 
     /// <summary>

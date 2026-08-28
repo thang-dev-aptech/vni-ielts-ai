@@ -109,7 +109,10 @@ public sealed class FixtureDictationAssetStore : IDictationAssetStore
         }
     }
 
-    public Stream? Open(string reference)
+    public Task<DictationAsset?> OpenAsync(string reference, CancellationToken ct) =>
+        Task.FromResult(Open(reference));
+
+    private DictationAsset? Open(string reference)
     {
         if (_root is null) return null;
         if (!reference.StartsWith("assets/", StringComparison.Ordinal)) return null;
@@ -124,6 +127,23 @@ public sealed class FixtureDictationAssetStore : IDictationAssetStore
         if (!resolved.StartsWith(_root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
             return null;
 
-        return File.Exists(resolved) ? File.OpenRead(resolved) : null;
+        if (!File.Exists(resolved)) return null;
+
+        var file = new FileInfo(resolved);
+
+        return new DictationAsset(
+            File.OpenRead(resolved),
+            Path.GetExtension(resolved).ToLowerInvariant() switch
+            {
+                ".m4a" or ".mp4" => "audio/mp4",
+                ".mp3" => "audio/mpeg",
+                ".wav" => "audio/wav",
+                ".ogg" or ".opus" => "audio/ogg",
+                // Never guessed from the reference. An unknown extension is
+                // served as bytes, not as whatever a browser sniffs it into.
+                _ => "application/octet-stream",
+            },
+            file.Length,
+            $"\"{file.Length:x}-{file.LastWriteTimeUtc.Ticks:x}\"");
     }
 }

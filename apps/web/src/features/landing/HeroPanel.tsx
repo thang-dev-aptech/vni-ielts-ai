@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Paths } from '../../routes/paths.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { listMySittings, remainingSeconds, type SittingSummary } from '../exam/examApi.js';
 import { SKILLS, SKILL_ORDER } from '../exam/skills.js';
+import { useAlive } from '../../lib/useAlive.js';
 
 /**
  * The panel beside the hero headline — in two states.
@@ -41,18 +42,7 @@ export function HeroPanel() {
   const { status, user, accessToken } = useAuth();
   const [sittings, setSittings] = useState<SittingSummary[] | null>(null);
 
-  /*
-   * Set true on the way IN, not just false on the way out. StrictMode
-   * double-invokes a mount effect — run, clean up, run again — and a flag only
-   * cleared on the way out stays false for the second run, which is how a
-   * screen sits on "loading" against an API that already answered 200. The
-   * same bug has been fixed three times in this codebase.
-   */
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => void (alive.current = false);
-  }, []);
+  const alive = useAlive();
 
   const load = useCallback(async () => {
     if (accessToken === null) return;

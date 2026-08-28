@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { authedFetch } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
 import { formatClock } from './examApi.js';
+import '../../styles/audio.css';
 
 /**
  * The Listening player.
@@ -51,8 +53,12 @@ export function AudioPlayer({
       try {
         const base = import.meta.env['VITE_API_BASE'] ?? 'http://localhost:5099';
         const path = reference.replace(/^assets\//, '');
-        const response = await fetch(`${base}/api/v1/exams/assets/${path}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+        // <b>Through the shared transport, not a bare `fetch`.</b> A
+        // Listening section is thirty minutes and an access token is fifteen,
+        // so the second part's audio was being requested with a token that had
+        // already died — and a Listening paper with no sound is not a degraded
+        // experience, it is a paper that cannot be sat.
+        const response = await authedFetch(`${base}/api/v1/exams/assets/${path}`, accessToken, {
           signal: controller.signal,
         });
 
@@ -92,6 +98,16 @@ export function AudioPlayer({
         preload="auto"
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
         onTimeUpdate={(event) => setElapsed(event.currentTarget.currentTime)}
+        /*
+         * A decode failure after loading is silent without this.
+         *
+         * The fetch was guarded and the `<audio>` element was not, so a file
+         * that downloaded but would not decode — a codec the browser does not
+         * carry, a truncated body — left the learner pressing a play button
+         * that did nothing, in the middle of a timed Listening section, with
+         * no message and no way to tell whether it was them or the page.
+         */
+        onError={() => setFailed(true)}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => {
@@ -100,11 +116,28 @@ export function AudioPlayer({
         }}
       />
 
+      {/*
+        The button says why it cannot be pressed.
+
+        While the blob is fetching it was `disabled` with the same "Phát"
+        label, so on a slow connection the learner saw a dead control and
+        `00:00 / 00:00` with nothing to explain either. `spent` is the other
+        reason and it is a different one — the audio played its single pass —
+        so the two do not share a label.
+      */}
       <button
         type="button"
         className="audio-button"
         disabled={source === null || spent}
-        aria-label={playing ? t('exam.pause') : t('exam.play')}
+        aria-label={
+          source === null
+            ? t('exam.audioLoading')
+            : spent
+              ? t('exam.audioSpent')
+              : playing
+                ? t('exam.pause')
+                : t('exam.play')
+        }
         onClick={() => {
           const element = audio.current;
           if (element === null) return;

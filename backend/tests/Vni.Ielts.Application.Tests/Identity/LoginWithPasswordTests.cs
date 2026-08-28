@@ -55,6 +55,32 @@ public sealed class LoginWithPasswordTests
     }
 
     [Fact]
+    public async Task An_unverified_address_signs_in_normally()
+    {
+        /*
+         * `[QUYẾT ĐỊNH]` chủ sản phẩm, 27/08/2026: *"tạo tài khoản với email
+         * pass cho login như bình thường nhưng sẽ xác minh ở trang hồ sơ học
+         * sinh sau cũng được"*.
+         *
+         * The account `BuildAsync` seeds is unverified — `User.Register` makes
+         * it so — which means this passed before the decision as well. It is
+         * written down anyway: the rule was true by accident, held up by
+         * nothing, and the reasoning arguing the other way was sitting in a
+         * comment on `RegisterUser` the whole time. A rule nobody asserts is a
+         * rule one refactor away from reversing.
+         */
+        var (sut, _, tokens, user) = await BuildAsync();
+
+        Assert.False(user.EmailVerified);
+
+        var result = await sut.HandleAsync(
+            new LoginCommand("hoc.vien@example.com", "correct-horse-battery"), default);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, tokens.IssueCallCount);
+    }
+
+    [Fact]
     public async Task Email_is_matched_case_insensitively()
     {
         // Otherwise one person ends up with two accounts depending on how

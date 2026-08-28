@@ -54,6 +54,35 @@ public static class ErrorCodes
     public const string SessionNotInProgress = "SESSION_NOT_IN_PROGRESS";
 
     /// <summary>
+    /// A write naming a section the learner is not currently in.
+    ///
+    /// <b>Split out of <see cref="SessionExpired"/>, which it used to borrow.</b>
+    /// The two are unrelated and the client's handling of them is opposite: a
+    /// SESSION_EXPIRED means the sitting is over and the client tears the
+    /// screen down, while this means the request went to the wrong place and
+    /// the sitting is still running. A Full Test candidate whose autosave
+    /// raced an "advance" got the first code for the second situation, and the
+    /// correct client response to it would have been to end a live exam.
+    /// </summary>
+    public const string SectionNotOpen = "SECTION_NOT_OPEN";
+
+    /// <summary>
+    /// The same idempotency key is being executed right now.
+    ///
+    /// <b>Not a failure, and not a replay — a wait.</b> The first attempt has
+    /// not finished, so there is no stored response to hand back, and computing
+    /// one here would mean running the operation a second time. Which is what
+    /// the middleware used to do: it looked the key up, found nothing because
+    /// the first request had not finished writing, and ran the handler. Two
+    /// sittings started, two sections marked, two evaluations bought.
+    ///
+    /// The response carries <c>Retry-After</c>. A client that comes back is
+    /// answered either with the stored result or with this again, and neither
+    /// costs a second execution.
+    /// </summary>
+    public const string IdempotencyKeyInFlight = "IDEMPOTENCY_KEY_IN_FLIGHT";
+
+    /// <summary>
     /// "Tiếp theo" on a single-skill sitting. Its next step is a new test,
     /// which is a different operation with a different entitlement effect.
     /// → CLAUDE.md rule 10
@@ -164,6 +193,22 @@ public static class ErrorCodes
     public const string NotFound = "NOT_FOUND";
     public const string Forbidden = "FORBIDDEN";
     public const string IdempotencyKeyReused = "IDEMPOTENCY_KEY_REUSED";
+
+    /// <summary>
+    /// The first attempt at this operation may or may not have committed.
+    ///
+    /// <b>Not a failure, and not a success — and saying either would be a
+    /// lie.</b> The caller went away while the handler was running, so the
+    /// guard cannot know whether the side effect landed. Deleting the claim and
+    /// letting the retry run would perform an irreversible transition twice;
+    /// storing a success would report an outcome nobody observed.
+    ///
+    /// The client's move is to read the current state — every guarded operation
+    /// here has a GET that reports it — rather than to retry blind. After the
+    /// lease expires a retry may take the claim over, so this is a bounded
+    /// wait rather than a permanent refusal.
+    /// </summary>
+    public const string OperationOutcomeUnknown = "OPERATION_OUTCOME_UNKNOWN";
     public const string IdempotencyKeyMissing = "IDEMPOTENCY_KEY_MISSING";
 
     /// <summary>Always accompanied by a Retry-After header.</summary>

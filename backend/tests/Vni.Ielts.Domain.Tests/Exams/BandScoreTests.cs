@@ -136,4 +136,48 @@ public sealed class BandScoreTests
         Assert.Equal("6.5", BandScore.Create(6.5m).ToString());
         Assert.Equal("0.0", BandScore.Create(0m).ToString());
     }
+
+    // ── Weighted, for Writing's two tasks ─────────────────────────────────
+
+    /// <summary>
+    /// <b>The weights are always supplied, never assumed.</b> Task 2 weighs
+    /// more than Task 1 and IELTS does not publish the ratio, so this function
+    /// exists precisely so the ratio has to come from somewhere that recorded
+    /// a decision. → `H-8b`
+    /// </summary>
+    [Theory]
+    // A 1:2 weighting, which is the commonly cited ratio and still not a
+    // published one. 6 and 7 weighted 1:2 gives 6.667, which lands on 6.5.
+    [InlineData(6.0, 7.0, 1, 2, 6.5)]
+    [InlineData(7.0, 6.0, 1, 2, 6.5)]
+    // Equal weights reduce to the plain mean.
+    [InlineData(6.0, 7.0, 1, 1, 6.5)]
+    // The asymmetric rule has to survive the weighting: 6 and 7 at 1:3 is
+    // 6.75, which rounds up to the whole band rather than down to 6.5.
+    [InlineData(6.0, 7.0, 1, 3, 7.0)]
+    // And .25 goes up to the half band: 6 and 7 at 3:1 is 6.25 → 6.5.
+    [InlineData(6.0, 7.0, 3, 1, 6.5)]
+    public void A_weighted_band_rounds_on_the_same_asymmetric_rule(
+        double task1, double task2, double weight1, double weight2, double expected)
+    {
+        var band = BandScore.Weighted(
+        [
+            (BandScore.Create((decimal)task1), (decimal)weight1),
+            (BandScore.Create((decimal)task2), (decimal)weight2),
+        ]);
+
+        Assert.Equal((decimal)expected, band.Value);
+    }
+
+    [Fact]
+    public void A_weighting_that_cancels_itself_out_is_refused_rather_than_divided_by()
+    {
+        // Not a hypothetical: a weighting read from configuration can arrive as
+        // zeros, and a division by zero here would surface as a band rather
+        // than as an error.
+        Assert.Throws<ArgumentException>(() => BandScore.Weighted(
+            [(BandScore.Create(6m), 0m), (BandScore.Create(7m), 0m)]));
+
+        Assert.Throws<ArgumentException>(() => BandScore.Weighted([]));
+    }
 }

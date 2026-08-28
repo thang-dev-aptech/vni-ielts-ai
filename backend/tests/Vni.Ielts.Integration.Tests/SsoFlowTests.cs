@@ -195,11 +195,28 @@ public sealed class SsoAppFactory : WebApplicationFactory<Program>
     /// <summary>
     /// Probed once per run. A developer without the infra stack up gets a
     /// skipped suite and a note saying how to start it, not a red build.
+    ///
+    /// <b>Except where <c>VNI_REQUIRE_MONGO</c> is set, which is CI.</b> A
+    /// skip is the right answer on a laptop with no Docker running and the
+    /// wrong one everywhere else: these are the only tests that exercise the
+    /// answer-sheet CAS, the transition compare-and-swap and the idempotency
+    /// claim, and every one of them is about two writers racing. A green build
+    /// that skipped all of them says the concurrency rules hold when nothing
+    /// checked. That is not a weaker gate than having no gate — it is worse,
+    /// because it reports success.
     /// </summary>
     public static bool MongoAvailable => _mongoAvailable.Value;
 
+    /// <summary>
+    /// Set in CI. Turns "no Mongo" from a skipped suite into a failed run.
+    /// </summary>
+    private static bool MongoRequired =>
+        !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VNI_REQUIRE_MONGO"));
+
     private static readonly Lazy<bool> _mongoAvailable = new(() =>
     {
+        Exception? failure = null;
+
         try
         {
             var client = new MongoClient(
@@ -214,10 +231,23 @@ public sealed class SsoAppFactory : WebApplicationFactory<Program>
             client.ListDatabaseNames().MoveNext();
             return true;
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            return false;
+            failure = e;
         }
+
+        if (MongoRequired)
+        {
+            throw new InvalidOperationException(
+                "VNI_REQUIRE_MONGO is set and no MongoDB replica set answered on "
+                + "localhost:27018. These are the only tests covering the answer-sheet "
+                + "revision CAS, the section-transition CAS and the idempotency claim, so "
+                + "skipping them would report a green build over concurrency rules nothing "
+                + "checked.",
+                failure);
+        }
+
+        return false;
     });
 
     public const string SkipReason =
@@ -236,6 +266,11 @@ public sealed class SsoAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("Mongo:Database", _database);
         builder.UseSetting("Jwt:SigningKey", new string('k', 48));
         builder.UseSetting("Sso:EnableStubProvider", "true");
+
+        // The synthetic four-module paper, which is the only exam a clean
+        // checkout has. Off by default so it never reaches a learner's
+        // catalogue. → DevelopmentExamSeeder.IncludeSynthetic
+        builder.UseSetting("Seed:IncludeSyntheticExams", "true");
 
         // Blank the real credentials, deliberately.
         //

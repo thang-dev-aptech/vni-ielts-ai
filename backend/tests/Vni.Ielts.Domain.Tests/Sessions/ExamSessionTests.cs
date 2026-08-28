@@ -66,14 +66,13 @@ public sealed class ExamSessionTests
             [new Section(ExamModule.Reading, 1, [])]);
 
         Assert.Throws<InvalidOperationException>(() =>
-            ExamSession.Start(Learner, draft, SessionMode.Single, ExamModule.Reading, T0));
+            ExamSession.Start(Learner, draft, SessionMode.Single, SessionTiming.Deadline, ExamModule.Reading, T0));
     }
 
     [Fact]
     public void The_deadline_is_derived_from_the_server_clock_and_the_timing_profile()
     {
-        var session = ExamSession.Start(Learner, Version(ExamModule.Reading), SessionMode.Single,
-            ExamModule.Reading, T0);
+        var session = ExamSession.Start(Learner, Version(ExamModule.Reading), SessionMode.Single, SessionTiming.Deadline, ExamModule.Reading, T0);
 
         // Nothing in the call supplied a deadline. It cannot be influenced.
         Assert.Equal(T0, session.Current!.StartedAt);
@@ -83,11 +82,10 @@ public sealed class ExamSessionTests
     [Fact]
     public void A_submission_one_second_late_is_outside_the_deadline()
     {
-        var session = ExamSession.Start(Learner, Version(ExamModule.Reading), SessionMode.Single,
-            ExamModule.Reading, T0);
+        var session = ExamSession.Start(Learner, Version(ExamModule.Reading), SessionMode.Single, SessionTiming.Deadline, ExamModule.Reading, T0);
 
-        Assert.True(session.IsWithinDeadline(T0.AddHours(1)));                    // exactly on time
-        Assert.False(session.IsWithinDeadline(T0.AddHours(1).AddSeconds(1)));     // one second late
+        Assert.True(!session.IsPastDeadline(T0.AddHours(1)));                    // exactly on time
+        Assert.False(!session.IsPastDeadline(T0.AddHours(1).AddSeconds(1)));     // one second late
     }
 
     [Fact]
@@ -95,7 +93,7 @@ public sealed class ExamSessionTests
     {
         // E-12. A VNI product decision, not the official IELTS order.
         var version = Version(ExamModule.Reading, ExamModule.Listening, ExamModule.Writing, ExamModule.Speaking);
-        var session = ExamSession.Start(Learner, version, SessionMode.Full, version.FirstModule(), T0);
+        var session = ExamSession.Start(Learner, version, SessionMode.Full, SessionTiming.Deadline, version.FirstModule(), T0);
 
         Assert.Equal(ExamModule.Reading, session.Current!.Module);
 
@@ -119,7 +117,7 @@ public sealed class ExamSessionTests
         // section — the learner loses time they were entitled to, and nothing
         // in the UI would show why.
         var version = Version(ExamModule.Reading, ExamModule.Listening);
-        var session = ExamSession.Start(Learner, version, SessionMode.Full, version.FirstModule(), T0);
+        var session = ExamSession.Start(Learner, version, SessionMode.Full, SessionTiming.Deadline, version.FirstModule(), T0);
 
         var advancedAt = T0.AddMinutes(45);       // finished Reading early
         session.AdvanceToNextSection(version, advancedAt);
@@ -138,7 +136,7 @@ public sealed class ExamSessionTests
         // CLAUDE.md rule 10. Its call to action is "làm đề mới", which is a
         // different operation with a different entitlement effect.
         var version = Version(ExamModule.Reading, ExamModule.Listening);
-        var session = ExamSession.Start(Learner, version, SessionMode.Single, ExamModule.Reading, T0);
+        var session = ExamSession.Start(Learner, version, SessionMode.Single, SessionTiming.Deadline, ExamModule.Reading, T0);
 
         Assert.Equal(AdvanceOutcome.NotAFullTest, session.AdvanceToNextSection(version, T0.AddMinutes(30)));
         Assert.Equal(ExamModule.Reading, session.Current!.Module);
@@ -151,7 +149,7 @@ public sealed class ExamSessionTests
         // There is no parameter through which a caller could request Speaking
         // and skip Writing. This test documents the absence.
         var version = Version(ExamModule.Reading, ExamModule.Writing, ExamModule.Speaking);
-        var session = ExamSession.Start(Learner, version, SessionMode.Full, version.FirstModule(), T0);
+        var session = ExamSession.Start(Learner, version, SessionMode.Full, SessionTiming.Deadline, version.FirstModule(), T0);
 
         session.AdvanceToNextSection(version, T0.AddMinutes(60));
 
@@ -163,7 +161,7 @@ public sealed class ExamSessionTests
     public void Submitting_closes_every_open_section()
     {
         var version = Version(ExamModule.Reading, ExamModule.Listening);
-        var session = ExamSession.Start(Learner, version, SessionMode.Full, version.FirstModule(), T0);
+        var session = ExamSession.Start(Learner, version, SessionMode.Full, SessionTiming.Deadline, version.FirstModule(), T0);
 
         session.Submit(T0.AddMinutes(20));
 
@@ -176,8 +174,7 @@ public sealed class ExamSessionTests
     {
         // Answers are immutable after submission — otherwise a direct API call
         // could alter them post hoc. Threat T7.
-        var session = ExamSession.Start(Learner, Version(ExamModule.Reading), SessionMode.Single,
-            ExamModule.Reading, T0);
+        var session = ExamSession.Start(Learner, Version(ExamModule.Reading), SessionMode.Single, SessionTiming.Deadline, ExamModule.Reading, T0);
         session.Submit(T0.AddMinutes(10));
 
         Assert.Throws<InvalidOperationException>(() => session.Submit(T0.AddMinutes(11)));
@@ -188,8 +185,7 @@ public sealed class ExamSessionTests
     {
         // The two are different outcomes and a learner should be able to tell
         // them apart in their history.
-        var session = ExamSession.Start(Learner, Version(ExamModule.Reading), SessionMode.Single,
-            ExamModule.Reading, T0);
+        var session = ExamSession.Start(Learner, Version(ExamModule.Reading), SessionMode.Single, SessionTiming.Deadline, ExamModule.Reading, T0);
 
         session.Expire(T0.AddHours(2));
 
@@ -201,7 +197,7 @@ public sealed class ExamSessionTests
     public void Advancing_a_finished_session_does_nothing()
     {
         var version = Version(ExamModule.Reading, ExamModule.Listening);
-        var session = ExamSession.Start(Learner, version, SessionMode.Full, version.FirstModule(), T0);
+        var session = ExamSession.Start(Learner, version, SessionMode.Full, SessionTiming.Deadline, version.FirstModule(), T0);
         session.Submit(T0.AddMinutes(10));
 
         Assert.Equal(AdvanceOutcome.SessionNotInProgress,

@@ -49,11 +49,13 @@ The autosave target matters more than its size suggests: a save that feels slow 
 | Target | `[ASSUMPTION]` 99.5% | 99.9% |
 | Deployment | Rolling, brief downtime tolerated | Blue/green, zero-downtime |
 | Degradation | AI outage → results pending, exams continue | Same |
-| Backups | Daily, tested restore | Point-in-time recovery |
+| Backups | Encrypted `mongodump --oplog`, **restore drilled 2026-08-28** | Continuous oplog tailing |
 
 **The degradation rule is the important one.** An AI provider outage must not prevent learners from taking exams. Reading and Listening score without AI at all; Writing and Speaking submissions queue and drain when service returns. The learner sees an honest "evaluating" state.
 
 **Never deploy during a scheduled exam window** once real usage exists — an in-flight session is stateful in a way a stateless API disguises.
+
+**RPO and RTO are not set here, and the row above is a mechanism rather than a promise.** What the mechanism achieves is measured; what it *should* achieve is a `[BUSINESS DECISION]` — with the sharp edge being that a daily backup means an incident at 11am loses a 9am sitting, which for an exam product is a result a learner spent two hours on rather than a row in a table. → [`backup-and-restore.md`](backup-and-restore.md)
 
 ---
 

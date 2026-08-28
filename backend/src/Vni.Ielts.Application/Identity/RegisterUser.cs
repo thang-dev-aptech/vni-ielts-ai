@@ -6,16 +6,47 @@ namespace Vni.Ielts.Application.Identity;
 
 public sealed record RegisterUserCommand(string Email, string Password, string DisplayName);
 
-public sealed record RegisterUserResult(UserId UserId, bool EmailVerificationRequired);
+/// <summary>
+/// What registration produces: a signed-in session, and an honest account of
+/// what happened to the verification message.
+/// </summary>
+/// <param name="Session">
+/// The same shape a password sign-in returns, deliberately — registering *is*
+/// a sign-in now, and one body means one place builds it.
+/// </param>
+/// <param name="VerificationMessage">
+/// Whether a message actually went out. <see cref="MessageDelivery.NotSent"/>
+/// is the normal answer in development and must reach the screen; a client
+/// that says "check your inbox" over it is lying on our behalf.
+/// </param>
+public sealed record RegisterUserResult(LoginResult Session, MessageDelivery VerificationMessage);
 
 /// <summary>
 /// Email registration.
 ///
-/// Note what this does <b>not</b> return: tokens. A freshly registered account
-/// is not signed in, because the address is still an unproven claim. Several
-/// downstream protections depend on verification being a real gate —
-/// entitlement accrual (T4) and referral attribution confirmation (T13) both
-/// wait on it, and both are farmable if registration alone is enough.
+/// <para>
+/// <b>It signs the new account in.</b> `[QUYẾT ĐỊNH]` chủ sản phẩm,
+/// 27/08/2026: <i>"tạo tài khoản với email pass cho login như bình thường
+/// nhưng sẽ xác minh ở trang hồ sơ học sinh sau cũng được"</i>. Registration
+/// used to return no tokens on the reasoning that the address was still an
+/// unproven claim — but nothing in the product refused an unverified account
+/// anything, so the only thing that reasoning actually bought was a screen
+/// telling a new learner to go and read an email that, today, is never sent.
+/// </para>
+///
+/// <para>
+/// <b>What it does not do is decide what an unverified account may not do.</b>
+/// The owner settled login. Entitlement accrual (<c>T4</c>) and referral
+/// attribution (<c>T13</c>) are the two places a real restriction would
+/// belong, both are unbuilt, and choosing one here would be inventing the
+/// policy. The account's verified state is recorded truthfully and nothing
+/// reads it as a permission. → `M-45`, `G-11`
+/// </para>
+///
+/// <para>
+/// The verification message still goes out at registration — the profile page
+/// carries a resend for whoever misses it, not instead of it.
+/// </para>
 /// </summary>
 public sealed class RegisterUser(
     IUserRepository users,
@@ -24,6 +55,8 @@ public sealed class RegisterUser(
     IPasswordHasher hasher,
     IEmailVerificationTokens verificationTokens,
     IVerificationMessageSender sender,
+    IPermissionResolver permissions,
+    ITokenService tokens,
     IClock clock)
 {
     public async Task<Result<RegisterUserResult>> HandleAsync(
@@ -81,8 +114,14 @@ public sealed class RegisterUser(
         // `emailVerificationRequired: true` with no token, no endpoint, and no
         // message — the API reported a step the product could not perform.
         var token = await verificationTokens.IssueAsync(user.Id, ct);
-        await sender.SendAsync(email, token, ct);
+        var delivery = await sender.SendAsync(email, token, ct);
 
-        return new RegisterUserResult(user.Id, EmailVerificationRequired: true);
+        // A fresh sign-in, so `familyId: null` — this starts a token family
+        // rather than continuing one, exactly as LoginWithPassword does.
+        var granted = await permissions.ResolveAsync(user, ct);
+        var pair = await tokens.IssueAsync(user, granted, familyId: null, ct);
+
+        return new RegisterUserResult(
+            new LoginResult(pair, user.Id, user.DisplayName), delivery);
     }
 }

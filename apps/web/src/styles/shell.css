@@ -147,10 +147,11 @@
   display: none;
 }
 
+/* `--s-6` is 32px, and this is the control that folds the whole sidebar. */
 .shell-rail-toggle {
   flex: none;
-  width: var(--s-6);
-  height: var(--s-6);
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border: 1px solid var(--line);

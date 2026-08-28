@@ -30,7 +30,7 @@ export function NotificationMenu() {
         className="notif-trigger"
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-controls={menuId}
+        {...(open ? { 'aria-controls': menuId } : {})}
         aria-label={t('notifications.label')}
         onClick={toggle}
       >

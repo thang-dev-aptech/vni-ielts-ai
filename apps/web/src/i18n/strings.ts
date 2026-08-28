@@ -34,6 +34,11 @@ const vi = {
   'nav.signUp': 'Đăng ký',
   'nav.signOut': 'Đăng xuất',
   'nav.skipToContent': 'Bỏ qua, tới nội dung chính',
+  'pager.label': 'Phân trang',
+  'pager.previous': 'Trước',
+  'pager.next': 'Sau',
+  'pager.page': 'Trang {number}',
+  'crumbs.label': 'Đường dẫn',
 
   'common.loading': 'Đang tải…',
   'common.retry': 'Thử lại',
@@ -86,10 +91,37 @@ const vi = {
   'sso.backToSignIn': 'Quay lại đăng nhập',
   'sso.starting': 'Đang chuyển tới Google…',
 
-  'verifyAgain.send': 'Gửi lại email xác minh',
+  'verifyAgain.send': 'Gửi email xác minh',
   'verifyAgain.sending': 'Đang gửi…',
   'verifyAgain.sent': 'Đã gửi. Kiểm tra hộp thư của bạn, kể cả mục spam.',
+  'verifyAgain.retry': 'Thử lại',
+  /*
+   * Máy chủ trả lời rằng **không có thư nào được gửi đi**, và màn hình nói
+   * đúng như vậy. Chưa có dịch vụ gửi email nào được cấu hình; liên kết xác
+   * minh được ghi vào log của máy chủ. Viết "đã gửi" ở đây là đẩy người học đi
+   * mở một hộp thư trống rồi kết luận sản phẩm hỏng. → `M-45`
+   */
+  'verifyAgain.notSent':
+    'Chưa gửi được: hệ thống chưa nối dịch vụ email nào. Liên kết xác minh đang được ghi vào log của máy chủ.',
   'verifyAgain.tooOften': 'Bạn vừa yêu cầu rồi. Đợi một lát rồi thử lại.',
+
+  // ── Mã xác minh 6 số ────────────────────────────────────────────────
+  // Mỗi lời từ chối có một câu riêng, vì bước tiếp theo của học viên khác
+  // nhau: sai mã thì nhìn lại thứ vừa gõ, hết hạn thì bấm gửi lại, hết lượt
+  // thì phải biết vì sao mã trong tay đã ngừng hoạt động.
+  'verifyCode.label': 'Mã xác minh 6 số',
+  // Nói rõ đã gửi *cái gì* và sống được bao lâu. "Đã gửi" một mình để học viên
+  // đi tìm một cái link không tồn tại — mail này không có link nào cả.
+  'verifyCode.hint':
+    'Đã gửi mã 6 số tới email của bạn. Mã có hiệu lực 10 phút — nhớ xem cả mục spam.',
+  'verifyCode.submit': 'Xác minh',
+  'verifyCode.checking': 'Đang kiểm tra…',
+  'verifyCode.done': 'Đã xác minh email của bạn.',
+  'verifyCode.incorrect': 'Mã không đúng. Hãy kiểm tra lại email và thử lần nữa.',
+  'verifyCode.expired': 'Mã đã hết hạn. Hãy bấm gửi lại để nhận mã mới.',
+  'verifyCode.exhausted':
+    'Bạn đã nhập sai quá nhiều lần và mã này không còn dùng được. Hãy bấm gửi lại để nhận mã mới.',
+  'verifyCode.resend': 'Gửi lại mã',
 
   'email.change': 'Đổi',
   'email.changeHint':
@@ -196,11 +228,37 @@ const vi = {
   'signUp.emailInvalid': 'Địa chỉ email không hợp lệ.',
   'signUp.passwordWeak': 'Mật khẩu cần ít nhất 12 ký tự.',
   'signUp.nameRequired': 'Vui lòng nhập tên hiển thị.',
-  'signUp.doneTitle': 'Đã tạo tài khoản',
-  'signUp.doneBody':
-    'Chúng tôi đã gửi liên kết xác minh tới email của bạn. Mở liên kết đó để kích hoạt tài khoản.',
-  'signUp.devNotice':
-    'Môi trường phát triển: chưa có dịch vụ gửi email, liên kết xác minh được ghi vào log của máy chủ.',
+  'auth.emailRequired': 'Vui lòng nhập email.',
+  'auth.passwordRequired': 'Vui lòng nhập mật khẩu.',
+  'auth.tabsLabel': 'Đăng nhập hoặc tạo tài khoản',
+  'auth.backHome': 'Về trang chủ',
+
+  /*
+   * Browser-tab titles.
+   *
+   * 15 of 17 `usePageTitle` call sites passed a Vietnamese string literal, so
+   * switching the app to English left every tab, every history entry and every
+   * bookmark in Vietnamese. Cheap to fix at fourteen screens and progressively
+   * less cheap at forty. → `M-4`
+   */
+  'title.landing': 'Luyện thi IELTS có AI chấm',
+  'title.forgotPassword': 'Quên mật khẩu',
+  'title.verifyEmail': 'Xác minh email',
+  'title.resetPassword': 'Đặt mật khẩu mới',
+  'title.ssoCallback': 'Đang đăng nhập',
+  'title.articles': 'Bài viết',
+  'title.dashboard': 'Khu vực học sinh',
+  'title.dictation': 'Nghe chép chính tả',
+  'title.profile': 'Hồ sơ',
+  'title.results': 'Kết quả',
+  'title.practice': 'Luyện 4 kỹ năng',
+  'title.signIn': 'Đăng nhập',
+  'title.signUp': 'Tạo tài khoản',
+  'title.notFound': 'Không tìm thấy trang',
+  'notFound.elsewhere': 'Hoặc đi tới một trong bốn phần chính',
+  'sso.title': 'Đang đăng nhập…',
+  'sso.failedTitle': 'Không đăng nhập được',
+  'password.requestNew': 'Yêu cầu liên kết mới',
 
   'verify.title': 'Xác minh email',
   'verify.busy': 'Đang xác minh…',
@@ -212,8 +270,17 @@ const vi = {
 
   'home.greeting': 'Xin chào, {name}',
   'home.unverifiedTitle': 'Email chưa được xác minh',
+  /*
+   * Câu cũ là *"Một số tính năng sẽ mở sau khi bạn xác minh email"* — một luật
+   * **không tồn tại**. Không có chỗ nào trong sản phẩm từ chối tài khoản chưa
+   * xác minh bất cứ điều gì, và tài khoản chưa xác minh **được phép làm gì**
+   * vẫn là câu hỏi của chủ sản phẩm (`M-45`). Nói trước hộ chủ sản phẩm là bịa
+   * chính sách; nói với người học rằng họ đang bị chặn trong khi họ không bị
+   * chặn là nói sai. → `G-11`
+   */
   'home.unverifiedBody':
-    'Một số tính năng sẽ mở sau khi bạn xác minh email. Kiểm tra hộp thư của bạn.',
+    'Tài khoản của bạn dùng bình thường. Khi nào tiện, bạn có thể xác minh email ở trang hồ sơ.',
+  'home.unverifiedAction': 'Xác minh ở trang hồ sơ',
   'home.practiceEmpty': 'Chưa có đề thi nào',
   'home.practiceEmptyBody': 'Phần thi chưa được xây dựng. Khi có đề, các đề sẽ xuất hiện tại đây.',
   'home.historyEmpty': 'Bạn chưa làm bài nào',
@@ -223,6 +290,7 @@ const vi = {
   'dict.sentenceOf': 'Câu {index} / {total}',
   'dict.replayable': 'Nghe lại thoải mái',
   'dict.play': 'Nghe',
+  'dict.stop': 'Dừng',
   'dict.speed': 'Tốc độ',
   'dict.played': 'Đã nghe {count} lần',
   'dict.typeWhatYouHear': 'Gõ lại câu bạn vừa nghe',
@@ -234,6 +302,16 @@ const vi = {
   'dict.perfect': 'Chính xác toàn bộ',
   'dict.actual': 'Câu đúng:',
   'dict.missing': 'Bạn bỏ sót từ này',
+  /* Short prefixes, spoken before the word itself. The long strings above are
+     tooltips; a screen reader reading "Bạn bỏ sót từ này bus" for every word
+     would bury the sentence being checked. */
+  'dict.markMissing': 'thiếu',
+  'dict.setDone': 'Xong bộ câu này',
+  'dict.setDoneBody': 'Bạn đã đi hết {total} câu. Nghe lại bất cứ câu nào, hoặc chọn một bộ khác.',
+  'dict.setDoneAction': 'Chọn bộ khác',
+  'dict.markExtra': 'thừa',
+  'dict.markWrong': 'sai',
+  'dict.shouldBe': 'đúng là',
   'dict.extra': 'Từ này không có trong câu',
   'dict.emptyTitle': 'Chưa có bộ câu nào',
   'dict.emptyBody': 'Khi có bộ câu, phần luyện nghe chép sẽ mở ở đây.',
@@ -262,42 +340,153 @@ const vi = {
   'exam.questionsLabel': 'Câu hỏi',
   'exam.partsLabel': 'Các phần',
   'exam.part': 'Phần {number}',
+  'exam.questionNumber': 'Câu {number}',
+  'exam.questionRange': 'Câu {from}–{to}',
   'exam.questionsIn': 'Câu hỏi phần {number}',
   'exam.answeredOf': 'Đã trả lời {answered}/{total}',
   'exam.answerLabel': 'Câu trả lời của bạn',
+  'exam.pickAnswer': '— chọn —',
+  'exam.usedAt': '(đã dùng ở câu {number})',
   'exam.maxWords': 'Tối đa {count} từ',
   'exam.saved': 'Đã lưu',
   'exam.saving': 'Đang gửi',
   'exam.notSentYet': 'Chưa gửi được',
+  'exam.savePending': 'Đang chờ lưu',
+  'exam.submitFailed': 'Không nộp được bài. Bài của bạn vẫn còn trên máy chủ — hãy thử nộp lại.',
+  // Says the true thing. "Không nộp được bài" would reassure the learner about
+  // the server precisely when the answer at risk is the one still only on their
+  // screen.
+  'exam.saveBlockedStep':
+    'Câu trả lời cuối chưa lưu được, nên chưa nộp bài. Bài của bạn vẫn trên màn hình — hãy thử lại.',
+  'exam.expiredUnsaved':
+    'Hết giờ. Những câu bạn trả lời cuối cùng chưa gửi được — phần đã lưu trước đó vẫn được giữ.',
   'exam.saveFailed': 'Gửi thất bại',
+  // Names the questions. A refusal the learner cannot locate costs them the
+  // answer: the chip can only say that *a* save failed, and on a forty-question
+  // paper that is not something anyone can act on.
+  'exam.answersRefused': 'Máy chủ không nhận câu {questions}. Hãy sửa lại rồi thử nộp.',
   'exam.underFiveMinutes': 'còn dưới 5 phút',
   'exam.underOneMinute': 'còn dưới 1 phút',
   'exam.clockKeepsRunning': 'Đồng hồ do máy chủ giữ và không dừng khi mất mạng.',
   'exam.expired': 'Hết giờ. Phần bạn đã lưu trước hạn vẫn được giữ.',
   'exam.submit': 'Nộp bài',
   'exam.submitting': 'Đang nộp…',
+
+  /*
+   * Full Test and Single Skill say different things here, and `E-12`/`E-13`
+   * are why. "Tiếp theo" nộp phần đang làm rồi mở phần kế tiếp trong CÙNG một
+   * phiên; "Nộp bài" đóng cả phiên. Dùng nhầm một trong hai là mất ba kỹ năng
+   * hoặc là hứa một bước không tồn tại.
+   */
+  'exam.next': 'Tiếp theo',
+  'exam.advancing': 'Đang chuyển phần…',
+  'exam.advanceFailed':
+    'Không chuyển được sang kỹ năng tiếp theo. Bài của bạn vẫn còn trên máy chủ — thử lại.',
+  'exam.nextNote': 'Bấm “Tiếp theo” là nộp phần {current} và mở phần {next}. Không quay lại được.',
+  'exam.lastSectionNote': 'Đây là kỹ năng cuối. Nộp bài là kết thúc cả phiên thi.',
+  'exam.sectionOf': 'Kỹ năng {number}/{total}',
+  'exam.newTest': 'Làm đề mới',
+  'exam.singleEndsHere':
+    'Luyện từng kỹ năng kết thúc ở đây — không có bước chuyển sang kỹ năng khác.',
+  'exam.nothingMarkedTitle': 'Chưa có kết quả nào cho buổi này',
+  'exam.nothingMarkedBody':
+    'Bài đã nộp và đang nằm trên máy chủ. Kỹ năng do AI chấm chưa nối với mô hình nào nên chưa có band; bấm “Kiểm tra lại” sau ít phút.',
+
   'exam.gone': 'Không tìm thấy phiên thi',
   'exam.goneBody': 'Phiên thi này không còn nữa, hoặc không thuộc về tài khoản của bạn.',
+  'exam.resultsRetryBody':
+    'Bài của bạn vẫn nằm trên máy chủ. Kiểm tra mạng rồi tải lại trang kết quả.',
 
   'exam.play': 'Phát',
+  'exam.audioLoading': 'Đang tải audio…',
   'exam.pause': 'Tạm dừng',
   'exam.audioOnce': 'Audio chỉ phát một lần, không tua được.',
   'exam.audioReplayable': 'Không tua được.',
   'exam.audioSpent': 'Audio đã phát xong.',
   'exam.audioFailed': 'Không tải được audio. Kiểm tra kết nối rồi mở lại phần này.',
+  'exam.imageLoading': 'Đang tải hình…',
+  'exam.imageFailed': 'Không tải được hình. Kiểm tra kết nối rồi mở lại phần này.',
+  'exam.imageNoDescription':
+    'Hình này chưa có phần mô tả bằng chữ. Nếu bạn dùng trình đọc màn hình, hãy báo cho VNI để chúng tôi bổ sung.',
   'exam.transferNote': 'Sau khi audio kết thúc, bạn còn {minutes} phút để chép đáp án.',
   'exam.words': '{count} từ',
   'exam.minWords': 'Cần ít nhất {count} từ',
   'exam.underMinWords': 'Còn thiếu {count} từ',
   'exam.record': 'Bắt đầu ghi âm',
   'exam.prepareThenRecord': 'Bắt đầu chuẩn bị',
+  /*
+   * Nói trước khi bấm, không phải sau.
+   *
+   * Reading và Listening báo thời lượng ngay trên thẻ đề, Writing báo số từ tối
+   * thiểu ngay dưới ô viết — chỉ Speaking là không báo gì cho tới khi đồng hồ
+   * đã chạy. Hai số này vốn đã có sẵn trong `SpeakingPartTimingView`.
+   */
+  'exam.speakingBudget': 'Chuẩn bị {prep} · nói tối đa {response}',
+  'exam.speakingBudgetNoPrep': 'Nói tối đa {response}, không có thời gian chuẩn bị',
   'exam.preparing': 'Đang chuẩn bị',
   'exam.recording': 'Đang ghi âm',
   'exam.stopRecording': 'Dừng',
   'exam.uploading': 'Đang gửi bản ghi…',
   'exam.recordingStored': 'Đã lưu bản ghi',
   'exam.uploadFailed': 'Gửi bản ghi thất bại. Bản ghi vẫn còn, thử gửi lại.',
+
+  /*
+   * ── Luyện đề · `E-20`…`E-32` ─────────────────────────────────────────
+   *
+   * The mode with a stopwatch instead of a deadline. Every string here is
+   * about time the learner controls, so none of them borrows the countdown's
+   * vocabulary: nothing "hết giờ", nothing "còn lại".
+   */
+  'practice.modeBadge': 'Luyện đề',
+  'practice.startPractice': 'Luyện đề',
+  'practice.startPracticeHint': 'Đồng hồ đếm lên, dừng được',
+  'practice.clockLabel': 'Thời gian đã làm',
+  'practice.pause': 'Dừng đồng hồ',
+  'practice.resume': 'Chạy tiếp',
+  'practice.running': 'Đồng hồ đang chạy',
+  'practice.paused': 'Đồng hồ đang dừng',
+  'practice.clockBusy': 'Đang đổi trạng thái đồng hồ…',
+  'practice.clockFailed': 'Không đổi được trạng thái đồng hồ. Đồng hồ vẫn như cũ.',
+  'practice.clockOffline':
+    'Mất kết nối nên chưa dừng được đồng hồ — dừng đồng hồ là một thao tác ở máy chủ.',
+  'practice.target': 'Mốc thời gian mục tiêu',
+  'practice.targetOpen': 'Mốc mục tiêu',
+  'practice.targetNone': 'Chưa đặt mốc',
+  'practice.targetSet': 'Mục tiêu {time}',
+  'practice.targetPassed': 'Đã qua mốc mục tiêu',
+  'practice.targetPreset': '{count} phút',
+  'practice.targetCustom': 'Tự nhập (phút)',
+  'practice.targetApply': 'Đặt mốc',
+  'practice.targetClear': 'Xoá mốc',
+  'practice.targetFailed': 'Không đặt được mốc thời gian.',
+  'practice.targetRange': 'Mốc thời gian phải từ 1 đến 360 phút.',
+  'practice.sectionMap': 'Bản đồ câu hỏi theo section',
+  'practice.sectionN': 'Section {number}',
+  'practice.sectionCount': '{answered}/{total} câu',
+  'practice.sectionProgress': 'Section {number} · {answered}/{total}',
+  'practice.emptySection': 'Section {number} chưa có câu hỏi nào',
+  'practice.boxAnswered': 'đã trả lời, đã lưu',
+  'practice.boxUnsaved': 'đã nhập, chưa lưu xong',
+  'practice.boxEmpty': 'chưa trả lời',
+  'practice.prevSection': 'Section trước',
+  'practice.nextSection': 'Section sau',
+  'practice.confirmTitle': 'Bạn chắc chắn muốn nộp bài?',
+  'practice.confirmBody': 'Sau khi nộp không thể sửa.',
+  'practice.confirmUnanswered': 'Còn {count} câu chưa trả lời.',
+  'practice.confirmUnansweredIn': 'Section {number}: {count} câu',
+  'practice.confirmOffline':
+    'Đang mất kết nối. Bài chỉ nộp được khi máy chủ nhận được — không có hàng đợi nào giữ hộ bạn.',
+  'practice.fullNotSupported':
+    'Phiên này là bài thi đủ bốn kỹ năng. Ở đây bạn làm và nộp được phần đang mở; chuyển sang kỹ năng kế tiếp trong chế độ luyện đề thì chưa có luật, nên chưa dựng.',
   'exam.micDenied': 'Chưa được cấp quyền micro. Cho phép micro rồi thử lại.',
+  'exam.micNoDevice': 'Không tìm thấy micro nào. Cắm tai nghe hoặc micro rồi thử lại.',
+  'exam.micBusy': 'Micro đang được ứng dụng khác dùng. Đóng ứng dụng đó rồi thử lại.',
+  'exam.micUnsupported':
+    'Trình duyệt này không ghi âm được. Hãy mở bài Speaking trên ứng dụng VNI hoặc trên Chrome/Safari bản mới.',
+  'exam.micHowTo':
+    'Trên máy tính: bấm biểu tượng ổ khoá cạnh địa chỉ trang rồi bật Micro. Trên iPhone: Cài đặt › Safari › Micro. Trên Android: Cài đặt › Ứng dụng › Chrome › Quyền › Micro.',
+  'exam.sendAgain': 'Gửi lại bản ghi',
+  'exam.recordAgain': 'Ghi lại từ đầu',
   'exam.tryAgain': 'Thử lại',
   'exam.taskLabel': 'Đề bài',
   'exam.essayLabel': 'Bài viết của bạn',
@@ -312,8 +501,24 @@ const vi = {
   'exam.overallPending': 'Điểm tổng chỉ có khi đủ cả bốn kỹ năng.',
   'exam.rawOf': 'Đúng {raw}/{max} câu',
   'exam.notMarked': 'Chưa chấm',
+  // Kept as the fallback for a sitting whose marking has no job behind it —
+  // an older sitting, or one closed before the outbox existed. Everything with
+  // a job says what actually happened instead. → `exam.markingWaiting`
   'exam.aiPending':
     'Writing và Speaking do AI chấm và chưa nối với mô hình nào, nên hai kỹ năng đó hiện dấu gạch ngang.',
+  // One sentence per state, because one sentence for every state is a lie: the
+  // learner's next move is different for each of them.
+  'exam.markingWaiting': 'Đang chờ chấm.',
+  'exam.markingRunning': 'Đang chấm.',
+  'exam.checkAgain': 'Kiểm tra lại',
+  'exam.reviewTitle': 'Xem lại từng câu · {skill}',
+  'exam.reviewQuestion': 'Câu {number}:',
+  'exam.reviewRight': 'đúng',
+  'exam.reviewWrong': 'sai',
+  'exam.reviewBlank': 'bỏ trống',
+  'exam.reviewAnswered': 'bạn trả lời "{answer}"',
+  'exam.reviewNoKey':
+    'Đây là những gì bạn đã điền. Đáp án đúng không hiển thị ở đây, để đề này còn làm lại được.',
   'exam.backToPractice': '← Về danh sách đề',
 
   'dash.railLabel': 'Dành cho học sinh',
@@ -343,6 +548,8 @@ const vi = {
   'dash.now.open': 'Mở bài',
   'dash.now.none': 'Không có bài nào đang làm dở',
   'dash.now.noneBody': 'Chọn một kỹ năng bên dưới để bắt đầu.',
+  'dash.now.browseExams': 'Xem đề luyện',
+  'dash.now.tryDictation': 'Thử nghe chép chính tả',
 
   'dash.stat.sittings': 'Buổi đã làm',
   'dash.stat.skills': 'Kỹ năng đã thử',
@@ -351,6 +558,7 @@ const vi = {
   'dash.stat.none': 'Chưa có',
 
   'dash.recent.title': 'Buổi gần đây',
+  'dash.progressLabel': 'Tiến độ của bạn',
   'dash.recent.view': 'Xem chi tiết',
   'dash.recent.unmarked': 'Chưa chấm',
   'dash.recent.inProgress': 'Đang làm',
@@ -479,6 +687,11 @@ const en: Record<StringKey, string> = {
   'nav.signUp': 'Sign up',
   'nav.signOut': 'Sign out',
   'nav.skipToContent': 'Skip to main content',
+  'pager.label': 'Pagination',
+  'pager.previous': 'Previous',
+  'pager.next': 'Next',
+  'pager.page': 'Page {number}',
+  'crumbs.label': 'Breadcrumb',
 
   'common.loading': 'Loading…',
   'common.retry': 'Try again',
@@ -531,10 +744,24 @@ const en: Record<StringKey, string> = {
   'sso.backToSignIn': 'Back to sign in',
   'sso.starting': 'Redirecting to Google…',
 
-  'verifyAgain.send': 'Send the verification email again',
+  'verifyAgain.send': 'Send the verification email',
   'verifyAgain.sending': 'Sending…',
   'verifyAgain.sent': 'Sent. Check your inbox, and your spam folder.',
+  'verifyAgain.retry': 'Try again',
+  'verifyAgain.notSent':
+    'Not sent: no email provider is connected yet. The verification link is written to the server log.',
   'verifyAgain.tooOften': 'You just asked for one. Wait a moment and try again.',
+
+  'verifyCode.label': '6-digit verification code',
+  'verifyCode.hint':
+    'A 6-digit code has been sent to your email. It is valid for 10 minutes — check spam too.',
+  'verifyCode.submit': 'Verify',
+  'verifyCode.checking': 'Checking…',
+  'verifyCode.done': 'Your email is verified.',
+  'verifyCode.incorrect': 'That code is not right. Check the email and try again.',
+  'verifyCode.expired': 'That code has expired. Send a new one.',
+  'verifyCode.exhausted': 'Too many wrong attempts, so that code no longer works. Send a new one.',
+  'verifyCode.resend': 'Send a new code',
 
   'email.change': 'Change',
   'email.changeHint':
@@ -643,11 +870,28 @@ const en: Record<StringKey, string> = {
   'signUp.emailInvalid': 'That is not a valid email address.',
   'signUp.passwordWeak': 'Password must be at least 12 characters.',
   'signUp.nameRequired': 'Please enter a display name.',
-  'signUp.doneTitle': 'Account created',
-  'signUp.doneBody':
-    'We have sent a verification link to your email address. Open it to activate your account.',
-  'signUp.devNotice':
-    'Development environment: no email provider is configured, so the verification link is written to the server log.',
+  'auth.emailRequired': 'Please enter your email.',
+  'auth.passwordRequired': 'Please enter your password.',
+  'auth.tabsLabel': 'Sign in or create an account',
+  'auth.backHome': 'Back to the home page',
+  'title.landing': 'IELTS practice with AI marking',
+  'title.forgotPassword': 'Forgotten password',
+  'title.verifyEmail': 'Verify your email',
+  'title.resetPassword': 'Set a new password',
+  'title.ssoCallback': 'Signing you in',
+  'title.articles': 'Articles',
+  'title.dashboard': 'Student area',
+  'title.dictation': 'Dictation',
+  'title.profile': 'Your profile',
+  'title.results': 'Results',
+  'title.practice': 'Four-skill practice',
+  'title.signIn': 'Sign in',
+  'title.signUp': 'Create an account',
+  'title.notFound': 'Page not found',
+  'notFound.elsewhere': 'Or head to one of the four main sections',
+  'sso.title': 'Signing you in…',
+  'sso.failedTitle': 'Could not sign you in',
+  'password.requestNew': 'Request a new link',
 
   'verify.title': 'Verify your email',
   'verify.busy': 'Verifying…',
@@ -659,7 +903,9 @@ const en: Record<StringKey, string> = {
 
   'home.greeting': 'Hello, {name}',
   'home.unverifiedTitle': 'Email not verified',
-  'home.unverifiedBody': 'Some features unlock once you verify your email. Check your inbox.',
+  'home.unverifiedBody':
+    'Your account works as normal. You can verify your email from your profile whenever it suits you.',
+  'home.unverifiedAction': 'Verify from your profile',
   'home.practiceEmpty': 'No exams yet',
   'home.practiceEmptyBody':
     'The exam section has not been built. Exams will appear here once added.',
@@ -670,6 +916,7 @@ const en: Record<StringKey, string> = {
   'dict.sentenceOf': 'Sentence {index} of {total}',
   'dict.replayable': 'Replay as often as you like',
   'dict.play': 'Play',
+  'dict.stop': 'Stop',
   'dict.speed': 'Speed',
   'dict.played': 'Played {count} times',
   'dict.typeWhatYouHear': 'Type the sentence you heard',
@@ -681,6 +928,14 @@ const en: Record<StringKey, string> = {
   'dict.perfect': 'Every word',
   'dict.actual': 'The sentence was:',
   'dict.missing': 'You missed this word',
+  'dict.markMissing': 'missing',
+  'dict.setDone': 'Set complete',
+  'dict.setDoneBody':
+    'You worked through all {total} sentences. Replay any of them, or pick another set.',
+  'dict.setDoneAction': 'Pick another set',
+  'dict.markExtra': 'extra',
+  'dict.markWrong': 'wrong',
+  'dict.shouldBe': 'should be',
   'dict.extra': 'This word was not in the sentence',
   'dict.emptyTitle': 'No sentence sets yet',
   'dict.emptyBody': 'Dictation opens here once a set exists.',
@@ -709,43 +964,129 @@ const en: Record<StringKey, string> = {
   'exam.questionsLabel': 'Questions',
   'exam.partsLabel': 'Parts',
   'exam.part': 'Part {number}',
+  'exam.questionNumber': 'Question {number}',
+  'exam.questionRange': 'Questions {from}–{to}',
   'exam.questionsIn': 'Questions in part {number}',
   'exam.answeredOf': '{answered}/{total} answered',
   'exam.answerLabel': 'Your answer',
+  'exam.pickAnswer': '— choose —',
+  'exam.usedAt': '(already at {number})',
   'exam.maxWords': 'At most {count} words',
   'exam.saved': 'Saved',
   'exam.saving': 'Sending',
   'exam.notSentYet': 'Not sent yet',
+  'exam.savePending': 'Waiting to save',
+  'exam.submitFailed': 'Could not submit. Your work is still on the server — try submitting again.',
+  'exam.saveBlockedStep':
+    'Your last answer has not been saved, so nothing was submitted. It is still on screen — try again.',
+  'exam.expiredUnsaved':
+    'Time is up. Your last few answers could not be sent — everything saved before that is kept.',
   'exam.saveFailed': 'Sending failed',
+  'exam.answersRefused': 'The server would not take {questions}. Correct it, then submit.',
   'exam.underFiveMinutes': 'under 5 minutes left',
   'exam.underOneMinute': 'under 1 minute left',
   'exam.clockKeepsRunning': 'The clock is held by the server and does not stop if you go offline.',
   'exam.expired': 'Time is up. Everything saved before the deadline is kept.',
   'exam.submit': 'Submit',
   'exam.submitting': 'Submitting…',
+
+  'exam.next': 'Next',
+  'exam.advancing': 'Moving on…',
+  'exam.advanceFailed':
+    'Could not move to the next skill. Your work is still on the server — try again.',
+  'exam.nextNote': '“Next” submits {current} and opens {next}. You cannot come back.',
+  'exam.lastSectionNote': 'This is the last skill. Submitting ends the whole sitting.',
+  'exam.sectionOf': 'Skill {number} of {total}',
+  'exam.newTest': 'New test',
+  'exam.singleEndsHere': 'Single-skill practice ends here — there is no next skill to move on to.',
+  'exam.nothingMarkedTitle': 'No result for this sitting yet',
+  'exam.nothingMarkedBody':
+    'Your work was submitted and is on the server. The AI-marked skills are not wired to a model yet, so there is no band; press “Check again” in a few minutes.',
+
   'exam.gone': 'No such exam session',
   'exam.goneBody': 'This sitting no longer exists, or it does not belong to your account.',
+  'exam.resultsRetryBody':
+    'Your work is still on the server. Check your connection and load the results again.',
 
   'exam.play': 'Play',
+  'exam.audioLoading': 'Loading the audio…',
   'exam.pause': 'Pause',
   'exam.audioOnce': 'The audio plays once and cannot be rewound.',
   'exam.audioReplayable': 'Cannot be rewound.',
   'exam.audioSpent': 'The audio has finished.',
   'exam.audioFailed':
     'The audio could not be loaded. Check your connection and reopen this section.',
+  'exam.imageLoading': 'Loading the image…',
+  'exam.imageFailed':
+    'The image could not be loaded. Check your connection and reopen this section.',
+  'exam.imageNoDescription':
+    'This image has no written description yet. If you use a screen reader, please tell VNI so we can add one.',
   'exam.transferNote': 'After the audio ends you have {minutes} minutes to copy your answers over.',
   'exam.words': '{count} words',
   'exam.minWords': 'At least {count} words',
   'exam.underMinWords': '{count} words short',
   'exam.record': 'Start recording',
   'exam.prepareThenRecord': 'Start preparation',
+  'exam.speakingBudget': '{prep} to prepare · up to {response} speaking',
+  'exam.speakingBudgetNoPrep': 'Up to {response} speaking, with no preparation time',
   'exam.preparing': 'Preparing',
   'exam.recording': 'Recording',
   'exam.stopRecording': 'Stop',
   'exam.uploading': 'Sending the recording…',
   'exam.recordingStored': 'Recording saved',
   'exam.uploadFailed': 'The recording could not be sent. It is still here — try again.',
+
+  /* ── Practice mode · `E-20`…`E-32` ──────────────────────────────────── */
+  'practice.modeBadge': 'Practice',
+  'practice.startPractice': 'Practice',
+  'practice.startPracticeHint': 'Count-up clock you can stop',
+  'practice.clockLabel': 'Time worked',
+  'practice.pause': 'Stop the clock',
+  'practice.resume': 'Start the clock',
+  'practice.running': 'The clock is running',
+  'practice.paused': 'The clock is stopped',
+  'practice.clockBusy': 'Changing the clock…',
+  'practice.clockFailed': 'The clock could not be changed. It is as it was.',
+  'practice.clockOffline':
+    'Offline, so the clock cannot be stopped — stopping it is a server operation.',
+  'practice.target': 'Target working time',
+  'practice.targetOpen': 'Target time',
+  'practice.targetNone': 'No target set',
+  'practice.targetSet': 'Target {time}',
+  'practice.targetPassed': 'Past your target time',
+  'practice.targetPreset': '{count} min',
+  'practice.targetCustom': 'Type your own (minutes)',
+  'practice.targetApply': 'Set target',
+  'practice.targetClear': 'Clear target',
+  'practice.targetFailed': 'The target time could not be set.',
+  'practice.targetRange': 'A target must be between 1 and 360 minutes.',
+  'practice.sectionMap': 'Question map by section',
+  'practice.sectionN': 'Section {number}',
+  'practice.sectionCount': '{answered}/{total} answered',
+  'practice.sectionProgress': 'Section {number} · {answered}/{total}',
+  'practice.emptySection': 'Section {number} has no questions',
+  'practice.boxAnswered': 'answered and saved',
+  'practice.boxUnsaved': 'answered, not saved yet',
+  'practice.boxEmpty': 'not answered',
+  'practice.prevSection': 'Previous section',
+  'practice.nextSection': 'Next section',
+  'practice.confirmTitle': 'Are you sure you want to submit?',
+  'practice.confirmBody': 'You cannot edit the paper after you submit.',
+  'practice.confirmUnanswered': '{count} questions are still unanswered.',
+  'practice.confirmUnansweredIn': 'Section {number}: {count} questions',
+  'practice.confirmOffline':
+    'You are offline. A paper is only submitted once the server has it — nothing is queued on your behalf.',
+  'practice.fullNotSupported':
+    'This sitting is a full four-skill test. You can work on and submit the open section here; moving on to the next skill in practice mode has no rule yet, so it is not built.',
   'exam.micDenied': 'Microphone permission was refused. Allow it and try again.',
+  'exam.micNoDevice': 'No microphone found. Plug in a headset or microphone and try again.',
+  'exam.micBusy': 'Another application is using the microphone. Close it and try again.',
+  'exam.micUnsupported':
+    'This browser cannot record audio. Open the Speaking task in the VNI app, or in an up-to-date Chrome or Safari.',
+  'exam.micHowTo':
+    'On a computer: click the padlock beside the address bar and allow the microphone. On iPhone: Settings › Safari › Microphone. On Android: Settings › Apps › Chrome › Permissions › Microphone.',
+  'exam.sendAgain': 'Send the recording again',
+  'exam.recordAgain': 'Record again from the start',
   'exam.tryAgain': 'Try again',
   'exam.taskLabel': 'Task',
   'exam.essayLabel': 'Your answer',
@@ -763,6 +1104,17 @@ const en: Record<StringKey, string> = {
   'exam.notMarked': 'Not marked',
   'exam.aiPending':
     'Writing and Speaking are AI marked and are not wired to a model yet, so both show a dash.',
+  'exam.markingWaiting': 'Waiting to be marked.',
+  'exam.markingRunning': 'Being marked now.',
+  'exam.checkAgain': 'Check again',
+  'exam.reviewTitle': 'Review each question · {skill}',
+  'exam.reviewQuestion': 'Question {number}:',
+  'exam.reviewRight': 'correct',
+  'exam.reviewWrong': 'wrong',
+  'exam.reviewBlank': 'left blank',
+  'exam.reviewAnswered': 'you answered "{answer}"',
+  'exam.reviewNoKey':
+    'This is what you entered. The correct answers are not shown here, so this paper can be sat again.',
   'exam.backToPractice': '← Back to the exam list',
 
   'dash.railLabel': 'Student area',
@@ -789,6 +1141,8 @@ const en: Record<StringKey, string> = {
   'dash.now.open': 'Open',
   'dash.now.none': 'Nothing in progress',
   'dash.now.noneBody': 'Pick a skill below to start.',
+  'dash.now.browseExams': 'Browse practice tests',
+  'dash.now.tryDictation': 'Try dictation instead',
 
   'dash.stat.sittings': 'Sittings',
   'dash.stat.skills': 'Skills attempted',
@@ -796,6 +1150,7 @@ const en: Record<StringKey, string> = {
   'dash.stat.none': 'None yet',
 
   'dash.recent.title': 'Recent sittings',
+  'dash.progressLabel': 'Your progress',
   'dash.recent.view': 'View',
   'dash.recent.unmarked': 'Not marked',
   'dash.recent.inProgress': 'In progress',

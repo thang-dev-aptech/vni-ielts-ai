@@ -1,5 +1,14 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { DEFAULT_LOCALE, LOCALES, STRINGS, type Locale, type StringKey } from './strings.js';
+import { readLocal, writeLocal } from '../lib/storage.js';
 
 interface I18n {
   locale: Locale;
@@ -24,7 +33,7 @@ function isLocale(value: unknown): value is Locale {
  * browser's preference is only a starting guess.
  */
 function initialLocale(): Locale {
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = readLocal(STORAGE_KEY);
   if (isLocale(stored)) return stored;
 
   for (const candidate of navigator.languages ?? []) {
@@ -40,11 +49,25 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
-    localStorage.setItem(STORAGE_KEY, next);
-    // Keep the document in sync: `lang` drives hyphenation, the correct voice
-    // in a screen reader, and the CSS rule that blocks uppercase on Vietnamese.
-    document.documentElement.lang = next;
+    writeLocal(STORAGE_KEY, next);
   }, []);
+
+  /*
+   * <b>`<html lang>` follows the locale, from the first render.</b>
+   *
+   * It used to be set inside `setLocale` only — but `initialLocale()` can
+   * resolve to `en` from storage or from `navigator.languages` without
+   * `setLocale` ever being called, and `index.html` hard-codes `lang="vi"`.
+   * So a returning English reader got English copy inside a document declared
+   * Vietnamese: the wrong screen-reader voice (WCAG 3.1.1), the wrong
+   * hyphenation, and `reset.css`'s `[lang='vi'] { text-transform: none }`
+   * firing on English text.
+   *
+   * One owner for the attribute, and it is this effect.
+   */
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   const t = useCallback(
     (key: StringKey, vars?: Record<string, string | number>) => {

@@ -131,7 +131,21 @@ public sealed class ExamVersion
 public sealed record Section(ExamModule Module, int Order, IReadOnlyList<SectionPart> Parts)
 {
     public IEnumerable<Question> Questions => Parts.SelectMany(p => p.Questions);
-    public int AutoScoredCount => Questions.Count(q => q.Type.IsAutoScored());
+
+    /// <summary>
+    /// The highest raw score obtainable — marks, not question objects.
+    ///
+    /// <b>The band table is equated against the answer sheet.</b> A real
+    /// Listening paper has forty numbered lines; "Choose TWO letters" fills
+    /// two of them and is worth two. Counting objects made this 36 for a
+    /// forty-mark section, so the table's own top four bands were unreachable
+    /// and every score below them was read off the wrong row.
+    ///
+    /// The name kept its old meaning for two years and would have kept it
+    /// through this change too, which is why it changed: `AutoScoredMarks`
+    /// sounded like a count of questions and is now a sum of marks.
+    /// </summary>
+    public int AutoScoredMarks => Questions.Where(q => q.Type.IsAutoScored()).Sum(q => q.Marks);
 }
 
 public sealed record SectionPart(
@@ -152,6 +166,31 @@ public sealed record CueCard(string Topic, IReadOnlyList<string> Bullets);
 
 public sealed record QuestionOption(string Key, string Text);
 
+/// <summary>
+/// The shared frame a run of questions is answered inside — a heading bank, a
+/// table, a diagram, a map, a summary paragraph.
+///
+/// <b>It is not decoration.</b> A matching question without its bank is a
+/// prompt with nothing to choose from, and a map labelling without its map is a
+/// prompt about a room nobody can see. On the first real package authored
+/// against this schema, 55 of 76 auto-scored questions carry one — so a
+/// renderer that ignores groups does not render a plainer exam, it renders an
+/// unanswerable one.
+///
+/// <b>Repeated on every member rather than held once on the part.</b> A
+/// question then stays self-describing wherever it travels — a review screen, a
+/// report, a single-question fixture — and the renderer groups by
+/// <see cref="Id"/> instead of by position, which is what makes the order of
+/// the questions array the only thing that has to be right.
+/// </summary>
+public sealed record QuestionGroup(
+    string Id,
+    string? Title,
+    string? Instruction,
+    string? Image,
+    string? Text,
+    bool EachLetterOnce);
+
 public sealed record Question(
     string Id,
     int Order,
@@ -159,7 +198,23 @@ public sealed record Question(
     string? Prompt,
     IReadOnlyList<QuestionOption> Options,
     int? MaxWords,
-    AnswerKey? AnswerKey);
+    AnswerKey? AnswerKey,
+    QuestionGroup? Group = null,
+    /// <summary>
+    /// Raw marks this question carries. One unless the paper says otherwise.
+    ///
+    /// <b>"Choose TWO letters" is two marks.</b> It occupies two numbered
+    /// lines on a real answer sheet, and the band table is equated against
+    /// numbered lines — not against however many objects the author happened
+    /// to model them as. Counting objects instead scored a 40-mark Listening
+    /// section out of 36 and made the top of its own table unreachable.
+    ///
+    /// <b>How a multi-mark question is part-marked is not decided here.</b>
+    /// The answer key is a set that must match, so today it is all or nothing;
+    /// a half-mark rule needs an answer-key shape that does not exist and a
+    /// decision nobody has made. → `[OPEN QUESTION]`
+    /// </summary>
+    int Marks = 1);
 
 /// <summary>
 /// The accepted answers. <b>Never sent to a client before scoring</b> — a
@@ -183,12 +238,40 @@ public sealed record TimingProfile(
     int? ListeningTransferSeconds,
     IReadOnlyList<SpeakingPartTiming> SpeakingParts)
 {
+    /// <summary>
+    /// How long a learner gets, deadline included.
+    ///
+    /// <b>Listening's transfer time is part of the section, not an extra
+    /// courtesy.</b> A real Listening paper is thirty minutes of audio
+    /// <i>plus</i> ten minutes to copy answers onto the answer sheet, and the
+    /// ten minutes are scored time — they are when most candidates fix
+    /// spelling and fill the blanks they left. Leaving them out of the deadline
+    /// is not a rounding difference: on Exam 1 the four parts run 24 minutes 33
+    /// seconds against a 30-minute section, so a learner playing straight
+    /// through had about five and a half minutes to transfer forty answers
+    /// while the paper's own <c>transferNote</c> promised ten. The clock ran
+    /// out before the exam said it would, and the answers not yet typed were
+    /// simply lost.
+    ///
+    /// <b>Only Listening.</b> The other three write straight onto the sheet, so
+    /// there is nothing to transfer and no second phase to add.
+    /// </summary>
     public TimeSpan DurationFor(ExamModule module) =>
         SectionDurationSeconds.TryGetValue(module, out var seconds)
-            ? TimeSpan.FromSeconds(seconds)
+            ? TimeSpan.FromSeconds(seconds + TransferAllowanceFor(module))
             : module == ExamModule.Speaking && SpeakingParts.Count > 0
                 ? TimeSpan.FromSeconds(SpeakingParts.Sum(p => p.PrepSeconds + p.ResponseSeconds))
                 : throw new InvalidOperationException($"No timing configured for {module}.");
+
+    /// <summary>
+    /// Zero unless this is Listening and the version declares an allowance.
+    ///
+    /// A version that declares none gets none — an exam whose author left the
+    /// field out is not an invitation to add ten minutes on their behalf, and
+    /// the length of a transfer window is a property of the paper. → `G-11`
+    /// </summary>
+    private int TransferAllowanceFor(ExamModule module) =>
+        module == ExamModule.Listening ? ListeningTransferSeconds ?? 0 : 0;
 }
 
 public sealed record SpeakingPartTiming(int Part, int PrepSeconds, int ResponseSeconds);

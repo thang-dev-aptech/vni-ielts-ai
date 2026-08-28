@@ -2,3 +2,8 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'plugins/*'
+  # The browser suite. Its own package rather than a folder inside apps/web,
+  # because it drives the API and the app together and belongs to neither —
+  # and because a Playwright dependency inside apps/web would be shipped to
+  # anyone who builds the mobile targets from it.
+  - 'e2e'

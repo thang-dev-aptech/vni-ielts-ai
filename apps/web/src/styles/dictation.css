@@ -28,7 +28,7 @@
   gap: var(--s-3);
 }
 
-.dict-head h4 {
+.dict-head h2 {
   margin: 0;
   font-size: var(--t-20);
   font-weight: var(--w-display);
@@ -79,8 +79,11 @@
   background: var(--card);
 }
 
+/* 44px. It sits beside the play button on the one screen whose whole
+   interaction is "play it again, slower" — a 36px target on a phone, between
+   two other 36px targets, is the row people miss. */
 .dict-speed {
-  min-height: 36px;
+  min-height: 44px;
   padding-inline: var(--s-3);
   border: 0;
   border-radius: var(--r-pill);
@@ -320,12 +323,15 @@
   margin-bottom: 18px;
 }
 
-.dict-set-head h3 {
+/* `h1` since 26/08 — this is the page's own name on `/dictation/:setId`, and
+   the document previously had no level-1 heading at all. Sized as a page title
+   rather than as the panel label it used to be. */
+.dict-set-head h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: clamp(24px, 2.6vw, 30px);
   font-weight: 800;
-  line-height: 1.5;
-  letter-spacing: -0.02em;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
   color: #1c211d;
 }
 
@@ -349,4 +355,105 @@
   font-size: 14px;
   font-weight: 800;
   line-height: 1.5;
+}
+
+/*
+ * When a check could not reach the server.
+ *
+ * There was no state for this: the catch set the verdict to `null` and said
+ * nothing, so the page returned to exactly how it looked before the press —
+ * and destroyed the previous verdict on the way. The previous verdict is kept
+ * now, and this sits above the buttons with the retry that was missing.
+ */
+.dict-check-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  margin: var(--s-3) 0 0;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid #e7b4b0;
+  border-radius: var(--r-md);
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.dict-retry {
+  min-height: 44px;
+  padding-inline: var(--s-4);
+  border: 1px solid currentColor;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--w-emph);
+  cursor: pointer;
+}
+
+/* Was `.dict-next` on both buttons, so neither could be styled apart from the
+   other. Previous is the quieter of the two. */
+.dict-prev {
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: var(--w-emph);
+  cursor: pointer;
+}
+
+.dict-prev:hover {
+  background: var(--sunk);
+}
+
+/*
+ * The end of a set.
+ *
+ * Reaching the last sentence used to hide the Next button and nothing else, so
+ * finishing and breaking looked identical.
+ */
+.dict-done {
+  margin-top: var(--s-5);
+  padding: var(--s-5);
+  border: 1px solid #bfe3cd;
+  border-radius: var(--r-lg);
+  background: var(--ok-soft);
+  text-align: center;
+}
+
+.dict-done-title {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-18);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-display);
+  color: var(--ink);
+}
+
+.dict-done-body {
+  margin: 0 auto var(--s-4);
+  max-width: 46ch;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.dict-done-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border-radius: var(--r-md);
+  background: #0a8438;
+  color: #fff;
+  font-weight: var(--w-emph);
+  text-decoration: none;
+}
+
+.dict-done-action:hover {
+  background: #097630;
 }

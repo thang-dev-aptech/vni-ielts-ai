@@ -134,6 +134,29 @@ internal sealed class RefreshTokenDocument
     [BsonIgnoreIfNull]
     public DateTime? UsedAt { get; set; }
 
+    /// <summary>
+    /// The token this one was rotated into, once it has been.
+    ///
+    /// <b>Written 2026-08-28, because a dropped packet was ending sessions.</b>
+    ///
+    /// Rotation marks a token used and issues its successor. If the response
+    /// carrying that successor never reaches the client — a phone leaving a
+    /// tunnel, a proxy timing out — the client retries with the only token it
+    /// has, which is the one just marked used. Reuse detection then did the one
+    /// thing it must never do by accident: it revoked the whole family and
+    /// signed the learner out, mid-exam, for a network blip.
+    ///
+    /// Knowing which token replaced this one is what tells the two cases apart.
+    /// If the successor has <i>never been used</i>, nobody ever received it, so
+    /// this is the lost-response case and the session is recoverable. If it
+    /// <i>has</i>, then two parties hold tokens from this chain and one of them
+    /// stole it — which is exactly what the family revocation is for.
+    /// → threat `T3`, and `I4.4`
+    /// </summary>
+    [BsonElement("successorTokenHash")]
+    [BsonIgnoreIfNull]
+    public string? SuccessorTokenHash { get; set; }
+
     [BsonElement("revokedAt")]
     [BsonIgnoreIfNull]
     public DateTime? RevokedAt { get; set; }

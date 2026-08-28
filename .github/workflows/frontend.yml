@@ -45,6 +45,17 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # <b>Before the typecheck, because the generated file is untracked.</b>
+      # A fresh checkout has no `packages/api-client/src/generated`, so
+      # `pnpm typecheck` would fail on a package whose source does not exist
+      # yet — for a reason that has nothing to do with the change being tested.
+      #
+      # The backend job owns whether `contracts/openapi` matches the running
+      # API; this owns whether the TypeScript matches that contract. Between
+      # them there is no gap for a hand-edited type to live in.
+      - name: Generate the API client
+        run: pnpm --filter @vni/api-client run generate
+
       - name: Format check
         run: pnpm format:check
 
@@ -58,8 +69,8 @@ jobs:
         run: pnpm build
 
       # packages/api-client is generated from contracts/openapi. A hand edit
-      # there is a build failure, not a patch — four first-party clients stay
-      # type-safe against one source only if the generator is the sole author.
+      # there is a build failure, not a patch — the clients stay type-safe
+      # against one source only if the generator is the sole author.
       - name: Generated client is not hand-edited
         run: |
           if git ls-files --error-unmatch packages/api-client/src/generated >/dev/null 2>&1; then

@@ -126,8 +126,20 @@ public interface ITokenService
     /// only ever cover the single most recent token — a stolen token from two
     /// rotations ago would still revoke nothing.
     /// </summary>
+    /// <param name="rotatedFromHash">
+    /// The token this one replaces, when it replaces one.
+    ///
+    /// <b>Recorded so a lost response is not mistaken for a theft.</b> If the
+    /// response carrying this new token never reaches the client, the client
+    /// retries with the one it has — the one just marked used — and reuse
+    /// detection would revoke the whole family for a network blip. Knowing
+    /// which token replaced which is what tells "nobody ever received the
+    /// successor" from "two parties hold tokens from this chain".
+    /// → <c>RedeemRefreshTokenAsync</c>, threat `T3`
+    /// </param>
     Task<TokenPair> IssueAsync(
-        User user, IReadOnlyCollection<string> permissions, string? familyId, CancellationToken ct);
+        User user, IReadOnlyCollection<string> permissions, string? familyId, CancellationToken ct,
+        string? rotatedFromHash = null);
 
     Task<Result<RefreshOutcome>> RedeemRefreshTokenAsync(string refreshToken, CancellationToken ct);
 
@@ -148,7 +160,10 @@ public interface ITokenService
     Task<int> RevokeAllExceptAsync(UserId userId, string keepFamilyId, CancellationToken ct);
 }
 
-public sealed record RefreshOutcome(UserId UserId, string FamilyId);
+/// <param name="RedeemedTokenHash">
+/// The token that was just spent, so the successor can name its parent.
+/// </param>
+public sealed record RefreshOutcome(UserId UserId, string FamilyId, string RedeemedTokenHash);
 
 /// <summary>
 /// Resolves the effective permission set for a user by unioning their roles.

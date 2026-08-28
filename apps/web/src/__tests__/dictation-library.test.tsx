@@ -92,14 +92,17 @@ function signedIn() {
 }
 
 /**
- * Waits for the grid, not for a default timeout.
+ * Waits for the grid.
  *
  * Reaching a rendered card takes a session restore, a `/me` round trip and the
- * catalogue fetch. Under a parallel run the default 1000ms is not reliably
- * enough, and a suite that fails three tests in five under load teaches people
- * to re-run rather than to read.
+ * catalogue fetch, which is more than Testing Library's one-second default
+ * allows for. The budget is set once in `test-setup.ts` for the whole suite —
+ * it used to be repeated here as a literal `{ timeout: 5000 }`, and a local
+ * number silently *overrides* the global one, so raising the shared budget
+ * changed every file except this one. That is the failure this comment exists
+ * to prevent someone re-introducing.
  */
-const findSet = (title: string) => screen.findByRole('link', { name: title }, { timeout: 5000 });
+const findSet = (title: string) => screen.findByRole('link', { name: title });
 
 function openAt(path: string) {
   window.history.pushState({}, '', path);

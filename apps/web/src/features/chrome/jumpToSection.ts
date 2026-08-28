@@ -20,7 +20,20 @@ export function jumpToSection(id: string): void {
     const target = document.getElementById(id);
     if (target === null) return;
 
-    target.scrollIntoView({ block: 'start' });
+    /*
+     * The two halves fail independently, and the accessibility half matters
+     * more.
+     *
+     * `scrollIntoView` is absent in jsdom and in some WebViews, and calling it
+     * unguarded threw — which took the focus move down with it, so the one
+     * thing this helper exists to do was the thing that got skipped. Same rule
+     * `useReveal` applies to `IntersectionObserver`: a missing API degrades to
+     * "the movement does not happen", never to an exception.
+     */
+    if (typeof target.scrollIntoView === 'function') {
+      target.scrollIntoView({ block: 'start' });
+    }
+
     target.focus({ preventScroll: true });
   });
 }

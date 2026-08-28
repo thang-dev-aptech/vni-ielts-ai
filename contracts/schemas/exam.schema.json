@@ -226,6 +226,43 @@
       }
     },
 
+    "questionGroup": {
+      "description": "The shared frame a run of questions belongs to — a heading bank, a table, a diagram, a map, a summary paragraph. Without it a matching question is a prompt with no letters to choose from and a map labelling is a prompt with no map: those questions become unanswerable, not merely plainer. On the first real package authored against this schema, 55 of 76 auto-scored questions carry one. Members share an id and render under one instruction, in order; the group is repeated on every member so a question stays self-describing when it travels alone — a review screen, a report.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "description": "Members of one group share this. Unique within a part, which is what the reader checks — not globally unique across an exam version.",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9\\-]{0,63}$"
+        },
+        "title": {
+          "description": "The caption above the shared frame — \"Plan of Community Centre\", \"Tour Booking Enquiry\".",
+          "type": "string",
+          "maxLength": 200
+        },
+        "instruction": {
+          "description": "The rubric, verbatim: \"Write NO MORE THAN THREE WORDS for each answer.\" It is a scoring rule stated to the candidate, so it is copied rather than generated — a paraphrase here marks people wrong for following it.",
+          "type": "string",
+          "maxLength": 1000
+        },
+        "image": {
+          "description": "A map or diagram the whole group refers to.",
+          "$ref": "#/$defs/assetRef"
+        },
+        "text": {
+          "description": "Summary-completion body, carrying \"[n]\" where question n's gap falls. The renderer splits on those markers and puts the input in the gap; met as a numbered list underneath instead, the reader has to hold the sentence in their head while answering it.",
+          "type": "string",
+          "maxLength": 4000
+        },
+        "eachLetterOnce": {
+          "description": "Every option may be chosen at most once across the group — \"NB Use each letter once only\". The candidate is told this, so the interface has to honour it visibly rather than leaving the scorer to reject it afterwards.",
+          "type": "boolean"
+        }
+      }
+    },
+
     "question": {
       "type": "object",
       "required": ["id", "order", "type"],
@@ -260,6 +297,14 @@
             }
           }
         },
+        "marks": {
+          "description": "How many raw marks this question carries. One unless the paper says otherwise — and IELTS says otherwise for \"Choose TWO letters\", which occupies two numbered lines on the answer sheet and is worth two. Without this the maximum raw score is the number of question objects rather than the number of marks, so a Listening section of 36 objects covering 40 marks is scored out of 36 against a table equated to 40: every candidate is given a band or more too much, and nobody can reach the top of the table. Partial credit within a multi-mark question is NOT decided here — the answer-key shape is all-or-nothing, and inventing a half-mark rule would be inventing policy.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 1
+        },
+        "group": { "$ref": "#/$defs/questionGroup" },
         "constraints": { "$ref": "#/$defs/constraints" },
         "answerKey": { "$ref": "#/$defs/answerKey" }
       },
@@ -293,6 +338,11 @@
         {
           "description": "A choice question needs options to choose from.",
           "if": { "properties": { "type": { "enum": ["multiple-choice", "multiple-select"] } } },
+          "then": { "required": ["options"] }
+        },
+        {
+          "description": "Matching and labelling are answered by picking from a shared bank, so each carries that bank. Without options the renderer has nothing to offer and falls back to a free text box — which accepts anything and scores almost nothing.",
+          "if": { "properties": { "type": { "enum": ["matching", "labelling"] } } },
           "then": { "required": ["options"] }
         }
       ]

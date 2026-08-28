@@ -23,19 +23,26 @@ public static class DeterministicScorer
 
         var results = new List<QuestionResult>();
         var correct = 0;
+        var available = 0;
 
         foreach (var question in section.Questions.Where(q => q.Type.IsAutoScored()))
         {
             answers.TryGetValue(question.Id, out var submitted);
             var isCorrect = AnswerMatcher.IsCorrect(question, submitted, profile.Matching);
-            if (isCorrect) correct++;
+
+            // Marks, not questions. A "Choose TWO letters" question is one
+            // object and two marks, and the band table is equated against
+            // marks — counting objects scored a 40-mark Listening section out
+            // of 36 and put the top of its own table out of reach.
+            available += question.Marks;
+            if (isCorrect) correct += question.Marks;
 
             results.Add(new QuestionResult(question.Id, submitted, isCorrect));
         }
 
         var band = profile.BandFor(section.Module, correct);
 
-        return new SectionScore(section.Module, correct, results.Count, band, results);
+        return new SectionScore(section.Module, correct, available, band, results);
     }
 }
 

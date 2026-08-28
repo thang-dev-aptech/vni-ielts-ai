@@ -34,20 +34,42 @@ public sealed class ChangeEmailTests
 
         public Task<UserId?> RedeemAsync(string token, CancellationToken ct) =>
             Task.FromResult<UserId?>(null);
-    }
 
-    private sealed class FakeSender : IVerificationMessageSender
-    {
-        public List<string> SentTo { get; } = [];
+        /*
+         * <b>The code flow is modelled, not stubbed to succeed.</b> A fake that
+         * returned `Verified` for anything would let every test above it pass
+         * while the attempt cap — the thing that makes six digits safe — did
+         * not exist.
+         */
+        public string? OutstandingCode { get; private set; }
 
-        public Task SendAsync(Email address, string token, CancellationToken ct)
+        public int Attempts { get; private set; }
+
+        public Task<string> IssueCodeAsync(UserId userId, CancellationToken ct)
         {
-            SentTo.Add(address.Value);
-            return Task.CompletedTask;
+            Issued.Add(userId);
+            OutstandingCode = "123456";
+            Attempts = 0;
+            return Task.FromResult(OutstandingCode);
         }
 
-        public Task SendPasswordResetAsync(Email address, string token, CancellationToken ct) =>
-            Task.CompletedTask;
+        public Task<CodeRedemption> RedeemCodeAsync(
+            UserId userId, string code, CancellationToken ct)
+        {
+            if (OutstandingCode is null) return Task.FromResult(CodeRedemption.Expired);
+            if (Attempts >= 5) return Task.FromResult(CodeRedemption.TooManyAttempts);
+
+            Attempts++;
+
+            if (code != OutstandingCode)
+            {
+                return Task.FromResult(
+                    Attempts >= 5 ? CodeRedemption.TooManyAttempts : CodeRedemption.Incorrect);
+            }
+
+            OutstandingCode = null;
+            return Task.FromResult(CodeRedemption.Verified);
+        }
     }
 
     private sealed class Harness
@@ -56,7 +78,7 @@ public sealed class ChangeEmailTests
         public FakeUserIdentityRepository Identities { get; } = new();
         public FakePasswordHasher Hasher { get; } = new();
         public FakeTokens Tokens { get; } = new();
-        public FakeSender Sender { get; } = new();
+        public FakeVerificationMessageSender Sender { get; } = new();
 
         public ChangeEmail Sut => new(Users, Identities, Tokens, Sender);
 
@@ -117,6 +139,37 @@ public sealed class ChangeEmailTests
         await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Fixed), default);
 
         Assert.Equal([Fixed], h.Sender.SentTo);
+    }
+
+    [Fact]
+    public async Task The_result_says_whether_the_link_actually_went_anywhere()
+    {
+        // The screen that renders the corrected address is the screen that
+        // would otherwise tell the learner to go and look in it.
+        var h = new Harness();
+        h.Sender.Delivery = MessageDelivery.NotSent;
+        var user = await h.SeedAsync();
+
+        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Fixed), default);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(Fixed, result.Value!.Email);
+        Assert.Equal(MessageDelivery.NotSent, result.Value.VerificationMessage);
+    }
+
+    [Fact]
+    public async Task Re_submitting_the_same_address_reports_no_message()
+    {
+        // Nothing was sent, so the result must not let a caller infer one from
+        // the success. This is the case where a `bool sent = true` set beside
+        // every happy path would quietly be wrong.
+        var h = new Harness();
+        var user = await h.SeedAsync();
+
+        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Typo), default);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(MessageDelivery.NotSent, result.Value!.VerificationMessage);
     }
 
     [Fact]

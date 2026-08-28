@@ -1,8 +1,16 @@
 import { useState, type FormEvent } from 'react';
-import { ApiError } from '../../lib/api.js';
+import { ApiError, isUnreachable } from '../../lib/api.js';
 import { setPassword } from '../../lib/session.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
+/*
+ * `.password-field` and `.password-submit` are defined in `auth.css` and this
+ * panel renders both. It used to rely on some other page having pulled that
+ * file into the bundle — true today because `App.tsx` imports every route
+ * eagerly, and false the moment anyone code-splits, at which point the
+ * profile's password form loses its layout and its button loses its ground.
+ */
+import '../../styles/auth.css';
 
 /**
  * Creating or changing this account's password.
@@ -42,7 +50,7 @@ export function PasswordPanel() {
       setCurrent('');
       setNext('');
     } catch (caught) {
-      setError(messageFor(caught, t, hasPassword));
+      setError(messageFor(caught, t));
     } finally {
       setBusy(false);
     }
@@ -114,9 +122,11 @@ function messageFor(
   t: (
     key: 'password.wrongCurrent' | 'password.tooWeak' | 'common.notConnected' | 'common.unexpected',
   ) => string,
-  hasPassword: boolean,
 ): string {
-  if (!(caught instanceof ApiError)) return t('common.notConnected');
+  /* Not being able to reach the API is not a rejected password. `isUnreachable`
+     also covers a proxy's HTML error page and a 5xx, which used to fall
+     through to "Có lỗi ngoài dự kiến". */
+  if (isUnreachable(caught) || !(caught instanceof ApiError)) return t('common.notConnected');
 
   switch (caught.problem.code) {
     case 'CURRENT_PASSWORD_WRONG':
@@ -124,6 +134,10 @@ function messageFor(
     case 'PASSWORD_TOO_WEAK':
       return t('password.tooWeak');
     default:
-      return hasPassword ? t('common.unexpected') : t('common.unexpected');
+      /* Both arms of a `hasPassword` ternary returned the same string. Either
+         a message was meant to differ and was never written, or the branch was
+         never needed; in the panel that handles credentials, a dead ternary
+         reads as unfinished work. Collapsed until there is a second message. */
+      return t('common.unexpected');
   }
 }

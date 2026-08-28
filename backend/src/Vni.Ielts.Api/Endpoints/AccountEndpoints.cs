@@ -52,6 +52,25 @@ public static class AccountEndpoints
             .WithSummary("Send the email verification message again")
             .RequireRateLimiting(RateLimitPolicies.Registration);
 
+        /*
+         * <b>Authenticated, and that is what makes six digits safe.</b>
+         *
+         * The account comes from the token rather than from the code, so the
+         * attempt cap is per account and nobody can spray one guess across
+         * every account at once. An unauthenticated endpoint that found the
+         * account <i>from</i> a six-digit code would let one guess match
+         * somebody else's — which is the reason a bare code is normally unsafe,
+         * and the reason this one is not.
+         *
+         * Rate-limited under the registration policy rather than the
+         * authentication one: this is the same budget as asking for the code,
+         * and both are far tighter than sign-in. → `I6.1`
+         */
+        group.MapPost("/verify-email", ConfirmEmailCodeEndpoint)
+            .WithName("ConfirmEmailCode")
+            .WithSummary("Verify this account's email with the six-digit code we sent")
+            .RequireRateLimiting(RateLimitPolicies.Registration);
+
         group.MapPost("/password", SetPasswordEndpoint)
             .WithName("SetPassword")
             .WithSummary("Create or change this account's password")
@@ -104,7 +123,13 @@ public static class AccountEndpoints
             new ChangeEmailCommand(new UserId(id), request.Email), ct);
 
         return result.Match(
-            email => Results.Ok(new { email }),
+            ok => Results.Ok(new
+            {
+                email = ok.Email,
+                // The screen that renders the new address is the screen that
+                // would otherwise say a link is on its way to it.
+                verificationEmailSent = ok.VerificationMessage == MessageDelivery.Sent,
+            }),
             error => ApiProblem.From(error, http));
     }
 
@@ -139,8 +164,74 @@ public static class AccountEndpoints
 
         var result = await handler.HandleAsync(new ResendVerificationCommand(new UserId(id)), ct);
 
-        return result.Match(_ => Results.Accepted(), error => ApiProblem.From(error, http));
+        // 200 with the facts, not 202 with none. "Accepted" is a promise that
+        // the work will happen, and with the logging sender configured it does
+        // not — the caller has to be able to tell the learner that nothing was
+        // actually sent. → `M-45`
+        return result.Match(
+            ok => Results.Ok(new
+            {
+                emailVerified = ok.AlreadyVerified,
+                verificationEmailSent = ok.VerificationMessage == MessageDelivery.Sent,
+            }),
+            error => ApiProblem.From(error, http));
     }
+
+    /// <summary>The six digits, as the learner typed them.</summary>
+    public sealed record ConfirmEmailCodeRequest(string Code);
+
+    private static async Task<IResult> ConfirmEmailCodeEndpoint(
+        [Microsoft.AspNetCore.Mvc.FromBody] ConfirmEmailCodeRequest request,
+        ClaimsPrincipal principal,
+        ConfirmEmailCode handler,
+        HttpContext http,
+        CancellationToken ct)
+    {
+        if (principal.UserId() is not { } id) return Results.Unauthorized();
+
+        var result = await handler.HandleAsync(
+            new ConfirmEmailCodeCommand(new UserId(id), request.Code), ct);
+
+        return result.Match(
+            outcome => outcome switch
+            {
+                CodeRedemption.Verified => Results.Ok(new { emailVerified = true }),
+
+                /*
+                 * <b>Three refusals, not one, because the learner's next move
+                 * differs for each.</b> "Wrong code" sends them back to what
+                 * they typed; "expired" sends them to the resend button; "too
+                 * many attempts" has to say why the code in their hand stopped
+                 * working, or they will keep trying it from the same email.
+                 *
+                 * A single "invalid code" would be the same failure the results
+                 * screen had before `I3.6` — one sentence covering situations
+                 * with different answers.
+                 */
+                CodeRedemption.Expired => Problem(
+                    "VERIFICATION_CODE_EXPIRED",
+                    "Mã đã hết hạn. Hãy bấm gửi lại để nhận mã mới.",
+                    StatusCodes.Status400BadRequest),
+
+                CodeRedemption.TooManyAttempts => Problem(
+                    "VERIFICATION_CODE_ATTEMPTS_EXCEEDED",
+                    "Bạn đã nhập sai quá nhiều lần và mã này không còn dùng được. "
+                    + "Hãy bấm gửi lại để nhận mã mới.",
+                    StatusCodes.Status400BadRequest),
+
+                _ => Problem(
+                    "VERIFICATION_CODE_INCORRECT",
+                    "Mã không đúng. Hãy kiểm tra lại email và thử lần nữa.",
+                    StatusCodes.Status400BadRequest),
+            },
+            error => ApiProblem.From(error, http));
+    }
+
+    private static IResult Problem(string code, string detail, int status) =>
+        Results.Problem(
+            detail: detail,
+            statusCode: status,
+            extensions: new Dictionary<string, object?> { ["code"] = code });
 
     private static async Task<IResult> SetPasswordEndpoint(
         [Microsoft.AspNetCore.Mvc.FromBody] SetPasswordRequest request,

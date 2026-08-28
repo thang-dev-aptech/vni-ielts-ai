@@ -304,11 +304,6 @@ a.nav-link:hover {
   border-color: #b6c0b6;
   background: #fafbf9;
 }
-.btn-dark {
-  background: var(--dark);
-  color: white;
-  box-shadow: 0 4px 0 #0d160f;
-}
 .btn-white {
   background: white;
   color: #1d2a20;
@@ -579,27 +574,6 @@ a.nav-link:hover {
   background: #fdedf1;
   color: #a8324f;
 }
-
-/* #0e8c3d measured 4.04. #0b622c measures 6.99. */
-.live-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #eafbf0;
-  color: #0b622c;
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1.4;
-}
-.live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #10b050;
-  animation: pulseDot 1.6s infinite ease-in-out;
-}
 @keyframes pulseDot {
   0%,
   100% {
@@ -853,89 +827,9 @@ a.nav-link:hover {
   background: var(--green-soft);
   color: #14743d;
 }
-
-/* Skill feature */
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 13px;
-}
-.feature-card {
-  position: relative;
-  padding: 21px;
-  border: 2px solid rgba(42, 52, 43, 0.1);
-  border-radius: 22px;
-  min-height: 230px;
-  overflow: hidden;
-  box-shadow: 0 4px 0 rgba(48, 60, 49, 0.05);
-}
-.feature-card:before {
-  content: '';
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  top: -65px;
-  right: -45px;
-  opacity: 0.6;
-}
-.blue-card {
-  background: #f1f8fd;
-}
-.blue-card:before {
-  background: #d8ebf8;
-}
-.yellow-card {
-  background: #fff7f0;
-}
-.yellow-card:before {
-  background: #fbe0cc;
-}
-.purple-card {
-  background: #f1f8fd;
-}
-.purple-card:before {
-  background: #d8ebf8;
-}
-.red-card {
-  background: #fff7f0;
-}
-.red-card:before {
-  background: #fbe0cc;
-}
-.feature-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  z-index: 1;
-}
-.feature-icon {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: white;
-  border: 2px solid rgba(50, 50, 50, 0.08);
-}
 .feature-arrow {
   color: #6f6f6f;
   font-weight: 900;
-}
-.feature-card h3 {
-  position: relative;
-  margin: 24px 0 6px;
-  font-size: 22px;
-  font-weight: 900;
-}
-.feature-card p {
-  position: relative;
-  margin: 0;
-  color: #666666;
-  font-size: 14px;
-  line-height: 1.55;
-  font-weight: 600;
 }
 .feature-meta {
   display: flex;
@@ -1190,15 +1084,6 @@ a.nav-link:hover {
 .article-card:hover .article-go,
 .article-card:focus-visible .article-go {
   opacity: 1;
-}
-.article-card a.read-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: #1e7a3c;
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1.5;
 }
 
 /* FAQ */
@@ -1514,15 +1399,6 @@ details p {
   gap: 12px;
   min-width: 210px;
 }
-.btn-ghost-white {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: none;
-}
-.btn-ghost-white:hover {
-  background: rgba(255, 255, 255, 0.18);
-}
 
 /* Footer */
 .footer {
@@ -1560,7 +1436,7 @@ details p {
   font-weight: 600;
   line-height: 1.6;
 }
-.footer h4 {
+.footer h2 {
   margin: 0 0 13px;
   /*
    * Explicit, and not optional. The base sheet sets `h1..h6 { color:
@@ -1647,16 +1523,9 @@ details p {
   .floating-card {
     display: none;
   }
-  .feature-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .article-grid,
   .companion-grid {
     grid-template-columns: 1fr;
-  }
-  .path-art {
-    height: auto;
-    min-height: 180px;
   }
   .cta-box {
     padding: 42px 36px;
@@ -1733,15 +1602,6 @@ details p {
   .section-heading h2 {
     font-size: 37px;
   }
-  .feature-grid {
-    grid-template-columns: 1fr;
-  }
-  .feature-card {
-    min-height: 205px;
-  }
-  .path-art {
-    min-height: 130px;
-  }
   .row-heading {
     align-items: start;
     flex-direction: column;
@@ -1785,12 +1645,6 @@ details p {
   }
   .hero-ctas .btn {
     width: 100%;
-  }
-  .social-proof {
-    gap: 7px;
-  }
-  .proof-pill {
-    font-size: 14px;
   }
 }
 
@@ -1938,80 +1792,13 @@ details p {
 }
 
 /*
- * ── Channel cards ─────────────────────────────────────────────── Each card
- * borrows its channel's colour on hover only. At rest they stay uniform,
- * because three saturated brand colours side by side compete with the page's
- * own green.
+ * ── Channel cards ───────────────────────────────────────────────
+ *
+ * Removed on 26/08. The whole `.channel-*` family — the card, its three
+ * per-brand `--channel` modifiers, and everything hanging off them — was dead:
+ * no component in either app rendered any of it. The design it belonged to was
+ * superseded when the community section was rebuilt around real links.
  */
-
-.channel-card {
-  --channel: var(--green);
-  position: relative;
-  overflow: hidden;
-  transition:
-    transform 0.22s ease,
-    box-shadow 0.22s ease,
-    border-color 0.22s ease;
-}
-.channel-youtube {
-  --channel: #ff0000;
-}
-.channel-facebook {
-  --channel: #0866ff;
-}
-.channel-zalo {
-  --channel: #0068ff;
-}
-
-.channel-card::after {
-  content: '';
-  position: absolute;
-  inset: auto -30% -55% auto;
-  width: 210px;
-  height: 210px;
-  border-radius: 50%;
-  background: var(--channel);
-  opacity: 0;
-  transform: scale(0.7);
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
-  pointer-events: none;
-  filter: blur(38px);
-}
-.channel-card:hover {
-  transform: translateY(-6px);
-  border-color: color-mix(in srgb, var(--channel) 40%, var(--line));
-  box-shadow: 0 18px 38px rgba(24, 40, 30, 0.12);
-}
-.channel-card:hover::after {
-  opacity: 0.16;
-  transform: scale(1);
-}
-
-.channel-card .channel-mark {
-  color: var(--channel);
-  background: color-mix(in srgb, var(--channel) 10%, #fff);
-  display: grid;
-  place-items: center;
-}
-.channel-card .channel-mark svg {
-  width: 24px;
-  height: 24px;
-}
-.channel-card:hover .companion-link {
-  color: var(--channel);
-}
-
-/* ── Contact strip ───────────────────────────────────────────────*/
-
-.contact-strip {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 34px;
-}
 .contact-item {
   display: inline-flex;
   align-items: center;
@@ -2118,6 +1905,19 @@ details p {
   gap: 10px;
   font-size: var(--t-16);
 }
+
+/*
+ * A phone number must not break across lines.
+ *
+ * At 390px the footer column is narrow enough that "0823 86 5858" wrapped to
+ * "0823 86" / "5858", which reads as two numbers and is the one string on the
+ * page where a reader copying it wrongly has a real cost. The grouping itself
+ * is VNI's printed form and is deliberately not changed here. → `Contact`
+ */
+.footer-grid > div.footer-contact a[href^='tel:'] span:last-child,
+.footer-grid > div.footer-contact a[href^='tel:'] {
+  white-space: nowrap;
+}
 .footer-ico {
   display: grid;
   place-items: center;
@@ -2142,10 +1942,6 @@ details p {
 }
 
 @media (max-width: 720px) {
-  .contact-strip {
-    flex-direction: column;
-    align-items: stretch;
-  }
   .contact-item {
     justify-content: flex-start;
   }
@@ -2235,9 +2031,6 @@ details p {
   opacity: 0.55;
   cursor: default;
   text-decoration: none;
-}
-.read-btn.is-inactive {
-  pointer-events: none;
 }
 
 /*
@@ -2487,10 +2280,7 @@ details p {
 
 /*
  * `1fr` means "one share of the free space, but never below my content".
- * `minmax(0, 1fr)` is the version that can actually shrink — the score
- * labels inside wrap instead of pushing the page wider.
- */
-.subscore-grid {
+ * `minmax(0 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -2509,9 +2299,6 @@ details p {
  * shipped.
  */
 @media (max-width: 430px) {
-  .subscore-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 /*

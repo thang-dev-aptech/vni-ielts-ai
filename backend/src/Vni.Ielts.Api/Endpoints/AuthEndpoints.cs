@@ -25,6 +25,33 @@ public sealed record SessionResponse(
     string UserId,
     string DisplayName);
 
+/// <summary>
+/// What registration answers with.
+///
+/// <para>
+/// <b>A session, because registering signs the learner in.</b> `[QUYẾT ĐỊNH]`
+/// chủ sản phẩm, 27/08/2026 — see <see cref="RegisterUser"/>. The session is
+/// nested rather than flattened so the client parses exactly the same object
+/// here as it does from <c>/login</c>; a near-copy of six fields is how the
+/// two shapes drift.
+/// </para>
+/// </summary>
+/// <param name="EmailVerified">
+/// Always false on a fresh registration. Sent anyway so the client never has
+/// to assume it, and so the field means the same thing as it does on
+/// <c>/me</c>.
+/// </param>
+/// <param name="VerificationEmailSent">
+/// <b>Whether a message actually left the server.</b> False is the normal
+/// answer today — the only configured sender writes the link to the server
+/// log — and a client that shows "check your inbox" over a false here is
+/// telling the learner to wait for something that will never arrive.
+/// </param>
+public sealed record RegisterResponse(
+    SessionResponse Session,
+    bool EmailVerified,
+    bool VerificationEmailSent);
+
 public sealed record MeResponse(
     string UserId,
     string DisplayName,
@@ -72,7 +99,45 @@ public static class AuthEndpoints
             .WithSummary("Redeem a reset link and set a new password")
             .RequireRateLimiting(RateLimitPolicies.Authentication);
 
+        /*
+         * <b>Signing out was a local act, and it should never have been.</b>
+         *
+         * Until 2026-08-28 the client cleared `localStorage` and that was all
+         * of it: the refresh-token family stayed live on the server for its
+         * full thirty days. So "sign out" on a shared machine, a library
+         * computer, or a phone being handed on left a working credential behind
+         * — recoverable from a browser profile backup, or from anything that
+         * had already copied the value.
+         *
+         * <b>Authorised, and it revokes the caller's own family only.</b> The
+         * family id comes from the access token's `fam` claim, so there is no
+         * parameter through which one session could end another's. Ending every
+         * device is a different, deliberate act, and it already has its own
+         * screen. → `I4.6`, threat `T3`
+         */
+        group.MapPost("/logout", Logout)
+            .WithName("Logout")
+            .WithSummary("End this session on the server, not only in this browser")
+            .RequireAuthorization();
+
         app.MapGet("/api/v1/me", Me).WithName("Me").WithTags("Identity").RequireAuthorization();
+    }
+
+    private static async Task<IResult> Logout(
+        ClaimsPrincipal principal, ITokenService tokens, CancellationToken ct)
+    {
+        if (principal.UserId() is not { } id) return Results.Unauthorized();
+
+        /*
+         * <b>No family claim means nothing to revoke, and that is a success.</b>
+         * An access token minted before the claim existed still identifies a
+         * caller who is signing out; answering 401 would leave the client
+         * unable to complete an action it must always be able to complete.
+         */
+        if (principal.FamilyId() is { } family)
+            await tokens.RevokeFamilyAsync(new UserId(id), family, ct);
+
+        return Results.NoContent();
     }
 
     private static async Task<IResult> Register(
@@ -85,14 +150,14 @@ public static class AuthEndpoints
             new RegisterUserCommand(request.Email, request.Password, request.DisplayName), ct);
 
         return result.Match(
-            // 201 with no tokens. Registration does not sign anyone in — the
-            // address is still an unproven claim, and entitlement accrual and
-            // referral confirmation both wait on verification. → T4, T13
-            ok => Results.Created($"/api/v1/users/{ok.UserId}", new
-            {
-                userId = ok.UserId.Value,
-                emailVerificationRequired = ok.EmailVerificationRequired,
-            }),
+            // 201 with a session. Registration signs the learner in and the
+            // address is verified later from the profile page. → `M-45`
+            ok => Results.Created(
+                $"/api/v1/users/{ok.Session.UserId.Value}",
+                new RegisterResponse(
+                    ToSession(ok.Session),
+                    EmailVerified: false,
+                    VerificationEmailSent: ok.VerificationMessage == MessageDelivery.Sent)),
             error => ApiProblem.From(error, http));
     }
 

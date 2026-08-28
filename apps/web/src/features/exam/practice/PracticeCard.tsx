@@ -33,7 +33,18 @@ export function PracticeCard({
 }: {
   item: PracticeItem;
   busy: boolean;
-  onStart: (item: PracticeItem) => void;
+  /**
+   * `timing` is the learner's own choice of clock, and it is asked here rather
+   * than inferred from the mode bar above the grid.
+   *
+   * <b>Luyện đề / Thi thử is not the same pair as Full Test / Single Skill.</b>
+   * `E-11` confirms the first two, `E-20` confirms the second two, and nothing
+   * says how they compose — `B-13`. Reading "Luyện từng kỹ năng" as "luyện đề"
+   * would answer that question by fiat, from a control that was built to mean
+   * something else, and would leave no way to sit a timed single-skill paper.
+   * Two buttons state the choice instead of guessing it. → `X-4`
+   */
+  onStart: (item: PracticeItem, timing: 'deadline' | 'open') => void;
 }) {
   const { t } = useI18n();
   const skill = item.module === null ? null : SKILLS[item.module];
@@ -95,7 +106,13 @@ export function PracticeCard({
               >
                 {SKILLS[part.module].name.slice(0, 1)}
               </span>
-              <span className="prac-part-min num">{part.minutes}′</span>
+              {/* "phút", not the prime symbol. Every other duration on this
+                  page says "phút", and `′` is a mathematics glyph rather than a
+                  Vietnamese convention for minutes — several screen readers
+                  announce it as "prime". */}
+              <span className="prac-part-min">
+                <span className="num">{part.minutes}</span> phút
+              </span>
               <span className="sr-only">
                 {SKILLS[part.module].name} {part.minutes} phút
               </span>
@@ -134,20 +151,41 @@ export function PracticeCard({
         {full && <li className="prac-meta-marking">Chấm hỗn hợp</li>}
       </ul>
 
-      <button
-        type="button"
-        className="prac-start"
-        disabled={busy}
-        onClick={() => onStart(item)}
-        aria-label={
-          full
-            ? `${t('exam.startFull')} — ${item.title}`
-            : `${t('exam.start')} ${skill.name} — ${item.title}`
-        }
-      >
-        {busy ? t('exam.starting') : t('exam.start')}
-        <span aria-hidden="true">→</span>
-      </button>
+      <div className="prac-starts">
+        {/*
+          <b>Luyện đề first, and only on a single-skill card.</b> The open-ended
+          clock is what most people came for, and a full-test luyện đề sitting
+          would need a chaining rule `B-13` has not written — so the offer is
+          absent there rather than present and half-built. `G-11`.
+        */}
+        {!full && (
+          <button
+            type="button"
+            className="prac-start is-practice"
+            disabled={busy}
+            onClick={() => onStart(item, 'open')}
+            aria-label={`${t('practice.startPractice')} ${skill.name} — ${item.title} · ${t('practice.startPracticeHint')}`}
+          >
+            {busy ? t('exam.starting') : t('practice.startPractice')}
+            <span aria-hidden="true">→</span>
+          </button>
+        )}
+
+        <button
+          type="button"
+          className="prac-start is-mock"
+          disabled={busy}
+          onClick={() => onStart(item, 'deadline')}
+          aria-label={
+            full
+              ? `${t('exam.startFull')} — ${item.title}`
+              : `${t('exam.start')} ${skill.name} — ${item.title}`
+          }
+        >
+          {busy ? t('exam.starting') : t('exam.start')}
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
     </li>
   );
 }

@@ -21,7 +21,9 @@
     "docs:check": "python3 scripts/check-docs.py",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "build": "pnpm -r --if-present build && dotnet build backend --nologo"
+    "build": "pnpm -r --if-present build && dotnet build backend --nologo",
+    "e2e": "pnpm --filter @vni/e2e e2e",
+    "e2e:install": "pnpm --filter @vni/e2e e2e:install"
   },
   "devDependencies": {
     "prettier": "3.6.2",

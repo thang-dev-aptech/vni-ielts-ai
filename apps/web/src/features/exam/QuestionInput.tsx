@@ -27,15 +27,45 @@ export function QuestionInput({
   question,
   value,
   disabled,
+  labelledBy,
+  takenBy,
   onChange,
 }: {
   question: QuestionView;
   value: string | null;
   disabled: boolean;
+  /** The id of the element holding this question's number and prompt. */
+  labelledBy?: string;
+  /**
+   * Option key → the question number that already used it, for a group whose
+   * rubric says each letter is used once.
+   *
+   * <b>Shown, not enforced.</b> The options stay selectable: a candidate
+   * halfway through a matching set often needs to move a letter from one line
+   * to another, and a control that refuses the first half of that leaves them
+   * stuck. Naming where a letter already sits is what they actually need — the
+   * rubric is a scoring rule, and the scorer is what applies it.
+   */
+  takenBy?: Record<string, number>;
   onChange: (next: string | null) => void;
 }) {
   const { t } = useI18n();
   const name = `q-${question.id}`;
+
+  /*
+   * <b>Named by its own question, or by nothing useful.</b>
+   *
+   * Every field used to carry `aria-label="Câu trả lời của bạn"` — the same
+   * six words on all forty inputs of a paper. `aria-labelledby` pointing at
+   * the number and prompt gives each one a name that identifies it, and the
+   * two attributes are mutually exclusive here rather than both present,
+   * because `aria-labelledby` silently wins and leaving the loser in place
+   * invites someone to "fix" the wrong one.
+   */
+  const naming =
+    labelledBy === undefined
+      ? { 'aria-label': t('exam.answerLabel') }
+      : { 'aria-labelledby': labelledBy };
 
   const fixed =
     question.type === 'true-false-notgiven'
@@ -46,7 +76,7 @@ export function QuestionInput({
 
   if (fixed !== null && question.options.length === 0) {
     return (
-      <div className="q-choices" role="radiogroup" aria-label={t('exam.answerLabel')}>
+      <div className="q-choices" role="radiogroup" {...naming}>
         {fixed.map((option) => (
           <label className={`q-choice${value === option ? ' is-picked' : ''}`} key={option}>
             <input
@@ -64,9 +94,52 @@ export function QuestionInput({
     );
   }
 
+  /*
+   * <b>Matching and labelling are a bank, and a bank is a select.</b>
+   *
+   * They fell through to the radio branch below, which is right for four
+   * options and wrong for ten: a heading-matching set is six questions against
+   * one bank of ten, so the radio rendering drew sixty controls repeating the
+   * same ten headings. It filled a screen, it buried the passage, and choosing
+   * an answer meant reading the whole bank again each time.
+   *
+   * A native `<select>` is also the control that already works on a phone,
+   * with a keyboard, and with a screen reader, without this file implementing
+   * any of it.
+   */
+  if (question.type === 'matching' || question.type === 'labelling') {
+    return (
+      <div className="q-bank">
+        <select
+          className="q-bank-select"
+          value={value ?? ''}
+          disabled={disabled}
+          {...naming}
+          onChange={(event) => onChange(event.target.value === '' ? null : event.target.value)}
+        >
+          <option value="">{t('exam.pickAnswer')}</option>
+          {question.options.map((option) => {
+            const taken = takenBy?.[option.key];
+
+            return (
+              <option key={option.key} value={option.key}>
+                {/* The letter and its text, because a bank of ten roman
+                    numerals tells nobody anything on its own. */}
+                {option.key === option.text ? option.key : `${option.key} — ${option.text}`}
+                {taken !== undefined && taken !== question.order
+                  ? ` ${t('exam.usedAt', { number: taken })}`
+                  : ''}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+    );
+  }
+
   if (question.options.length > 0 && question.type !== 'multiple-select') {
     return (
-      <div className="q-choices" role="radiogroup" aria-label={t('exam.answerLabel')}>
+      <div className="q-choices" role="radiogroup" {...naming}>
         {question.options.map((option) => (
           <label className={`q-choice${value === option.key ? ' is-picked' : ''}`} key={option.key}>
             <input
@@ -90,7 +163,7 @@ export function QuestionInput({
     const picked = new Set((value ?? '').split(MULTI_SEPARATOR).filter(Boolean));
 
     return (
-      <div className="q-choices" role="group" aria-label={t('exam.answerLabel')}>
+      <div className="q-choices" role="group" {...naming}>
         {question.options.map((option) => (
           <label
             className={`q-choice${picked.has(option.key) ? ' is-picked' : ''}`}
@@ -125,7 +198,21 @@ export function QuestionInput({
         rows={12}
         value={value ?? ''}
         disabled={disabled}
-        aria-label={t('exam.answerLabel')}
+        /*
+          The browser must not mark the thing being marked.
+
+          Lexical Resource and Grammatical Range are two of the criteria this
+          essay is scored on. Leaving spellcheck on has the browser underline
+          and correct exactly what is being measured, and on the Capacitor
+          WebView `autocapitalize` defaults to `sentences` and `autocorrect`
+          to on — so the candidate's own spelling never reaches the server.
+          It is not a preference; it corrupts the construct.
+        */
+        spellCheck={false}
+        autoCorrect="off"
+        autoCapitalize="off"
+        autoComplete="off"
+        {...naming}
         onChange={(event) => onChange(event.target.value === '' ? null : event.target.value)}
       />
     );
@@ -137,8 +224,17 @@ export function QuestionInput({
         type="text"
         value={value ?? ''}
         disabled={disabled}
+        /*
+          Same reasoning as the essay box, and a sharper consequence: a
+          Reading gap-fill answer is string-compared against an answer key on
+          the server, and iOS capitalises the first letter of every field by
+          default. "medicine" arrives as "Medicine" and is marked wrong.
+        */
+        spellCheck={false}
+        autoCorrect="off"
+        autoCapitalize="off"
         autoComplete="off"
-        aria-label={t('exam.answerLabel')}
+        {...naming}
         onChange={(event) => onChange(event.target.value === '' ? null : event.target.value)}
       />
       {question.maxWords !== null && (

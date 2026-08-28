@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+import { SkipLink } from './SkipLink.js';
 import { SiteFooter } from './SiteFooter.js';
 import { SiteHeader } from './SiteHeader.js';
 import '../../styles/landing.css';
@@ -16,8 +17,9 @@ import '../../styles/module-pages.css';
 export function PublicShell() {
   return (
     <div className="landing">
+      <SkipLink />
       <SiteHeader />
-      <main>
+      <main id="main" tabIndex={-1}>
         <Outlet />
       </main>
       <SiteFooter />

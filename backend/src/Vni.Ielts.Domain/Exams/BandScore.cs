@@ -72,19 +72,54 @@ public readonly record struct BandScore : IComparable<BandScore>
         if (sectionBands.Count == 0)
             throw new ArgumentException("An overall band needs at least one section band.", nameof(sectionBands));
 
-        var mean = sectionBands.Sum(b => b.Value) / sectionBands.Count;
+        return RoundToHalfBand(sectionBands.Sum(b => b.Value) / sectionBands.Count);
+    }
 
-        // Work on the half-band grid. The fractional part of (mean * 2) is
-        // 0.5 exactly when the mean ends in .25 or .75 — the two cases the
-        // official rule singles out, and both round up.
+    /// <summary>
+    /// A weighted mean of bands, rounded on the same asymmetric rule.
+    ///
+    /// <b>For Writing, whose two tasks do not count equally.</b> This function
+    /// deliberately takes the weights rather than knowing them: the Task 1 :
+    /// Task 2 ratio is not published by IELTS and is not defaulted anywhere in
+    /// this codebase (`H-8b`). A caller that cannot supply weights has no
+    /// business producing a combined band, which is why there is no overload
+    /// that assumes any.
+    ///
+    /// The rounding is <see cref="Overall"/>'s, shared rather than copied — two
+    /// implementations of an asymmetric rule is one implementation that will be
+    /// wrong about 6.75.
+    /// </summary>
+    public static BandScore Weighted(IReadOnlyCollection<(BandScore Band, decimal Weight)> parts)
+    {
+        if (parts.Count == 0)
+            throw new ArgumentException("A weighted band needs at least one part.", nameof(parts));
+
+        var total = parts.Sum(p => p.Weight);
+
+        if (total <= 0m)
+            throw new ArgumentException(
+                "Weights must sum to something positive. Refusing to divide by a weighting that "
+                + "cancels itself out.", nameof(parts));
+
+        return RoundToHalfBand(parts.Sum(p => p.Band.Value * p.Weight) / total);
+    }
+
+    /// <summary>
+    /// The official rounding, in one place.
+    ///
+    /// Work on the half-band grid: the fractional part of <c>mean * 2</c> is
+    /// 0.5 exactly when the mean ends in <c>.25</c> or <c>.75</c> — the two
+    /// cases the official rule singles out, and both round up.
+    /// </summary>
+    private static BandScore RoundToHalfBand(decimal mean)
+    {
         var onHalfGrid = mean * 2m;
         var floor = Math.Floor(onHalfGrid);
         var remainder = onHalfGrid - floor;
 
         var steps = remainder >= 0.5m ? floor + 1m : floor;
-        var rounded = steps / 2m;
 
-        return Create(Math.Clamp(rounded, 0m, 9m));
+        return Create(Math.Clamp(steps / 2m, 0m, 9m));
     }
 
     public int CompareTo(BandScore other) => Value.CompareTo(other.Value);

@@ -1,3 +1,5 @@
+import { useI18n } from '../../i18n/index.js';
+import { jumpToSection } from './jumpToSection.js';
 /**
  * Page links for the practice grid.
  *
@@ -26,22 +28,56 @@ export function Pagination({
   page,
   pages,
   onGo,
+  label,
+  scrollTo,
 }: {
   page: number;
   pages: number;
   onGo: (page: number) => void;
+  /**
+   * Names the thing being paged — "Trang bài viết", "Trang bộ câu".
+   *
+   * It was hard-coded to "Trang bài luyện" ("practice-exercise pages") while
+   * this component is also rendered on the dictation library and the article
+   * index, where a screen reader announced the wrong thing entirely.
+   *
+   * <b>Passed in rather than translated here, and that is deliberate.</b> The
+   * caller knows what its list is; this component knows only that it has
+   * pages. Everything the component owns — Trước, Sau, the per-page label —
+   * goes through `t()` below.
+   */
+  label?: string;
+  /**
+   * The id of the element the new page appears in.
+   *
+   * Turning a page swapped the cards correctly and left the viewport on the
+   * pager, so the results the reader asked for were eight hundred pixels above
+   * them and nothing said so. `jumpToSection` moves the keyboard as well as
+   * the view.
+   */
+  scrollTo?: string;
 }) {
+  const { t } = useI18n();
+
   if (pages < 2) return null;
 
+  /* One place decides what "turn the page" means, so the three call sites
+     cannot each forget half of it. */
+  const go = (next: number) => {
+    if (next === page || next < 1 || next > pages) return;
+    onGo(next);
+    if (scrollTo !== undefined) jumpToSection(scrollTo);
+  };
+
   return (
-    <nav className="pager" aria-label="Trang bài luyện">
+    <nav className="pager" aria-label={label ?? t('pager.label')}>
       <button
         type="button"
         className="pager-step"
         aria-disabled={page === 1}
-        onClick={() => page > 1 && onGo(page - 1)}
+        onClick={() => go(page - 1)}
       >
-        <span aria-hidden="true">←</span> Trước
+        <span aria-hidden="true">←</span> {t('pager.previous')}
       </button>
 
       <ul className="pager-list">
@@ -57,8 +93,8 @@ export function Pagination({
                 className={`pager-page num${slot === page ? ' is-current' : ''}`}
                 aria-current={slot === page ? 'page' : undefined}
                 aria-disabled={slot === page}
-                onClick={() => slot !== page && onGo(slot)}
-                aria-label={`Trang ${slot}`}
+                onClick={() => go(slot)}
+                aria-label={t('pager.page', { number: slot })}
               >
                 {slot}
               </button>
@@ -71,9 +107,9 @@ export function Pagination({
         type="button"
         className="pager-step"
         aria-disabled={page === pages}
-        onClick={() => page < pages && onGo(page + 1)}
+        onClick={() => go(page + 1)}
       >
-        Sau <span aria-hidden="true">→</span>
+        {t('pager.next')} <span aria-hidden="true">→</span>
       </button>
     </nav>
   );

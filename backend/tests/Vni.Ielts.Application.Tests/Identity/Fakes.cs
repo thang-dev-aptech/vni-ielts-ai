@@ -155,11 +155,16 @@ internal sealed class FakeTokenService : ITokenService
 
     public List<string?> IssuedFamilies { get; } = [];
 
+    /// <summary>The parent each issued token named, so a test can assert the chain.</summary>
+    public List<string?> RotatedFrom { get; } = [];
+
     public Task<TokenPair> IssueAsync(
-        User user, IReadOnlyCollection<string> permissions, string? familyId, CancellationToken ct)
+        User user, IReadOnlyCollection<string> permissions, string? familyId, CancellationToken ct,
+        string? rotatedFromHash = null)
     {
         IssueCallCount++;
         IssuedFamilies.Add(familyId);
+        RotatedFrom.Add(rotatedFromHash);
         var now = DateTimeOffset.UnixEpoch;
         return Task.FromResult(new TokenPair(
             "access", now.AddMinutes(15), "refresh", now.AddDays(30)));
@@ -189,6 +194,42 @@ internal sealed class FakeTokenService : ITokenService
     {
         RevokedAllFor.Add(userId);
         return Task.CompletedTask;
+    }
+}
+
+/// <summary>
+/// A mail sender whose delivery answer is set per test.
+///
+/// <para>
+/// <b><see cref="Delivery"/> defaults to <c>Sent</c>, and the tests that
+/// matter set it to <c>NotSent</c>.</b> The only sender that exists in the
+/// product today writes the link to a log and sends nothing, so
+/// <c>NotSent</c> is not an exotic branch — it is production-as-configured,
+/// and the reason every use case here reports what happened instead of
+/// letting a caller assume.
+/// </para>
+/// </summary>
+internal sealed class FakeVerificationMessageSender : IVerificationMessageSender
+{
+    public MessageDelivery Delivery { get; set; } = MessageDelivery.Sent;
+
+    public List<(string Address, string Token)> Verifications { get; } = [];
+    public List<(string Address, string Token)> Resets { get; } = [];
+
+    /// <summary>Addresses a verification message was sent to, in order.</summary>
+    public List<string> SentTo => [.. Verifications.Select(v => v.Address)];
+
+    public Task<MessageDelivery> SendAsync(Email address, string token, CancellationToken ct)
+    {
+        Verifications.Add((address.Value, token));
+        return Task.FromResult(Delivery);
+    }
+
+    public Task<MessageDelivery> SendPasswordResetAsync(
+        Email address, string token, CancellationToken ct)
+    {
+        Resets.Add((address.Value, token));
+        return Task.FromResult(Delivery);
     }
 }
 

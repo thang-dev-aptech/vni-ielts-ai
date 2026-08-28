@@ -37,7 +37,22 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error === null) return this.props.children;
 
     return (
-      <div className="container" style={{ paddingBlock: 'var(--s-7)', maxWidth: 560 }}>
+      /*
+       * <b>`data-error-boundary` is a test hook, and it is not decoration.</b>
+       *
+       * The suite's crash gate reads `console.error` for React's own report.
+       * That is one detector, and it depends on a message React owns and on
+       * `componentDidCatch` above still being called — delete that method and
+       * the boundary keeps working while the gate goes quiet. This attribute
+       * is a second, independent detector: it is in the DOM whenever this
+       * apology is on screen, whatever React did or did not print.
+       * → the crash gate in `src/test-setup.ts`
+       */
+      <div
+        className="container"
+        data-error-boundary=""
+        style={{ paddingBlock: 'var(--s-7)', maxWidth: 560 }}
+      >
         <ErrorState
           title="Trang gặp sự cố / This page hit a problem"
           description="Bạn có thể tải lại trang. Nếu lỗi lặp lại, vui lòng báo cho chúng tôi. / You can reload. If it keeps happening, please tell us."

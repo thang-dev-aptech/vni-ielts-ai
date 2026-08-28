@@ -23,7 +23,8 @@ internal sealed class JwtTokenService(
     private readonly JwtOptions _opt = options.Value;
 
     public async Task<TokenPair> IssueAsync(
-        User user, IReadOnlyCollection<string> permissions, string? familyId, CancellationToken ct)
+        User user, IReadOnlyCollection<string> permissions, string? familyId, CancellationToken ct,
+        string? rotatedFromHash = null)
     {
         // null means a fresh sign-in, which starts a new family. Rotation
         // passes the redeemed token's family so the chain stays intact.
@@ -76,11 +77,13 @@ internal sealed class JwtTokenService(
         // information if it leaks.
         var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
 
+        var refreshHash = HashToken(refreshToken);
+
         await ctx.RefreshTokens.InsertOneAsync(
             new RefreshTokenDocument
             {
                 Id = Guid.NewGuid().ToString("n"),
-                TokenHash = HashToken(refreshToken),
+                TokenHash = refreshHash,
                 UserId = user.Id.Value,
                 FamilyId = familyId,
                 ExpiresAt = refreshExpires.UtcDateTime,
@@ -90,6 +93,23 @@ internal sealed class JwtTokenService(
                 UserAgent = Trim(device.UserAgent),
             },
             cancellationToken: ct);
+
+        /*
+         * <b>Point the spent token at its replacement.</b>
+         *
+         * Written after the successor exists rather than before, so a crash
+         * between the two leaves a used token with no successor recorded —
+         * which reads as "not recoverable" and falls through to the family
+         * revocation. That is the safe direction to be wrong in: it costs a
+         * sign-in, where the other direction costs the reuse detection.
+         */
+        if (rotatedFromHash is not null)
+        {
+            await ctx.RefreshTokens.UpdateOneAsync(
+                t => t.TokenHash == rotatedFromHash,
+                Builders<RefreshTokenDocument>.Update.Set(t => t.SuccessorTokenHash, refreshHash),
+                cancellationToken: ct);
+        }
 
         return new TokenPair(accessToken, accessExpires, refreshToken, refreshExpires);
     }
@@ -124,10 +144,79 @@ internal sealed class JwtTokenService(
 
         if (stored.UsedAt is not null)
         {
-            await RevokeFamilyAsync(new UserId(stored.UserId), stored.FamilyId, ct);
-            return Error.Unauthorized(
-                ErrorCodes.RefreshTokenReused,
-                "This session was ended for security reasons. Please sign in again.");
+            /*
+             * ── A used token is two different events ──────────────────────
+             *
+             * <b>Written 2026-08-28. Until then it was one, and the wrong one
+             * was the common case.</b>
+             *
+             * Rotation marks a token used and issues its successor. If the
+             * response carrying that successor never reaches the client — a
+             * phone leaving a tunnel, a proxy timing out, a WebView the OS
+             * suspended mid-response — the client retries with the only token
+             * it has, which is the one just marked used. Reuse detection then
+             * revoked the whole family and signed the learner out, mid-exam,
+             * for a dropped packet. On a mobile network that is not an edge
+             * case; it is Tuesday.
+             *
+             * <b>The successor tells the two apart.</b> If it was never used,
+             * nobody ever received it: this is the lost response, and the
+             * session is recoverable. If it <i>was</i> used, then two parties
+             * hold tokens from this chain and one of them stole it — which is
+             * what the family revocation exists for, and it still fires.
+             *
+             * <b>Bounded in time as well.</b> A retry after a lost response
+             * happens within seconds; a stolen token is presented whenever the
+             * thief gets round to it. The window is what keeps a theft hours
+             * later from being read as a slow retry.
+             *
+             * <b>And the orphaned successor is revoked.</b> Reissuing without
+             * that would leave two live tokens in one family — the very state
+             * this whole mechanism exists to make impossible.
+             */
+            var recoverable =
+                stored.SuccessorTokenHash is { } successorHash
+                && stored.UsedAt.Value.Add(ReplayWindow) > now
+                && stored.RevokedAt is null
+                && await SuccessorIsUntouchedAsync(successorHash, ct);
+
+            if (!recoverable)
+            {
+                await RevokeFamilyAsync(new UserId(stored.UserId), stored.FamilyId, ct);
+                return Error.Unauthorized(
+                    ErrorCodes.RefreshTokenReused,
+                    "This session was ended for security reasons. Please sign in again.");
+            }
+
+            /*
+             * <b>Claimed atomically, so two retries of one lost response do not
+             * both recover.</b> The filter names the successor this document
+             * pointed at; whichever request clears it first owns the recovery,
+             * and the other finds no successor recorded and is treated as an
+             * ordinary reuse. Reading and then writing would let both through
+             * under exactly the retry pressure that produced the situation.
+             */
+            var claimedRecovery = await ctx.RefreshTokens.UpdateOneAsync(
+                t => t.TokenHash == hash && t.SuccessorTokenHash == stored.SuccessorTokenHash,
+                Builders<RefreshTokenDocument>.Update.Unset(t => t.SuccessorTokenHash),
+                cancellationToken: ct);
+
+            if (claimedRecovery.ModifiedCount == 0)
+            {
+                await RevokeFamilyAsync(new UserId(stored.UserId), stored.FamilyId, ct);
+                return Error.Unauthorized(
+                    ErrorCodes.RefreshTokenReused,
+                    "This session was ended for security reasons. Please sign in again.");
+            }
+
+            // The successor nobody received is retired. One live token per
+            // family, which is the invariant the whole design rests on.
+            await ctx.RefreshTokens.UpdateOneAsync(
+                t => t.TokenHash == stored.SuccessorTokenHash && t.RevokedAt == null,
+                Builders<RefreshTokenDocument>.Update.Set(t => t.RevokedAt, now),
+                cancellationToken: ct);
+
+            return new RefreshOutcome(new UserId(stored.UserId), stored.FamilyId, hash);
         }
 
         if (stored.RevokedAt is not null || stored.ExpiresAt <= now)
@@ -151,7 +240,44 @@ internal sealed class JwtTokenService(
                 "This session was ended for security reasons. Please sign in again.");
         }
 
-        return new RefreshOutcome(new UserId(stored.UserId), stored.FamilyId);
+        return new RefreshOutcome(new UserId(stored.UserId), stored.FamilyId, hash);
+    }
+
+    /// <summary>
+    /// How long after a rotation a re-presentation of the parent is read as a
+    /// retry rather than as a theft.
+    ///
+    /// <b>Sixty seconds, and the number is a trade rather than a preference.</b>
+    /// A client that lost a response retries within seconds — the transport's
+    /// own retry, or the coordinator's backoff, both of which are far inside a
+    /// minute. A thief presents a stolen token whenever they get round to it.
+    /// Longer widens the window in which a stolen parent is honoured; shorter
+    /// starts signing out learners whose phone took a while to notice the
+    /// network had come back.
+    ///
+    /// The window is not the only guard: the successor must also be untouched,
+    /// which means a thief only benefits if the legitimate client never
+    /// received the successor at all.
+    /// </summary>
+    private static readonly TimeSpan ReplayWindow = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// Has the successor been used or revoked by anybody?
+    ///
+    /// If it has, the client did receive it, and a presentation of its parent
+    /// is a second party holding a token from this chain — a theft, and the
+    /// family goes.
+    /// </summary>
+    private async Task<bool> SuccessorIsUntouchedAsync(string successorHash, CancellationToken ct)
+    {
+        var successor = await ctx.RefreshTokens
+            .Find(t => t.TokenHash == successorHash)
+            .FirstOrDefaultAsync(ct);
+
+        // No successor row at all means the rotation did not complete, so
+        // nothing was ever issued to receive. Treated as not recoverable: the
+        // safe direction is a sign-in, not a weakened reuse check.
+        return successor is not null && successor.UsedAt is null && successor.RevokedAt is null;
     }
 
     public async Task<int> RevokeAllExceptAsync(UserId userId, string keepFamilyId, CancellationToken ct)

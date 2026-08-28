@@ -3,9 +3,12 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useI18n } from '../../i18n/index.js';
 import type { StringKey } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
+import { readLocal, writeLocal } from '../../lib/storage.js';
+import { jumpToSection } from './jumpToSection.js';
 import { AccountMenu } from '../landing/AccountMenu.js';
 import { NotificationMenu } from '../landing/NotificationMenu.js';
 import { AiChatPanel } from '../student/AiChatPanel.js';
+import { SkipLink } from './SkipLink.js';
 import {
   BackIcon,
   CloseIcon,
@@ -79,11 +82,21 @@ const ITEMS: Item[] = [
   { key: 'dash.nav.practice', to: Paths.practice, icon: FullTestIcon },
   { key: 'dash.more.dictation', to: Paths.dictation, icon: DictationIcon },
   { key: 'dash.ai.open', icon: SparkIcon, opensAssistant: true },
-  // Both are in-page anchors into the overview, and both were renamed on
-  // 22/08: "Kết quả" pointed at a hard-coded empty state and now points at the
-  // learner's real history, and "Sắp mở" labelled three modules that have all
-  // shipped. A "coming soon" on a working feature tells the reader not to
-  // click the thing that works.
+  /*
+   * Both are in-page anchors into the overview, and both were renamed on
+   * 22/08: "Kết quả" pointed at a hard-coded empty state and now points at the
+   * learner's real history, and "Sắp mở" labelled three modules that have all
+   * shipped. A "coming soon" on a working feature tells the reader not to
+   * click the thing that works.
+   *
+   * <b>They are rendered only on the page that contains them.</b> The other
+   * rail items lead to `/practice` and `/dictation`, which live under
+   * `PublicShell` — the sidebar is not even on screen there, and from the
+   * dashboard's sibling routes these two pointed at sections that do not
+   * exist, so following them did nothing at all, silently. That is the exact
+   * failure `siteNav` documents and guards against, and it had been
+   * reintroduced one directory over.
+   */
   { key: 'dash.nav.results', href: '#results', icon: ResultIcon },
   { key: 'dash.nav.coming', href: '#coming', icon: SoonIcon },
 ];
@@ -93,6 +106,9 @@ export function DashboardShell() {
   // Active state follows the address, not a hard-coded flag. With the flag,
   // "Tổng quan" stayed highlighted while the reader was on the exam library.
   const { pathname } = useLocation();
+  /** The two `#fragment` rail items only mean anything on the page that holds
+   *  those sections. See `ITEMS`. */
+  const onOverview = pathname === Paths.dashboard;
   const [aiOpen, setAiOpen] = useState(false);
 
   /*
@@ -114,10 +130,10 @@ export function DashboardShell() {
    * next visit too, and re-folding it every time is the sort of small friction
    * nobody reports but everybody feels.
    */
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === 'true');
+  const [collapsed, setCollapsed] = useState(() => readLocal(COLLAPSED_KEY) === 'true');
 
   useEffect(() => {
-    localStorage.setItem(COLLAPSED_KEY, String(collapsed));
+    writeLocal(COLLAPSED_KEY, String(collapsed));
   }, [collapsed]);
 
   useEffect(() => {
@@ -125,8 +141,39 @@ export function DashboardShell() {
 
     firstItem.current?.focus();
 
+    /*
+     * <b>Tab stays inside the drawer.</b>
+     *
+     * Measured with the drawer open: seven focusable elements remained
+     * outside the rail — the burger, the brand, the bell, the account menu
+     * and three cards — all reachable by Tab while the scrim covered them.
+     * The scroll lock below was already correct, so the intent was there; the
+     * containment was the half that never got written. A drawer that traps
+     * the pointer and not the keyboard is a drawer only some people can close.
+     */
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setNavOpen(false);
+      if (event.key === 'Escape') {
+        setNavOpen(false);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const rail = document.getElementById(navId);
+      if (rail === null) return;
+      const stops = rail.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      const first = stops[0];
+      const last = stops[stops.length - 1];
+      if (first === undefined || last === undefined) return;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
 
     // A drawer sitting over a page that still scrolls underneath is the one
@@ -142,13 +189,18 @@ export function DashboardShell() {
       // the top of the document.
       burger.current?.focus();
     };
-  }, [navOpen]);
+  }, [navOpen, navId]);
 
   const toggleLabel = collapsed ? t('dash.expandRail') : t('dash.collapseRail');
 
   return (
     <div className={`shell${collapsed ? ' is-collapsed' : ''}${navOpen ? ' is-nav-open' : ''}`}>
-      <aside className="shell-rail" id={navId}>
+      <SkipLink />
+      <aside
+        className="shell-rail"
+        id={navId}
+        {...(navOpen ? { role: 'dialog' as const, 'aria-modal': true } : {})}
+      >
         {/*
           Two elements, and the split is load-bearing. The <aside> stretches to
           the full height of the grid row so its white column runs the whole
@@ -206,50 +258,82 @@ export function DashboardShell() {
           it would repeat the text sitting under the cursor.
         */}
           <nav className="shell-nav" aria-label={t('dash.railLabel')}>
-            {ITEMS.map(({ key, href, to, icon: Icon, opensAssistant }, index) => {
-              const label = t(key);
-              const current = to !== undefined && pathname === to;
-              const body = (
-                <>
-                  <Icon size={18} />
-                  <span className="shell-nav-text">{label}</span>
-                </>
-              );
+            {ITEMS.filter((item) => item.href === undefined || onOverview).map(
+              ({ key, href, to, icon: Icon, opensAssistant }, index) => {
+                const label = t(key);
+                const current = to !== undefined && pathname === to;
+                const body = (
+                  <>
+                    <Icon size={18} />
+                    <span className="shell-nav-text">{label}</span>
+                  </>
+                );
 
-              if (opensAssistant) {
-                return (
-                  <button
+                if (opensAssistant) {
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      className="shell-nav-item"
+                      onClick={() => {
+                        setNavOpen(false);
+                        setAiOpen(true);
+                      }}
+                      {...(collapsed ? { title: label } : {})}
+                    >
+                      {body}
+                    </button>
+                  );
+                }
+
+                /*
+                 * <b>The ref goes in `shared`, so both branches carry it.</b>
+                 *
+                 * It used to be attached only on the `<a>` branch — `ref={index
+                 * === 0 ? firstItem : undefined}` — and that branch is taken
+                 * only by items with an `href` and no `to`, which are indices 4
+                 * and 5. Index 0 has a `to`, so it always rendered as a `<Link>`
+                 * and the condition was never true on the branch that could
+                 * hold the ref. `firstItem.current` was permanently `null` and
+                 * the `focus()` call in the open effect was a silent no-op:
+                 * measured, opening the drawer left `document.activeElement` on
+                 * `<body>`, behind the scrim.
+                 *
+                 * `Link` forwards its ref to the `<a>` it renders, so one
+                 * spread covers both.
+                 */
+                const shared = {
+                  className: `shell-nav-item${current ? ' is-active' : ''}`,
+                  onClick: () => setNavOpen(false),
+                  ...(index === 0 ? { ref: firstItem } : {}),
+                  ...(current ? { 'aria-current': 'page' as const } : {}),
+                  ...(collapsed ? { title: label } : {}),
+                };
+
+                return to ? (
+                  <Link key={key} to={to} {...shared}>
+                    {body}
+                  </Link>
+                ) : (
+                  <a
                     key={key}
-                    type="button"
-                    className="shell-nav-item"
-                    onClick={() => {
+                    href={href}
+                    {...shared}
+                    onClick={(event) => {
+                      // `jumpToSection` moves the viewport *and* the keyboard;
+                      // a bare fragment moves only the first, leaving a screen
+                      // reader at the top of the document. The helper exists
+                      // for this and was not being used here.
+                      event.preventDefault();
                       setNavOpen(false);
-                      setAiOpen(true);
+                      jumpToSection(href!.slice(1));
                     }}
-                    {...(collapsed ? { title: label } : {})}
                   >
                     {body}
-                  </button>
+                  </a>
                 );
-              }
-
-              const shared = {
-                className: `shell-nav-item${current ? ' is-active' : ''}`,
-                onClick: () => setNavOpen(false),
-                ...(current ? { 'aria-current': 'page' as const } : {}),
-                ...(collapsed ? { title: label } : {}),
-              };
-
-              return to ? (
-                <Link key={key} to={to} {...shared}>
-                  {body}
-                </Link>
-              ) : (
-                <a key={key} ref={index === 0 ? firstItem : undefined} href={href} {...shared}>
-                  {body}
-                </a>
-              );
-            })}
+              },
+            )}
           </nav>
 
           {/*
@@ -273,7 +357,7 @@ export function DashboardShell() {
         <div className="shell-scrim" onClick={() => setNavOpen(false)} aria-hidden="true" />
       )}
 
-      <div className="shell-body">
+      <div className="shell-body" id="main" tabIndex={-1}>
         {/* No navigation in here. The two controls that had to survive the
             header, and nothing else. */}
         <header className="shell-top">

@@ -151,3 +151,55 @@ video {
 .measure {
   max-width: var(--measure);
 }
+
+/*
+ * Visually hidden, still announced.
+ *
+ * <b>One definition, in the design system, on purpose.</b> There were three —
+ * `.sr-only`, `.dash-sr-only` and `.profile-sr-only` — with the same nine
+ * declarations under three names, in three stylesheets that each reached a
+ * different set of pages. This is the one utility that must never be missing:
+ * a page that renders the class without the rule prints the hidden text into
+ * the layout, which is the opposite of what every call site intends.
+ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+ * Skip to the content.
+ *
+ * <b>This has to be a class, not an inline style.</b> The product's only skip
+ * link was `style={{ position: 'absolute', left: -9999 }}` — and an inline
+ * style cannot express `:focus`, so it never came back on screen. A keyboard
+ * user's first Tab landed on a control they could not see and could not tell
+ * they had: the bypass mechanism (WCAG 2.4.1) was present in the DOM and
+ * absent in practice, and the focus was invisible (2.4.7) on top of it.
+ *
+ * It also existed on exactly one route. Every shell carries it now.
+ */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: var(--s-3) var(--s-4);
+  border-radius: 0 0 var(--r-md) 0;
+  background: var(--acc);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  left: 0;
+}

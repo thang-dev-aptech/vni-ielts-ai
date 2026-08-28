@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n/index.js';
 import { Link } from 'react-router-dom';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
 import { Contact } from '../landing/contact.js';
@@ -47,11 +48,23 @@ import '../../styles/practice.css';
 
 const FAQ: FaqEntry[] = [
   {
+    /*
+     * <b>What is true today, dated, rather than a policy nobody has set.</b>
+     *
+     * This said "Không, và không giới hạn số lần làm đề … không cần thẻ" — a
+     * flat promise of a free, unlimited product. `B-5a` and `B-5b` are open:
+     * the token amounts have not been decided, and live token spending is
+     * inside the first release (`F-1`). A pricing promise made on a marketing
+     * page is the hardest kind to withdraw, and this one was invented here.
+     *
+     * Saying "hôm nay" costs nothing and commits nothing.
+     */
     q: 'Luyện 4 kỹ năng ở đây có mất phí không?',
     a: (
       <p>
-        Không, và không giới hạn số lần làm đề. Đăng ký bằng email hoặc Google là làm bài được ngay,
-        không cần thẻ.
+        Hiện tại chưa. Đăng ký bằng email hoặc Google là làm bài được ngay, không cần thẻ. VNI chưa
+        công bố mức phí cho phần chấm bằng AI — khi có, mức phí và những gì vẫn miễn phí sẽ được nói
+        rõ trước, ngay trên trang này.
       </p>
     ),
   },
@@ -85,12 +98,26 @@ const FAQ: FaqEntry[] = [
     ),
   },
   {
+    /*
+     * <b>Two mechanisms were described here that do not exist.</b>
+     *
+     * "AI … bắt buộc phải trích câu trong bài của bạn" and "trích dẫn đó được
+     * máy chủ đối chiếu lại với bài" describe a quote-verification step that
+     * has not been built and is not in any contract. "Đúng bốn tiêu chí" is
+     * `H-8`'s assumed four, which CLAUDE.md names explicitly as the thing to
+     * bind from configuration rather than hard-code.
+     *
+     * The one thing this page can say without inventing anything is the rule
+     * that is actually settled: an AI band is advisory, and no model output
+     * becomes a score without passing server-side validation first.
+     * → rule 2, `docs/ai/output-contracts.md`
+     */
     q: 'AI chấm Writing và Speaking có sát tiêu chí IELTS không?',
     a: (
       <p>
-        AI chấm theo đúng bốn tiêu chí IELTS và bắt buộc phải trích câu trong bài của bạn để giải
-        thích từng mức điểm — trích dẫn đó được máy chủ đối chiếu lại với bài. Dù vậy điểm AI vẫn
-        mang nhãn <em>tham khảo</em>: nó là ước lượng để luyện tập, không phải điểm thi.
+        Chưa nối với mô hình nào, nên chưa có kết quả để so. Điều đã chốt là cách dùng: điểm do AI
+        đưa ra luôn mang nhãn <em>tham khảo</em> — nó là ước lượng để luyện tập, không phải điểm
+        thi, và không có điểm nào vào hồ sơ của bạn mà không qua kiểm tra ở máy chủ trước.
       </p>
     ),
   },
@@ -115,8 +142,9 @@ const FAQ: FaqEntry[] = [
 ];
 
 export function PracticePage() {
+  const { t } = useI18n();
+  usePageTitle(t('title.practice'));
   useReveal();
-  usePageTitle('Luyện 4 kỹ năng');
 
   return (
     /*
@@ -148,13 +176,12 @@ export function PracticePage() {
                 Dropping "đúng" costs nothing and makes the headline two lines at
                 every width — which is what the `<br>` is there to promise. */}
             <h1>
-              Luyện 4 kỹ năng
-              <br />
+              Luyện 4 kỹ năng <br />
               <span>theo mục tiêu của bạn</span>
             </h1>
             <p>
               Chọn kỹ năng, chọn đề, làm như thi thật. Reading và Listening chấm theo đáp án ngay
-              khi hết phần; Writing và Speaking được AI chấm theo bốn tiêu chí IELTS.
+              khi hết phần; Writing và Speaking do AI chấm và luôn mang nhãn tham khảo.
             </p>
 
             <div className="prac-hero-ctas">
@@ -195,7 +222,7 @@ export function PracticePage() {
         <div className="container intro-wrap">
           <div className="section-heading" data-reveal>
             <div className="eyebrow green-eyebrow">Về khu luyện tập</div>
-            <h2>Luyện IELTS 4 kỹ năng miễn phí</h2>
+            <h2>Luyện IELTS đủ 4 kỹ năng</h2>
           </div>
 
           <div className="intro-body" data-reveal>
@@ -292,10 +319,7 @@ export function PracticePage() {
             <h2>
               Chọn <span>một kỹ năng</span> và bắt đầu bài luyện đầu tiên
             </h2>
-            <p>
-              Không cần thẻ, không giới hạn số lần làm. Còn phân vân thì gọi cho đội ngũ VNI, có
-              người nghe máy.
-            </p>
+            <p>Không cần thẻ. Còn phân vân thì gọi cho đội ngũ VNI, có người nghe máy.</p>
           </div>
 
           <div className="cta-actions">

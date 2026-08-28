@@ -35,19 +35,6 @@ public sealed class PasswordManagementTests
             Task.FromResult(_issued.Remove(token, out var id) ? id : (UserId?)null);
     }
 
-    private sealed class FakeSender : IVerificationMessageSender
-    {
-        public List<(string Address, string Token)> Resets { get; } = [];
-
-        public Task SendAsync(Email address, string token, CancellationToken ct) => Task.CompletedTask;
-
-        public Task SendPasswordResetAsync(Email address, string token, CancellationToken ct)
-        {
-            Resets.Add((address.Value, token));
-            return Task.CompletedTask;
-        }
-    }
-
     private sealed class Harness
     {
         public FakeUserRepository Users { get; } = new();
@@ -55,7 +42,7 @@ public sealed class PasswordManagementTests
         public FakePasswordHasher Hasher { get; } = new();
         public FakeTokenService Sessions { get; } = new();
         public FakeResetTokens Tokens { get; } = new();
-        public FakeSender Sender { get; } = new();
+        public FakeVerificationMessageSender Sender { get; } = new();
 
         public RequestPasswordReset Request => new(Users, Tokens, Sender);
         public ResetPassword Reset =>

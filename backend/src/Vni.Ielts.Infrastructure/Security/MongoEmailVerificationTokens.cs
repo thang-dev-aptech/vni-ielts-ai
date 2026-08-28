@@ -56,11 +56,160 @@ internal sealed class MongoEmailVerificationTokens(IMongoDatabase db, IClock clo
         return claimed is null ? null : new UserId(claimed["userId"].AsString);
     }
 
+    // ── The six-digit code ────────────────────────────────────────────────
+
+    private const string CodeCollectionName = "email_verification_codes";
+
+    /// <summary>
+    /// <b>Ten minutes, not twenty-four hours.</b>
+    ///
+    /// A link sits in a mailbox until somebody gets round to it; a code is read
+    /// off the screen and typed within a minute. The window only has to cover
+    /// "the mail took a while to arrive" — and every minute past that is a
+    /// minute in which a million-combination secret is live.
+    /// </summary>
+    private static readonly TimeSpan CodeLifetime = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// <b>Five, and this is what makes six digits safe.</b>
+    ///
+    /// A million combinations is not much on its own. What bounds it is that
+    /// the redemption is authenticated — the server knows which account is
+    /// guessing — so the count is per account and the code dies on the fifth
+    /// wrong answer. An attacker gets five guesses out of a million and then
+    /// has to trigger a new email to the address they are trying to steal,
+    /// which is both rate-limited and visible to its owner.
+    ///
+    /// Five rather than three because a learner mistyping is the common case
+    /// and a dead code costs them a round trip through their inbox.
+    /// </summary>
+    private const int MaxAttempts = 5;
+
+    private IMongoCollection<BsonDocument> Codes =>
+        db.GetCollection<BsonDocument>(CodeCollectionName);
+
+    public async Task<string> IssueCodeAsync(UserId userId, CancellationToken ct)
+    {
+        /*
+         * <b>`RandomNumberGenerator`, not `Random`.</b> A predictable six-digit
+         * code is not a secret at all, and `Random` seeded from the clock is
+         * predictable to anybody who knows roughly when the mail was sent.
+         *
+         * <b>Six digits including leading zeros.</b> `000123` is a valid code;
+         * formatting it as `123` would silently shrink the space and make a
+         * whole class of codes impossible to type back.
+         */
+        var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+        var now = clock.UtcNow.UtcDateTime;
+
+        /*
+         * <b>Replace, never add.</b> A learner who presses "gửi lại" three
+         * times must not end up with three live codes — that multiplies the
+         * guessing surface for a convenience nobody asked for. The document is
+         * keyed by user, so the newest code is the only one that exists.
+         */
+        await Codes.ReplaceOneAsync(
+            Builders<BsonDocument>.Filter.Eq("_id", userId.Value),
+            new BsonDocument
+            {
+                ["_id"] = userId.Value,
+                ["codeHash"] = Hash(code),
+                ["attempts"] = 0,
+                ["createdAt"] = now,
+                ["expiresAt"] = now.Add(CodeLifetime),
+            },
+            new ReplaceOptions { IsUpsert = true },
+            ct);
+
+        return code;
+    }
+
+    public async Task<CodeRedemption> RedeemCodeAsync(
+        UserId userId, string code, CancellationToken ct)
+    {
+        var now = clock.UtcNow.UtcDateTime;
+
+        /*
+         * <b>One statement that both counts the attempt and reads the code.</b>
+         *
+         * Reading the document, comparing, and then incrementing is three, and
+         * an attacker who can make requests concurrently fits as many guesses
+         * as they like between the first and the third — which is the attempt
+         * cap doing nothing at all. The increment happens first, on the way in,
+         * so every guess is paid for whether or not it turns out to be right.
+         */
+        var claimed = await Codes.FindOneAndUpdateAsync(
+            Builders<BsonDocument>.Filter.And(
+                Builders<BsonDocument>.Filter.Eq("_id", userId.Value),
+                Builders<BsonDocument>.Filter.Gt("expiresAt", now),
+                Builders<BsonDocument>.Filter.Lt("attempts", MaxAttempts)),
+            Builders<BsonDocument>.Update.Inc("attempts", 1),
+            new FindOneAndUpdateOptions<BsonDocument> { ReturnDocument = ReturnDocument.After },
+            ct);
+
+        if (claimed is null)
+        {
+            /*
+             * Nothing outstanding, expired, or out of attempts. Told apart by a
+             * second read, because the learner's next move differs: look at the
+             * code again, or press "gửi lại".
+             */
+            var held = await Codes
+                .Find(Builders<BsonDocument>.Filter.Eq("_id", userId.Value))
+                .FirstOrDefaultAsync(ct);
+
+            return held is not null && held.GetValue("attempts", 0).AsInt32 >= MaxAttempts
+                ? CodeRedemption.TooManyAttempts
+                : CodeRedemption.Expired;
+        }
+
+        /*
+         * <b>A fixed-time comparison, even though the secret is six digits.</b>
+         * The window a timing attack opens here is tiny and the cost of closing
+         * it is one call — and the habit is what matters: the next thing
+         * compared this way will not be six digits.
+         */
+        var matches = CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(Hash(code)),
+            Encoding.UTF8.GetBytes(claimed["codeHash"].AsString));
+
+        if (!matches)
+        {
+            return claimed["attempts"].AsInt32 >= MaxAttempts
+                ? CodeRedemption.TooManyAttempts
+                : CodeRedemption.Incorrect;
+        }
+
+        // Single use. Deleting rather than marking used keeps the collection
+        // bounded by outstanding codes rather than by every account that has
+        // ever verified.
+        await Codes.DeleteOneAsync(
+            Builders<BsonDocument>.Filter.Eq("_id", userId.Value), ct);
+
+        return CodeRedemption.Verified;
+    }
+
     public static async Task EnsureIndexesAsync(IMongoDatabase database, CancellationToken ct) =>
         await database.GetCollection<BsonDocument>(CollectionName).Indexes.CreateOneAsync(
             new CreateIndexModel<BsonDocument>(
                 Builders<BsonDocument>.IndexKeys.Ascending("expiresAt"),
                 new CreateIndexOptions { Name = "ttl_verification", ExpireAfter = TimeSpan.Zero }),
+            cancellationToken: ct);
+
+    /// <summary>
+    /// <b>Codes expire themselves.</b> Without the TTL the collection keeps one
+    /// document per account that ever asked for a code, for ever — and each one
+    /// is a hash of a live-looking secret long after it stopped being one.
+    /// </summary>
+    public static async Task EnsureCodeIndexesAsync(IMongoDatabase database, CancellationToken ct) =>
+        await database.GetCollection<BsonDocument>(CodeCollectionName).Indexes.CreateOneAsync(
+            new CreateIndexModel<BsonDocument>(
+                Builders<BsonDocument>.IndexKeys.Ascending("expiresAt"),
+                new CreateIndexOptions
+                {
+                    Name = "ttl_verification_codes",
+                    ExpireAfter = TimeSpan.Zero,
+                }),
             cancellationToken: ct);
 
     private static string Hash(string token) =>
@@ -81,21 +230,26 @@ internal sealed class MongoEmailVerificationTokens(IMongoDatabase db, IClock clo
 internal sealed class LoggingVerificationMessageSender(
     ILogger<LoggingVerificationMessageSender> logger) : IVerificationMessageSender
 {
-    public Task SendAsync(Vni.Ielts.Domain.Identity.Email address, string token, CancellationToken ct)
+    public Task<MessageDelivery> SendAsync(
+        Vni.Ielts.Domain.Identity.Email address, string token, CancellationToken ct)
     {
         logger.LogWarning(
-            "DEV ONLY — no email was sent. Verification token for {Address}: {Token}",
+            "DEV ONLY — no email was sent. Verification code for {Address}: {Code}",
             address.Value, token);
-        return Task.CompletedTask;
+
+        // The whole reason the port returns this: the caller must be able to
+        // tell a screen that nothing was sent, instead of the screen guessing
+        // from a successful-looking response that a mail is on its way.
+        return Task.FromResult(MessageDelivery.NotSent);
     }
 
-    public Task SendPasswordResetAsync(
+    public Task<MessageDelivery> SendPasswordResetAsync(
         Vni.Ielts.Domain.Identity.Email address, string token, CancellationToken ct)
     {
         logger.LogWarning(
             "DEV ONLY — no email was sent. Password reset token for {Address}: {Token}",
             address.Value, token);
-        return Task.CompletedTask;
+        return Task.FromResult(MessageDelivery.NotSent);
     }
 }
 

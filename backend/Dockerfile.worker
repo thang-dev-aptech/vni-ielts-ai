@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1
+
+# ── The worker image ──────────────────────────────────────────────────────
+#
+# <b>A separate image from the API, deliberately.</b> They scale on different
+# signals — the API on request rate, the worker on queue depth — and they fail
+# differently: a worker stuck inside a slow provider call must not take request
+# capacity with it. One image running both would make each of those the other's
+# problem.
+#
+# Everything else follows the API's Dockerfile for the same reasons: pinned
+# base, two stages, non-root.
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+WORKDIR /src
+
+COPY Directory.Build.props ./
+COPY src/Vni.Ielts.Domain/Vni.Ielts.Domain.csproj src/Vni.Ielts.Domain/
+COPY src/Vni.Ielts.Application/Vni.Ielts.Application.csproj src/Vni.Ielts.Application/
+COPY src/Vni.Ielts.Infrastructure/Vni.Ielts.Infrastructure.csproj src/Vni.Ielts.Infrastructure/
+COPY src/Vni.Ielts.Api/Vni.Ielts.Api.csproj src/Vni.Ielts.Api/
+COPY src/Vni.Ielts.Worker/Vni.Ielts.Worker.csproj src/Vni.Ielts.Worker/
+
+RUN dotnet restore src/Vni.Ielts.Worker/Vni.Ielts.Worker.csproj
+
+COPY src/ src/
+
+RUN dotnet publish src/Vni.Ielts.Worker/Vni.Ielts.Worker.csproj \
+    -c Release -o /app --no-restore
+
+FROM mcr.microsoft.com/dotnet/runtime:10.0-noble AS runtime
+WORKDIR /app
+
+USER $APP_UID
+
+COPY --from=build /app .
+
+ENTRYPOINT ["/app/Vni.Ielts.Worker"]

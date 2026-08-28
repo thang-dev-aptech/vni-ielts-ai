@@ -1,3 +1,4 @@
+import { readLocal, writeLocal } from '../../lib/storage.js';
 /**
  * The avatar's colour, chosen once per sign-in.
  *
@@ -53,7 +54,7 @@ function pick(exclude?: string | null): string {
  * value makes the change something you can rely on seeing.
  */
 export function newAvatarTint(): void {
-  localStorage.setItem(KEY, pick(localStorage.getItem(KEY)));
+  writeLocal(KEY, pick(readLocal(KEY)));
 }
 
 /**
@@ -64,11 +65,11 @@ export function newAvatarTint(): void {
  * rather than only after the next sign-in.
  */
 export function currentAvatarTint(): string {
-  const stored = localStorage.getItem(KEY);
+  const stored = readLocal(KEY);
   if (stored !== null && (AVATAR_TINTS as readonly string[]).includes(stored)) return stored;
 
   const chosen = pick();
-  localStorage.setItem(KEY, chosen);
+  writeLocal(KEY, chosen);
   return chosen;
 }
 

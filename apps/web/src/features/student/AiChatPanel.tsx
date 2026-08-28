@@ -25,6 +25,23 @@ export function AiChatPanel({ open, onClose }: { open: boolean; onClose: () => v
   const closeRef = useRef<HTMLButtonElement>(null);
   const returnTo = useRef<Element | null>(null);
 
+  /*
+   * <b>The effect depends on `open` alone, and `onClose` is read from a ref.</b>
+   *
+   * `DashboardShell` passes `onClose={() => setAiOpen(false)}` — a new closure
+   * on every render — and it re-renders on every navigation, on collapsing the
+   * sidebar and on opening the drawer. With `onClose` in the dependency list,
+   * each of those tore the effect down and set it up again while the panel was
+   * open, which ran three things in order: focus was yanked back to the
+   * sidebar trigger by the cleanup, `returnTo` was then re-read as *that*
+   * element, and focus jumped to the close button. So a keyboard user reading
+   * the panel was thrown to the close button whenever anything re-rendered,
+   * and `returnTo` degraded into "the close button" — meaning the real
+   * dismissal restored focus to a node being unmounted.
+   */
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
     if (!open) return;
 
@@ -35,7 +52,7 @@ export function AiChatPanel({ open, onClose }: { open: boolean; onClose: () => v
     closeRef.current?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') onCloseRef.current();
     }
 
     document.addEventListener('keydown', onKeyDown);
@@ -43,7 +60,7 @@ export function AiChatPanel({ open, onClose }: { open: boolean; onClose: () => v
       document.removeEventListener('keydown', onKeyDown);
       (returnTo.current as HTMLElement | null)?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -81,7 +98,7 @@ export function AiChatPanel({ open, onClose }: { open: boolean; onClose: () => v
         </div>
 
         <div className="dash-ai-composer">
-          <label className="dash-sr-only" htmlFor={`${titleId}-input`}>
+          <label className="sr-only" htmlFor={`${titleId}-input`}>
             {t('dash.ai.inputLabel')}
           </label>
           <textarea

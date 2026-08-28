@@ -93,7 +93,8 @@ The gate everything downstream depends on.
 > **The engineering response to a partial freeze, applied consistently:** an unresolved policy
 > becomes a configured seam with a null implementation — never an invented default (`G-11`). The
 > ledger exists with no prices. The entitlement check exists with no charging rule. The Writing
-> validator binds its criterion set from configuration rather than hard-coding `H-8`'s assumed four.
+> validator binds its criterion set from configuration rather than hard-coding the four `H-8`
+> confirmed, and refuses to combine two task bands at all while `H-8b` leaves the weighting unstated.
 
 Walk in with [`../requirements/assumptions-and-open-questions.md`](../requirements/assumptions-and-open-questions.md) as the agenda.
 

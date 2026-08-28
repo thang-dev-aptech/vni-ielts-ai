@@ -18,6 +18,16 @@ import { useEffect } from 'react';
  * The opposite order — hidden by default, revealed by script — leaves the whole
  * page blank if the bundle fails, and invisible to anything that does not run
  * JavaScript. Here, a failure degrades to "everything is simply shown".
+ *
+ * <b>It watches for sections that arrive later.</b> A one-time
+ * `querySelectorAll` on mount was the original shape, and it had a failure
+ * that was invisible in review and total in use: `reveal-armed` hides every
+ * `[data-reveal]` on the page, including nodes that mount after the query ran.
+ * On `/articles`, filtering to nothing unmounts the grid and clearing the
+ * filter mounts a *new* one — armed, never observed, `opacity: 0` forever. The
+ * count above it read "12 bài" over an empty space. Any list that unmounts on
+ * one state and returns on another has the same hole, so the fix belongs here
+ * rather than at each call site.
  */
 export function useReveal(): void {
   useEffect(() => {
@@ -34,8 +44,10 @@ export function useReveal(): void {
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     if (reduced) return;
 
-    const targets = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
-    if (targets.length === 0) return;
+    // No early return on an empty page: with the mutation observer below,
+    // zero targets at mount is a legitimate starting state, not a reason to
+    // give up. A route whose content arrives after its first paint is the
+    // normal case here, not the exception.
 
     // Arm only now, so the no-JavaScript and failed-bundle cases stay readable.
     document.documentElement.classList.add('reveal-armed');
@@ -53,9 +65,26 @@ export function useReveal(): void {
       { threshold: 0.08, rootMargin: '0px 0px -40px 0px' },
     );
 
-    for (const el of targets) observer.observe(el);
+    const observe = (el: Element) => observer.observe(el);
+    document.querySelectorAll<HTMLElement>('[data-reveal]').forEach(observe);
+
+    // Sections that mount later — a filter clearing, a tab opening, a route
+    // rendering its body after a fetch. Cheap: this fires only on structural
+    // changes, and each new node is observed once and then unobserved by the
+    // callback above the moment it is revealed.
+    const arrivals = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (!(node instanceof HTMLElement)) continue;
+          if (node.matches('[data-reveal]')) observe(node);
+          node.querySelectorAll<HTMLElement>('[data-reveal]').forEach(observe);
+        }
+      }
+    });
+    arrivals.observe(document.body, { childList: true, subtree: true });
 
     return () => {
+      arrivals.disconnect();
       observer.disconnect();
       document.documentElement.classList.remove('reveal-armed');
     };

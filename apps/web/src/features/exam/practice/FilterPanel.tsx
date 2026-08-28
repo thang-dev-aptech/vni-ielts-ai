@@ -67,11 +67,25 @@ export function FilterPanel({
                 className={`filter-option${option.count === 0 && !on ? ' is-empty' : ''}`}
                 key={option.value}
               >
+                {/*
+                  <b>`aria-disabled`, not `disabled`.</b>
+
+                  A `disabled` checkbox is not focusable and is skipped by a
+                  screen reader entirely — so the one thing this state exists to
+                  say, "there is nothing behind that value right now", was
+                  audible to sighted readers and silent to everyone else. The
+                  count beside it is the message; the control just has to be
+                  reachable to deliver it. Same reasoning `Pagination` already
+                  carries, and the same trade: the handler does the refusing.
+                */}
                 <input
                   type="checkbox"
                   checked={on}
-                  disabled={option.count === 0 && !on}
-                  onChange={() => onToggle(facet.id, option.value)}
+                  aria-disabled={option.count === 0 && !on}
+                  onChange={() => {
+                    if (option.count === 0 && !on) return;
+                    onToggle(facet.id, option.value);
+                  }}
                 />
                 <span className="filter-option-label">{option.label}</span>
                 <span className="filter-option-count num">{option.count}</span>

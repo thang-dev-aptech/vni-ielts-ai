@@ -101,19 +101,42 @@ export function OverflowNav({
 
     measure();
 
-    // Fonts land after first paint and change every label's width. Without
-    // this the split is computed against the fallback face and never revised.
-    document.fonts?.ready.then(measure).catch(() => {});
+    /*
+     * Fonts land after first paint and change every label's width. Without
+     * this the split is computed against the fallback face and never revised.
+     *
+     * `live` is not ceremony: once the fonts have loaded, `document.fonts.ready`
+     * resolves immediately on every later mount, so a fast navigation could
+     * land a `setVisible` from an effect that had already been torn down —
+     * computed against a stale `items.length`.
+     */
+    let live = true;
+    document.fonts?.ready
+      .then(() => {
+        if (live) measure();
+      })
+      .catch(() => {});
 
     if (typeof ResizeObserver === 'undefined') {
       window.addEventListener('resize', measure);
-      return () => window.removeEventListener('resize', measure);
+      return () => {
+        live = false;
+        window.removeEventListener('resize', measure);
+      };
     }
 
     const observer = new ResizeObserver(measure);
     observer.observe(rowEl);
     observer.observe(gaugeEl);
-    return () => observer.disconnect();
+    return () => {
+      live = false;
+      observer.disconnect();
+    };
+    /*
+     * `items` must be referentially stable — `SiteHeader` passes the
+     * module-level `SITE_NAV`, so it is. An inline array from a future caller
+     * would reconnect the `ResizeObserver` on every render.
+     */
   }, [items]);
 
   const shown = items.slice(0, visible);

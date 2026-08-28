@@ -131,13 +131,31 @@ it('opens a menu with profile, student page, and sign-out', async () => {
 
   await userEvent.click(trigger);
 
-  const menu = await screen.findByRole('menu');
-  expect(trigger.getAttribute('aria-expanded')).toBe('true');
+  await waitFor(() => expect(trigger.getAttribute('aria-expanded')).toBe('true'));
+
+  /*
+   * The panel is reached through `aria-controls`, which is the point.
+   *
+   * This used to be `findByRole('menu')`, and the component used to claim
+   * `role="menu"` with `role="menuitem"` children — a promise of arrow-key
+   * navigation and a single tab stop that it never implemented. The roles are
+   * gone; it is a disclosure holding three links and a button, and
+   * `aria-expanded` is the whole contract.
+   *
+   * Resolving the IDREF here also proves the other half of that fix: the
+   * attribute is only present while the panel exists, so a passing lookup
+   * means it is not left dangling.
+   */
+  const menuId = trigger.getAttribute('aria-controls');
+  expect(menuId).not.toBeNull();
+  const menu = document.getElementById(menuId!)!;
+  expect(menu).not.toBeNull();
+
   // Progress (“Theo dõi”) is a module on the profile page, not a fourth item.
   expect(
-    within(menu)
-      .getAllByRole('menuitem')
-      .map((i) => i.textContent),
+    [...within(menu).getAllByRole('link'), ...within(menu).getAllByRole('button')].map(
+      (i) => i.textContent,
+    ),
   ).toEqual(['Hồ sơ học sinh', 'Trang học sinh', 'Tiến độ học tập', 'Đăng xuất']);
 });
 
@@ -146,7 +164,7 @@ it('navigates to the profile from the menu', async () => {
   open();
 
   await userEvent.click(await screen.findByRole('button', { name: /Nguyễn Thị Đào/ }));
-  await userEvent.click(await screen.findByRole('menuitem', { name: 'Hồ sơ học sinh' }));
+  await userEvent.click(await screen.findByRole('link', { name: 'Hồ sơ học sinh' }));
 
   await waitFor(() => expect(window.location.pathname).toBe('/profile'));
 });
@@ -156,7 +174,7 @@ it('reaches the student page through the menu, not through a redirect', async ()
   open();
 
   await userEvent.click(await screen.findByRole('button', { name: /Nguyễn Thị Đào/ }));
-  await userEvent.click(await screen.findByRole('menuitem', { name: 'Trang học sinh' }));
+  await userEvent.click(await screen.findByRole('link', { name: 'Trang học sinh' }));
 
   await waitFor(() => expect(window.location.pathname).toBe('/students/dashboard'));
 });
@@ -172,7 +190,7 @@ it('opens the password module by default on the profile page', async () => {
   open();
 
   await userEvent.click(await screen.findByRole('button', { name: /Nguyễn Thị Đào/ }));
-  await userEvent.click(await screen.findByRole('menuitem', { name: 'Hồ sơ học sinh' }));
+  await userEvent.click(await screen.findByRole('link', { name: 'Hồ sơ học sinh' }));
 
   await waitFor(() => expect(window.location.pathname).toBe('/profile'));
   expect(window.location.search).toBe('');
@@ -234,7 +252,7 @@ it('signs out and returns the page to its visitor state', async () => {
   open();
 
   await userEvent.click(await screen.findByRole('button', { name: /Nguyễn Thị Đào/ }));
-  await userEvent.click(await screen.findByRole('menuitem', { name: 'Đăng xuất' }));
+  await userEvent.click(await screen.findByRole('button', { name: 'Đăng xuất' }));
 
   expect(await screen.findByRole('link', { name: /^Đăng nhập$/ })).toBeTruthy();
   expect(localStorage.getItem('vni.session')).toBeNull();
@@ -248,11 +266,12 @@ it('closes on Escape and gives focus back to the trigger', async () => {
 
   const trigger = await screen.findByRole('button', { name: /Nguyễn Thị Đào/ });
   await userEvent.click(trigger);
-  await screen.findByRole('menu');
+  await screen.findByRole('link', { name: 'Hồ sơ học sinh' });
 
   await userEvent.keyboard('{Escape}');
 
-  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+  await waitFor(() => expect(screen.queryByRole('link', { name: 'Hồ sơ học sinh' })).toBeNull());
+  expect(trigger.getAttribute('aria-expanded')).toBe('false');
   expect(document.activeElement).toBe(trigger);
 });
 
@@ -261,11 +280,11 @@ it('closes when a click lands outside it', async () => {
   open();
 
   await userEvent.click(await screen.findByRole('button', { name: /Nguyễn Thị Đào/ }));
-  await screen.findByRole('menu');
+  await screen.findByRole('link', { name: 'Hồ sơ học sinh' });
 
   await userEvent.click(document.body);
 
-  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+  await waitFor(() => expect(screen.queryByRole('link', { name: 'Hồ sơ học sinh' })).toBeNull());
 });
 
 it('shows one letter, taken from the given name, with its tone mark intact', async () => {
@@ -340,7 +359,7 @@ it('closes the notification panel when the account menu opens', async () => {
   await userEvent.click(screen.getByRole('button', { name: /Nguyễn Thị Đào/ }));
 
   await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Thông báo' })).toBeNull());
-  expect(screen.getByRole('menuitem', { name: 'Hồ sơ học sinh' })).toBeTruthy();
+  expect(screen.getByRole('link', { name: 'Hồ sơ học sinh' })).toBeTruthy();
 });
 
 it('offers a way to progress from the menu, because nobody finds it otherwise', async () => {
@@ -353,7 +372,7 @@ it('offers a way to progress from the menu, because nobody finds it otherwise', 
   open();
 
   await userEvent.click(await screen.findByRole('button', { name: /Nguyễn Thị Đào/ }));
-  await userEvent.click(await screen.findByRole('menuitem', { name: 'Tiến độ học tập' }));
+  await userEvent.click(await screen.findByRole('link', { name: 'Tiến độ học tập' }));
 
   await waitFor(() => expect(window.location.pathname).toBe('/profile'));
   expect(window.location.search).toContain('tab=progress');

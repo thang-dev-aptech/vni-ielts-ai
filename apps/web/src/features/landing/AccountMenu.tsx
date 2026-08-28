@@ -45,13 +45,17 @@ export function AccountMenu() {
 
   return (
     <div className="account" ref={container}>
+      {/* `aria-haspopup="true"` and no `role="menu"`: see `NavMoreMenu` for
+          why. This component keeps a disclosure's contract — Escape, click
+          outside, focus back to the trigger — not a menu's. `aria-controls`
+          is spread in only while the panel it names is mounted. */}
       <button
         ref={trigger}
         type="button"
         className="account-trigger"
-        aria-haspopup="menu"
+        aria-haspopup="true"
         aria-expanded={open}
-        aria-controls={menuId}
+        {...(open ? { 'aria-controls': menuId } : {})}
         onClick={toggle}
       >
         <span className="account-avatar" style={{ background: tint }} aria-hidden="true">
@@ -65,13 +69,13 @@ export function AccountMenu() {
       </button>
 
       {open && (
-        <div className="account-menu" id={menuId} role="menu">
-          <Link className="account-item" role="menuitem" to={Paths.profile} onClick={close}>
+        <div className="account-menu" id={menuId}>
+          <Link className="account-item" to={Paths.profile} onClick={close}>
             <PersonIcon />
             {t('account.profile')}
           </Link>
 
-          <Link className="account-item" role="menuitem" to={Paths.dashboard} onClick={close}>
+          <Link className="account-item" to={Paths.dashboard} onClick={close}>
             <BookIcon />
             {t('account.studentPage')}
           </Link>
@@ -90,7 +94,7 @@ export function AccountMenu() {
               If it needs removing again, the reason has to be that people can
               now find progress some other way — not that the menu looks
               neater without it. */}
-          <Link className="account-item" role="menuitem" to={PROGRESS} onClick={close}>
+          <Link className="account-item" to={PROGRESS} onClick={close}>
             <ChartIcon />
             {/* The tab's own label, not a second key. One destination with two
                 names drifts the moment somebody rewords one of them — which is
@@ -102,7 +106,6 @@ export function AccountMenu() {
 
           <button
             className="account-item account-signout"
-            role="menuitem"
             type="button"
             onClick={() => {
               close();

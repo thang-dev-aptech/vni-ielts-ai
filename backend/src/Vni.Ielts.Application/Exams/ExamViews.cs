@@ -1,3 +1,4 @@
+using Vni.Ielts.Domain.Assessment;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Sessions;
 
@@ -24,13 +25,32 @@ public sealed record ExamCatalogueItem(
 
 public sealed record ModuleSummary(string Module, int QuestionCount, int DurationSeconds);
 
+/// <summary>
+/// The shared frame a run of questions is answered inside.
+///
+/// <b>It crosses to the client, unlike the answer key, and the difference is
+/// the point.</b> The key is what a candidate must not see; the group is what
+/// they cannot answer without — the bank of headings to choose from, the map
+/// whose rooms are being labelled, the paragraph whose gaps are being filled.
+/// The rubric line travels verbatim for the same reason: it is a scoring rule
+/// stated to the candidate, and a paraphrase marks people wrong for obeying it.
+/// </summary>
+public sealed record QuestionGroupView(
+    string Id,
+    string? Title,
+    string? Instruction,
+    string? ImageKey,
+    string? Text,
+    bool EachLetterOnce);
+
 public sealed record QuestionView(
     string Id,
     int Order,
     string Type,
     string? Prompt,
     IReadOnlyList<QuestionOptionView> Options,
-    int? MaxWords);
+    int? MaxWords,
+    QuestionGroupView? Group);
 
 public sealed record QuestionOptionView(string Key, string Text);
 
@@ -62,10 +82,68 @@ public sealed record SpeakingPartTimingView(int Part, int PrepSeconds, int Respo
 public sealed record CurrentSectionView(
     string Module,
     DateTimeOffset StartedAt,
-    DateTimeOffset DeadlineAt,
-    int RemainingSeconds,
+    /// <summary>
+    /// Null for luyện đề, which has no deadline at all.
+    ///
+    /// <b>Null rather than a far-future date.</b> A sentinel would make every
+    /// countdown in the client work by accident and every rule about lateness
+    /// silently true, which is the worst way for a distinction this important
+    /// to be expressed.
+    /// </summary>
+    DateTimeOffset? DeadlineAt,
+    /// <summary>Null where there is no deadline. Zero means the time is up.</summary>
+    int? RemainingSeconds,
+    /// <summary>
+    /// How long this section has been worked on, by the <b>server's</b> clock.
+    ///
+    /// The practice clock counts up, and it counts up here rather than in the
+    /// browser. A client that accumulated its own total would be a client that
+    /// could be told to accumulate less. → ADR-0007
+    /// </summary>
+    int ElapsedSeconds,
+    /// <summary>Whether the stopwatch is running. False while paused.</summary>
+    bool Running,
+    /// <summary>
+    /// The learner's own goal in seconds, if they set one.
+    ///
+    /// <b>Display only, and the server enforces nothing with it.</b> The moment
+    /// any rule reads it, it has become a deadline the learner chose — and
+    /// luyện đề has become the exam. → `E-22`
+    /// </summary>
+    int? TargetSeconds,
     IReadOnlyList<PartView> Parts,
     IReadOnlyDictionary<string, string?> Answers,
+    /// <summary>
+    /// The version of the answer sheet these answers were read at.
+    ///
+    /// <b>Without it, the first autosave after any page load is a blind
+    /// write.</b> The client had no revision to send, so the server filled in
+    /// "whatever is current" on its behalf — and a compare-and-swap that
+    /// supplies its own expectation compares nothing. A second tab moving the
+    /// sheet on between the load and the save would have its work overwritten
+    /// by a draft composed before it existed, which is the exact failure the
+    /// revision was added to stop.
+    ///
+    /// It travels with the section, so an <c>advance</c> hands the next
+    /// section's revision over in the same response that opens it.
+    /// </summary>
+    int AnswerRevision,
+    /// <summary>
+    /// Per-question ordering tokens, as the sheet currently holds them.
+    ///
+    /// <b>A page restoring unsent work from disk needs these to tell what is
+    /// still unsent.</b> The client journals every keystroke before it goes on
+    /// the wire, so a tab that crashes mid-section comes back with entries that
+    /// may or may not have landed. Comparing each entry's token against the
+    /// stored one is what distinguishes "the server never saw this" from "this
+    /// already landed" — and restoring the second kind would put an old answer
+    /// back on screen over a newer one.
+    ///
+    /// The revision cannot answer it: one number for the whole sheet says
+    /// whether the page is behind, not which questions it is behind on.
+    /// → `patchJournal.ts`, `IAnswerSheetStore.PatchAsync`
+    /// </summary>
+    IReadOnlyDictionary<string, long> AnswerSequences,
     /// <summary>
     /// Per-part preparation and response times, Speaking only and empty
     /// elsewhere.
@@ -118,10 +196,91 @@ public sealed record SessionResultsView(
     DateTimeOffset? SubmittedAt,
     IReadOnlyList<SectionResultView> Sections,
     /// <summary>
+    /// Writing and Speaking, which are marked rather than scored.
+    ///
+    /// <b>A separate list from <c>Sections</c>, because they are not the same
+    /// kind of result.</b> A section result answers "how many did they get
+    /// right"; a marking answers "on what basis". Flattening them would force
+    /// one shape to carry both and leave the client deciding which half of the
+    /// fields to believe. Writing appears twice — once per task — and Speaking
+    /// once, which is how IELTS marks them.
+    /// </summary>
+    IReadOnlyList<SectionMarkingView> Markings,
+    /// <summary>
+    /// Why a module has no band yet, for the modules that have none.
+    ///
+    /// <b>A dash needs a reason, and one sentence for every reason is a lie.</b>
+    /// Product law `L3` says an unmarked skill shows `—` rather than a zero or
+    /// an average, which is right — and it is where the trail goes cold. A
+    /// learner, or the person answering their support ticket, is looking at a
+    /// dash with no way to tell whether the essay never arrived, whether
+    /// nothing has been wired up, whether a model answered and was refused, or
+    /// whether the platform tried five times and stopped. Those are four
+    /// situations with four different fixes, and the client was showing one
+    /// message for all of them.
+    ///
+    /// Empty when everything that can be marked has been. → `I3.6`
+    /// </summary>
+    IReadOnlyList<MarkingStatusView> MarkingStatuses,
+    /// <summary>
     /// Null until every one of the four modules has a band. Absent is the
     /// honest state; the client draws it as `—`, never as a partial average.
     /// </summary>
     decimal? OverallBand);
+
+/// <summary>
+/// One module's marking, and where it has got to.
+/// </summary>
+/// <param name="State">
+/// `pending` · `running` · `retryable` · `failed` · `completed`.
+///
+/// <b>The worker's own state, not a translation of it.</b> A client that knows
+/// the difference between "waiting" and "given up" can say so; one given a
+/// single boolean cannot, and will invent a sentence that is wrong a quarter of
+/// the time.
+/// </param>
+/// <param name="Reason">
+/// A safe sentence for the learner, or null while nothing has gone wrong.
+///
+/// <b>Safe means it says what is true without saying what is private.</b> A
+/// provider's raw error can carry a prompt fragment, a request id, or the
+/// learner's own words back at them; none of that belongs on a results screen.
+/// The mapping is deliberately coarse.
+/// </param>
+public sealed record MarkingStatusView(
+    string Module,
+    string State,
+    int Attempts,
+    string? Reason);
+
+/// <summary>
+/// One marked Writing task, or one marked Speaking test.
+///
+/// <b>Every band here arrives with the evidence for it.</b> `A-13c` requires a
+/// band to carry a quoted basis, and the quote is the whole difference between
+/// a mark a learner can learn from and a number they can only accept.
+/// </summary>
+public sealed record SectionMarkingView(
+    string Module,
+    int? TaskNumber,
+    /// <summary>The rubric this was produced under, so an old band stays explicable.</summary>
+    string RubricVersion,
+    decimal Band,
+    IReadOnlyList<CriterionAssessmentView> Criteria,
+    /// <summary>
+    /// Non-empty when validation found something worth a human's attention —
+    /// the model's own band disagreeing with the recomputation, or a quotation
+    /// that does not occur in the learner's submission. The band is still
+    /// reportable; flagged means "usable, and worth a look".
+    /// </summary>
+    IReadOnlyList<string> Flags);
+
+public sealed record CriterionAssessmentView(
+    string Criterion,
+    decimal Band,
+    string Feedback,
+    /// <summary>Verbatim spans from the learner's own writing or speech.</summary>
+    IReadOnlyList<string> Evidence);
 
 /// <summary>
 /// One row of a learner's own history.
@@ -228,7 +387,10 @@ internal static class ExamViewMapping
             question.Type.ToWire(),
             question.Prompt,
             [.. question.Options.Select(o => new QuestionOptionView(o.Key, o.Text))],
-            question.MaxWords);
+            question.MaxWords,
+            question.Group is { } g
+                ? new QuestionGroupView(g.Id, g.Title, g.Instruction, g.Image, g.Text, g.EachLetterOnce)
+                : null);
 
     public static PartView ToView(this SectionPart part) =>
         new(
@@ -243,6 +405,18 @@ internal static class ExamViewMapping
             part.CueCard is { } card ? new CueCardView(card.Topic, card.Bullets) : null,
             part.MinWords,
             [.. part.Questions.OrderBy(q => q.Order).Select(q => q.ToView())]);
+
+    public static SectionMarkingView ToView(this SectionMarking marking) =>
+        new(
+            marking.Module.ToString().ToLowerInvariant(),
+            marking.TaskNumber,
+            marking.RubricVersion,
+            marking.Band.Value,
+            [
+                .. marking.Criteria.Select(c => new CriterionAssessmentView(
+                    c.Criterion, c.Band.Value, c.Feedback, c.Evidence)),
+            ],
+            [.. marking.Flags.Select(f => f.ToString())]);
 
     public static SectionResultView ToView(this SectionScore score) =>
         new(

@@ -32,7 +32,7 @@ Every requirement, decision, and technology choice carries **exactly one** of fo
 
 **No qualifiers.** `CONFIRMED (business intent)` and `EXISTING (design)` are not valid. Nuance belongs in a **Note** column, never in the status itself.
 
-### `EXISTING` — deliberately narrow, because this repository has no source code
+### `EXISTING` — deliberately narrow, and now verifiable against code
 
 `EXISTING` applies to exactly two things, both verifiable:
 
@@ -45,13 +45,18 @@ Every requirement, decision, and technology choice carries **exactly one** of fo
 
 ### Documented is not implemented
 
-> This repository contains **no product source code**. Therefore:
+> **Corrected 2026-08-27.** This section used to open *"this repository contains no product source code"*, which stopped being true during Phase 4 and then went on being read as canonical. It is the most expensive kind of stale sentence: it lives in the document that defines how every other document is read.
+>
+> There is now a great deal of source code, and the rule it replaces is stricter rather than looser:
 >
 > - an **architecture document** is not evidence of implementation;
 > - an **ADR** is not evidence of a business requirement;
-> - a **prototype** is not a production implementation.
+> - a **prototype** is not a production implementation;
+> - and **a passing test is not evidence the feature works**, if the test and the feature agree on a contract nobody else keeps.
 >
-> With no source code to verify against, never describe a capability as *built*. State which it is: an owner-confirmed requirement, existing prototype behaviour, an existing accepted architectural decision, or proposed architecture.
+> That last one was learned the hard way. On 2026-08-27 the learner app and the marker each had passing tests: one proved the client spells a multi-select answer `"A|C"`, the other proved the marker accepts `"A,C"`. Both were true, both suites were green, and every "Choose TWO letters" question in the catalogue was marked wrong.
+>
+> So: never describe a capability as *built* from a document. Read the code, and prefer the test that crosses a boundary to the two that do not.
 
 ### Sourcing rule for `CONFIRMED`
 
@@ -161,6 +166,8 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 
 ### UX
 - [`ux/DESIGN.md`](ux/DESIGN.md) — design language. Direction **C · Soft Card** CONFIRMED 2026-08-20; tokens, spacing/type scale, and the four product laws are binding engineering constraints held at `PROPOSED` — bundled owner confirmation due at requirement freeze
+- [`ux/practice-entry-test-flow.md`](ux/practice-entry-test-flow.md) — the choice layer at the entrance to four-skills practice (`E-15`…`E-19`): every state of the layer, both exits, and what the result screen may state while `H-4` and `B-2` are open. Surfaces `B-12` · `M-34`…`M-37`
+- [`ux/practice-mode.md`](ux/practice-mode.md) — **Luyện đề vs Thi thử** (`E-20`…`E-32`, owner instruction 2026-08-27): the rules that separate the two modes, the practice header/footer component contract, the Listening practice and review screens, the Reading split view, and five recorded conflicts. Narrows `B-8` for the Reading and Listening screens. Surfaces `B-13` · `M-38`…`M-44`
 - [`ux/cms-spec.md`](ux/cms-spec.md) — Admin CMS screens, states, permission matrix, import and AI-inspection flows
 - [`ux/cms-content-operations.md`](ux/cms-content-operations.md) — the CMS as the platform's content-operations system: content model, the unified draft → review → approve → publish lifecycle, the permission and role model behind it, and the authoring workspace. Role and lifecycle decisions confirmed 2026-08-24; the schema and screen proposals are `PROPOSED`
 - A clickable HTML prototype lives **outside this repo**: `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — `client/` (21 screens) and `admin/` (14 screens). Feature comparison: [`product/web-demo-feature-map.md`](product/web-demo-feature-map.md).
@@ -178,6 +185,8 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 - [`development/skill-inventory.md`](development/skill-inventory.md) — classified plugin/skill inventory
 - [`development/sso-provider-setup.md`](development/sso-provider-setup.md) — registering the Google OAuth client and loading the keys
 - [`development/nfr.md`](development/nfr.md) — non-functional requirements, MVP vs. future scale
+- [`development/backup-and-restore.md`](development/backup-and-restore.md) — backup, khôi phục, và bài diễn tập đã chạy thật
+- [`development/infrastructure-completion-report.md`](development/infrastructure-completion-report.md) — báo cáo tổng kết hàng đợi `I0`…`I7`
 - [`development/roadmap.md`](development/roadmap.md) — phase plan
 
 ### Decisions — Architecture Decision Records

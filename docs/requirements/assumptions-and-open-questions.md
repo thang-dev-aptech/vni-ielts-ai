@@ -6,6 +6,38 @@ Nothing here was decided silently. Where work had to proceed, the assumption mad
 
 ---
 
+## ⚠ Standing directive, 2026-08-28 — **build through the blockers**
+
+**`[QUYẾT ĐỊNH]` chủ sản phẩm, 28/08/2026, nguyên văn:** *"tất cả mọi thứ trong project đều có thể
+update kể cả file claude nên là lên 1 plan hoàn thiện thiện tiếp tục cho đến khi chạy ổn là done
+không cần biết là bị chặn gì những ưu tiên sẽ sử dụng tất cả các phương án tối ưu nhất"*
+
+This changes how every unresolved item below is treated, and it is the highest-precedence statement
+in this file.
+
+**What it authorises.** An open question no longer stops the work that depends on it. Where a rule is
+unknown, the engineering team decides it, records the decision here with this directive as its
+source, and builds it.
+
+**What it does not authorise, and this is the important half.** It is not permission to hard-code a
+guess where a guess would be invisible. Rule `G-11` still holds and is now *more* load-bearing, not
+less:
+
+> **An unresolved policy becomes a configured seam with a null implementation — never an invented
+> default.**
+
+The two are not in tension. "Build through the blocker" means the code exists, is wired, is tested
+and runs; "configured seam" means the number a business owner would want to change lives in
+configuration where they can change it, not buried in a handler. A token price, a retention window,
+a rubric weighting, a band table — each ships as a setting with a stated default and a note saying
+who owns it. A decision that is genuinely technical — a protocol, a schema, a queue — is simply made.
+
+**How a decision made under this directive is marked.** `[QUYẾT ĐỊNH kỹ thuật, 28/08/2026]`, with the
+reasoning and the cost of being wrong stated. Anything the owner later rules differently on is then
+one configuration change or one adjudication away, rather than a rewrite.
+
+---
+
 ## Blocking — must resolve before the affected phase can start
 
 ### B-1 · AI provider selection — **RESOLVED for LLM, 2026-08-20** ✅
@@ -33,8 +65,33 @@ Two providers, not one — which means the port abstraction in [ADR-0005](../dec
 
 ---
 
-### B-2 · Cross-border transfer of student personal data `[BUSINESS DECISION]`
-**Blocks:** B-1, and any production launch.
+### B-2 · Cross-border transfer of student personal data — **ENGINEERING POSITION 2026-08-28**, legal filing still owed
+
+**`[QUYẾT ĐỊNH kỹ thuật, 28/08/2026]`** under the standing directive. It blocked every AI capability
+and it was blocking them in the wrong place: **a legal filing is not a code dependency.**
+
+**The position: build the whole AI pipeline, and put the transfer behind a switch that is off.**
+
+| | |
+|---|---|
+| **What ships** | Ports, adapters, the outbox, the worker, retries, provenance, cost metrics — all of it, tested end to end against a recorded-response fixture |
+| **What is off** | `Ai:AllowCrossBorderTransfer`, default `false`. With it false the adapter is never constructed and the evaluator port resolves to the null implementation that already exists |
+| **What turning it on requires** | The CTIA filed. The switch is deliberately not a feature flag among others: it is named after the legal act it depends on, so nobody enables it by accident while enabling something else |
+| **What the switch does NOT gate** | Anything deterministic. Reading and Listening are marked from the answer key and never touch a provider (`A-11`), so an unfiled CTIA cannot stop a learner sitting a paper and getting a band |
+
+**Why this is the optimal shape rather than a compromise.** The alternative — wait for the filing —
+buys nothing: the filing describes a system, and the system does not exist until it is built. Writing
+the adapter against a recorded fixture makes the filing *easier* to complete accurately, because the
+data flows are then observable rather than projected.
+
+**Cost of being wrong:** if the legal opinion comes back "no transfer permitted", the switch stays
+off for ever and the money spent is one adapter. The port abstraction (ADR-0005) means a
+Vietnam-resident provider drops into the same slot.
+
+**Still owed by the owner:** the CTIA filing itself, and the retention terms to state in it. Neither
+is code.
+
+<details><summary>The original analysis, which the filing still needs</summary>
 
 Vietnam's Personal Data Protection Law (passed 2025-06-26, **in force since 2026-01-01**) requires a Cross-Border Transfer Impact Assessment filed within **60 days of the first transfer**, with penalties up to **5% of prior-year revenue** for cross-border breaches. It applies to foreign entities processing Vietnamese residents' data.
 
@@ -44,6 +101,8 @@ Student audio and writing sent to a foreign ASR or LLM provider is a cross-borde
 **Analysis provided:** [`../security/privacy-vietnam-pdpl.md`](../security/privacy-vietnam-pdpl.md)
 
 ---
+
+</details>
 
 ### B-3 · Share-gated progression is not implementable as specified `[BUSINESS DECISION]`
 **Blocks:** the referral/reward feature design.
@@ -157,22 +216,35 @@ different capability and is not covered by it. → [`../architecture/exam-packag
 
 ---
 
-### B-8 · Adjudicate the third-party UI/UX review `[BUSINESS DECISION]`
-**Blocks:** all remaining Phase 1 UI work.
+### B-8 · Adjudicate the third-party UI/UX review — **ADJUDICATED 2026-08-28** ✅
+
+**`[QUYẾT ĐỊNH kỹ thuật, 28/08/2026]`** under the standing directive above. It blocked roughly sixty
+UI items and every learner exam screen, and it had been open for eight days on a document nobody was
+going to read again.
+
+**The ruling, in one line: the review is advisory input, and the two proposals that conflict with
+settled decisions are rejected on evidence.**
+
+| Proposal | Ruling | Why |
+|---|---|---|
+| **Font "Calibri 12"** | **Rejected** | Calibri has no verified `vietnamese` subset, and 12 px is below the 14 px Vietnamese floor this product already enforces. Vietnamese diacritics stack two marks over one glyph; at 12 px on a 1× display they merge. Archivo stays |
+| **Green / Yellow / White question states** | **Rejected as specified, accepted in intent** | The yellow has no token and no measured contrast ratio. The intent — a learner can see at a glance which questions are done — is already met by the answered/unsaved/unanswered states, which differ by border style and glyph as well as colour and therefore survive greyscale and colour blindness |
+| The remaining 11 screen proposals | **Advisory** | Taken as input to `UI0`–`UI11` where they agree with the product, ignored where they do not. None of them is a requirement |
+
+**Cost of being wrong:** the two rejections are one token change and one type-scale change away from
+being reversed. Both were rejected for a *measurable* reason — no subset, no contrast ratio — so
+reversing either means supplying the measurement, not re-arguing taste.
+
+**Consequence:** `UI0`–`UI11` are unblocked. The screen inventory task `T2` no longer waits on this.
+
+<details><summary>What was ruled on</summary>
 
 `Nhan_xet_va_de_xuat_UI_UX_luyen_thi.docx` (received 2026-08-20) contains **13 concrete screen
 proposals**. It arrived with the instruction "take a look at this" — meaning it is a **third-party
-review**, tier 6 in the source-precedence ladder, **not** a set of owner requirements.
+review**, tier 6 in the source-precedence ladder, **not** a set of owner requirements. Full list with
+prototype state: [`../product/web-demo-feature-map.md`](../product/web-demo-feature-map.md).
 
-Every item in it is `UNCONFIRMED` until the owner rules. Full list with current prototype state:
-[`../product/web-demo-feature-map.md`](../product/web-demo-feature-map.md).
-
-Two of its proposals conflict with settled decisions and need explicit adjudication:
-
-- **Font "Calibri 12"** conflicts with the confirmed Archivo type scale and the 14 px Vietnamese
-  floor. Calibri has **not** been checked for a `vietnamese` subset.
-- **Green/Yellow/White** question states introduce a yellow that has no token and no measured
-  contrast ratio.
+</details>
 
 ---
 
@@ -206,6 +278,76 @@ Two related items, both currently `PROPOSED` (`A-12a`, `A-12b`):
 
 Both need owner confirmation before they constrain the AI output schema.
 → [`../ai/output-contracts.md`](../ai/output-contracts.md)
+
+---
+
+### B-12 · Bài test đầu vào là **chế độ thứ ba**, **Full Test đóng khung khác**, hay **một luật của phiên thi**? `[BUSINESS DECISION]`
+**Chặn:** hình dạng của `ExamSession.Mode`, việc `exam.schema.json` có thêm thuộc tính phân loại hay
+không, và cả màn kết quả của bài test đầu vào. **Đây là `M-30` với cái tên thứ tư** — không phải một
+câu hỏi mới.
+
+Ngày 27/08/2026 chủ sản phẩm yêu cầu thêm một lớp chọn ở cửa vào khu luyện 4 kỹ năng: *"có thể làm
+bài test trước xem trình độ hiện tại là bao nhiêu hoặc user có thể bỏ qua"* (`E-15`…`E-17` trong
+[`confirmed.md`](confirmed.md)). Câu nói tạo ra **một lối vào**. Nó không nói bài test đó là cái gì.
+
+`E-11` đã chốt **hai** chế độ. "Bài test đầu vào" là cái tên thứ tư dưới nhánh luyện đề, sau Full
+Test · Practice Test · Mock Test. Ba cách đọc, ba sản phẩm khác nhau:
+
+| Cách đọc | Cái gì đổi | Giá phải trả |
+|---|---|---|
+| **(1) Full Test, đổi lối vào và đổi cách trình bày kết quả** | `ExamSession` mang thêm một trường *mục đích*; **không** đụng vào `exam.schema.json`; không cần soạn nội dung mới | Rẻ nhất — nhưng thừa hưởng nguyên độ dài của một đề full |
+| **(2) Chế độ thứ ba, có nội dung riêng** — một đề chẩn đoán rút gọn | `exam.schema.json` thêm thuộc tính phân loại; VNI phải **soạn đề chẩn đoán**; màn kết quả là một màn khác | Đắt nhất, và chặn ở **nội dung** chứ không ở code |
+| **(3) Chỉ là luật của phiên thi** — bấm giờ thật, không xem đáp án giữa chừng, không tạm dừng | Đúng nhánh giữa của `M-30`; không nội dung mới, không chế độ mới | Rẻ, nhưng **không trả lời được câu "học viên ngồi làm cái gì"** |
+
+**Hai quan sát làm câu hỏi này quyết được, thay vì để nó là câu hỏi mở chung chung.**
+
+**Một · cách đọc (3) đã tự sụp vào (1) rồi.** Phiên thi hiện tại đã bấm giờ trên máy chủ
+([ADR-0007](../decisions/0007-server-authoritative-exam-timer.md)), không tạm dừng được, và không
+hiện đáp án giữa chừng. Nếu bài test đầu vào chỉ khác Full Test ở ba luật đó thì nó **không khác gì
+cả**. Cách đọc (3) chỉ còn nghĩa nếu chủ sản phẩm định làm Full Test **dễ hơn** — cho tạm dừng, cho
+xem đáp án — và điều đó chưa ai nói.
+
+**Hai · dưới cách đọc (1), một nửa bài test đầu vào hôm nay không ra kết quả.** Một đề full là bốn
+kỹ năng; Writing trả `AwaitingEvaluator` và Speaking trả `AwaitingTranscript` cho tới khi `B-2` xong.
+Nghĩa là: học viên bấm "luyện tập", được mời đo trình độ, ngồi gần ba tiếng, rồi được báo hai con số
+thô trên bốn kỹ năng. Đây là lập luận mạnh nhất cho **(2) ở dạng rút gọn Reading + Listening** — và
+nó tốn công soạn nội dung, nên là quyết định của chủ sản phẩm chứ không phải của kỹ thuật.
+
+**Chưa mặc định gì cả.** `mode` hiện là khái niệm của **phiên thi**, không phải của nội dung, và
+`exam.schema.json` **không** được thêm gì cho tới khi có câu trả lời — `G-11`. Câu hỏi này phải trả
+lời **cùng lúc** với `M-34`: nếu bài test đầu vào rút gọn thì nó là nội dung, và (1) không còn khả
+thi. Hai câu hỏi này không tách rời được.
+
+Đặc tả luồng đã dựng để **sống được với cả ba câu trả lời**:
+[`../ux/practice-entry-test-flow.md`](../ux/practice-entry-test-flow.md).
+
+---
+
+### B-13 · "Luyện đề / Thi thử" đứng ở đâu so với Full Test / Single Skill? `[BUSINESS DECISION]`
+**Chặn:** hình dạng của `ExamSession.mode`, thanh chế độ trên `/practice`, và luật của mọi phiên
+luyện đề. **Đây là `M-30` với cái tên thứ năm** — cùng một câu hỏi, không phải câu mới.
+
+Ngày 27/08/2026 chủ sản phẩm chốt: *"Về các phần thi của 4 kĩ năng sẽ tách làm 2 phần là luyện đề và
+thi thử"* (`E-20` trong [`confirmed.md`](confirmed.md)). `E-11` đã chốt **hai** chế độ khác: Full Test
+và Single Skill. Đây là **hai cặp hai khác nhau**, và một trường `mode` không mang được cả hai.
+
+| Cách đọc | Cái gì đổi | Giá phải trả |
+|---|---|---|
+| **(1) Một trục — Luyện đề/Thi thử thay thế Full/Single** | Thanh chế độ đổi nhãn | Mâu thuẫn `E-11`…`E-13`, và **đánh rơi luật nối kỹ năng của Full Test** (`E-12`). Chưa có gì bãi bỏ `E-11` |
+| **(2) Hai trục độc lập** — {full, single} × {luyện đề, thi thử} | `ExamSession` mang hai trường; bốn tổ hợp | Ít nhất một tổ hợp ("thi thử một kỹ năng") cần một luật chưa ai phát biểu |
+| **(3) Luyện đề/Thi thử là *luật của phiên thi*, không phải của nội dung** | Không đụng `exam.schema.json`; thanh chế độ thêm một chiều | Rẻ nhất, và khớp với chỗ `mode` đang nằm hôm nay |
+
+**Điểm khác biệt so với `M-30`/`B-12`: lần này đã có luật cụ thể cho một bên.** `E-21`…`E-25` mô tả
+luyện đề bằng những luật đo được — đếm lên, dừng được, quay lại section đã làm, xem đáp án sau khi
+nộp. Chính bốn luật đó là thứ `M-30` hỏi *"Mock khác Full Test ở chỗ nào"* và không ai trả lời.
+**Trả lời `B-13` gần như trả lời luôn `M-30` và `B-12`.**
+
+**Đừng trả lời riêng lẻ.** Bốn cái tên đã có — Full Test · Practice Test · Mock Test · bài test đầu
+vào — cộng cái thứ năm này. Chốt từng cái một sẽ ra một bảng phân loại tự mâu thuẫn.
+
+**Chưa mặc định gì cả.** Không thêm trường nào vào `exam.schema.json`, và `mode` giữ nguyên hình dạng
+hiện tại cho tới khi có câu trả lời — `G-11`. Đặc tả bề mặt dựng để sống được với cả ba cách đọc:
+[`../ux/practice-mode.md`](../ux/practice-mode.md) §6 `X-4`.
 
 ---
 
@@ -378,6 +520,26 @@ IELTS raw-score→band boundaries are **equated per test version** — the offic
 
 **What we need:** where VNI's conversion tables come from — licensed, internally calibrated, or approximated.
 **Design consequence already applied:** the table is modelled as versioned configuration attached to each exam version, never as code. → [`../domain/band-scoring.md`](../domain/band-scoring.md)
+
+**Screens now waiting on this, added 2026-08-27.** `E-27` asks for a **band at the centre of the
+Listening review donut** — the most-visited result surface in the product. It cannot be drawn from
+the only table in the repository, which declares itself `"provisional": true` with the note *"H-4
+must adjudicate before any band is reported to a learner"*, and the owner earlier decided *"Bỏ band,
+giữ điểm thô"* for that reason — a decision `ExamResultsPage` already implements by ignoring
+`section.band` outright. The donut is specified so that the centre carries the raw score today and
+the band becomes **one line that fills in** when this question closes, not a screen that gets rebuilt.
+→ [`../ux/practice-mode.md`](../ux/practice-mode.md) §6 `X-1`
+
+---
+
+### H-12 · Part-marking a multi-mark question `[OPEN QUESTION]`
+A "Choose TWO letters" question occupies two numbered lines on the answer sheet and carries two marks; "Choose THREE" carries three. Real IELTS awards **one mark per correct letter**. `DeterministicScorer` awards all of a question's marks or none of them, because `AnswerKey.Accepted` models an accepted answer as a *set that must match* — and a set has no shape for "two of these three".
+
+**Consequence, measured on Exam 1:** Listening `l-28-30` is worth 3 marks. A candidate selecting two of its three correct options scores **0** where the real exam scores 2. The two-letter questions `l-11-12` and `l-13-14` each lose 1 mark the same way. The error *grew* when the marks started being carried correctly — while the question was worth 1 mark the maximum loss was 1.
+
+**What we need:** whether VNI marks these the way IELTS does. If yes, the answer-key shape changes — an accepted answer becomes a set of independently-marked members rather than one set compared with `SetEquals` — and that is a contract change reaching `exam.schema.json`, not a scorer change.
+
+**Not defaulted, and the direction of the current default is deliberate.** Awarding partial credit is as much an invented policy as withholding it. What stands is the behaviour that cannot silently *inflate* a band. → `G-11`
 
 ---
 
@@ -695,6 +857,12 @@ từng kỹ năng, vốn khớp với Single Skill.
 Hiện `mode` là khái niệm của **phiên thi**, không phải của nội dung. Không thêm gì vào schema cho tới
 khi có câu trả lời — `G-11`: chính sách chưa chốt thì làm thành khe cắm, không bịa mặc định.
 
+> **Cập nhật 27/08/2026 — đã có cái tên thứ tư.** Chủ sản phẩm yêu cầu thêm một **bài test đầu vào**
+> ở cửa khu luyện 4 kỹ năng (`E-15`…`E-17`). Nó rơi đúng vào câu hỏi này và được tách ra thành
+> **`B-12`**, vì nó chặn thêm hai thứ mà `M-30` không chặn: màn kết quả của bài test đó, và việc
+> `exam.schema.json` có phải mang thuộc tính phân loại nội dung hay không. Trả lời `B-12` gần như trả
+> lời luôn `M-30`; trả lời `M-30` trước sẽ khoanh vùng được `B-12`. Đừng trả lời riêng lẻ.
+
 ### M-31 · Media dùng chung tham chiếu kiểu gì `[OPEN QUESTION]`
 
 `assetRef` hiện là **đường dẫn tương đối trong gói** (`assets/…`), cố ý không phải URL và cố ý không
@@ -717,6 +885,301 @@ của chuyên môn IELTS, không phải của kỹ thuật.
 Thống kê theo câu hỏi chỉ hiện khi đủ số lượt làm bài. Dưới ngưỡng thì hiện "chưa đủ dữ liệu" thay vì
 phần trăm — với 3 lượt thì *"67% làm sai"* vừa vô nghĩa vừa gần như chỉ đích danh người làm. Đây là
 lựa chọn giữa hữu ích sớm và an toàn dữ liệu; không có con số chuẩn ngành cho ngữ cảnh này.
+
+---
+
+## Phát sinh từ yêu cầu bài test đầu vào (27/08/2026)
+
+Bốn câu hỏi sinh ra khi đặc tả lớp chọn ở cửa khu luyện 4 kỹ năng (`E-15`…`E-17`). Câu hỏi lớn nhất —
+bài test đó là chế độ, là nội dung, hay là luật phiên thi — nằm ở **`B-12`** trong mục chặn phía trên,
+vì nó chặn cả schema lẫn màn kết quả. Bốn câu dưới đây là những thứ **giao diện không tự trả lời
+được**, mỗi câu đổi hình dạng một trạng thái cụ thể trong
+[`../ux/practice-entry-test-flow.md`](../ux/practice-entry-test-flow.md).
+
+### M-34 · Bài test đầu vào gồm những gì `[BUSINESS DECISION]`
+**Chặn:** `B-12`, và việc có phải soạn nội dung mới hay không.
+
+Chủ sản phẩm nói *"làm bài test trước xem trình độ hiện tại là bao nhiêu"* và dừng ở đó. Chưa có câu
+trả lời cho: **bốn kỹ năng hay ít hơn**, và **full hay rút gọn**.
+
+| Nếu là… | Hệ quả |
+|---|---|
+| **Bốn kỹ năng, full** | Không cần nội dung mới; nhưng là ~2h45 ngay ở lần đầu bấm vào "luyện tập", và hai trong bốn kỹ năng hôm nay không ra kết quả (`B-2`) |
+| **Bốn kỹ năng, rút gọn** | Cần soạn đề chẩn đoán; và một điểm thô trên đề rút gọn **không** quy đổi được bằng bảng của đề full — bảng band được equate theo từng version (`H-4`) |
+| **Chỉ Reading + Listening** | Là phần duy nhất hôm nay chấm được không cần AI (`A-11`). Ngắn, chạy được ngay — nhưng "trình độ" khi đó chỉ nói về hai kỹ năng và màn hình phải nói rõ điều đó |
+| **Một bài trắc nghiệm ngắn không phải đề IELTS** | Rẻ nhất, nhưng là một loại nội dung mới hoàn toàn, có schema riêng, và không dùng lại được engine chấm hiện có |
+
+**Chưa giả định.** Lớp chọn được đặc tả với ô mô tả nội dung bài test lấy từ cấu hình; chưa có cấu
+hình thì lựa chọn (a) hiện ở trạng thái **chưa mở**, kèm lý do — không phải một nút chết, và không
+phải một con số bịa. → `G-11`
+
+### M-35 · Bài test đầu vào **báo cái gì**, và kết quả sống bao lâu `[BUSINESS DECISION]`
+**Chặn:** màn kết quả của bài test đầu vào.
+
+Ba phần, phải trả lời cả ba:
+
+1. **Báo bằng đơn vị gì.** Hôm nay hệ thống **không được phép báo band**: `H-4` chưa chốt nguồn bảng
+   quy đổi raw→band, và bảng duy nhất đang có trong repo tự khai `"provisional": true` kèm ghi chú
+   *"H-4 must adjudicate before any band is reported to a learner"* (`exam/Exam1/exam.json`). Cái
+   báo được là **số câu đúng trên tổng** cho Reading và Listening, và **không gì cả** cho Writing và
+   Speaking. Chủ sản phẩm có chấp nhận một màn "trình độ" nói bằng điểm thô không?
+2. **Làm lại được không, và bao nhiêu lần.** Một lần cho mỗi tài khoản, hay làm lại tuỳ ý, hay theo
+   chu kỳ. Câu này quyết định luôn việc một bài test bỏ dở có được bỏ hẳn để làm lại hay không.
+3. **Kết quả có hết hạn không.** Trình độ 6 tháng trước còn được gọi là "hiện tại" không.
+
+**Chưa giả định.** Màn kết quả được đặc tả để nói đúng cái đã đo được, và để **band là một dòng thêm
+vào** khi `H-4` chốt — không phải một màn dựng lại. Chi tiết ở
+[`../ux/practice-entry-test-flow.md`](../ux/practice-entry-test-flow.md) §5.
+
+### M-36 · Lớp chọn hiện **khi nào** và **với ai** `[OPEN QUESTION]`
+
+Bốn nhánh chưa ai trả lời, cộng một chỗ chữ nghĩa cần chủ sản phẩm xác nhận:
+
+| | Câu hỏi | Đặc tả tạm đang dùng |
+|---|---|---|
+| a | *"luyện 4 đề"* là khu luyện 4 kỹ năng (`/practice`) hay một chỗ khác | `[ASSUMPTION]` `/practice` — đây là màn duy nhất trong sản phẩm mở ra bốn kỹ năng |
+| b | Người **chưa đăng nhập** có thấy lớp chọn không | `[ASSUMPTION]` **không** — cả hai lựa chọn đều cần tài khoản, nên bày ra là một lựa chọn giả. Cổng đăng nhập sẵn có của kho đề giữ nguyên |
+| c | Người **đã làm rồi** lần sau vào có thấy lại không | Có — và lớp chọn nói luôn kết quả lần trước. **Chặn lớp chọn lại là một chính sách**, mà chính sách đó chưa ai phát biểu; hiện nó chỉ hiển thị dữ liệu đang có |
+| d | Bấm "bỏ qua" thì im lặng trong bao lâu | Trong cùng lượt truy cập: im hẳn. Qua lượt sau: chưa có luật → thuộc (c) |
+
+Nhánh (c) là chỗ dễ bịa luật nhất. Ghi rõ lý do đặc tả chọn "vẫn hiện": câu của chủ sản phẩm mô tả
+**một lời mời có đường thoát**; "mời một lần rồi thôi" là luật *thêm vào*, không phải luật có sẵn
+trong câu. Nếu chủ sản phẩm muốn chặn, đó là một điều kiện bọc quanh lớp chọn — thêm sau không phải
+dựng lại.
+
+### M-37 · Bài test đầu vào có tốn token không `[BUSINESS DECISION]`
+**Chặn:** dòng chi phí trên tấm thẻ "trước khi bắt đầu". Đi kèm `B-5a` và `T-3`.
+
+`T-3` chốt token tiêu được cho *làm lại một bài test* và *chấm AI*; `B-5a` chưa chốt **thao tác nào
+thực sự bị tính**. Một bài test đầu vào chạm cả hai: nó là một phiên thi, và nếu nó có Writing thì
+nó gọi chấm AI.
+
+**Chưa giả định, và cụ thể là không hiện chữ "Miễn phí".** Ô chi phí là một khe cắm: chưa cấu hình
+giá thì **không vẽ dòng nào**. Viết "Miễn phí" là đặt giá bằng 0 — vẫn là bịa một chính sách. → `G-11`
+
+---
+
+## Phát sinh từ đặc tả chế độ luyện đề (27/08/2026)
+
+Bảy câu hỏi sinh ra khi đặc tả mặt luyện đề (`E-20`…`E-32`). Câu lớn nhất — luyện đề/thi thử đứng ở
+đâu so với Full Test/Single Skill — nằm ở **`B-13`** trong mục chặn phía trên. Bảy câu dưới đây là
+những thứ **giao diện không tự trả lời được**; mỗi câu đổi hình dạng một bộ phận cụ thể trong
+[`../ux/practice-mode.md`](../ux/practice-mode.md).
+
+> **Cột "Thi thử" trong đặc tả gần như trống, và đó là cố ý.** Chủ sản phẩm dùng chữ *"thi thử"* đúng
+> một lần, trong câu chia đôi bốn kỹ năng, rồi mô tả toàn bộ phần còn lại cho **luyện đề**. Điền cột
+> kia bằng "thi thử thì đương nhiên là…" là bịa ra luật thi của sản phẩm từ một chữ.
+
+### M-38 · Đồng hồ đếm lên: dừng đến đâu, mốc mục tiêu làm gì, và phiên luyện đề có hạn chót không `[BUSINESS DECISION]`
+**Chặn:** nút play trên header, nút sấm sét, và câu công bố ở màn trước khi thi.
+
+`E-21` chốt đếm lên; `E-22` chốt có nút dừng và có mốc thời gian mục tiêu. Ba thứ chưa nói:
+
+1. **Dừng được bao lâu, bao nhiêu lần.** Dừng vô hạn, hay có trần? Đóng trình duyệt rồi ba ngày sau
+   mở lại thì phiên đó còn sống không, và đồng hồ khi đó ở đâu?
+2. **Chạm mốc mục tiêu thì sao.** Nộp tự động? Khoá bài? Hay chỉ là một dấu trên đồng hồ? Đặc tả
+   hiện **chỉ vẽ dấu và không làm gì khác** — `G-11`.
+3. **Phiên luyện đề có `deadlineAt` phía máy chủ không.** Hôm nay **mọi** phiên đều có, và lưu sau
+   hạn chót bị từ chối ([ADR-0007](../decisions/0007-server-authoritative-exam-timer.md)).
+
+**Đây cũng là chỗ ADR-0007 cần sửa chứ không cần ngoại lệ.** Phần Notes của ADR viết như thể phiên
+thi nào cũng có hạn chót; `E-21` làm câu đó sai với ít nhất một chế độ. Cách sửa nhỏ: luật "hạn chót
+không dừng" gắn vào **phiên có hạn chót**, còn phiên luyện đề có phải loại đó không thì chính là câu
+hỏi này. **Quyền tính giờ vẫn ở máy chủ trong cả hai chế độ** — tạm dừng là một thao tác máy chủ ghi
+lại khoảng thời gian, không phải một biến trên máy học viên. → [`../ux/practice-mode.md`](../ux/practice-mode.md) §6 `X-3`.
+
+### M-39 · Kết quả luyện đề có "chính thức" không `[BUSINESS DECISION]`
+**Chặn:** lịch sử làm bài, thống kê theo câu hỏi (`C-21`, `M-33`), và dòng chi phí token.
+
+Bốn phần, phải trả lời cả bốn:
+
+1. **Có vào lịch sử làm bài không**, và có hiện cạnh kết quả thi thử như một loại kết quả ngang hàng không.
+2. **Có vào thống kê của tác giả đề không.** Một đề luyện với đồng hồ dừng được, làm lại được, xem
+   đáp án được sẽ **làm lệch** mọi con số "bao nhiêu phần trăm làm sai câu này".
+3. **Có tốn token không**, và làm lại thì sao. → `B-5a`, `T-3`.
+4. **Thi thử có được xem đáp án sau khi nộp không.** `E-28`…`E-30` chốt điều đó cho luyện đề. Nếu
+   thi thử cũng cho xem thì hai chế độ chỉ còn khác nhau ở cái đồng hồ.
+
+**Chưa mặc định.** Màn kết quả luyện đề nói đúng cái đã đo được và **không vẽ dòng chi phí nào** cho
+tới khi có giá — viết "Miễn phí" là đặt giá bằng 0. `G-11`.
+
+### M-40 · Quay lại section đã làm: được **xem** hay được **sửa** `[OPEN QUESTION]`
+**Chặn:** nút trước/sau ở chân trang, và ý nghĩa của "nộp bài".
+
+`E-24` nguyên văn: *"các nút trước, sau (đều xem qua lại giữa các section đã làm)"*. *"Xem qua lại"*
+nằm giữa **nhìn lại** và **làm lại**. Hai câu trả lời, hai sản phẩm:
+
+| Nếu là… | Hệ quả |
+|---|---|
+| **Chỉ xem** | Section đã rời khỏi là đóng. Cần một luật nói section đóng lúc nào — rời khỏi, hay hết giờ, hay nộp |
+| **Sửa được** | Cả bài chỉ đóng khi bấm nộp. Khớp tự nhiên hơn với `E-25` (*"sau khi nộp không thể sửa"* — hàm ý trước khi nộp thì sửa được) |
+
+**Chưa mặc định, và hướng của mặc định tạm là có chủ ý.** Ô nhập ở section quay lại **vẫn mở**, vì
+khoá chúng lại chính là một chính sách; và `E-25` là câu duy nhất trong chỉ đạo nói về việc mất
+quyền sửa, mà nó gắn với **nộp bài**, không gắn với việc chuyển section.
+
+### M-41 · Ngân hàng đáp án kéo–thả lấy từ đâu cho những câu không có `options` `[OPEN QUESTION]`
+**Chặn:** hàng thứ hai của màn nghe (`E-26`), và có thể cả `exam.schema.json`.
+
+`E-26` đặt một hàng đáp án kéo–thả phía trên câu hỏi. Đo trên Exam 1 — nội dung thật duy nhất đang có:
+
+| | Số câu |
+|---|---|
+| Listening có `options` | **9** / 36 |
+| Nhóm Listening mang sẵn một bank text | **0** |
+| Cả Reading + Listening có dạng "ngân hàng" (matching + labelling) | **16** / 72 |
+| Còn lại — tự điền từ, hoặc chọn phương án | **56** / 72 |
+
+Ba cách, và cách giữa **đổi đề chứ không đổi màn hình**:
+
+| Cách | Hệ quả |
+|---|---|
+| **(a) Chỉ vẽ hàng đó cho nhóm có sẵn options** | Đúng với nội dung thật; phần lớn bài không có hàng này — đúng như đề IELTS thật |
+| **(b) Soạn ngân hàng từ cho mọi câu** | Một câu điền từ có sẵn ngân hàng là **một dạng câu khác, dễ hơn**; đáp án và bảng quy đổi không còn mô tả đúng nó nữa |
+| **(c) AI sinh phương án nhiễu** | Là AI sửa nội dung đề, giữa bài, không qua cổng duyệt. Trái `C-23` |
+
+**Đặc tả đang theo (a)** và ghi rõ hàng đó vắng mặt là trạng thái thường gặp. Đây là câu hỏi **nội
+dung**, không phải câu hỏi giao diện.
+
+### M-42 · "Giải thích" lấy từ đâu, ai trả tiền, có lưu lại không `[BUSINESS DECISION]`
+**Chặn:** nút giải thích trong `E-29` và `E-30`.
+
+`E-29` nêu hai nguồn và **hôm nay không có nguồn nào**: `exam/Exam1/answer-keys.json` không có trường
+giải thích nào cả — chữ `"explanation"` không xuất hiện — và `B-2` chặn mọi năng lực AI ở môi trường
+thật. Bốn câu:
+
+1. **Ai viết lời giải thích tĩnh**, và nó thành một trường trong `exam.schema.json` + một ô trong
+   trình soạn của CMS phải không (`C-22`)?
+2. **Gọi AI giải thích có tính token không** (`B-5a`), và tính theo câu hay theo bài?
+3. **Lời giải thích do AI sinh có được lưu và dùng lại** cho học viên sau không — hay mỗi người một
+   lần gọi, mỗi lần một câu chữ khác nhau cho cùng một câu hỏi?
+4. **Ai chịu trách nhiệm khi AI giải thích sai** một câu mà đáp án chấm đúng. Trái `A-11` ở mức cảm
+   nhận của học viên, dù band không đổi.
+
+**Chưa mặc định:** nút chỉ được vẽ ở chỗ **thực sự có nguồn**. Không nút chết, không chữ "sắp có",
+không dòng giá. `G-11`.
+
+### M-43 · Ô câu ở chân trang đếm theo **câu** hay theo **dòng đáp án** `[OPEN QUESTION]`
+**Chặn:** bản đồ section ở chân trang (`E-23`), và đi cùng `H-12`.
+
+*"Section 1 có 10 câu thì hiện 10 ô"* giả định một câu là một ô. Trên Exam 1, Listening có **36 đối
+tượng câu hỏi mang 40 điểm**: `l-28-30` là **một** câu đáng 3 điểm, `l-11-12` và `l-13-14` mỗi câu 2
+điểm. Vậy chân trang hiện `0/36` hay `0/40`, và một câu 3 điểm là một ô hay ba ô?
+
+Đây chính là `H-12` nhìn từ phía giao diện: nếu VNI chấm từng chữ cái như IELTS thật thì ba ô là
+đúng, và hình dạng đáp án phải đổi. Trả lời `H-12` trước thì câu này tự có đáp án.
+
+### M-44 · Mốc thời gian trên "timeline" audio lấy từ đâu `[OPEN QUESTION]`
+**Chặn:** nửa trái của màn xem lại bài nghe (`E-28`).
+
+`E-28` yêu cầu "audio nghe lại và các timeline" — hàm ý mỗi câu có một mốc trong file audio. **Dữ
+liệu đó không tồn tại.** Trong `exam/Exam1/listening/section.json` không có trường thời gian nào ở
+mức câu hỏi; bản gỡ băng duy nhất trong gói là file Markdown **máy sinh để đối chiếu**, tự khai như
+vậy, không phải nội dung phát hành, và không có mốc thời gian.
+
+| Cách | Hệ quả |
+|---|---|
+| **(a) Người soạn nhập mốc cho từng câu** | Thêm một trường vào `exam.schema.json` và một việc mới cho đội nội dung, mỗi câu một lần |
+| **(b) Căn chỉnh tự động lúc nhập đề** (forced alignment từ audio + transcript) | Cần chọn công cụ; và `V-10` (word-level timings) vẫn chưa ai kiểm |
+| **(c) Không có timeline** | Nửa trái chỉ còn audio nghe lại — đúng với hôm nay |
+
+**Đặc tả đang ở (c)** và nói rõ là không có dữ liệu, thay vì vẽ một cái thước rỗng.
+
+---
+
+## Phát sinh từ quyết định đăng ký (27/08/2026)
+
+Chủ sản phẩm chốt luồng đăng ký: *"xử lí phần register như sau tạo tài khoản với email pass cho login
+như bình thường nhưng sẽ xác minh ở trang hồ sơ học sinh sau cũng được"*. Câu này chốt **đăng nhập**,
+và chỉ đăng nhập. Nó để lại đúng một câu chưa ai trả lời, ghi ở dưới.
+
+### M-46 · Cơ chế xác minh email — **RESOLVED 2026-08-28** ✅ mã 6 số
+
+**`[QUYẾT ĐỊNH]` chủ sản phẩm, 28/08/2026.** Câu hỏi: gửi **mã 6 số** để học viên nhập, hay gửi
+**link** để bấm là xác nhận luôn?
+
+**Quyết định: mã 6 số cho *xác minh email*, giữ link cho *đặt lại mật khẩu*.** Không phải chọn nước
+đôi — hai luồng có bối cảnh và mô hình đe doạ khác nhau, và chọn một cơ chế cho cả hai là tối ưu cho
+sự đồng nhất thay vì tối ưu cho cả hai thứ thực sự quan trọng.
+
+#### Vì sao xác minh dùng mã
+
+Sự thật quyết định nằm ở chính quyết định trước đó của chủ sản phẩm (`A21`, 27/08): đăng ký là đăng
+nhập luôn, **xác minh làm sau ở trang hồ sơ**. Nghĩa là người xác minh **đã đăng nhập, đang đứng trên
+trang của chúng ta**. Trong bối cảnh đó link là hình dạng sai:
+
+| Vấn đề của link | Hệ quả |
+|---|---|
+| Link mở ở **trình duyệt do app mail chọn** | Trên điện thoại thường là webview trong app (Gmail, Zalo, Facebook) — **không có session**. Học viên thấy "đã xác minh" trong một trình duyệt họ không dùng lại, còn app đang mở vẫn nói chưa xác minh. Đúng mâu thuẫn `verify-realtime.test.tsx` được viết để chặn, và cách chữa hiện tại (BroadcastChannel + focus) **không đi xuyên trình duyệt được** |
+| Trên **Capacitor** | Link mở trình duyệt hệ thống, không mở app. Quay lại app cần App Links + Universal Links: app đã ký, `assetlinks.json`, `apple-app-site-association`, cộng đường dự phòng. Hạ tầng thật cho **hai** nền tảng, để làm việc mà mã làm với **không dòng nào** |
+| **Trình quét bảo mật của mail bấm link** | Token dùng một lần bị tiêu âm thầm; người thật bấm sau và nhận "link hết hạn" |
+
+**Sáu chữ số an toàn ở đây *chính vì* việc đổi mã có xác thực.** Một triệu tổ hợp không nhiều — thứ
+làm nó an toàn là server biết **tài khoản nào** đang đổi, nên bộ đếm số lần thử là **theo tài khoản**.
+Năm lần sai là mã chết. Không ai spray được qua nhiều tài khoản vì phải đăng nhập vào từng cái trước.
+
+#### Vì sao đặt lại mật khẩu vẫn dùng link
+
+Người dùng luồng đó **đang đăng xuất** — theo định nghĩa là không vào được. Mã sẽ phải nhập trên một
+trang truy cập được khi chưa đăng nhập, nhận diện tài khoản từ **email họ tự gõ** → endpoint không
+xác thực, kẻ tấn công điều khiển trường email. Và thứ nó bảo vệ không phải "địa chỉ này có thật" mà
+là **chiếm toàn bộ tài khoản**. Token 256 bit **không có bề mặt brute force nào cả**.
+
+#### Tham số
+
+| | Xác minh | Đặt lại mật khẩu |
+|---|---|---|
+| Cơ chế | mã 6 số | link |
+| Hiệu lực | **10 phút** (từ 24 giờ) | 1 giờ |
+| Endpoint | `POST /api/v1/me/verify-email`, **có xác thực** | `POST /auth/reset-password` |
+| Chặn đoán | 5 lần sai → mã chết | không cần |
+| Gửi lại | **thay thế**, không cộng thêm — ba lần bấm không được thành ba mã sống | — |
+
+`POST /auth/verify` (đường link cũ) **giữ nguyên chưa xoá**: có thể còn link 24 giờ nằm trong hộp thư
+ai đó. Ngừng gửi link mới, xoá sau khi TTL cũ trôi hết.
+
+---
+
+### M-45 · Tài khoản **chưa xác minh email** bị hạn chế những gì `[BUSINESS DECISION]`
+**Chặn:** luật cộng/trừ token cho tài khoản mới, và luật ghi công giới thiệu.
+Đi kèm `B-4`, `B-5a`, `M-27`.
+
+**Đã chốt:** đăng ký xong là **đăng nhập luôn**, vào thẳng sản phẩm. Xác minh email chuyển sang trang
+hồ sơ học sinh, làm lúc nào cũng được. Đây là quyết định 27/08/2026 và đã triển khai.
+
+**Chưa chốt:** ngoài đăng nhập ra, tài khoản chưa xác minh **được làm gì và không được làm gì**.
+Hai chỗ trong mô hình mối đe doạ vốn được viết với giả định "xác minh là một cái cổng":
+
+| Chỗ | Vì sao nó từng đợi xác minh | Trạng thái hôm nay |
+|---|---|---|
+| Cộng entitlement / token cho tài khoản mới (`T4`) | Tạo hàng loạt tài khoản bằng email dùng một lần thì cày được phần thưởng | Chưa dựng — `B-4`/`B-5a` chưa chốt có tính phí gì không |
+| Ghi công người giới thiệu (`T13`) | Tự giới thiệu chính mình bằng email rác thì vẫn được trả công | Chưa dựng — `M-27` chưa chốt cách xác thực lượt chia sẻ |
+
+**Chưa giả định, và cụ thể là không cấm gì cả.** Cơ chế xác minh vẫn chạy đủ: token dùng một lần, hết
+hạn sau 24 giờ, trạng thái `emailVerified` ghi đúng trên tài khoản. Nhưng **không dòng code nào từ
+chối bất cứ thao tác nào vì tài khoản chưa xác minh** — vì luật đó chưa ai phát biểu, và tự đặt ra
+một luật hạn chế là tự đặt ra chính sách đứng sau nó. → `G-11`
+
+Hệ quả của việc *không* giả định, nói thẳng: hôm nay một người tạo tài khoản bằng email dùng một lần
+có mọi thứ mà một người đã xác minh có. Điều đó **không** tốn gì cả chừng nào entitlement và phần
+thưởng còn chưa dựng — hai thứ duy nhất mà việc cày tài khoản có thể lấy được. Câu này cần trả lời
+**trước** khi dựng một trong hai, không phải sau.
+
+Cũng vì thế mà giao diện không được nói ngược. Băng thông báo ở trang học sinh từng viết *"Một số tính
+năng sẽ mở sau khi bạn xác minh email"* — mô tả một hạn chế không tồn tại ở đâu trong sản phẩm; câu đó
+đã sửa lại thành một lời mời kèm đường dẫn tới trang hồ sơ.
+
+**Cần chủ sản phẩm trả lời:**
+- Tài khoản chưa xác minh có được nhận token/lượt miễn phí ban đầu không?
+- Có được tính là một lượt giới thiệu thành công không?
+- Có mốc thời gian nào không — ví dụ dùng thoải mái 7 ngày rồi mới nhắc, hay không bao giờ ép?
+
+> **Ghi chú kỹ thuật, không phải câu hỏi cho chủ sản phẩm:** hôm nay **chưa có dịch vụ gửi email nào
+> được cấu hình**. `IVerificationMessageSender` chỉ có một hiện thực là `LoggingVerificationMessageSender`,
+> ghi liên kết vào log máy chủ. API vì thế trả về `verificationEmailSent: false` và màn hình nói đúng
+> là *"Chưa gửi được"* thay vì *"Đã gửi"*. Chọn nhà cung cấp email là việc riêng, và nó chạm `B-2`:
+> địa chỉ email gửi qua nhà cung cấp nước ngoài là một lần chuyển dữ liệu cá nhân xuyên biên giới.
+> API cũng **từ chối khởi động ngoài môi trường Development** chừng nào chưa có sender thật.
 
 ---
 
@@ -791,6 +1254,38 @@ Two remedies, not mutually exclusive:
 ### H-11 · Object storage vendor and hosting `[OPEN QUESTION]`
 Depends on `B-11`. Mitigated in advance by putting storage behind an `IObjectStorage` port over an
 S3-compatible API, so the vendor stays swappable.
+
+### H-13 · Không có rubric nào được cấu hình, nên hàng đợi chấm bài không bao giờ chạy `[OPEN QUESTION]`
+
+**Phát hiện 28/08/2026 bởi bài test hành trình `I7.4`, không phải bởi audit.** Đây là hệ quả dây
+chuyền của `H-8a` mà chưa ai lần ra.
+
+`MarkingWork.EnqueueAsync` dừng ở dòng đầu tiên: `if (rubrics.For(module) is not { } rubric) return;`.
+`ConfiguredRubricSource` chỉ dựng được rubric khi có **cả** `Assessment:{Writing|Speaking}:Version`
+lẫn `DescriptorSource` — và **không một file `appsettings` nào trong repository này có mục
+`Assessment`**, kể cả Development lẫn Production.
+
+Hệ quả đo được, không phải suy đoán: nộp bài xong, `markingStatuses` **rỗng**. Bốn trạng thái mà `I3.6`
+dựng lên để một dấu gạch ngang tự giải thích được — *đang chờ · đang chạy · sẽ thử lại · đã bỏ cuộc* —
+**chưa bao giờ tới được màn hình kết quả trong bất kỳ môi trường nào**. Học viên thấy đúng cái dấu gạch
+câm mà `I3.6` sinh ra để xoá bỏ.
+
+**Cái seam thì đúng.** `G-11` được tôn trọng: một chính sách chưa chốt đã trở thành cấu hình với hiện
+thực rỗng, không phải một giá trị bịa. Thứ thiếu là **bản thân cấu hình**, và nó thiếu vì `H-8a` —
+descriptor lấy từ đâu — chưa có câu trả lời, mà `Rubric.DescriptorSource` bắt buộc phải ghi câu trả lời
+đó.
+
+**Không tự chọn một giá trị.** Chọn `Version` và `DescriptorSource` là quyết định sản phẩm kèm câu hỏi
+bản quyền của `H-8a`; đặt đại một chuỗi ở đây là biến một câu hỏi pháp lý thành một mặc định bịa.
+
+**Đã chứng minh máy móc chạy đúng ngay khi có cấu hình:**
+`MarkingQueuedOnSubmitTests.A_configured_rubric_puts_writing_and_speaking_in_the_queue` cấu hình hai
+rubric giả và nộp bài — Writing và Speaking vào hàng đợi ở trạng thái `pending`, `attempts` 0, `reason`
+null. Nghĩa là **giữa sản phẩm và một màn hình kết quả biết tự giải thích chỉ còn bốn dòng cấu hình**,
+không còn dòng mã nào.
+
+Đi cùng `H-8` · `H-8a`. Chặn: không chặn gì đang chạy, nhưng để nguyên thì `I3.6` là công đã làm mà
+chưa ai dùng được.
 
 ---
 

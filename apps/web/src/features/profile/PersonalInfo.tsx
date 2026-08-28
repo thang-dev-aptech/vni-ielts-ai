@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError } from '../../lib/api.js';
-import { changeEmail, resendVerification, setPhone } from '../../lib/session.js';
+import { changeEmail, confirmEmailCode, resendVerification, setPhone } from '../../lib/session.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
 import { MailIcon, PhoneIcon } from '../landing/MenuIcons.js';
@@ -31,10 +31,34 @@ function EmailRow() {
   const { user, accessToken, refreshUser } = useAuth();
 
   const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
+  /**
+   * What became of the last message this row asked for.
+   *
+   * <b>Three states, not two, and the third is the point.</b> `'sent'` means a
+   * provider took it; `'not-sent'` means the request succeeded and nothing
+   * left the server, which is what every environment does today because no
+   * email provider is configured. Collapsing the two into a boolean is how a
+   * screen ends up saying <i>"Đã gửi. Kiểm tra hộp thư của bạn"</i> about a
+   * message that does not exist — the same class of lie the autosave chip
+   * rules exist to prevent. → `M-45`
+   */
+  const [outcome, setOutcome] = useState<'idle' | 'sent' | 'not-sent'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+
+  /*
+   * ── The six digits ──────────────────────────────────────────────────────
+   *
+   * `[QUYẾT ĐỊNH]` chủ sản phẩm, 28/08/2026. The learner is already here and
+   * already signed in, so they read the code off their phone and type it into
+   * this page — same tab, same session. A link would have opened in whatever
+   * browser the mail app chose, and on a phone that is usually an in-app
+   * webview with no session at all.
+   */
+  const [code, setCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
 
   if (user === null) return null;
 
@@ -48,11 +72,12 @@ function EmailRow() {
     setError(null);
 
     try {
-      await changeEmail(accessToken, draft);
+      // A new address means a fresh link went to it — unless nothing is
+      // configured to send one, which the server now says outright.
+      const changed = await changeEmail(accessToken, draft);
       await refreshUser();
       setEditing(false);
-      // A new address means a fresh link just went out to it.
-      setSent(true);
+      setOutcome(changed.verificationEmailSent ? 'sent' : 'not-sent');
     } catch (caught) {
       setError(emailError(caught, t));
     } finally {
@@ -67,8 +92,8 @@ function EmailRow() {
     setError(null);
 
     try {
-      await resendVerification(accessToken);
-      setSent(true);
+      const result = await resendVerification(accessToken);
+      setOutcome(result.verificationEmailSent ? 'sent' : 'not-sent');
       // In case they verified in another tab while this one sat open.
       await refreshUser();
     } catch (caught) {
@@ -79,6 +104,43 @@ function EmailRow() {
       );
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function confirm(event: FormEvent) {
+    event.preventDefault();
+    if (accessToken === null) return;
+
+    setVerifying(true);
+    setCodeError(null);
+
+    try {
+      await confirmEmailCode(accessToken, code);
+
+      // The tag above reads `user.emailVerified`, so the row corrects itself
+      // rather than this handler keeping a second copy of the same fact.
+      await refreshUser();
+      setCode('');
+      setOutcome('idle');
+    } catch (caught) {
+      /*
+       * <b>Three refusals, three sentences.</b> "Wrong code" sends them back
+       * to what they typed; "expired" sends them to the resend button; "too
+       * many attempts" has to explain why the code in their hand stopped
+       * working, or they will keep trying it from the same email.
+       */
+      setCodeError(
+        caught instanceof ApiError
+          ? ({
+              VERIFICATION_CODE_EXPIRED: t('verifyCode.expired'),
+              VERIFICATION_CODE_ATTEMPTS_EXCEEDED: t('verifyCode.exhausted'),
+              VERIFICATION_CODE_INCORRECT: t('verifyCode.incorrect'),
+              RATE_LIMITED: t('verifyAgain.tooOften'),
+            }[caught.problem.code] ?? t('common.notConnected'))
+          : t('common.notConnected'),
+      );
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -127,7 +189,7 @@ function EmailRow() {
                 onClick={() => {
                   setDraft(user?.email ?? '');
                   setError(null);
-                  setSent(false);
+                  setOutcome('idle');
                   setEditing(true);
                 }}
               >
@@ -141,21 +203,92 @@ function EmailRow() {
           {locked ? t('profile.verified') : t('profile.unverified')}
         </span>
 
-        {!locked && !sent && !editing && (
+        {!locked && outcome === 'idle' && !editing && (
           <button
             type="button"
             className="info-action"
             disabled={busy}
             onClick={() => void resend()}
           >
-            {busy ? t('verifyAgain.sending') : t('verifyAgain.send')}
+            {busy ? t('verifyAgain.sending') : t('verifyCode.resend')}
           </button>
         )}
 
-        {sent && (
+        {outcome === 'sent' && (
           <span className="info-hint" role="status">
-            {t('verifyAgain.sent')}
+            {t('verifyCode.hint')}
           </span>
+        )}
+
+        {/*
+          <b>The code box, and it is offered before the mail arrives.</b>
+          Rendering it only after a successful send would hide it from the
+          learner who asked for a code, closed the tab, and came back — the
+          code is still live for ten minutes and they have it in front of them.
+        */}
+        {!locked && !editing && (
+          <form className="verify-code" onSubmit={(e) => void confirm(e)}>
+            <input
+              type="text"
+              aria-label={t('verifyCode.label')}
+              value={code}
+              /*
+               * <b>`inputMode="numeric"` and `autoComplete="one-time-code"`.</b>
+               * The first brings up the digit keypad on a phone rather than the
+               * full keyboard; the second is what lets iOS and Android offer
+               * the code straight from the notification, so the common case is
+               * one tap and no typing at all.
+               *
+               * `maxLength` is six because the code is six — a box that accepts
+               * more invites a paste with a trailing space to spend one of the
+               * five attempts.
+               */
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder="000000"
+              // Digits only, on the way in. A stray letter would otherwise
+              // reach the server and cost an attempt for a typo.
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            />
+
+            <button
+              type="submit"
+              className="info-action is-primary"
+              disabled={verifying || code.length !== 6}
+            >
+              {verifying ? t('verifyCode.checking') : t('verifyCode.submit')}
+            </button>
+          </form>
+        )}
+
+        {codeError !== null && (
+          <span className="info-error" role="alert">
+            {codeError}
+          </span>
+        )}
+
+        {/*
+          Nothing was sent, and the screen says so instead of dressing a
+          no-op as a success. It keeps the button, because the honest next
+          step for whoever set this environment up is to read the link out of
+          the server log — and because a learner who tries again after a
+          provider is wired should not have to reload the page to do it.
+        */}
+        {outcome === 'not-sent' && (
+          <>
+            <span className="info-hint is-warn" role="status">
+              {t('verifyAgain.notSent')}
+            </span>
+            <button
+              type="button"
+              className="info-action"
+              disabled={busy}
+              onClick={() => void resend()}
+            >
+              {busy ? t('verifyAgain.sending') : t('verifyAgain.retry')}
+            </button>
+          </>
         )}
 
         {error !== null && (

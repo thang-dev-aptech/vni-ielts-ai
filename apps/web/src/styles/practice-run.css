@@ -1,0 +1,614 @@
+/* Luyện đề — the runner with a stopwatch instead of a deadline. `E-20`…`E-32`.
+ *
+ * <b>This file defines no new tokens.</b> Spacing, colour, radius and the type
+ * scale all come from the shared system; the 14px Vietnamese floor holds
+ * throughout, and no text/background pair here is under 4.5.
+ *
+ * <b>The clock has one size and no escalation.</b> `L1`'s three-tier countdown
+ * styling exists because a countdown ends. A count-up clock crosses only the
+ * target the learner chose for themselves, and putting warning styling on a
+ * limit somebody invented — in the mode designed to remove time pressure — is
+ * the interface being anxious on their behalf. Past the target is a sentence.
+ *
+ * <b>Nothing states a state in colour alone.</b> Every footer box carries a
+ * glyph and an accessible name as well as a fill; the clock states are words.
+ */
+
+.prun-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--ink);
+  /* The two-pane split is the one layout in this product that can push the
+     document sideways. Wide content scrolls inside its own pane instead. */
+  overflow-x: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+
+.prun-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3) var(--s-4);
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+
+.prun-brand {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+/* Plain text. A brand mark that navigates is how an hour of work is lost to
+   muscle memory, so this route renders no anchors at all. */
+.prun-wordmark {
+  font-size: var(--t-16);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.prun-mode {
+  padding: 2px var(--s-2);
+  border: 1px solid var(--acc-line);
+  border-radius: var(--r-pill);
+  background: var(--acc-soft);
+  color: var(--acc-700);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+/* `min-width: 0` or the ellipsis never engages and the title runs past its
+   parent with the clock painted on top of it. → `.exam-bar-names` */
+.prun-title {
+  flex: 1 1 12rem;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prun-controls {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.prun-run,
+.prun-target-open {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding-inline: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.prun-run:disabled,
+.prun-target-open:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.prun-clock {
+  flex: none;
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--sunk);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+/* The row of sentences under the controls. It always occupies a line, so
+   nothing on the page jumps when a state appears. */
+.prun-clock-state {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-4);
+  min-height: 1.2em;
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.prun-clock-state [role='alert'] {
+  color: var(--bad);
+  font-weight: var(--w-emph);
+}
+
+.prun-target-read,
+.prun-target-passed {
+  color: var(--ink-2);
+  font-weight: var(--w-emph);
+}
+
+/* ── Target control ─────────────────────────────────────────────────────── */
+
+.prun-target {
+  position: relative;
+}
+
+.prun-target-panel {
+  position: absolute;
+  top: calc(100% + var(--s-2));
+  right: 0;
+  z-index: 20;
+  width: min(20rem, calc(100vw - var(--s-6)));
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 12%);
+}
+
+.prun-target-head {
+  margin: 0;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.prun-target-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.prun-target-preset {
+  min-height: 40px;
+  padding-inline: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.prun-target-preset[aria-pressed='true'] {
+  background: var(--acc-soft);
+  border-color: var(--acc-line);
+  color: var(--acc-700);
+}
+
+.prun-target-field {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.prun-target-row {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.prun-target-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+}
+
+.prun-target-apply,
+.prun-target-clear {
+  min-height: 40px;
+  padding-inline: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  cursor: pointer;
+}
+
+.prun-target-err {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--bad);
+}
+
+/* ── Body ───────────────────────────────────────────────────────────────── */
+
+.prun-notice {
+  margin: 0;
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--line);
+  background: var(--sunk);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.prun-notice.is-bad {
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-weight: var(--w-emph);
+}
+
+.prun-body {
+  flex: 1;
+  /* `min-height: 0` on a flex child is what lets the panes below it scroll
+     inside themselves rather than growing the page. */
+  min-height: 0;
+  display: grid;
+  gap: var(--s-5);
+  align-items: stretch;
+  width: min(1360px, calc(100% - var(--s-6)));
+  margin-inline: auto;
+  padding-block: var(--s-5);
+}
+
+.prun-body[data-split='single'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Passage left, questions right — `E-31`. Two independently scrolling columns;
+   neither of them scrolls the page. */
+.prun-body[data-split='reading'] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.prun-pane {
+  min-width: 0;
+  min-height: 0;
+  max-height: calc(100vh - var(--s-8) - var(--s-8));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--card);
+}
+
+.prun-questions .exam-questions-head {
+  position: sticky;
+  top: calc(var(--s-5) * -1);
+  z-index: 1;
+  padding-block: var(--s-2);
+  background: var(--card);
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+
+.prun-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-4);
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--line);
+  background: var(--card);
+}
+
+.prun-map {
+  flex: 1 1 20rem;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.prun-map-open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.prun-map-name {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin: 0;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.prun-map-count {
+  font-weight: var(--w-body);
+  color: var(--muted);
+}
+
+.prun-map-empty {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+/* A long paper's boxes wrap and, past two rows, scroll inside the map rather
+   than growing the footer over the questions. */
+.prun-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  max-height: 5.5rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prun-box {
+  position: relative;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding-inline: var(--s-1);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Answered AND confirmed: fill, tick, and a name that says both. */
+.prun-box[data-state='answered'] {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+/*
+ * Answered and NOT confirmed — product law `L2`.
+ *
+ * A dashed border and a hollow ring rather than the tick. The learner put
+ * something there and the server has not said so; a tick is the signal that
+ * stops someone checking, and a tick over work still on the device is data
+ * loss this interface would have caused.
+ */
+.prun-box[data-state='unsaved'] {
+  border-style: dashed;
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.prun-map-shut {
+  min-height: 40px;
+  padding-inline: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.prun-actions {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.prun-step {
+  min-height: 44px;
+  padding-inline: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.prun-step:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+/* ── Submit confirmation ────────────────────────────────────────────────── */
+
+.prun-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--s-4);
+  background: rgb(20 26 21 / 48%);
+}
+
+.prun-card {
+  width: min(30rem, 100%);
+  max-height: calc(100vh - var(--s-7));
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-5);
+  border-radius: 20px;
+  background: var(--card);
+  box-shadow: 0 20px 48px rgb(0 0 0 / 24%);
+}
+
+.prun-card-title {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.prun-card-body {
+  margin: 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.prun-card-warn {
+  padding: var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.prun-card-warn p {
+  margin: 0 0 var(--s-2);
+  font-weight: var(--w-emph);
+}
+
+.prun-card-warn ul {
+  margin: 0;
+  padding-left: var(--s-5);
+}
+
+.prun-card-offline,
+.prun-card-busy,
+.prun-card-failed {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.prun-card-offline {
+  color: var(--warn);
+  font-weight: var(--w-emph);
+}
+
+.prun-card-busy {
+  color: var(--muted);
+}
+
+.prun-card-failed {
+  color: var(--bad);
+  font-weight: var(--w-emph);
+}
+
+.prun-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  justify-content: flex-end;
+}
+
+.prun-card-cancel {
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  cursor: pointer;
+}
+
+/* ── Narrow ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  /*
+   * The split cannot survive a phone, and Android and iOS are shipping
+   * targets. One column, and the panes stop scrolling inside themselves — two
+   * scroll containers in one viewport is a fight the reader always loses.
+   *
+   * The tabbed narrow layout `practice-mode.md` §5 sketches is recorded there
+   * as an `[ASSUMPTION]` and is deliberately not built here.
+   */
+  .prun-body[data-split='reading'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prun-pane {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .prun-questions .exam-questions-head {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .prun-body {
+    width: min(1360px, calc(100% - var(--s-4)));
+  }
+
+  .prun-bar,
+  .prun-foot {
+    padding-inline: var(--s-4);
+  }
+
+  .prun-pane {
+    padding: var(--s-4);
+  }
+
+  .prun-actions {
+    flex: 1 1 100%;
+  }
+
+  .prun-actions .exam-submit {
+    flex: 1 1 100%;
+  }
+}

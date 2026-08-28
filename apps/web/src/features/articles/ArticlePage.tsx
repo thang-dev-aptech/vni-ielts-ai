@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
+import { Breadcrumb } from '../chrome/Breadcrumb.js';
 import { Paths } from '../../routes/paths.js';
 import { usePageTitle } from '../../routes/usePageTitle.js';
 import { formatDate } from '../../lib/dates.js';
@@ -43,9 +44,18 @@ export function ArticlePage() {
     <>
       <section className="page-hero article-hero">
         <div className="container">
-          <Link className="back-link" to={Paths.articles}>
-            <span aria-hidden="true">←</span> Tất cả bài viết
-          </Link>
+          {/*
+            The index has a breadcrumb and this page did not — so the deepest
+            page in the tree was the one with no trail back to the home page,
+            and its only way out was a 22px "back" link.
+          */}
+          <Breadcrumb
+            trail={[
+              { label: 'Trang chủ', to: Paths.home },
+              { label: 'Bài viết', to: Paths.articles },
+              { label: article.title },
+            ]}
+          />
 
           <div className={`article-tag is-${article.category}`}>
             {ARTICLE_CATEGORY_LABEL[article.category]}

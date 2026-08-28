@@ -93,11 +93,26 @@ it('puts exactly the folded items in the menu, in order', async () => {
   layout(3 * ITEM_WIDTH);
   open();
 
-  await userEvent.click(screen.getByRole('button', { name: /Thêm/ }));
+  const trigger = screen.getByRole('button', { name: /Thêm/ });
+  await userEvent.click(trigger);
+
+  /*
+   * Reached through `aria-controls`, which this also checks resolves.
+   *
+   * It used to be `getByRole('menu')` with `menuitem` children. The component
+   * claimed the WAI-ARIA menu-button pattern and implemented none of its
+   * keyboard model — ArrowDown did nothing, every item was its own tab stop —
+   * so the roles were removed. It is a disclosure holding links, and
+   * `aria-expanded` plus a resolvable `aria-controls` is the contract it can
+   * actually keep.
+   */
+  const panelId = trigger.getAttribute('aria-controls');
+  expect(panelId).not.toBeNull();
+  const panel = document.getElementById(panelId!)!;
 
   expect(
-    within(screen.getByRole('menu'))
-      .getAllByRole('menuitem')
+    within(panel)
+      .getAllByRole('link')
       .map((item) => item.textContent),
   ).toEqual(['Ba', 'Bốn']);
 });

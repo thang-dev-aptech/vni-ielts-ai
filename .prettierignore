@@ -12,8 +12,52 @@ assets/
 
 # Generated or vendored
 pnpm-lock.yaml
+contracts/openapi/
 dist/
 node_modules/
 coverage/
 backend/
 packages/api-client/src/generated/
+
+# ── Binary and owner-supplied source material ────────────────────────────
+#
+# Prettier reads every path it is not told to skip, and on a 1.3 GB archive it
+# does not skip gracefully: `prettier --check .` died with
+# `Unable to read file "Đề IELTS/Đề CAM.rar": Invalid string length` — a Node
+# string-length ceiling, reached while slurping the archive into memory to
+# decide it has no parser. Exit code 2, so the whole formatting gate failed and
+# stayed failed, and nobody could tell a real style problem from this.
+#
+# The directory is the owner's IELTS source material — the same class of
+# third-party content as `/exam/`, and gitignored for the same reason.
+"Đề IELTS/"
+
+# Nothing below has a formatter, and each one costs a full read to find out.
+*.rar
+*.zip
+*.7z
+*.tar
+*.gz
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.mp3
+*.wav
+*.m4a
+*.ogg
+*.mp4
+*.webm
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.otf

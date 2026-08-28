@@ -85,6 +85,19 @@ services:
   # have to reach object storage, and a retention-shaped layout makes deletion
   # a policy on a prefix rather than a scan.
   # → docs/architecture/system-architecture.md § Object storage
+  #
+  # VERSIONING is enabled on three of the five, and the split is the point.
+  #
+  # Exam assets, packages and documents are AUTHORED content: an operator
+  # re-uploading a package over a good one, or a bad bulk import, is the
+  # realistic way they get destroyed — and versioning is the only thing that
+  # makes that recoverable, because a mirror faithfully copies the damage.
+  #
+  # vni-audio-90d and vni-artifacts-2y are deliberately NOT versioned. They hold
+  # learner speech and generated artefacts under a retention window, and a
+  # version history is a copy that outlives the deletion it was supposed to
+  # honour. Under PDPL a deleted recording has to actually be gone.
+  # → docs/security/privacy-vietnam-pdpl.md, I6.6
   minio-init:
     image: minio/mc:latest
     depends_on:
@@ -98,6 +111,9 @@ services:
       mc mb --ignore-existing local/vni-exam-assets &&
       mc mb --ignore-existing local/vni-documents &&
       mc mb --ignore-existing local/vni-packages &&
+      mc version enable local/vni-exam-assets &&
+      mc version enable local/vni-packages &&
+      mc version enable local/vni-documents &&
       echo 'buckets ready'
       "
 

@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
@@ -8,6 +8,8 @@ import { DictationCard } from './DictationCard.js';
 import { DictationFilters } from './DictationFilters.js';
 import { listDictationSets, type DictationSetSummary } from './dictationApi.js';
 import { buildFacets, matchesFacets, matchesQuery, toItems } from './dictationCatalogue.js';
+import '../../styles/dictation.css';
+import { useAlive } from '../../lib/useAlive.js';
 
 const PER_PAGE = 12;
 
@@ -46,17 +48,7 @@ export function DictationLibrary() {
 
   const deferredQuery = useDeferredValue(query);
 
-  /*
-   * Set true on the way IN, not just false on the way out. StrictMode
-   * double-invokes a mount effect — run, clean up, run again — and a flag only
-   * cleared on the way out stays false for the second run, which is how a
-   * screen sits on "Đang tải…" against an API that already answered 200.
-   */
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => void (alive.current = false);
-  }, []);
+  const alive = useAlive();
 
   const load = useCallback(async () => {
     if (status === 'loading') return;
@@ -130,11 +122,24 @@ export function DictationLibrary() {
         <label className="dict-search-field">
           <span className="sr-only">Tìm bài nghe chép chính tả</span>
           <SearchIcon />
+          {/*
+            The placeholder says why it cannot be used yet.
+
+            It was `disabled` with an inviting "Tìm bài nghe theo tên hoặc mô
+            tả…" while the catalogue was still loading or the visitor was
+            signed out — a control that exists only to refuse is worse than one
+            that is absent, because the reader tries it first and learns
+            nothing. `aria-disabled` also keeps it reachable, so the reason is
+            audible rather than skipped.
+          */}
           <input
             type="search"
             value={query}
-            placeholder="Tìm bài nghe theo tên hoặc mô tả…"
-            disabled={state.kind !== 'ready'}
+            placeholder={
+              state.kind === 'ready' ? 'Tìm bài nghe theo tên hoặc mô tả…' : 'Đang tải danh sách…'
+            }
+            aria-disabled={state.kind !== 'ready'}
+            readOnly={state.kind !== 'ready'}
             onChange={(event) => setQuery(event.target.value)}
           />
           {query !== '' && (
@@ -159,7 +164,7 @@ export function DictationLibrary() {
         />
       )}
 
-      <div className="dict-lib-head">
+      <div className="dict-lib-head" id="dict-results" tabIndex={-1}>
         <h2 className="dict-lib-title">Bài nghe chép chính tả</h2>
         {/*
           Heading and count in one live region: changing the search silently
@@ -248,7 +253,13 @@ export function DictationLibrary() {
               ))}
             </ul>
 
-            <Pagination page={safePage} pages={pages} onGo={setPage} />
+            <Pagination
+              page={safePage}
+              pages={pages}
+              onGo={setPage}
+              label="Trang bộ câu"
+              scrollTo="dict-results"
+            />
           </>
         ))}
     </div>

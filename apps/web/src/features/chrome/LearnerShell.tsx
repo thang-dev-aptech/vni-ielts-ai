@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { SiteHeader } from './SiteHeader.js';
+import { SkipLink } from './SkipLink.js';
 import '../../styles/landing.css';
 
 /**
@@ -19,8 +20,14 @@ import '../../styles/landing.css';
 export function LearnerShell() {
   return (
     <div className="landing learner-shell">
+      <SkipLink />
       <SiteHeader />
-      <Outlet />
+      {/* `<main>` was missing entirely, so `/profile` — the one page under
+          this shell — had no main landmark to jump to. `PublicShell` had one;
+          this shell was written later and did not copy it. */}
+      <main id="main" tabIndex={-1}>
+        <Outlet />
+      </main>
     </div>
   );
 }

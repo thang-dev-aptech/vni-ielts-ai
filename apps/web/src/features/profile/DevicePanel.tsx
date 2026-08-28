@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ApiError } from '../../lib/api.js';
 import {
   listSessions,
@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n, type StringKey } from '../../i18n/index.js';
 import { DevicesIcon } from '../landing/MenuIcons.js';
+import { useAlive } from '../../lib/useAlive.js';
 
 type State =
   | { kind: 'loading' }
@@ -38,20 +39,16 @@ export function DevicePanel() {
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
-  // Kept so a revoke that finishes after the panel closes does not try to
-  // re-render it. Not a cancellation flag on the load — see VerifyEmailPage
-  // for why those and StrictMode do not mix.
-  const alive = useRef(true);
-  useEffect(() => () => void (alive.current = false), []);
+  const alive = useAlive();
 
   const load = useCallback(async () => {
     if (accessToken === null) return;
 
     try {
       const { sessions } = await listSessions(accessToken);
-      setState({ kind: 'ready', sessions });
+      if (alive.current) setState({ kind: 'ready', sessions });
     } catch {
-      setState({ kind: 'failed' });
+      if (alive.current) setState({ kind: 'failed' });
     }
   }, [accessToken]);
 

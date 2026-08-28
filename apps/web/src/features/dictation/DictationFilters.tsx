@@ -50,11 +50,18 @@ export function DictationFilters({
                   className={`dset-chip${on ? ' is-on' : ''}${empty ? ' is-empty' : ''}`}
                   key={option.value}
                 >
+                  {/* `aria-disabled`, so the option stays focusable and a
+                      screen reader still reaches the `0` beside it. A
+                      `disabled` input is skipped outright, which silences the
+                      exact message the comment below cares about. */}
                   <input
                     type="checkbox"
                     checked={on}
-                    disabled={empty}
-                    onChange={() => onToggle(facet.id, option.value)}
+                    aria-disabled={empty}
+                    onChange={() => {
+                      if (empty) return;
+                      onToggle(facet.id, option.value);
+                    }}
                   />
                   <span>{option.label}</span>
                   {/*

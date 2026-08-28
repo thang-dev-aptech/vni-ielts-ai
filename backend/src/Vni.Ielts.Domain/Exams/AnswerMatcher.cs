@@ -38,51 +38,78 @@ public static partial class AnswerMatcher
         if (question.MaxWords is { } limit && CountWords(submitted) > limit)
             return false;
 
-        return question.Type switch
-        {
-            QuestionType.MultipleSelect => MatchesSet(question.AnswerKey, submitted, effective),
-            QuestionType.Matching => MatchesPair(question.AnswerKey, submitted, effective),
-            _ => MatchesSingle(question.AnswerKey, submitted, effective),
-        };
+        // <b>The shape of the answer comes from the key, not from the question
+        // type, and that distinction is what this class got wrong.</b>
+        //
+        // `AcceptedAnswer` already carries exactly one of three shapes — a
+        // value, a set, a pair — because the package schema models it that way.
+        // Routing on `question.Type` instead meant guessing at that, and the
+        // guess was wrong for the commonest Reading question in the catalogue:
+        // "Matching" covers both *choose a heading for this paragraph*, whose
+        // answer is one key, and *pair these two lists*. The marker assumed the
+        // second, so all six matching questions in Exam 1's Reading were marked
+        // wrong whatever the learner picked.
+        //
+        // Asking the key removes the guess. A key holding a pair wants a pair;
+        // a key holding one value wants one value; and the question type is
+        // left to do what it is actually for, which is deciding how the
+        // question is drawn.
+        return question.AnswerKey.Accepted.Any(
+            accepted => Matches(accepted, submitted, effective));
     }
 
-    private static bool MatchesSingle(AnswerKey key, string submitted, AnswerMatchingRules rules)
-    {
-        var candidate = Normalise(submitted, rules);
-        return key.Accepted.Any(a =>
-            a.Single is not null && Normalise(a.Single, rules) == candidate);
-    }
+    private static bool Matches(AcceptedAnswer accepted, string submitted, AnswerMatchingRules rules) =>
+        accepted switch
+        {
+            { All: { } all } => MatchesSet(all, submitted, rules),
+            { Pair: { } pair } => MatchesPair(pair, submitted, rules),
+            { Single: { } single } => Normalise(single, rules) == Normalise(submitted, rules),
+
+            // A key entry with nothing in it cannot be satisfied. Awarding the
+            // mark would be crediting an answer nobody wrote down.
+            _ => false,
+        };
 
     /// <summary>
-    /// Multiple-select: every required option must be present and nothing
-    /// extra. Order does not matter — "A,C" and "C,A" are the same answer, and
+    /// The characters a caller may use between the members of a set.
+    ///
+    /// <b>The pipe is here because the learner app uses it, and it uses it for
+    /// a reason:</b> a comma and a space both occur inside real answers, so a
+    /// separator that is also a legal character is a separator that will one
+    /// day split an answer in half. The others stay accepted because a set is
+    /// unordered punctuation either way, and refusing a hand-written
+    /// <c>"A, D"</c> would be strictness that protects nothing.
+    ///
+    /// This list is the written half of a contract. → <c>AnswerContractTests</c>
+    /// </summary>
+    private static readonly char[] SetSeparators = ['|', ',', ';', ' '];
+
+    /// <summary>
+    /// Multiple-select: every required option present, and nothing extra.
+    ///
+    /// Order does not matter — "A|C" and "C|A" are the same answer, and
     /// treating them differently would mark a correct response wrong.
     /// </summary>
-    private static bool MatchesSet(AnswerKey key, string submitted, AnswerMatchingRules rules)
+    private static bool MatchesSet(
+        IReadOnlyList<string> all, string submitted, AnswerMatchingRules rules)
     {
         var given = submitted
-            .Split([',', ';', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Split(SetSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(v => Normalise(v, rules))
             .ToHashSet(StringComparer.Ordinal);
 
-        return key.Accepted.Any(a =>
-            a.All is not null
-            && given.SetEquals(a.All.Select(v => Normalise(v, rules))));
+        return given.SetEquals(all.Select(v => Normalise(v, rules)));
     }
 
-    /// <summary>Matching: "left:right" or "left=right".</summary>
-    private static bool MatchesPair(AnswerKey key, string submitted, AnswerMatchingRules rules)
+    /// <summary>Pair matching: "left:right" or "left=right".</summary>
+    private static bool MatchesPair(
+        (string Left, string Right) pair, string submitted, AnswerMatchingRules rules)
     {
         var separator = submitted.IndexOfAny([':', '=']);
         if (separator <= 0) return false;
 
-        var left = Normalise(submitted[..separator], rules);
-        var right = Normalise(submitted[(separator + 1)..], rules);
-
-        return key.Accepted.Any(a =>
-            a.Pair is { } pair
-            && Normalise(pair.Left, rules) == left
-            && Normalise(pair.Right, rules) == right);
+        return Normalise(pair.Left, rules) == Normalise(submitted[..separator], rules)
+            && Normalise(pair.Right, rules) == Normalise(submitted[(separator + 1)..], rules);
     }
 
     /// <summary>

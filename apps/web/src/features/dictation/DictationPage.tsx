@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n/index.js';
 import { Link } from 'react-router-dom';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
 import { FaqAccordion, type FaqEntry } from '../chrome/FaqAccordion.js';
@@ -65,6 +66,22 @@ const FAQ: FaqEntry[] = [
     ),
   },
   {
+    /*
+     * <b>Checked against the comparer, 26/08/2026.</b>
+     *
+     * This answer states the server's exact matching rule, which the client
+     * cannot test — a page that describes backend behaviour wrongly does not
+     * produce a visible bug, it produces support tickets. Verified against
+     * `DictationComparer.Normalise` in `backend/src/Vni.Ielts.Domain/Dictation`:
+     * it lowercases, and trims `. , ! ? ; : " “ ” ( )` from each end. Neither
+     * the apostrophe nor the hyphen is in that list, so both survive inside a
+     * word — which is what the last sentence here promises.
+     *
+     * One edge the copy does not cover and does not need to: a single quote
+     * *around* a word is not trimmed either, so typing 'don't' with the quotes
+     * is marked wrong. Rare enough to leave, recorded so the next reader does
+     * not treat it as a contradiction.
+     */
     q: 'Có phải chép chính xác từng dấu câu không?',
     a: (
       <p>
@@ -159,8 +176,9 @@ const BENEFITS = [
 ];
 
 export function DictationPage() {
+  const { t } = useI18n();
+  usePageTitle(t('title.dictation'));
   useReveal();
-  usePageTitle('Nghe chép chính tả');
 
   return (
     <div className="dict-page prac-page">
@@ -179,8 +197,7 @@ export function DictationPage() {
         <div className="container">
           <div className="eyebrow green-eyebrow">Luyện Listening</div>
           <h1>
-            Nghe chép chính tả
-            <br />
+            Nghe chép chính tả <br />
             <span>để nghe rõ hơn mỗi ngày</span>
           </h1>
           <p>

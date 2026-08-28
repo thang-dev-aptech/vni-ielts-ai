@@ -13,17 +13,6 @@
  */
 
 /* Labels that a screen reader needs and the layout does not. */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
 
 /* ── Page head ───────────────────────────────────────────────────
    Shorter than the landing hero on purpose. This is the top of a list, not a
@@ -148,8 +137,10 @@
   gap: 8px;
 }
 
+/* 44px. WCAG 2.5.8 sets 24 as the AA floor and 44 as the target size people
+   actually hit on a phone; these chips are the page's primary control. */
 .filter-chip {
-  min-height: 38px;
+  min-height: 44px;
   padding: 0 14px;
   /* 1px, not 2. Seven of these in a row at 2px is a fence. */
   border: 1px solid #e0e5de;
@@ -382,12 +373,17 @@
 
 /* `width: fit-content` on a flex item rather than `inline-flex`: the way out
    is its own line, and inline-flex let the category tag sit down beside it. */
+/* Measured 113 × 22, and it is the only way back from an article. Padding
+   rather than a bare `min-height`, so the hit area grows around the text
+   instead of leaving 22px of link inside 44px of nothing. */
 .back-link {
-  display: flex;
+  display: inline-flex;
   width: fit-content;
   align-items: center;
+  min-height: 44px;
   gap: 7px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
+  padding-right: 6px;
   font-size: 14px;
   font-weight: 800;
   color: #1e7a3c;
@@ -516,35 +512,12 @@
   color: #5c625c;
 }
 
-/* ── Bạn nhận được gì · Vì sao chọn VNI · Tài nguyên ────────────────────── */
-
-.learn-grid,
-.why-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-}
-
 .learn-card,
 .why-card {
   padding: 26px;
   border: 2px solid #e7ece5;
   border-radius: 22px;
   background: #fff;
-}
-
-.why-section {
-  background: #f7f9f6;
-}
-
-.why-num {
-  display: block;
-  margin-bottom: 12px;
-  color: #1e7a3c;
-  font-size: 26px;
-  font-weight: 900;
-  line-height: 1.5;
-  letter-spacing: -0.04em;
 }
 
 .learn-card h3,
@@ -566,8 +539,7 @@
   color: #5c625c;
 }
 
-.learn-card em,
-.how-step em {
+.learn-card em {
   font-style: normal;
   font-weight: 900;
   color: #5b4b9e;
@@ -637,8 +609,6 @@
 
 @media (max-width: 900px) {
   .free-grid,
-  .learn-grid,
-  .why-grid,
   .resource-grid {
     grid-template-columns: 1fr;
   }
@@ -647,75 +617,20 @@
 /* ── Phân trang ─────────────────────────────────────────────────────────── */
 
 /*
- * Nine per page is three full rows, so the grid never ends on a ragged one.
- * The pager only renders when there is a second page — a single page with
- * "1 / 1" and two dead arrows is furniture.
+ * ── Phân trang ──────────────────────────────────────────────────────────
+ *
+ * <b>The article index's own pager is gone, and it had to go.</b> It defined
+ * `.pager` and `.pager-step` — names `practice.css` also defines for the
+ * shared `Pagination` component — and both stylesheets ship on every page, so
+ * whichever loaded last silently restyled the other's pager. Same collision as
+ * `.dict-card`, found the same way: by grepping for the class rather than by
+ * looking at a screenshot.
+ *
+ * It also listed every page number, which does not survive the "hàng trăm bài
+ * viết" this index is meant to grow into. `Pagination` windows to first · last
+ * · current ± 1 with ellipses, and keeps every control focusable through a
+ * page change. → `features/chrome/Pagination.tsx`, `styles/practice.css`
  */
-.pager {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 40px;
-}
-
-.pager-step,
-.pager-number {
-  min-height: 44px;
-  border: 2px solid #e7ece5;
-  border-radius: 999px;
-  background: #fff;
-  color: #3f4740;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.5;
-  cursor: pointer;
-}
-
-.pager-step {
-  padding-inline: 20px;
-}
-
-.pager-step:disabled {
-  color: #7b847b;
-  cursor: not-allowed;
-}
-
-.pager-step:not(:disabled):hover,
-.pager-number:hover {
-  border-color: #bfe3cd;
-}
-
-.pager-numbers {
-  display: flex;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.pager-number {
-  min-width: 44px;
-  padding-inline: 10px;
-}
-
-.pager-number.is-active {
-  border-color: #10b050;
-  background: #e4f7eb;
-  color: #1e7a3c;
-}
-
-@media (max-width: 560px) {
-  .pager {
-    gap: 8px;
-  }
-
-  .pager-step {
-    padding-inline: 14px;
-  }
-}
 
 /* ── Kho tài liệu: hai kệ ───────────────────────────────────────────────── */
 
@@ -841,4 +756,126 @@
   font-weight: 400;
   line-height: 1.6;
   color: #5f675f;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   404 — a way in, not an error.
+   → `NotFoundPage`
+   ──────────────────────────────────────────────────────────────── */
+.notfound {
+  max-width: 620px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.notfound-code {
+  margin: 0;
+  font-size: clamp(56px, 9vw, 92px);
+  font-weight: 900;
+  line-height: 1;
+  /* Quiet. It is a label for what happened, not the message — the heading
+     below is the message. Painting it in the alert red said "something is
+     broken", and a stale bookmark is not a fault of the application. */
+  color: #d6e2d9;
+}
+
+.notfound h1 {
+  margin: 6px 0 10px;
+  font-size: clamp(26px, 3.4vw, 34px);
+  line-height: 1.25;
+}
+
+.notfound-body {
+  margin: 0 auto 22px;
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.notfound-nav {
+  margin-top: 38px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+
+.notfound-nav-title {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.notfound-nav ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notfound-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+}
+
+.notfound-nav a:hover {
+  border-color: var(--green-dark);
+  background: var(--green-soft);
+}
+
+.notfound-nav-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--green-soft);
+  color: #077029;
+}
+
+/*
+ * The "what this page is" band, on `/practice` and `/dictation`.
+ *
+ * Both render `section.section.intro-section` and neither stylesheet defined
+ * it, so the modifier did nothing at all — the section took `.section`'s
+ * spacing and the intended change of ground never happened. It lives here
+ * because both pages import this file and neither imports the other's.
+ */
+.intro-section {
+  background: var(--surface);
+}
+
+/*
+ * Jump targets for the pager.
+ *
+ * `scroll-margin-top` clears the sticky header — without it the heading the
+ * reader was sent to sits underneath it, which reads as having landed in the
+ * wrong place. `:focus` draws nothing because these take focus programmatically
+ * so a screen reader lands on the results too; a ring there would flash on a
+ * mouse user who only turned a page.
+ */
+#art-results,
+#dict-results,
+#work-results {
+  scroll-margin-top: 92px;
+}
+
+#art-results:focus,
+#dict-results:focus,
+#work-results:focus {
+  outline: none;
 }

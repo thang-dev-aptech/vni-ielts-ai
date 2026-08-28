@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
 import { announceAccountChanged } from '../features/auth/accountEvents.js';
@@ -114,8 +114,11 @@ it('updates this tab as soon as the link is redeemed in it', async () => {
 
   await screen.findByText(/đã được xác minh/i);
 
-  window.history.pushState({}, '', '/profile');
-  window.dispatchEvent(new PopStateEvent('popstate'));
+  // Inside `act`: the router re-renders the whole tree off this event.
+  act(() => {
+    window.history.pushState({}, '', '/profile');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
 
   await waitFor(() => expect(emailTag()).toBe('Đã xác minh'));
 });
@@ -131,7 +134,7 @@ it('updates when another tab announces the change', async () => {
   // Longer than the default second: the message crosses a BroadcastChannel —
   // a real event-loop hop, not a synchronous call — and then a fetch has to
   // come back. Passing alone and failing in a full run is what that looks like.
-  await waitFor(() => expect(emailTag()).toBe('Đã xác minh'), { timeout: 4000 });
+  await waitFor(() => expect(emailTag()).toBe('Đã xác minh'));
 });
 
 it('updates when the tab is returned to', async () => {
@@ -141,7 +144,23 @@ it('updates when the tab is returned to', async () => {
   await waitFor(() => expect(emailTag()).toBe('Chưa xác minh'));
 
   verified = true;
-  window.dispatchEvent(new Event('focus'));
 
-  await waitFor(() => expect(emailTag()).toBe('Đã xác minh'), { timeout: 4000 });
+  /*
+   * <b>Dispatched inside the wait, not once before it.</b>
+   *
+   * The provider registers its focus listener in an effect that depends on
+   * `status`, so the listener exists only once the session has been restored
+   * and committed. `waitFor` above returns as soon as the row is on screen,
+   * which under a loaded machine can be the commit before that effect runs — so
+   * a single dispatch lands on nothing and there is no second one, and the test
+   * waits out its whole budget for an event nobody heard.
+   *
+   * Returning to a tab fires `focus` every time it happens, so repeating it
+   * here is closer to the thing being modelled than a single dispatch was, not
+   * further from it.
+   */
+  await waitFor(() => {
+    act(() => window.dispatchEvent(new Event('focus')));
+    expect(emailTag()).toBe('Đã xác minh');
+  });
 });

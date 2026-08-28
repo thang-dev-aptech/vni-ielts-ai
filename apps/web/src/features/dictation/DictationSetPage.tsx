@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n/index.js';
 import { Link, useParams } from 'react-router-dom';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
 import { Paths } from '../../routes/paths.js';
@@ -27,8 +28,9 @@ import '../../styles/dictation-page.css';
  * that lies for 200ms is worse than one that is merely general.
  */
 export function DictationSetPage() {
+  const { t } = useI18n();
+  usePageTitle(t('title.dictation'));
   const { setId } = useParams<{ setId: string }>();
-  usePageTitle('Nghe chép chính tả');
 
   // The router only matches this route with a `setId`, so this is a type
   // narrowing rather than a real branch — but an empty string would fetch

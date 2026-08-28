@@ -243,6 +243,57 @@ STALE_PHASE = [
 ]
 
 
+# The two registries carry their ids differently: open questions as headings,
+# confirmed requirements as the first cell of a table row. Both are names other
+# documents point at, so both are checked.
+ID_HEADING = re.compile(r"^#{2,4}\s+`?([A-Z]-\d+[a-z]?)`?\s*(?:·|-|—|:)", re.MULTILINE)
+ID_TABLE_ROW = re.compile(r"^\|\s*`?([A-Z]-\d+[a-z]?)`?\s*\|", re.MULTILINE)
+
+REGISTRIES = (
+    "docs/requirements/assumptions-and-open-questions.md",
+    "docs/requirements/confirmed.md",
+)
+
+
+def check_requirement_ids(files: list[Path]) -> None:
+    """Two headings claiming one requirement id.
+
+    <b>This check exists because it happened.</b> On 27/08/2026 two agents were
+    writing to the open-questions registry at the same time; one claimed
+    `M-38`…`M-44` for the practice-mode work and the other, minutes later,
+    claimed `M-38` for an unrelated identity question. Both wrote a well-formed
+    section, every link resolved, every CONFIRMED row had a Source, and this
+    script said all checks passed.
+
+    An id is a name that other documents point at — `next-actions.md` and
+    `practice-mode.md` were already referring to two different questions by the
+    same one. That is worse than a broken link: a broken link announces itself,
+    and this reads correctly right up until somebody answers the wrong question.
+    """
+    for name in REGISTRIES:
+        path = ROOT / name
+        if not path.exists():
+            continue
+
+        text = path.read_text(encoding="utf-8")
+        seen: dict[str, int] = {}
+
+        for pattern in (ID_HEADING, ID_TABLE_ROW):
+            for match in pattern.finditer(text):
+                seen[match.group(1)] = seen.get(match.group(1), 0) + 1
+
+        for ident, count in sorted(seen.items()):
+            if count > 1:
+                fail(
+                    "requirement ids",
+                    f"{name}: `{ident}` is claimed by {count} headings. "
+                    "An id is what other documents point at, so two of them means "
+                    "somebody will answer the wrong question.",
+                )
+
+        notes.append(f"{len(seen)} requirement ids in {Path(name).name}, all distinct")
+
+
 def check_phase(files: list[Path]) -> None:
     for path in files:
         text = path.read_text(encoding="utf-8")
@@ -260,6 +311,7 @@ def main() -> int:
     check_qualifiers(files)
     check_canonical(files)
     check_sources(files)
+    check_requirement_ids(files)
     check_secrets()
     check_phase(files)
 

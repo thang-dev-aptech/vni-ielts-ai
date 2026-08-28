@@ -47,6 +47,13 @@ public sealed class SetPhone(IUserRepository users)
 public sealed record ChangeEmailCommand(UserId UserId, string Email);
 
 /// <summary>
+/// The address as stored, and what became of the verification message sent to
+/// it. The second half is not decoration: the screen that shows the new
+/// address is the same screen that would otherwise claim a mail is on its way.
+/// </summary>
+public sealed record ChangeEmailResult(string Email, MessageDelivery VerificationMessage);
+
+/// <summary>
 /// Corrects an address that has not been verified yet.
 ///
 /// <para>
@@ -70,7 +77,8 @@ public sealed class ChangeEmail(
     IEmailVerificationTokens tokens,
     IVerificationMessageSender sender)
 {
-    public async Task<Result<string>> HandleAsync(ChangeEmailCommand command, CancellationToken ct)
+    public async Task<Result<ChangeEmailResult>> HandleAsync(
+        ChangeEmailCommand command, CancellationToken ct)
     {
         if (!Email.TryCreate(command.Email, out var email))
             return Error.Validation(ErrorCodes.EmailInvalid, "That is not a valid email address.");
@@ -87,8 +95,10 @@ public sealed class ChangeEmail(
 
         if (user.Email == email)
         {
-            // Not an error, and not worth a second verification mail either.
-            return email.Value;
+            // Not an error, and not worth a second verification mail either —
+            // so nothing was sent, and the result says so rather than letting
+            // the screen infer one from a success.
+            return new ChangeEmailResult(email.Value, MessageDelivery.NotSent);
         }
 
         if (await users.EmailExistsAsync(email, ct))
@@ -123,13 +133,26 @@ public sealed class ChangeEmail(
 
         // Straight to the new address — the whole point of the change is that
         // the old one could not receive anything.
-        await sender.SendAsync(email, await tokens.IssueAsync(user.Id, ct), ct);
+        var delivery = await sender.SendAsync(email, await tokens.IssueCodeAsync(user.Id, ct), ct);
 
-        return email.Value;
+        return new ChangeEmailResult(email.Value, delivery);
     }
 }
 
 public sealed record ResendVerificationCommand(UserId UserId);
+
+/// <summary>What the resend actually did.</summary>
+/// <param name="AlreadyVerified">
+/// True when there was nothing to send because the address is already proven.
+/// A success, not a failure.
+/// </param>
+/// <param name="VerificationMessage">
+/// What became of the message. The button that triggered this is the one place
+/// a learner is told an email is coming, so it is the one place a wrong answer
+/// here is visible as a lie.
+/// </param>
+public sealed record ResendVerificationResult(
+    bool AlreadyVerified, MessageDelivery VerificationMessage);
 
 /// <summary>
 /// Sends the verification email again.
@@ -152,7 +175,7 @@ public sealed class ResendVerification(
     IEmailVerificationTokens tokens,
     IVerificationMessageSender sender)
 {
-    public async Task<Result<bool>> HandleAsync(
+    public async Task<Result<ResendVerificationResult>> HandleAsync(
         ResendVerificationCommand command, CancellationToken ct)
     {
         var user = await users.FindByIdAsync(command.UserId, ct);
@@ -161,9 +184,70 @@ public sealed class ResendVerification(
         if (!user.CanAuthenticate)
             return Error.Forbidden(ErrorCodes.AccountSuspended, "This account has been suspended.");
 
-        if (user.EmailVerified) return true;
+        if (user.EmailVerified)
+            return new ResendVerificationResult(AlreadyVerified: true, MessageDelivery.NotSent);
 
-        await sender.SendAsync(user.Email, await tokens.IssueAsync(user.Id, ct), ct);
-        return true;
+        var delivery = await sender.SendAsync(user.Email, await tokens.IssueCodeAsync(user.Id, ct), ct);
+        return new ResendVerificationResult(AlreadyVerified: false, delivery);
+    }
+}
+
+public sealed record ConfirmEmailCodeCommand(UserId UserId, string Code);
+
+/// <summary>
+/// Turns a six-digit code into a verified address.
+///
+/// <b>`[QUYẾT ĐỊNH]` chủ sản phẩm, 28/08/2026: xác minh bằng mã 6 số.</b> The
+/// learner is already signed in and already on their profile page — the owner's
+/// own decision of 27/08 put verification there — so a link would open in
+/// whatever browser the mail app chose, usually an in-app webview with no
+/// session, and verify an account in a window the learner never sees again.
+///
+/// <b>Authenticated, and that is what makes six digits safe.</b> The account is
+/// known from the token rather than found from the code, so the attempt cap is
+/// per account and nobody can spray a guess across every account at once. Five
+/// wrong answers kills the code.
+/// → <see cref="IEmailVerificationTokens.RedeemCodeAsync"/>
+/// </summary>
+public sealed class ConfirmEmailCode(
+    IUserRepository users,
+    IEmailVerificationTokens tokens)
+{
+    public async Task<Result<CodeRedemption>> HandleAsync(
+        ConfirmEmailCodeCommand command, CancellationToken ct)
+    {
+        var user = await users.FindByIdAsync(command.UserId, ct);
+        if (user is null) return Error.NotFound(ErrorCodes.NotFound, "Account not found.");
+
+        if (!user.CanAuthenticate)
+            return Error.Forbidden(ErrorCodes.AccountSuspended, "This account has been suspended.");
+
+        /*
+         * <b>Already verified is a success, not an error.</b> Somebody pressing
+         * the button twice, or opening the page on a second device, has nothing
+         * to fix — and an error would send them looking for a problem that is
+         * not there.
+         */
+        if (user.EmailVerified) return CodeRedemption.Verified;
+
+        /*
+         * <b>The shape is checked before the store is asked.</b> Not for
+         * safety — the store compares a hash and would refuse anything wrong —
+         * but so that a stray space or a pasted line does not spend one of the
+         * five attempts that make this mechanism work.
+         */
+        var code = command.Code?.Trim() ?? string.Empty;
+
+        if (code.Length != 6 || !code.All(char.IsAsciiDigit))
+            return CodeRedemption.Incorrect;
+
+        var outcome = await tokens.RedeemCodeAsync(command.UserId, code, ct);
+
+        if (outcome is not CodeRedemption.Verified) return outcome;
+
+        user.MarkEmailVerified();
+        await users.SaveAsync(user, ct);
+
+        return CodeRedemption.Verified;
     }
 }

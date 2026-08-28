@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Alert, Button, Card, Spinner } from '@vni/ui';
+import { Spinner } from '@vni/ui';
 import { ApiError } from '../../lib/api.js';
 import { completeSso } from '../../lib/session.js';
 import { useI18n, type StringKey } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
+import { AuthSimple } from './AuthSimple.js';
 import { useAuth } from './AuthContext.js';
+import { usePageTitle } from '../../routes/usePageTitle.js';
 
 /**
  * The transit screen a social sign-in lands on.
@@ -25,6 +27,7 @@ import { useAuth } from './AuthContext.js';
  */
 export function SsoCallbackPage() {
   const { t } = useI18n();
+  usePageTitle(t('title.ssoCallback'));
   const { adoptSession } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -81,23 +84,44 @@ export function SsoCallbackPage() {
     })();
   }, [code, failure, returnTo, adoptSession, navigate, t]);
 
+  /*
+   * The pending state used to be a bare centred spinner with no heading and —
+   * measured — zero focusable elements on the page. Someone whose connection
+   * stalls rather than fails sits on it indefinitely with nothing to press and
+   * nothing to read, and the browser's Back button returns them to a spent
+   * handoff code. It gets the same shell as every other state now, which means
+   * a title, the brand, and a way out.
+   */
   if (error === null) {
     return (
-      <main style={{ display: 'grid', placeItems: 'center', minHeight: '60vh' }}>
-        <Spinner label={t('sso.busy')} />
-      </main>
+      <AuthSimple title={t('sso.title')} back="home">
+        {/*
+          A div, because `Spinner` is one. This was a `<p>`, which may only
+          contain phrasing content, so the browser closed the paragraph before
+          the spinner and produced a DOM neither this file nor the CSS
+          describes. → `VerifyEmailPage`
+        */}
+        <div className="auth-simple-busy">
+          <Spinner label={t('sso.busy')} />
+        </div>
+      </AuthSimple>
     );
   }
 
   return (
-    <main style={{ maxWidth: 480, marginInline: 'auto', paddingBlock: 'var(--s-7)' }}>
-      <Card>
-        <Alert tone="error">{error}</Alert>
-        <Link to={Paths.signIn}>
-          <Button>{t('sso.backToSignIn')}</Button>
-        </Link>
-      </Card>
-    </main>
+    <AuthSimple title={t('sso.failedTitle')} back="home">
+      {/*
+        Was `<Link><Button>` — a `<button>` nested inside an `<a>`, which is
+        invalid HTML and produced two tab stops with the same accessible name,
+        the inner one swallowing Enter without navigating.
+      */}
+      <p className="auth-simple-alert" role="alert">
+        {error}
+      </p>
+      <Link className="auth-simple-action" to={Paths.signIn}>
+        {t('sso.backToSignIn')}
+      </Link>
+    </AuthSimple>
   );
 }
 

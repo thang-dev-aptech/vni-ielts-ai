@@ -42,6 +42,73 @@ Requirements stated explicitly by the product owner, plus decisions confirmed du
 
 > **E-12 is a VNI product decision, not a simulation of the official IELTS order** (which runs Listening → Reading → Writing on the same day). Do not propose changing it. Making the order configurable per `ExamVersion` would be a new architecture decision requiring its own ADR.
 
+### Entry test at the practice gate — added 2026-08-27
+
+The owner asked for a choice layer at the entrance to the four-skills practice area. The rows below
+record **only** what the sentence says. What the entry test contains, what it reports, and whether it
+is a third exam mode are **not** in it — those are `B-12` and `M-34`…`M-37` in
+[`assumptions-and-open-questions.md`](assumptions-and-open-questions.md).
+
+| ID | Requirement | Status | Source |
+|---|---|---|---|
+| E-15 | Entering the four-skills practice area presents a **choice layer** before the learner reaches the exam library | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"khi user ấn vào luyện 4 đề thì sẽ hiện mocup để báo user"* |
+| E-16 | The layer offers **two exits**: sit an entry test to find out the learner's current level, or **skip** straight into practising the existing library | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"có thể làm bài test trước xem trình độ hiện tại là bao nhiêu hoặc user có thể bỏ qua là luyện tập các bài có sẵn của mình"* |
+| E-17 | **Skipping is always available.** The entry test is an offer, never a gate on practice — the same sentence that creates it also creates the way past it | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"hoặc user có thể bỏ qua"* |
+| E-18 | Whether the entry test is a **third mode**, a re-framed Full Test, or a rule of the sitting | UNCONFIRMED | → `B-12`. `E-11` confirms two modes and nothing has superseded it; a third would be a new owner decision, not an inference from `E-15` |
+| E-19 | What the entry test **contains** (four skills or fewer, full length or shortened) and what it **reports** | UNCONFIRMED | → `M-34`, `M-35` |
+
+> **`E-17` is the load-bearing row, not `E-15`.** A choice layer that can be dismissed is an offer; one
+> that cannot is a gate on the module. The owner's sentence contains the escape, so every state of the
+> layer — including the ones where its data failed to load — must still leave the learner one press
+> from the library.
+
+> **`E-15`…`E-17` say nothing about a band.** "Xem trình độ hiện tại là bao nhiêu" is a confirmed
+> *intent*; the product cannot presently satisfy it, because `H-4` leaves Reading and Listening with no
+> equated raw→band table and `B-2` leaves Writing and Speaking with no evaluator. What the screen may
+> state today, and what changes when those close, is specified in
+> [`../ux/practice-entry-test-flow.md`](../ux/practice-entry-test-flow.md) §5.
+
+### Practice and Mock — the two-way split of the four skills, added 2026-08-27
+
+The owner split the four skills into **Luyện đề (Practice)** and **Thi thử (Mock)** and specified the
+practice surface in detail. The rows below record **only** what the instruction says. What Mock is,
+whether a practice result counts, and how this pair relates to `E-11`'s Full Test / Single Skill are
+**not** in it — those are `B-13` and `M-38`…`M-44` in
+[`assumptions-and-open-questions.md`](assumptions-and-open-questions.md).
+
+Full surface specification, every state, and five recorded conflicts:
+[`../ux/practice-mode.md`](../ux/practice-mode.md).
+
+| ID | Requirement | Status | Source |
+|---|---|---|---|
+| E-20 | The four skills split into **two parts: Luyện đề (Practice) and Thi thử (Mock)** | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"Về các phần thi của 4 kĩ năng sẽ tách làm 2 phần là luyện đề và thi thử"* |
+| E-21 | In Practice the clock **counts up**, not down | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"thời gian sẽ đếm lên chứ không đếm ngược"* |
+| E-22 | The Practice header carries logo + exam title, and in the opposite corner a **play control whose purpose is to stop the counting clock**, a **lightning control setting a target working time** (20 / 40 / 60 / 90 minutes or a value the learner types), and the **clock readout** | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"trên thành header có logo + tên đề ở góc đối diện sẽ có nút play (mục đích để dừng thời gian đếm), nút icon sấm sét dùng để set thời gian mục tiêu làm bài (20,40,60,90, hoặc có thể tự điền thời gian), ô thời gian đếm"* |
+| E-23 | The Practice footer marks the sections. The section being worked shows **one box per question, ticking green as each is answered**; a section not yet worked shows a progress label — *"Section 2 · 0 of 10"* | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"đánh dấu các section và số câu cần làm trong section đó ví dụ ở section đang làm là section 1 có 10 câu thì hiện 10 ô vuông câu nào làm xong sẽ tự tích xanh lên, còn các section chưa làm thì hiện (ví dụ section 2 0 of 10)"* |
+| E-24 | Opposite the section map: **Previous / Next moving between sections already worked**, and **Submit** | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"ở đối diện có các nút trước, sau (đều xem qua lại giữa các section đã làm) và nút nộp bài"* |
+| E-25 | Submit raises a **confirmation card**, and after submitting the paper **cannot be edited** | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"khi nộp bài sẽ có card thông báo (bạn chắc chắn muốn nộp bài? sau khi nộp không thể sửa)"* |
+| E-26 | **Listening practice layout**: the audio bar occupies a full row; below it a container of **draggable answer options**; below that the questions they are dropped into. Option-selection questions are answered by ordinary selection | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"thanh audio chiếm hết 1 hàng, dưới hàng audio sẽ hiển thị div chứa các đáp án có thể kéo thả, dưới cùng sẽ là phần trình bày câu hỏi để có thể kéo thả vào, đối với các câu chọn đáp án thì làm dạng chọn như bình thường"* |
+| E-27 | **Listening review after submit** opens with a **donut**: correct · wrong · unanswered, plus accuracy, with the band at the centre | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"khi nộp bài sẽ hiển thị theo dạng biểu đồ tròn và band ở chính giữa theo các phần là đúng, sai, chưa làm và độ chính xác"* |
+| E-28 | Below the donut the panel splits in two: **left, replay audio and a timeline; right, the learner's entries against the answers** | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"phần bên trái chứa audio nghe lại và các timeline, bên phải chứa phần là các từ điền và đáp án"* |
+| E-29 | Each reviewed question carries an **explanation control** — AI explains, or the answer's own explanation is used where it has one | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"thêm 1 button ngay bên dưới là giải thích sẽ dùng ai giải thích hoặc đáp án có thì dùng luôn của đáp án"* |
+| E-30 | In review, an option question marks its **correct option with a fresh green background**, and carries an explanation control beneath each question | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"Với các câu chọn đáp án thì dùng bg màu xanh lá cây tươi để biểu thị đáp án đúng và ngay dưới từng câu sẽ có nút giải thích"* |
+| E-31 | **Reading practice layout**: the screen splits in two — **passage left, questions right** | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"reading: khi làm bài thì sẽ chia đôi bên trái là phần đọc bên phải là câu hỏi"* |
+| E-32 | **Build order: Listening practice and Reading practice are finished first** | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"hoàn thiện 2 phần này trước"* |
+
+> **`E-20` does not supersede `E-11`.** Full Test / Single Skill and Practice / Mock are two different
+> pairs of two, and the instruction says nothing about how they compose. Reading `E-20` as a
+> replacement for `E-11` would silently drop the Full Test chaining rule (`E-12`). → `B-13`, which is
+> `M-30` and `B-12` wearing a fifth name.
+
+> **`E-27` is confirmed as an intent the product cannot satisfy today.** The band at the centre needs
+> an equated raw→band table; `H-4` has not settled where one comes from, the only table in the
+> repository declares itself provisional, and the owner earlier decided *"Bỏ band, giữ điểm thô"* for
+> that reason — a decision the shipped results screen already implements. What the centre shows until
+> `H-4` closes is worked through in [`../ux/practice-mode.md`](../ux/practice-mode.md) §6 `X-1`.
+
+> **`E-29` names two sources of explanation and the product has neither.** `answer-keys.json` carries
+> no explanation field, and `B-2` blocks AI in production. → `M-42`.
+
 ## AI assessment
 
 | ID | Requirement |

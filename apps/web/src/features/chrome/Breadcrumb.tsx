@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { useI18n } from '../../i18n/index.js';
+import '../../styles/breadcrumb.css';
 
 export interface Crumb {
   label: string;
@@ -20,8 +22,10 @@ export interface Crumb {
  * appears to do something and does nothing.
  */
 export function Breadcrumb({ trail }: { trail: Crumb[] }) {
+  const { t } = useI18n();
+
   return (
-    <nav className="crumbs" aria-label="Đường dẫn">
+    <nav className="crumbs" aria-label={t('crumbs.label')}>
       <div className="container">
         <ol>
           {trail.map((crumb) => (

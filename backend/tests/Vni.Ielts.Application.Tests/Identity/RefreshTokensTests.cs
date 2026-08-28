@@ -15,10 +15,14 @@ public sealed class RefreshTokensTests
         public List<string?> IssuedFamilies { get; } = [];
         public List<UserId> RevokedAllFor { get; } = [];
 
+        public List<string?> RotatedFrom { get; } = [];
+
         public Task<TokenPair> IssueAsync(
-            User user, IReadOnlyCollection<string> permissions, string? familyId, CancellationToken ct)
+            User user, IReadOnlyCollection<string> permissions, string? familyId, CancellationToken ct,
+            string? rotatedFromHash = null)
         {
             IssuedFamilies.Add(familyId);
+            RotatedFrom.Add(rotatedFromHash);
             return Task.FromResult(new TokenPair(
                 "access", Now.AddMinutes(15), "refresh", Now.AddDays(30)));
         }
@@ -59,7 +63,7 @@ public sealed class RefreshTokensTests
         // Nothing failed visibly when it was wrong, which is exactly why it
         // needs a test rather than a code review.
         var (user, users) = await SeedAsync();
-        var tokens = new StubTokenService(new RefreshOutcome(user.Id, "family-abc"));
+        var tokens = new StubTokenService(new RefreshOutcome(user.Id, "family-abc", "parent-hash"));
         var sut = new RefreshTokens(users, new FakePermissionResolver(), tokens);
 
         var result = await sut.HandleAsync(new RefreshCommand("some-refresh-token"), default);
@@ -105,7 +109,7 @@ public sealed class RefreshTokensTests
         // access token to expire leaves the account usable for up to 15
         // minutes after it was disabled.
         var (user, users) = await SeedAsync(suspended: true);
-        var tokens = new StubTokenService(new RefreshOutcome(user.Id, "family-abc"));
+        var tokens = new StubTokenService(new RefreshOutcome(user.Id, "family-abc", "parent-hash"));
         var sut = new RefreshTokens(users, new FakePermissionResolver(), tokens);
 
         var result = await sut.HandleAsync(new RefreshCommand("valid-token"), default);

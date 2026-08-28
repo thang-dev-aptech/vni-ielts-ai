@@ -51,15 +51,23 @@ export function useDisclosure() {
     };
   }, [open]);
 
+  /*
+   * The announcement is dispatched here, not inside the updater.
+   *
+   * A `setState` updater must be pure — React double-invokes it under
+   * StrictMode and may re-run it under concurrent rendering — so dispatching
+   * from inside it fired `MENU_OPENED` twice per open in development. The
+   * handler only closes sibling menus, which is idempotent, so nothing broke:
+   * this is the shape that bites the first time the event does something that
+   * is not.
+   */
   function toggle() {
-    setOpen((was) => {
-      if (!was) {
-        document.dispatchEvent(
-          new CustomEvent<HTMLElement | null>(MENU_OPENED, { detail: container.current }),
-        );
-      }
-      return !was;
-    });
+    if (!open) {
+      document.dispatchEvent(
+        new CustomEvent<HTMLElement | null>(MENU_OPENED, { detail: container.current }),
+      );
+    }
+    setOpen((was) => !was);
   }
 
   return { open, close: () => setOpen(false), toggle, container, trigger };

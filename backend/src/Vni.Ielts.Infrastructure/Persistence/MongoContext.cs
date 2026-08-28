@@ -49,6 +49,20 @@ public sealed class MongoContext
     internal IMongoCollection<Exams.SectionResultDocument> SectionResults =>
         _db.GetCollection<Exams.SectionResultDocument>("section_results");
 
+    internal IMongoCollection<Exams.SectionMarkingDocument> SectionMarkings =>
+        _db.GetCollection<Exams.SectionMarkingDocument>("section_markings");
+
+    /// <summary>
+    /// Markings that are owed but not yet produced.
+    ///
+    /// Separate from <c>section_markings</c> because the two carry different
+    /// facts: one is a judgement that exists, the other is the durable record
+    /// that a judgement is <i>due</i>. Closing a section writes the second; a
+    /// worker turns it into the first. → <c>IMarkingOutbox</c>
+    /// </summary>
+    internal IMongoCollection<Exams.MarkingJobDocument> MarkingJobs =>
+        _db.GetCollection<Exams.MarkingJobDocument>("marking_jobs");
+
     /// <summary>
     /// Refuses to start against a node that cannot do transactions.
     ///
@@ -203,6 +217,28 @@ public sealed class MongoContext
             new CreateIndexModel<Exams.SectionResultDocument>(
                 Builders<Exams.SectionResultDocument>.IndexKeys.Ascending(r => r.SessionId),
                 new CreateIndexOptions { Name = "ix_section_results_session" }),
+            cancellationToken: ct);
+
+        await SectionMarkings.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.SectionMarkingDocument>(
+                Builders<Exams.SectionMarkingDocument>.IndexKeys.Ascending(m => m.SessionId),
+                new CreateIndexOptions { Name = "ix_section_markings_session" }),
+            cancellationToken: ct);
+
+        // The worker's claim scans by state and due time on every poll, and a
+        // results screen reads by sitting. Two indexes, one per access shape.
+        await MarkingJobs.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.MarkingJobDocument>(
+                Builders<Exams.MarkingJobDocument>.IndexKeys
+                    .Ascending(j => j.State)
+                    .Ascending(j => j.NextAttemptAt),
+                new CreateIndexOptions { Name = "ix_marking_jobs_due" }),
+            cancellationToken: ct);
+
+        await MarkingJobs.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.MarkingJobDocument>(
+                Builders<Exams.MarkingJobDocument>.IndexKeys.Ascending(j => j.SessionId),
+                new CreateIndexOptions { Name = "ix_marking_jobs_session" }),
             cancellationToken: ct);
 
         // Expired tokens remove themselves. A TTL index does this without a

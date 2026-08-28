@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.js';
@@ -13,15 +13,11 @@ import {
 } from '../exam/examApi.js';
 import { InProgressPanel, RecentSittings, StatStrip } from './DashboardState.js';
 import { ArticleIcon, DocumentIcon } from '../landing/MenuIcons.js';
-import {
-  DictationIcon,
-  FullTestIcon,
-  ListeningIcon,
-  ReadingIcon,
-  SpeakingIcon,
-  WritingIcon,
-} from './StudentIcons.js';
+import { DictationIcon, FullTestIcon } from './StudentIcons.js';
+import { SKILLS, SKILL_ORDER } from '../exam/skills.js';
 import '../../styles/dashboard.css';
+import { usePageTitle } from '../../routes/usePageTitle.js';
+import { useAlive } from '../../lib/useAlive.js';
 
 /**
  * Student home — a dashboard, and only a dashboard.
@@ -72,38 +68,29 @@ import '../../styles/dashboard.css';
  * something that happened.
  */
 
-interface Skill {
-  id: string;
-  icon: ComponentType<{ size?: number }>;
-  name: string;
-  desc: StringKey;
-  /** Answer key vs AI — the two are visually distinct on purpose. See L4. */
-  scoring: 'key' | 'ai';
-}
-
 /**
+ * The four skills, from the one place that defines them.
+ *
+ * <b>This file used to carry a second, private list.</b> Same four modules,
+ * different fields, its own `scoring: 'key' | 'ai'` flag — and `skills.ts`
+ * documents that the `writing || speaking` conditional "had been written out
+ * at three call sites, and a fourth would have been written the next time a
+ * screen needed it". This was the fourth. `DashboardState`, one file over,
+ * already imported the shared one.
+ *
+ * Only the per-card description stays local, because it is copy written for
+ * this screen rather than a property of the skill.
+ *
  * Skill names stay in English on purpose: they are the names of the IELTS
  * modules, and every learner who has looked at a test already knows them under
  * those names. The interface language around them is still translated.
  */
-const SKILLS: Skill[] = [
-  { id: 'reading', icon: ReadingIcon, name: 'Reading', desc: 'dash.skill.reading', scoring: 'key' },
-  {
-    id: 'listening',
-    icon: ListeningIcon,
-    name: 'Listening',
-    desc: 'dash.skill.listening',
-    scoring: 'key',
-  },
-  { id: 'writing', icon: WritingIcon, name: 'Writing', desc: 'dash.skill.writing', scoring: 'ai' },
-  {
-    id: 'speaking',
-    icon: SpeakingIcon,
-    name: 'Speaking',
-    desc: 'dash.skill.speaking',
-    scoring: 'ai',
-  },
-];
+const SKILL_BLURB: Record<ExamModule, StringKey> = {
+  reading: 'dash.skill.reading',
+  listening: 'dash.skill.listening',
+  writing: 'dash.skill.writing',
+  speaking: 'dash.skill.speaking',
+};
 
 /**
  * The three modules that are not the four-skill exam.
@@ -146,6 +133,7 @@ const OTHER: {
 export function StudentDashboardPage() {
   const { user, accessToken } = useAuth();
   const { t } = useI18n();
+  usePageTitle(t('title.dashboard'));
 
   /*
    * Which skills actually have an exam behind them.
@@ -157,20 +145,9 @@ export function StudentDashboardPage() {
    * old honest state rather than to a card that leads nowhere.
    */
   const [available, setAvailable] = useState<Set<ExamModule>>(new Set());
+  const [fullTestReady, setFullTestReady] = useState(false);
   const [sittings, setSittings] = useState<SittingSummary[] | null>(null);
-  const alive = useRef(true);
-  /*
-   * Set true on the way IN, not just false on the way out.
-   *
-   * StrictMode double-invokes a mount effect: run, clean up, run again. The
-   * cleanup flips this to false and the second run never flipped it back, so
-   * every later `setState` guarded by it was skipped and the screen sat on
-   * "Đang tải…" forever — against an API that had already answered 200.
-   */
-  useEffect(() => {
-    alive.current = true;
-    return () => void (alive.current = false);
-  }, []);
+  const alive = useAlive();
 
   const load = useCallback(async () => {
     if (accessToken === null) return;
@@ -178,6 +155,22 @@ export function StudentDashboardPage() {
       const { exams } = await listExams(accessToken);
       if (!alive.current) return;
       setAvailable(new Set(exams.flatMap((e) => e.modules.map((m) => m.module))));
+
+      /*
+       * <b>A Full Test is one paper with four skills in it, not four papers
+       * that add up to four skills.</b>
+       *
+       * The availability set above is a union across the whole catalogue, which
+       * answers "can I practise Listening somewhere" — the right question for
+       * the per-skill cards. It is the wrong question for Full Test: four
+       * single-skill versions would satisfy it while no sitting exists that
+       * runs Reading → Listening → Writing → Speaking in one session, and the
+       * card would offer a test the engine cannot start. So this asks each
+       * version on its own. → `E-11`
+       */
+      setFullTestReady(
+        exams.some((e) => SKILL_ORDER.every((id) => e.modules.some((m) => m.module === id))),
+      );
     } catch {
       // Left empty on purpose. See above.
     }
@@ -204,7 +197,6 @@ export function StudentDashboardPage() {
    */
   const open = sittings?.find((sitting) => sitting.status === 'inprogress') ?? null;
   const anyExam = available.size > 0;
-  const fullTestReady = SKILLS.every((skill) => available.has(skill.id as ExamModule));
   if (user === null) return null;
 
   return (
@@ -216,10 +208,21 @@ export function StudentDashboardPage() {
           <p className="dash-lead">{t('dash.lead')}</p>
         </header>
 
+        {/*
+          <b>A notice, not a gate — and now it says where to go.</b>
+
+          Registering signs the learner in (`[QUYẾT ĐỊNH]` chủ sản phẩm,
+          27/08/2026), so an unverified account is the ordinary state of a
+          brand-new one rather than a problem. This used to say some features
+          would unlock on verifying, which described a restriction that exists
+          nowhere in the product — and what an unverified account may not do is
+          still the owner's to decide (`M-45`). It now says what is true and
+          links to the one place the learner can act.
+        */}
         {!user.emailVerified && (
           <div className="dash-alert" role="status">
             <strong>{t('home.unverifiedTitle')}. </strong>
-            {t('home.unverifiedBody')}
+            {t('home.unverifiedBody')} <Link to={Paths.profile}>{t('home.unverifiedAction')}</Link>
           </div>
         )}
 
@@ -231,121 +234,191 @@ export function StudentDashboardPage() {
           flashing "nothing in progress" at someone who has something in
           progress.
         */}
-        {sittings !== null && <InProgressPanel sitting={open} />}
-        {sittings !== null && sittings.length > 0 && <StatStrip sittings={sittings} />}
-
-        {sittings !== null && (
-          <section className="dash-block" id="results">
-            <div className="dash-block-head">
-              <h2>{t('dash.recent.title')}</h2>
-            </div>
-            <RecentSittings sittings={sittings.slice(0, 5)} />
-          </section>
-        )}
-
         {/*
-          One explanation, said once. The cards below carry a short status chip
-          each; repeating the full sentence five times would turn the page into
-          an apology.
+          ── Two columns, from 1180px up ────────────────────────────────
+
+          Everything on this page used to be one 1080px column, so a card
+          holding an exam title and a button was 1080px wide with roughly 800
+          of them empty, and the page ran to 2400px for what is really "one
+          thing in progress, five sittings, four skills, three modules". A
+          learner had to scroll past the whole catalogue to see whether their
+          last paper had been marked.
+
+          The split follows what the two halves are for. The left column is
+          what you can start — it is browsed, so it wants width. The right is
+          what you have done — it is checked, so it wants to be visible while
+          you browse, which is why it sticks.
         */}
-        <p className="dash-notice">{anyExam ? t('dash.noticeSome') : t('dash.notice')}</p>
+        <div className="dash-columns">
+          <div className="dash-col-main">
+            {/*
+              <b>In the column, not across the page.</b> Spanning the full
+              width put a title and a button at opposite ends of 1580px with
+              nothing between them — the panel looked emptier the wider the
+              screen got. Here it is the first thing in "what you could be
+              doing", directly above the catalogue, which is also the order the
+              two are read in: carry on with this, or start something new.
+            */}
+            {sittings !== null && <InProgressPanel sitting={open} />}
 
-        {/* ── Luyện tập ──────────────────────────────────────────────── */}
-        <section className="dash-block" id="practice">
-          <div className="dash-block-head">
-            <h2>{t('dash.practice.title')}</h2>
-            <p>{t('dash.practice.lead')}</p>
-          </div>
+            {/*
+              One explanation, said once. The cards below carry a short status
+              chip each; repeating the full sentence five times would turn the
+              page into an apology.
+            */}
+            <p className="dash-notice">{anyExam ? t('dash.noticeSome') : t('dash.notice')}</p>
 
-          {/* Full Test — one session, four skills, advances by itself. */}
-          <article className="dash-card dash-full" aria-labelledby="dash-full-title">
-            <span className="dash-card-icon is-green" aria-hidden="true">
-              <FullTestIcon size={24} />
-            </span>
-
-            <div className="dash-full-body">
-              <div className="dash-full-top">
-                <h3 id="dash-full-title">{t('dash.full.title')}</h3>
-                {fullTestReady ? (
-                  <Link className="dash-go" to={Paths.practice}>
-                    {t('dash.open')}
-                  </Link>
-                ) : (
-                  <span className="dash-chip">{t('dash.status.noExam')}</span>
-                )}
+            {/* ── Luyện tập ──────────────────────────────────────────── */}
+            <section className="dash-block" id="practice">
+              <div className="dash-block-head">
+                <h2>{t('dash.practice.title')}</h2>
+                <p>{t('dash.practice.lead')}</p>
               </div>
-              <p>{t('dash.full.body')}</p>
-              {/* The order is the requirement (E-12), so it is an ordered list
-                and not four words in a sentence. */}
-              <ol className="dash-order">
-                <li>Reading</li>
-                <li>Listening</li>
-                <li>Writing</li>
-                <li>Speaking</li>
-              </ol>
-            </div>
-          </article>
 
-          <h3 className="dash-subhead">{t('dash.skills.title')}</h3>
-          <p className="dash-subnote">{t('dash.skills.lead')}</p>
+              {/* Full Test — one session, four skills, advances by itself. */}
+              <article className="dash-card dash-full" aria-labelledby="dash-full-title">
+                <span className="dash-card-icon is-green" aria-hidden="true">
+                  <FullTestIcon size={24} />
+                </span>
 
-          <div className="dash-skill-grid">
-            {SKILLS.map((skill) => {
-              const Icon = skill.icon;
-              return (
-                <article
-                  key={skill.id}
-                  className="dash-card dash-skill"
-                  aria-labelledby={`skill-${skill.id}`}
-                >
-                  <span className="dash-card-icon" aria-hidden="true">
-                    <Icon />
-                  </span>
-                  <h4 id={`skill-${skill.id}`}>{skill.name}</h4>
-                  <p>{t(skill.desc)}</p>
-                  <div className="dash-skill-foot">
-                    <span className={skill.scoring === 'ai' ? 'dash-tag dash-tag-ai' : 'dash-tag'}>
-                      {skill.scoring === 'ai' ? t('dash.scoring.ai') : t('dash.scoring.key')}
-                    </span>
-                    {available.has(skill.id as ExamModule) ? (
-                      <Link className="dash-go" to={Paths.practice}>
+                <div className="dash-full-body">
+                  <div className="dash-full-top">
+                    <h3 id="dash-full-title">{t('dash.full.title')}</h3>
+                    {fullTestReady ? (
+                      /*
+                       * <b>The mode travels in the link.</b> `/practice` alone
+                       * lands on its default, which is Single Skill Reading —
+                       * so the Full Test card opened a single Reading paper,
+                       * and the per-skill cards below all opened Reading too,
+                       * whichever one was pressed. The workspace already reads
+                       * `mode` and `skill` from the query; nothing was passing
+                       * them. → CLAUDE.md rule 10
+                       */
+                      <Link className="dash-go" to={`${Paths.practice}?mode=full`}>
                         {t('dash.open')}
                       </Link>
                     ) : (
                       <span className="dash-chip">{t('dash.status.noExam')}</span>
                     )}
                   </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
+                  <p>{t('dash.full.body')}</p>
+                  {/* The order is the requirement (E-12), so it is an ordered list
+                and not four words in a sentence. */}
+                  <ol className="dash-order">
+                    <li>Reading</li>
+                    <li>Listening</li>
+                    <li>Writing</li>
+                    <li>Speaking</li>
+                  </ol>
+                </div>
+              </article>
 
-        {/* ── Phần khác ──────────────────────────────────────────────── */}
-        <section className="dash-block" id="coming">
-          <div className="dash-block-head">
-            <h2>{t('dash.other.title')}</h2>
+              <h3 className="dash-subhead">{t('dash.skills.title')}</h3>
+              <p className="dash-subnote">{t('dash.skills.lead')}</p>
+
+              <div className="dash-skill-grid">
+                {SKILL_ORDER.map((id) => {
+                  const skill = SKILLS[id];
+                  const Icon = skill.icon;
+                  // `marking` is the skill's own fact, so the "is this AI?" test
+                  // lives with it rather than being restated per screen.
+                  const byAi = skill.marking.startsWith('AI');
+
+                  return (
+                    <article
+                      key={id}
+                      className="dash-card dash-skill"
+                      aria-labelledby={`skill-${id}`}
+                    >
+                      {/*
+                        The skill's own colour, from `skills.ts`.
+
+                        These four cards used one generic blue for all of them,
+                        while the exam runner's header, the practice selector
+                        and the results rows each paint Reading blue, Listening
+                        orange, Writing purple and Speaking pink. A learner
+                        recognises those four before they read the words, and
+                        the dashboard was the one screen that made them read.
+                      */}
+                      <span
+                        className="dash-card-icon"
+                        style={{ background: skill.tint, color: skill.ink }}
+                        aria-hidden="true"
+                      >
+                        <Icon />
+                      </span>
+                      <h4 id={`skill-${id}`}>{skill.name}</h4>
+                      <p>{t(SKILL_BLURB[id])}</p>
+                      <div className="dash-skill-foot">
+                        <span className={byAi ? 'dash-tag dash-tag-ai' : 'dash-tag'}>
+                          {byAi ? t('dash.scoring.ai') : t('dash.scoring.key')}
+                        </span>
+                        {available.has(id) ? (
+                          // The skill and the mode both travel. Without them
+                          // every one of these five cards opened Reading.
+                          <Link
+                            className="dash-go"
+                            to={`${Paths.practice}?mode=single&skill=${id}`}
+                          >
+                            {t('dash.open')}
+                          </Link>
+                        ) : (
+                          <span className="dash-chip">{t('dash.status.noExam')}</span>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* ── Phần khác ──────────────────────────────────────────── */}
+            <section className="dash-block" id="coming" tabIndex={-1}>
+              <div className="dash-block-head">
+                <h2>{t('dash.other.title')}</h2>
+              </div>
+              <ul className="dash-more">
+                {OTHER.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.id} className="dash-more-row">
+                      <span className="dash-more-icon" aria-hidden="true">
+                        <Icon />
+                      </span>
+                      <span className="dash-more-text">
+                        <strong>{t(item.label)}</strong>
+                        <span>{t(item.desc)}</span>
+                      </span>
+                      <Link className="dash-go" to={item.to}>
+                        {t('dash.open')}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           </div>
-          <ul className="dash-more">
-            {OTHER.map((item) => {
-              const Icon = item.icon;
-              return (
-                <li key={item.id} className="dash-more-row">
-                  <span className="dash-more-icon" aria-hidden="true">
-                    <Icon />
-                  </span>
-                  <span className="dash-more-text">
-                    <strong>{t(item.label)}</strong>
-                    <span>{t(item.desc)}</span>
-                  </span>
-                  <Link className="dash-go" to={item.to}>
-                    {t('dash.open')}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+
+          {/*
+            <b>Sticky, because it answers a question you have while browsing.</b>
+            "How did I do" and "what shall I do next" are asked in the same
+            breath, and a progress panel that scrolls away the moment you start
+            reading the catalogue answers it only if you remember to scroll
+            back.
+          */}
+          <aside className="dash-col-side" aria-label={t('dash.progressLabel')}>
+            {sittings !== null && sittings.length > 0 && <StatStrip sittings={sittings} />}
+
+            {sittings !== null && (
+              <section className="dash-block" id="results" tabIndex={-1}>
+                <div className="dash-block-head">
+                  <h2>{t('dash.recent.title')}</h2>
+                </div>
+                <RecentSittings sittings={sittings.slice(0, 5)} />
+              </section>
+            )}
+          </aside>
+        </div>
       </main>
     </div>
   );

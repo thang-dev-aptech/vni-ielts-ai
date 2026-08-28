@@ -98,6 +98,24 @@ Replay with the **same key but a different body** is a conflict, not a replay:
 409 Conflict — IDEMPOTENCY_KEY_REUSED
 ```
 
+**The key is claimed before the handler runs, not recorded after it.** Recording afterwards leaves a
+window between the lookup and the write in which a second request with the same key finds nothing and
+executes — which is the exact duplication the key exists to prevent, and it is invisible, because the
+second insert then fails on the duplicate id and looks like an ordinary replay.
+
+A request that arrives while the same key is still executing is told to come back:
+
+```http
+409 Conflict — IDEMPOTENCY_KEY_IN_FLIGHT
+Retry-After: 1
+```
+
+There is no stored response yet, so there is nothing to replay, and producing one would mean running
+the operation twice. The claim carries a lease so a process that dies holding a key does not make
+that key permanently unusable, and a token so a handler that comes back after its lease expired
+cannot overwrite the response of the request that replaced it. A refused request releases its claim —
+a key that survived a failure would make a transient error permanent for the key's whole lifetime.
+
 ---
 
 ## Errors

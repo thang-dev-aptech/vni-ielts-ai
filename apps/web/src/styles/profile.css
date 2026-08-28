@@ -74,17 +74,6 @@
   gap: var(--s-5);
 }
 
-.profile-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 /* ── Page header ──────────────────────────────────────────────────────── */
 
 .profile-head {
@@ -153,12 +142,6 @@
   background: var(--card);
   box-shadow: var(--pf-shadow);
   text-align: center;
-}
-
-/* Retired with the green band; the markup no longer emits it. */
-.profile-card-banner,
-.profile-card-body {
-  display: contents;
 }
 
 .profile-card-avatar {
@@ -271,20 +254,6 @@
   /* A 32-character identifier has no break opportunity of its own and will
      otherwise push the column wider than the phone. */
   overflow-wrap: anywhere;
-}
-
-/* Retired: the email row states the same thing two lines below, and the
-   dashboard already carries the consequence. Kept as a rule because other
-   panels still use the class. */
-.profile-alert {
-  margin-top: var(--s-4);
-  padding: var(--s-3);
-  border-radius: var(--r-md);
-  background: var(--warn-soft);
-  color: var(--warn);
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-  text-align: left;
 }
 
 /* ── Right: goal and skills ───────────────────────────────────────────── */
@@ -947,6 +916,13 @@
   line-height: var(--lh-body);
 }
 
+/* Not an error — the request succeeded and nothing was sent. It reads as a
+   caution rather than a failure because the account is fine and there is
+   nothing for the learner to correct. → `M-38` */
+.info-hint.is-warn {
+  color: var(--warn);
+}
+
 .info-error {
   display: block;
   margin-top: var(--s-1);
@@ -957,6 +933,56 @@
 
 .phone-edit {
   margin-top: var(--s-1);
+}
+
+/*
+ * ── The six-digit code box ────────────────────────────────────────────────
+ *
+ * A row, because the box and its button are one action and splitting them
+ * across two lines on a wide screen puts a hand's width between typing the
+ * last digit and pressing the thing that submits it.
+ */
+.verify-code {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  margin-top: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.verify-code input {
+  /*
+   * <b>Sized to its content, not to the row.</b> A six-digit field stretched
+   * across a card reads as a place to write a sentence, and people write one.
+   * `ch` because the content is digits and this is exactly the unit for that.
+   */
+  width: 9ch;
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+
+  /*
+   * <b>Tabular figures and letter spacing.</b> Six digits in a proportional
+   * face are six different widths, so the field jitters as it fills and a
+   * transposed pair is hard to spot when checking against the email.
+   */
+  font: inherit;
+  font-size: var(--t-18);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.18em;
+  text-align: center;
+  color: var(--ink);
+}
+
+.verify-code input::placeholder {
+  color: var(--ink-2);
+  letter-spacing: 0.18em;
+}
+
+.verify-code input:focus-visible {
+  outline: 2px solid var(--brand-green);
+  outline-offset: 1px;
 }
 
 .phone-edit input {
@@ -994,8 +1020,16 @@
   gap: var(--s-2);
 }
 
+/*
+ * Measured 122 × 21, and for a learner with no phone number on file it is the
+ * only control that adds one. `min-height: 0` was there to keep it sitting on
+ * the same line as the value beside it — an inline-flex box with the floor as
+ * its height does that too, and is reachable.
+ */
 .info-action.is-inline {
-  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   margin: 0;
   padding: 0;
   font-size: var(--t-14);

@@ -65,17 +65,6 @@
   min-width: 0;
 }
 
-.dash-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 /* ── Page header ────────────────────────────────────────────────────────── */
 
 .dash-head {
@@ -122,14 +111,20 @@
 
 /* Said once, at the top. The cards carry a two-word chip instead of five
    copies of this sentence. */
+/*
+ * The state of the catalogue, said once.
+ *
+ * It was a bordered card sitting between the in-progress panel and the
+ * catalogue heading, which gave a sentence about stock levels the same weight
+ * as the thing the learner came to do. It belongs to the section below it, so
+ * it reads as that section's note: a rule down the side, no box.
+ */
 .dash-notice {
   margin: 0;
-  padding: var(--s-4);
-  border: 1px solid var(--line);
-  border-radius: var(--dash-r-sm);
-  background: var(--sunk);
+  padding-left: var(--s-4);
+  border-left: 3px solid var(--line-2);
   color: var(--ink-2);
-  font-size: var(--t-16);
+  font-size: var(--t-14);
   line-height: var(--lh-body);
 }
 
@@ -170,19 +165,6 @@
   color: var(--ink-2);
 }
 
-/* Two peers side by side. Used for the primary action beside the assistant,
-   and for the two status panels — which say the same "not yet" and would each
-   waste a full row saying it alone. */
-.dash-two {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s-4);
-  /* Stretch, not start. Two peers of unequal height read as one finished card
-     beside one that failed to load; matching them puts the assistant's button
-     on the same baseline as the full test's step pills. */
-  align-items: stretch;
-}
-
 /* ── Cards ──────────────────────────────────────────────────────────────── */
 
 .dash-card {
@@ -193,13 +175,6 @@
   border: 1px solid var(--line);
   border-radius: var(--dash-r);
   background: var(--card);
-}
-
-.dash-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-3);
 }
 
 .dash-card-icon {
@@ -333,9 +308,21 @@
   color: var(--ink-2);
 }
 
+/*
+ * <b>Two by two, because there are exactly four and there always will be.</b>
+ *
+ * Four fixed columns inside the left column gave each card about 185px, which
+ * wrapped every description to three lines. `auto-fit` was the first fix and
+ * the wrong one: at that width it resolved to three columns and left Speaking
+ * alone on a second row — a 3+1 arrangement of a set everyone reads as a
+ * matched four. `auto-fit` is for lists whose length nobody knows; this list
+ * is IELTS and its length is settled.
+ *
+ * One column below 560px, where two would be 150px each.
+ */
 .dash-skill-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 
@@ -368,6 +355,9 @@
 .dash-tag {
   display: inline-flex;
   align-items: center;
+  /* One line. Split across two, "AI chấm · tham khảo" reads as two separate
+     claims and makes its card taller than the answer-key card beside it. */
+  white-space: nowrap;
   padding: var(--s-1) var(--s-2);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
@@ -388,10 +378,11 @@
  * these is a thumb target. Raised rather than redesigned: the padding and the
  * pill shape are unchanged, so nothing about the look moves.
  */
+/* 40px measured, against a 44 floor. Six of these on the overview. */
 .dash-go {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
+  min-height: 44px;
   padding: var(--s-1) var(--s-3);
   border: 1px solid var(--acc-line);
   border-radius: var(--r-pill);
@@ -653,9 +644,6 @@
    each card less than a comfortable measure and the order pills start
    wrapping three deep. */
 @media (max-width: 880px) {
-  .dash-two {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 560px) {
@@ -690,7 +678,9 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--s-4);
-  margin-bottom: var(--s-5);
+  /* No bottom margin: it is a flex child of the column now, and the column
+     owns the rhythm. Two sources of spacing is how a gap becomes 40px. */
+  margin-bottom: 0;
   padding: var(--s-5);
   border: 1px solid #cfe3d4;
   border-radius: var(--r-lg);
@@ -701,9 +691,47 @@
  * Nothing in progress is not a failure state, so it does not get the green.
  * It reads as a quiet note rather than as an alert about an absence.
  */
+/*
+ * <b>The idle panel stacks; the in-progress one does not.</b>
+ *
+ * `.dash-now` is a row with `space-between`, which is right when the content
+ * is "what you were doing" on the left and "carry on" on the right. The idle
+ * variant has no side — it is a heading, a sentence and two buttons — so as
+ * flex items those became three columns, and the sentence explaining the
+ * heading sat four hundred pixels away from it.
+ */
 .dash-now.is-idle {
+  flex-direction: column;
+  align-items: flex-start;
   border-color: var(--line);
   background: var(--sunk);
+}
+
+.dash-now.is-idle > p {
+  margin-top: 0;
+}
+
+/*
+ * Time is up.
+ *
+ * Amber, not green and not red. Green said the opposite of what the eyebrow
+ * above it says; red would say something broke, and nothing did — a clock ran
+ * out, which is the exam working. This is the one state on the page where the
+ * learner has to act before they lose what they wrote, so it is the one that
+ * gets a colour of its own.
+ */
+.dash-now.is-over {
+  /* The amber that carries the state is the fill and the eyebrow, both
+     measured. The border is a seam, not a signal — nothing here is conveyed by
+     it alone, which is what WCAG 1.4.11's 3:1 is about. It is darkened from
+     the first attempt anyway, because a card the reader has to act on should
+     read as an object rather than as a tinted patch of page. */
+  border-color: #c9964a;
+  background: var(--warn-soft);
+}
+
+.dash-now.is-over .dash-now-eyebrow {
+  color: var(--warn);
 }
 
 .dash-now-eyebrow {
@@ -853,6 +881,61 @@
   color: var(--muted);
 }
 
+/*
+ * <b>One card, three rows — not three cards.</b>
+ *
+ * Three bordered boxes across a 1080px column gave each number 350px of white
+ * to sit in, and made "0.0" the loudest thing on a page whose job is to get
+ * someone practising. They are three readings of the same thing — how far
+ * along you are — so they read as one block, and the value sits beside its
+ * label rather than towering over it.
+ */
+.dash-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 0;
+  padding: var(--s-2) var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--dash-r, var(--r-lg));
+  background: var(--card);
+}
+
+.dash-stat {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-4) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  flex-wrap: wrap;
+}
+
+.dash-stat + .dash-stat {
+  border-top: 1px solid var(--line);
+}
+
+.dash-stat-value {
+  font-size: var(--t-24);
+}
+
+.dash-stat-label {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--w-emph);
+  color: var(--ink);
+}
+
+/* The label under a dash. "Chưa có", never a zero wearing a caption. */
+.dash-stat-note {
+  flex-basis: 100%;
+  order: 3;
+  margin-top: -2px;
+}
+
 /* ── Trạng thái: buổi gần đây ───────────────────────────────────────────── */
 
 .dash-recent {
@@ -861,12 +944,23 @@
   padding: 0;
 }
 
+/*
+ * <b>Two rows of a grid, not four things wrapping.</b>
+ *
+ * As a wrapping flex row this fell apart in the side column: whether the
+ * action landed beside the bands or on a line of its own depended on how wide
+ * that particular action's label happened to be, so "Xem chi tiết" wrapped and
+ * "Đang làm" did not — five sittings in three different shapes.
+ *
+ * The grid states the arrangement instead of letting label widths decide it:
+ * what it was and when on the first line, what it scored and what to do on the
+ * second. Every row is the same height whatever the labels say.
+ */
 .dash-recent-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--s-3);
+  gap: var(--s-2) var(--s-3);
   padding: var(--s-4) 0;
   border-top: 1px solid var(--line);
 }
@@ -880,7 +974,18 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  flex: 1 1 220px;
+  grid-column: 1 / -1;
+}
+
+/* The bands sit under the title, the action opposite them. */
+.dash-recent-bands {
+  grid-column: 1;
+}
+
+.dash-recent-row > .dash-go,
+.dash-recent-row > .dash-chip {
+  grid-column: 2;
+  justify-self: end;
 }
 
 .dash-recent-what strong {
@@ -942,5 +1047,133 @@
 
   .dash-recent-row {
     align-items: flex-start;
+  }
+}
+
+/* Retry, on the two dashboard-shaped screens that can fail to load. */
+.dash-retry {
+  min-height: 44px;
+  margin-top: var(--s-4);
+  padding-inline: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: var(--w-emph);
+  cursor: pointer;
+}
+
+.dash-retry:hover {
+  background: var(--sunk);
+}
+
+.dash-now-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+}
+
+/* The second of two actions is the alternative, not a peer. */
+.dash-go.is-quiet {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.dash-empty .dash-go {
+  margin-top: var(--s-4);
+}
+
+/*
+ * Three classes that were rendered with no rule behind them.
+ *
+ * Not a regression — they never had one. `.dash-link` is the only way off the
+ * results page and was rendering as a browser-default anchor: blue, underlined
+ * and 19px tall on a screen where every other control is 44. The two
+ * `.dash-now-*` classes structure the in-progress panel, which is why it looked
+ * acceptable without them and slightly wrong with a long exam title.
+ */
+.dash-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  color: var(--acc);
+  font-weight: var(--w-emph);
+  text-decoration: none;
+}
+
+.dash-link:hover {
+  text-decoration: underline;
+}
+
+.dash-now-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.dash-now-note {
+  margin: var(--s-2) 0 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Two columns.
+
+   The page was a single 1080px stack: a card holding an exam title and a
+   button ran the full width with most of it empty, and the whole thing came
+   to 2400px for "one sitting in progress, five results, four skills, three
+   modules". Checking whether last night's paper had been marked meant
+   scrolling past the entire catalogue.
+
+   Split by what each half is for. The left is what you can start — browsed,
+   so it wants width. The right is what you have done — checked, so it wants
+   to stay in view while you browse.
+   ──────────────────────────────────────────────────────────────── */
+.dash-columns {
+  display: grid;
+  gap: var(--s-6);
+  align-items: start;
+  min-width: 0;
+}
+
+.dash-col-main,
+.dash-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  min-width: 0;
+}
+
+@media (min-width: 1180px) {
+  .dash-main {
+    max-width: 1180px;
+  }
+
+  .dash-columns {
+    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.85fr);
+    gap: var(--s-7);
+  }
+
+  /*
+   * Sticky, and only where there is a second column to stick beside. Below
+   * this width the side column is simply the end of the page, and a sticky
+   * block there would pin itself over the content underneath it.
+   *
+   * The offset clears the shell's own sticky top bar.
+   */
+  .dash-col-side {
+    position: sticky;
+    top: calc(74px + var(--s-4));
+  }
+}
+
+@media (min-width: 560px) {
+  .dash-skill-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

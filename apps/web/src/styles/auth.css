@@ -25,9 +25,22 @@
  *   green). Left as designed for now. -> docs/ux/DESIGN.md
  */
 
+/*
+ * <b>`--green` and `--green-dark` are deliberately NOT declared here.</b>
+ *
+ * They were, at `#18a957` / `#0c7b3c`, in an unscoped `:root` — and
+ * `landing.css` declares the same two names in its own unscoped `:root` at
+ * `#10b050` / `#0a8d3c`. Both stylesheets ship in one bundle, so the winner
+ * was decided by import order, not by either file. `landing.css` happened to
+ * load second, which means every measurement taken against this file's
+ * numbers was measuring a colour the page never rendered — and re-ordering
+ * the imports, or code-splitting, would have changed the brand colour of the
+ * sign-in page with no code change at all.
+ *
+ * `landing.css` owns the green family for the whole app. It is the file that
+ * carries the measured contrast notes, including `--green-btn`.
+ */
 :root {
-  --green: #18a957;
-  --green-dark: #0c7b3c;
   --green-soft: #e8f8ef;
   --green-accent: #7de3a3;
   --blue: #2585c7;
@@ -110,13 +123,28 @@ input {
 .button:active {
   transform: translateY(2px);
 }
+/*
+ * <b>`--green-btn`, not `--green`.</b> White on `--green` measures **2.86**
+ * against a 4.5 threshold, on the single most important control in the
+ * product — the note at the top of this file recorded that measurement and
+ * then said "left as designed for now", which is not a position that survives
+ * a launch review. `--green-btn` (`#0a8438`, measured 4.80) is the darkest
+ * this family gets while still reading as the brand green; `landing.css`
+ * already introduced it for exactly this, and `.btn-primary` already uses it.
+ *
+ * The hover state has to clear the bar too — a control that only passes at
+ * rest fails for anyone reading it under a cursor.
+ */
 .button-primary {
-  background: var(--green);
+  background: var(--green-btn);
   color: #fff;
-  box-shadow: 0 4px 0 var(--green-dark);
+  box-shadow: 0 4px 0 #06622a;
 }
 .button-primary:hover {
-  background: #22b660;
+  /* Darker, not lighter. Lightening a control that only just clears 4.5 at
+     rest drops it below the line exactly while someone is reading it —
+     `#0b9440` measured 3.94. `#097630` measures 5.76. */
+  background: #097630;
 }
 .button-primary:active {
   box-shadow: 0 1px 0 var(--green-dark);
@@ -168,29 +196,6 @@ input {
   align-items: center;
   gap: 12px;
 }
-.brand-mark {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3.5px;
-}
-.brand-mark i {
-  display: block;
-  border-radius: 50%;
-}
-.brand-mark i:nth-child(1) {
-  background: #23b865;
-}
-.brand-mark i:nth-child(2) {
-  background: #3fa2e2;
-}
-.brand-mark i:nth-child(3) {
-  background: #f3bb4e;
-}
-.brand-mark i:nth-child(4) {
-  background: #eb6c5d;
-}
 
 .brand-name {
   font-size: 16px;
@@ -211,11 +216,15 @@ input {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
+  /* 44px tall: it is the only way back to the landing page from here. */
+  min-height: 44px;
+  padding: 8px 16px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  font-size: 11px;
+  /* 11px, on an interactive control carrying "Trang chủ" — two stacked
+     diacritics under the floor. It is a link, not decoration. */
+  font-size: 14px;
   font-weight: 800;
   color: #e5f2e8;
   backdrop-filter: blur(10px);
@@ -310,177 +319,121 @@ input {
   padding: 0 4px;
 }
 .showcase-top small {
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: 14px;
+  letter-spacing: 0.1em;
   font-weight: 900;
-  color: #b8ccbf;
+  color: #cfe2d6;
 }
-.streak {
-  padding: 5px 12px;
+/*
+ * <b>Every size in this block is at or above 14px, and every pair is
+ * measured.</b> It used to run 8.5–10.5px with five pairs under 4.5:1, on the
+ * argument that the panel is "a mock screenshot at its own scale". It is not a
+ * screenshot — it is live DOM text, so WCAG 1.4.3 applies to it exactly as it
+ * applies to the form beside it, and the project's 14px floor exists because
+ * Vietnamese stacked diacritics disappear below it. Stacking the two cards
+ * instead of columning them is what paid for the size.
+ */
+.showcase-tag {
+  padding: 6px 13px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: #fbd68a;
-  font-size: 10px;
-  font-weight: 900;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #e4f1e8;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .dashboard {
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
   gap: 12px;
 }
 
-.score-card,
-.lesson-list {
+.visual-card {
   border-radius: 20px;
   background: #fff;
   color: var(--ink);
-  padding: 18px;
+  padding: 16px 18px;
   box-shadow: var(--shadow-sm);
 }
-.score-card {
-  min-height: 250px;
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.score-title {
-  font-size: 10.5px;
+.visual-card-title {
+  margin: 0 0 10px;
+  font-size: 14px;
   font-weight: 900;
-  color: #68756d;
-  letter-spacing: 0.06em;
-}
-.score-number {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 12px 0 10px;
-}
-.dial {
-  width: 74px;
-  height: 74px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(circle, #fff 56%, transparent 58%),
-    conic-gradient(var(--green) 0 74%, #e2eee5 74% 100%);
-  box-shadow: 0 10px 22px rgba(24, 169, 87, 0.16);
-  flex-shrink: 0;
-}
-.dial b {
-  font-size: 21px;
-  font-weight: 900;
-}
-.score-meta b {
-  display: block;
-  font-size: 13.5px;
-  font-weight: 900;
-  line-height: 1.25;
-}
-.score-meta span {
-  color: #748278;
-  font-size: 9.5px;
-  font-weight: 700;
-  display: block;
-  margin-top: 2px;
-}
-
-.mini-bars {
-  display: grid;
-  gap: 8px;
-  margin-top: 4px;
-}
-.mini-bar {
-  display: grid;
-  grid-template-columns: 56px 1fr 27px;
-  gap: 8px;
-  align-items: center;
-  font-size: 9.5px;
-  font-weight: 900;
-  color: #66736a;
-}
-.bar {
-  height: 7px;
-  border-radius: 999px;
-  background: #e2ebe4;
-  overflow: hidden;
-}
-.bar i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--green);
-}
-
-.lesson-list {
-  background: #ffffff;
-}
-.lesson-list h3 {
-  margin: 0 0 12px;
-  font-size: 13.5px;
-  font-weight: 900;
+  line-height: 1.4;
   color: #183022;
 }
+
 .lesson {
   display: grid;
-  grid-template-columns: 32px 1fr auto;
-  gap: 9px;
+  grid-template-columns: 30px 1fr auto;
+  gap: 11px;
   align-items: center;
-  padding: 8px 0;
+  padding: 9px 0;
   border-bottom: 1px solid #eef3ef;
 }
 .lesson:last-child {
   border-bottom: 0;
+  padding-bottom: 0;
 }
 .lesson-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
-  font-size: 10.5px;
+  font-size: 14px;
   font-weight: 900;
 }
-.lesson-icon.icon-r {
+/*
+ * Each ink is the darkest of its hue that still reads as that hue, chosen by
+ * measuring against its own tint rather than against white. The brand values
+ * (`--blue` 3.61, `--purple` 3.83, `--orange` 2.25 on their tints) all failed.
+ */
+.lesson-icon.icon-r,
+.lesson-icon.icon-p {
   background: var(--green-soft);
-  color: var(--green);
+  color: #077029; /* 5.69 */
 }
-.lesson-icon.icon-l {
+.lesson-icon.icon-l,
+.lesson-icon.icon-t {
   background: var(--blue-soft);
-  color: var(--blue);
+  color: #165b91; /* 6.45 */
 }
+.lesson-icon.icon-w,
+.lesson-icon.icon-b {
+  background: var(--purple-soft);
+  color: #5b3fb0; /* 6.68 */
+}
+.lesson-icon.icon-s,
 .lesson-icon.icon-d {
   background: var(--orange-soft);
-  color: var(--orange);
-}
-.lesson-icon.icon-w {
-  background: var(--purple-soft);
-  color: var(--purple);
+  color: #9a4d05; /* 5.48 */
 }
 
 .lesson b {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 800;
 }
 .lesson small {
   display: block;
-  margin-top: 1px;
-  color: #849087;
-  font-size: 8.5px;
-  font-weight: 700;
+  margin-top: 2px;
+  color: #5a6a5f; /* 5.74 on white */
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
 }
-.lesson > strong {
-  font-size: 10px;
-  color: var(--green);
-  font-weight: 900;
+
+/* How a skill is marked. Two treatments, because the fact is binary — the same
+   reasoning as `.overview-marking` on /practice, where four colours for two
+   facts was making colour carry something false. */
+.mark-tag {
+  font-size: 14px;
+  font-weight: 800;
+  color: #077029;
+  white-space: nowrap;
 }
-.lesson > .time-tag {
-  font-size: 10px;
-  color: var(--green);
-  font-weight: 900;
+.mark-tag.is-ai {
+  color: #5b3fb0;
 }
 
 /* Floating Badges */
@@ -500,16 +453,16 @@ input {
 }
 .hero-float b {
   display: block;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 900;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 .hero-float small {
   display: block;
-  color: #95bca2;
-  font-size: 9.5px;
-  font-weight: 700;
-  margin-top: 1px;
+  color: #b9d6c3; /* 8.5 on the badge's own ground */
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 2px;
 }
 
 .float-top {
@@ -562,7 +515,14 @@ input {
   border-radius: 14px;
   margin-bottom: 24px;
 }
+/* Now an `<a>` rather than a `<button>` — see `AuthPage`. Everything the
+   button got for free (centring, no underline) has to be stated. */
 .tab-btn {
+  /* 43.3px measured, against a 44 floor — near-misses are still misses. */
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
   padding: 10px;
   border: none;
   background: transparent;
@@ -598,50 +558,6 @@ input {
 }
 
 /* SSO Primary (Google) */
-
-/* Secondary Providers: Facebook, Microsoft, SSO Key */
-
-/* SSO Key Active Modal/Form */
-.sso-key-box {
-  display: none;
-  margin-top: 12px;
-  padding: 14px;
-  border: 1.5px dashed #a4cfb5;
-  border-radius: 14px;
-  background: #f4fbf6;
-  animation: fadeIn 0.2s ease;
-}
-.sso-key-box.show {
-  display: block;
-}
-.sso-key-box label {
-  display: block;
-  font-size: 11px;
-  font-weight: 900;
-  color: #1a5b36;
-  margin-bottom: 6px;
-}
-.sso-key-input-row {
-  display: flex;
-  gap: 8px;
-}
-.sso-key-input-row input {
-  flex: 1;
-  height: 42px;
-  padding: 0 12px;
-  border: 1px solid #c2dbcb;
-  border-radius: 10px;
-  outline: none;
-  font-size: 12.5px;
-  font-weight: 700;
-  background: #fff;
-}
-.sso-key-input-row button {
-  height: 42px;
-  padding: 0 14px;
-  border-radius: 10px;
-  font-size: 12px;
-}
 
 /* Divider */
 .divider {
@@ -748,6 +664,12 @@ input {
 .forgot {
   color: #1b854e;
   font-weight: 900;
+  /* Inline links inside a form row still have to be tappable. Padding rather
+     than a min-height, so they stay on the baseline of the text beside them. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 2px;
 }
 .forgot:hover {
   text-decoration: underline;
@@ -769,48 +691,13 @@ input {
 .signup a {
   color: #16854f;
   font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 4px;
 }
 .signup a:hover {
   text-decoration: underline;
-}
-
-.legal {
-  margin: 22px 0 0;
-  text-align: center;
-  color: #98a29c;
-  font-size: 10px;
-  line-height: 1.55;
-}
-.legal a {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  color: #69766e;
-}
-
-/* Toast Notification */
-.toast {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  background: var(--dark);
-  color: #fff;
-  padding: 13px 18px;
-  border-radius: 14px;
-  border: 1px solid #2a4a37;
-  box-shadow: var(--shadow-lg);
-  font-size: 12.5px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 999;
-  transform: translateY(-90px);
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.toast.show {
-  transform: translateY(0);
-  opacity: 1;
 }
 
 @keyframes fadeIn {
@@ -830,6 +717,17 @@ input {
 @media (max-width: 1050px) {
   .auth-shell {
     grid-template-columns: 1fr;
+  }
+  /*
+   * <b>The form comes first when the two halves stack.</b> Side by side, the
+   * decorative half is scenery beside the thing you came for. Stacked in
+   * source order it becomes a wall in front of it: measured at 390px the
+   * sign-in form started 957px down the page, so someone who tapped "Đăng
+   * nhập" on an iPhone saw one entire screen of artwork and no form at all —
+   * with nothing on screen to suggest scrolling would help.
+   */
+  .auth-panel {
+    order: -1;
   }
   .auth-visual {
     min-height: 620px;
@@ -867,10 +765,12 @@ input {
   .dashboard {
     grid-template-columns: 1fr;
   }
-  .score-card {
+  /* One card is enough at this width; the marking table is the one that
+     answers a question a visitor actually has at sign-up. */
+  .visual-card:last-child {
     display: none;
   }
-  .lesson-list {
+  .visual-card {
     padding: 14px;
   }
   .hero-float {
@@ -912,11 +812,6 @@ input {
   font-size: 13px;
   font-weight: 700;
   color: #c2372c;
-}
-.field-hint {
-  margin: 6px 2px 0;
-  font-size: 13px;
-  color: var(--muted);
 }
 .input-box.has-error {
   border-color: #c2372c;
@@ -1096,11 +991,26 @@ input {
     border-color 0.16s ease,
     box-shadow 0.16s ease;
 }
+/*
+ * <b>A focus indicator has to be visible, which means measured.</b>
+ *
+ * This was `border-color: var(--green)` plus a 15%-alpha halo. Measured, the
+ * border came to **2.86:1** against the white field and the halo composited to
+ * roughly **1.2:1** — against WCAG 1.4.11's 3:1 for a focus indicator. With
+ * `.input-box input { outline: 0 }` also suppressing the design system's
+ * compliant ring, the most keyboard-dependent form in the product had no
+ * usable focus state at all.
+ *
+ * `--acc` is the ring the rest of the app already uses (5.5:1), so the auth
+ * pages stop being the one place with a private answer. Border and halo still
+ * carry the *style*; the ring carries the *contrast*. Nothing changes size, so
+ * the no-layout-shift property the old comment cared about is kept.
+ */
 .input-box:focus-within {
-  border-color: var(--green);
-  /* A ring rather than a thicker border, so the field does not shift by a
-     pixel when focused — that jump is what makes a form feel unsteady. */
-  box-shadow: 0 0 0 3px rgba(24, 169, 87, 0.15);
+  border-color: var(--green-dark);
+  box-shadow: 0 0 0 3px rgba(10, 141, 60, 0.18);
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
 }
 .input-box.has-error {
   border-color: #c2372c;
@@ -1113,6 +1023,9 @@ input {
   flex: 1;
   min-width: 0;
   border: 0;
+  /* The ring lives on `.input-box`, which wraps the icon and the reveal
+     button as well. Suppressing it here without restoring it there was the
+     original defect. */
   outline: 0;
   background: transparent;
   font-size: 15px;
@@ -1134,11 +1047,18 @@ input {
   color: var(--green);
 }
 
+/*
+ * 44px, not 30. This sits inside a 48px field a thumb-width from the text
+ * cursor, so a miss does not merely fail — it puts the caret somewhere and
+ * leaves the password hidden. The icon inside stays its old size; only the
+ * hit area grows.
+ */
 .toggle-pass {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
+  margin-right: -8px;
   flex: none;
   padding: 0;
   border: 0;
@@ -1172,15 +1092,6 @@ input {
   border-radius: 999px;
   background: #e6ece8;
   transition: background 0.2s ease;
-}
-.pw-seg.on-weak {
-  background: #e08a3c;
-}
-.pw-seg.on-ok {
-  background: #d3b13a;
-}
-.pw-seg.on-good {
-  background: var(--green);
 }
 .pw-label {
   margin: 6px 2px 0;
@@ -1217,9 +1128,12 @@ input {
        which is below that floor on stacked diacritics (ế ộ ằ) and is
        what makes the panel feel cramped.
 
-       Only the FORM side is raised. The decorative panel on the left is
-       a mock screenshot at its own scale and is aria-hidden, so its
-       small type is deliberate and is left alone.
+       This used to exempt the decorative panel on the left, on the
+       argument that it is "a mock screenshot at its own scale" and is
+       aria-hidden. Neither half of that holds: it is live DOM text, so
+       the floor and WCAG 1.4.3 apply to it exactly as they do here, and
+       aria-hidden governs what is announced, not what is legible. The
+       panel was restacked so its type could come up too.
 
    2 · SCROLL. The shell was `min-height: 100vh` on both columns, so a
        tall form pushed the whole PAGE into scroll and dragged the fixed
@@ -1261,12 +1175,13 @@ input {
 }
 
 .divider {
-  font-size: 13px; /* ASCII-adjacent label, but bumped from 9.5px */
+  /* "hoặc dùng email" — `hoặc` and `dùng` both carry stacked diacritics, so
+     the ASCII-adjacent exemption does not apply to this string. */
+  font-size: 14px;
   letter-spacing: 0.06em;
 }
 
 .field-error,
-.field-hint,
 .pw-label,
 .terms-note,
 .auth-note,
@@ -1388,9 +1303,124 @@ input {
  * auth panel. Someone arriving here has a single job and usually arrived from
  * their mailbox; the marketing half of that screen is not helping them.
  */
+/*
+ * The shell shared by every auth screen that is not the sign-in form.
+ * → `AuthSimple`
+ */
+.auth-simple-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  align-content: start;
+  gap: 20px;
+  padding: 28px 16px 40px;
+  background:
+    radial-gradient(1100px 520px at 50% -260px, #eaf7ef 0%, transparent 70%), var(--paper);
+}
+
+/*
+ * <b>The lockup has to restate its colours here.</b>
+ *
+ * `.brand-name` and its `<b>` are written for `.auth-visual`, which is a dark
+ * panel — white and `#8ed6aa`. Reused on this page's near-white ground the
+ * wordmark measured 1.0:1 against the background: it was not faint, it was
+ * absent, and the only thing identifying the page as VNI's was a 26px logo
+ * chip. That is the whole cost of borrowing a component across two grounds
+ * without checking which one it was drawn for.
+ */
+.auth-simple-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.auth-simple-brand .brand-name {
+  color: var(--ink);
+}
+
+.auth-simple-brand .brand-name b {
+  color: #2c5f42; /* 6.7 on the page's ground */
+}
+
+.auth-simple-foot {
+  margin: 0;
+}
+.auth-simple-foot a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding-inline: 8px;
+  color: #2c5f42;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.auth-simple-foot a:hover {
+  text-decoration: underline;
+}
+
+/* The heading takes focus when a screen replaces its own body — see the
+   `focusOnMount` note in `AuthSimple`. It must not draw a ring when the mouse
+   put it there, hence `:focus-visible` only. */
+.auth-simple h1:focus {
+  outline: none;
+}
+.auth-simple h1:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 4px;
+}
+
+/*
+ * One message treatment for these pages.
+ *
+ * `/reset-password` was borrowing `.profile-panel-error` — a class defined
+ * only in `profile.css`, which it never imports. It rendered as grey body
+ * text on pink, indistinguishable from ordinary copy, and would have rendered
+ * with no styling at all under a route-split build.
+ */
+.auth-simple-alert {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #f0c9c4;
+  background: #fdf2f0;
+  color: #8a2b1e;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.auth-simple-alert.is-ok {
+  border-color: #b9e3c9;
+  background: #eef9f2;
+  color: #10562f;
+}
+
+.auth-simple-busy {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 4px;
+}
+
+/* Also used as a `<button>` on the retry path, so it states the properties a
+   button does not inherit. */
+button.auth-simple-action {
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+}
+
 .auth-simple {
-  width: min(440px, calc(100% - 32px));
-  margin: 72px auto;
+  width: min(440px, 100%);
+  /* The page is a three-row grid whose middle row is `1fr`, so without this
+     the card stretched to the full height of the viewport and left a form of
+     four controls floating at the top of a 1200px box. */
+  align-self: start;
+  margin: 0;
   padding: 32px;
   border: 1px solid #e6e4e0;
   border-radius: 20px;
@@ -1489,4 +1519,65 @@ input {
   font-weight: 700;
   line-height: 1.5;
   color: #2867ac;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Reduced motion.
+
+   This file had no `prefers-reduced-motion` block at all, and the
+   token-level override elsewhere could not reach it: every duration
+   here is written out in literal seconds rather than through `--dur`,
+   so zeroing the token changed nothing. `landing.css` hit exactly this
+   and documents it; the same mistake sat unfixed on the auth pages,
+   which is where the movement is largest — the whole artwork panel
+   rotates and scales on hover.
+
+   Someone who has asked their operating system for less movement has
+   asked the product, not one stylesheet.
+   ──────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .showcase,
+  .showcase:hover {
+    transform: rotate(-3.5deg);
+    transition: none;
+  }
+
+  .button:hover,
+  .button:active,
+  .back-home-link:hover,
+  .sso-btn:not(:disabled):hover {
+    transform: none;
+  }
+
+  .button,
+  .tab-btn,
+  .field input,
+  .input-box,
+  .back-home-link,
+  .sso-btn,
+  .auth-visual a {
+    transition: none;
+  }
+
+  .auth-panel,
+  .auth-visual,
+  .showcase-shell {
+    animation: none;
+  }
+}
+
+/*
+ * The submit button while a request is in flight.
+ *
+ * It carries `aria-busy` rather than `disabled`, because `disabled` blurs a
+ * focused control and threw the keyboard back to `<body>` on every submit.
+ * That means the *look* of being busy has to be written here — without it the
+ * only signal was the label changing, which is easy to miss on a slow line.
+ */
+.button[aria-busy='true'] {
+  cursor: progress;
+  opacity: 0.72;
+}
+.button[aria-busy='true']:hover {
+  transform: none;
 }

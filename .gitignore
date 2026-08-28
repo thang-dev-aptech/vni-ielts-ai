@@ -85,3 +85,50 @@ packages/api-client/src/generated/
 
 # Screenshots from browser sweeps. Working artefacts, not deliverables.
 .shots/
+
+# ── Third-party exam material ─────────────────────────────────────────────
+#
+# `exam/` holds an authored IELTS package and `fixtures/exams/exam-1.json`
+# plus its assets are what `scripts/import-exam-package.py` produces from it.
+#
+# Two reasons neither is committed, and the first is the one that matters:
+# the package's own manifest records that the source material is watermarked
+# "REAL IELTS TESTS" and linked to a Telegram channel, and that the right to
+# use it is unestablished. Committing 22MB of media whose licence nobody has
+# checked is not a decision to make by accident.
+#
+# Rebuild it locally with:
+#   python3 scripts/import-exam-package.py exam/Exam1 exam-1
+#
+# The leading slash is load-bearing: `exam/` with no anchor matches a
+# directory of that name at ANY depth, and it silently swallowed
+# `apps/web/src/features/exam/` — the entire exam-taking UI. Already-tracked
+# files there kept showing as modified, so the only symptom was three new
+# components that never appeared in `git status`.
+/exam/
+/fixtures/exams/exam-1.json
+/fixtures/exams/assets/exam-1-*
+
+# ── Owner-supplied IELTS source material ──────────────────────────────────
+#
+# `Đề IELTS/` holds the Cambridge papers, the band calculator and the Writing
+# and Speaking criteria the owner handed over. Same class as `/exam/` above and
+# ignored for the same two reasons: nobody has established the right to
+# redistribute it, and one file in there is a 1.3 GB archive that has no
+# business in a git history whatever its licence turns out to be.
+#
+# It is also in `.prettierignore` — for a different failure. `prettier --check .`
+# tried to read that archive into a string and died, taking the whole
+# formatting gate with it.
+/Đề IELTS/
+
+# Playwright's own output. Traces are megabytes and are only useful on the
+# machine that produced them.
+e2e/test-results/
+e2e/playwright-report/
+e2e/.playwright/
+
+# Python bytecode from the PreToolUse hooks. Machine-specific and rebuilt on
+# every run; committing it puts a binary in every diff that touches a hook.
+__pycache__/
+*.pyc

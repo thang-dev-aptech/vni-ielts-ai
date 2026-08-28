@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../../../lib/api.js';
 import { useI18n } from '../../../i18n/index.js';
@@ -18,6 +18,7 @@ import {
   type PracticeItem,
   type PracticeMode,
 } from './practiceCatalogue.js';
+import { useAlive } from '../../../lib/useAlive.js';
 
 const PER_PAGE = 6;
 
@@ -78,11 +79,7 @@ export function PracticeWorkspace() {
    * cleared on the way out stays false for the second run, which is how a
    * screen sits on "Đang tải…" against an API that already answered 200.
    */
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => void (alive.current = false);
-  }, []);
+  const alive = useAlive();
 
   const load = useCallback(async () => {
     if (status === 'loading') return;
@@ -180,7 +177,20 @@ export function PracticeWorkspace() {
     });
   }
 
-  async function start(item: PracticeItem) {
+  /**
+   * Opens a sitting, in the clock the learner asked for.
+   *
+   * <b>`timing` comes from which button was pressed, not from the mode bar.</b>
+   * The bar chooses Full Test or Single Skill (`E-11`); luyện đề and thi thử
+   * are a different pair (`E-20`), and how the two compose is `B-13`. Deriving
+   * one from the other would answer an open business question from a control
+   * built to mean something else — and would leave no way to sit a timed
+   * single-skill paper, which is what the bar means today.
+   *
+   * `deadline` is also what the server applies when the field is absent, so an
+   * older server and this client agree about the mock path.
+   */
+  async function start(item: PracticeItem, timing: 'deadline' | 'open') {
     if (accessToken === null) return;
 
     setStarting(item.key);
@@ -198,6 +208,7 @@ export function PracticeWorkspace() {
           examVersionId: item.examVersionId,
           mode: item.mode,
           ...(item.mode === 'single' && item.module ? { module: item.module } : {}),
+          timing,
         },
         key,
       );
@@ -205,7 +216,16 @@ export function PracticeWorkspace() {
       // Straight into the paper. Not the dashboard, not a confirmation step —
       // the learner pressed "bắt đầu" and the next thing they should see is
       // the first question.
-      navigate(Paths.examSession(session.sessionId));
+      //
+      // Two runners, two routes. The open-ended one counts up and can be
+      // stopped; the deadlined one counts down and refuses a late write. A
+      // single route with a flag would put practice branches through the timed
+      // runner. → `Paths.practiceSession`
+      navigate(
+        timing === 'open'
+          ? Paths.practiceSession(session.sessionId)
+          : Paths.examSession(session.sessionId),
+      );
     } catch (caught) {
       if (!alive.current) return;
       setError(caught instanceof ApiError ? t('exam.startFailed') : t('common.notConnected'));
@@ -269,7 +289,7 @@ export function PracticeWorkspace() {
     <div className="work">
       {selector}
 
-      <div className="work-bar">
+      <div className="work-bar" id="work-results" tabIndex={-1}>
         {/*
           <b>The heading and the count are one live region.</b> Only the count
           carried `role="status"`, so changing skill silently rewrote the `<h2>`
@@ -471,13 +491,19 @@ export function PracticeWorkspace() {
                       key={item.key}
                       item={item}
                       busy={starting === item.key}
-                      onStart={(one) => void start(one)}
+                      onStart={(one, timing) => void start(one, timing)}
                     />
                   ))}
                 </ul>
               )}
 
-              <Pagination page={safePage} pages={pages} onGo={setPage} />
+              <Pagination
+                page={safePage}
+                pages={pages}
+                onGo={setPage}
+                label="Trang bài luyện"
+                scrollTo="work-results"
+              />
             </div>
           </div>
         </>

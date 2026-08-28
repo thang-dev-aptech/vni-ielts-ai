@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { Paths } from '../../routes/paths.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n, type StringKey } from '../../i18n/index.js';
 import { currentAvatarTint } from '../landing/avatarTint.js';
@@ -10,6 +11,7 @@ import { LearningGoal } from './LearningGoal.js';
 import { PasswordPanel } from './PasswordPanel.js';
 import { PersonalInfo } from './PersonalInfo.js';
 import '../../styles/profile.css';
+import { usePageTitle } from '../../routes/usePageTitle.js';
 
 type ProfileTab = 'progress' | 'password' | 'devices';
 
@@ -83,17 +85,28 @@ function parseTab(raw: string | null): ProfileTab {
 export function ProfilePage() {
   const { user } = useAuth();
   const { t } = useI18n();
-  const [params, setParams] = useSearchParams();
+  usePageTitle(t('title.profile'));
+  const [params] = useSearchParams();
   const [tint] = useState(currentAvatarTint);
 
   const tab = parseTab(params.get('tab'));
 
-  const setTab = (next: ProfileTab) => {
-    const copy = new URLSearchParams(params);
-    if (next === 'password') copy.delete('tab');
-    else copy.set('tab', next);
-    setParams(copy, { replace: true });
-  };
+  /*
+   * A tab change moves focus into the panel it opened.
+   *
+   * The panel used to be an `aria-live` region, which announced its whole
+   * subtree on every switch and left the keyboard where it was. Focus is the
+   * honest signal: it says "you are here now" without reading a device list
+   * aloud, and the next Tab continues from inside the panel rather than from
+   * the tab strip. `mounted` keeps it from firing on first paint, when the
+   * reader has not asked for anything.
+   */
+  const panelRef = useRef<HTMLDivElement>(null);
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (mounted.current) panelRef.current?.focus();
+    mounted.current = true;
+  }, [tab]);
 
   const panel = useMemo(() => {
     if (tab === 'password') return <PasswordPanel />;
@@ -113,16 +126,25 @@ export function ProfilePage() {
 
   if (user === null) return null;
 
+  /*
+   * <b>A link, and nothing else.</b>
+   *
+   * There used to be an `onClick` that called `preventDefault()` on every
+   * click and then navigated by hand. React Router's own handler checks for
+   * modifier keys and defers to the browser; this one ran first and cancelled
+   * the event unconditionally, so Cmd-click, Ctrl-click and middle-click on a
+   * profile tab changed the tab in place instead of opening a new one.
+   *
+   * It was also redundant: the `to` already encodes the destination,
+   * `parseTab(params.get('tab'))` reads it back, and `replace` is a prop.
+   */
   const renderTab = ({ id, icon: Icon, labelKey }: Tab) => (
     <Link
       key={id}
-      to={id === 'password' ? '/profile' : `/profile?tab=${id}`}
+      to={id === 'password' ? Paths.profile : `${Paths.profile}?tab=${id}`}
+      replace
       className={`profile-tab${tab === id ? ' is-active' : ''}`}
       aria-current={tab === id ? 'page' : undefined}
-      onClick={(event) => {
-        event.preventDefault();
-        setTab(id);
-      }}
     >
       <Icon />
       {t(labelKey)}
@@ -179,20 +201,45 @@ export function ProfilePage() {
             a heading states it. It also stops the panel from running the full
             width of the page with a 400px form inside it.
           */}
-          <nav className="profile-nav" aria-label={t('profile.modules')}>
-            <p className="profile-nav-group">{t('profile.tabGroup.account')}</p>
-            {ACCOUNT_TABS.map(renderTab)}
+          {/*
+            Two `<nav>`s, each with its own name.
 
-            <p className="profile-nav-group">{t('profile.tabGroup.learning')}</p>
+            The group labels were `<p>` elements — which state nothing to a
+            screen reader, so the whole thing announced as one navigation with
+            six ungrouped links, exactly the "a horizontal strip could only
+            imply the split" failure the comment above was written against.
+            Two named landmarks say it in the one place the reader can hear it.
+          */}
+          <nav className="profile-nav" aria-label={t('profile.tabGroup.account')}>
+            <p className="profile-nav-group" aria-hidden="true">
+              {t('profile.tabGroup.account')}
+            </p>
+            {ACCOUNT_TABS.map(renderTab)}
+          </nav>
+
+          <nav className="profile-nav" aria-label={t('profile.tabGroup.learning')}>
+            <p className="profile-nav-group" aria-hidden="true">
+              {t('profile.tabGroup.learning')}
+            </p>
             {LEARNING_TABS.map(renderTab)}
           </nav>
 
           <section className="profile-main" aria-labelledby="profile-modules">
-            <h2 className="profile-sr-only" id="profile-modules">
+            <h2 className="sr-only" id="profile-modules">
               {t('profile.modules')}
             </h2>
 
-            <div className="profile-panel" aria-live="polite">
+            {/*
+              <b>No `aria-live` here.</b> It wrapped the entire tab body, so
+              switching to Thiết bị announced the panel heading, the lead, the
+              bulk sign-out button and every device row as one polite
+              announcement — and the two live regions inside `PasswordPanel`
+              were nested within it, so they fired twice. `aria-live` is for
+              incidental updates, not for a panel the reader asked to swap.
+              Focus moves to the panel instead, which is what a tab change
+              actually means.
+            */}
+            <div className="profile-panel" ref={panelRef} tabIndex={-1}>
               {panel}
             </div>
           </section>

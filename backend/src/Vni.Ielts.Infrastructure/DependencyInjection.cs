@@ -1,15 +1,20 @@
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using Microsoft.Extensions.DependencyInjection;
+using Vni.Ielts.Application.Assessment;
 using Vni.Ielts.Application.Dictation;
 using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Domain.Common;
+using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
+using Vni.Ielts.Infrastructure.Storage;
 using Vni.Ielts.Infrastructure.Persistence;
 using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Persistence.Exams;
 using Vni.Ielts.Infrastructure.Persistence.Identity;
+using Vni.Ielts.Infrastructure.Ai;
+using Vni.Ielts.Infrastructure.Assessment;
 using Vni.Ielts.Infrastructure.Security;
 using Vni.Ielts.Infrastructure.Security.Sso;
 using Microsoft.Extensions.Logging;
@@ -36,6 +41,24 @@ public static class DependencyInjection
         services.Configure<MongoOptions>(configuration.GetSection(MongoOptions.SectionName));
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<SsoOptions>(configuration.GetSection(SsoOptions.SectionName));
+        services.Configure<AiOptions>(configuration.GetSection(AiOptions.SectionName));
+        services.Configure<AssessmentOptions>(
+            configuration.GetSection(AssessmentOptions.SectionName));
+
+        /*
+         * The provider exclusion is checked at boot, not at the call site.
+         *
+         * A misconfiguration that only surfaces when a learner submits an
+         * essay surfaces on the worst possible day, to the worst possible
+         * person, and by then the request has already been made. Failing to
+         * start is the cheap version of the same news.
+         */
+        var ai = configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+        foreach (var (section, provider) in new[] { ("OpenAi", ai.OpenAi), ("Gemini", ai.Gemini) })
+        {
+            if (AiProviderPolicy.Rejects(section, provider) is { } reason)
+                throw new InvalidOperationException(reason);
+        }
 
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<MongoContext>();
@@ -50,20 +73,79 @@ public static class DependencyInjection
         // unconditionally would mean a production deployment silently never
         // sends a verification message while reporting success — so the caller
         // must opt in, and Program.cs only does so outside Production.
-        services.AddScoped<IVerificationMessageSender, LoggingVerificationMessageSender>();
+        /*
+         * ── Who delivers a verification or reset link ──────────────────────
+         *
+         * <b>SMTP when it is configured; the log when it is not.</b> The
+         * logging sender writes the link to the server log and reports
+         * `NotSent`, so every screen that would say "check your inbox" says
+         * the truth instead. That is the right development behaviour and it is
+         * an outright lie in production, which is why the startup gate refuses
+         * to boot without a real one.
+         *
+         * <b>Configured wins even in Development</b>, so a real provider can be
+         * exercised locally by pointing at one — a mail path nobody runs before
+         * production is a mail path nobody has tested.
+         */
+        var email = configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>()
+            ?? new SmtpOptions();
+
+        if (email.IsConfigured)
+        {
+            services.AddSingleton(email);
+            services.AddScoped<IVerificationMessageSender, SmtpMessageSender>();
+        }
+        else
+        {
+            services.AddScoped<IVerificationMessageSender, LoggingVerificationMessageSender>();
+        }
 
         services.AddScoped<IExamCatalogue, MongoExamCatalogue>();
         services.AddScoped<IExamSessionRepository, MongoExamSessionRepository>();
         services.AddScoped<IAnswerSheetStore, MongoAnswerSheetStore>();
         services.AddScoped<IRecordingStore, GridFsRecordingStore>();
         services.AddScoped<ISectionResultStore, MongoSectionResultStore>();
+        services.AddScoped<ISectionMarkingStore, MongoSectionMarkingStore>();
+
+        // The durable record that a marking is owed. Closing a section writes
+        // one; the worker turns it into a band. → `IMarkingOutbox`
+        services.AddScoped<IMarkingOutbox, MongoMarkingOutbox>();
+
+        // Reconciles stored audio against the sheets that reference it. Run by
+        // the worker, and off unless configured on. → `RecordingReconciliation`
+        services.AddScoped<RecordingReconciliation>();
+
+        /*
+         * Writing and Speaking marking: the pipeline is whole, the evaluator
+         * is not there, and both of those are deliberate.
+         *
+         * `CriterionMarking` validates a model's claim and refuses it rather
+         * than repairing it; the runner turns a refusal, a missing transcript
+         * or a missing key into a stated reason instead of a band. What is
+         * absent is the adapter that calls a provider — `B-2`, the Vietnam
+         * PDPL cross-border position, is unresolved, so no real learner essay
+         * may cross a border yet, and speech-to-text has not been selected at
+         * all.
+         *
+         * Registering the absence rather than leaving the port unbound is the
+         * point: `IsConfigured` answers honestly and the call refuses loudly,
+         * where an unregistered port would be a null nobody checked. → `G-11`
+         */
+        services.AddSingleton<IRubricSource, ConfiguredRubricSource>();
+        services.AddSingleton<ITranscriptSource, NoTranscriptSource>();
+        services.AddSingleton<ISectionEvaluator>(_ => new UnconfiguredEvaluator(ExamModule.Writing));
+        services.AddSingleton<ISectionEvaluator>(_ => new UnconfiguredEvaluator(ExamModule.Speaking));
+        services.AddScoped<SectionMarkingRunner>();
 
         services.AddScoped<ListExams>();
         services.AddScoped<StartExamSession>();
         services.AddScoped<GetExamSession>();
         services.AddScoped<SaveAnswers>();
+        services.AddScoped<SubmitSpeakingRecording>();
         services.AddScoped<AdvanceSection>();
         services.AddScoped<SubmitExamSession>();
+        services.AddScoped<SetStopwatch>();
+        services.AddScoped<SetTargetTime>();
         services.AddScoped<GetSessionResults>();
         services.AddScoped<ListMySittings>();
 
@@ -71,14 +153,39 @@ public static class DependencyInjection
         // administrative act anywhere else.
         if (isDevelopment) services.AddScoped<DevelopmentExamSeeder>();
 
-        // Development only: real packages carry their media into object
-        // storage, which is what MinIO is in the local stack for.
-        if (isDevelopment) services.AddSingleton<IExamAssetStore, FixtureAssetStore>();
+        /*
+         * ── Where media comes from ────────────────────────────────────────
+         *
+         * <b>Object storage when it is configured; the fixtures directory when
+         * it is not and this is Development.</b>
+         *
+         * Until 2026-08-28 there was only the second, registered only in
+         * Development — so a production process had no exam audio, no exam
+         * images and no dictation audio at all, and the failure would have
+         * looked like a broken player rather than a missing adapter. The
+         * startup gate now refuses to boot a production process with neither.
+         *
+         * <b>Configured wins even in Development</b>, so the local MinIO in
+         * `infra/docker/compose.yaml` can be exercised by pointing at it rather
+         * than by changing code. An adapter nobody runs before production is an
+         * adapter nobody has tested.
+         */
+        var storage = configuration.GetSection(ObjectStorageOptions.SectionName)
+            .Get<ObjectStorageOptions>() ?? new ObjectStorageOptions();
+
+        if (!services.AddObjectStorage(storage) && isDevelopment)
+        {
+            services.AddSingleton<IExamAssetStore, FixtureAssetStore>();
+        }
 
         // Dictation has no authoring surface yet, so its content is a file
         // read once at startup rather than a repository over an empty table.
         services.AddSingleton<IDictationCatalogue, FixtureDictationCatalogue>();
-        services.AddSingleton<IDictationAssetStore, FixtureDictationAssetStore>();
+
+        // Its audio follows the same rule as exam media: object storage when
+        // configured, the fixtures directory when not.
+        if (!storage.IsConfigured)
+            services.AddSingleton<IDictationAssetStore, FixtureDictationAssetStore>();
         services.AddScoped<ListDictationSets>();
         services.AddScoped<GetDictationSet>();
         services.AddScoped<CheckDictationSentence>();
@@ -111,6 +218,7 @@ public static class DependencyInjection
         services.AddScoped<SetPhone>();
         services.AddScoped<ChangeEmail>();
         services.AddScoped<ResendVerification>();
+        services.AddScoped<ConfirmEmailCode>();
 
         AddSsoProviders(services, configuration, isDevelopment);
 
@@ -210,6 +318,7 @@ public static class DependencyInjection
         await ctx.AssertReplicaSetAsync(ct);
         await ctx.EnsureIndexesAsync(ct);
         await MongoEmailVerificationTokens.EnsureIndexesAsync(ctx.Database, ct);
+        await MongoEmailVerificationTokens.EnsureCodeIndexesAsync(ctx.Database, ct);
         await MongoPasswordResetTokens.EnsureIndexesAsync(ctx.Database, ct);
         await MongoSsoStateStore.EnsureIndexesAsync(ctx.Database, ct);
         await MongoHandoffCodeStore.EnsureIndexesAsync(ctx.Database, ct);

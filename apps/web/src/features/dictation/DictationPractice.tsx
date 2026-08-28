@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
@@ -11,6 +11,7 @@ import {
   type DictationSetView,
 } from './dictationApi.js';
 import '../../styles/dictation.css';
+import { useAlive } from '../../lib/useAlive.js';
 
 /**
  * Nghe chép chính tả, the working part — `M-22`.
@@ -54,12 +55,9 @@ export function DictationPractice({ setId }: { setId: string }) {
   const [typed, setTyped] = useState('');
   const [result, setResult] = useState<DictationResultView | null>(null);
   const [checking, setChecking] = useState(false);
+  const [checkFailed, setCheckFailed] = useState(false);
 
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => void (alive.current = false);
-  }, []);
+  const alive = useAlive();
 
   const load = useCallback(async () => {
     // `status` is read as well as the token: during a session restore the
@@ -98,11 +96,22 @@ export function DictationPractice({ setId }: { setId: string }) {
     if (sentence === undefined) return;
 
     setChecking(true);
+    setCheckFailed(false);
     try {
       const verdict = await checkSentence(accessToken, state.set.id, sentence.order, typed);
       if (alive.current) setResult(verdict);
     } catch {
-      if (alive.current) setResult(null);
+      /*
+       * This used to be `setResult(null)` and nothing else — no message, no
+       * `role="alert"`, no retry. The learner pressed "Kiểm tra", the button
+       * flickered through "Đang kiểm tra…", and the page came back looking
+       * exactly as it had, with any previous verdict silently destroyed. Every
+       * other list on both dictation screens got a proper failure card; the
+       * one interaction the module exists for got nothing.
+       *
+       * The previous verdict is kept, because it is still true.
+       */
+      if (alive.current) setCheckFailed(true);
     } finally {
       if (alive.current) setChecking(false);
     }
@@ -171,14 +180,23 @@ export function DictationPractice({ setId }: { setId: string }) {
 
   return (
     <>
+      {/*
+        <b>`h1`, because on `/dictation/:setId` this is the page's name.</b> It
+        was an `h3` and the page had no `h1` at all — the set page carries no
+        marketing headline above it, so the document had a heading tree that
+        started at level 3. A screen-reader user listing headings got no title
+        for the thing they had just opened.
+
+        `onTitle` hands the same string up so the browser tab can carry it too.
+      */}
       <header className="dict-set-head">
-        <h3>{set.title}</h3>
+        <h1>{set.title}</h1>
         <p>{set.description}</p>
       </header>
 
       <section className="dict-card">
         <div className="dict-head">
-          <h4>{t('dict.sentenceOf', { index: index + 1, total: set.sentences.length })}</h4>
+          <h2>{t('dict.sentenceOf', { index: index + 1, total: set.sentences.length })}</h2>
           <span className="dict-chip">{t('dict.replayable')}</span>
         </div>
 
@@ -189,7 +207,12 @@ export function DictationPractice({ setId }: { setId: string }) {
           <textarea
             rows={3}
             value={typed}
-            disabled={checking}
+            /*
+              `readOnly`, not `disabled`. A disabled control is blurred by the
+              browser, so every check dropped focus to `<body>` and the learner
+              had to find the box again before typing the next attempt.
+            */
+            readOnly={checking}
             onChange={(event) => setTyped(event.target.value)}
             onKeyDown={(event) => {
               // Enter checks; Shift+Enter is a newline. A dictation sentence
@@ -197,12 +220,28 @@ export function DictationPractice({ setId }: { setId: string }) {
               // is most of the friction in this exercise.
               if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
-                void check();
+                // The same guard the button carries. Without it, Enter on an
+                // empty field posted an empty answer — the keyboard path was
+                // not held to the rule the mouse path was.
+                if (!checking && typed.trim() !== '') void check();
               }
             }}
           />
         </label>
 
+        {checkFailed && (
+          <p className="dict-check-error" role="alert">
+            {t('common.notConnected')}{' '}
+            <button type="button" className="dict-retry" onClick={() => void check()}>
+              {t('common.retry')}
+            </button>
+          </p>
+        )}
+
+        {/* Previous before Next. Both the visual order and the tab order used
+            to run Kiểm tra → Câu tiếp theo → Câu trước, and both buttons
+            carried `className="dict-next"`, so CSS could not tell them
+            apart either. */}
         <div className="dict-actions">
           <button
             type="button"
@@ -213,20 +252,44 @@ export function DictationPractice({ setId }: { setId: string }) {
             {checking ? t('dict.checking') : t('dict.check')}
           </button>
 
+          {index > 0 && (
+            <button type="button" className="dict-prev" onClick={() => move(index - 1)}>
+              {t('dict.previous')}
+            </button>
+          )}
+
           {result !== null && !last && (
             <button type="button" className="dict-next" onClick={() => move(index + 1)}>
               {t('dict.next')}
             </button>
           )}
-
-          {index > 0 && (
-            <button type="button" className="dict-next" onClick={() => move(index - 1)}>
-              {t('dict.previous')}
-            </button>
-          )}
         </div>
 
         {result !== null && <Verdict result={result} />}
+
+        {/*
+          <b>An end, rather than just running out of Next.</b>
+
+          On the last sentence the page used to hide the Next button and stop.
+          There was no summary, no total across the set, and nothing to do — the
+          learner was left on the final verdict card with a "Câu trước" button,
+          which reads as the exercise having broken rather than finished.
+
+          It says how many sentences were attempted, not a score: a per-sentence
+          verdict is not kept once you move on, so a total would be a number
+          with no source behind it. → `G-11`
+        */}
+        {last && result !== null && (
+          <div className="dict-done" role="status">
+            <p className="dict-done-title">{t('dict.setDone')}</p>
+            <p className="dict-done-body">
+              {t('dict.setDoneBody', { total: set.sentences.length })}
+            </p>
+            <Link className="dict-done-action" to={Paths.dictation}>
+              {t('dict.setDoneAction')}
+            </Link>
+          </div>
+        )}
       </section>
     </>
   );
@@ -258,6 +321,20 @@ function Verdict({ result }: { result: DictationResultView }) {
         {result.words.map((word, position) => {
           const key = `${position}-${word.expected ?? word.typed ?? ''}`;
 
+          /*
+           * <b>Every mark has a word beside it, not only a colour.</b>
+           *
+           * This page's own FAQ promises "mỗi loại có một dấu riêng chứ không
+           * chỉ khác màu", and that was true for sighted readers and false for
+           * everyone else. `w-correct` was colour alone; `w-missing` and
+           * `w-extra` added a CSS `text-decoration` and a `title`, neither of
+           * which a screen reader announces; `w-wrong` used `<s>`, which NVDA
+           * and JAWS do not announce by default. What was actually read out
+           * was the learner's typo and the correct word side by side with
+           * nothing marking either — "The buzz bus leaves at the half past
+           * seven" — which is worse than no feedback, because it reads as a
+           * sentence.
+           */
           if (word.verdict === 'correct') {
             return (
               <span className="w w-correct" key={key}>
@@ -269,6 +346,7 @@ function Verdict({ result }: { result: DictationResultView }) {
           if (word.verdict === 'missing') {
             return (
               <span className="w w-missing" key={key} title={t('dict.missing')}>
+                <span className="sr-only">{t('dict.markMissing')}: </span>
                 {word.expected}
               </span>
             );
@@ -277,14 +355,17 @@ function Verdict({ result }: { result: DictationResultView }) {
           if (word.verdict === 'extra') {
             return (
               <span className="w w-extra" key={key} title={t('dict.extra')}>
+                <span className="sr-only">{t('dict.markExtra')}: </span>
                 {word.typed}
               </span>
             );
           }
 
           return (
-            <span className="w w-wrong" key={key}>
-              <s>{word.typed}</s> {word.expected}
+            <span className="w w-wrong" key={key} title={t('dict.markWrong')}>
+              <span className="sr-only">{t('dict.markWrong')}: </span>
+              <s>{word.typed}</s> <span className="sr-only">{t('dict.shouldBe')} </span>
+              {word.expected}
             </span>
           );
         })}

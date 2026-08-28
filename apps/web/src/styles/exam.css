@@ -230,7 +230,40 @@
   line-height: var(--lh-body);
 }
 
+/*
+ * The second line of the section's identity: "Kỹ năng 2/4 · Academic Practice
+ * Test 1" in a Full Test, and the paper's name alone in a Single Skill one.
+ *
+ * `min-width: 0` on the row, `flex: none` on the position and `1 1 auto` on the
+ * title, so what gets clipped at 390px is the title — which is the same on all
+ * four sections — rather than the position, which is the part that changes.
+ */
+.exam-bar-sub {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.exam-bar-step {
+  flex: none;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* A separator that is not a character anyone has to read, and disappears with
+   the element it follows rather than being stranded before the title. */
+.exam-bar-step::after {
+  content: '·';
+  margin-left: var(--s-2);
+  color: var(--muted);
+}
+
 .exam-bar-title {
+  flex: 1 1 auto;
+  min-width: 0;
   display: block;
   font-size: var(--t-14);
   line-height: var(--lh-body);
@@ -309,6 +342,16 @@
   border-color: #bfe3cd;
   background: var(--ok-soft);
   color: var(--ok);
+}
+
+/*
+ * Typed, not yet attempted. Neutral on purpose: this is the state a writer
+ * sees on every keystroke for an hour, so it must not look like a warning.
+ * `queued` — below — is the warning, and it now means only one thing.
+ */
+.save-chip.is-pending {
+  background: var(--card);
+  color: var(--muted);
 }
 
 /* Dashed, and no tick: the work is on the device, not on the server. */
@@ -580,13 +623,25 @@
   font-weight: var(--w-emph);
 }
 
+/*
+ * <b>The loudest control on the page, because it is the most important one.</b>
+ *
+ * It was a pale `--ok-soft` fill with a `#c4e6d2` border — measured 1.14:1 and
+ * 1.35:1 against the white footer, against WCAG 1.4.11's 3:1 for a component
+ * boundary — so it read as disabled. Meanwhile `.prac-start`, the button that
+ * merely *opens* an exam, is a solid green. The hierarchy was inverted:
+ * starting shouted, submitting whispered, and the whisper is the one that ends
+ * an hour of work.
+ *
+ * `#0a8438` carries white at 4.80. → `--green-btn`
+ */
 .exam-submit {
   min-height: 44px;
   padding-inline: var(--s-6);
-  border: 1px solid #c4e6d2;
+  border: 1px solid #0a8438;
   border-radius: 14px;
-  background: var(--ok-soft);
-  color: var(--ok);
+  background: #0a8438;
+  color: #fff;
   font: inherit;
   font-size: var(--t-16);
   font-weight: var(--w-emph);
@@ -684,16 +739,6 @@
   font-size: var(--t-14);
   line-height: var(--lh-body);
   color: var(--muted);
-}
-
-.audio-failed {
-  margin: 0 0 var(--s-4);
-  padding: var(--s-3) var(--s-4);
-  border-radius: 14px;
-  background: var(--bad-soft);
-  color: var(--bad);
-  font-size: var(--t-16);
-  line-height: var(--lh-body);
 }
 
 .exam-transfer {
@@ -850,6 +895,18 @@
   color: var(--ink);
 }
 
+/*
+ * The absent band.
+ *
+ * A dash at the band's own weight is a solid bar four characters wide — it
+ * reads as something struck out rather than as something not yet given. The
+ * note beside it already says which; the glyph only has to stop shouting.
+ */
+.result-overall-value.is-none {
+  font-weight: var(--w-emph);
+  color: var(--ink-2);
+}
+
 .result-overall-note {
   flex-basis: 100%;
   font-size: var(--t-14);
@@ -929,4 +986,470 @@
   .exam-submit {
     width: 100%;
   }
+}
+
+/* Expired. `level-3` said "còn dưới 1 phút" at 00:00; zero is its own state. */
+.exam-clock.level-4 {
+  border-color: #e7b4b0;
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+/*
+ * The wrapper between `.exam-bar-section` and `.exam-bar-title`.
+ *
+ * A flex item defaults to `min-width: auto`, which means it will not shrink
+ * below its content — so the title's ellipsis never engaged and at 390px it
+ * ran 135px past its parent with the save chip drawn over it.
+ */
+.exam-bar-names {
+  min-width: 0;
+}
+
+.exam-submit-error {
+  flex: 1 1 100%;
+  order: -1;
+  margin: 0 0 var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid #e7b4b0;
+  border-radius: var(--r-md);
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+/*
+ * How long preparation and the answer run, said before the button is pressed.
+ *
+ * `--mono` on the two numbers for the same reason the countdown uses it: they
+ * are the same two values, and a learner comparing "you get 01:00" against a
+ * clock reading 00:47 should not have to notice they are set in two faces.
+ */
+.rec-budget {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Where to grant the permission. Only shown for a refusal, because it is the
+   only failure the reader can fix from outside the page. */
+.rec-help {
+  max-width: 52ch;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/*
+ * Where a finished sitting goes next. → `E-13`
+ *
+ * The note wraps to its own line under the two links rather than sitting
+ * beside them: it explains an absence ("there is no next skill here"), and an
+ * explanation set level with the controls reads as a label for one of them.
+ */
+.result-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+}
+
+.result-next-note {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Per-question review.
+   → `SectionReview` in `ExamResultsPage`
+   ──────────────────────────────────────────────────────────────── */
+.result-review {
+  margin-top: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.result-review-head {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.result-review-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--s-3) var(--s-5);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.result-review-trigger:hover {
+  background: var(--sunk);
+}
+
+.result-review-caret {
+  flex: none;
+  font-size: var(--t-18);
+  color: var(--ink-2);
+}
+
+.result-review-body {
+  padding: 0 var(--s-5) var(--s-5);
+}
+
+.result-review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--s-3);
+  margin: 0 0 var(--s-4);
+  padding: 0;
+  list-style: none;
+}
+
+.result-review-grid > li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+/*
+ * <b>A glyph as well as a ground.</b> Right and wrong differ by shape first —
+ * a tick or a cross — so the grid is readable to someone who cannot tell the
+ * two grounds apart. Both inks were measured against their own ground.
+ */
+.result-q {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex: none;
+  min-width: 54px;
+  min-height: 32px;
+  padding-inline: var(--s-2);
+  border-radius: var(--r-md);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+}
+
+.result-q.is-right {
+  background: var(--ok-soft);
+  color: #10562f; /* 7.69 */
+}
+
+.result-q.is-wrong {
+  background: var(--bad-soft);
+  color: #8a2b1e; /* 7.83 */
+}
+
+.result-q-mark {
+  font-size: var(--t-14);
+}
+
+/* What the learner wrote. Truncated rather than wrapped: a long essay answer
+   would otherwise turn a forty-question grid into a page of prose. */
+.result-q-answer {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-review-note {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Question groups — the shared frame a run of questions lives in.
+   → `QuestionList`
+   ──────────────────────────────────────────────────────────────── */
+
+/* The group is one item of the outer list, so it carries no card of its own —
+   its children are the cards. Without this it drew a box around a box. */
+.exam-group-item {
+  list-style: none;
+}
+
+.exam-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.exam-group-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.exam-group-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin: 0;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+/* "Câu 15–20" — the anchor a candidate checks against the paper in front of
+   them, so it leads and it is tabular. */
+.exam-group-range {
+  flex: none;
+  padding: 2px var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-size: var(--t-14);
+  color: var(--ink-2);
+}
+
+.exam-group-name {
+  min-width: 0;
+}
+
+/*
+ * The rubric.
+ *
+ * <b>It is a scoring rule, and it is styled as one.</b> "NO MORE THAN TWO
+ * WORDS" decides whether a correct-sounding answer is marked wrong, so it does
+ * not get the grey, small, easily-skipped treatment a hint would — it gets a
+ * rule down the side and full body size. Nothing about it is restyled or
+ * summarised in the markup either; it travels verbatim from the package.
+ */
+.exam-group-rubric {
+  margin: 0;
+  padding-left: var(--s-4);
+  border-left: 3px solid var(--acc);
+  color: var(--ink);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.exam-group-questions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Summary completion — the gaps sit in the sentence.
+ *
+ * `line-height` is generous because an inline input is taller than the text
+ * around it; without the extra leading the lines of a five-gap paragraph
+ * collide and the paragraph stops reading as prose, which is the whole reason
+ * the gaps are inline rather than listed underneath.
+ */
+.exam-summary {
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+  font-size: var(--t-16);
+  line-height: 2.4;
+  color: var(--ink);
+}
+
+.exam-summary-gap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-inline: 4px;
+  vertical-align: baseline;
+}
+
+.exam-summary-input {
+  width: 14ch;
+  min-height: 36px;
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.exam-summary-input:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/*
+ * A bank of options, as a select.
+ *
+ * Six heading-matching questions against a bank of ten used to draw sixty
+ * radio buttons repeating the same ten headings — a screenful that buried the
+ * passage and made every choice a re-read of the whole bank.
+ */
+.q-bank {
+  display: flex;
+}
+
+.q-bank-select {
+  width: 100%;
+  max-width: 46ch;
+  min-height: 44px;
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.q-bank-select:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Maps, diagrams and charts.
+   → `ExamImage`
+   ──────────────────────────────────────────────────────────────── */
+.exam-figure {
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.exam-figure-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
+  /* A plan or a chart is read, not glanced at. White behind it keeps a
+     transparent PNG legible on any surface this lands on. */
+  background: #fff;
+}
+
+.exam-figure-loading {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.exam-figure-caption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  margin-top: var(--s-3);
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* Stated, not hidden. A missing description is a defect the reader can report;
+   an invented one is a different exam. */
+.exam-figure-note {
+  color: var(--muted);
+}
+
+/*
+ * A labelled passage paragraph.
+ *
+ * The letter is a column down the left rather than a bold run inside the
+ * text, because a candidate matching six headings scans it six times — and a
+ * letter embedded in justified prose is something you read past, not
+ * something you scan.
+ */
+.exam-passage-para {
+  display: grid;
+  grid-template-columns: var(--s-6) 1fr;
+  gap: var(--s-3);
+  align-items: start;
+}
+
+.exam-passage-label {
+  position: sticky;
+  top: var(--s-4);
+  display: grid;
+  place-items: center;
+  width: var(--s-6);
+  height: var(--s-6);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  font-size: var(--t-14);
+  font-weight: var(--w-display);
+  line-height: 1;
+  color: var(--ink-2);
+}
+
+.exam-passage-text {
+  min-width: 0;
+}
+
+/*
+ * The list of headings, above the questions it is chosen from.
+ *
+ * Two columns where there is room: ten headings in one column pushes the first
+ * question below the fold, and the whole point of showing the bank is that it
+ * and the questions are visible together.
+ */
+.exam-bank {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--s-2) var(--s-5);
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--card);
+  list-style: none;
+}
+
+.exam-bank-item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.exam-bank-key {
+  flex: none;
+  min-width: 3ch;
+  font-weight: var(--w-emph);
+  color: var(--ink-2);
 }

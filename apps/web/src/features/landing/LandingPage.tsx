@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n/index.js';
 import { Link } from 'react-router-dom';
 import { Paths } from '../../routes/paths.js';
 import { usePageTitle } from '../../routes/usePageTitle.js';
@@ -48,8 +49,9 @@ import '../../styles/landing.css';
  * The one anchor left is `#students`.
  */
 export function LandingPage() {
+  const { t } = useI18n();
+  usePageTitle(t('title.landing'));
   useReveal();
-  usePageTitle('Luyện thi IELTS có AI chấm');
   const { status } = useAuth();
 
   /**
@@ -70,14 +72,18 @@ export function LandingPage() {
               <span>✦</span> Học tiếng Anh thông minh hơn mỗi ngày
             </div>
             <h1>
-              Tiếng Anh tiến bộ từng ngày.
-              <br />
+              Tiếng Anh tiến bộ từng ngày. <br />
               <span>IELTS tự tin hơn.</span>
             </h1>
+            {/* "bốn tiêu chí IELTS" is `H-8`'s assumed four, which CLAUDE.md
+                names as the thing to bind from configuration rather than
+                hard-code; "kèm dẫn chứng lấy từ chính bài của bạn" describes a
+                quote-verification step that does not exist. The half of the
+                sentence that is settled — where each score comes from — is the
+                half worth saying. */}
             <p className="hero-lead">
-              Làm đề như thi thật, chấm xong biết sai ở đâu. Reading và Listening chấm theo đáp án;
-              Writing và Speaking được AI chấm theo bốn tiêu chí IELTS, kèm dẫn chứng lấy từ chính
-              bài của bạn.
+              Làm đề như thi thật, chấm xong biết sai ở đâu. Reading và Listening chấm theo đáp án,
+              có điểm ngay; Writing và Speaking do AI chấm và luôn mang nhãn tham khảo.
             </p>
 
             <div className="hero-ctas">
@@ -102,19 +108,30 @@ export function LandingPage() {
                 It read "4 · kỹ năng IELTS", "AI · phản hồi tức thì" and
                 "100% · học theo mục tiêu". The first is true and stays; the
                 second is a speed commitment `M-8` has not settled; the third
-                is a percentage of nothing. What replaced them are two claims
-                the product can be held to — Reading and Listening are marked
-                from the answer key, and practice is free and unmetered, which
-                is what `/practice` already states.
+                is a percentage of nothing. What replaced them are claims the
+                product can be held to: Reading and Listening are marked from
+                the answer key, and the exam clock is server-authoritative
+                (ADR-0007).
+
+                The second slot said "0đ / không giới hạn lượt làm" until
+                26/08. That was the same mistake in a quieter voice — a price
+                and a quota, neither of which anyone has set, printed as a
+                guarantee on the first screen of the product. → `B-5a`, `B-5b`
               */}
             <div className="trust-row">
               <div className="trust-item">
                 <strong>4</strong>
                 <span>kỹ năng trong một đề</span>
               </div>
+              {/*
+                Was "0đ / không giới hạn lượt làm" — a price and a quota, and
+                neither has been set: `B-5a` and `B-5b` are open and live token
+                spending is in the first release. A number in this strip reads
+                as a commitment, so this slot carries a fact instead.
+              */}
               <div className="trust-item">
-                <strong>0đ</strong>
-                <span>không giới hạn lượt làm</span>
+                <strong>⏱</strong>
+                <span>đồng hồ chạy trên máy chủ, không phụ thuộc máy bạn</span>
               </div>
               <div className="trust-item">
                 <strong>R·L</strong>
@@ -176,8 +193,7 @@ export function LandingPage() {
           <div className="section-heading centered" data-reveal>
             <div className="eyebrow green-eyebrow">Kho đề</div>
             <h2>
-              Cập nhật đề IELTS liên tục.
-              <br />
+              Cập nhật đề IELTS liên tục. <br />
               <span>Đề mới vào thẳng phòng luyện.</span>
             </h2>
             <p>
@@ -215,21 +231,34 @@ export function LandingPage() {
             </article>
           </div>
 
-          <div className="section-heading row-heading updates-articles-head" data-reveal>
-            <div>
-              <div className="eyebrow green-eyebrow">Bài viết</div>
-              <h2>Đọc thêm trong lúc chờ buổi luyện tới.</h2>
-            </div>
-            <Link className="text-link" to={Paths.articles}>
-              Xem tất cả bài viết →
-            </Link>
-          </div>
+          {/*
+            <b>The whole block goes when there is nothing to preview.</b>
 
-          <div className="article-grid" data-reveal data-reveal-stagger>
-            {ARTICLES.slice(0, 3).map((article) => (
-              <ArticleCard key={article.slug} article={article} cover />
-            ))}
-          </div>
+            A heading reading "Đọc thêm trong lúc chờ buổi luyện tới." above an
+            empty grid, beside a link promising "Xem tất cả bài viết", is not an
+            honest empty state — it is a section that looks broken and a link
+            that leads somewhere with nothing in it. The home page has no
+            business advertising a library that has not been stocked.
+          */}
+          {ARTICLES.length > 0 && (
+            <>
+              <div className="section-heading row-heading updates-articles-head" data-reveal>
+                <div>
+                  <div className="eyebrow green-eyebrow">Bài viết</div>
+                  <h2>Đọc thêm trong lúc chờ buổi luyện tới.</h2>
+                </div>
+                <Link className="text-link" to={Paths.articles}>
+                  Xem tất cả bài viết →
+                </Link>
+              </div>
+
+              <div className="article-grid" data-reveal data-reveal-stagger>
+                {ARTICLES.slice(0, 3).map((article) => (
+                  <ArticleCard key={article.slug} article={article} cover />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -245,8 +274,7 @@ export function LandingPage() {
           <div className="section-heading centered" data-reveal>
             <div className="eyebrow green-eyebrow">Về VNI</div>
             <h2>
-              Từ VNI Education
-              <br />
+              Từ VNI Education <br />
               <span>đến phòng luyện IELTS có AI chấm.</span>
             </h2>
           </div>
@@ -276,8 +304,8 @@ export function LandingPage() {
               <h3>Ai cũng luyện được, không phải chờ</h3>
               <p>
                 Writing và Speaking là hai kỹ năng khó tìm người chấm nhất. Mục tiêu của VNI là giữ
-                chi phí mỗi lần chấm đủ thấp để học viên dùng miễn phí — và nói thật về việc phần
-                nào đã làm được, phần nào chưa.
+                chi phí mỗi lần chấm đủ thấp để càng nhiều học viên dùng được càng tốt — và nói thật
+                về việc phần nào đã làm được, phần nào chưa.
               </p>
             </li>
           </ol>
@@ -289,8 +317,7 @@ export function LandingPage() {
           <div className="section-heading centered" data-reveal>
             <div className="eyebrow green-eyebrow">Kết nối với VNI</div>
             <h2>
-              Luôn có người đồng hành.
-              <br />
+              Luôn có người đồng hành. <br />
               <span>Không lo học một mình.</span>
             </h2>
             <p>

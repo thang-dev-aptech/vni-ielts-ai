@@ -1,3 +1,4 @@
+using Vni.Ielts.Domain.Assessment;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Sessions;
@@ -24,8 +25,80 @@ internal static class ExamMappers
 
     // ── Exam version ─────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Everything a sitting is scored against, as one string.
+    ///
+    /// <b>Composed from the domain object rather than from the document.</b>
+    /// Serialising the document would make the fingerprint depend on the BSON
+    /// mapping, so adding a field or renaming one would change every published
+    /// version's hash and lock the catalogue. This depends on the content and
+    /// nothing else.
+    ///
+    /// <b>Status and `publishedAt` are excluded, deliberately.</b> Publishing
+    /// and unpublishing change what a version is <i>for</i>, not what it
+    /// <i>says</i>, and both must keep working on a published version.
+    /// </summary>
+    internal static string ContentFingerprint(this ExamVersion version)
+    {
+        var text = new System.Text.StringBuilder();
+
+        text.Append(version.DefinitionId.Value).Append('\u0000')
+            .Append(version.VersionNumber).Append('\u0000')
+            .Append(version.Title).Append('\u0000')
+            .Append(version.Variant).Append('\u0000')
+            .Append(version.Timing.ListeningTransferSeconds).Append('\u0000');
+
+        foreach (var (module, seconds) in version.Timing.SectionDurationSeconds.OrderBy(kv => kv.Key))
+            text.Append(module).Append('=').Append(seconds).Append('\u0000');
+
+        foreach (var part in version.Timing.SpeakingParts.OrderBy(p => p.Part))
+            text.Append(part.Part).Append(':').Append(part.PrepSeconds).Append(':')
+                .Append(part.ResponseSeconds).Append('\u0000');
+
+        foreach (var (module, table) in version.Scoring.RawToBand.OrderBy(kv => kv.Key))
+        {
+            text.Append(module).Append('#');
+            foreach (var row in table.OrderByDescending(r => r.MinRaw))
+                text.Append(row.MinRaw).Append('>').Append(row.Band.Value).Append(',');
+            text.Append('\u0000');
+        }
+
+        foreach (var section in version.Sections.OrderBy(s => s.Order))
+        {
+            text.Append(section.Module).Append('|').Append(section.Order).Append('|');
+
+            foreach (var part in section.Parts.OrderBy(p => p.Order))
+            {
+                text.Append(part.Order).Append('|').Append(part.Kind).Append('|')
+                    .Append(part.Body).Append('|').Append(part.AudioKey).Append('|')
+                    .Append(part.ImageKey).Append('|').Append(part.TaskNumber).Append('|');
+
+                foreach (var question in part.Questions.OrderBy(q => q.Order))
+                {
+                    text.Append(question.Id).Append('~').Append(question.Type).Append('~')
+                        .Append(question.Prompt).Append('~').Append(question.Marks).Append('~');
+
+                    foreach (var option in question.Options)
+                        text.Append(option.Key).Append('=').Append(option.Text).Append(';');
+
+                    // The answer key is the half a silent edit is most damaging
+                    // to: the passage looks the same and the marking changes.
+                    foreach (var accepted in question.AnswerKey?.Accepted ?? [])
+                        text.Append(accepted).Append('!');
+
+                    text.Append('\u0000');
+                }
+            }
+        }
+
+        return Convert.ToHexString(
+            System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(text.ToString())));
+    }
+
     public static ExamVersionDocument ToDocument(this ExamVersion version) => new()
     {
+        ContentHash = version.ContentFingerprint(),
         Id = version.Id.Value,
         DefinitionId = version.DefinitionId.Value,
         VersionNumber = version.VersionNumber,
@@ -113,6 +186,18 @@ internal static class ExamMappers
                 Prompt = q.Prompt,
                 Options = [.. q.Options.Select(o => new OptionDocument { Key = o.Key, Text = o.Text })],
                 MaxWords = q.MaxWords,
+                Marks = q.Marks,
+                Group = q.Group is { } g
+                    ? new QuestionGroupDocument
+                    {
+                        Id = g.Id,
+                        Title = g.Title,
+                        Instruction = g.Instruction,
+                        Image = g.Image,
+                        Text = g.Text,
+                        EachLetterOnce = g.EachLetterOnce,
+                    }
+                    : null,
                 AnswerKey = q.AnswerKey is { } key
                     ? new AnswerKeyDocument
                     {
@@ -195,7 +280,11 @@ internal static class ExamMappers
                                         : null)),
                             ],
                             key.Overrides?.ToDomain())
-                        : null)),
+                        : null,
+                    q.Group is { } g
+                        ? new QuestionGroup(g.Id, g.Title, g.Instruction, g.Image, g.Text, g.EachLetterOnce)
+                        : null,
+                    q.Marks)),
             ]);
 
     // ── Session ──────────────────────────────────────────────────────────
@@ -206,6 +295,7 @@ internal static class ExamMappers
         UserId = session.UserId.Value,
         ExamVersionId = session.ExamVersionId.Value,
         Mode = session.Mode.ToString(),
+        Timing = session.Timing.ToString(),
         Status = session.Status.ToString(),
         StartedAt = Utc(session.StartedAt),
         SubmittedAt = session.SubmittedAt is { } at ? Utc(at) : null,
@@ -215,8 +305,11 @@ internal static class ExamMappers
             {
                 Module = a.Module.ToString(),
                 StartedAt = Utc(a.StartedAt),
-                DeadlineAt = Utc(a.DeadlineAt),
+                DeadlineAt = a.DeadlineAt is { } d ? Utc(d) : null,
                 SubmittedAt = a.SubmittedAt is { } s ? Utc(s) : null,
+                AccumulatedSeconds = a.AccumulatedSeconds,
+                RunningSince = a.RunningSince is { } r ? Utc(r) : null,
+                TargetSeconds = a.TargetSeconds,
             }),
         ],
     };
@@ -233,10 +326,39 @@ internal static class ExamMappers
             doc.Attempts.Select(a => SectionAttempt.Rehydrate(
                 Enum.Parse<ExamModule>(a.Module),
                 Offset(a.StartedAt),
-                Offset(a.DeadlineAt),
-                a.SubmittedAt is { } s ? Offset(s) : null)));
+                a.DeadlineAt is { } d ? Offset(d) : null,
+                a.SubmittedAt is { } s ? Offset(s) : null,
+                a.AccumulatedSeconds,
+                a.RunningSince is { } r ? Offset(r) : null,
+                a.TargetSeconds)),
+            // Absent means Deadline: every sitting written before this field
+            // existed was a timed one, because there was no other kind.
+            Enum.TryParse<SessionTiming>(doc.Timing, out var timing)
+                ? timing
+                : SessionTiming.Deadline);
 
     // ── Results ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// <b>The band is read back, not recomputed.</b> It was recomputed from the
+    /// criterion bands when the marking was made and stored as the result of
+    /// that; recomputing on read would silently re-derive a learner's band
+    /// under whatever the aggregation rule says today. A stored band is a
+    /// historical fact about an evaluation, not a cache of a calculation.
+    /// </summary>
+    public static SectionMarking ToDomain(this SectionMarkingDocument doc) =>
+        new(
+            Enum.Parse<ExamModule>(doc.Module),
+            doc.RubricVersion,
+            [
+                .. doc.Criteria.Select(c => CriterionAssessment.Create(
+                    c.Criterion, BandScore.Create(c.Band), c.Feedback, [.. c.Evidence])),
+            ],
+            BandScore.Create(doc.Band),
+            doc.ReportedBand is { } reported ? BandScore.Create(reported) : null,
+            [.. doc.Flags.Select(Enum.Parse<MarkingFlag>)],
+            [.. doc.UngroundedEvidence],
+            doc.TaskNumber);
 
     public static SectionScore ToDomain(this SectionResultDocument doc) =>
         new(

@@ -76,6 +76,22 @@ export const Paths = {
   examSession: (sessionId: string) => `/students/session/${sessionId}`,
   examSessionPattern: '/students/session/:sessionId',
 
+  /**
+   * A luyện đề sitting in progress — `E-20`.
+   *
+   * <b>Its own address, not a query flag on `examSession`.</b> The two runners
+   * are different pages: one counts down against a server deadline and refuses
+   * a late write, the other counts up against a stopwatch the learner can stop
+   * and has no late. A `?mode=` on one route would put practice branches
+   * through the timed runner, which is the file where an accidental change
+   * costs somebody a real exam.
+   *
+   * Under `/students/` and outside every shell, for the same reason
+   * `examSession` is: a sitting has no sidebar and no link out.
+   */
+  practiceSession: (sessionId: string) => `/students/practice/${sessionId}`,
+  practiceSessionPattern: '/students/practice/:sessionId',
+
   examResults: (sessionId: string) => `/students/session/${sessionId}/results`,
   examResultsPattern: '/students/session/:sessionId/results',
 

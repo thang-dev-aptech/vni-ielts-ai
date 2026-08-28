@@ -234,11 +234,12 @@
  * its rendering changes. A row of `<button aria-pressed>` would have announced
  * as unrelated toggles with no group and no additive meaning.
  */
+/* 40px measured. Same floor as every other filter chip in the product. */
 .dset-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border: 1px solid #dbe3d9;
   border-radius: 999px;
@@ -302,9 +303,12 @@
   color: #7a3d05;
 }
 
+/* 40px measured, against the 44 floor every other control on this page keeps.
+   Padding as well as height, because a 6px inline gutter on a text link makes
+   the visible target narrower than the words. */
 .dict-filters-clear {
-  min-height: 40px;
-  padding: 0 6px;
+  min-height: 44px;
+  padding: 0 10px;
   border: 0;
   background: none;
   color: #1e7a3c;
@@ -358,6 +362,10 @@
 
 .dset-card {
   position: relative;
+  /* The `::after` on the title link covers the whole card, so the pointer must
+     agree with it — without this the card reads as inert everywhere except
+     over the 25px of title text. */
+  cursor: pointer;
   display: flex;
   align-items: flex-start;
   gap: 16px;
