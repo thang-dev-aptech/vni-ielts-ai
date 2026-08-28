@@ -3645,35 +3645,104 @@ Trên máy Windows này, kết quả tốt nhất có thể vẫn là PARTIAL, v
 
 ## Báo cáo tổng cuối cùng
 
-Chỉ hoàn tất phần này sau khi mọi checkbox `F0…F5` đã đóng.
+**Commit:** `a5711961dfbc226c9139a7f23563fc320611952e` — nhánh `feat/foundation-and-learner-auth`,
+[PR #2](https://github.com/thang-dev-aptech/vni-ielts-ai/pull/2), CI run
+[33201020573](https://github.com/thang-dev-aptech/vni-ielts-ai/actions/runs/33201020573) (vòng 7).
+
+**Môi trường:** GitHub Actions `ubuntu-latest` và `windows-latest`; .NET 10.0.x; Node 24; pnpm qua
+`pnpm/action-setup@v4`; MongoDB 7 replica set `rs0`, MinIO và PBM 2.12.0 dựng từ
+`infra/docker/compose.yaml` + `compose.ci.yaml`.
 
 ### Kết luận
 
-Chưa có.
+**Foundation Ready: CHƯA ĐẠT — thiếu đúng một tiêu chí, và nó là quyết định của chủ dự án.**
+
+Toàn bộ pipeline đã xanh trên CI. Điều còn thiếu là **phân tích tĩnh**: phase gate F4 đòi CodeQL,
+dependency audit, secret scan và image scan *đều chạy được*. Ba cái sau đã chạy thật và xanh. CodeQL
+không chạy được vì repository là private không có GitHub Advanced Security — không dòng YAML nào bật
+được nó. → `R19`
+
+Đây **không** phải "gần xong". Nó là: mọi thứ trong phạm vi kỹ thuật đã đóng, còn lại một quyết định
+mua sắm. Xem `R19` để biết hai lựa chọn và vì sao "để repo public" chưa phải lối tắt rẻ khi `R16` còn
+treo.
 
 ### Test matrix cuối
 
+Số liệu lấy từ log run 33201020573, không chép lịch sử.
+
 | Cổng | Command/workflow | Pass | Fail | Skip | Artifact/bằng chứng |
 |---|---|---:|---:|---:|---|
-| Clean checkout Windows | — | — | — | — | — |
-| Clean checkout Linux | — | — | — | — | — |
-| Frontend/unit | — | — | — | — | — |
-| Backend/unit/architecture | — | — | — | — | — |
-| Integration + idempotency burn-in | — | — | — | — | — |
-| E2E browser | — | — | — | — | — |
-| Production-smoke | — | — | — | — | — |
-| OTLP export | — | — | — | — | — |
-| Security/supply chain | — | — | — | — | — |
-| Backup/PITR restore | — | — | — | — | — |
+| Clean checkout Windows | `verify.yml` job `windows` — Portability gates | ✔ 3m20s | 0 | 0 | artifact `verify-results-windows` |
+| Clean checkout Linux | `verify.yml` job `linux` — `verify.mjs --install` | 27 stage | 0 | 0 | `VERDICT: PASS (27 passed · 0 failed · 0 not run)` |
+| Frontend/unit | stage `frontend-test` | 252 | 0 | 0 | 27 file, `verify-test-results-linux` |
+| Backend/unit/architecture | Architecture · Domain · Application | 10 · 157 · 170 | 0 | 0 | `.trx` trong `verify-test-results-linux` |
+| Integration + idempotency burn-in | Infrastructure · Integration · Worker + `burn-in.mjs` | 67 · 168 · 13 | 0 | 0 | artifact `burn-in-results` (10 vòng) |
+| E2E browser | stage `e2e` · workflow `Browser` | ✔ 2m43s | 0 | 0 | artifact `playwright-traces` |
+| Production-smoke | stage `smoke` — `production-smoke.sh` | ✔ | 0 | — | `compose.production.yaml`, log `smoke-logs` khi đỏ |
+| OTLP export | `backend.yml` — `otel-smoke.sh` | ✔ | 0 | — | collector `debug`, không rời runner |
+| Security/supply chain | `security.yml` + stage `security` + `sbom.sh` | 3/4 cổng | 0 | CodeQL skip | `security-reports`, 4 SBOM SPDX |
+| Backup/PITR restore | stage `restore-drill` + `failure-drills.mjs --include-live` | 9 drill | 0 | 0 | `VERDICT: PASS (9 produced their failure · 0 did not · 0 not run)` |
+
+**Cổng chống-skip, con số quan trọng nhất của cả hàng đợi:**
+
+```
+Result files: 7   tests counted: 592   skips: 0 (0 unauthorized)
+```
+
+Ở vòng 2 chính cổng này báo `Skipped tests: 0` trong khi sáu test object storage đang bị bỏ qua. Nay
+số 0 là số 0 thật, và cổng đã được chứng minh bắt được đúng sáu test đó trên artifact CI cũ.
 
 ### Artifact bàn giao
 
-- Chưa có.
+| Artifact | Nội dung | Retention |
+|---|---|---|
+| `verify-test-results-linux` | `.trx`, vitest JSON, Playwright JSON | mặc định |
+| `verify-results-windows` | toàn bộ `_artifacts/` của leg Windows | 14 ngày |
+| `playwright-traces` | trace trình duyệt thật | 7 ngày |
+| `burn-in-results` | 10 vòng idempotency | 14 ngày |
+| `failure-drill-results` | `summary.json` của 9 drill | 14 ngày |
+| `security-reports` | `_artifacts/security/` + 4 SBOM SPDX-2.3 | 14 ngày |
+| `smoke-logs` | log compose + stack, chỉ khi đỏ | 7 ngày |
+
+SBOM: API 138 · worker 134 · web 71 · admin 71 package, gắn theo digest image của commit.
 
 ### Rủi ro và phần còn lại trước Production Ready
 
-- Chưa đánh giá.
+| ID | Nội dung | Chủ |
+|---|---|---|
+| `R19` | **Không có phân tích tĩnh.** CodeQL cần GHAS trả phí trên private repo. Đúng những query dự án cần nhất — path traversal trong ZIP ingestion, injection trên đường AI — hiện không có gì chạy | Product |
+| `R18` | Hai finding GitGuardian không đọc được từ trong repo. Gitleaks chạy thật và báo sạch; hai công cụ đang bất đồng | Product |
+| `R16` | Khóa Google trong `.mcp.json` **chưa thu hồi** — vẫn còn hiệu lực phía Google | Product / IT |
+| — | `compose.production.yaml` mang credential literal. An toàn hôm nay chỉ vì mọi host trong đó không phân giải được; là footgun nếu ai đó chép về phía deployment thật | Engineering |
+| — | `restore-drill` không chạy được dưới Git Bash trên Windows (MSYS `chmod 600` không có tác dụng). Có bằng chứng trên Linux CI; trên Windows là `not-applicable`, không bao giờ bị nhầm thành pass | Engineering |
+| — | `apk upgrade` trong image web/admin phân giải lúc build, nên hai lần build từ cùng digest có thể khác nhau. Đánh đổi có chủ ý, ghi tại chỗ trong Dockerfile | Engineering |
+
+**Chưa thuộc Foundation, thuộc `§ 10 Backlog Production Ready`:** chưa chọn cloud, chưa có production
+thật, chưa DNS/TLS thật, chưa secret manager của vendor, chưa nối observability SaaS, chưa rollout.
+Không có gì trong báo cáo này được đọc là Production Ready.
 
 ### Các tính năng chính có thể bắt đầu hay chưa
 
-- Chưa kết luận.
+**Có thể bắt đầu ngay.** Nền tảng đủ ổn định để xây tính năng mà không tích thêm nợ: exam engine,
+identity, marking pipeline và learner app đều có test chạy thật trên CI với replica set và object
+store thật, không suite nào skip, và mọi cổng chất lượng đều đã được chứng minh **bắt được lỗi cũ**
+chứ không chỉ xanh.
+
+**Một cảnh báo cần đọc kèm.** Cho tới khi `R19` được quyết, không có phân tích tĩnh nào chạy trên
+đường ZIP ingestion và đường AI — hai chỗ dự án này chịu input không tin cậy nhiều nhất. Việc xây
+tính năng ở đó vẫn nên tiếp tục, nhưng review thủ công phải gánh phần mà CodeQL đáng lẽ gánh.
+
+### Bài học chung của hàng đợi này
+
+**Một workflow tồn tại không phải bằng chứng nó chạy, và một check xanh không phải bằng chứng nó đã
+kiểm cái gì.** Trong hàng đợi này, những thứ sau đã từng báo "ổn" trong khi không kiểm gì cả:
+
+- cổng `No test was skipped` đọc `<Counters notExecuted>` — một phần tử nói dối;
+- `check-test-skips.mjs`, viết ra để thay nó, mù theo đúng cách đó, sâu hơn một tầng;
+- ba test S3 phân biệt "không có object" với "sai khóa", chưa từng chạy trên CI;
+- hai trong ba test ấy còn *xanh* trên `verify.yml` vì mọi credential đều sai nên mọi thứ đều ném exception;
+- CodeQL, chưa từng phân tích một dòng nào;
+- `restore-drill`, báo "did not produce its required failure" vì sai tên container.
+
+Không cái nào lộ ra ở local. Tất cả chỉ lộ khi **chạy thật, trên CI, và đọc kỹ dòng đầu tiên của log
+thay vì màu của cái check.**

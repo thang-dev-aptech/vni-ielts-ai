@@ -51,9 +51,13 @@ manager của một vendor, kết nối observability SaaS và chạy production
 
 ## 3. Trạng thái điều phối
 
-- **Đang thực hiện:** F5.2 + F5.5 (F5.1, F5.3, F5.4 đã đóng; F4 giữ [ ] — xem "F4 — Phase gate")
+- **Đang thực hiện:** **bị chặn ở `F4.4`** — mọi việc kỹ thuật trong hàng đợi đã đóng.
+  `F5.1`–`F5.5` đều `[x]`. `F4.4` cần chủ dự án quyết `R19` trước khi F4 và F5 tick được.
 - **Phase hiện tại:** F5
-- **Foundation Ready:** chưa đạt
+- **Foundation Ready:** **chưa đạt** — thiếu đúng một tiêu chí, và nó không phải code.
+  Toàn bộ pipeline đã xanh trên CI (run 33201020573). Phase gate F4 đòi CodeQL/SAST *chạy được*;
+  repository là private không có GitHub Advanced Security nên nó không thể chạy. Cần chủ dự án quyết
+  `R19` (mua GHAS, hay để repo public — public vướng `R16` chưa thu hồi khóa).
 - **Báo cáo:** [`infrastructure-foundation-report.md`](infrastructure-foundation-report.md)
 - **Prompt Claude Code:** [`.claude/commands/complete-infrastructure.md`](../../.claude/commands/complete-infrastructure.md)
 
@@ -287,20 +291,29 @@ phase dependency đóng.
   - Có một command chạy đúng thứ tự generate → docs/format → frontend checks → backend tests →
     integration → E2E → image build/smoke → security gates.
   - Command fail ngay khi có test skip trái phép hoặc generated artifact drift.
-- [ ] **F5.2 · Required CI matrix**
+- [x] **F5.2 · Required CI matrix**
   - Linux chạy toàn bộ pipeline.
   - Windows chạy tối thiểu clean-checkout/toolchain/docs/path/line-ending gates.
   - Upload test result, Playwright trace, scan report, SBOM và smoke logs khi thất bại hoặc theo retention.
+  - **Bằng chứng — run [33201020573](https://github.com/thang-dev-aptech/vni-ielts-ai/actions/runs/33201020573),
+    commit `a5711961`:** `Full pipeline (Linux)` pass 14m21s ·
+    `VERDICT: PASS (27 passed · 0 failed · 0 not run)` · `Portability gates (Windows)` pass 3m20s ·
+    `Foundation matrix gate` pass. Bảy artifact upload theo retention đã khai. → `F5.7`, `F5.8`
 - [x] **F5.3 · Flaky-test burn-in**
   - Idempotency integration suite tối thiểu 10 vòng.
   - Các suite từng flaky chạy burn-in đủ để phát hiện race; không chữa bằng retry workflow mù.
 - [x] **F5.4 · Full failure drills**
   - Sai object-storage credential, Mongo mất kết nối, worker loop chết, production config sai,
     dependency timeout và restore drill đều có bằng chứng fail đúng cách.
-- [ ] **F5.5 · Documentation và báo cáo tổng**
+- [x] **F5.5 · Documentation và báo cáo tổng**
   - Setup, troubleshooting, health, backup, security và smoke docs khớp command CI đã chạy.
   - Hoàn tất phần báo cáo tổng, ghi commit SHA, môi trường, tổng test, artifact và rủi ro còn lại.
   - Chỉ sau đó đổi `Foundation Ready` thành `đã đạt` và đánh dấu F5.
+  - **Báo cáo tổng đã hoàn tất** trong `infrastructure-foundation-report.md`: commit, môi trường,
+    test matrix, artifact bàn giao, rủi ro còn lại và kết luận rõ phần nào **chưa** Production Ready.
+  - **`Foundation Ready` vẫn giữ `chưa đạt`, có chủ ý.** F4 còn mở vì CodeQL không chạy được (`R19`),
+    và final gate F5 đòi không còn item `[ ]` nào trong `F0…F5`. Viết `đã đạt` lúc này sẽ là
+    overclaim đúng loại mà luật chất lượng của hàng đợi cấm.
 
 ### Final gate F5
 
