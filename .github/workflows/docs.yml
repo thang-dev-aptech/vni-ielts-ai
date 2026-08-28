@@ -6,7 +6,15 @@ name: Documentation checks
 # committed secrets — so they are enforced rather than remembered.
 #
 # Run the same checks locally before committing:
-#     python3 scripts/check-docs.py
+#     node scripts/check-docs.mjs
+#
+# F1.3 — this used to be a single Ubuntu job running `python3 scripts/check-docs.py`.
+# The Python version compared a Windows-style relative path against a
+# forward-slash literal and silently never matched, so docs/README.md — the
+# one file meant to be exempt from two of these checks — failed them on
+# Windows. Ported to Node (which every workspace command here already
+# requires, unlike Python) and run on both platforms so that regression
+# cannot come back unnoticed.
 
 on:
   push:
@@ -20,13 +28,26 @@ permissions:
 jobs:
   check:
     name: Integrity
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
+          node-version: '24'
+
+      - name: Docs checker's own regression fixtures (spaces, Unicode, this OS's separator)
+        run: node --test scripts/check-docs.test.mjs
+
+      # F3.3 — the retention selector decides which backups get DELETED, and
+      # it does month and ISO-week arithmetic to get there. It runs on both
+      # OSes for the same reason the docs checker does.
+      - name: Backup retention selector
+        run: node --test scripts/pbm-retention.test.mjs
 
       - name: Check documentation integrity
-        run: python3 scripts/check-docs.py
+        run: node scripts/check-docs.mjs

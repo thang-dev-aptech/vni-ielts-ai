@@ -198,6 +198,28 @@ internal sealed class FakeMarkingOutbox : IMarkingOutbox
 
     public IReadOnlyDictionary<string, MarkingJob> Jobs => _jobs;
 
+    /// <summary>
+    /// The same definition of "owed" the real store uses: Pending, Retryable,
+    /// or Running with an expired lease. Implemented rather than stubbed to
+    /// zero — a fake that disagrees with the contract is how a test suite
+    /// certifies behaviour the real implementation does not have. → F3.1
+    /// </summary>
+    public Task<QueueBacklog> BacklogAsync(DateTimeOffset asOf, CancellationToken ct)
+    {
+        var owed = _jobs.Values
+            .Where(j => j.State is MarkingJobState.Pending or MarkingJobState.Retryable
+                || (j.State is MarkingJobState.Running && (j.LeaseUntil is null || j.LeaseUntil < asOf)))
+            .ToArray();
+
+        if (owed.Length == 0) return Task.FromResult(QueueBacklog.Empty);
+
+        var oldest = owed.Min(j => j.CreatedAt);
+        var age = asOf - oldest;
+
+        return Task.FromResult(
+            new QueueBacklog(owed.Length, age > TimeSpan.Zero ? age : TimeSpan.Zero));
+    }
+
     public Task<bool> EnqueueAsync(MarkingJob job, CancellationToken ct)
     {
         if (_jobs.ContainsKey(job.OperationId)) return Task.FromResult(false);

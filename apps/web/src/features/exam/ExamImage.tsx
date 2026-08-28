@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { authedFetch } from '../../lib/api.js';
+import { apiBase, authedFetch } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
 import '../../styles/audio.css';
@@ -42,7 +42,7 @@ export function ExamImage({ reference, caption }: { reference: string; caption?:
 
     void (async () => {
       try {
-        const base = import.meta.env['VITE_API_BASE'] ?? 'http://localhost:5099';
+        const base = apiBase();
         const path = reference.replace(/^assets\//, '');
         // Shared transport: a Writing Task 1 chart requested an hour into
         // a sitting was being asked for with an expired token, and the task is

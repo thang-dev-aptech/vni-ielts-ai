@@ -1,0 +1,384 @@
+name: Foundation verification
+
+# F5.2 — the required matrix.
+#
+# The four workflows beside this one (backend, frontend, docs, e2e, images)
+# each gate their own slice and are path-filtered, which is right for them and
+# wrong for a Foundation gate: a change touching only `scripts/` or `ci/`
+# triggers none of them, and no single run ever proves the whole pipeline
+# passed on one commit. This workflow is the one that does, and it is
+# deliberately NOT path-filtered.
+#
+# Two jobs, and the split is not symmetric on purpose:
+#
+#   linux   runs the whole ordered pipeline through scripts/verify.mjs.
+#   windows runs the portability gates only — clean checkout, toolchain, docs,
+#           path handling and line endings. Not because Windows deserves less
+#           coverage, but because those five are the gates that have actually
+#           broken on Windows in this repository (F1.3 compared a Windows path
+#           against a forward-slash literal and silently never matched; F1.4
+#           found CRLF in the working tree failing `format:check` on files
+#           nobody had touched), and because a second full backend+browser run
+#           doubles the build for a class of failure that has never once been
+#           Windows-specific here.
+#
+# Nothing in this workflow retries a failing step. → scripts/burn-in.mjs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      burn_in_iterations:
+        description: 'Iterations for the flaky-test burn-in (F5.3)'
+        required: false
+        default: '10'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Linux: the whole pipeline ────────────────────────────────────────────
+  linux:
+    name: Full pipeline (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      # A single-node replica set, not a standalone: MongoDB offers
+      # multi-document transactions only on a replica set, and on a standalone
+      # the concurrency suites pass while proving nothing. Same shape as
+      # infra/docker/compose.yaml and backend.yml, on the same host port, so
+      # no environment-specific connection string is needed. → R15
+      - name: Start MongoDB replica set
+        run: |
+          docker run -d --name vni-verify-mongo -p 27018:27017 mongo:7 \
+            --replSet rs0 --bind_ip_all --port 27017
+
+          for _ in $(seq 1 60); do
+            if docker exec vni-verify-mongo mongosh --quiet \
+              --eval 'db.adminCommand({ping:1}).ok' >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+
+          docker exec vni-verify-mongo mongosh --quiet \
+            --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"
+
+          # Wait for a PRIMARY. Without this the first transaction races the
+          # election and fails for a reason that has nothing to do with the code.
+          for _ in $(seq 1 60); do
+            if docker exec vni-verify-mongo mongosh --quiet \
+              --eval 'db.hello().isWritablePrimary' 2>/dev/null | grep -q true; then
+              echo "Replica set rs0 has a PRIMARY."
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "::error::rs0 never elected a PRIMARY."
+          docker logs vni-verify-mongo | tail -50
+          exit 1
+
+      - name: Start MinIO
+        run: |
+          docker run -d --name vni-verify-minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=verifyuser -e MINIO_ROOT_PASSWORD="$(openssl rand -hex 24)" \
+            minio/minio:latest server /data
+
+          for _ in $(seq 1 60); do
+            if curl -fsS http://localhost:9000/minio/health/live >/dev/null 2>&1; then
+              echo "MinIO is live."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::MinIO never became live."
+          docker logs vni-verify-minio | tail -50
+          exit 1
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Chromium
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Chromium's OS dependencies
+        run: pnpm --filter @vni/e2e exec playwright install-deps chromium
+        timeout-minutes: 5
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @vni/e2e exec playwright install chromium
+        timeout-minutes: 5
+
+      # The whole point of F5.1: one command, one order, one summary.
+      #
+      # No --allow-blocked here. On this runner a BLOCKED stage means an
+      # upstream phase has not produced the evidence it owes, and the correct
+      # behaviour then is exit 2 — a red build that names the missing phase,
+      # not a green one that quietly ran less.
+      - name: Verify
+        env:
+          VNI_JWT_SIGNING_KEY: ${{ github.run_id }}-${{ github.run_attempt }}-verification-only-not-a-secret
+        run: node scripts/verify.mjs
+
+      # F5.3. Separate from the pipeline because it is a different question:
+      # `verify` asks whether the suite passes, burn-in asks whether it passes
+      # ten times running. `if: success()` and not `always()` — burning in a
+      # suite that just failed measures nothing.
+      - name: Flaky-test burn-in
+        if: success()
+        run: node scripts/burn-in.mjs --suite=idempotency --iterations=${{ github.event.inputs.burn_in_iterations || '10' }}
+
+      # F5.4. Also separate, and also not retried: a drill that has to be run
+      # twice to pass has already told you what you needed to know.
+      - name: Failure drills
+        if: success()
+        run: node scripts/failure-drills.mjs
+
+      # F5.2 — the two artifacts the retention step below promised and nothing
+      # produced. Until these existed, `_artifacts/security/` and
+      # `_artifacts/sbom/` were uploaded empty behind
+      # `if-no-files-found: ignore`, which looks like evidence and is not.
+      #
+      # `if: always()` because the run that most needs a security report is
+      # the run that already went red for another reason.
+      - name: Security gate report
+        if: always()
+        run: node scripts/security-report.mjs
+
+      # After the image stage, so there is something to describe. A missing
+      # image is a failure inside the script, not a silent empty directory.
+      - name: SBOM per image
+        if: always()
+        env:
+          VNI_REQUIRE_DOCKER: '1'
+        run: bash scripts/sbom.sh
+
+      # ── Failure artifacts ────────────────────────────────────────────────
+      #
+      # `if: always()` on every one of these. The run that most needs its
+      # traces uploaded is the run that failed, and `upload-artifact` does not
+      # run after a failed step by default.
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-test-results-linux
+          path: |
+            _artifacts/verify/test-results/
+            _artifacts/verify/summary.json
+            _artifacts/verify/skips.json
+            _artifacts/verify/drift-generated.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload Playwright traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: e2e/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload burn-in results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: burn-in-results
+          path: _artifacts/burn-in/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload failure-drill results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-drill-results
+          path: _artifacts/drills/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # Scan reports and SBOM are produced by the F4 security gates. The paths
+      # are listed here so that when those gates land, their output is
+      # retained on failure like everything else — `if-no-files-found: ignore`
+      # keeps this step honest until then rather than green-by-accident.
+      - name: Upload security and supply-chain reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            _artifacts/security/
+            _artifacts/sbom/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload smoke logs
+        if: failure()
+        run: |
+          mkdir -p _artifacts/smoke
+          docker compose -f infra/docker/compose.production.yaml logs --no-color \
+            > _artifacts/smoke/compose.log 2>&1 || true
+          docker logs vni-verify-mongo > _artifacts/smoke/mongo.log 2>&1 || true
+          docker logs vni-verify-minio > _artifacts/smoke/minio.log 2>&1 || true
+
+      - name: Upload smoke logs artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-logs
+          path: _artifacts/smoke/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Stop services
+        if: always()
+        run: |
+          docker rm -f vni-verify-mongo vni-verify-minio || true
+
+  # ── Windows: the portability gates ───────────────────────────────────────
+  windows:
+    name: Portability gates (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    # `shell: pwsh` is declared once, explicitly, rather than inherited.
+    # Windows runners default to `pwsh` already, but a step that relies on an
+    # unstated default is a step that breaks when someone adds `defaults` at
+    # the workflow level. Every command below is either a Node/pnpm/git
+    # invocation (identical on both platforms) or explicitly PowerShell.
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      # Clean checkout gate: `git config --global core.autocrlf` is left at the
+      # runner default on purpose. .gitattributes has `* text=auto eol=lf`, so
+      # a correct checkout produces LF on disk whatever autocrlf says, and this
+      # job is where that claim gets tested rather than assumed. → F1.4
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: Toolchain versions agree
+        run: node scripts/check-toolchain-versions.mjs
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # F1.3 — the fixtures with spaces, Unicode and this OS's separator. The
+      # Python predecessor of this checker compared a Windows-style relative
+      # path against a forward-slash literal and silently never matched, so
+      # docs/README.md failed on Windows the checks it is exempt from.
+      - name: Documentation checker regression fixtures
+        run: node --test scripts/check-docs.test.mjs
+
+      - name: Documentation integrity
+        run: node scripts/check-docs.mjs
+
+      - name: Backup retention selector
+        run: node --test scripts/pbm-retention.test.mjs
+
+      # F5.1 — these two gates are pure Node and must behave identically on
+      # both platforms; the drift check normalizes CRLF before hashing
+      # precisely so that a Windows generator run is not reported as drift.
+      - name: Generate the API client
+        run: pnpm --filter @vni/api-client run generate
+
+      - name: Generated artifacts are reproducible and untracked
+        run: node scripts/check-generated-drift.mjs --mode=all
+
+      - name: Skip-gate self-check on this platform
+        run: node scripts/check-test-skips.mjs --results _artifacts/verify/test-results
+
+      # F1.4 — the line-ending gate, and the reason this job exists at all.
+      # `format:check` reads every source file with Prettier's endOfLine: lf.
+      # On a Windows checkout without .gitattributes this failed on files
+      # nobody had touched.
+      - name: Format check
+        run: pnpm format:check
+
+      - name: No whitespace or line-ending damage
+        run: git diff --check
+
+      # A path with a space and a non-ASCII character, on the platform where
+      # path handling actually differs. `$env:TEMP` is used rather than a
+      # hard-coded C:\ path so this survives a runner image change.
+      - name: Paths with spaces and Unicode
+        run: |
+          $dir = Join-Path $env:TEMP 'vni verify Đề IELTS'
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          Copy-Item -Recurse -Force scripts (Join-Path $dir 'scripts')
+          Push-Location $dir
+          node scripts/check-docs.test.mjs
+          Pop-Location
+          Remove-Item -Recurse -Force $dir
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Frontend unit suites
+        run: pnpm -r --workspace-concurrency=1 --if-present test
+
+      - name: Upload Windows gate results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-results-windows
+          path: _artifacts/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # ── The gate ─────────────────────────────────────────────────────────────
+  #
+  # One required check to protect the branch with, rather than two that can
+  # drift apart. `needs` alone is not enough: a skipped or cancelled
+  # dependency leaves this job's own result as `success`, which is exactly the
+  # silent pass this whole file exists to prevent.
+  gate:
+    name: Foundation matrix gate
+    runs-on: ubuntu-latest
+    needs: [linux, windows]
+    if: always()
+    steps:
+      - name: Both platforms must have succeeded
+        run: |
+          echo "linux:   ${{ needs.linux.result }}"
+          echo "windows: ${{ needs.windows.result }}"
+          if [ "${{ needs.linux.result }}" != "success" ] || [ "${{ needs.windows.result }}" != "success" ]; then
+            echo "::error::The Foundation matrix did not pass on both platforms."
+            exit 1
+          fi
+          echo "Both matrix jobs succeeded."
+          echo "This gate proves the pipeline ran green on this commit. It does NOT certify"
+          echo "Foundation Ready — that requires every F0-F5 checklist item closed with its"
+          echo "own evidence. → docs/development/infrastructure-foundation-todolist.md"

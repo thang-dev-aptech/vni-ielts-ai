@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Extensions.DiagnosticSources;
 using Vni.Ielts.Infrastructure.Persistence.Identity;
 
 namespace Vni.Ielts.Infrastructure.Persistence;
@@ -21,6 +22,26 @@ public sealed class MongoContext
     public MongoContext(IOptions<MongoOptions> options)
     {
         var settings = MongoClientSettings.FromConnectionString(options.Value.ConnectionString);
+
+        /*
+         * <b>F4.1 — every database command becomes a span.</b> Subscribed at
+         * the cluster level because that is the only place the driver exposes
+         * command events; a repository-level wrapper would have to be
+         * remembered at each of ~15 call sites and would miss the driver's own
+         * traffic entirely.
+         *
+         * <b>Command TEXT is deliberately not captured.</b> The default is
+         * already off, and it stays off: a Mongo command carries filter values
+         * — an email address, a learner's answer, a session id — and a span
+         * exported to a collector is exactly the kind of place PII should
+         * never accumulate. What is recorded is the collection, the operation
+         * and the duration, which is what a latency question actually needs.
+         * → F4.2
+         */
+        settings.ClusterConfigurator = cluster =>
+            cluster.Subscribe(new DiagnosticsActivityEventSubscriber(
+                new InstrumentationOptions { CaptureCommandText = false }));
+
         _db = new MongoClient(settings).GetDatabase(options.Value.Database);
     }
 

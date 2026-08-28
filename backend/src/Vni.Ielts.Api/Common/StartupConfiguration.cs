@@ -183,6 +183,32 @@ public static class StartupConfiguration
                     + "API's own callback address and must match the one registered with "
                     + "Google exactly.");
             }
+
+            /*
+             * <b>F2.5 — both hops of the same redirect, not just the first.</b>
+             * The empty-CORS bug this file exists to prevent has a sibling here:
+             * Google delivers the authorization code to `RedirectUri`, and
+             * this API then sends the browser on to `ClientBaseUrl` carrying
+             * a session. Either leg over plain HTTP puts an authorization
+             * code or a session token on the wire in the clear.
+             */
+            if (!development
+                && sso.ClientBaseUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            {
+                problems.Add(
+                    $"Sso:ClientBaseUrl is plain HTTP ({sso.ClientBaseUrl}) while Google is "
+                    + "configured. A learner completing a social sign-in is redirected there "
+                    + "carrying a session, readable in transit.");
+            }
+
+            if (!development
+                && sso.Google.RedirectUri.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            {
+                problems.Add(
+                    $"Sso:Google:RedirectUri is plain HTTP ({sso.Google.RedirectUri}) while "
+                    + "Google is configured. Google delivers the authorization code to this "
+                    + "address, readable in transit.");
+            }
         }
 
         /*
@@ -262,6 +288,33 @@ public static class StartupConfiguration
                 $"Email:ClientBaseUrl is plain HTTP ({email.ClientBaseUrl}). Every verification "
                 + "and password-reset link this process sends would point at an address a "
                 + "network observer can read and rewrite.");
+        }
+
+        // ── Shutdown timeout ──────────────────────────────────────────────
+        /*
+         * <b>F2.5 — neither bad value used to be caught here.</b>
+         * `Api:ShutdownTimeoutSeconds` flows straight into
+         * `TimeSpan.FromSeconds(...)` and then `HostOptions.ShutdownTimeout`
+         * (→ `Program.cs`, F2.3), and the two ways it can be wrong fail
+         * differently, both worse than a startup refusal. A negative value
+         * throws `ArgumentOutOfRangeException` out of
+         * `CancellationTokenSource.CancelAfter` — confirmed by reproducing it
+         * — but only once shutdown actually begins, the one moment a
+         * deployment can least afford a surprise. Zero does not throw at
+         * all: it is a legal `TimeSpan`, so the host boots and runs
+         * normally, and only gives an in-flight request or a claimed job no
+         * grace whatsoever the day it matters — silently undoing F2.3 with
+         * no error anywhere. Checked here, unconditionally — this is not a
+         * convenience trade-off Development gets to skip the way an empty
+         * CORS list is; a nonsensical timeout is exactly as wrong in both.
+         */
+        var apiShutdownTimeoutSeconds = builder.Configuration.GetValue("Api:ShutdownTimeoutSeconds", 30);
+        if (apiShutdownTimeoutSeconds <= 0)
+        {
+            problems.Add(
+                $"Api:ShutdownTimeoutSeconds is {apiShutdownTimeoutSeconds}. A negative value "
+                + "crashes the host during shutdown instead of at startup; zero boots fine but "
+                + "silently gives an in-flight request no grace at all.");
         }
 
         // ── Transport ─────────────────────────────────────────────────────

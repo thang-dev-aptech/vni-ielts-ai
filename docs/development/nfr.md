@@ -49,13 +49,15 @@ The autosave target matters more than its size suggests: a save that feels slow 
 | Target | `[ASSUMPTION]` 99.5% | 99.9% |
 | Deployment | Rolling, brief downtime tolerated | Blue/green, zero-downtime |
 | Degradation | AI outage → results pending, exams continue | Same |
-| Backups | Encrypted `mongodump --oplog`, **restore drilled 2026-08-28** | Continuous oplog tailing |
+| Backups | Client-side encrypted `mongodump --oplog` **plus continuous PITR via Percona Backup for MongoDB**, both restore-drilled 2026-08-28 | Scheduled runner on the chosen platform |
 
 **The degradation rule is the important one.** An AI provider outage must not prevent learners from taking exams. Reading and Listening score without AI at all; Writing and Speaking submissions queue and drain when service returns. The learner sees an honest "evaluating" state.
 
 **Never deploy during a scheduled exam window** once real usage exists — an in-flight session is stateful in a way a stateless API disguises.
 
-**RPO and RTO are not set here, and the row above is a mechanism rather than a promise.** What the mechanism achieves is measured; what it *should* achieve is a `[BUSINESS DECISION]` — with the sharp edge being that a daily backup means an incident at 11am loses a 9am sitting, which for an exam product is a result a learner spent two hours on rather than a row in a table. → [`backup-and-restore.md`](backup-and-restore.md)
+**RPO and RTO are still a `[BUSINESS DECISION]`, but the mechanism now measures far better than the sentence that used to stand here.** The sharp edge was that a daily backup means an incident at 11am loses a 9am sitting — a result a learner spent two hours on. `mongodump --oplog` could not fix that on its own: it captures the oplog only for the *duration of the dump*, so between two daily runs there was nothing.
+
+Continuous PITR closes that gap. Measured 2026-08-28 on the local stack: **recovery point ≤ 1 minute** of writes (PBM `oplogSpanMin=1`), and a point-in-time restore into an isolated target completed in **177 seconds**. What the business *requires* is still theirs to set; what the mechanism *delivers* is no longer a day. → [`backup-and-restore.md`](backup-and-restore.md)
 
 ---
 

@@ -1,0 +1,149 @@
+name: Release images
+
+# F4.5 — the supply chain around a release artifact: SBOM, provenance and a
+# signature, all bound to the image by digest.
+#
+# ── Why this is separate from images.yml ───────────────────────────────────
+#
+# `images.yml` proves the images BUILD and behave (non-root, runtime config
+# not baked in) on every change, and pushes nothing. This one produces
+# artifacts intended to be deployed, and only on a tag — signing an image
+# nobody will run is noise, and pushing on every commit is how a registry
+# fills up with things no deployment references.
+#
+# ── Registry ───────────────────────────────────────────────────────────────
+#
+# GHCR, because it is the registry this repository already has: it needs no
+# account nobody has created, no credential nobody has issued, and the
+# `GITHUB_TOKEN` already present in this workflow is enough. That is a
+# **default, not a lock-in** — every step below is plain OCI, so retargeting
+# to another registry is one variable. Choosing where production actually
+# pulls from stays a Production Ready decision.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  release:
+    name: ${{ matrix.image }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      # Cosign keyless signs against an OIDC identity issued to this workflow.
+      # No private key exists to be stolen, rotated or committed — which is the
+      # whole reason for keyless over a key pair. → CLAUDE.md rule 6
+      id-token: write
+      attestations: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: vni-ielts-api
+            dockerfile: backend/Dockerfile
+            context: backend
+          - image: vni-ielts-worker
+            dockerfile: backend/Dockerfile.worker
+            context: backend
+          - image: vni-ielts-web
+            dockerfile: apps/web/Dockerfile
+            context: .
+          - image: vni-ielts-admin
+            dockerfile: apps/admin/Dockerfile
+            context: .
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Base images must be digest-pinned before anything is signed: signing an
+      # image built on a moving tag attests to an artifact that cannot be
+      # reproduced, which is worse than not signing it — it looks like a
+      # guarantee and is not one.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Base images are digest-pinned
+        run: node scripts/check-base-image-pins.mjs
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to the registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tags and labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
+          tags: |
+            type=ref,event=tag
+            type=sha,format=long
+          # Immutable identity, carried in the image itself: `revision` is the
+          # commit, so an image found in a registry can always be traced back
+          # to the source that produced it.
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # SLSA provenance and an SBOM, produced by the builder itself and
+          # attached to the image. `mode=max` records the build steps rather
+          # than only the result — the difference between "this came from
+          # somewhere" and "this came from this commit, built this way".
+          provenance: mode=max
+          sbom: true
+
+      - uses: sigstore/cosign-installer@v3
+
+      # <b>Signed by digest, never by tag.</b> A tag can be moved to a
+      # different image after signing; a digest cannot. Signing `:v1.2.3`
+      # would attest to whatever that tag points at *now*, which is precisely
+      # the guarantee a signature is supposed to remove.
+      - name: Sign the image
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
+        run: cosign sign --yes "${IMAGE}@${DIGEST}"
+
+      # A second, GitHub-native attestation alongside Cosign's. They verify
+      # through different tooling, and a deployment gate that can only check
+      # one should not be blocked on which one that is.
+      - name: Attest provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: What was published
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
+        run: |
+          echo "### ${{ matrix.image }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- digest: \`${DIGEST}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- commit: \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- verify: \`cosign verify ${IMAGE}@${DIGEST} --certificate-identity-regexp '.*' --certificate-oidc-issuer https://token.actions.githubusercontent.com\`" >> "$GITHUB_STEP_SUMMARY"

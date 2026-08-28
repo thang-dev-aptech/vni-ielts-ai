@@ -13,6 +13,9 @@ export {
   type RequestOptions,
 } from './http.js';
 
+export { getRuntimeConfig, type RuntimeConfig } from './runtimeConfig.js';
+export { newTraceParent, TRACEPARENT_PATTERN } from './trace.js';
+
 export {
   clearSession,
   loadSession,

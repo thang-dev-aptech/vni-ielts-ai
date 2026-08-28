@@ -1,5 +1,10 @@
 # Cổng hạ tầng — hàng đợi I0…I7 và UI0…UI11
 
+> **HISTORICAL SNAPSHOT — không còn là hàng đợi hạ tầng hiện hành.** Re-audit ngày 28/08/2026 phát
+> hiện các quality gate và điều kiện vận hành chưa được chứng minh đầy đủ. Tiếp tục tại
+> [`infrastructure-foundation-todolist.md`](infrastructure-foundation-todolist.md); giữ file này làm
+> bằng chứng lịch sử cho các thay đổi `I0…I7` và backlog UI.
+
 > Tài liệu này viết bằng tiếng Việt vì đây là **checklist vận hành cho người thực thi**, giống
 > [`next-actions.md`](next-actions.md). Toàn bộ `docs/` còn lại là tiếng Anh.
 

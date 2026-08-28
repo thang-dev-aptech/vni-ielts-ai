@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Api.Endpoints;
+using OpenTelemetry.Trace;
 using Vni.Ielts.Infrastructure;
+using Vni.Ielts.Infrastructure.Observability;
 using Vni.Ielts.Infrastructure.Security;
 
 /*
@@ -42,6 +44,65 @@ if (args.Contains("--healthcheck"))
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
+
+/*
+ * <b>F4.1 — traces, metrics and logs, over OTLP, to nobody in particular.</b>
+ * The protocol is the commitment; the backend is not, and is not chosen here.
+ * Off entirely unless `Otel:Endpoint` is set. → Infrastructure/Observability/Telemetry.cs
+ *
+ * ASP.NET Core instrumentation is added HERE rather than inside
+ * `AddVniTelemetry` because Infrastructure must not reference ASP.NET Core —
+ * the same boundary the architecture tests enforce for storage drivers.
+ */
+builder.Services.AddVniTelemetry(
+    builder.Configuration,
+    serviceName: "vni-api",
+    configureTracing: tracing => tracing.AddAspNetCoreInstrumentation(options =>
+    {
+        // Health probes run every few seconds forever. Tracing them buries
+        // the requests somebody actually wants to find.
+        options.Filter = context =>
+            !context.Request.Path.StartsWithSegments("/health");
+    }));
+
+// A no-op everywhere but a test that overrides it. → ICommitSignal
+builder.Services.AddSingleton<ICommitSignal, NoOpCommitSignal>();
+
+/*
+ * <b>F2.3 — the shutdown window, made a decision rather than an inherited
+ * default.</b> ASP.NET Core already stops accepting new connections and
+ * drains in-flight requests on its own; what was missing is a stated answer
+ * to "drains for how long" rather than whatever the generic host's default
+ * (30 seconds) happens to be. Every request this API serves is either fast
+ * (exam reads/writes) or bounded by Kestrel's own body-size and
+ * minimum-data-rate limits already configured below — 30 seconds is
+ * comfortably past the slowest of those, so the number does not change, only
+ * whether it is a fact anyone can find without reading .NET's source.
+ */
+builder.Services.Configure<HostOptions>(options =>
+    options.ShutdownTimeout = TimeSpan.FromSeconds(
+        builder.Configuration.GetValue("Api:ShutdownTimeoutSeconds", 30)));
+
+/*
+ * <b>F2.4 — nothing trusted `X-Forwarded-For` before this, at all.</b> Behind
+ * any real reverse proxy, `Connection.RemoteIpAddress` (what the rate
+ * limiter and the audit trail key on) is the proxy's own address, not the
+ * caller's — every anonymous learner behind one proxy shared one bucket,
+ * turning the NAT-aware "generous" limits into a self-inflicted outage on
+ * first real traffic. → TrustedProxy.cs
+ *
+ * Empty by default, and empty means the header is not read at all —
+ * see `TrustedProxy.cs` for why: `ForwardedHeadersMiddleware` treats an
+ * empty `KnownProxies`/`KnownIPNetworks` as "no restriction configured", not
+ * "trust nobody", so this project cannot lean on the framework's own
+ * loopback-only default once that list is cleared. Safe on a bare host
+ * because `ForwardedHeaders.None` is set instead, and exactly why a
+ * deployment behind an external proxy must set
+ * `TrustedProxy:Addresses`/`TrustedProxy:Networks` — inheriting the bug this
+ * fixes is the alternative, not a neutral default.
+ */
+var trustedProxy = builder.Configuration.GetSection(TrustedProxyOptions.SectionName)
+    .Get<TrustedProxyOptions>() ?? new TrustedProxyOptions();
 
 // The token service records which device a sign-in came from, and only an HTTP
 // request knows that. Infrastructure must not reference ASP.NET Core, so the
@@ -352,6 +413,15 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
         "Idempotency-Replayed")));         // lets a client tell a replay from a fresh write
 
 var app = builder.Build();
+
+/*
+ * <b>F2.4 — first, ahead of everything else, including ServerTimeMiddleware.</b>
+ * Every downstream consumer of `Connection.RemoteIpAddress` — rate limiting,
+ * the audit trail, request logging — has to see the resolved caller address,
+ * not the proxy's. Processing forwarded headers after any of them would mean
+ * the first requests through the pipeline already read the wrong value.
+ */
+app.UseForwardedHeaders(trustedProxy.ToForwardedHeadersOptions());
 
 // Before everything else, so even an error or a rate-limit rejection carries
 // the server clock — the client reconciles its exam timer from it, and a

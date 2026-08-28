@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { authedFetch } from '../../lib/api.js';
+import { apiBase, authedFetch } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
 import { formatClock } from './examApi.js';
@@ -98,7 +98,7 @@ export function SpeakingRecorder({
       setPhase('uploading');
 
       try {
-        const base = import.meta.env['VITE_API_BASE'] ?? 'http://localhost:5099';
+        const base = apiBase();
         const form = new FormData();
         form.append('questionId', questionId);
         /*

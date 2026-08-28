@@ -52,13 +52,31 @@ A clickable HTML prototype lives **outside this repository** at `/Users/metacom/
 
 ## ▶ Start here: the task queue
 
-**[`docs/development/infrastructure-gate.md`](docs/development/infrastructure-gate.md) holds the current work queue.** `I0`…`I7` — the infrastructure half — **closed on 2026-08-28, 48/48**, each item carrying the evidence for it. Its summary is [`infrastructure-completion-report.md`](docs/development/infrastructure-completion-report.md). `UI0`…`UI11` are next and not yet open.
+**[`docs/development/infrastructure-foundation-todolist.md`](docs/development/infrastructure-foundation-todolist.md) holds the current infrastructure work queue.** The independent re-audit on 2026-08-28 found that the earlier `I0`…`I7` closure did not prove current Foundation readiness: object-storage readiness can report a false positive, two idempotency gates are unreliable, production-smoke cannot boot with its checked-in configuration, and clean-checkout tooling is not portable.
 
-[`docs/development/next-actions.md`](docs/development/next-actions.md) remains the historical record of `T0`…`T7` and the `A1`…`A21` intercalations. Read the gate file first; read that one when you need to know why something is the way it is.
+[`docs/development/infrastructure-gate.md`](docs/development/infrastructure-gate.md), its [`infrastructure-completion-report.md`](docs/development/infrastructure-completion-report.md), and [`docs/development/next-actions.md`](docs/development/next-actions.md) remain historical records. Read the new Foundation checklist first; use the older files only to understand why existing code was built.
 
 ### Run the queue to completion — **changed 2026-08-28**
 
-**[`docs/development/infrastructure-gate.md`](docs/development/infrastructure-gate.md) is the live queue.** It holds `I0`…`I7` and `UI0`…`UI11`, one checkbox each, with the Definition of Done and the evidence for everything closed so far.
+**[`docs/development/infrastructure-foundation-todolist.md`](docs/development/infrastructure-foundation-todolist.md) is the live infrastructure queue.** Run it with `/complete-infrastructure`: one item at a time, one tested phase at a time, continuing through `F0`…`F5` until the Foundation report is complete.
+
+For parallel infrastructure execution, use the `dev1`, `dev2`, and `dev3` agents defined in
+[`.claude/agents/`](.claude/agents/) and the coordination rules in
+[`.claude/skills/infrastructure-parallel/SKILL.md`](.claude/skills/infrastructure-parallel/SKILL.md).
+Their ownership is intentionally non-overlapping: dev1 = F3 backup/restore, dev2 = F4
+observability/security/supply-chain, dev3 = F5 CI/certification/timing. Agents hand off evidence through
+`_workspace/<agent>/`; only the infrastructure orchestrator edits the master checklist and report.
+
+## Harness: infrastructure foundation
+
+**Trigger:** Khi yêu cầu liên quan đến hoàn thiện, kiểm tra, cập nhật hoặc chạy lại hạ tầng Foundation,
+dùng skill `infrastructure-parallel`; câu hỏi đơn giản có thể trả lời trực tiếp.
+
+**Lịch sử thay đổi harness:**
+
+| Ngày | Thay đổi | Đối tượng | Lý do |
+|---|---|---|---|
+| 2026-08-28 | Khởi tạo 3 agent song song và skill điều phối | `.claude/agents/dev1..dev3`, `.claude/skills/infrastructure-parallel` | Giảm thời gian xử lý queue F3–F5 và tránh xung đột file |
 
 The owner's instruction on 28/08/2026 is to **keep going until it runs stably**, reporting each item as it closes rather than stopping after one. So:
 
@@ -182,7 +200,7 @@ infra/docker/  Local stack: MongoDB rs0 + MinIO
 
 **Under version control since 2026-08-20**, pushed to a private GitHub repository. Two deletions before that were permanent — 191 files on 2026-08-18 and 4 on 2026-08-20. → risk `R13` in [`docs/requirements/risks-and-dependencies.md`](docs/requirements/risks-and-dependencies.md)
 
-**Before committing, run `python3 scripts/check-docs.py`.** CI runs the same checks and fails the build on a broken link, a status qualifier, a `CONFIRMED` row without a Source, or a credential-shaped string.
+**Before committing, run `node scripts/check-docs.mjs`.** CI runs the same checks — on Windows and Linux — and fails the build on a broken link, a status qualifier, a `CONFIRMED` row without a Source, or a credential-shaped string.
 
 `.mcp.json` was **deleted on 2026-08-20**. It held a live Google credential for the Google Stitch MCP server — a tool this project evaluated and dropped — so the key served nothing. It stays in `.gitignore`: if the file returns, it must not be committed.
 

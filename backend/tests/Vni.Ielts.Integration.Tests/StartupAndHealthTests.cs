@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Vni.Ielts.Integration.Tests;
@@ -291,6 +292,38 @@ public sealed class StartupAndHealthTests(SsoAppFactory app) : IClassFixture<Sso
 
         // Creating the client is what builds and starts the host.
         Assert.NotNull(configured.CreateClient());
+    }
+
+    /// <summary>
+    /// F2.3 — the shutdown window is a stated decision, not whatever the
+    /// generic host's own default (30 seconds, undocumented at the call
+    /// site) happens to be. Kestrel already stops accepting new connections
+    /// and drains in-flight requests on shutdown on its own; what this
+    /// checks is that <c>Program.cs</c> actually wired an explicit value
+    /// rather than leaving the window implicit.
+    /// </summary>
+    [SkippableFact]
+    public void The_shutdown_window_is_configured_explicitly()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        using var configured = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(host =>
+            {
+                host.UseSetting(WebHostDefaults.EnvironmentKey, Environments.Development);
+                host.UseSetting("Jwt:SigningKey", new string('k', 48));
+                host.UseSetting(
+                    "Mongo:ConnectionString", "mongodb://localhost:27018/?directConnection=true");
+                host.UseSetting("Mongo:Database", $"vni_shutdown_smoke_{Guid.NewGuid():n}");
+                host.UseSetting("Sso:EnableStubProvider", "true");
+            });
+
+        configured.CreateClient(); // builds and starts the host
+
+        var options = configured.Services
+            .GetRequiredService<Microsoft.Extensions.Options.IOptions<HostOptions>>().Value;
+
+        Assert.Equal(TimeSpan.FromSeconds(30), options.ShutdownTimeout);
     }
 
 }

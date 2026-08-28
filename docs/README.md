@@ -127,6 +127,7 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 ### Product — what and why
 - [`product/executive-summary.md`](product/executive-summary.md) — what the product is, what is technically hard, what is unknown
 - [`product/vision-and-scope.md`](product/vision-and-scope.md) — the four module groups, scope boundaries, non-goals
+- [`product/four-skills-practice-and-mock-research.md`](product/four-skills-practice-and-mock-research.md) — current research for part/full-skill practice, four-skill mock, scoring, AI/voice providers, required APIs and the gate before implementation planning
 - [`product/competitor-edly.md`](product/competitor-edly.md) — nearest competitor; three learner modules worth considering
 - [`product/web-demo-feature-map.md`](product/web-demo-feature-map.md) — prototype web vs confirmed scope (features and flows, not visuals)
 
@@ -179,14 +180,18 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 - [`api/sso-contract.md`](api/sso-contract.md) — social sign-in, as the client sees it: four endpoints and every error code
 
 ### Development
-- **[`development/next-actions.md`](development/next-actions.md) — ▶ the current task queue. Start here.**
+- **[`development/infrastructure-foundation-todolist.md`](development/infrastructure-foundation-todolist.md) — ▶ current Foundation infrastructure queue. Start here for infrastructure work.**
+- [`development/infrastructure-foundation-report.md`](development/infrastructure-foundation-report.md) — live per-phase evidence and final Foundation report
+- [`development/four-skills-functional-core-todolist.md`](development/four-skills-functional-core-todolist.md) — executable `FS0…FS9` plan for part/full practice, mock, AI explanations, Writing AI and Speaking recording/R2; Speaking AI remains an explicit deferred backlog
+- [`development/four-skills-functional-core-report.md`](development/four-skills-functional-core-report.md) — per-phase evidence template and final capability report for the four-skills queue
+- [`development/next-actions.md`](development/next-actions.md) — historical `T0…T7` and `A1…A21` task record
 - [`development/ai-assisted-development.md`](development/ai-assisted-development.md) — Claude Code + Cursor setup and division of labour
 - [`development/agent-orchestration.md`](development/agent-orchestration.md) — who owns what, what runs in parallel
 - [`development/skill-inventory.md`](development/skill-inventory.md) — classified plugin/skill inventory
 - [`development/sso-provider-setup.md`](development/sso-provider-setup.md) — registering the Google OAuth client and loading the keys
 - [`development/nfr.md`](development/nfr.md) — non-functional requirements, MVP vs. future scale
 - [`development/backup-and-restore.md`](development/backup-and-restore.md) — backup, khôi phục, và bài diễn tập đã chạy thật
-- [`development/infrastructure-completion-report.md`](development/infrastructure-completion-report.md) — báo cáo tổng kết hàng đợi `I0`…`I7`
+- [`development/infrastructure-completion-report.md`](development/infrastructure-completion-report.md) — historical report for the superseded `I0…I7` gate
 - [`development/roadmap.md`](development/roadmap.md) — phase plan
 
 ### Decisions — Architecture Decision Records

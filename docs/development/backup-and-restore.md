@@ -117,16 +117,16 @@ so khớp mất **6,5 giây**; archive đã mã hoá của một database nháp 
 
 | | Cơ chế hiện tại đạt được | Mục tiêu |
 |---|---|---|
-| **RPO** — mất tối đa bao nhiêu dữ liệu | Bằng đúng khoảng cách giữa hai lần chạy `backup.sh`. Chạy hằng ngày ⇒ **tối đa 24 giờ** | `[BUSINESS DECISION]` |
-| **RTO** — bao lâu thì chạy lại được | Thời gian restore (giây, ở quy mô hiện tại) **cộng thời gian con người**: tìm archive, tìm khoá, quyết định drop. Phần con người mới là phần lớn | `[BUSINESS DECISION]` |
+| **RPO** — mất tối đa bao nhiêu dữ liệu | **≤ 1 phút** ghi, qua PITR liên tục của PBM (`oplogSpanMin=1`) — đo ngày 28/08/2026. Riêng `backup.sh` thì vẫn bằng khoảng cách giữa hai lần chạy | `[BUSINESS DECISION]` |
+| **RTO** — bao lâu thì chạy lại được | Khôi phục point-in-time vào một instance cô lập: **177 giây**, đo ngày 28/08/2026. **Cộng thời gian con người**: tìm bản backup, tìm khoá, quyết định. Phần con người mới là phần lớn | `[BUSINESS DECISION]` |
 
-**Hai điều cần nói thẳng, vì con số ở trên dễ bị đọc lạc quan hơn thực tế.**
+**Điều cần nói thẳng, vì con số ở trên dễ bị đọc lạc quan hơn thực tế.**
 
-**RPO 24 giờ nghĩa là một kỳ thi bắt đầu lúc 9 giờ sáng và sự cố lúc 11 giờ thì mất trọn cả buổi thi
-đó.** Với một sản phẩm thi cử, mất một bài đã nộp không phải mất dữ liệu — nó là mất một kết quả học
-viên đã bỏ hai tiếng ra làm và có thể không làm lại được. Nếu chủ sản phẩm thấy điều đó không chấp
-nhận được thì lời giải không phải chạy backup dày hơn mà là **oplog tailing liên tục**, và đó là một
-hạng mục riêng chưa làm.
+**Đoạn này trước đây viết "RPO tối đa 24 giờ" và gọi oplog tailing liên tục là "một hạng mục riêng
+chưa làm". Hạng mục đó đã làm** — xem [PITR liên tục](#pitr-liên-tục-percona-backup-for-mongodb) bên
+dưới. Lý do nó quan trọng vẫn giữ nguyên và đáng nhắc lại: một kỳ thi bắt đầu 9 giờ sáng, sự cố lúc
+11 giờ, với RPO 24 giờ là mất trọn buổi thi — không phải mất dữ liệu, mà là mất một kết quả học viên
+đã bỏ hai tiếng ra làm và có thể không làm lại được.
 
 **RTO chưa được diễn tập ở phần con người.** Bài diễn tập chứng minh cơ chế chạy; nó **không** chứng
 minh có người biết khoá nằm ở đâu lúc 3 giờ sáng. Một cuộc diễn tập có người thật, bấm giờ, là việc
@@ -138,11 +138,129 @@ mặc định đặt đại ở đây sẽ trở thành cam kết mà không ai 
 
 ---
 
+## PITR liên tục: Percona Backup for MongoDB
+
+**F3.3, 28/08/2026.** `mongodump --oplog` chỉ ghi các thao tác xảy ra *trong lúc dump chạy* — đó là
+một bản chụp nhất quán, **không phải** point-in-time recovery. Giữa hai lần chạy không có gì cả, nên
+RPO thật bằng khoảng cách giữa hai lần backup.
+
+`[QUYẾT ĐỊNH kỹ thuật]` — dùng **Percona Backup for MongoDB (PBM)**, đánh giá trước khi tự viết code
+tailing oplog. PBM là mã nguồn mở, nói chuyện với S3-compatible, và **không ràng buộc nhà cung cấp
+nào**. Tự viết oplog tailing là cách kinh điển để mất dữ liệu một cách âm thầm: nối lại sau khi agent
+restart, rollover, và thứ tự đảm bảo quanh lúc primary step-down đều dễ sai một cách tinh vi và chỉ
+lộ ra đúng lúc cần khôi phục.
+
+`backup.sh` **không bị thay thế**. Nó vẫn có một ưu điểm PBM không có ở đây: gpg mã hoá **phía client**,
+nên không phụ thuộc vào việc backend lưu trữ có KMS hay không.
+
+| | Chạy thế nào |
+|---|---|
+| Agent | `vni-pbm` trong [`compose.yaml`](../../infra/docker/compose.yaml), `network_mode: service:mongo` |
+| Cấu hình | `scripts/pbm-setup.sh` — áp storage, bật PITR, in ra RPO thật |
+| Retention | `node scripts/pbm-retention.mjs` (mặc định chỉ báo cáo; `--apply` mới xoá) |
+| Diễn tập | `scripts/pitr-drill.sh` — khôi phục point-in-time vào instance **cô lập**, đối chiếu, đo RTO |
+| Cảnh báo | `scripts/pbm-alert.sh` — exit code khác 0 khi PITR/backup quá hạn |
+
+### Diễn tập PITR và cảnh báo quá hạn
+
+**F3.4.** `restore-drill.sh` diễn tập đường `backup.sh` (dump → huỷ → khôi phục → so khớp), khôi phục
+vào **cùng** instance, giới hạn theo namespace. `pitr-drill.sh` diễn tập đường PBM, và ba khác biệt
+chính là lý do nó tồn tại:
+
+1. khôi phục tới **một mốc thời gian bất kỳ**, không phải tới lúc nào đó có bản dump — đây mới là cách
+   trả lời được câu "khôi phục về ngay trước sự cố";
+2. khôi phục vào một **instance riêng, cô lập**, và **không bao giờ** ghi vào nguồn — PBM khôi phục ở
+   mức instance, nên một bài diễn tập ghi đè production để chứng minh production khôi phục được sẽ là
+   cách sai đắt nhất có thể;
+3. đối chiếu **số lượng document, checksum nội dung, và chính bất biến point-in-time** — rằng bản ghi
+   trước mốc T còn, bản ghi sau T thì không. Chỉ đếm số lượng thì vẫn qua ngay cả khi khôi phục trúng
+   **sai mốc**, mà đó mới là lỗi đáng bắt.
+
+**Đo ngày 28/08/2026:** RTO **157 giây** trên ngân sách 3600 giây; count và checksum khớp tuyệt đối;
+0 document sau T lọt vào; nguồn vẫn nguyên 1000 document.
+
+### Runner portable: một bề mặt lệnh, hai transport
+
+**F3.5.** Mọi script backup ban đầu đều gọi database theo đúng một cách: `docker exec vni-pbm pbm …`.
+Cách đó chạy được trên máy đã viết ra nó và **không chạy được ở đâu khác** — nó giả định có Docker
+daemon, có quyền vào socket, và có một container đúng **tên** đó. Một Kubernetes CronJob, một systemd
+timer trên chính máy database, hay một Nomad periodic job đều không có ba thứ ấy.
+
+`scripts/pbm-run.sh` tách đúng phần khác nhau — **cách tìm tới binary `pbm`** — và giữ nguyên phần
+còn lại:
+
+| Mode | Khi nào | Dùng cho |
+|---|---|---|
+| `direct` | `pbm` có trên PATH | Scheduler: pod, container, hoặc chính máy database |
+| `docker` | không có `pbm` | Máy lập trình viên |
+
+Tự phát hiện, ghi đè được bằng `VNI_PBM_MODE`.
+
+**Hợp đồng cấu hình** (tất cả đều có mặc định cho stack cục bộ):
+
+| Biến | Ý nghĩa |
+|---|---|
+| `VNI_PBM_MODE` | `direct` hoặc `docker` |
+| `VNI_PBM_CONTAINER` | tên container, chỉ dùng ở mode `docker` |
+| `VNI_PBM_URI` | MongoDB URI |
+| `VNI_PBM_MAX_PITR_LAG_SECONDS` / `VNI_PBM_MAX_BACKUP_AGE_SECONDS` | ngưỡng cảnh báo |
+| `VNI_PBM_KEEP_DAILY` / `_WEEKLY` / `_MONTHLY` | retention |
+
+**Exit code là toàn bộ giao diện**: 0 là xong, khác 0 là không. Mọi scheduler kể trên đều đọc được
+và không cần gì thêm.
+
+> **Repository này KHÔNG cài lịch chạy nào, và đó là cố ý.** Không cron entry, không timer unit,
+> không CronJob manifest. Nền tảng chưa được chọn (thuộc backlog Production Ready), và một lịch chạy
+> lặng lẽ commit vào đây sẽ trở thành **một cam kết RPO không ai đưa ra** (`G-11`). Thứ được cung cấp
+> là một lệnh scheduler gọi được và một hợp đồng cấu hình để điền vào — nhận nhiều hơn thế là nhận
+> rằng đã có lịch production trong khi chưa có.
+
+**Cảnh báo là exit code, không phải một nhà cung cấp.** `pbm-alert.sh` kiểm PITR còn bật, độ trễ
+coverage so với **bây giờ** (ngưỡng mặc định 300 giây — khớp RPO), và tuổi bản full gần nhất (26 giờ,
+không phải 24, để không báo động vì trôi giờ chạy thường ngày). Một hệ thống backup dừng lại thì **im
+lặng**: API vẫn phục vụ, health check vẫn xanh, chỉ có recovery point âm thầm trượt đi. Nên nó được
+khẳng định bằng đồng hồ chứ không phải bằng giả định.
+
+**Vì sao agent phải dùng chung network namespace với mongod.** Replica set của dự án này khai báo
+thành viên là `localhost:27017` (ADR-0011, một node). Một agent ở namespace riêng sẽ hiểu `localhost`
+là chính nó và không thấy database — quan sát trực tiếp: `pbm status` báo "connection refused" trên
+`[::1]:27017` trong khi agent vẫn khoẻ. Dùng chung namespace làm `localhost:27017` mang đúng nghĩa mà
+`rs.conf()` nói, **không** cần reconfigure replica set và **không** đổi cách ứng dụng kết nối.
+
+### Mã hoá khi lưu trữ: là việc của kho lưu trữ, không phải của PBM
+
+PBM nhận `serverSideEncryption.sseAlgorithm: AES256`, nhưng MinIO cục bộ từ chối ngay lần ghi đầu:
+
+```
+StatusCode: 501 NotImplemented — Server side encryption specified but KMS is not configured
+```
+
+Quan sát được, không phải suy đoán. Nên đây là **seam cấu hình** chứ không phải mặc định bịa ra
+(`G-11`): triển khai nào có bucket kèm KMS thì bật bằng `VNI_PBM_SSE=AES256`. Cho tới lúc đó, câu nói
+trung thực là *"mã hoá trên đường truyền; mã hoá khi lưu chỉ khi bucket làm điều đó"* — **không** phải
+"backup được mã hoá".
+
+### Retention 7 / 5 / 12
+
+PBM chỉ có `cleanup --older-than`, tức một mốc cắt duy nhất, nên **không** diễn đạt được
+grandfather-father-son (giữ 7 bản ngày, 5 bản tuần, 12 bản tháng giữ lại một số bản *cũ* và bỏ một số
+bản *mới hơn*). Việc chọn nằm ở `scripts/pbm-retention.mjs`; chỉ việc xoá là giao cho PBM.
+
+Viết bằng Node và có unit test vì cái giá của sai là **một bản backup bị xoá**: đây là số học ngày
+tháng qua ranh giới tháng và tuần ISO, phải chạy giống nhau trên Windows và Linux.
+
+**Luật quan trọng nhất trong đó:** một snapshot được giữ nếu **bất kỳ** tầng nào cần nó. Xử lý lần
+lượt từng tầng rồi xoá thứ tầng hiện tại không cần chính là cách một cài đặt GFS tự huỷ lịch sử hằng
+tháng của nó — có test riêng cho đúng trường hợp này.
+
+---
+
 ## Còn thiếu
 
 | Hạng mục | Vì sao chưa làm |
 |---|---|
-| Lịch chạy tự động (cron/systemd timer) | Tần suất = RPO = `[BUSINESS DECISION]`. Cài sẵn một con số là bịa một cam kết |
+| Lịch chạy tự động (cron/systemd timer) | Tần suất backup đầy đủ = `[BUSINESS DECISION]`; và nền tảng chạy lịch chưa được chọn (F3.5). PITR thì đã liên tục, không cần lịch |
+| Mã hoá khi lưu trữ cho PBM | Cần bucket có KMS — xem mục ở trên |
 | Nơi lưu archive ngoài máy chủ | Đi cùng `H-11` (chọn nhà cung cấp object storage) và `B-2` (dữ liệu cá nhân qua biên giới) |
 | Xoay khoá mã hoá | Cần biết archive được giữ bao lâu, mà cửa sổ lưu trữ vẫn là câu hỏi mở của chủ sản phẩm |
 | Diễn tập có bấm giờ, người thật | Đây là thứ duy nhất biến RTO từ ước lượng thành con số |

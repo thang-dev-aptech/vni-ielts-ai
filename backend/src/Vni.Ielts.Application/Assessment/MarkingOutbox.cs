@@ -96,7 +96,22 @@ public sealed record MarkingJob(
     DateTimeOffset? LeaseUntil,
     string? LeaseToken,
     string? LastError,
-    DateTimeOffset? CompletedAt)
+    DateTimeOffset? CompletedAt,
+    /// <summary>
+    /// The W3C `traceparent` of the request that enqueued this job.
+    ///
+    /// <b>F4.2 — the queue is where a trace would otherwise end.</b> Marking
+    /// happens in another process, minutes later; without carrying the
+    /// context, the worker's span starts a brand-new trace and "why did this
+    /// learner's Writing never come back" cannot be joined to the submit that
+    /// asked for it. Storing it on the job is the only carrier available —
+    /// there is no message broker here, the job row *is* the message.
+    ///
+    /// A string rather than an `ActivityContext`: this is the Application
+    /// layer, the value is persisted, and W3C traceparent is a stable wire
+    /// format that survives a database change. Null when nothing was tracing.
+    /// </summary>
+    string? TraceParent = null)
 {
     /// <summary>The id a re-close of this section would produce. → <see cref="OperationId"/>.</summary>
     public static string IdFor(ExamSessionId sessionId, ExamModule module, string rubricVersion) =>
@@ -160,6 +175,34 @@ public interface IMarkingOutbox
 
     /// <summary>Every job for one sitting, so a results screen can say what is owed.</summary>
     Task<IReadOnlyList<MarkingJob>> ListAsync(ExamSessionId sessionId, CancellationToken ct);
+
+    /// <summary>
+    /// How much work is owed, and how long the oldest piece has been waiting.
+    ///
+    /// <b>F4.3 — depth alone cannot tell a busy queue from a stuck one.</b> A
+    /// depth of fifty is ordinary when fifty sittings just ended and fifty
+    /// markings are seconds old; it is an incident when the oldest is an hour
+    /// old, because that is a learner still looking at a dash. The age is the
+    /// signal that distinguishes them, so both are returned together and from
+    /// one point in time — reading them separately can report a depth from
+    /// before a drain and an age from after it.
+    ///
+    /// Counts only work that is <i>owed</i>: Pending and Retryable, plus jobs
+    /// whose lease has expired (a worker died holding them). A job a live
+    /// worker is inside is not backlog.
+    /// </summary>
+    Task<QueueBacklog> BacklogAsync(DateTimeOffset asOf, CancellationToken ct);
+}
+
+/// <param name="Depth">Jobs owed and not currently being worked on.</param>
+/// <param name="OldestAge">
+/// How long the oldest owed job has waited since it was created.
+/// <see cref="TimeSpan.Zero"/> when nothing is owed — an empty queue has no
+/// oldest item, and reporting null would make every dashboard handle a gap.
+/// </param>
+public readonly record struct QueueBacklog(long Depth, TimeSpan OldestAge)
+{
+    public static readonly QueueBacklog Empty = new(0, TimeSpan.Zero);
 }
 
 /// <summary>
@@ -215,7 +258,11 @@ public static class MarkingWork
                 LeaseUntil: null,
                 LeaseToken: null,
                 LastError: null,
-                CompletedAt: null),
+                CompletedAt: null,
+                // Captured from whatever is tracing the submit, right here at
+                // the boundary — `Activity.Current` is meaningless by the time
+                // a worker picks the job up. → F4.2
+                TraceParent: System.Diagnostics.Activity.Current?.Id),
             ct);
     }
 }

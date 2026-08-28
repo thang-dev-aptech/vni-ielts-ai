@@ -24,6 +24,10 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Classic script, deliberately: it blocks and runs before the deferred
+         module bundle below, so window.__VNI_RUNTIME_CONFIG__ is already set
+         by the time any module-level code reads it. → F2.6, packages/auth/src/runtimeConfig.ts -->
+    <script src="/env-config.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

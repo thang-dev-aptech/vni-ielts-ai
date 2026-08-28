@@ -1,0 +1,81 @@
+# F4.4 — dependency updates, weekly, across every ecosystem this repository
+# actually uses.
+#
+# <b>Four ecosystems, because a gap in any one of them is the one that bites.</b>
+# npm and NuGet are obvious; the two that get forgotten are Docker base images
+# (a pinned digest never updates itself, so a CVE in the base sits there
+# indefinitely) and GitHub Actions (a compromised or abandoned action runs with
+# access to the build, which is the supply-chain attack that has actually
+# happened to other projects).
+#
+# <b>Weekly rather than daily.</b> Daily on a repository this size produces
+# more pull requests than anyone reads, and an update queue nobody reads is
+# indistinguishable from no updates at all — except that it also hides the
+# security ones among the noise.
+
+version: 2
+
+updates:
+  # ── JavaScript / TypeScript ───────────────────────────────────────────────
+  # One entry for the whole pnpm workspace: the lockfile is at the root and
+  # every app and package resolves through it.
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # Grouped so a routine bump of five related packages is one review, not
+      # five. Security updates are deliberately NOT grouped — see below.
+      dev-dependencies:
+        dependency-type: development
+        update-types: ['minor', 'patch']
+      production-minor-patch:
+        dependency-type: production
+        update-types: ['minor', 'patch']
+
+  # ── .NET ──────────────────────────────────────────────────────────────────
+  - package-ecosystem: nuget
+    directory: '/backend'
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      opentelemetry:
+        # These ship as a set and are version-locked to each other; updating
+        # one alone produces a build that does not restore.
+        patterns: ['OpenTelemetry*']
+      aspnet-extensions:
+        patterns: ['Microsoft.Extensions.*', 'Microsoft.AspNetCore.*']
+
+  # ── Container base images ─────────────────────────────────────────────────
+  # A base image pinned by tag or digest is exactly as old as the day it was
+  # pinned. Nothing else in this repository would ever notice.
+  - package-ecosystem: docker
+    directory: '/backend'
+    schedule:
+      interval: weekly
+      day: monday
+
+  - package-ecosystem: docker
+    directory: '/apps/web'
+    schedule:
+      interval: weekly
+      day: monday
+
+  - package-ecosystem: docker
+    directory: '/apps/admin'
+    schedule:
+      interval: weekly
+      day: monday
+
+  # ── The workflows themselves ──────────────────────────────────────────────
+  # An action runs with access to the build. Keeping these current is supply
+  # chain, not housekeeping.
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday

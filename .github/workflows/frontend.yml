@@ -45,6 +45,11 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # F1.1 — catches exactly the defect that let this workflow's Node
+      # version and the browser suite's drift apart with nothing checking.
+      - name: Toolchain versions agree
+        run: pnpm toolchain:check
+
       # <b>Before the typecheck, because the generated file is untracked.</b>
       # A fresh checkout has no `packages/api-client/src/generated`, so
       # `pnpm typecheck` would fail on a package whose source does not exist

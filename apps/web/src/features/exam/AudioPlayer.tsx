@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { authedFetch } from '../../lib/api.js';
+import { apiBase, authedFetch } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
 import { formatClock } from './examApi.js';
@@ -51,7 +51,7 @@ export function AudioPlayer({
 
     void (async () => {
       try {
-        const base = import.meta.env['VITE_API_BASE'] ?? 'http://localhost:5099';
+        const base = apiBase();
         const path = reference.replace(/^assets\//, '');
         // <b>Through the shared transport, not a bare `fetch`.</b> A
         // Listening section is thirty minutes and an access token is fifteen,

@@ -45,6 +45,17 @@ graph TB
 
 ### What can run in parallel
 
+#### Foundation infrastructure queue
+
+| Agent | Owned work | Handoff |
+|---|---|---|
+| `dev1` | F3.4–F3.5 backup, restore, portability | `_workspace/dev1/report.md` |
+| `dev2` | F4.1–F4.5 telemetry, security, supply chain | `_workspace/dev2/report.md` |
+| `dev3` | F5.1–F5.5 CI, drills, certification, timing | `_workspace/dev3/report.md` and timing JSON |
+
+dev1/dev2/dev3 may prepare independent work concurrently, but phase gates remain ordered F3 → F4 → F5.
+Only the orchestrator updates the Foundation checklist/report.
+
 | Stage | Parallel | Why |
 |---|---|---|
 | Discovery | `product-analyst` ∥ `domain-analyst` | Product framing and IELTS domain research are independent |

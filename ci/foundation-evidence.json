@@ -1,0 +1,178 @@
+{
+  "$comment": [
+    "F5.5 — the machine-readable half of the Foundation gate.",
+    "",
+    "One list, read by two tools that must not disagree: scripts/verify.mjs resolves the pipeline",
+    "stages whose commands are owned by another phase, and scripts/certify-foundation.mjs decides",
+    "whether the evidence a phase promised actually exists on disk. Two hand-maintained copies of",
+    "this list would drift, and the copy that drifts is always the one the certification reads.",
+    "",
+    "`anyOf` means the exact filename is not yet settled by the owning agent; the first path that",
+    "exists satisfies the entry. An entry with no present path is BLOCKED — never assumed green,",
+    "never dropped from the plan. `command` is what the pipeline runs once the evidence exists.",
+    "",
+    "This file records what each phase MUST produce. It does not record that any of it passed.",
+    "The checkbox in docs/development/infrastructure-foundation-todolist.md remains the only place",
+    "a phase is declared closed, and only the orchestrator writes there."
+  ],
+  "schemaVersion": 1,
+  "phases": {
+    "F3": {
+      "title": "Data, backup and the PostgreSQL migration path",
+      "owner": "dev1",
+      "handoff": "docs/development/infrastructure-foundation-report.md",
+      "handoffNote": "F3.1-F3.5 were executed by the orchestrator directly rather than by a dev1 agent, so there is no _workspace handoff. The evidence — commands, exit codes, negative proofs and residual risks — is in the phase report itself, which is the durable record rather than session scratch.",
+      "evidence": [
+        {
+          "id": "backup-runner",
+          "path": "scripts/pbm-run.sh",
+          "description": "Portable backup runner a future scheduler can call (F3.5)."
+        },
+        {
+          "id": "retention-selector",
+          "path": "scripts/pbm-retention.mjs",
+          "description": "Retention selector — it decides which backups get deleted (F3.3)."
+        },
+        {
+          "id": "retention-tests",
+          "path": "scripts/pbm-retention.test.mjs",
+          "command": "node --test scripts/pbm-retention.test.mjs",
+          "description": "Month and ISO-week arithmetic of the retention selector."
+        },
+        {
+          "id": "freshness-alert",
+          "path": "scripts/pbm-alert.sh",
+          "command": "bash scripts/pbm-alert.sh",
+          "description": "Backup/PITR staleness alarm (F3.4)."
+        },
+        {
+          "id": "pitr-drill",
+          "path": "scripts/pitr-drill.sh",
+          "command": "bash scripts/pitr-drill.sh",
+          "description": "Point-in-time restore into an isolated instance, RPO/RTO measured (F3.4)."
+        },
+        {
+          "id": "restore-drill",
+          "path": "scripts/restore-drill.sh",
+          "command": "bash scripts/restore-drill.sh",
+          "description": "Encrypted dump/restore round trip, run on every backend build."
+        }
+      ]
+    },
+    "F4": {
+      "title": "Observability, security and software supply chain",
+      "owner": "dev2",
+      "handoff": "docs/development/infrastructure-foundation-report.md",
+      "handoffNote": "F4.1-F4.5 were executed by the orchestrator directly rather than by a dev2 agent. Same reasoning as F3: the phase report is the record, and it also carries the F4 phase-gate section explaining which scanners could not run here.",
+      "evidence": [
+        {
+          "id": "otlp-export-test",
+          "anyOf": ["backend/tests/Vni.Ielts.Integration.Tests/TelemetryExportTests.cs"],
+          "command": "dotnet test backend/tests/Vni.Ielts.Integration.Tests --filter TelemetryExportTests",
+          "description": "F4.1 — a local collector receives a correlated trace, metric and log from API and worker."
+        },
+        {
+          "id": "redaction-test",
+          "anyOf": [
+            "backend/tests/Vni.Ielts.Integration.Tests/RedactionTests.cs",
+            "backend/tests/Vni.Ielts.Infrastructure.Tests/Observability/RedactionTests.cs"
+          ],
+          "description": "F4.2 — a payload deliberately full of secret-shaped values must not reach any log or export."
+        },
+        {
+          "id": "metric-alert-contract",
+          "anyOf": [
+            "docs/development/alerting.md",
+            "docs/development/observability.md",
+            "docs/development/metrics-and-alerts.md"
+          ],
+          "description": "F4.3 — the metric/alert contract, with thresholds left in configuration. Landed as alerting.md; the speculative names are kept so the entry still resolves either way."
+        },
+        {
+          "id": "security-gate-command",
+          "anyOf": [
+            ".github/workflows/security.yml",
+            "scripts/security-gates.sh",
+            "scripts/security-gates.mjs"
+          ],
+          "command": "pnpm security:check",
+          "description": "F4.4 — dependency audit, secret scan, SAST and image scan, each failing on a deliberate fixture."
+        },
+        {
+          "id": "dependabot",
+          "anyOf": [".github/dependabot.yml", ".github/dependabot.yaml"],
+          "description": "F4.4 — weekly npm, NuGet, Docker and GitHub Actions updates."
+        },
+        {
+          "id": "vulnerability-allowlist",
+          "anyOf": [
+            "security/vulnerability-allowlist.json",
+            "ci/vulnerability-allowlist.json",
+            ".github/vulnerability-allowlist.json"
+          ],
+          "description": "F4.4 — High/Critical findings are exempted only with a reason, an owner and an expiry."
+        },
+        {
+          "id": "sbom-and-signing",
+          "anyOf": [
+            ".github/workflows/release-images.yml",
+            ".github/workflows/supply-chain.yml",
+            "scripts/sbom.sh"
+          ],
+          "description": "F4.5 — SBOM, provenance and a keyless Cosign signature bound to an immutable image digest."
+        }
+      ]
+    },
+    "F5": {
+      "title": "Unified CI and Foundation Ready certification",
+      "owner": "dev3",
+      "handoff": "_workspace/dev3/report.md",
+      "evidence": [
+        {
+          "id": "root-verification",
+          "path": "scripts/verify.mjs",
+          "command": "node scripts/verify.mjs",
+          "description": "F5.1 — the single ordered verification command."
+        },
+        {
+          "id": "skip-gate",
+          "path": "scripts/check-test-skips.mjs",
+          "description": "F5.1 — no test is skipped without a dated, owned exemption."
+        },
+        {
+          "id": "drift-gate",
+          "path": "scripts/check-generated-drift.mjs",
+          "description": "F5.1 — generated artifacts are reproducible and untracked."
+        },
+        {
+          "id": "ci-matrix",
+          "path": ".github/workflows/verify.yml",
+          "description": "F5.2 — Linux runs the whole pipeline; Windows runs the portability gates."
+        },
+        {
+          "id": "burn-in",
+          "path": "scripts/burn-in.mjs",
+          "command": "node scripts/burn-in.mjs --suite=idempotency",
+          "description": "F5.3 — the idempotency suite, ten consecutive iterations, no workflow-level retry."
+        },
+        {
+          "id": "failure-drills",
+          "path": "scripts/failure-drills.mjs",
+          "command": "node scripts/failure-drills.mjs",
+          "description": "F5.4 — every fault drill, each with the failure it is required to produce."
+        },
+        {
+          "id": "certification",
+          "path": "scripts/certify-foundation.mjs",
+          "command": "node scripts/certify-foundation.mjs",
+          "description": "F5.5 — collects every phase's evidence and refuses to certify an incomplete one."
+        },
+        {
+          "id": "timing",
+          "path": "_workspace/dev3/infrastructure-timing.json",
+          "description": "Elapsed-time record, separating filesystem-derived span from proven continuous execution."
+        }
+      ]
+    }
+  }
+}

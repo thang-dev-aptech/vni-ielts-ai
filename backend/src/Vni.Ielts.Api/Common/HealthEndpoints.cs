@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Vni.Ielts.Application.Exams;
+using Vni.Ielts.Infrastructure.Observability;
+using Vni.Ielts.Infrastructure.Storage;
 
 namespace Vni.Ielts.Api.Common;
 
@@ -64,8 +66,22 @@ public static class HealthEndpoints
     }
 
     private static async Task<IResult> ReadyAsync(
-        IMongoDatabase database, IExamAssetStore? assets, CancellationToken ct)
+        IMongoDatabase database, HttpContext context, CancellationToken ct)
     {
+        /*
+         * <b>Resolved explicitly, not as a nullable service parameter.</b> In
+         * Development, with no object storage configured,
+         * <c>IObjectStorageHealthCheck</c> is never registered at all — and
+         * minimal-API parameter binding decides *how* to bind a parameter once,
+         * at route-build time, from whether the type is a known service. An
+         * unregistered type doesn't reliably fall back to "inject null"; it can
+         * be inferred as a body parameter instead, which is the wrong binding
+         * for a GET and a startup-time trap for exactly the environment this
+         * endpoint most needs to keep working in. Asking the container
+         * directly is unambiguous either way.
+         */
+        var objectStorage = context.RequestServices.GetService<IObjectStorageHealthCheck>();
+
         var checks = new List<object>();
         var ready = true;
 
@@ -92,22 +108,16 @@ public static class HealthEndpoints
          * production one has a bucket, and a bucket that has stopped answering
          * is a node that should not be sent a Listening section.
          *
-         * <b>Not a fetch.</b> Reading an object would make readiness depend on
-         * a particular file existing, and an empty catalogue is not an outage.
-         * Asking whether the store can be reached is the question.
+         * <b>`HeadBucket`, never a fetch.</b> Reading an arbitrary object key
+         * would make readiness depend on that key's absence being handled the
+         * same way as an auth failure or a wrong bucket name — which used to
+         * be true and is the bug this replaced. `IObjectStorageHealthCheck`
+         * asks the access question directly and throws a distinct, typed
+         * exception for "no such bucket", "not authorized" and "unreachable".
          */
-        if (assets is not null)
+        if (objectStorage is not null)
         {
-            var media = await CheckAsync(
-                "object-storage",
-                async token =>
-                {
-                    // A reference that resolves to nothing is the expected
-                    // answer. What is being tested is that the store answers at
-                    // all rather than throwing or hanging.
-                    await assets.OpenAsync("assets/.readiness-probe", token);
-                },
-                ct);
+            var media = await CheckAsync("object-storage", objectStorage.CheckAsync, ct);
 
             checks.Add(media.Report);
             ready &= media.Ok;
@@ -158,6 +168,17 @@ public static class HealthEndpoints
              * process. The type is enough to tell a timeout from a refusal, and
              * the log has the rest.
              */
+            // F4.3 — the 503 is seen only by whoever probed, and an
+            // orchestrator that reacts by restarting keeps no memory of it.
+            // The counter is what makes "MongoDB failed readiness three times
+            // in ten minutes" a question anyone can answer. The dependency
+            // NAME and the exception TYPE only — never the message, which can
+            // carry a connection string. → F4.2
+            Telemetry.ReadinessFailures.Add(
+                1,
+                new KeyValuePair<string, object?>("vni.dependency", name),
+                new KeyValuePair<string, object?>("vni.error", e.GetType().Name));
+
             return (false, new
             {
                 name,

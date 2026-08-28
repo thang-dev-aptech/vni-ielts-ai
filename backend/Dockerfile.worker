@@ -11,7 +11,7 @@
 # Everything else follows the API's Dockerfile for the same reasons: pinned
 # base, two stages, non-root.
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:e1ffd2a92ae84c1291bc1b6887501f8af98e6331e7af6d4c8d37168c5e87a64c AS build
 WORKDIR /src
 
 COPY Directory.Build.props ./
@@ -28,11 +28,23 @@ COPY src/ src/
 RUN dotnet publish src/Vni.Ielts.Worker/Vni.Ielts.Worker.csproj \
     -c Release -o /app --no-restore
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0-noble AS runtime
+# <b>F2.2 — `aspnet`, not the bare `runtime` image.</b> The worker gained a
+# real HTTP health port (Sdk.Web, Kestrel), so it needs the ASP.NET Core
+# shared framework the same way the API does — the plain runtime image this
+# used to be built on has no Kestrel in it at all.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble@sha256:a4556ed033fa96f984bb7a8d348851cb2d36b1281dd2420070045f664fbb5f94 AS runtime
 WORKDIR /app
 
 USER $APP_UID
 
 COPY --from=build /app .
+
+# The worker's own health port. Not 8080: a deployment that puts the API and
+# the worker on the same host must not have their default ports collide.
+ENV ASPNETCORE_HTTP_PORTS=8081
+EXPOSE 8081
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
+    CMD ["/app/Vni.Ielts.Worker", "--healthcheck"]
 
 ENTRYPOINT ["/app/Vni.Ielts.Worker"]

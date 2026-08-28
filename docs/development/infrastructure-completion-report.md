@@ -1,5 +1,12 @@
 # Báo cáo tổng kết hạ tầng — `I0`…`I7`
 
+> **HISTORICAL SNAPSHOT — không phải chứng nhận Foundation Ready hiện hành.** Một re-audit độc lập
+> ngày 28/08/2026 đã tái hiện object-storage readiness false-positive, integration idempotency không
+> ổn định, production-smoke không boot và clean-checkout tooling không portable. Kế hoạch sửa và
+> bằng chứng mới nằm tại
+> [`infrastructure-foundation-todolist.md`](infrastructure-foundation-todolist.md) và
+> [`infrastructure-foundation-report.md`](infrastructure-foundation-report.md).
+
 > Viết bằng tiếng Việt vì đây là báo cáo cho chủ sản phẩm, giống
 > [`infrastructure-gate.md`](infrastructure-gate.md). Phần còn lại của `docs/` là tiếng Anh.
 >

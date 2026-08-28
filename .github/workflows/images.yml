@@ -1,0 +1,62 @@
+name: Images
+
+# F2.6 — proves the OCI images this repo produces, not just that a
+# Dockerfile parses. Separate from backend.yml/frontend.yml because it spans
+# both: a change to backend/Dockerfile alone would never trigger a
+# path-filtered frontend workflow, and vice versa.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      [
+        'apps/**',
+        'packages/**',
+        'backend/**',
+        'contracts/**',
+        'package.json',
+        'pnpm-*.yaml',
+        'scripts/verify-images.sh',
+        '.github/workflows/images.yml',
+      ]
+  pull_request:
+    paths:
+      [
+        'apps/**',
+        'packages/**',
+        'backend/**',
+        'contracts/**',
+        'package.json',
+        'pnpm-*.yaml',
+        'scripts/verify-images.sh',
+        '.github/workflows/images.yml',
+      ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build and verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # F4.5 — a moving base tag makes an image unreproducible, so this is
+      # checked before anything is built rather than after.
+      - name: Base images are digest-pinned
+        run: node scripts/check-base-image-pins.mjs
+
+      # Fails instead of silently skipping if the runner ever lost Docker —
+      # the same VNI_REQUIRE_* convention the backend fault-injection tests
+      # already use for Mongo/MinIO.
+      - name: Build and verify every image
+        env:
+          VNI_REQUIRE_DOCKER: '1'
+        run: scripts/verify-images.sh

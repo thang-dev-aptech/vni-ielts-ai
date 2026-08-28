@@ -1,5 +1,10 @@
 # Practice mode (Luyện đề) and Mock mode (Thi thử)
 
+> **Expanded by the owner's 28/08/2026 instruction.** The new source confirms part-level practice,
+> full-skill practice, sequential four-skill mock, shared runner chrome and AI support. Use
+> [`../product/four-skills-practice-and-mock-research.md`](../product/four-skills-practice-and-mock-research.md)
+> for the current research boundary; this file remains the detailed 27/08 surface specification.
+
 > **Scope:** the owner's instruction of 27/08/2026 splitting the four skills into **two modes**, and
 > everything that instruction decides about the learner exam surface. Recorded as `E-20`…`E-32` in
 > [`../requirements/confirmed.md`](../requirements/confirmed.md).

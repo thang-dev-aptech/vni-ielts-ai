@@ -29,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: pnpm
 
       # A single-node replica set, the same shape every other environment runs.
@@ -58,8 +58,34 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # F1.1 — catches exactly the defect that let this workflow's Node
+      # version and the frontend suite's drift apart with nothing checking.
+      - name: Toolchain versions agree
+        run: pnpm toolchain:check
+
+      # F1.6 — the browser binary is what is slow and worth not re-downloading
+      # every run; the key is tied to the lockfile, so a Playwright version
+      # bump (which changes the exact Chromium build it wants — verified
+      # locally: a cached build for one Playwright version was refused by a
+      # newer one with "Executable doesn't exist") invalidates the cache
+      # instead of silently reusing a mismatched browser.
+      - name: Cache Chromium
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      # OS-level dependencies are not part of the cached path above and are
+      # cheap to (re)install on every run regardless of cache state.
+      - name: Install Chromium's OS dependencies
+        run: pnpm --filter @vni/e2e exec playwright install-deps chromium
+        timeout-minutes: 5
+
       - name: Install Chromium
-        run: pnpm --filter @vni/e2e exec playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @vni/e2e exec playwright install chromium
+        timeout-minutes: 5
 
       # Desktop only. The mobile project runs the same specs against a phone
       # viewport and catches layout, not behaviour — worth a developer's time

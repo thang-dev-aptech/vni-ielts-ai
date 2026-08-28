@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Exams;
@@ -692,6 +693,10 @@ public static class ExamEndpoints
     private static T Committed<T>(HttpContext http, T result)
     {
         http.Items[IdempotencyMiddleware.CommittedMarker] = true;
+
+        // A no-op outside tests. → ICommitSignal
+        http.RequestServices.GetRequiredService<ICommitSignal>().Signal(http);
+
         return result;
     }
 

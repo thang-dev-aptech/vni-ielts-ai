@@ -1,6 +1,6 @@
 # Prettier owns application source only.
 #
-# docs/ is canonical, hand-written, and already gated by scripts/check-docs.py.
+# docs/ is canonical, hand-written, and already gated by scripts/check-docs.mjs.
 # Letting a formatter rewrite it would churn 70 files, destroy deliberate table
 # alignment, and put the formatter in conflict with the doc CI. Same reasoning
 # for .claude/ and .cursor/, which are configuration prose.

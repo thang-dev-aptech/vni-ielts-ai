@@ -1,0 +1,199 @@
+name: Security
+
+# F4.4 — static analysis, secret scanning and vulnerability scanning.
+#
+# <b>Separate from the build workflows on purpose.</b> These run against the
+# whole repository rather than against whatever a change touched, and CodeQL
+# in particular is slow enough that folding it into the backend job would make
+# every backend change wait for it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # <b>Weekly, and this is the half that matters most.</b> A vulnerability is
+    # usually published long after the code that contains it was merged, so a
+    # scan that only runs on change would never find it. Monday early, so a
+    # finding is waiting at the start of the week rather than on a Friday
+    # evening.
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Static analysis ────────────────────────────────────────────────────────
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['csharp', 'javascript-typescript']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        if: matrix.language == 'csharp'
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # `security-extended` over the default: the default set is tuned to
+          # keep noise low on any repository, and this one handles untrusted
+          # ZIP uploads and exam content where a missed path traversal matters
+          # more than a few extra findings to triage. → zip-ingestion-security
+          queries: security-extended
+
+      # CodeQL's autobuild guesses; this solution has a Directory.Build.props
+      # with TreatWarningsAsErrors and a Worker that needs the Web SDK, so it
+      # is built explicitly rather than left to a guess that may silently
+      # analyse less than the whole thing.
+      - name: Build the solution
+        if: matrix.language == 'csharp'
+        run: dotnet build backend/Vni.Ielts.sln --nologo
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'
+
+  # ── Secrets ────────────────────────────────────────────────────────────────
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # <b>Full history, not just the tip.</b> A credential deleted in a
+          # later commit is still in the repository and still valid until it is
+          # revoked — which is exactly the situation `R16` records for the
+          # Google key removed with `.mcp.json`. Scanning only the working tree
+          # would report that as clean.
+          fetch-depth: 0
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # The repository's own credential check, which knows about this project's
+      # specific shapes (Jwt__SigningKey, provider keys) and runs on every docs
+      # job too. Cheap, and it fails on things a generic scanner allows.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Repository credential rules
+        run: node scripts/check-docs.mjs
+
+  # ── Known vulnerabilities ──────────────────────────────────────────────────
+  vulnerabilities:
+    name: Dependency vulnerabilities
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # <b>The allowlist is validated before anything is scanned.</b> An
+      # expired waiver has to fail the build even on a day when the scanners
+      # happen to find nothing — otherwise it rots unnoticed until the day it
+      # matters.
+      - name: Allowlist is valid and nothing has quietly expired
+        run: |
+          node --test scripts/check-vulnerability-allowlist.test.mjs
+          node scripts/check-vulnerability-allowlist.mjs
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # `--audit-level high` matches the allowlist's own blocking severities:
+      # failing on every advisory teaches people to bypass the gate, which
+      # costs more than the low-severity findings it was catching.
+      - name: npm advisories
+        run: pnpm audit --audit-level high --prod
+
+      - name: NuGet advisories
+        run: |
+          dotnet restore backend/Vni.Ielts.sln
+          # `dotnet list package --vulnerable` exits 0 even when it finds
+          # something, so the output is what decides — not the exit code.
+          dotnet list backend/Vni.Ielts.sln package --vulnerable --include-transitive \
+            > /tmp/nuget-vulns.txt 2>&1 || true
+          cat /tmp/nuget-vulns.txt
+          if grep -qiE '\s(High|Critical)\s' /tmp/nuget-vulns.txt; then
+            echo "::error::High or Critical NuGet advisory. Fix it, or waive it in security/vulnerability-allowlist.json with a reason, an owner and an expiry."
+            exit 1
+          fi
+
+  # ── Container images ───────────────────────────────────────────────────────
+  images:
+    name: Image vulnerabilities
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Only the runtime images are scanned. The build stages contain an SDK, a
+      # package manager and the source — none of which ship — and scanning them
+      # produces findings for software that never reaches a deployment.
+      - name: Build the API image
+        run: docker build -f backend/Dockerfile -t vni-api:scan backend
+
+      - name: Build the worker image
+        run: docker build -f backend/Dockerfile.worker -t vni-worker:scan backend
+
+      - name: Build the learner image
+        run: docker build -f apps/web/Dockerfile -t vni-web:scan .
+
+      - name: Build the admin image
+        run: docker build -f apps/admin/Dockerfile -t vni-admin:scan .
+
+      - name: Scan the API image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: vni-api:scan
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Scan the worker image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: vni-worker:scan
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Scan the learner image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: vni-web:scan
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Scan the admin image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: vni-admin:scan
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true

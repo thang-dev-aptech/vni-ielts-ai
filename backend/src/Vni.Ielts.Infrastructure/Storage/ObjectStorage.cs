@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using Amazon.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Logging;
+using Vni.Ielts.Infrastructure.Observability;
 using Vni.Ielts.Application.Dictation;
 using Vni.Ielts.Application.Exams;
 
@@ -120,6 +122,20 @@ internal sealed class S3ObjectStore(IAmazonS3 client, ILogger<S3ObjectStore> log
     {
         if (KeyFor(reference) is not { } key) return null;
 
+        /*
+         * <b>F4.1 — object storage is a network dependency and gets a span.</b>
+         * Exam audio, Writing charts and Speaking recordings all come through
+         * here, so "the Listening audio was slow to start" is answerable only
+         * if this call is visible.
+         *
+         * <b>The bucket, not the key.</b> A key names a specific learner's
+         * recording; a bucket names a class of content. Only the second one
+         * belongs in telemetry that leaves this machine. → F4.2
+         */
+        using var span = Telemetry.Source.StartActivity(
+            "objectstorage.get", ActivityKind.Client);
+        span?.SetTag("vni.bucket", bucket);
+
         try
         {
             var response = await client.GetObjectAsync(
@@ -137,25 +153,66 @@ internal sealed class S3ObjectStore(IAmazonS3 client, ILogger<S3ObjectStore> log
 
             return (response.ResponseStream, contentType, response.ContentLength, response.ETag);
         }
-        catch (AmazonS3Exception e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (AmazonS3Exception e) when (e.ErrorCode == "NoSuchKey")
         {
+            // <b>Only the object being absent.</b> A missing key and a bad
+            // reference are the caller's problem, not the store's, so both
+            // become a 404 with nothing to log.
             return null;
         }
         catch (AmazonServiceException e)
         {
             /*
-             * <b>Logged and reported as absent.</b> A media request that cannot
-             * be served is a 404 to the caller either way, and returning null
-             * keeps one code path for "no such asset". The log is what tells an
-             * operator the difference between a missing object and a bucket
-             * that has stopped answering — which the learner must not be able
-             * to tell apart, and an operator must.
+             * <b>Logged and rethrown, not swallowed as "not found".</b> A
+             * wrong bucket name, a revoked key or a permissions change all
+             * reach here as some other <see cref="AmazonS3Exception.ErrorCode"/>
+             * — "NoSuchBucket", "AccessDenied", "InvalidAccessKeyId" — and
+             * folding them into the same null this method returns for a
+             * missing key used to tell every caller, including the readiness
+             * probe, that the store was fine when it was not. The caller now
+             * sees a real failure (a 500, not a lying 404) and the log still
+             * has the detail an operator needs.
              */
             logger.LogError(
                 e, "Object storage refused {Bucket}/{Reference}.", bucket, reference);
 
-            return null;
+            // F4.3 — a degraded store is a paper that cannot be sat, not a
+            // background inconvenience. Tagged by error CODE so "the bucket is
+            // gone" and "the key is wrong" are not one number; no key and no
+            // message, which can carry a signed URL or a credential. → F4.2
+            Telemetry.ObjectStorageErrors.Add(
+                1,
+                new KeyValuePair<string, object?>("vni.bucket", bucket),
+                new KeyValuePair<string, object?>(
+                    "vni.error",
+                    (e as AmazonS3Exception)?.ErrorCode ?? e.GetType().Name));
+
+            throw;
         }
+    }
+}
+
+/// <summary>
+/// Whether the configured buckets are reachable with the configured
+/// credentials — the question a readiness probe actually needs answered.
+///
+/// <b>A separate contract from <see cref="S3ObjectStore.OpenAsync"/>, on
+/// purpose.</b> Reusing an object read for readiness means readiness depends
+/// on some specific key existing, and a bucket that has never received that
+/// key is not the same fact as a bucket that cannot be reached. `HeadBucket`
+/// asks the second question directly: it needs no key, and it fails with a
+/// distinct, typed exception for "no such bucket" versus "not authorized"
+/// versus a network or DNS failure that never reached S3 at all.
+/// </summary>
+internal sealed class S3ObjectStorageHealthCheck(IAmazonS3 client, ObjectStorageOptions options)
+    : IObjectStorageHealthCheck
+{
+    public async Task CheckAsync(CancellationToken ct)
+    {
+        await client.HeadBucketAsync(
+            new HeadBucketRequest { BucketName = options.ExamAssetsBucket }, ct);
+        await client.HeadBucketAsync(
+            new HeadBucketRequest { BucketName = options.DictationBucket }, ct);
     }
 }
 
@@ -175,6 +232,17 @@ internal sealed class S3DictationAssetStore(S3ObjectStore store, ObjectStorageOp
         await store.OpenAsync(options.DictationBucket, reference, ct) is { } found
             ? new DictationAsset(found.Content, found.ContentType, found.Length, found.ETag)
             : null;
+}
+
+/// <summary>
+/// The readiness port. Registered only when object storage is configured, the
+/// same way <see cref="IExamAssetStore"/> and <see cref="IDictationAssetStore"/>
+/// are — a Development process has nothing to probe and nothing to report.
+/// </summary>
+public interface IObjectStorageHealthCheck
+{
+    /// <summary>Throws on anything but confirmed access to every configured bucket.</summary>
+    Task CheckAsync(CancellationToken ct);
 }
 
 internal static class ObjectStorageRegistration
@@ -206,6 +274,7 @@ internal static class ObjectStorageRegistration
         services.AddSingleton<S3ObjectStore>();
         services.AddSingleton<IExamAssetStore, S3ExamAssetStore>();
         services.AddSingleton<IDictationAssetStore, S3DictationAssetStore>();
+        services.AddSingleton<IObjectStorageHealthCheck, S3ObjectStorageHealthCheck>();
 
         return true;
     }

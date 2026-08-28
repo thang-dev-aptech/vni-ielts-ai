@@ -1183,6 +1183,75 @@ năng sẽ mở sau khi bạn xác minh email"* — mô tả một hạn chế k
 
 ---
 
+### M-47 · Điểm của bài luyện part lẻ `[BUSINESS DECISION]`
+
+**Chặn:** result contract và catalogue cho `E-34`.
+
+Bảng raw→band IELTS áp dụng cho full Reading/Listening 40 câu và còn được equate theo test version.
+Không có phép biến đổi chính thức từ một passage/part 10–14 câu thành band kỹ năng. Chọn một:
+
+1. chỉ raw score + accuracy;
+2. thêm nhãn **estimated band** khi VNI cung cấp calibration table cho unit đó;
+3. vẫn gọi là band chính thức — không khuyến nghị vì không có cơ sở chấm.
+
+→ [`../product/four-skills-practice-and-mock-research.md`](../product/four-skills-practice-and-mock-research.md) §4.
+
+### M-48 · Mock order và vị trí Speaking `[BUSINESS DECISION]`
+
+**Chặn:** session state machine cho `E-35`.
+
+Code hiện chạy Reading → Listening → Writing → Speaking. Yêu cầu mới nói “theo chuẩn kỳ thi IELTS”
+nhưng chưa chốt Speaking là block riêng hay nối thẳng sau Listening → Reading → Writing. Cần chọn
+high-fidelity hay product simulation và đặt label đúng.
+
+### M-49 · Chính sách giải thích AI `[BUSINESS DECISION]`
+
+**Chặn:** explanation API, chi phí và thời gian hiển thị kết quả.
+
+Khuyến nghị canonical explanation được tạo/review lúc publish, personalized explanation chỉ chạy
+on-demand. Cần chốt mock có mở explanation ngay sau submit hay chỉ practice được xem.
+
+### M-50 · Partial credit và response-slot numbering `[BUSINESS DECISION]`
+
+**Chặn:** package schema v2 và deterministic scorer.
+
+Một prompt “Choose TWO” có thể tương ứng hai số câu. Cần chốt all-or-nothing hay partial credit theo
+question/scoring profile; không đặt một global rule ngầm.
+
+### M-51 · Voice-provider acceptance `[BUSINESS DECISION]`
+
+**Chặn:** chọn ASR/pronunciation adapter cho `A-16`.
+
+Cần bộ audio calibration có human transcript/bands, region được phép xử lý, cost ceiling và ngưỡng
+agreement. Không chọn provider từ marketing WER hoặc raw pronunciation score của vendor.
+
+**Narrowed 28/08/2026:** chủ sản phẩm cho phép làm voice dần và yêu cầu hoàn thiện mọi phần độc lập
+trước. Vì vậy mục này không còn chặn runner/capture/R2; nó chỉ chặn ASR, Pronunciation band, Speaking
+band production và overall band bốn kỹ năng. →
+[`../development/four-skills-functional-core-todolist.md`](../development/four-skills-functional-core-todolist.md)
+§17.
+
+### M-52 · Practice result có vào progress/history không `[BUSINESS DECISION]`
+
+**Chặn:** dashboard, analytics và score history.
+
+Khuyến nghị lưu practice riêng khỏi mock; raw/estimated result của part lẻ không được trộn vào trend
+IELTS band của full mock.
+
+### M-53 · File đề nào có quyền publish cho learner `[BUSINESS DECISION]`
+
+**Chặn:** publish nội dung thật, không chặn schema/importer/fixture/internal review.
+
+Chủ sản phẩm xác nhận một số đề trong `Đề IELTS/` và `exam/` có quyền sử dụng/phân phối nhưng chưa chỉ
+rõ từng file. `exam/Exam1/README.md` hiện vẫn ghi provenance unknown. Cần rights registry theo từng
+source với proof/reference và allowed environment; không suy từ việc file nằm trong workspace rằng nó
+được phép publish.
+
+→ [`../development/four-skills-functional-core-todolist.md`](../development/four-skills-functional-core-todolist.md)
+§2 và FS0.1.
+
+---
+
 ## Surfaced by the technical stack validation (2026-08-20)
 
 Separated from the business list above because these have **different owners**. Only `B-11` needs a
@@ -1255,7 +1324,17 @@ Two remedies, not mutually exclusive:
 Depends on `B-11`. Mitigated in advance by putting storage behind an `IObjectStorage` port over an
 S3-compatible API, so the vendor stays swappable.
 
+**Partially resolved 28/08/2026:** Cloudflare R2 is available and selected as the candidate for
+recording objects (`S-6`); the owner will load its key when required. `B-11` data residency and the
+final hosting position remain open, so R2 stays behind the S3-compatible port and does not resolve the
+broader storage question.
+
 ### H-13 · Không có rubric nào được cấu hình, nên hàng đợi chấm bài không bao giờ chạy `[OPEN QUESTION]`
+
+**Narrowed 28/08/2026:** workspace đã có Writing/Speaking key-assessment criteria, band descriptors và
+Writing sample tasks; chủ sản phẩm chấp nhận Writing do AI chấm (`A-17`). FS6 sẽ chuyển nguồn được
+quyền sử dụng thành rubric versioned và cấu hình Writing. H-13 chỉ được đóng hẳn sau khi rights registry
+xác nhận descriptor source cụ thể và integration test chứng minh submit thật tạo marking job.
 
 **Phát hiện 28/08/2026 bởi bài test hành trình `I7.4`, không phải bởi audit.** Đây là hệ quả dây
 chuyền của `H-8a` mà chưa ai lần ra.

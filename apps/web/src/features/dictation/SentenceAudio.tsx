@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { authedFetch } from '../../lib/api.js';
+import { apiBase, authedFetch } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
 import '../../styles/audio.css';
@@ -38,7 +38,7 @@ export function SentenceAudio({ reference }: { reference: string }) {
 
     void (async () => {
       try {
-        const base = import.meta.env['VITE_API_BASE'] ?? 'http://localhost:5099';
+        const base = apiBase();
         const path = reference.replace(/^assets\//, '');
         // Shared transport, same reason as the exam media: a long
         // dictation session outlives the token it started with.

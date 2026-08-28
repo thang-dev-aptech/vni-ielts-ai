@@ -42,7 +42,30 @@ services:
       # R11. The port move avoids the collision; the startup guard in
       # DependencyInjection.InitialiseInfrastructureAsync is what actually
       # prevents a recurrence. → R15
-      - '27018:27017'
+      #
+      # <b>F1.5 — bound to loopback only, not `0.0.0.0`.</b> Without a host
+      # IP, Docker publishes on every interface — confirmed on this machine
+      # via `docker port vni-mongo`, which showed `0.0.0.0:27018` and
+      # `[::]:27018` before this fix. This Mongo runs with no authentication
+      # configured (it is `--bind_ip_all` only *inside* the container, which
+      # is what lets the Docker bridge network reach it at all — a separate
+      # question from which host interface the published port answers on),
+      # so on a shared network or a cloud dev box that was every other
+      # machine on the segment holding a live, unauthenticated exam and
+      # identity database.
+      #
+      # <b>Both loopback families, not just IPv4.</b> `127.0.0.1` alone was
+      # tried first and broke `/health/ready` against the object-storage
+      # container below: every connection string here says `localhost`,
+      # which on this Windows machine resolves `::1` before `127.0.0.1`, and
+      # a port with nothing bound on `::1` does not refuse the connection —
+      # it hangs for the OS's full connect timeout (measured ~2.0s with
+      # `curl -6`) before anything falls back to IPv4. That is longer than
+      # the readiness probe's own 2-second deadline. Binding both addresses
+      # means `localhost` resolves to a real listener on whichever family a
+      # client tries first, with no silent multi-second stall either way.
+      - '127.0.0.1:27018:27017'
+      - '[::1]:27018:27017'
     volumes:
       - mongo-data:/data/db
     healthcheck:
@@ -69,9 +92,20 @@ services:
       # and never enter a compose file. → CLAUDE.md rule 6
       MINIO_ROOT_USER: vni-local
       MINIO_ROOT_PASSWORD: vni-local-dev-only
+    # F1.5 — loopback only, for the same reason as Mongo above: the root
+    # credentials here are a fixed, committed, publicly-known local-dev
+    # password, and `0.0.0.0` (Docker's default with no host IP given) would
+    # have handed anyone on the same network a working S3-compatible store.
+    # Both address families, for the same reason as Mongo's binding above —
+    # this is in fact where that failure mode was originally found: the
+    # object-storage readiness probe timed out at exactly 2.0s against an
+    # IPv4-only loopback bind, because `localhost` tried `::1` first and
+    # nothing was listening there to refuse it quickly.
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '127.0.0.1:9000:9000'
+      - '[::1]:9000:9000'
+      - '127.0.0.1:9001:9001'
+      - '[::1]:9001:9001'
     volumes:
       - minio-data:/data
     healthcheck:
@@ -111,11 +145,44 @@ services:
       mc mb --ignore-existing local/vni-exam-assets &&
       mc mb --ignore-existing local/vni-documents &&
       mc mb --ignore-existing local/vni-packages &&
+      mc mb --ignore-existing local/vni-backups &&
       mc version enable local/vni-exam-assets &&
       mc version enable local/vni-packages &&
       mc version enable local/vni-documents &&
       echo 'buckets ready'
       "
+
+  # ── Continuous point-in-time backup ───────────────────────────────────────
+  #
+  # F3.3 — what `scripts/backup.sh` could not do. `mongodump --oplog` captures
+  # only the operations that ran *during the dump*: a consistent snapshot, not
+  # point-in-time recovery. Between two daily dumps there was nothing, so the
+  # real recovery point was "the last full backup" — up to 24 hours. For an
+  # exam product that is a learner's two-hour sitting, not a row in a table.
+  #
+  # `pbm-agent` slices the oplog continuously into the same S3-compatible
+  # store, which is what makes an arbitrary restore instant possible at all.
+  # → docs/development/backup-and-restore.md
+  #
+  # <b>`network_mode: service:mongo`, deliberately.</b> The agent is meant to
+  # sit beside its own mongod, and this project's replica set advertises its
+  # member as `localhost:27017` (ADR-0011, single-node). An agent in its own
+  # namespace resolves that to itself and cannot see the database at all —
+  # observed directly: `pbm status` failed with "connection refused" on
+  # [::1]:27017 while the agent was otherwise healthy. Sharing mongo's network
+  # namespace makes `localhost:27017` mean what rs.conf() says it means, with
+  # no replica-set reconfiguration and no change to how the app connects.
+  pbm:
+    image: percona/percona-backup-mongodb:2.12.0
+    container_name: vni-pbm
+    command: ['pbm-agent']
+    network_mode: 'service:mongo'
+    environment:
+      PBM_MONGODB_URI: 'mongodb://localhost:27017/?replicaSet=rs0'
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   mongo-data:

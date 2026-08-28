@@ -1,22 +1,10 @@
 # Speaking Evaluation Pipeline
 
-> ## ⚠️ This design is not confirmed scope — status `UNCONFIRMED` as of 2026-08-20
->
-> The 2026-08-20 owner brief scoped AI scoring to **Reading, Listening, and Writing**, and instructed:
-> *"Speaking: nếu chưa có business rule chính thức thì KHÔNG tự quyết định, ghi rõ UNCONFIRMED."*
->
-> Requirement `A-4`, which this document implements, is therefore marked `[SUPERSEDED 2026-08-20]` and
-> `A-14` (Speaking AI scoring) is `UNCONFIRMED`. → **`M-26`** in
-> [`../requirements/assumptions-and-open-questions.md`](../requirements/assumptions-and-open-questions.md)
->
-> **Do not cite this document as evidence that Speaking AI is in scope.** It is a design produced under
-> the earlier assumption, kept because it is sound and because re-deriving it would be wasteful — not
-> because the decision still stands.
->
-> The stakes of `M-26` are larger than they look: the entire native-audio-plugin risk
-> ([ADR-0006](../decisions/0006-speaking-audio-capture-native-plugin.md), `V-1`, `V-6`, `V-7`) exists to
-> serve this pipeline. Dropping Speaking AI would retire the highest-risk technical assumption in the
-> product. Keeping it reopens `H-3` (evaluation depth).
+> **Scope confirmed.** `F-1` put Speaking AI scoring in the first release on 20/08/2026; the owner
+> reconfirmed on 28/08/2026 that voice must be recognized, assessed for pronunciation, transcribed,
+> then evaluated for meaning and grammar (`A-14`, `A-16`). The depth, provider and calibration gate
+> remain open. Current research and provider shortlist:
+> [`../product/four-skills-practice-and-mock-research.md`](../product/four-skills-practice-and-mock-research.md).
 
 The most expensive, most latency-sensitive, and most technically difficult workflow in the product. It compounds four independent risks: mobile audio capture, ASR accuracy on accented speech, defensible scoring against subjective criteria, and per-evaluation cost that scales linearly with usage.
 

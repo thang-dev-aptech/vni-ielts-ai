@@ -1,0 +1,12 @@
+{
+  "$comment": [
+    "F5.1 — the only place a skipped test is permitted, and only with an owner and a death date.",
+    "Read by scripts/check-test-skips.mjs. Every entry needs test, reason, owner and expires.",
+    "An expired entry fails the build exactly as an unauthorized skip does: the exemption has to be",
+    "renewed deliberately or the test has to start running again. A trailing '*' matches a prefix.",
+    "The list is empty on purpose. The backend suites run with VNI_REQUIRE_MONGO=1 in CI, which turns",
+    "'no database' from a SkippableFact into a failure, so nothing in the Foundation matrix should",
+    "need an entry here."
+  ],
+  "allow": []
+}

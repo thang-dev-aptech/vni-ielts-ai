@@ -33,8 +33,19 @@ services:
       # Placeholder. A real deployment supplies this from a secret store.
       Jwt__SigningKey: ${VNI_JWT_SIGNING_KEY:?set VNI_JWT_SIGNING_KEY before running this}
 
-      Cors__Origins__0: http://localhost:5173
-      Cors__Origins__1: http://localhost:5174
+      # <b>HTTPS, deliberately, even though nothing here resolves.</b>
+      # `StartupConfiguration.ValidateOrThrow` refuses any external origin or
+      # client URL over plain HTTP outside Development — correctly, since a
+      # session token or a password-reset link travelling to one of these in
+      # a real deployment would be readable in transit. This smoke test exists
+      # to run that exact gate against a real Production boot, so it has to
+      # feed it a configuration the gate is willing to accept. F0.3 found this
+      # compose file could never boot: these two were `http://`, so the
+      # container satisfied neither this check nor the "every origin is HTTP"
+      # transport check below, and crashed on every run before the image was
+      # ever exercised.
+      Cors__Origins__0: https://learn.smoke.invalid
+      Cors__Origins__1: https://admin.smoke.invalid
 
       # `host.docker.internal` reaches the local stack from inside the
       # container. A real deployment names a service, not a host.
@@ -50,7 +61,7 @@ services:
       # exercised, not a workaround.
       Email__Host: smtp.invalid
       Email__FromAddress: no-reply@vni.invalid
-      Email__ClientBaseUrl: http://localhost:5173
+      Email__ClientBaseUrl: https://learn.smoke.invalid
     ports:
       - '18080:8080'
     extra_hosts:
@@ -71,3 +82,9 @@ services:
       Recordings__SweepEnabled: 'false'
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+    # F2.2 — the worker's own health port, published so this smoke test can
+    # ask it a real question instead of only "did the container stay up".
+    # Loopback only, matching F1.5's local-stack rule.
+    ports:
+      - '127.0.0.1:18081:8081'
+      - '[::1]:18081:8081'

@@ -888,3 +888,32 @@ public sealed class IdempotencyMiddleware(
             context.RequestAborted);
     }
 }
+
+/// <summary>
+/// Notified at the instant a guarded handler sets <see cref="IdempotencyMiddleware.CommittedMarker"/>
+/// — its irreversible side effect has landed, before the response is
+/// serialised or written.
+///
+/// <b>F0.2 — written 2026-08-28, so a test can stop guessing at a race.</b>
+/// <c>IdempotencyContractTests</c> used to prove "a client that cancels after
+/// its request committed is not replayed as a fresh execution" by racing a
+/// hard-coded one-millisecond client timeout against however long the real
+/// HTTP round trip happened to take that run — sometimes landing before the
+/// commit, sometimes long after, sometimes never inside the window at all.
+/// This gives the test a real signal to wait on instead of a stopwatch guess.
+///
+/// <b>A no-op in production</b> (<see cref="NoOpCommitSignal"/>), on purpose:
+/// the commit itself, via <see cref="IdempotencyMiddleware.CommittedMarker"/>,
+/// is what the middleware actually acts on. This interface exists only so a
+/// test can observe the same moment from outside the request.
+/// </summary>
+public interface ICommitSignal
+{
+    void Signal(HttpContext context);
+}
+
+/// <summary>The production implementation: does nothing.</summary>
+public sealed class NoOpCommitSignal : ICommitSignal
+{
+    public void Signal(HttpContext context) { }
+}

@@ -1,0 +1,60 @@
+# F4.1 — the local test collector.
+#
+# <b>A real collector, not a mock.</b> The point of the phase gate is that
+# telemetry survives the whole path — SDK, OTLP encoding, transport, receiver —
+# and a fake receiver written in the same test that produces the spans proves
+# none of it. This is the upstream collector binary, configured to write
+# everything it receives to a file the test then reads.
+#
+# <b>No vendor.</b> `debug` and `file` exporters only. Nothing here reaches the
+# network, and choosing an observability backend stays a Production Ready
+# decision. → docs/development/nfr.md
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    # Small and fast: a test should not wait ten seconds to see a span.
+    timeout: 1s
+    send_batch_size: 1
+
+exporters:
+  # <b>stdout, not a mounted file.</b> A file exporter needs a bind mount, and
+  # a bind mount is the one part of this that behaves differently on Windows,
+  # macOS and Linux — the assertions were reading an empty directory while the
+  # collector was working perfectly. `docker logs` is the same everywhere and
+  # needs no mount at all, so the check reads that instead.
+  #
+  # `detailed` because `basic` prints counts without the span and metric names
+  # the assertions match on.
+  debug:
+    verbosity: detailed
+
+service:
+  telemetry:
+    logs:
+      # <b>`info`, and it has to be.</b> The `debug` exporter writes what it
+      # receives through the collector's own logger at INFO — set this to
+      # `warn` to cut startup noise and the exporter goes silent, which reads
+      # exactly like "nothing was received". Cost an hour once; documented so
+      # it cannot cost it twice.
+      level: info
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]

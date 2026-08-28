@@ -13,7 +13,10 @@
  * This is the layer underneath it, and it survives the generator landing.
  */
 
-const BASE = import.meta.env['VITE_API_BASE'] ?? 'http://localhost:5099';
+import { getRuntimeConfig } from './runtimeConfig.js';
+import { newTraceParent } from './trace.js';
+
+const BASE = getRuntimeConfig().apiBaseUrl;
 
 /** The shape every error response takes. Clients branch on `code`, never on prose. */
 export interface ApiProblem {
@@ -250,6 +253,10 @@ async function send<T>(path: string, options: RequestOptions = {}): Promise<T> {
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
   if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
+
+  // F4.2 — starts the trace at the learner rather than at the API. The server
+  // continues it, and the marking job it enqueues carries it further still.
+  headers['traceparent'] = newTraceParent();
 
   const response = await fetch(`${BASE}${path}`, {
     method,

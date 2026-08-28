@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Application.Assessment;
 using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Domain.Common;
+using Vni.Ielts.Infrastructure.Observability;
 
 namespace Vni.Ielts.Worker;
 
@@ -40,6 +42,7 @@ namespace Vni.Ielts.Worker;
 public sealed class MarkingWorker(
     IServiceScopeFactory scopes,
     IClock clock,
+    WorkerHealthState health,
     ILogger<MarkingWorker> logger) : BackgroundService
 {
     /// <summary>
@@ -78,43 +81,69 @@ public sealed class MarkingWorker(
     {
         logger.LogInformation("Marking worker started.");
 
-        while (!stopping.IsCancellationRequested)
+        try
         {
-            bool worked;
+            while (!stopping.IsCancellationRequested)
+            {
+                // <b>Recorded before the work, not after.</b> A poll that is
+                // about to spend a long time inside a claimed job still
+                // counts as "the loop is alive and made an iteration" —
+                // RenewAsync's heartbeat is what covers the rest of that
+                // job's duration. → WorkerHealthState.RecordPoll
+                health.RecordPoll();
 
-            try
-            {
-                worked = await PumpAsync(stopping);
-            }
-            catch (OperationCanceledException) when (stopping.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception e)
-            {
-                /*
-                 * <b>The loop survives anything one iteration can throw.</b> A
-                 * database blip that killed the worker would leave every sitting
-                 * unmarked until somebody noticed the process was gone — and
-                 * nothing here restarts it. Logged loudly, waited out, retried.
-                 */
-                logger.LogError(e, "Marking worker iteration failed. Continuing.");
-                worked = false;
-            }
+                bool worked;
 
-            // Only pause when there was nothing to do. A queue with a backlog
-            // should drain at the speed of the provider, not of this timer.
-            if (!worked)
-            {
                 try
                 {
-                    await Task.Delay(Idle, stopping);
+                    worked = await PumpAsync(stopping);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (stopping.IsCancellationRequested)
                 {
                     break;
                 }
+                catch (Exception e)
+                {
+                    /*
+                     * <b>The loop survives anything one iteration can throw.</b> A
+                     * database blip that killed the worker would leave every sitting
+                     * unmarked until somebody noticed the process was gone — and
+                     * nothing here restarts it. Logged loudly, waited out, retried.
+                     */
+                    logger.LogError(e, "Marking worker iteration failed. Continuing.");
+                    worked = false;
+                }
+
+                // Only pause when there was nothing to do. A queue with a backlog
+                // should drain at the speed of the provider, not of this timer.
+                if (!worked)
+                {
+                    try
+                    {
+                        await Task.Delay(Idle, stopping);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                }
             }
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            /*
+             * <b>Past the per-iteration catch-all above — genuinely fatal.</b>
+             * Reaching here means something threw from outside `PumpAsync`'s
+             * own try, which the loop above cannot recover from on its own.
+             * The process keeps running (BackgroundService does not exit the
+             * host on a hosted service fault), so nothing else would ever
+             * notice the loop is gone. Recorded here and rethrown, so the
+             * readiness probe reports it and the host's own fault handling
+             * still runs.
+             */
+            health.RecordFatal(e);
+            logger.LogCritical(e, "Marking worker's loop exited with an unrecovered exception.");
+            throw;
         }
 
         logger.LogInformation("Marking worker stopped.");
@@ -145,22 +174,96 @@ public sealed class MarkingWorker(
         using var beating = new CancellationTokenSource();
         var heartbeat = RenewAsync(outbox, job, leaseToken, beating.Token);
 
+        /*
+         * <b>F4.1 — one span per job, and a counter beside it.</b> No
+         * instrumentation library knows what this queue is, so the span is
+         * started by hand. `Consumer` rather than `Internal`: this is work
+         * arriving from elsewhere, and the kind is what lets a backend show it
+         * as a queue consumer rather than as an unexplained gap.
+         *
+         * The tags are the module, the attempt and the outcome — deliberately
+         * NOT the session's content. A span is exported off this machine, and
+         * a learner's answers are not telemetry. → F4.2
+         */
+        /*
+         * <b>F4.2 — the trace continues here, minutes and one process later.</b>
+         * `job.TraceParent` was captured from the request that enqueued this
+         * job. Parsing it makes this span a child of that request rather than
+         * the root of an unrelated trace, so "the learner submitted and the
+         * result never came" is one trace instead of two nobody can join.
+         *
+         * Parent-child rather than a span link because the relationship here
+         * really is one-to-one — one submitted section produces one marking
+         * job. Links are for fan-in, which this queue does not do.
+         *
+         * A malformed or absent value simply starts a new trace: telemetry
+         * must never be able to fail the work it is describing.
+         */
+        var parent = default(ActivityContext);
+        var hasParent = job.TraceParent is { Length: > 0 } tp
+            && ActivityContext.TryParse(tp, null, out parent);
+
+        using var span = hasParent
+            ? Telemetry.Source.StartActivity("marking.job", ActivityKind.Consumer, parent)
+            : Telemetry.Source.StartActivity("marking.job", ActivityKind.Consumer);
+
+        span?.SetTag("vni.module", job.Module.ToString());
+        span?.SetTag("vni.attempt", job.Attempts);
+
+        var started = Stopwatch.GetTimestamp();
+        var outcome = "failed";
+
         try
         {
-            await RunAsync(services, job, stopping);
+            /*
+             * <b>F2.3 — `CancellationToken.None`, not `stopping`.</b> Once a
+             * job is claimed, the class docstring's promise ("the loop stops
+             * claiming and lets the job in hand finish") was not actually
+             * true: `stopping` cancels the instant shutdown begins, and this
+             * used to pass it straight into the marking work. A deploy
+             * arriving mid-job did not let it finish — it threw
+             * `OperationCanceledException` out of whatever the evaluator or
+             * the database was doing, which the catch below cannot tell from
+             * a real failure. `GiveUpOrRetryAsync` would then burn an
+             * attempt, or — on an already-exhausted job — mark it
+             * permanently failed for a reason that was "we redeployed", not
+             * anything about the submission. Claiming still stops
+             * (`ClaimAsync` above still uses `stopping`); the job already in
+             * hand no longer does. What now bounds it is
+             * `HostOptions.ShutdownTimeout` (Program.cs) and the lease's own
+             * heartbeat-renewed 2-minute expiry if the process is killed
+             * outright.
+             */
+            await RunAsync(services, job, CancellationToken.None);
 
             await outbox.CompleteAsync(
                 job.OperationId, leaseToken, clock.UtcNow, CancellationToken.None);
 
             logger.LogInformation(
                 "Marked {Module} for {Session}.", job.Module, job.SessionId.Value);
+
+            outcome = "completed";
+            span?.SetStatus(ActivityStatusCode.Ok);
         }
         catch (Exception e)
         {
+            // The exception TYPE, never its message: a provider or driver
+            // message can carry a connection string or request content, and a
+            // span leaves this machine. → F4.2
+            span?.SetStatus(ActivityStatusCode.Error, e.GetType().Name);
             await GiveUpOrRetryAsync(outbox, job, leaseToken, e);
         }
         finally
         {
+            Telemetry.QueueJobs.Add(
+                1,
+                new KeyValuePair<string, object?>("vni.outcome", outcome),
+                new KeyValuePair<string, object?>("vni.module", job.Module.ToString()));
+
+            Telemetry.QueueJobDuration.Record(
+                Stopwatch.GetElapsedTime(started).TotalSeconds,
+                new KeyValuePair<string, object?>("vni.outcome", outcome));
+
             await beating.CancelAsync();
             await heartbeat;
         }
@@ -278,7 +381,14 @@ public sealed class MarkingWorker(
                 var kept = await outbox.RenewAsync(
                     job.OperationId, leaseToken, clock.UtcNow.Add(Lease), CancellationToken.None);
 
-                if (kept) continue;
+                if (kept)
+                {
+                    // The loop is inside a single long PumpAsync call and
+                    // would otherwise look stale for the job's whole
+                    // duration. → WorkerHealthState.RecordPoll
+                    health.RecordPoll();
+                    continue;
+                }
 
                 /*
                  * <b>Somebody took this job over while we were inside it.</b>

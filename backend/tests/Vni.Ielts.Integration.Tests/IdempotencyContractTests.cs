@@ -2,12 +2,20 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Vni.Ielts.Api.Common;
+using Vni.Ielts.Application.Common;
+using Vni.Ielts.Application.Identity;
+using Vni.Ielts.Domain.Identity;
 
 namespace Vni.Ielts.Integration.Tests;
 
@@ -27,7 +35,8 @@ namespace Vni.Ielts.Integration.Tests;
 /// is ordered, so a suite built on one would have agreed with the bug for as
 /// long as it existed.
 /// </summary>
-public sealed class IdempotencyContractTests(ExamAppFactory app) : IClassFixture<ExamAppFactory>
+public sealed class IdempotencyContractTests(IdempotencyAppFactory app)
+    : IClassFixture<IdempotencyAppFactory>
 {
     private HttpClient NewClient() =>
         app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -410,22 +419,37 @@ public sealed class IdempotencyContractTests(ExamAppFactory app) : IClassFixture
         var key = Guid.NewGuid().ToString("n");
 
         /*
-         * <b>Cancelled while the response is being produced.</b> A very short
-         * timeout is the only way to hit that window from outside the process,
-         * and it is the same window a phone changing network hits. The request
-         * either completes or is cancelled — both are interesting, and the
-         * assertion below holds for both.
+         * <b>Cancelled once the commit is confirmed, not after a guessed
+         * delay.</b> This used to race a hard-coded one-millisecond client
+         * timeout against however long the real HTTP round trip took —
+         * sometimes landing before the handler had committed anything at
+         * all, sometimes long after the response had already been fully
+         * received, and only sometimes in the window the test claimed to
+         * cover. `app.CommitSignal` fires the instant the handler sets
+         * `IdempotencyMiddleware.CommittedMarker` — the same moment the
+         * production code itself treats as the point of no return — so the
+         * cancellation below is guaranteed to land no earlier than that,
+         * every run. → `ICommitSignal`
          */
-        using (var abort = new CancellationTokenSource(TimeSpan.FromMilliseconds(1)))
+        app.CommitSignal.Reset();
+
+        using (var abort = new CancellationTokenSource())
         {
             var submit = new HttpRequestMessage(
                 HttpMethod.Post, $"/api/v1/sessions/{sessionId}/submit");
             submit.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
             submit.Headers.Add("Idempotency-Key", key);
 
+            var sending = client.SendAsync(submit, abort.Token);
+
+            var signalled = await Task.WhenAny(app.CommitSignal.Task, Task.Delay(TimeSpan.FromSeconds(10)));
+            Assert.Same(app.CommitSignal.Task, signalled);
+
+            await abort.CancelAsync();
+
             try
             {
-                await client.SendAsync(submit, abort.Token);
+                await sending;
             }
             catch (OperationCanceledException)
             {
@@ -763,4 +787,115 @@ public sealed class IdempotencyContractTests(ExamAppFactory app) : IClassFixture
             + "lease has its claim taken over and its operation run a second time.");
     }
 
+}
+
+/// <summary>
+/// A deterministic stand-in for <c>await Task.Delay(1)</c>.
+///
+/// <b>F0.2.</b> Exposed on <see cref="IdempotencyAppFactory"/> as a mutable
+/// singleton the same way <c>ExamAppFactory.Clock</c> is: each test that needs
+/// it calls <see cref="Reset"/> before firing the request it will race against
+/// the signal, so an earlier test's completed signal can never be mistaken for
+/// this one's.
+/// </summary>
+public sealed class TestCommitSignal : ICommitSignal
+{
+    private TaskCompletionSource _source = New();
+
+    /// <summary>Completes the instant a guarded handler commits.</summary>
+    public Task Task => _source.Task;
+
+    public void Reset() => _source = New();
+
+    public void Signal(HttpContext context) => _source.TrySetResult();
+
+    private static TaskCompletionSource New() =>
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+}
+
+/// <summary>
+/// Mints a fresh account on every call, instead of the fixed
+/// <c>stub-google-subject</c> the ordinary Development stub returns.
+///
+/// <b>F0.2 — why this exists instead of changing the ordinary stub.</b>
+/// <c>SsoFlowTests.A_second_sign_in_reuses_the_same_account</c> depends on the
+/// production stub's fixed identity — that is the exact property under test
+/// there ("the identity is keyed on the provider's subject, so the second
+/// visit must not produce a second learner"). Changing it globally would fix
+/// this suite's isolation by breaking that one's assertion.
+///
+/// <see cref="IdempotencyAppFactory"/> is a wholly separate DI container from
+/// <c>SsoAppFactory</c>, so replacing the provider only here reaches nothing
+/// else: <c>ExamRunContractTests</c> and <c>FullSittingJourneyTests</c> keep
+/// the fixed-identity stub they were built against, unchanged.
+/// </summary>
+internal sealed class PerCallStubIdentityProvider(
+    Microsoft.Extensions.Options.IOptions<Vni.Ielts.Infrastructure.Security.Sso.SsoOptions> options)
+    : IExternalIdentityProvider
+{
+    public IdentityProvider Provider => IdentityProvider.Google;
+
+    public bool AssertsEmailVerification => true;
+
+    public Task<Uri> BuildAuthorizationUrlAsync(AuthorizationRequest request, CancellationToken ct)
+    {
+        var redirectUri = options.Value.Google.RedirectUri;
+        var separator = redirectUri.Contains('?') ? '&' : '?';
+
+        return System.Threading.Tasks.Task.FromResult(new Uri(
+            $"{redirectUri}{separator}code=stub-code"
+            + $"&state={Uri.EscapeDataString(request.State)}"));
+    }
+
+    public Task<Result<ExternalIdentity>> ExchangeCodeAsync(
+        string code, string codeVerifier, string nonce, CancellationToken ct)
+    {
+        var unique = Guid.NewGuid().ToString("n");
+
+        return System.Threading.Tasks.Task.FromResult<Result<ExternalIdentity>>(
+            new ExternalIdentity(
+                IdentityProvider.Google,
+                Subject: $"stub-subject-{unique}",
+                Email: $"stub-{unique}@example.com",
+                EmailVerified: true,
+                DisplayName: "Học viên thử"));
+    }
+}
+
+/// <summary>
+/// <see cref="ExamAppFactory"/>, with two overrides <c>IdempotencyContractTests</c>
+/// needs and nothing else does:
+///
+/// <list type="bullet">
+/// <item>a fresh account per sign-in (<see cref="PerCallStubIdentityProvider"/>),
+/// so its thirteen tests do not share a learner — and with it, do not share
+/// that learner's open sittings, which was the source of the run-order
+/// dependence F0.2 exists to remove;</item>
+/// <item>a commit signal (<see cref="TestCommitSignal"/>) so the one test
+/// modelling a cancellation-after-commit can wait for the real moment instead
+/// of guessing at one with a timeout.</item>
+/// </list>
+///
+/// A separate <c>WebApplicationFactory</c> instance and DI container from
+/// every other suite's — inheriting <c>ExamAppFactory</c> for its Mongo,
+/// clock and stub-provider *wiring pattern* only. Nothing here is visible to
+/// <c>ExamRunContractTests</c> or <c>FullSittingJourneyTests</c>.
+/// </summary>
+public sealed class IdempotencyAppFactory : ExamAppFactory
+{
+    public TestCommitSignal CommitSignal { get; } = new();
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        base.ConfigureWebHost(builder);
+
+        builder.ConfigureTestServices(services =>
+        {
+            services.RemoveAll<IExternalIdentityProvider>();
+            services.AddSingleton<IExternalIdentityProvider, PerCallStubIdentityProvider>();
+
+            services.RemoveAll<ICommitSignal>();
+            services.AddSingleton<ICommitSignal>(CommitSignal);
+        });
+    }
 }

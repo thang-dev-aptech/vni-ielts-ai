@@ -131,7 +131,7 @@ importers:
   e2e:
     devDependencies:
       '@playwright/test':
-        specifier: ^1.49.0
+        specifier: 1.62.1
         version: 1.62.1
       '@types/node':
         specifier: ^22.10.0

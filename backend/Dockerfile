@@ -7,15 +7,22 @@
 # is how `Sso:EnableStubProvider` and an empty `Cors:Origins` could have reached
 # a real environment without anything noticing.
 #
-# <b>Pinned by digest-bearing tag, not `latest`.</b> A base image that moves
-# under a rebuild means two deployments of the same commit are two different
-# systems, and the difference surfaces as "it worked yesterday".
+# <b>Pinned by digest — F4.5, and this comment used to overstate it.</b> It
+# previously read "pinned by digest-bearing tag", which `10.0-noble` is not:
+# that tag moves every time the base is rebuilt, so two deployments of the
+# same commit really were two different systems, and the difference surfaces
+# as "it worked yesterday".
+#
+# The `tag@sha256:` form keeps both — the tag says what this is meant to be,
+# the digest says exactly what it is, and only the digest is what gets pulled.
+# Dependabot updates the digest weekly (`.github/dependabot.yml`), which is
+# what stops a pin from quietly becoming a stale, unpatched base.
 #
 # <b>Two stages.</b> The SDK is ~800 MB and contains a compiler, a package
 # manager and the source it built from; none of that belongs in a running
 # container. The runtime image carries the framework and the published output.
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:e1ffd2a92ae84c1291bc1b6887501f8af98e6331e7af6d4c8d37168c5e87a64c AS build
 WORKDIR /src
 
 # Restore before copying the rest, so a change to a .cs file does not
@@ -36,7 +43,7 @@ COPY src/ src/
 RUN dotnet publish src/Vni.Ielts.Api/Vni.Ielts.Api.csproj \
     -c Release -o /app --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble@sha256:a4556ed033fa96f984bb7a8d348851cb2d36b1281dd2420070045f664fbb5f94 AS runtime
 WORKDIR /app
 
 # <b>Non-root, and it has to be explicit.</b> The base image ships a `app` user

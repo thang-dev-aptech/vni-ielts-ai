@@ -158,4 +158,62 @@ public sealed class PublishedExamImmutabilityTests(SsoAppFactory app) : IClassFi
 
         Assert.Equal(ExamVersionStatus.Unpublished, stored!.Status);
     }
+
+    [SkippableFact]
+    public async Task A_published_version_READ_BACK_from_storage_can_still_be_unpublished()
+    {
+        /*
+         * <b>The same rule as the test above, on the path the application
+         * actually takes — and the test above cannot see the difference.</b>
+         *
+         * That one keeps one in-memory `ExamVersion` for the whole flow, so it
+         * only ever writes an object it has just built. Every real caller does
+         * the opposite: it LOADS the version (`ListAllAsync` / `FindAsync`),
+         * changes its status, and writes that back. `DevelopmentExamSeeder`
+         * does exactly this when a fixture changes and the previous take has
+         * to stop being sittable.
+         *
+         * The distinction matters because `UpsertAsync` permits a write to a
+         * published version only when the content fingerprint it computes
+         * matches the one stored. Computing that fingerprint from a rehydrated
+         * object is a round trip, and a round trip that does not reproduce the
+         * fingerprint byte-for-byte makes unpublishing impossible — a
+         * published exam that can never be withdrawn, which is the exact
+         * failure the sibling test says must not happen.
+         *
+         * Found because the API refused to boot: the seeder hit this on every
+         * start after a fixture change, and
+         * `PublishedExamVersionIsImmutableException` propagated out of
+         * `InitialiseInfrastructureAsync`. → F5.2
+         */
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        using var scope = Scope();
+        var catalogue = CatalogueIn(scope);
+
+        var paper = await SeededPaperAsync(catalogue);
+        await catalogue.UpsertAsync(paper, default);
+
+        paper.Publish(At);
+        await catalogue.UpsertAsync(paper, default);
+
+        // The round trip. Everything below uses the STORED object, never the
+        // one built above.
+        var reloaded = await catalogue.FindAsync(paper.Id, default);
+        Assert.NotNull(reloaded);
+        Assert.Equal(ExamVersionStatus.Published, reloaded!.Status);
+
+        reloaded.Unpublish();
+
+        var refused = await Record.ExceptionAsync(
+            () => catalogue.UpsertAsync(reloaded, default));
+
+        Assert.True(
+            refused is null,
+            "a version loaded from storage must still be withdrawable; the content did not "
+                + $"change, only its status. Got: {refused?.GetType().Name}: {refused?.Message}");
+
+        var after = await catalogue.FindAsync(paper.Id, default);
+        Assert.Equal(ExamVersionStatus.Unpublished, after!.Status);
+    }
 }

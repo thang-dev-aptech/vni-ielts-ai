@@ -213,37 +213,80 @@ public sealed class SsoAppFactory : WebApplicationFactory<Program>
     private static bool MongoRequired =>
         !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VNI_REQUIRE_MONGO"));
 
+    /*
+     * <b>Probed more than once, because this one answer decides the fate of
+     * every test in the assembly.</b>
+     *
+     * `Lazy<T>` caches the exception as well as the value, and this field is
+     * `static`, so a single failed probe poisons the type for the whole
+     * process: every later test fails with `TypeInitializationException`
+     * rather than with anything about itself.
+     *
+     * That has now produced a false red twice on a shared local stack. Once
+     * during an idempotency burn-in — 12 tests failed at once on a 3-second
+     * server-selection timeout while `vni-mongo` was `Up (healthy)` and
+     * another container happened to be starting. Once on a full solution run
+     * straight after the Docker-heavy stages: **148 failed in 22 seconds**,
+     * where re-running the same project alone gave **168/168**.
+     *
+     * On CI that reads as a catastrophic regression rather than as the
+     * infrastructure event it is — and the usual "fix" for that appearance is
+     * a blind workflow retry, which buries real races too.
+     *
+     * <b>Retry, not a longer timeout.</b> Three seconds is already generous
+     * for a loopback replica set; the failure is not slowness but a momentary
+     * refusal while a neighbouring container takes the port's attention. A
+     * longer deadline would make a genuinely-absent Mongo take longer to
+     * report without making a blip any less fatal. Attempts are what absorb a
+     * blip.
+     *
+     * <b>Not weaker.</b> A Mongo that is really down still fails every
+     * attempt, so `VNI_REQUIRE_MONGO` still fails the run and a developer
+     * without the stack still gets the same skip — only now after ~6 seconds
+     * of trying rather than after one unlucky moment.
+     */
+    private const int MongoProbeAttempts = 3;
+
     private static readonly Lazy<bool> _mongoAvailable = new(() =>
     {
         Exception? failure = null;
 
-        try
+        for (var attempt = 1; attempt <= MongoProbeAttempts; attempt++)
         {
-            var client = new MongoClient(
-                new MongoClientSettings
-                {
-                    Server = new MongoServerAddress("localhost", 27018),
-                    DirectConnection = true,
-                    ServerSelectionTimeout = TimeSpan.FromSeconds(3),
-                    ConnectTimeout = TimeSpan.FromSeconds(3),
-                });
+            try
+            {
+                var client = new MongoClient(
+                    new MongoClientSettings
+                    {
+                        Server = new MongoServerAddress("localhost", 27018),
+                        DirectConnection = true,
+                        ServerSelectionTimeout = TimeSpan.FromSeconds(3),
+                        ConnectTimeout = TimeSpan.FromSeconds(3),
+                    });
 
-            client.ListDatabaseNames().MoveNext();
-            return true;
-        }
-        catch (Exception e)
-        {
-            failure = e;
+                client.ListDatabaseNames().MoveNext();
+                return true;
+            }
+            catch (Exception e)
+            {
+                failure = e;
+
+                // A short settle between attempts. Long enough for a
+                // container that is claiming the port to finish doing so,
+                // short enough that a genuinely-absent Mongo is still
+                // reported promptly.
+                if (attempt < MongoProbeAttempts) Thread.Sleep(TimeSpan.FromSeconds(1));
+            }
         }
 
         if (MongoRequired)
         {
             throw new InvalidOperationException(
-                "VNI_REQUIRE_MONGO is set and no MongoDB replica set answered on "
-                + "localhost:27018. These are the only tests covering the answer-sheet "
-                + "revision CAS, the section-transition CAS and the idempotency claim, so "
-                + "skipping them would report a green build over concurrency rules nothing "
-                + "checked.",
+                $"VNI_REQUIRE_MONGO is set and no MongoDB replica set answered on "
+                + $"localhost:27018 after {MongoProbeAttempts} attempts. These are the only "
+                + "tests covering the answer-sheet revision CAS, the section-transition CAS "
+                + "and the idempotency claim, so skipping them would report a green build "
+                + "over concurrency rules nothing checked.",
                 failure);
         }
 

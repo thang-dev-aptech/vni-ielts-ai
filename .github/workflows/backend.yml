@@ -126,6 +126,19 @@ jobs:
           --no-build --configuration Release
           --logger trx --results-directory ../test-results
 
+      # F2.2 — the worker's own health contract, in its own assembly because
+      # both it and the API generate a top-level `Program` and a project
+      # referencing both would make `WebApplicationFactory<Program>`
+      # ambiguous everywhere Integration.Tests already targets the API with
+      # it.
+      - name: Worker tests
+        env:
+          VNI_REQUIRE_MONGO: '1'
+        run: >
+          dotnet test tests/Vni.Ielts.Worker.Tests
+          --no-build --configuration Release
+          --logger trx --results-directory ../test-results
+
       # A backup nobody has restored is a hypothesis, and the failures that
       # matter are the quiet ones — an archive that decrypts to nothing, a key
       # that is not the key, an --oplog silently ignored on a standalone node.
@@ -143,6 +156,16 @@ jobs:
           VNI_MONGOSH: docker exec -i vni-ci-mongo mongosh
           VNI_MONGOSH_URI: mongodb://localhost:27017/?directConnection=true
         run: ../scripts/restore-drill.sh
+
+      # F4.1 — telemetry over the real OTLP wire, into the upstream collector.
+      # The in-process tests above cover the SDK side; this covers encoding,
+      # transport and a receiver accepting it, which fail independently of it.
+      # The collector's only exporter is `debug`, so nothing leaves the runner
+      # and no observability vendor is chosen here.
+      - name: OpenTelemetry export smoke
+        env:
+          VNI_OTEL_SMOKE_MONGO: mongodb://localhost:27017/?directConnection=true
+        run: ../scripts/otel-smoke.sh
 
       # A skipped concurrency test is a hole in the gate, and a skip is not a
       # failure — so nothing else in this job would notice. This does.

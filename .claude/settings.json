@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-credential-writes.py\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-credential-writes.mjs\""
           }
         ]
       }

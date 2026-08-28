@@ -35,6 +35,7 @@ internal sealed class MongoMarkingOutbox(MongoContext context) : IMarkingOutbox
                     Attempts = 0,
                     CreatedAt = job.CreatedAt.UtcDateTime,
                     NextAttemptAt = job.CreatedAt.UtcDateTime,
+                    TraceParent = job.TraceParent,
                 },
                 cancellationToken: ct);
 
@@ -184,6 +185,54 @@ internal sealed class MongoMarkingOutbox(MongoContext context) : IMarkingOutbox
     private static string Trim(string error) =>
         error.Length > 1_000 ? error[..1_000] : error;
 
+    /// <summary>
+    /// Depth and oldest age, read together. → F4.3
+    ///
+    /// <b>Sorted-first rather than an aggregation.</b> The count and the
+    /// oldest document use the same filter, and `ix_marking_jobs_due` already
+    /// orders by the fields involved — so this is one count and one indexed
+    /// find, not a pipeline. It runs on a metrics callback, which means it
+    /// runs on a schedule forever: cheap matters more here than elegant.
+    /// </summary>
+    public async Task<QueueBacklog> BacklogAsync(DateTimeOffset asOf, CancellationToken ct)
+    {
+        var at = asOf.UtcDateTime;
+
+        // Owed = nobody is inside it. Pending and Retryable never are; a
+        // Running job whose lease has expired is one whose worker died, and
+        // that is backlog again.
+        var owed = Builders<MarkingJobDocument>.Filter.And(
+            Builders<MarkingJobDocument>.Filter.In(
+                j => j.State,
+                new[]
+                {
+                    MarkingJobState.Pending.ToString(),
+                    MarkingJobState.Retryable.ToString(),
+                    MarkingJobState.Running.ToString(),
+                }),
+            Builders<MarkingJobDocument>.Filter.Or(
+                Builders<MarkingJobDocument>.Filter.Eq(j => j.LeaseUntil, null),
+                Builders<MarkingJobDocument>.Filter.Lt(j => j.LeaseUntil, at)));
+
+        var depth = await Jobs.CountDocumentsAsync(owed, cancellationToken: ct);
+
+        if (depth == 0) return QueueBacklog.Empty;
+
+        var oldest = await Jobs
+            .Find(owed)
+            .SortBy(j => j.CreatedAt)
+            .Limit(1)
+            .FirstOrDefaultAsync(ct);
+
+        if (oldest is null) return new QueueBacklog(depth, TimeSpan.Zero);
+
+        // Never negative: a clock skew between the writer and this reader
+        // would otherwise report an age from the future, which every
+        // dashboard renders as nonsense.
+        var age = at - oldest.CreatedAt;
+        return new QueueBacklog(depth, age > TimeSpan.Zero ? age : TimeSpan.Zero);
+    }
+
     private static MarkingJob Map(MarkingJobDocument d) => new(
         d.Id,
         new ExamSessionId(d.SessionId),
@@ -200,7 +249,8 @@ internal sealed class MongoMarkingOutbox(MongoContext context) : IMarkingOutbox
         d.LeaseUntil is { } until ? new DateTimeOffset(until, TimeSpan.Zero) : null,
         d.LeaseToken,
         d.LastError,
-        d.CompletedAt is { } done ? new DateTimeOffset(done, TimeSpan.Zero) : null);
+        d.CompletedAt is { } done ? new DateTimeOffset(done, TimeSpan.Zero) : null,
+        d.TraceParent);
 }
 
 /// <summary>
@@ -252,4 +302,16 @@ internal sealed class MarkingJobDocument
     [MongoDB.Bson.Serialization.Attributes.BsonElement("completedAt")]
     [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
     public DateTime? CompletedAt { get; set; }
+
+    /// <summary>
+    /// W3C `traceparent` of the request that enqueued this job. → F4.2
+    ///
+    /// <b>An identifier, not content.</b> A traceparent is a trace id, a span
+    /// id and two flags — it names a request without describing it, which is
+    /// why it is safe to persist and to export where a request body would not
+    /// be.
+    /// </summary>
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("traceParent")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public string? TraceParent { get; set; }
 }

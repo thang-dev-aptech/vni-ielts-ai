@@ -136,7 +136,42 @@ public sealed class DevelopmentExamSeeder(
                 draft.Timing,
                 draft.Sections);
 
-            await catalogue.UpsertAsync(published, ct);
+            /*
+             * <b>An identical, already-published version is a no-op — not an
+             * error, and certainly not a reason to refuse to boot.</b>
+             *
+             * `versionId` is `seed-{slug}-{fingerprint}` where the fingerprint
+             * hashes the fixture body, so a stored version carrying this id has
+             * the same content by construction. Re-seeding it has nothing to
+             * do.
+             *
+             * Without this the seeder called `UpsertAsync` on it anyway, and
+             * `MongoExamCatalogue` correctly refused —
+             * `PublishedExamVersionIsImmutableException`, because rewriting a
+             * published version would silently change historical scores. That
+             * exception propagated out of `InitialiseInfrastructureAsync` and
+             * **killed the process at startup**: after one seeded run, the API
+             * could never start again against the same database.
+             *
+             * Found by the E2E stage of `pnpm verify`, which runs twice
+             * against a persistent `vni_ielts_e2e` database. It is invisible on
+             * CI, where every job gets a fresh MongoDB — which is exactly why
+             * it survived this long. The guard is right; the seeder was wrong
+             * to treat "already correct" as "must overwrite".
+             */
+            var existing = await catalogue.FindAsync(versionId, ct);
+            var alreadySeeded = existing is { Status: ExamVersionStatus.Published };
+
+            if (alreadySeeded)
+            {
+                logger.LogInformation(
+                    "Exam {Id} is already published with identical content; leaving it untouched.",
+                    versionId.Value);
+            }
+            else
+            {
+                await catalogue.UpsertAsync(published, ct);
+            }
 
             /*
              * <b>The previous take of this fixture stops being sittable.</b>
@@ -162,9 +197,12 @@ public sealed class DevelopmentExamSeeder(
                     stale.Id.Value, Path.GetFileName(file));
             }
 
-            logger.LogInformation(
-                "Seeded exam {Title} ({Id}) with {Sections} section(s).",
-                published.Title, versionId.Value, published.Sections.Count);
+            if (!alreadySeeded)
+            {
+                logger.LogInformation(
+                    "Seeded exam {Title} ({Id}) with {Sections} section(s).",
+                    published.Title, versionId.Value, published.Sections.Count);
+            }
         }
     }
 
