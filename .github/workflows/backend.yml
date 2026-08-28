@@ -169,9 +169,15 @@ jobs:
       # transport and a receiver accepting it, which fail independently of it.
       # The collector's only exporter is `debug`, so nothing leaves the runner
       # and no observability vendor is chosen here.
+      # <b>No VNI_OTEL_SMOKE_MONGO override, deliberately.</b> This step runs on
+      # the RUNNER, not inside the Mongo container, so it needs the published
+      # host port — 27018, chosen above to match the local stack. It was
+      # briefly set to 27017 (copied from the restore drill, where 27017 is
+      # correct because that one runs via `docker exec` INSIDE the container)
+      # and the API died with `SocketException (111): Connection refused`.
+      # The script's own default is already 27018, so the safest override is
+      # none at all.
       - name: OpenTelemetry export smoke
-        env:
-          VNI_OTEL_SMOKE_MONGO: mongodb://localhost:27017/?directConnection=true
         run: ../scripts/otel-smoke.sh
 
       # A skipped concurrency test is a hole in the gate, and a skip is not a
