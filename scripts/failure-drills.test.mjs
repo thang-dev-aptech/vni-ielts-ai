@@ -131,3 +131,22 @@ test('the hosted fixture invokes the CodeQL binary exposed by the init action', 
   );
   assert.doesNotMatch(workflow, /^\s*codeql test run fixtures\/security\/codeql/m);
 });
+
+test('the committed CodeQL tuple matches the hosted 2.26.4 result shape', () => {
+  const expected = readFileSync(
+    path.join(
+      import.meta.dirname,
+      '..',
+      'fixtures',
+      'security',
+      'codeql',
+      'IntentionalCodeInjection.expected',
+    ),
+    'utf8',
+  );
+
+  assert.equal(
+    expected.trim(),
+    '| IntentionalCodeInjection.js:3:10:3:29 | eval(userControlled) | Intentional CodeQL failure-drill finding. |',
+  );
+});

@@ -81,11 +81,11 @@
         ".github/workflows/security.yml"
       ],
       "tests": [
-        "10/10 drill contract/workflow tests; local dependency fixture produced high findings"
+        "11/11 drill contract/workflow/tuple tests; local dependency fixture produced high findings"
       ],
       "negativeProof": "A missing CodeQL finding makes the runner exit 1; an unavailable CLI is BLOCKED rather than passed.",
       "artifacts": ["_workspace/workflow/agents/codeql-drill.md"],
-      "blocker": "Hosted run found that init downloads CodeQL but does not add it to PATH; workflow now invokes the documented codeql-path output and needs a follow-up run.",
+      "blocker": "Hosted run 33232903331 compiled and ran the query, then supplied the exact missing selected-element column; corrected expected tuple needs one follow-up run.",
       "nextDependency": "F4.4 hosted fixture proof"
     }
   ],

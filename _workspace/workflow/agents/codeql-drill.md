@@ -89,3 +89,9 @@ and `test run`.
 A regression assertion in `failure-drills.test.mjs` requires that output-based invocation and rejects
 the bare `codeql test run` form. Combined drill/skip tests are 35/35 green locally; a follow-up hosted
 run is still required to validate the QL expected tuple itself.
+
+Hosted run 33232903331 then compiled and executed the query successfully, proving the CLI seam fixed.
+Its result diff showed the exact missing tuple column: CodeQL problem queries emit location, selected
+element text, then message. The committed `.expected` row now includes `eval(userControlled)` between
+the location and message. A focused regression assertion locks the full CodeQL 2.26.4 tuple; the next
+hosted run remains the final proof.
