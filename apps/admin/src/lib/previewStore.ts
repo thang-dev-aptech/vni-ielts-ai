@@ -432,6 +432,9 @@ function uploadedIds(): string[] {
 }
 
 export function rememberObjectUrl(mediaId: string, url: string) {
+  if (!url.startsWith('blob:')) {
+    throw new TypeError('Media previews accept only browser-created blob URLs.');
+  }
   objectUrls.set(mediaId, url);
   try {
     localStorage.setItem(UPLOADED_KEY, JSON.stringify([...new Set([...uploadedIds(), mediaId])]));
@@ -441,7 +444,8 @@ export function rememberObjectUrl(mediaId: string, url: string) {
 }
 
 export function objectUrlFor(mediaId: string): string | null {
-  return objectUrls.get(mediaId) ?? null;
+  const url = objectUrls.get(mediaId);
+  return url?.startsWith('blob:') === true ? url : null;
 }
 
 /**

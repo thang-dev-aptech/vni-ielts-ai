@@ -37,6 +37,19 @@ export function needsShell(command) {
 }
 
 /**
+ * Quote one argument for the Windows command processor and the C runtime that
+ * receives its command line. A backslash immediately before a quote escapes
+ * that quote at the second parsing layer, so the run must be doubled first;
+ * trailing backslashes must also be doubled or they escape the closing quote.
+ */
+export function quoteWindowsShellArgument(argument) {
+  const escaped = argument
+    .replace(/(\\*)"/g, (_match, slashes) => `${slashes}${slashes}\\"`)
+    .replace(/(\\+)$/g, '$1$1');
+  return `"${escaped}"`;
+}
+
+/**
  * Run argv, returning the spawnSync result. `argv[0]` is the executable.
  *
  * @param {string[]} argv
@@ -51,7 +64,7 @@ export function runPortable(argv, options = {}) {
   // above are only ever called with plain flags in this repository, but a
   // future caller should not have to know that.
   const finalArgs = shell
-    ? args.map((arg) => (/[\s&|<>^"();,]/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg))
+    ? args.map((arg) => (/[\s&|<>^"();,\\]/.test(arg) ? quoteWindowsShellArgument(arg) : arg))
     : args;
 
   return spawnSync(command, finalArgs, { ...options, shell });

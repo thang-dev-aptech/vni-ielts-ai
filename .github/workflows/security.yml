@@ -79,7 +79,19 @@ jobs:
           # keep noise low on any repository, and this one handles untrusted
           # ZIP uploads and exam content where a missed path traversal matters
           # more than a few extra findings to triage. → zip-ingestion-security
-          queries: security-extended
+          config-file: ./.github/codeql/codeql-config.yml
+
+      # A query test is stronger than checking that a fixture string exists:
+      # the CodeQL compiler extracts the isolated JavaScript input, runs the
+      # committed query and compares the actual result tuple with `.expected`.
+      # If the query stops finding the planted eval call, this command fails.
+      # It runs only in the JavaScript leg because that is the fixture's real
+      # extractor; the C# leg remains an independent production analysis.
+      - name: CodeQL intentional-finding regression fixture
+        if: matrix.language == 'javascript-typescript'
+        run: |
+          codeql pack install fixtures/security/codeql
+          codeql test run fixtures/security/codeql
 
       # CodeQL's autobuild guesses; this solution has a Directory.Build.props
       # with TreatWarningsAsErrors and a Worker that needs the Web SDK, so it

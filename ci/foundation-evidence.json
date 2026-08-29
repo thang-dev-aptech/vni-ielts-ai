@@ -93,7 +93,8 @@
           "anyOf": [
             ".github/workflows/security.yml",
             "scripts/security-gates.sh",
-            "scripts/security-gates.mjs"
+            "scripts/security-gates.mjs",
+            "scripts/security-fixture-drill.mjs"
           ],
           "command": "pnpm security:check",
           "description": "F4.4 — dependency audit, secret scan, SAST and image scan, each failing on a deliberate fixture."

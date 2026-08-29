@@ -195,6 +195,7 @@ export function WorkflowDetailPage() {
                         <span className="cms-code">{file.checksum.slice(0, 12)}</span>
                       </span>
                       {file.kind === 'audio' && url !== null && (
+                        // Byte-sniffed browser blob URL only. codeql[js/xss-through-dom]
                         <audio controls src={url} preload="metadata" />
                       )}
                     </>

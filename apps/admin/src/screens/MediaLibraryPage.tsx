@@ -62,7 +62,8 @@ export function MediaLibraryPage() {
     setRejected(null);
 
     try {
-      const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+      const bytes = await file.arrayBuffer();
+      const head = new Uint8Array(bytes, 0, Math.min(16, bytes.byteLength));
       const verdict = inspect(head, file.size);
 
       if (typeof verdict === 'string') {
@@ -70,7 +71,10 @@ export function MediaLibraryPage() {
         return;
       }
 
-      const url = URL.createObjectURL(file);
+      // Do not let the DOM-supplied filename or MIME type reach a browser
+      // renderer. `inspect` derives a canonical type from magic bytes, and the
+      // preview URL names a fresh Blob carrying only that type and those bytes.
+      const url = URL.createObjectURL(new Blob([bytes], { type: verdict.contentType }));
       const mediaId = crypto.randomUUID();
 
       const asset: MediaAsset = {
@@ -80,7 +84,7 @@ export function MediaLibraryPage() {
         contentType: verdict.contentType,
         bytes: file.size,
         durationMs: verdict.kind === 'audio' ? await probeDuration(url) : null,
-        checksum: await checksumOf(await file.arrayBuffer()),
+        checksum: await checksumOf(bytes),
         uploadedByName: operator.name,
         uploadedAt: new Date().toISOString(),
         retired: false,
@@ -210,6 +214,7 @@ export function MediaLibraryPage() {
                         <span className="cms-code">{asset.checksum.slice(0, 12)}</span>
                       </span>
                       {asset.kind === 'audio' && url !== null && (
+                        // Byte-sniffed browser blob URL only. codeql[js/xss-through-dom]
                         <audio controls src={url} preload="metadata" />
                       )}
                       {asset.kind === 'audio' && url === null && (

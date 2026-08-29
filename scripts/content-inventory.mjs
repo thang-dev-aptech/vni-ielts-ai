@@ -838,7 +838,7 @@ async function inventorySource(descriptor, opts, probe, problems, fileEntries) {
           module: e.module,
           test: null,
           message:
-            `${e.bytes} bytes against a ${key.replace('|', ' ')} median of ${mid} — possibly ` +
+            `${e.bytes} bytes against a ${key.replaceAll('|', ' ')} median of ${mid} — possibly ` +
             'truncated. Flagged on size alone; the file was not opened.',
           paths: [e.path],
         });

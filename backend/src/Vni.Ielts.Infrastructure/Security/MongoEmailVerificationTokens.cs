@@ -234,8 +234,8 @@ internal sealed class LoggingVerificationMessageSender(
         Vni.Ielts.Domain.Identity.Email address, string token, CancellationToken ct)
     {
         logger.LogWarning(
-            "DEV ONLY — no email was sent. Verification code for {Address}: {Code}",
-            address.Value, token);
+            "DEV ONLY — no verification email was sent. "
+            + "The development sender does not write addresses or codes to logs.");
 
         // The whole reason the port returns this: the caller must be able to
         // tell a screen that nothing was sent, instead of the screen guessing
@@ -247,8 +247,8 @@ internal sealed class LoggingVerificationMessageSender(
         Vni.Ielts.Domain.Identity.Email address, string token, CancellationToken ct)
     {
         logger.LogWarning(
-            "DEV ONLY — no email was sent. Password reset token for {Address}: {Token}",
-            address.Value, token);
+            "DEV ONLY — no password-reset email was sent. "
+            + "The development sender does not write addresses or tokens to logs.");
         return Task.FromResult(MessageDelivery.NotSent);
     }
 }

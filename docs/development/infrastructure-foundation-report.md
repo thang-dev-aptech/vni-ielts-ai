@@ -3760,3 +3760,49 @@ kiểm cái gì.** Trong hàng đợi này, những thứ sau đã từng báo "
 
 Không cái nào lộ ra ở local. Tất cả chỉ lộ khi **chạy thật, trên CI, và đọc kỹ dòng đầu tiên của log
 thay vì màu của cái check.**
+
+---
+
+## 5.9 F4.4 closure rerun — 29/08/2026
+
+Repository đã chuyển sang public. GitHub secret scanning và push protection đã được bật; API hiện trả
+0 secret-scanning alert. Biến repository `ENABLE_CODE_SCANNING=true` đã được xác nhận.
+
+Security run
+[33230340190](https://github.com/thang-dev-aptech/vni-ielts-ai/actions/runs/33230340190) chạy trên SHA
+`5f6865de1bb078ad8bb48dd148bfbaeceaf26ec9` và xanh đủ năm job: CodeQL C#, CodeQL JS/TS,
+dependency vulnerabilities, secret scan và image vulnerabilities. Hai CodeQL analysis tạo 8 kết quả C#
+và 4 kết quả JS/TS — đúng 12 alert cần xử lý, không còn là workflow tồn tại nhưng không phân tích.
+
+### Thay đổi trong worktree
+
+- Build gate: Windows leg chỉ chạy regression + static skip checks; Linux result-producing leg giữ
+  `--require-results`. Một skip hợp lệ do hai mã sáu chữ số ngẫu nhiên trùng nhau có exemption exact,
+  owner và hạn 30/11/2026.
+- 12 CodeQL alert: bỏ request/idempotency key khỏi log, không log email/token ở development sender,
+  sửa full delimiter replacement và Windows quoting, khóa preview ở byte-sniffed Blob + `blob:` URL.
+- Security fixture: thêm runner bốn probe có structured evidence, QL query/input/expected tuple thật,
+  và hosted `codeql test run`. Secret/dependency fixture được materialize trong thư mục tạm để scanner
+  production không phải ignore một credential-shaped literal đã commit.
+
+### Bằng chứng local
+
+- Skip gate 25/25; active exemption pass và cùng fixture fail sau expiry.
+- Admin 61/61; integration security/idempotency 14/14; infrastructure logging 1/1; content/quoting
+  34/34; CodeQL drill contract 9/9.
+- Bốn negative proof của alert remediation và negative CodeQL non-finding đều đỏ trước khi xanh.
+- `node scripts/verify.mjs`: verdict PARTIAL, **25 passed · 0 failed · 4 not run**. Các stage không chạy
+  là khoảng trống môi trường/opt-in đã biết trên host Windows (Node 22 thay vì 24, không Bash cho
+  restore); không có regression failure. Security config gate xanh. Scanner fixture riêng quan sát
+  dependency high; gitleaks, Trivy và CodeQL CLI thiếu nên trả BLOCKED/PARTIAL, không giả thành pass.
+  Hosted scanner drill thuộc `security.yml`.
+
+### Trạng thái chứng nhận
+
+`F4.4`, F4 và F5 vẫn chưa tick trong lần ghi này. GitHub đang giữ 12 alert của SHA trước remediation;
+worktree chưa được commit/push theo quy tắc không tự push của queue. Hosted proof cuối cần một commit/run
+mới xác nhận hai việc: 12 location/query cũ không còn open và CodeQL query-test mới bắt fixture có chủ
+đích. Chỉ sau bằng chứng đó mới đổi `Foundation Ready` thành đạt.
+
+`R18` vẫn ngoài phase gate: GitHub secret scanning là ý kiến thứ ba và hiện báo sạch, cùng phía với
+gitleaks; GitGuardian dashboard vẫn cần được đọc/resolve độc lập.

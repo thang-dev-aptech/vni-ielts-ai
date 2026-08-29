@@ -51,13 +51,14 @@ manager của một vendor, kết nối observability SaaS và chạy production
 
 ## 3. Trạng thái điều phối
 
-- **Đang thực hiện:** **bị chặn ở `F4.4`** — mọi việc kỹ thuật trong hàng đợi đã đóng.
-  `F5.1`–`F5.5` đều `[x]`. `F4.4` cần chủ dự án quyết `R19` trước khi F4 và F5 tick được.
-- **Phase hiện tại:** F5
-- **Foundation Ready:** **chưa đạt** — thiếu đúng một tiêu chí, và nó không phải code.
-  Toàn bộ pipeline đã xanh trên CI (run 33201020573). Phase gate F4 đòi CodeQL/SAST *chạy được*;
-  repository là private không có GitHub Advanced Security nên nó không thể chạy. Cần chủ dự án quyết
-  `R19` (mua GHAS, hay để repo public — public vướng `R16` chưa thu hồi khóa).
+- **Đang thực hiện:** `F4.4` — repository đã public, CodeQL đã chạy thật; đang chờ hosted proof cho
+  12 remediation và intentional CodeQL fixture mới trong worktree.
+- **Phase hiện tại:** F4
+- **Foundation Ready:** **chưa đạt**. Run Security
+  [33230340190](https://github.com/thang-dev-aptech/vni-ielts-ai/actions/runs/33230340190) đã xanh cả
+  CodeQL C#, CodeQL JS/TS, dependency, secret và image scan. Phần còn thiếu là commit/push các thay đổi
+  hiện tại rồi quan sát CodeQL đóng 12 alert cũ và query-test bắt fixture mới; quy tắc của queue không
+  cho orchestrator tự commit/push.
 - **Báo cáo:** [`infrastructure-foundation-report.md`](infrastructure-foundation-report.md)
 - **Prompt Claude Code:** [`.claude/commands/complete-infrastructure.md`](../../.claude/commands/complete-infrastructure.md)
 
@@ -252,20 +253,17 @@ phase dependency đóng.
   - Định nghĩa API error/latency, readiness failure, queue depth/oldest age, worker failure, backup
     freshness và object-storage error.
   - Threshold chưa phải business decision được để trong config, không hard-code như requirement.
-- [ ] **F4.4 · Dependency và static security gates** — *mở lại 29/08/2026, chờ quyết định chủ dự án*
+- [ ] **F4.4 · Dependency và static security gates** — *đang chờ hosted proof của worktree hiện tại*
   - Dependabot hằng tuần cho npm, NuGet, Docker và GitHub Actions.
   - CodeQL/SAST, secret scan và vulnerability scan chạy trong CI.
   - High/Critical chỉ được miễn bằng allowlist có lý do, owner và ngày hết hạn.
   - **Đã chạy thật trên CI (PR #2, vòng 3–5):** `Dependency vulnerabilities` pass ·
     `Secret scan` (gitleaks) pass · `Image vulnerabilities` pass sau khi vá 33 CVE có bản vá.
-  - **Chưa đạt — `CodeQL/SAST`.** Item này từng được đánh `[x]` dựa trên việc workflow *tồn tại*.
-    Lần chạy thật đầu tiên cho thấy nó chưa bao giờ phân tích được dòng code nào:
-    `Code scanning is not enabled for this repository`. Repository là `private` và
-    `advanced_security: null`; code scanning trên private repo cần **GitHub Advanced Security trả
-    phí**. Không dòng YAML nào bật được. Job đã thành configured seam gated trên biến
-    `ENABLE_CODE_SCANNING`, mặc định skip. → `R19`
-  - **Cần chủ dự án quyết:** mua GHAS, hay để repository public. Public **không** phải lối tắt rẻ khi
-    `R16` còn treo — lịch sử repo được công bố cùng nó và khóa Google vẫn chưa thu hồi.
+  - **CodeQL đã chạy thật:** repository hiện là public, `ENABLE_CODE_SCANNING=true`, và run
+    33230340190 hoàn tất hai analysis với `results_count` C# = 8, JS/TS = 4. Đây chính là 12 alert đã
+    được triage và sửa trong worktree; không alert nào cần Content-owner exception.
+  - **Chưa tick:** GitHub mới phân tích SHA `5f6865d`, trước remediation. Query-test CodeQL mới cũng chỉ
+    chạy hosted sau commit/push. Không dùng green của SHA cũ để chứng nhận code chưa được phân tích.
 - [x] **F4.5 · Container supply chain**
   - Pin base image bằng digest, bỏ moving tag như `latest`.
   - Release artifact có SBOM, provenance và chữ ký Cosign keyless.
@@ -276,8 +274,9 @@ phase dependency đóng.
 - Local collector nhận được ít nhất một trace, metric và log tương quan từ API và worker.
 - Redaction test chứng minh dữ liệu nhạy cảm không xuất hiện trong log/telemetry export.
 - CodeQL, dependency audit, secret scan và image scan đều chạy được và fail trên fixture có chủ đích.
-  **Chưa đạt:** ba cái sau đã chạy thật trên CI; CodeQL không chạy được ở repository này (`R19`).
-  Đây là lý do F4 giữ `[ ]` — tiêu chí thiếu nằm ngoài repository, không phải chưa làm.
+  **Chưa đạt hosted proof:** CodeQL production analysis đã chạy; drill mới có QL query + input +
+  `.expected`, và negative test chứng minh thiếu finding làm gate đỏ. Máy local không có CodeQL CLI;
+  workflow mới chưa thể chạy cho tới khi thay đổi được commit/push. Đây là lý do F4 giữ `[ ]`.
 - SBOM/provenance/signature gắn đúng immutable image digest.
 - Ghi báo cáo F4; sau đó mới đánh dấu F4 trong master checklist.
 

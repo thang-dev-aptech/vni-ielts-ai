@@ -1,0 +1,4 @@
+secret scanner log: intentional credential rejected
+dependency scanner log: intentional vulnerable package rejected
+image scanner log: intentional vulnerable image rejected
+VNI_SECURITY_FIXTURE_RESULTS={"secret":{"command":"gitleaks detect --source fixtures/security/secret","exitCode":1},"dependency":{"command":"pnpm audit --dir fixtures/security/dependency","exitCode":1},"image":{"command":"trivy image vni-security-fixture","exitCode":1}}

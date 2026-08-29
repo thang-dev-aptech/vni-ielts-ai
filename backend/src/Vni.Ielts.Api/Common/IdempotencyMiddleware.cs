@@ -592,10 +592,10 @@ public sealed class IdempotencyMiddleware(
                  * → `I5.2`
                  */
                 logger.LogWarning(
-                    "Idempotency claim {Key} taken over from a holder that never released it "
-                    + "(previous state {State}). A handler outlived its {LeaseMinutes}-minute "
+                    "An idempotency claim was taken over from a holder that never released it. "
+                    + "A handler outlived its {LeaseMinutes}-minute "
                     + "lease, or the process holding it died.",
-                    storageKey, state, Lease.TotalMinutes);
+                    Lease.TotalMinutes);
             }
 
             // Otherwise somebody is genuinely working on it, or it completed
@@ -673,10 +673,9 @@ public sealed class IdempotencyMiddleware(
                 {
                     logger.LogWarning(
                         failure,
-                        "Idempotency claim {Key} left undetermined: the handler may have "
+                        "An idempotency claim was left undetermined: the handler may have "
                         + "committed before this failure. A retry is refused until the lease "
-                        + "expires rather than repeating an irreversible operation.",
-                        storageKey);
+                        + "expires rather than repeating an irreversible operation.");
 
                     await Keys.UpdateOneAsync(
                         mine,
@@ -765,11 +764,11 @@ public sealed class IdempotencyMiddleware(
             if (completion.MatchedCount == 0)
             {
                 logger.LogError(
-                    "Idempotency claim {Key} was taken over while its handler was still "
+                    "An idempotency claim was taken over while its handler was still "
                     + "running, so a successful response could not be stored. The operation "
                     + "has run more than once. The {LeaseMinutes}-minute lease is shorter "
                     + "than this handler's real duration.",
-                    storageKey, Lease.TotalMinutes);
+                    Lease.TotalMinutes);
             }
         }
         else

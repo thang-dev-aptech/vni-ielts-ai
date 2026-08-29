@@ -355,12 +355,16 @@ jobs:
       - name: Generated artifacts are reproducible and untracked
         run: node scripts/check-generated-drift.mjs --mode=all
 
-      # `--require-results` is what stops this stage passing over an empty
-      # directory. Without it the gate reports "no unauthorized test skips"
-      # when no report was produced at all — the same fail-open shape FS0.6
-      # removed from the parser.
+      # This leg deliberately runs only the platform-independent, static half
+      # of the skip gate. It does not configure result reporters, so requiring
+      # `_artifacts/verify/test-results` here makes a clean Windows checkout
+      # fail before `Frontend unit suites` even runs. The Linux `verify.mjs`
+      # leg owns the full result-producing matrix and invokes this gate with
+      # `--require-results`; Windows proves the checker itself is portable.
       - name: Skip-gate self-check on this platform
-        run: node scripts/check-test-skips.mjs --results _artifacts/verify/test-results --require-results
+        run: |
+          node --test scripts/check-test-skips.test.mjs
+          node scripts/check-test-skips.mjs --static-only
 
       # F1.4 — the line-ending gate, and the reason this job exists at all.
       # `format:check` reads every source file with Prettier's endOfLine: lf.

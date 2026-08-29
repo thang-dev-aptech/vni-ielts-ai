@@ -7,9 +7,9 @@
 
 ## Baseline
 
-- Foundation Ready: **chưa đạt**, và không phải vì code. `F4.4` (CodeQL/`R19`) là hạng mục duy nhất
-  còn mở trong hàng đợi hạ tầng và nó chờ quyết định chủ dự án. Feature work vẫn chạy theo standing
-  rule của `workflow-orchestrator`; `R19` được mang sang báo cáo cuối.
+- Foundation Ready: **chưa đạt**. Repository đã public và Security run 33230340190 chứng minh CodeQL
+  chạy thật; blocker `R19` cũ đã được gỡ. `F4.4` đang chờ hosted proof trên worktree remediation hiện
+  tại: CodeQL phải đóng 12 alert của SHA cũ và query-test phải bắt intentional fixture mới.
 - Commit/worktree baseline: `35bf37ce9b459222036710a6770541ec3d26d829` trên
   `feat/foundation-and-learner-auth`. `git status --short` lúc bắt đầu: 2 file modified
   (`CLAUDE.md`, `docs/development/agent-orchestration.md`) và 4 mục untracked thuộc harness
@@ -74,9 +74,9 @@
 - Artifacts/content: 21 bản ghi rights registry; `_workspace/workflow/task-board.json`; sáu báo cáo
   agent trong `_workspace/workflow/agents/`; `_artifacts/verify/summary.json`.
 - Rủi ro còn lại:
-  1. **`R19`/CodeQL vẫn mở** — SAST chưa chạy được; stage `security` tự nhận là "dependency audit,
-     secret scan, SAST, image scan, SBOM" nhưng thực tế phân giải thành `pnpm security:check`
-     (hai kiểm tra, 1.2s).
+  1. **Hosted proof F4.4 còn mở** — CodeQL C#/JS đã chạy, 12 alert đã có remediation local và drill đã
+     có QL query/input/expected tuple. Chưa được tick cho tới khi một commit/run mới phân tích chính
+     các thay đổi này; orchestrator không tự commit/push theo quy tắc repository.
   2. **`restore-drill` không chạy được trên Windows** — lỗi `chmod 600` / NTFS ACL là defect thật
      của Foundation, chưa sửa vì ngoài phạm vi hàng đợi này.
   3. **Bằng chứng ghép cặp VOL 9 Test 1 không tái lập được trên CI.** `/exam/` và `/Đề IELTS/` bị
@@ -212,4 +212,3 @@
 - Pronunciation candidates/credentials:
 - Data region/retention/DPA:
 - Voice accuracy/latency/cost thresholds:
-

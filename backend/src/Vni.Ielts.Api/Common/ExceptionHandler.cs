@@ -30,15 +30,18 @@ public sealed class VniExceptionHandler(ILogger<VniExceptionHandler> logger) : I
 
         if (status >= StatusCodes.Status500InternalServerError)
         {
-            logger.LogError(exception, "Unhandled exception on {Method} {Path}",
-                context.Request.Method, context.Request.Path);
+            // Method and Path both come from the request line. Besides making
+            // cardinality unbounded, putting either in a log lets CR/LF from a
+            // malformed request forge a second entry in line-oriented sinks.
+            // The trace id already joins this event to the request telemetry.
+            logger.LogError(exception, "Unhandled request exception");
         }
         else
         {
             // A client-caused failure is not a server incident. Logging it at
             // Error would drown the log in noise from ordinary bad requests.
-            logger.LogInformation("Request rejected on {Method} {Path}: {Code}",
-                context.Request.Method, context.Request.Path, code);
+            logger.LogInformation(
+                "Request rejected with status {StatusCode} and code {Code}", status, code);
         }
 
         context.Response.StatusCode = status;

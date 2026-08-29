@@ -1,0 +1,10 @@
+name: VNI production analysis
+
+# Failure-drill inputs are analysed by `codeql test run` against their exact
+# `.expected` tuples. Excluding them here prevents planted vulnerabilities
+# from becoming production alerts in the repository-wide database.
+paths-ignore:
+  - fixtures/security/**
+
+queries:
+  - uses: security-extended

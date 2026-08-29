@@ -4,9 +4,16 @@
     "Read by scripts/check-test-skips.mjs. Every entry needs test, reason, owner and expires.",
     "An expired entry fails the build exactly as an unauthorized skip does: the exemption has to be",
     "renewed deliberately or the test has to start running again. A trailing '*' matches a prefix.",
-    "The list is empty on purpose. The backend suites run with VNI_REQUIRE_MONGO=1 in CI, which turns",
-    "'no database' from a SkippableFact into a failure, so nothing in the Foundation matrix should",
-    "need an entry here."
+    "Dependency-backed tests run with VNI_REQUIRE_MONGO=1 and VNI_REQUIRE_MINIO=1 in CI, so missing",
+    "infrastructure is never exempt. The sole entry covers the valid one-in-a-million equality case",
+    "where a replacement-code test has no two distinct values to compare."
   ],
-  "allow": []
+  "allow": [
+    {
+      "test": "Vni.Ielts.Integration.Tests.VerificationCodeTests.Pressing_resend_leaves_one_live_code_rather_than_two",
+      "reason": "The test deliberately cannot compare replacement semantics when two independently generated six-digit codes collide; the collision itself is valid production behaviour with a one-in-a-million probability.",
+      "owner": "backend-maintainers",
+      "expires": "2026-11-30"
+    }
+  ]
 }

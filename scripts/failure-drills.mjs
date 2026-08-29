@@ -34,11 +34,103 @@ import { spawnSync } from 'node:child_process';
 import { runPortable } from './lib/spawn-portable.mjs';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, '_artifacts', 'drills');
 const posix = (p) => p.split(sep).join('/');
+
+export const SECURITY_FIXTURE_PROBES = Object.freeze({
+  secret: 'nonzero',
+  dependency: 'nonzero',
+  image: 'nonzero',
+  codeql: 'zero',
+});
+
+const SECURITY_FIXTURE_RESULT_PREFIX = 'VNI_SECURITY_FIXTURE_RESULTS=';
+
+// The three command-line scanners signal a finding with a non-zero exit. A
+// CodeQL query test has the opposite convention: it exits zero only when its
+// actual result tuples match the committed `.expected` finding. Keeping that
+// distinction explicit prevents either convention from being inverted by
+// accident. The gate command emits one JSON record after it has run all four
+// probes; prose in the log is deliberately not accepted as evidence.
+export function evaluateSecurityFixtureOutput(output) {
+  const lines = String(output).split(/\r?\n/);
+  const resultLines = lines.filter((line) => line.startsWith(SECURITY_FIXTURE_RESULT_PREFIX));
+  if (resultLines.length !== 1) {
+    return {
+      satisfied: false,
+      reason: `expected exactly one ${SECURITY_FIXTURE_RESULT_PREFIX}<json> record; found ${resultLines.length}`,
+      probes: {},
+    };
+  }
+
+  let document;
+  try {
+    document = JSON.parse(resultLines[0].slice(SECURITY_FIXTURE_RESULT_PREFIX.length));
+  } catch (error) {
+    return {
+      satisfied: false,
+      reason: `invalid security-fixture JSON: ${error.message}`,
+      probes: {},
+    };
+  }
+
+  if (!document || Array.isArray(document) || typeof document !== 'object') {
+    return {
+      satisfied: false,
+      reason: 'security-fixture result must be a JSON object',
+      probes: {},
+    };
+  }
+
+  const probes = {};
+  const problems = [];
+  const blocked = [];
+  for (const [id, expectation] of Object.entries(SECURITY_FIXTURE_PROBES)) {
+    const probe = document[id];
+    const exitCode = probe?.exitCode;
+    const command = probe?.command;
+    if (
+      probe &&
+      !Array.isArray(probe) &&
+      typeof probe === 'object' &&
+      probe.status === 'blocked' &&
+      exitCode === null &&
+      typeof command === 'string' &&
+      command.trim().length > 0 &&
+      typeof probe.reason === 'string' &&
+      probe.reason.trim().length > 0
+    ) {
+      probes[id] = { expectation, exitCode: null, command, matched: false, status: 'blocked' };
+      blocked.push(`${id}: ${probe.reason}`);
+      continue;
+    }
+    const validShape =
+      probe &&
+      !Array.isArray(probe) &&
+      typeof probe === 'object' &&
+      Number.isInteger(exitCode) &&
+      typeof command === 'string' &&
+      command.trim().length > 0;
+    const matched = validShape && (expectation === 'nonzero' ? exitCode !== 0 : exitCode === 0);
+    probes[id] = { expectation, exitCode: validShape ? exitCode : null, command, matched };
+    if (!validShape) problems.push(`${id}: missing integer exitCode or non-empty command`);
+    else if (!matched) problems.push(`${id}: expected ${expectation}, got exit ${exitCode}`);
+  }
+
+  const unexpected = Object.keys(document).filter((id) => !(id in SECURITY_FIXTURE_PROBES));
+  if (unexpected.length > 0) problems.push(`unexpected probes: ${unexpected.join(', ')}`);
+
+  return {
+    satisfied: problems.length === 0 && blocked.length === 0,
+    status: problems.length > 0 ? 'failed' : blocked.length > 0 ? 'blocked' : 'passed',
+    reason:
+      problems.length > 0 ? problems.join('; ') : blocked.length > 0 ? blocked.join('; ') : null,
+    probes,
+  };
+}
 
 const TRX = (name) => [
   '--logger',
@@ -283,14 +375,15 @@ const DRILLS = [
   },
   {
     id: 'security-fixture',
-    title: 'A deliberately planted credential and a known-vulnerable dependency',
+    title: 'Intentional secret, dependency, image and CodeQL findings',
     requires:
-      'the secret scan, the dependency audit and the image scan must each fail on their own fixture',
+      'the secret, dependency and image scanners must reject their fixtures, and the real CodeQL query test must reproduce its expected finding',
     checklistItem: 'F5.4 · F4.4',
     fromEvidence: 'F4.security-gate-command',
     expect: 'zero',
+    validateOutput: evaluateSecurityFixtureOutput,
     dependsOn: 'F4',
-    note: 'Owned by F4. This harness declares the drill so its absence is visible; it does not invent the gate.',
+    note: 'Owned by F4. The gate must emit one structured VNI_SECURITY_FIXTURE_RESULTS record. CodeQL uses exit 0 because `codeql test run` succeeds only when the real query result matches the committed finding; the other scanners must exit non-zero.',
   },
 ];
 
@@ -444,7 +537,7 @@ function main() {
 
     const startedAt = new Date();
     const start = process.hrtime.bigint();
-    const capture = Boolean(drill.expectOutputMatches);
+    const capture = Boolean(drill.expectOutputMatches || drill.validateOutput);
     const result = runPortable(argv, {
       cwd: ROOT,
       env: { ...process.env, ...(drill.env ?? {}) },
@@ -455,6 +548,7 @@ function main() {
     const exitCode = result.status ?? 1;
 
     let outputMatched = null;
+    let outputValidation = null;
     if (capture) {
       const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
       const logPath = join(OUT, `${drill.id}.log`);
@@ -466,24 +560,37 @@ function main() {
 `
           : output,
       );
-      outputMatched = new RegExp(drill.expectOutputMatches).test(output);
-      if (!outputMatched) {
-        console.log(
-          `   the output does not contain /${drill.expectOutputMatches}/ — the command failed, but not for the reason this drill is about.`,
-        );
+      if (drill.expectOutputMatches) {
+        outputMatched = new RegExp(drill.expectOutputMatches).test(output);
+        if (!outputMatched) {
+          console.log(
+            `   the output does not contain /${drill.expectOutputMatches}/ — the command failed, but not for the reason this drill is about.`,
+          );
+        }
+      }
+      if (drill.validateOutput) {
+        outputValidation = drill.validateOutput(output);
+        outputMatched = outputValidation.satisfied;
+        if (!outputMatched) {
+          console.log(`   security fixture evidence is incomplete: ${outputValidation.reason}`);
+        }
       }
     }
 
+    const outputBlocked = outputValidation?.status === 'blocked';
     const exitSatisfied = drill.expect === 'nonzero' ? exitCode !== 0 : exitCode === 0;
     const satisfied = exitSatisfied && (outputMatched === null || outputMatched);
+    const recordStatus = outputBlocked ? 'blocked' : satisfied ? 'passed' : 'failed';
 
     console.log(
       `   -> exit ${exitCode} in ${(durationMs / 1000).toFixed(1)}s — ${
-        satisfied
-          ? 'the required failure was produced'
-          : drill.expect === 'nonzero'
-            ? 'THE FAULT FIXTURE STOPPED FAILING. A gate has silently opened.'
-            : 'the drill did not produce its required failure'
+        outputBlocked
+          ? `BLOCKED: ${outputValidation.reason}`
+          : satisfied
+            ? 'the required failure was produced'
+            : drill.expect === 'nonzero'
+              ? 'THE FAULT FIXTURE STOPPED FAILING. A gate has silently opened.'
+              : 'the drill did not produce its required failure'
       }`,
     );
 
@@ -492,15 +599,17 @@ function main() {
       title: drill.title,
       requires: drill.requires,
       checklistItem: drill.checklistItem,
-      status: satisfied ? 'passed' : 'failed',
+      status: recordStatus,
       expect: drill.expect,
       expectOutputMatches: drill.expectOutputMatches ?? null,
       outputMatched,
+      outputValidation,
       exitCode,
       startedAt: startedAt.toISOString(),
       durationMs,
       command: argv.join(' '),
       dependsOn: drill.dependsOn ?? null,
+      reason: outputBlocked ? outputValidation.reason : null,
     });
   }
 
@@ -555,9 +664,13 @@ function main() {
   return 0;
 }
 
-try {
-  process.exit(main());
-} catch (error) {
-  console.error(`error: ${error.message}`);
-  process.exit(1);
+const invokedDirectly =
+  process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
+if (invokedDirectly) {
+  try {
+    process.exit(main());
+  } catch (error) {
+    console.error(`error: ${error.message}`);
+    process.exit(1);
+  }
 }
