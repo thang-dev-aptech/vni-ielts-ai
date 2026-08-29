@@ -10,7 +10,7 @@
   "carriedBlockers": [
     {
       "id": "HOSTED-PROOF",
-      "summary": "The remediated alerts and new CodeQL query fixture need the next commit/push and hosted run; repository rules do not authorize the orchestrator to commit or push."
+      "summary": "Hosted run 33232359676 exposed a missing CodeQL CLI path and backend run 33232359678 exposed the Content-owned clean-checkout skip. Both fixes are local and need one follow-up commit/push."
     }
   ],
   "openBusinessDecisions": [
@@ -25,16 +25,19 @@
       "title": "Put require-results on the result-producing leg and exempt the legitimate skip",
       "owner": "devops-engineer",
       "phase": "F4.4/F5",
-      "status": "done",
+      "status": "review",
       "dependsOn": [],
       "startedAt": "2026-08-29T09:57:44+07:00",
       "lastHeartbeatAt": "2026-08-29T10:05:00+07:00",
-      "completedAt": "2026-08-29T10:05:00+07:00",
+      "completedAt": null,
       "files": [".github/workflows/verify.yml", "ci/test-skip-allowlist.json"],
-      "tests": ["25/25 skip-gate tests; static gate; Prettier; git diff --check"],
+      "tests": [
+        "25/25 skip-gate tests; static gate; Prettier; git diff --check",
+        "Replayed backend artifact from run 33232359678: 6 files, 689 tests, 1 allowed Content skip, 0 unauthorized"
+      ],
       "negativeProof": "Empty results fail with --require-results; the allowed skip fails after its exemption expires.",
       "artifacts": ["_workspace/workflow/agents/build-gate.md"],
-      "blocker": null,
+      "blocker": "Follow-up commit/push must verify the Content-owned exemption in Backend and Foundation workflows.",
       "nextDependency": "F5 hosted verification"
     },
     {
@@ -77,10 +80,12 @@
         "fixtures/security/",
         ".github/workflows/security.yml"
       ],
-      "tests": ["9/9 drill contract tests; local dependency fixture produced high findings"],
+      "tests": [
+        "10/10 drill contract/workflow tests; local dependency fixture produced high findings"
+      ],
       "negativeProof": "A missing CodeQL finding makes the runner exit 1; an unavailable CLI is BLOCKED rather than passed.",
       "artifacts": ["_workspace/workflow/agents/codeql-drill.md"],
-      "blocker": "CodeQL CLI is unavailable locally; the hosted workflow step needs a pushed commit to compile and execute the QL fixture.",
+      "blocker": "Hosted run found that init downloads CodeQL but does not add it to PATH; workflow now invokes the documented codeql-path output and needs a follow-up run.",
       "nextDependency": "F4.4 hosted fixture proof"
     }
   ],

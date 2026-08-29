@@ -117,3 +117,17 @@ test('an unavailable scanner is BLOCKED rather than treated as an observed findi
   assert.equal(result.status, 'blocked');
   assert.match(result.reason, /required command unavailable: codeql/);
 });
+
+test('the hosted fixture invokes the CodeQL binary exposed by the init action', () => {
+  const workflow = readFileSync(
+    path.join(import.meta.dirname, '..', '.github', 'workflows', 'security.yml'),
+    'utf8',
+  );
+
+  assert.match(workflow, /id: codeql-init/);
+  assert.match(
+    workflow,
+    /steps\.codeql-init\.outputs\.codeql-path \}\}" test run fixtures\/security\/codeql/,
+  );
+  assert.doesNotMatch(workflow, /^\s*codeql test run fixtures\/security\/codeql/m);
+});

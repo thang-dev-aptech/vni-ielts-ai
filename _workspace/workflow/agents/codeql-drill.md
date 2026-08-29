@@ -77,3 +77,15 @@ exit 0
 ## Remaining hosted proof
 
 The local machine cannot compile the QL pack because the CodeQL CLI is absent. The actual query compilation/extraction/result comparison is wired into the JavaScript CodeQL job. It will run when repository variable `ENABLE_CODE_SCANNING=true`; the repository's existing GHAS availability decision still controls that job. Until such a hosted run exists, the harness reports local CodeQL execution as BLOCKED and makes no CodeQL-pass claim.
+
+## Hosted rerun 33232359676
+
+The first pushed run reached the intentional-fixture step and exposed a workflow integration defect:
+`github/codeql-action/init` downloaded CodeQL 2.26.4 but did not add `codeql` to `PATH`, so the shell
+exited 127. The init action documents a `codeql-path` output. The workflow now assigns the init step
+`id: codeql-init` and invokes `"${{ steps.codeql-init.outputs.codeql-path }}"` for both `pack install`
+and `test run`.
+
+A regression assertion in `failure-drills.test.mjs` requires that output-based invocation and rejects
+the bare `codeql test run` form. Combined drill/skip tests are 35/35 green locally; a follow-up hosted
+run is still required to validate the QL expected tuple itself.

@@ -73,6 +73,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - uses: github/codeql-action/init@v3
+        id: codeql-init
         with:
           languages: ${{ matrix.language }}
           # `security-extended` over the default: the default set is tuned to
@@ -90,8 +91,8 @@ jobs:
       - name: CodeQL intentional-finding regression fixture
         if: matrix.language == 'javascript-typescript'
         run: |
-          codeql pack install fixtures/security/codeql
-          codeql test run fixtures/security/codeql
+          "${{ steps.codeql-init.outputs.codeql-path }}" pack install fixtures/security/codeql
+          "${{ steps.codeql-init.outputs.codeql-path }}" test run fixtures/security/codeql
 
       # CodeQL's autobuild guesses; this solution has a Directory.Build.props
       # with TreatWarningsAsErrors and a Worker that needs the Web SDK, so it

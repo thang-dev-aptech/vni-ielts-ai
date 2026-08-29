@@ -10,12 +10,14 @@ The false-red Windows build gate is fixed without weakening the canonical result
   `--static-only`. The Linux `node scripts/verify.mjs --install` leg remains the full
   result-producing owner; its `skips` stage still invokes `check-test-skips.mjs` with
   `--require-results`.
-- `ci/test-skip-allowlist.json`: added one exact (non-wildcard), owned, dated exemption for
+- `ci/test-skip-allowlist.json`: added exact (non-wildcard), owned, dated exemptions. One covers
   `VerificationCodeTests.Pressing_resend_leaves_one_live_code_rather_than_two`. The test explicitly
   calls `Skip.If(first == second, ...)`; equal independently generated six-digit codes are valid
   production behavior and leave no distinct old/new pair to compare. The exemption is owned by
-  `backend-maintainers` and expires 2026-11-30. Missing Mongo/MinIO remains non-exempt and fatal in
-  CI through `VNI_REQUIRE_MONGO=1` / `VNI_REQUIRE_MINIO=1`.
+  `backend-maintainers` and expires 2026-11-30. The second covers the real Exam1 integrity test on
+  clean CI, where the material is intentionally gitignored until redistribution rights exist; it is
+  owned by `content-maintainers` and expires on the same date. Missing Mongo/MinIO remains non-exempt
+  and fatal in CI through `VNI_REQUIRE_MONGO=1` / `VNI_REQUIRE_MINIO=1`.
 
 ## Verification
 
@@ -55,3 +57,7 @@ exit 1
 
 Thus the legitimate collision can pass only while the narrow exemption is active; expiry and all
 other skipped-test names remain build failures.
+
+The exact CI artifact from run 33232359678 was also replayed after the Content exemption was added:
+6 result files, 689 tests, 1 allowed skip and 0 unauthorized skips. Replaying it with
+`--now=2026-12-01` exits 1 because the exemption expired.

@@ -3777,8 +3777,8 @@ và 4 kết quả JS/TS — đúng 12 alert cần xử lý, không còn là work
 ### Thay đổi trong worktree
 
 - Build gate: Windows leg chỉ chạy regression + static skip checks; Linux result-producing leg giữ
-  `--require-results`. Một skip hợp lệ do hai mã sáu chữ số ngẫu nhiên trùng nhau có exemption exact,
-  owner và hạn 30/11/2026.
+  `--require-results`. Hai skip hợp lệ có exemption exact, owner và hạn 30/11/2026: collision mã sáu
+  chữ số, và integrity test của Exam1 thật vốn không có trong clean checkout vì content bị gitignore.
 - 12 CodeQL alert: bỏ request/idempotency key khỏi log, không log email/token ở development sender,
   sửa full delimiter replacement và Windows quoting, khóa preview ở byte-sniffed Blob + `blob:` URL.
 - Security fixture: thêm runner bốn probe có structured evidence, QL query/input/expected tuple thật,
