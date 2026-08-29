@@ -31,7 +31,7 @@ Preconditions 3 and 4 are the ones that silently fail, so both are now automated
 
 ## What is actually stored
 
-Twelve collections, read from `MongoContext` and `AuditLog` on 2026-08-28. The right-hand column is the target shape, and the notes column is where the work actually is.
+Thirteen collections, read from `MongoContext` and `AuditLog` — twelve on 2026-08-28, plus `content_sources` added on 2026-08-29 with the content rights registry (`FS0.1`). The right-hand column is the target shape, and the notes column is where the work actually is.
 
 | Collection | Target in PostgreSQL | What makes it non-trivial |
 |---|---|---|
@@ -46,6 +46,7 @@ Twelve collections, read from `MongoContext` and `AuditLog` on 2026-08-28. The r
 | `section_markings` | Table + `jsonb` for criterion detail | Band values `numeric` |
 | `marking_jobs` | Table | **A lease queue** — see below |
 | `idempotency_keys` | Table | **TTL index `ttl_idempotency`** (24h) — see below |
+| `content_sources` | Table + child table for files | The rights record per source: owner, licence proof, allowed environments, expiry, reviewer, and the paths and SHA-256 of its files. `allowedEnvironments`, `examVersionIds` and `examDefinitionIds` are Mongo arrays with multikey indexes — in Postgres either `text[]` with GIN, or three small join tables, and the join tables are the better fit because a grant will eventually want its own audit trail. Environment names are stored as **strings**, never ordinals: an ordinal shift would turn a fixture-only record into a publication right silently |
 | `audit_log` | Table, append-only, no `UPDATE` grant | Append-only is a grant, not a convention |
 
 Use `jsonb` where the shape is genuinely variable. Do not use it to avoid designing: that reproduces MongoDB inside PostgreSQL and forfeits the reason for moving.

@@ -34,6 +34,10 @@ Consequences:
 
 `[OPEN QUESTION]` H-4 — the source of VNI's tables (licensed, internally calibrated, or approximated) is undecided. Official per-version tables are not published.
 
+Because that is undecided, a version now declares **where its tables came from** — `synthetic`, `provisional`, or `equated` — and only an `equated` table may feed a learner's band trend. The gate then holds closed on its own rather than on someone remembering to hold it. → [`versioned-policy-profiles.md`](versioned-policy-profiles.md)
+
+A score smaller than a whole module gets the same treatment for the same reason. A band table is equated against forty marks, so a thirteen-question part reports raw and accuracy and **no band**, unless the version carries its own per-part calibration.
+
 ### Answer matching
 
 Answer-key comparison is less trivial than it looks and is a common source of unfair marking. The `ScoringProfile` should carry matching rules per question type:
@@ -67,6 +71,8 @@ Both are assessed against four equally-weighted criteria, each scored on the 0�
 Task 2 is weighted more heavily than Task 1 in the official Writing band. `[OPEN QUESTION]` `H-8b` — the exact ratio is not published the way the overall-band rule is.
 
 **It has no default, and that is deliberate.** The 1:2 assumption used to be a default value in three places — the `ScoringProfile` record, the Mongo document, and the package reader's `?? 2m`. The effect was that every exam version without an explicit weighting was marked on a guess, and nothing said so. `ScoringProfile.RequireWritingTaskWeights()` now throws instead, in the same way `BandFor` refuses a raw score its table does not cover. → `G-11`
+
+The package format matches that refusal. `criterionWeights.writing` is optional, but declaring it means declaring **both** halves, both strictly positive. A half-stated ratio used to be legal, and it failed at marking time in front of a learner rather than at import time in front of the author who could fix it. → [`versioned-policy-profiles.md`](versioned-policy-profiles.md)
 
 ### Speaking criteria
 

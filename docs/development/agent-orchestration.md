@@ -1,6 +1,7 @@
 # Agent Orchestration
 
-Ten Claude Code agents. Each owns distinct artifacts and guards against a distinct failure mode.
+Ten Claude Code specialist agents plus a dynamic workflow orchestrator. Specialists own distinct artifacts
+and failure modes; the orchestrator selects only the subset needed by the user's current plan.
 
 Requirement G-10: *do not create unnecessary agents.* The test applied to each was: **does this agent own outputs nobody else owns, and does it catch a class of mistake the others would miss?** An agent that only rephrases the main session's work is not justified.
 
@@ -55,6 +56,14 @@ graph TB
 
 dev1/dev2/dev3 may prepare independent work concurrently, but phase gates remain ordered F3 → F4 → F5.
 Only the orchestrator updates the Foundation checklist/report.
+
+#### Dynamic feature workflow
+
+For feature work, [`workflow-orchestrator`](../../.claude/agents/workflow-orchestrator.md) and the
+[`project-workflow` skill](../../.claude/skills/project-workflow/SKILL.md) replace fixed dev1/dev2/dev3
+assignments. The user supplies scope and acceptance criteria; the orchestrator creates a dependency-aware
+team, fans out independent tasks, collects heartbeats and evidence in `_workspace/workflow/`, then gates
+review, QA, integration, and final reporting.
 
 | Stage | Parallel | Why |
 |---|---|---|

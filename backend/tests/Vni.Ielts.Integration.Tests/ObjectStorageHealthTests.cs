@@ -193,25 +193,59 @@ public sealed class ObjectStorageAppFactory : WebApplicationFactory<Program>
     private static bool MinioRequired =>
         !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VNI_REQUIRE_MINIO"));
 
+    /*
+     * <b>Probed more than once, for the reason the Mongo probe already is.</b>
+     * See `SsoAppFactory._mongoAvailable`, which carries the full account: a
+     * `static Lazy<T>` caches the answer for the whole process, so one unlucky
+     * moment decides the fate of every test in the assembly.
+     *
+     * A single attempt was survivable while a missing MinIO merely skipped.
+     * `VNI_REQUIRE_MINIO` makes absence fatal, and that changed what a blip
+     * costs: a momentary refusal while a neighbouring container takes the
+     * port's attention now reads as a failed build rather than as a skip. It
+     * fired four times against a healthy `vni-minio` during the FS0 gate work.
+     *
+     * <b>Retry, not a longer timeout</b> — same reasoning as Mongo. Three
+     * seconds is already generous for a loopback connect; the failure mode is
+     * refusal, not slowness, and a longer deadline would only make a
+     * genuinely-absent MinIO take longer to report. Attempts absorb a blip.
+     *
+     * <b>Not weaker.</b> A MinIO that is really down still fails all three
+     * attempts, so `VNI_REQUIRE_MINIO` still fails the run and a developer
+     * without the stack still gets the same skip — just after ~6 seconds of
+     * trying rather than after one unlucky moment.
+     */
+    private const int MinioProbeAttempts = 3;
+
     private static readonly Lazy<bool> _minioAvailable = new(() =>
     {
         Exception? failure = null;
 
-        try
+        for (var attempt = 1; attempt <= MinioProbeAttempts; attempt++)
         {
-            using var client = new TcpClient();
-            var connected = client.ConnectAsync(IPAddress.Loopback, 9000).Wait(TimeSpan.FromSeconds(3));
-            if (connected && client.Connected) return true;
-        }
-        catch (Exception e)
-        {
-            failure = e;
+            try
+            {
+                using var client = new TcpClient();
+                var connected = client
+                    .ConnectAsync(IPAddress.Loopback, 9000)
+                    .Wait(TimeSpan.FromSeconds(3));
+                if (connected && client.Connected) return true;
+            }
+            catch (Exception e)
+            {
+                failure = e;
+            }
+
+            // A short settle between attempts, long enough for a container
+            // claiming the port to finish doing so.
+            if (attempt < MinioProbeAttempts) Thread.Sleep(TimeSpan.FromSeconds(1));
         }
 
         if (MinioRequired)
         {
             throw new InvalidOperationException(
-                "VNI_REQUIRE_MINIO is set and no MinIO answered on localhost:9000. This is "
+                "VNI_REQUIRE_MINIO is set and no MinIO answered on localhost:9000 after "
+                + $"{MinioProbeAttempts} attempts. This is "
                 + "what proves F0.1's readiness fix — start it with "
                 + "`docker compose -f infra/docker/compose.yaml up -d minio minio-init`.",
                 failure);

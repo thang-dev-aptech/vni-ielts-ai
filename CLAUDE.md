@@ -60,12 +60,11 @@ A clickable HTML prototype lives **outside this repository** at `/Users/metacom/
 
 **[`docs/development/infrastructure-foundation-todolist.md`](docs/development/infrastructure-foundation-todolist.md) is the live infrastructure queue.** Run it with `/complete-infrastructure`: one item at a time, one tested phase at a time, continuing through `F0`…`F5` until the Foundation report is complete.
 
-For parallel infrastructure execution, use the `dev1`, `dev2`, and `dev3` agents defined in
-[`.claude/agents/`](.claude/agents/) and the coordination rules in
-[`.claude/skills/infrastructure-parallel/SKILL.md`](.claude/skills/infrastructure-parallel/SKILL.md).
-Their ownership is intentionally non-overlapping: dev1 = F3 backup/restore, dev2 = F4
-observability/security/supply-chain, dev3 = F5 CI/certification/timing. Agents hand off evidence through
-`_workspace/<agent>/`; only the infrastructure orchestrator edits the master checklist and report.
+The infrastructure-only `dev1/dev2/dev3` setup is historical. For feature work, use the dynamic
+Orchestrator in [`.claude/agents/workflow-orchestrator.md`](.claude/agents/workflow-orchestrator.md) and
+[`project-workflow`](.claude/skills/project-workflow/SKILL.md). It reads the plan you provide, selects only
+the needed specialists, creates a dependency-aware task team, runs safe tasks in parallel, and tracks
+evidence in `_workspace/workflow/`.
 
 ## Harness: infrastructure foundation
 
@@ -77,6 +76,7 @@ dùng skill `infrastructure-parallel`; câu hỏi đơn giản có thể trả l
 | Ngày | Thay đổi | Đối tượng | Lý do |
 |---|---|---|---|
 | 2026-08-28 | Khởi tạo 3 agent song song và skill điều phối | `.claude/agents/dev1..dev3`, `.claude/skills/infrastructure-parallel` | Giảm thời gian xử lý queue F3–F5 và tránh xung đột file |
+| 2026-08-29 | Chuyển sang Orchestrator + dynamic task team | `.claude/agents/workflow-orchestrator.md`, `.claude/skills/project-workflow` | Cho phép người dùng viết plan, workflow tự chia task và gọi agent phù hợp |
 
 The owner's instruction on 28/08/2026 is to **keep going until it runs stably**, reporting each item as it closes rather than stopping after one. So:
 

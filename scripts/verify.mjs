@@ -39,7 +39,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { runPortable } from './lib/spawn-portable.mjs';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -75,8 +75,14 @@ const dotnetTest = (project, extra = []) => [
 
 const STAGES = [
   {
+    id: 'toolchain-selftest',
+    title: "The toolchain checker's own regression fixtures",
+    argv: ['node', '--test', 'scripts/check-toolchain-versions.test.mjs'],
+  },
+  {
     id: 'toolchain',
-    title: 'Toolchain versions agree across .nvmrc, package.json and every workflow',
+    title:
+      'Toolchain versions agree across .nvmrc, package.json, every workflow — and the running Node',
     argv: ['node', 'scripts/check-toolchain-versions.mjs'],
   },
   {
@@ -217,11 +223,37 @@ const STAGES = [
       'playwright',
       'test',
       '--project=desktop',
-      '--reporter=json',
+      '--reporter=list,json',
     ],
-    stdoutTo: join(TEST_RESULTS, 'playwright.json'),
+    // <b>Playwright writes its own report; nothing scrapes stdout.</b>
+    //
+    // This stage used to capture `--reporter=json` off the child's stdout into
+    // playwright.json. On 2026-08-29 pnpm put `WARN Unsupported engine` on line
+    // 1 of that file — the host's Node was 22 against an `engines` range of
+    // >=24 — `JSON.parse` threw inside the skip gate, and the gate dropped all
+    // 7 browser results without a word. It counted 585 tests over a run that
+    // produced 592, and said "no unauthorized test skips" about a suite it had
+    // never read.
+    //
+    // The gate now fails loudly on an unreadable report (FS0.6), but the
+    // capture is the mechanism at fault: any tool may print to stdout, and a
+    // report assembled from a shared stream is one warning away from being
+    // junk. `PLAYWRIGHT_JSON_OUTPUT_FILE` is the JSON reporter's own documented
+    // output path, so the report never travels through a stream anything else
+    // can write to — and `list` keeps the console readable while it runs.
+    env: { PLAYWRIGHT_JSON_OUTPUT_FILE: join(TEST_RESULTS, 'playwright.json') },
+    resultFile: join(TEST_RESULTS, 'playwright.json'),
     needsMongo: true,
     producesResults: true,
+  },
+  {
+    id: 'skips-selftest',
+    // The skip gate had no stage of its own until FS0.6: nothing in verify.mjs,
+    // in `pnpm check` or in any workflow ran check-test-skips.test.mjs, so the
+    // regression tests that keep this gate honest were never executed by the
+    // pipeline they exist to defend.
+    title: "The skip gate's own regression fixtures",
+    argv: ['node', '--test', 'scripts/check-test-skips.test.mjs'],
   },
   {
     id: 'skips',
@@ -415,25 +447,22 @@ function execute(entry, args) {
   const startedAt = new Date();
   const start = process.hrtime.bigint();
 
-  if (stage.stdoutTo) mkdirSync(dirname(stage.stdoutTo), { recursive: true });
+  // A report left behind by an earlier run is not evidence about this one.
+  // Deleting it first means a stage that dies before writing its report leaves
+  // no file at all, and the skip gate's --expect-report then says so instead of
+  // counting yesterday's results as today's.
+  if (stage.resultFile) {
+    mkdirSync(dirname(stage.resultFile), { recursive: true });
+    rmSync(stage.resultFile, { force: true });
+  }
 
   const result = args.dryRun
     ? { status: 0 }
     : runPortable(argv, {
         cwd: ROOT,
         env: { ...process.env, ...(stage.env ?? {}) },
-        stdio: stage.stdoutTo ? ['inherit', 'pipe', 'inherit'] : 'inherit',
-        encoding: stage.stdoutTo ? 'utf8' : undefined,
+        stdio: 'inherit',
       });
-
-  if (stage.stdoutTo && result.stdout !== undefined) {
-    writeFileSync(stage.stdoutTo, result.stdout);
-    process.stdout.write(
-      result.stdout.length > 4000
-        ? `${result.stdout.slice(0, 4000)}\n… (truncated; full output at ${rel(stage.stdoutTo)})\n`
-        : result.stdout,
-    );
-  }
 
   const durationMs = Number(process.hrtime.bigint() - start) / 1e6;
   const exitCode = result.status ?? 1;
@@ -451,6 +480,25 @@ function main() {
   const evidence = loadEvidence();
   const entries = plan(args, evidence);
 
+  // <b>Results from a previous run are not evidence about this one.</b>
+  //
+  // Nothing cleared this directory, so `.trx` files accumulated across runs and
+  // the skip gate counted them all: a run of this pipeline on 2026-08-29
+  // reported 13 result files and 1278 tests when it had itself produced 6 and
+  // ~693 — the rest were 45 minutes old, from a different state of the tree.
+  // Inflated counts are the friendly failure mode; the dangerous one is a suite
+  // that stopped producing results at all while its last green `.trx` stayed on
+  // disk and kept being counted.
+  //
+  // A selective run is the exception: `--only` and `--from` exist so a stage can
+  // be re-run against results earlier stages already wrote, and clearing those
+  // would break the very workflow the flags are for. `--skip` does not select,
+  // so it still clears.
+  const selective = Boolean(args.only || args.from);
+  if (!selective && !args.list && !args.dryRun) {
+    rmSync(TEST_RESULTS, { recursive: true, force: true });
+    console.log(`Cleared ${rel(TEST_RESULTS)} — this run's results only.`);
+  }
   mkdirSync(TEST_RESULTS, { recursive: true });
 
   if (args.list) {
@@ -465,6 +513,13 @@ function main() {
 
   const started = new Date();
   const records = [];
+
+  // Reports this run actually produced, handed to the skip gate as
+  // --expect-report so that a report which never appeared is a failure rather
+  // than one fewer file to count. Only stages that ran and passed are listed:
+  // a suite skipped with --skip=e2e, or unavailable for want of Docker, owes
+  // no report, and demanding one would turn a declared skip into a false red.
+  const producedReports = [];
 
   for (const entry of entries) {
     if (entry.status !== 'ready') {
@@ -482,9 +537,17 @@ function main() {
       continue;
     }
 
+    if (entry.stage.id === 'skips') {
+      entry.argv = [...entry.argv, ...producedReports.map((f) => `--expect-report=${f}`)];
+    }
+
     console.log(`\n── ${entry.stage.id} — ${entry.stage.title}`);
     console.log(`   $ ${entry.argv.join(' ')}`);
     const outcome = execute(entry, args);
+
+    if (outcome.status === 'passed' && entry.stage.resultFile) {
+      producedReports.push(entry.stage.resultFile);
+    }
     records.push({
       id: entry.stage.id,
       title: entry.stage.title,

@@ -115,17 +115,43 @@ internal static class ObjectStorageProbe
         return reachable;
     });
 
+    /*
+     * <b>Three attempts, not one.</b> The same reasoning as the Mongo probe in
+     * `SsoAppFactory` and the MinIO probe in `ObjectStorageHealthTests`: this
+     * answer is cached in a `static Lazy<T>` for the whole process, so one
+     * momentary refusal — a neighbouring container taking the port's attention
+     * — decides the fate of every object-store test in the assembly.
+     *
+     * Retry rather than a longer timeout, because the failure mode is refusal
+     * rather than slowness. A MinIO that is really absent still fails all
+     * three attempts, so this is not a weaker gate: `VNI_REQUIRE_MINIO` still
+     * fails the run, and a developer without the stack still gets the skip.
+     */
+    private const int ProbeAttempts = 3;
+
     private static bool Probe()
     {
-        try
+        for (var attempt = 1; attempt <= ProbeAttempts; attempt++)
         {
-            using var client = new TcpClient();
-            return client.ConnectAsync(IPAddress.Loopback, 9000).Wait(TimeSpan.FromSeconds(3))
-                && client.Connected;
+            try
+            {
+                using var client = new TcpClient();
+                if (
+                    client.ConnectAsync(IPAddress.Loopback, 9000).Wait(TimeSpan.FromSeconds(3))
+                    && client.Connected
+                )
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                // Fall through to the next attempt.
+            }
+
+            if (attempt < ProbeAttempts) Thread.Sleep(TimeSpan.FromSeconds(1));
         }
-        catch (Exception)
-        {
-            return false;
-        }
+
+        return false;
     }
 }

@@ -1384,6 +1384,31 @@
         ]
       }
     },
+    "/api/v1/admin/content-sources": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Where the source material came from and what may be done with it",
+        "operationId": "AdminListContentSources",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/exams/{examVersionId}/publish": {
       "post": {
         "tags": [

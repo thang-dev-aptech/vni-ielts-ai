@@ -6,6 +6,7 @@ using Vni.Ielts.Api.Common;
 using Vni.Ielts.Api.Endpoints;
 using OpenTelemetry.Trace;
 using Vni.Ielts.Infrastructure;
+using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Observability;
 using Vni.Ielts.Infrastructure.Security;
 
@@ -44,6 +45,20 @@ if (args.Contains("--healthcheck"))
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
+
+/*
+ * <b>Who is allowed to publish what.</b> The registry records, per source, an
+ * owner, a licence reference, the environments it may be used in, an expiry
+ * and a reviewer — and the publish endpoint refuses an exam whose source holds
+ * no `learner-production` right.
+ *
+ * <b>Nothing holds that right today.</b> `M-53` — which papers may be shown to
+ * a learner — is open, so every seeded source grants `fixture` and nothing
+ * else: the `G-11` seam, wired and empty, rather than an invented default.
+ *
+ * Registered inside `AddInfrastructure` with every other port binding, so the
+ * Worker gets it too. → `ContentRightsRegistration`
+ */
 
 /*
  * <b>F4.1 — traces, metrics and logs, over OTLP, to nobody in particular.</b>
@@ -476,6 +491,17 @@ app.MapAdminEndpoints();
 app.MapHealthEndpoints();
 
 await app.Services.InitialiseInfrastructureAsync();
+
+/*
+ * After the indexes exist, and after the development seeder has loaded any
+ * exams — so a source's binding lands beside the paper it describes.
+ *
+ * <b>Idempotent, and it fills gaps rather than overwriting.</b> A rights grant
+ * is an act by a named reviewer; a restart that rewrote existing records would
+ * silently revoke one. An unseeded registry is safe on its own — a source with
+ * no record has no rights at all.
+ */
+await app.Services.SeedContentRightsAsync();
 
 app.Run();
 

@@ -222,6 +222,19 @@ public static class DependencyInjection
 
         AddSsoProviders(services, configuration, isDevelopment);
 
+        /*
+         * Folded in from `Program.cs`, where FS0.1 had to leave it because a
+         * task file boundary put this file out of that agent's reach.
+         *
+         * It belongs here for the reason `ContentRightsRegistration` states in
+         * its own summary: splitting DI across two entry points is how a
+         * service ends up registered in the API and missing in the Worker.
+         * The publish guard refuses by default, so a Worker that resolved it
+         * from an empty registration would not fail loudly — it would refuse
+         * quietly, which is the harder bug to see.
+         */
+        services.AddContentRights(configuration);
+
         return services;
     }
 

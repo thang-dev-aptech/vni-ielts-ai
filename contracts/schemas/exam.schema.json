@@ -22,6 +22,8 @@
 
     "timingProfile": { "$ref": "#/$defs/timingProfile" },
     "scoringProfile": { "$ref": "#/$defs/scoringProfile" },
+    "sequenceProfile": { "$ref": "#/$defs/sequenceProfile" },
+    "policyProfile": { "$ref": "#/$defs/policyProfile" },
 
     "sections": {
       "type": "array",
@@ -118,16 +120,21 @@
           "additionalProperties": false,
           "properties": {
             "writing": {
+              "description": "The relative weight of Writing Task 1 and Task 2 — H-8b, and still unanswered. IELTS does not publish the ratio the way it publishes the overall-band rule, so there is NO default here and there must not be one: a default turns an open question into a silent answer, and every version without an explicit weighting gets marked on a guess that nothing anywhere records. A version that omits this object produces two task bands and no Writing band, which is a truthful result; a version that declares it declares BOTH halves. One half alone is a half-stated ratio, and the only thing worse than no weighting is an arithmetic that looks complete. Zero is excluded because a task weighted zero is a task the learner was told to write and then not marked on. See ScoringProfile.RequireWritingTaskWeights and docs/domain/versioned-policy-profiles.md.",
               "type": "object",
               "additionalProperties": false,
+              "required": ["task1", "task2"],
               "properties": {
-                "task1": { "type": "number", "minimum": 0 },
-                "task2": { "type": "number", "minimum": 0 }
+                "task1": { "type": "number", "exclusiveMinimum": 0 },
+                "task2": { "type": "number", "exclusiveMinimum": 0 }
               }
             }
           }
         },
-        "answerMatching": { "$ref": "#/$defs/answerMatching" }
+        "answerMatching": { "$ref": "#/$defs/answerMatching" },
+        "bandTableProvenance": { "$ref": "#/$defs/bandTableProvenance" },
+        "partScore": { "$ref": "#/$defs/partScorePolicy" },
+        "partialCredit": { "$ref": "#/$defs/partialCreditPolicy" }
       }
     },
 
@@ -142,6 +149,131 @@
           "minRaw": { "type": "integer", "minimum": 0, "maximum": 40 },
           "band": { "$ref": "#/$defs/band" }
         }
+      }
+    },
+
+    "bandTableProvenance": {
+      "description": "Where this version's raw-to-band tables came from, and therefore what may be done with the bands they produce. H-4 is open: nobody has decided whether VNI's tables are licensed, internally equated, or approximated, and until somebody does, a band read off one of them is not an IELTS band. Recording the provenance is what lets the product be honest about that instead of printing a number and hoping. The field is optional so that v1 packages keep importing, but an ABSENT provenance is read as not-equated - the conservative reading, never the flattering one. A package that wants its results to shape a learner's band trend has to say equated and cite a source.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "description": "synthetic: invented for this repository, never learner-facing. provisional: a real table, but generic - not equated to this paper, which is what exam/Exam1 carries today. equated: equated to this test version, which is the only status that may feed a band trend.",
+          "enum": ["synthetic", "provisional", "equated"]
+        },
+        "source": {
+          "description": "Required when status is equated. Who equated the table and against what - the claim is auditable or it is not a claim.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "note": { "type": "string", "maxLength": 2000 }
+      },
+      "allOf": [
+        {
+          "description": "An equated table without a stated source is an unfalsifiable claim, and it is the claim that unlocks learner-facing bands.",
+          "if": { "required": ["status"], "properties": { "status": { "const": "equated" } } },
+          "then": { "required": ["source"] }
+        }
+      ]
+    },
+
+    "partScorePolicy": {
+      "description": "What a run smaller than a whole module may report. A Reading part is thirteen questions; the band table is equated against forty, so reading a band off a part is reading off the wrong table. The honest output for an uncalibrated part is raw and accuracy - a count and a percentage, no band. Omitting this object resolves to exactly that, which is what the engine does today, so silence changes nothing. Declaring estimated-band is a claim that this version carries its own per-part calibration, and the validator makes the claim expensive: every part of every auto-scored module must be calibrated, and each table must cover that part's whole raw range. Note the enum has no plain band member - a part-level IELTS band is not a thing the scale defines, so the format cannot express one.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reporting"],
+      "properties": {
+        "reporting": { "enum": ["raw-only", "estimated-band"] },
+        "calibration": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["module", "part", "rawToBand"],
+            "properties": {
+              "module": { "$ref": "#/$defs/module" },
+              "part": {
+                "description": "The part's order within its section, matching section.parts[].order.",
+                "type": "integer",
+                "minimum": 1
+              },
+              "rawToBand": { "$ref": "#/$defs/bandTable" }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "description": "estimated-band without calibration is the invented default this whole field exists to prevent.",
+          "if": {
+            "required": ["reporting"],
+            "properties": { "reporting": { "const": "estimated-band" } }
+          },
+          "then": { "required": ["calibration"] }
+        }
+      ]
+    },
+
+    "partialCreditPolicy": {
+      "description": "How a question worth more than one mark is marked when the answer is partly right. H-12 is open, and the engine can only do one thing today: the answer key is a set that must match, so a Choose TWO question with one correct letter scores zero out of two. The enum therefore has exactly one member. That is deliberate - a second member would let a package declare a mode nothing implements, and the failure would be silent wrong marking rather than a refusal. FS1.1 widens this to per-slot once ResponseSlot gives each mark its own answer-sheet number and its own key; until then the seam is declared and empty. Omitting the object resolves to all-or-nothing, which is the current behaviour.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["multiMark"],
+      "properties": {
+        "multiMark": { "enum": ["all-or-nothing"] }
+      }
+    },
+
+    "sequenceProfile": {
+      "description": "The order a Full Test advances through its modules. It is here rather than in code because two places in the code already disagree about it - ExamVersion.FullTestOrder reads Reading, Listening, Writing, Speaking and SittingBand.FourSkills reads Listening, Reading, Writing, Speaking - and the disagreement is only harmless while the second is used as a set. The moment an order is read from data there must be exactly one thing to read, so this field is that thing. Omitting it resolves to the E-12 order (Reading, Listening, Writing, Speaking) through a single resolver, and the reader says so in a warning rather than resolving it quietly. Full Test versus Single Skill is NOT configured here: that a Full Test auto-advances and a Single Skill never does is E-11 to E-13, confirmed product behaviour, not a per-version choice.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modules"],
+      "properties": {
+        "modules": {
+          "description": "Every module this version carries, exactly once each, in sitting order. A module listed here but absent from sections, or present in sections but missing here, is a refusal - a sequence that disagrees with the content is how a learner reaches the end of a sitting having never been shown Writing.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/module" }
+        }
+      }
+    },
+
+    "policyProfile": {
+      "description": "What the product may do with a completed run of this version, as opposed to how the run is scored. Separate from scoringProfile because these answers depend on the content's licence and calibration rather than on its arithmetic: the same marking code, over a package nobody has cleared for AI processing or equated to a band scale, must produce a narrower result.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "explanation": { "$ref": "#/$defs/explanationPolicy" },
+        "practiceHistory": { "$ref": "#/$defs/practiceHistoryPolicy" }
+      }
+    },
+
+    "explanationPolicy": {
+      "description": "Whether a learner reviewing this version may be shown why an answer was wrong. Per version rather than per deployment because it turns on the content: sending a passage to a foreign LLM is a cross-border transfer of whatever the package holds, and a source cleared only as a fixture must not be sent at all. Omitting the object resolves to none, which is what happens today. An explanation can never change a band under any value here - that is A-11, and it is code, not configuration.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "description": "none: no explanation is offered. ai-generated: an LLM may be asked for one, subject to the content rights registry and the B-2 cross-border gate. An authored member - explanations written into the package - is deliberately absent until FS1.1 adds the evidence reference it would point at; declaring a mode with nothing behind it produces a blank review screen rather than a refusal.",
+          "enum": ["none", "ai-generated"]
+        }
+      }
+    },
+
+    "practiceHistoryPolicy": {
+      "description": "Whether results from this version may shape a learner's band trend. A trend built from bands that were never equated is a chart of an artefact, and it is read as progress. So the conservative reading is the default: omit the object and results from this version are recorded but excluded from the trend. full-test-only additionally requires an equated bandTableProvenance, which is the gate H-4 has to open. That practice at part or single-skill scope never enters the trend is FS3.5, a fixed product invariant rather than a per-version choice, so it is not spelled as an option here.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bandTrend"],
+      "properties": {
+        "bandTrend": { "enum": ["excluded", "full-test-only"] }
       }
     },
 

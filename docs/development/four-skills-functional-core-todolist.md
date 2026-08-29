@@ -121,8 +121,8 @@ sau đó mới dùng `/complete-four-skills-core`.
 
 ## 6. Trạng thái điều phối
 
-- **Đang thực hiện:** chưa bắt đầu — chờ Foundation Ready
-- **Phase hiện tại:** prerequisite
+- **Đang thực hiện:** `FS1.1` — Exam Package schema v2 và `ResponseSlot`
+- **Phase hiện tại:** FS1
 - **Functional Core Ready:** chưa đạt
 - **Speaking AI:** deferred có chủ đích
 - **Báo cáo:**
@@ -132,7 +132,7 @@ sau đó mới dùng `/complete-four-skills-core`.
 
 ### Master checklist
 
-- [ ] **FS0 — Content provenance, baseline và contract freeze**
+- [x] **FS0 — Content provenance, baseline và contract freeze** — đóng 29/08/2026
 - [ ] **FS1 — Exam Package v2 và ResponseSlot**
 - [ ] **FS2 — Import/conversion pipeline và pilot content**
 - [ ] **FS3 — PracticeUnit catalogue và session scope**
@@ -149,33 +149,55 @@ sau đó mới dùng `/complete-four-skills-core`.
 
 ### Checklist
 
-- [ ] **FS0.1 · Content rights registry**
+- [x] **FS0.1 · Content rights registry**
   - Tạo record có `sourceId`, path/hash, owner, license/proof reference, allowed environments, expiry và
     reviewer.
   - Gắn riêng từng Cambridge book, VOL 9 test, Writing/Speaking resource và `Exam1`.
   - Import được source không có quyền publish nhưng publish endpoint phải từ chối.
-- [ ] **FS0.2 · Machine-readable content inventory**
+- [x] **FS0.2 · Machine-readable content inventory**
   - Script read-only kiểm kê file, checksum, media duration/codec và cặp test↔key↔audio.
   - Báo file thiếu/cặp mơ hồ; không dựa vào filename thủ công trong application.
-- [ ] **FS0.3 · Product/config decisions**
+- [x] **FS0.3 · Product/config decisions**
   - `sequenceProfile`, part-score policy, partial-credit profile, explanation policy, practice-history
     policy và Writing task weights đều là dữ liệu versioned.
   - Default hiện tại không được đổi ngầm; mỗi package phải khai báo hoặc bị validation từ chối ở nơi
     giá trị là bắt buộc.
-- [ ] **FS0.4 · AI/R2 secret contract**
+- [x] **FS0.4 · AI/R2 secret contract**
   - Chốt tên biến cấu hình, startup validation, synthetic-data guard và redaction.
   - Ghi setup R2 CORS/lifecycle/bucket nhưng không ghi credential.
-- [ ] **FS0.5 · Baseline executable**
+- [x] **FS0.5 · Baseline executable**
   - Chạy docs, format, typecheck, web/API tests và E2E hiện có theo Foundation gate.
   - Ghi test counts thực tế và các test đang skip; không copy số cũ.
+- [x] **FS0.6 · Gate integrity** — *hạng mục do orchestrator chèn thêm 29/08/2026, không có trong kế
+      hoạch gốc*
+  - `FS0.5` phát hiện hai gate báo thành công mà không kiểm tra gì: `check-test-skips.mjs` nuốt im
+    lặng một report không parse được (`catch { return null; }`), và `pnpm check` gọi `test:api` mà
+    không đặt `VNI_REQUIRE_MONGO`/`VNI_REQUIRE_MINIO`, nên một suite bỏ qua toàn bộ 164 điểm điều
+    kiện vẫn báo pass.
+  - Lý do chèn: quy tắc thực thi 3–5 của chính kế hoạch này đòi negative proof và cấm biến failure
+    thành skip. Không thể lấy bằng chứng phase gate đáng tin từ những gate fail-open.
+  - Phát hiện thứ ba trong lúc chứng minh: `_artifacts/verify/test-results` chưa bao giờ được dọn,
+    nên số đếm test lịch sử đọc từ đó đã bị thổi phồng.
 
 ### Phase gate FS0
 
-- Một source không có production right bị publish từ chối bằng integration test.
-- Inventory ghép đúng ít nhất VOL 9 Test 1 Reading/Listening với key và audio; file bị thay đổi hash được
-  phát hiện.
-- Startup log/config dump đã được chứng minh không lộ secret.
-- Báo cáo FS0 hoàn chỉnh rồi mới tích phase.
+- [x] Một source không có production right bị publish từ chối bằng integration test.
+      3 integration test đỏ khi gỡ guard, trong khi test "nguồn **có** quyền vẫn publish được" giữ
+      xanh — chứng minh là cổng, không phải từ chối vô điều kiện.
+- [x] Inventory ghép đúng ít nhất VOL 9 Test 1 Reading/Listening với key và audio; file bị thay đổi
+      hash được phát hiện.
+      **Có điều kiện:** ghép cặp thật đã chạy trên máy có nội dung (171 file, 1.5 GB, 0 lỗi, 2 điểm
+      mơ hồ đúng như dự đoán). `/exam/` và `/Đề IELTS/` bị gitignore nên CI **không tái lập được**
+      khẳng định này; thứ commit được là 32 test trên fixture tổng hợp.
+- [x] Startup log/config dump đã được chứng minh không lộ secret.
+      Đỏ hai lần trước khi xanh — lần thứ hai hoàn nguyên `ObjectStorage:ServiceUrl` về đúng dòng có
+      ở baseline và bắt được rằng dòng đó nội suy nguyên URL, mà service URL kiểu S3 có thể mang
+      `https://key:secret@host`.
+- [x] Báo cáo FS0 hoàn chỉnh rồi mới tích phase.
+      → [`four-skills-functional-core-report.md`](four-skills-functional-core-report.md)
+- Gate chạy: `node scripts/verify.mjs` → exit 1 · **27 passed · 1 failed · 1 not run**. Lần fail duy
+  nhất là `restore-drill`, khoảng trống môi trường có sẵn từ baseline (thiếu `mongosh`/`mongodump`),
+  không phải hồi quy. Mọi stage xanh ở baseline vẫn xanh.
 
 ---
 

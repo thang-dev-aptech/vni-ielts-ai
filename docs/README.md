@@ -164,6 +164,7 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 - [`security/zip-ingestion-security.md`](security/zip-ingestion-security.md) — secure ZIP processing
 - [`security/ai-security.md`](security/ai-security.md) — prompt injection, output validation, data leakage
 - [`security/privacy-vietnam-pdpl.md`](security/privacy-vietnam-pdpl.md) — Vietnamese data protection compliance
+- [`security/object-storage-r2-setup.md`](security/object-storage-r2-setup.md) — R2 bucket, CORS and lifecycle for Speaking recordings
 
 ### UX
 - [`ux/DESIGN.md`](ux/DESIGN.md) — design language. Direction **C · Soft Card** CONFIRMED 2026-08-20; tokens, spacing/type scale, and the four product laws are binding engineering constraints held at `PROPOSED` — bundled owner confirmation due at requirement freeze

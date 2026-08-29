@@ -1,3 +1,5 @@
+using Vni.Ielts.Infrastructure.Ai;
+using Vni.Ielts.Infrastructure.Configuration;
 using Vni.Ielts.Infrastructure.Persistence;
 using Vni.Ielts.Infrastructure.Security;
 using Vni.Ielts.Infrastructure.Security.Sso;
@@ -246,10 +248,144 @@ public static class StartupConfiguration
             && !development
             && storage.ServiceUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
         {
+            /*
+             * <b>FS0.4 — the URL is redacted on the way into this message.</b>
+             * It used to be interpolated whole, and an S3-compatible service
+             * URL is allowed to carry userinfo (`https://key:secret@host`),
+             * which several clients accept. So the warning written by the code
+             * whose job is to make misconfiguration safe was itself the place
+             * a credential reached the startup log. → `SecretRedaction`
+             */
             warnings.Add(
-                $"ObjectStorage:ServiceUrl is plain HTTP ({storage.ServiceUrl}). Credentials and "
-                + "learner audio travel over it.");
+                $"ObjectStorage:ServiceUrl is plain HTTP ({SecretRedaction.Url(storage.ServiceUrl)}). "
+                + "Credentials and learner audio travel over it.");
         }
+
+        Uri? storageUrl = null;
+
+        if (storage.IsConfigured)
+        {
+            if (Uri.TryCreate(storage.ServiceUrl, UriKind.Absolute, out var parsedStorageUrl))
+            {
+                storageUrl = parsedStorageUrl;
+            }
+            else
+            {
+                problems.Add(
+                    "ObjectStorage:ServiceUrl is not an absolute URL. The SDK's failure for this "
+                    + "is a signature or DNS error at the first object read, which reads as a "
+                    + "broken player rather than a typo in a setting.");
+            }
+        }
+
+        /*
+         * <b>A credential in the endpoint is a credential in every log line
+         * that names the endpoint.</b> `https://key:secret@host` is accepted by
+         * enough S3 clients that somebody will try it, and it defeats every
+         * redaction rule that treats a URL as a non-secret. There are two
+         * settings for exactly these two values; refusing is what makes them
+         * the only place they can be.
+         */
+        if (storageUrl is not null && !string.IsNullOrEmpty(storageUrl.UserInfo))
+        {
+            problems.Add(
+                "ObjectStorage:ServiceUrl carries credentials in the URL itself. Put them in "
+                + "ObjectStorage:AccessKey and ObjectStorage:SecretKey — a credential inside an "
+                + "endpoint ends up in every log line, span and error message that names the "
+                + "endpoint.");
+        }
+
+        /*
+         * <b>R2 is a configuration profile, not a second adapter.</b> The one
+         * thing it needs that AWS does not is the region `auto`, and the wrong
+         * value is the one you get by leaving the default alone — so it fails
+         * at the first upload with an SDK signature error that names nothing
+         * useful. → plan decision 4, https://developers.cloudflare.com/r2/api/s3/api/
+         */
+        if (storage.IsConfigured
+            && storage.IsCloudflareR2
+            && !string.Equals(storage.Region, "auto", StringComparison.OrdinalIgnoreCase))
+        {
+            problems.Add(
+                $"ObjectStorage:ServiceUrl is a Cloudflare R2 endpoint but ObjectStorage:Region is "
+                + $"'{storage.Region}'. R2 signs against the region 'auto' and rejects anything "
+                + "else with a signature error that names neither setting.");
+        }
+
+        if (storage.IsConfigured
+            && storage.IsCloudflareR2
+            && storage.ServiceUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+        {
+            problems.Add(
+                "ObjectStorage:ServiceUrl is a Cloudflare R2 endpoint over plain HTTP. R2 is "
+                + "reachable over TLS only, so this cannot work — and it would carry a learner's "
+                + "voice if it did.");
+        }
+
+        /*
+         * <b>Learner voice may not share a bucket with authored content, and
+         * this is the check that keeps the retention layout honest.</b> The
+         * exam-asset and package buckets are versioned on purpose, because an
+         * operator overwriting a good package is how authored content is lost.
+         * A version history is the opposite of what a recording needs: under
+         * PDPL a deleted recording has to actually be gone, and a version
+         * outlives the deletion it was supposed to honour.
+         * → `infra/docker/compose.yaml`, `privacy-vietnam-pdpl.md`
+         */
+        if (!string.IsNullOrWhiteSpace(storage.SpeakingRecordingsBucket)
+            && (storage.SpeakingRecordingsBucket == storage.ExamAssetsBucket))
+        {
+            problems.Add(
+                "ObjectStorage:SpeakingRecordingsBucket is the same bucket as "
+                + "ExamAssetsBucket. That bucket is versioned, because authored content is "
+                + "recovered by rolling back — and a version history of a learner's voice "
+                + "survives the deletion that PDPL requires to be final.");
+        }
+
+        /*
+         * <b>Two seams, warned rather than refused, and the distinction is
+         * deliberate.</b> Nothing writes a Speaking recording yet (FS5), so
+         * refusing to boot on an unset bucket would be refusing on a setting
+         * nothing uses. What must not happen is a *default* — `vni-audio-90d`
+         * names a ninety-day retention in the bucket name, and choosing it here
+         * would decide in a property initialiser how long a minor's voice is
+         * kept. → `G-11`
+         *
+         * FS5 turns the first of these into a problem when the upload path
+         * lands, because at that point an unset bucket is a recording with
+         * nowhere to go.
+         */
+        if (storage.IsConfigured
+            && !development
+            && string.IsNullOrWhiteSpace(storage.SpeakingRecordingsBucket))
+        {
+            warnings.Add(
+                "ObjectStorage:SpeakingRecordingsBucket is unset, so no Speaking recording can "
+                + "be stored. It has no default because the bucket names its own retention class, "
+                + "and how long a learner's voice is kept is an unanswered business decision. "
+                + "→ G-11, B-2");
+        }
+
+        if (!string.IsNullOrWhiteSpace(storage.SpeakingRecordingsBucket)
+            && storage.SpeakingRecordingRetentionDays is null)
+        {
+            warnings.Add(
+                "ObjectStorage:SpeakingRecordingsBucket is set but "
+                + "ObjectStorage:SpeakingRecordingRetentionDays is not. Nothing here enforces it — "
+                + "the bucket's own lifecycle rule does — but with no value there is nothing to "
+                + "check that rule against. → PDPL storage limitation");
+        }
+
+        if (storage.SpeakingRecordingRetentionDays is <= 0)
+        {
+            problems.Add(
+                $"ObjectStorage:SpeakingRecordingRetentionDays is "
+                + $"{storage.SpeakingRecordingRetentionDays}. Zero or negative is not a retention "
+                + "policy; leave it unset if the decision has not been made.");
+        }
+
+        // ── AI providers ──────────────────────────────────────────────────
+        ValidateAi(builder, development, problems, warnings);
 
         // ── Email ─────────────────────────────────────────────────────────
         var email = builder.Configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>()
@@ -328,6 +464,16 @@ public static class StartupConfiguration
                 + "to false only if something in front of this process terminates TLS.");
         }
 
+        /*
+         * <b>The summary is printed before the verdict, including when the
+         * verdict is a refusal.</b> Somebody staring at a boot failure wants to
+         * know what the process actually read, and the alternative to giving
+         * them a redacted answer is that they add an unredacted one. Making the
+         * safe view the convenient view is the only durable form of this rule.
+         */
+        foreach (var line in Describe(builder))
+            Console.WriteLine($"[config] {line}");
+
         foreach (var warning in warnings)
             Console.WriteLine($"[config] {warning}");
 
@@ -346,5 +492,259 @@ public static class StartupConfiguration
             + "\n\nRefusing to start. A misconfiguration that surfaces as a user problem is a "
             + "production incident; one that refuses to boot is a deployment failure, and that "
             + "is the cheaper of the two.");
+    }
+
+    /// <summary>
+    /// Checks the two AI providers, and the two switches that decide what may
+    /// be sent through them.
+    ///
+    /// <b>FS0.4. Before it, the only AI check anywhere was the Claude
+    /// exclusion, thrown from `AddInfrastructure`.</b> A key with no model, a
+    /// base URL that is not a URL, a key travelling to a plain-HTTP endpoint,
+    /// and a cross-border switch that existed only in `CLAUDE.md` all reached
+    /// production unremarked — and every one of them fails first at the moment
+    /// a learner submits an essay.
+    /// </summary>
+    private static void ValidateAi(
+        WebApplicationBuilder builder,
+        bool development,
+        List<string> problems,
+        List<string> warnings)
+    {
+        var ai = builder.Configuration.GetSection(AiOptions.SectionName).Get<AiOptions>()
+            ?? new AiOptions();
+
+        foreach (var (section, provider) in new[] { ("OpenAi", ai.OpenAi), ("Gemini", ai.Gemini) })
+        {
+            /*
+             * <b>The exclusion is checked here as well as in
+             * `AddInfrastructure`, and the duplication is deliberate.</b> This
+             * file's rule is that every problem is reported at once; a check
+             * that throws from somewhere else means the operator fixes the
+             * model name, redeploys, and only then learns about the other four
+             * mistakes. The throw in `AddInfrastructure` stays, because a
+             * process that reached DI registration without passing through
+             * this gate must still not call Claude.
+             */
+            if (AiProviderPolicy.Rejects(section, provider) is { } excluded)
+                problems.Add(excluded);
+
+            if (!provider.IsConfigured)
+            {
+                /*
+                 * <b>Unconfigured is a supported state, so this is silent.</b>
+                 * Reading and Listening are marked from the answer key and
+                 * never reach a model (`A-11`), so an install with no provider
+                 * is an install that works. The one thing worth saying is when
+                 * a permission has been granted to nothing.
+                 */
+                if (!provider.SyntheticDataOnly)
+                {
+                    warnings.Add(
+                        $"Ai:{section}:SyntheticDataOnly is false but Ai:{section}:ApiKey is not "
+                        + "set. Permission has been granted to a provider that cannot be called, "
+                        + "which will silently become permission the day a key is added.");
+                }
+
+                continue;
+            }
+
+            /*
+             * <b>A key with no model is the shape a half-finished setup takes,
+             * and there is no default to fall back on.</b> `G-11`: a default
+             * model would send a learner's essay to whichever model the author
+             * of the adapter thought of, and the band it produced could not be
+             * reproduced or calibrated afterwards. So the process refuses
+             * instead of choosing.
+             */
+            if (string.IsNullOrWhiteSpace(provider.Model))
+            {
+                problems.Add(
+                    $"Ai:{section}:ApiKey is set but Ai:{section}:Model is not, and Model has no "
+                    + "default. A default would decide which model marks a learner's work, and "
+                    + "that band would be unreproducible. → G-11");
+            }
+
+            if (!string.IsNullOrWhiteSpace(provider.BaseUrl))
+            {
+                if (!Uri.TryCreate(provider.BaseUrl, UriKind.Absolute, out var baseUrl))
+                {
+                    // The value is never echoed: the commonest way this setting
+                    // is wrong is that a key was pasted into it.
+                    problems.Add(
+                        $"Ai:{section}:BaseUrl is not an absolute URL. It is left unset for the "
+                        + "vendor's own endpoint; it is not a hostname and not a key.");
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(baseUrl.UserInfo))
+                    {
+                        problems.Add(
+                            $"Ai:{section}:BaseUrl carries credentials in the URL itself. The key "
+                            + $"belongs in Ai:{section}:ApiKey — a credential inside an endpoint "
+                            + "reaches every log line and span that names the endpoint.");
+                    }
+
+                    if (!development && baseUrl.Scheme != Uri.UriSchemeHttps)
+                    {
+                        problems.Add(
+                            $"Ai:{section}:BaseUrl is not HTTPS. The API key is sent on every "
+                            + "request to it, and so is whatever the request carries.");
+                    }
+                }
+            }
+
+            /*
+             * <b>The one combination that is refused rather than left to the
+             * runtime guard.</b> A third-party endpoint plus `SyntheticDataOnly
+             * = false` is somebody asserting that real learner work may go
+             * through a company VNI has no contract with. `AiEgress` refuses
+             * that call anyway — but it refuses it at the moment a learner
+             * submits, in a background job, and the operator who set it finds
+             * out from a support ticket. Boot is the cheaper place to learn.
+             */
+            if (!provider.SyntheticDataOnly
+                && AiProviderPolicy.IsThirdPartyEndpoint(section, provider.BaseUrl))
+            {
+                problems.Add(
+                    $"Ai:{section}:SyntheticDataOnly is false while Ai:{section}:BaseUrl points "
+                    + "at neither the vendor's own endpoint nor any contracted processor "
+                    + "(AiProviderPolicy.ContractedProcessorHosts is empty). That combination "
+                    + "asserts a learner's essay may pass through a company with no "
+                    + "data-processing agreement. → CLAUDE.md rule 6");
+            }
+        }
+
+        /*
+         * <b>Permission to cross the border, granted to nothing.</b> Not a
+         * fault — a deployment may legitimately be prepared ahead of its
+         * provider — but it is worth saying out loud, because the switch is the
+         * one whose consequence is a filing obligation rather than an error.
+         */
+        if (ai.AllowCrossBorderTransfer && !ai.OpenAi.IsConfigured && !ai.Gemini.IsConfigured)
+        {
+            warnings.Add(
+                "Ai:AllowCrossBorderTransfer is true but no provider is configured. Nothing "
+                + "crosses any border today; the permission takes effect silently the moment a "
+                + "key is added. → B-2");
+        }
+
+        if (ai.AllowCrossBorderTransfer)
+        {
+            warnings.Add(
+                "Ai:AllowCrossBorderTransfer is true. Personal data reaching a provider outside "
+                + "Vietnam is a cross-border transfer under the PDPL and requires a CTIA filing "
+                + "within 60 days of the first transfer. → B-2, "
+                + "docs/security/privacy-vietnam-pdpl.md");
+        }
+    }
+
+    /// <summary>
+    /// What this process read, in a form that is safe to print — the config
+    /// dump, owned rather than improvised.
+    ///
+    /// ── Why this exists at all ────────────────────────────────────────────
+    ///
+    /// <b>Because the alternative gets written anyway, in a hurry, by whoever
+    /// is debugging at the time.</b> "Which settings did it actually pick up"
+    /// is the first question of every misconfiguration, and a process that
+    /// cannot answer it invites `Console.WriteLine(configuration.AsEnumerable())`
+    /// — which prints the signing key, the SMTP password and every API key,
+    /// into a log that ships to a collector. Providing the answer in redacted
+    /// form is what makes the unredacted version unnecessary.
+    ///
+    /// ── The rule every line obeys ─────────────────────────────────────────
+    ///
+    /// <b>Names are printed; secret values never are.</b> A secret-bearing
+    /// setting appears as presence and length — enough to see that a key
+    /// arrived and that it was not truncated or given a trailing newline, which
+    /// are the two failures this is read for, and not enough to be the key.
+    /// URLs lose their userinfo and their query string. → `SecretRedaction`
+    ///
+    /// <b>It is public because it is tested directly.</b> A leak test that only
+    /// scrapes console output can pass because nothing was printed at all;
+    /// asserting on this list lets the test insist that each secret-bearing
+    /// setting really is named here, which is what makes "and its value is
+    /// absent" mean something.
+    /// </summary>
+    public static IReadOnlyList<string> Describe(WebApplicationBuilder builder)
+    {
+        var configuration = builder.Configuration;
+
+        var mongo = configuration.GetSection(MongoOptions.SectionName).Get<MongoOptions>()
+            ?? new MongoOptions();
+        var jwt = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
+            ?? new JwtOptions();
+        var sso = configuration.GetSection(SsoOptions.SectionName).Get<SsoOptions>()
+            ?? new SsoOptions();
+        var storage = configuration.GetSection(ObjectStorageOptions.SectionName)
+            .Get<ObjectStorageOptions>() ?? new ObjectStorageOptions();
+        var email = configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>()
+            ?? new SmtpOptions();
+        var ai = configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+        var origins = configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+
+        var lines = new List<string>
+        {
+            $"environment = {builder.Environment.EnvironmentName}",
+
+            // A connection string is the classic carrier: the password lives
+            // inside it, so it goes through the URL redactor rather than being
+            // described as a secret or printed as a value.
+            $"Mongo:ConnectionString = {SecretRedaction.Url(mongo.ConnectionString)}",
+            $"Mongo:Database = {mongo.Database}",
+
+            $"Jwt:Issuer = {jwt.Issuer}",
+            $"Jwt:Audience = {jwt.Audience}",
+            $"Jwt:SigningKey = {SecretRedaction.Describe(jwt.SigningKey)}",
+            $"Jwt:AccessTokenMinutes = {jwt.AccessTokenMinutes}",
+            $"Jwt:RefreshTokenDays = {jwt.RefreshTokenDays}",
+
+            $"Cors:Origins = {(origins.Length == 0 ? "none" : string.Join(", ", origins))}",
+
+            $"Sso:EnableStubProvider = {sso.EnableStubProvider}",
+            $"Sso:ClientBaseUrl = {SecretRedaction.Url(sso.ClientBaseUrl)}",
+            $"Sso:Google:ClientId = {SecretRedaction.Identifier(sso.Google.ClientId)}",
+            $"Sso:Google:ClientSecret = {SecretRedaction.Describe(sso.Google.ClientSecret)}",
+            $"Sso:Google:RedirectUri = {SecretRedaction.Url(sso.Google.RedirectUri)}",
+
+            $"ObjectStorage:ServiceUrl = {SecretRedaction.Url(storage.ServiceUrl)}"
+                + (storage.IsCloudflareR2 ? "  (Cloudflare R2)" : string.Empty),
+            $"ObjectStorage:AccessKey = {SecretRedaction.Identifier(storage.AccessKey)}",
+            $"ObjectStorage:SecretKey = {SecretRedaction.Describe(storage.SecretKey)}",
+            $"ObjectStorage:Region = {storage.Region}",
+            $"ObjectStorage:ForcePathStyle = {storage.ForcePathStyle}",
+            $"ObjectStorage:ExamAssetsBucket = {storage.ExamAssetsBucket}",
+            $"ObjectStorage:DictationBucket = {storage.DictationBucket}",
+            "ObjectStorage:SpeakingRecordingsBucket = "
+                + (string.IsNullOrWhiteSpace(storage.SpeakingRecordingsBucket)
+                    ? "not set"
+                    : storage.SpeakingRecordingsBucket),
+            "ObjectStorage:SpeakingRecordingRetentionDays = "
+                + (storage.SpeakingRecordingRetentionDays?.ToString()
+                    ?? "not set — unanswered business decision, G-11"),
+
+            $"Email:Host = {email.Host}",
+            $"Email:Port = {email.Port}",
+            $"Email:Username = {SecretRedaction.Identifier(email.Username)}",
+            $"Email:Password = {SecretRedaction.Describe(email.Password)}",
+            $"Email:FromAddress = {email.FromAddress}",
+            $"Email:ClientBaseUrl = {SecretRedaction.Url(email.ClientBaseUrl)}",
+
+            $"Ai:AllowCrossBorderTransfer = {ai.AllowCrossBorderTransfer}",
+        };
+
+        foreach (var (section, provider) in new[] { ("OpenAi", ai.OpenAi), ("Gemini", ai.Gemini) })
+        {
+            lines.Add($"Ai:{section}:BaseUrl = {SecretRedaction.Url(provider.BaseUrl)}"
+                + (AiProviderPolicy.IsThirdPartyEndpoint(section, provider.BaseUrl)
+                    ? "  (third-party processor)"
+                    : string.Empty));
+            lines.Add($"Ai:{section}:ApiKey = {SecretRedaction.Describe(provider.ApiKey)}");
+            lines.Add($"Ai:{section}:Model = {provider.Model ?? "not set"}");
+            lines.Add($"Ai:{section}:SyntheticDataOnly = {provider.SyntheticDataOnly}");
+        }
+
+        return lines;
     }
 }

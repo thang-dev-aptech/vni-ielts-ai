@@ -61,6 +61,16 @@ public sealed class MongoContext
     internal IMongoCollection<Exams.ExamVersionDocument> ExamVersions =>
         _db.GetCollection<Exams.ExamVersionDocument>("exam_versions");
 
+    /// <summary>
+    /// What VNI is allowed to do with each body of source material.
+    ///
+    /// <b>An empty collection means nothing may be published</b>, which is the
+    /// correct reading rather than a degraded one: a source with no record has
+    /// no rights. → <c>ContentRightsPolicy</c>, <c>M-53</c>
+    /// </summary>
+    internal IMongoCollection<Content.ContentSourceDocument> ContentSources =>
+        _db.GetCollection<Content.ContentSourceDocument>("content_sources");
+
     internal IMongoCollection<Exams.ExamSessionDocument> ExamSessions =>
         _db.GetCollection<Exams.ExamSessionDocument>("exam_sessions");
 
@@ -223,6 +233,30 @@ public sealed class MongoContext
                     .Ascending(v => v.Status)
                     .Ascending(v => v.Title),
                 new CreateIndexOptions { Name = "ix_exam_versions_status_title" }),
+            cancellationToken: ct);
+
+        /*
+         * The publish gate reads the registry by whichever exam id it holds,
+         * on every publish attempt. Two indexes because they are two access
+         * shapes — and both are multikey, since one source can produce several
+         * papers.
+         *
+         * Not unique. Two records claiming the same exam would be a data
+         * defect, but a unique index here would make the *seed* fail rather
+         * than the bad grant, and a registry that cannot be seeded fails open
+         * for everything else.
+         */
+        await ContentSources.Indexes.CreateOneAsync(
+            new CreateIndexModel<Content.ContentSourceDocument>(
+                Builders<Content.ContentSourceDocument>.IndexKeys.Ascending(s => s.ExamVersionIds),
+                new CreateIndexOptions { Name = "ix_content_sources_exam_version" }),
+            cancellationToken: ct);
+
+        await ContentSources.Indexes.CreateOneAsync(
+            new CreateIndexModel<Content.ContentSourceDocument>(
+                Builders<Content.ContentSourceDocument>.IndexKeys
+                    .Ascending(s => s.ExamDefinitionIds),
+                new CreateIndexOptions { Name = "ix_content_sources_exam_definition" }),
             cancellationToken: ct);
 
         // "Bài đang làm dở" and the attempt history both read by this.

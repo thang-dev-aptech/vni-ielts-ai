@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Common;
+using Vni.Ielts.Application.Content;
 using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Domain.Audit;
 using Vni.Ielts.Domain.Common;
+using Vni.Ielts.Domain.Content;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
 
@@ -65,6 +67,10 @@ public static class AdminEndpoints
         group.MapGet("/audit", AuditEndpoint)
             .WithName("AdminAudit")
             .WithSummary("Who did what, newest first");
+
+        group.MapGet("/content-sources", ContentSourcesEndpoint)
+            .WithName("AdminListContentSources")
+            .WithSummary("Where the source material came from and what may be done with it");
 
         group.MapPost("/exams/{examVersionId}/publish", PublishEndpoint)
             .WithName("AdminPublishExam")
@@ -243,14 +249,103 @@ public static class AdminEndpoints
         });
     }
 
+    /// <summary>
+    /// Every registered source, and what it may be used for.
+    ///
+    /// <b>The screen an operator needs the moment a publish is refused.</b>
+    /// Without it, "CONTENT_RIGHT_MISSING" is indistinguishable from a bug —
+    /// with it, the answer is a row saying which material the paper came from,
+    /// which environments it is registered for, and who reviewed it (today:
+    /// nobody).
+    ///
+    /// Behind <c>package.read</c> rather than <c>exam.read</c>: these rows name
+    /// where third-party material sits on disk and what its licence position
+    /// is, which is provenance rather than catalogue.
+    /// </summary>
+    private static async Task<IResult> ContentSourcesEndpoint(
+        ClaimsPrincipal principal, IContentRightsRegistry registry, IClock clock,
+        CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.PackageRead) is { } denial) return denial;
+
+        var now = clock.UtcNow;
+        var sources = await registry.ListAsync(ct);
+
+        return Results.Ok(new
+        {
+            // Stated rather than implied. An empty list means nothing may be
+            // published — a reader must not have to infer that.
+            note = "A source with no entry here holds no rights at all. "
+                + "learner-production is granted to nothing while M-53 is open.",
+            sources = sources.Select(s => new
+            {
+                sourceId = s.Id.Value,
+                title = s.Title,
+                owner = s.Owner,
+                rootPath = s.RootPath,
+                allowedEnvironments = s.AllowedEnvironments
+                    .Select(Describe).Order().ToArray(),
+                expiresAt = s.ExpiresAt,
+                licenceReference = s.Proof?.Reference,
+                reviewer = s.Proof?.Reviewer,
+                reviewedAt = s.Proof?.ReviewedAt,
+
+                // The one derived field, because it is the question being
+                // asked and computing it in the client would put the rights
+                // rule in two places.
+                mayReachLearners = ContentRightsPolicy
+                    .Evaluate(s, ContentEnvironment.LearnerProduction, now).Allowed,
+
+                fileCount = s.Files.Count,
+                hashedFileCount = s.Files.Count(f => f.Sha256 is not null),
+                examDefinitionIds = s.BoundExamDefinitionIds,
+                examVersionIds = s.BoundExamVersionIds,
+            }),
+        });
+    }
+
     private static async Task<IResult> PublishEndpoint(
         string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue,
-        IAuditLog audit, IClock clock, CancellationToken ct)
+        ContentPublishGuard rights, IAuditLog audit, IClock clock, CancellationToken ct)
     {
         if (Denied(principal, PermissionKeys.ExamPublish) is { } denial) return denial;
 
         var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
         if (version is null) return Results.NotFound();
+
+        /*
+         * ── The content rights gate ──────────────────────────────────────
+         *
+         * <b>Importing content and shipping it to learners are separate
+         * authorities.</b> `exam.publish` says this operator is allowed to
+         * publish; it says nothing about whether this *material* may be
+         * published, and the two are refused in different places for a reason.
+         * `exam/Exam1` is the standing example — a complete, working,
+         * sittable paper whose own README says "do not ship it to a learner".
+         *
+         * <b>Before the already-published check, deliberately.</b> "You may not
+         * publish this at all" outranks "you already did": a version that was
+         * published before the registry existed must not have its rights
+         * problem hidden behind a status message.
+         *
+         * <b>Refuses by default.</b> An exam the registry knows nothing about
+         * resolves to no source, and no source is no right. Presence in the
+         * catalogue is not permission. → `M-53`, `G-11`
+         */
+        var decision = await rights.MayPublishToLearnersAsync(version, ct);
+
+        if (!decision.Allowed)
+        {
+            return Results.Problem(
+                detail: decision.Explanation,
+                statusCode: StatusCodes.Status409Conflict,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["code"] = ErrorCodes.ContentRightMissing,
+                    ["reason"] = Describe(decision.Denial),
+                    ["sourceId"] = decision.SourceId,
+                });
+        }
 
         if (version.Status == ExamVersionStatus.Published)
             return Conflict("Version này đã được xuất bản.");
@@ -415,6 +510,37 @@ public static class AdminEndpoints
     /// collection needs a filter, not a deeper page.
     /// </summary>
     private const int MaxPage = 10_000;
+
+    /// <summary>
+    /// The wire spelling of an environment. Kebab-case, matching the three
+    /// names the plan uses — <c>fixture</c>, <c>internal-review</c>,
+    /// <c>learner-production</c> — rather than the CLR member name.
+    /// </summary>
+    private static string Describe(ContentEnvironment environment) => environment switch
+    {
+        ContentEnvironment.Fixture => "fixture",
+        ContentEnvironment.InternalReview => "internal-review",
+        ContentEnvironment.LearnerProduction => "learner-production",
+        _ => environment.ToString().ToLowerInvariant(),
+    };
+
+    /// <summary>
+    /// Why a publish was refused, for an operator to act on.
+    ///
+    /// Carried in a <c>reason</c> extension beside a single stable
+    /// <c>code</c>: the caller is a named operator who needs to know whether to
+    /// register the source, renew a licence or record a reviewer, but a client
+    /// branching on the distinction would be branching on a policy `M-53` has
+    /// not settled.
+    /// </summary>
+    private static string Describe(ContentRightsDenial? denial) => denial switch
+    {
+        ContentRightsDenial.NoRegistryEntry => "no-registry-entry",
+        ContentRightsDenial.EnvironmentNotGranted => "environment-not-granted",
+        ContentRightsDenial.RightExpired => "right-expired",
+        ContentRightsDenial.ProofMissing => "proof-missing",
+        _ => "unknown",
+    };
 
     private static IResult Conflict(string detail) =>
         Results.Problem(

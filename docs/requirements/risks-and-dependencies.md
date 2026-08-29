@@ -321,9 +321,26 @@ The exemption for an app that *"exclusively uses your company's own account setu
 
 ---
 
-## R19 · There is no static analysis, because it costs money on a private repository
+## R19 · There is no static analysis ✅ resolved 2026-08-29 — repository made public
 
-**Severity: Medium · Likelihood: Certain · Owner: Product · Status: switched off, awaiting a decision**
+**Severity: Medium · Likelihood: Certain · Owner: Product · Status: resolved — public repository, code scanning enabled**
+
+**`[QUYẾT ĐỊNH]` chủ sản phẩm, 29/08/2026:** *"ko sợ lộ đây là 1 project học tập luôn nên là không sao cả"* — exposure is acceptable, so the repository was made public and code scanning turned on. `ENABLE_CODE_SCANNING` is set to `true`, and the CodeQL job that had been gated behind it now runs on every push and pull request.
+
+**One claim in the earlier version of this entry was wrong, and it mattered.** It said publishing the repository would publish the `R16` Google credential along with its history. It would not: `.mcp.json` was never tracked, and an independent scan of every blob in the history found nothing. Recorded below so the correction outlives the decision.
+
+```
+$ git log --all --oneline -- .mcp.json          -> no commits
+$ git log --all --oneline -- '.env' '.env.*'    -> no commits
+$ git rev-list --objects --all | wc -l          -> 1487 objects, 1010 blobs scanned
+  patterns: AIza… · AKIA… · ghp_… · github_pat_… · sk-… · xox[baprs]-…
+            -----BEGIN … PRIVATE KEY----- · "type": "service_account"
+  hits: 0
+```
+
+`R16` is unchanged by this: the key still exists on Google's side and still needs revoking. What changed is that publishing the repository was never the thing that would expose it.
+
+**What the original entry recorded, kept because the reasoning is still the reasoning:**
 
 `.github/workflows/security.yml` runs CodeQL with the `security-extended` query set over C# and TypeScript. It has never produced a result. Measured 2026-08-29: this repository is `private: true` with `advanced_security: null`, and `github/codeql-action/analyze` ends with **"Code scanning is not enabled for this repository"** after uploading its results.
 

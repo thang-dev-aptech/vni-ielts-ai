@@ -355,8 +355,12 @@ jobs:
       - name: Generated artifacts are reproducible and untracked
         run: node scripts/check-generated-drift.mjs --mode=all
 
+      # `--require-results` is what stops this stage passing over an empty
+      # directory. Without it the gate reports "no unauthorized test skips"
+      # when no report was produced at all — the same fail-open shape FS0.6
+      # removed from the parser.
       - name: Skip-gate self-check on this platform
-        run: node scripts/check-test-skips.mjs --results _artifacts/verify/test-results
+        run: node scripts/check-test-skips.mjs --results _artifacts/verify/test-results --require-results
 
       # F1.4 — the line-ending gate, and the reason this job exists at all.
       # `format:check` reads every source file with Prettier's endOfLine: lf.

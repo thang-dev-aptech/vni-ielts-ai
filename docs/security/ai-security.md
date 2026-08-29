@@ -120,6 +120,67 @@ The identity rule is easy to breach accidentally — a prompt template that help
 
 → [`privacy-vietnam-pdpl.md`](privacy-vietnam-pdpl.md)
 
+### The egress guard — added FS0.4, and the contract every adapter meets
+
+Every rule above is a rule about *what a prompt contains*. This one is about **whether the call
+happens at all**, and it exists because the rules above cannot be enforced by reading them.
+
+**The problem it solves.** Testing routes through a third-party reseller `baseURL` — a second data
+processor, a company VNI has signed nothing with. That endpoint may carry **synthetic data only**.
+Until FS0.4 that restriction lived in one sentence in an operator document, and the sentence said,
+correctly, that the call site was expected to *refuse* rather than warn, "because a warning line in a
+background job's log is a line nobody reads". There was no call site. There was only the sentence.
+
+**The shape.** `Vni.Ielts.Infrastructure.Ai.AiEgress` is the only route to a provider's endpoint and
+key. It cannot be called without naming what the payload is:
+
+```csharp
+AiEgressTicket ticket = AiEgress.Authorise(
+    aiOptions, "OpenAi", AiDataClassification.LearnerPersonal);   // throws, or returns a ticket
+
+using var request = new HttpRequestMessage(HttpMethod.Post, ticket.BaseUrl ?? VendorDefault);
+request.Headers.Authorization = new("Bearer", ticket.RevealApiKey());
+```
+
+An adapter that has not decided which classification applies **cannot compile**. That is the whole
+design: a guard an adapter is merely expected to call first is a code-review convention, and code-review
+conventions do not survive the third adapter or the first hurried afternoon.
+
+**Three independent gates. Personal data must clear all three; synthetic data clears none of them
+and needs to.**
+
+| Gate | Question | Owner | Where the answer lives |
+|---|---|---|---|
+| Contracted processor | Is a third organisation in the path? | Whoever signs a DPA | `AiProviderPolicy.ContractedProcessorHosts` — **empty**, and only a code change fills it |
+| Endpoint trust | Is this endpoint trusted with real work? | The operator | `Ai:{provider}:SyntheticDataOnly`, default `true` |
+| Border | May personal data leave Vietnam at all? | Whoever files the CTIA | `Ai:AllowCrossBorderTransfer`, default `false` → `B-2` |
+
+They are separate because they are separate questions with separate owners. Collapsing any two into
+one switch lets the person answering the easy one accidentally answer the hard one.
+
+**The first gate is not liftable from configuration, and that is the point.** An operator who sets
+`SyntheticDataOnly = false` *and* `AllowCrossBorderTransfer = true` still cannot route a learner's
+essay through a reseller. Permitting one is a code change that appears in review and is dated by a
+commit — the same weight the Claude exclusion carries, for the same reason.
+
+**Two failure classes an adapter must distinguish, because a learner sees the difference:**
+
+| Refusal | Means | Learner-facing |
+|---|---|---|
+| `NotConfigured` | No key. An install with no provider is a working install (`A-11`) | `AwaitingEvaluator` |
+| `NoModel` | A key with no model, and no default → `G-11` | A deployment fault, not a result |
+| `ExcludedProvider` · `UncontractedProcessor` · `SyntheticDataOnly` · `CrossBorderTransferNotPermitted` | The call is not permitted | Never a band, never a zero |
+
+**`Synthetic` does not mean "de-identified".** A learner's essay with the candidate's name stripped is
+still that learner's writing — it is their personal data, it is what a re-identification attack works
+on, and classifying it as synthetic is how this guard gets defeated by somebody who meant well.
+Derived features count too: lexical diversity and pause timings are computed from a person's speech
+and describe that person.
+
+**What it does not do.** It does not inspect a payload. Nothing can reliably tell a real essay from an
+invented one, so the classification is the caller's declaration and the guard's job is to make that
+declaration mandatory, explicit, and reviewable. → FS6.3 (OpenAI), FS6.4 (Gemini)
+
 ### From the model
 
 - Feedback is length-bounded and schema-constrained, limiting what can be echoed.

@@ -17,7 +17,9 @@
 | `Ai:OpenAi:BaseUrl` | Gốc API. **Bỏ trống** nếu gọi thẳng OpenAI | Không |
 | `Ai:OpenAi:ApiKey` | Khóa | **Có** |
 | `Ai:OpenAi:Model` | Gọi model nào. **Không có mặc định** | Không |
-| `Ai:Gemini:BaseUrl` · `ApiKey` · `Model` | Như trên | Chỉ `ApiKey` |
+| `Ai:OpenAi:SyntheticDataOnly` | Endpoint này chỉ được nhận dữ liệu bịa. **Mặc định `true`** | Không |
+| `Ai:Gemini:BaseUrl` · `ApiKey` · `Model` · `SyntheticDataOnly` | Như trên | Chỉ `ApiKey` |
+| `Ai:AllowCrossBorderTransfer` | Dữ liệu cá nhân có được rời Việt Nam hay không. **Mặc định `false`** | Không |
 
 `Model` không có giá trị mặc định là cố ý. Một mặc định ở đây nghĩa là bài viết của học viên được gửi
 tới model mà người viết file này nghĩ ra, chứ không phải model ai đó chọn. → `G-11`
@@ -47,6 +49,25 @@ Ai:OpenAi:SyntheticDataOnly = true   ← mặc định, không cần đặt
 Để `true` thì endpoint đó chỉ được nhận **dữ liệu bịa**. Muốn cho phép dữ liệu thật thì phải **gõ tay
 `false`** — và chính việc phải gõ là bản ghi cho quyết định đó. Không có cảnh báo nào ở đây: nơi gọi
 được kỳ vọng **từ chối**, vì một dòng cảnh báo trong log của tác vụ nền là một dòng không ai đọc.
+
+### FS0.4 — câu trên giờ là mã chạy được, không còn là một câu
+
+Cho tới FS0.4 câu trên là **toàn bộ** biện pháp: không có nơi gọi nào, nên không có gì từ chối. Bây
+giờ `AiEgress` là đường **duy nhất** lấy được endpoint và khóa, và không gọi được nếu không khai
+payload là dữ liệu bịa hay bài của học viên thật. Ba cổng, dữ liệu thật phải qua cả ba:
+
+| Cổng | Câu hỏi | Cấu hình |
+|---|---|---|
+| Bên xử lý có hợp đồng | Có tổ chức thứ ba trên đường đi không? | **Không sửa được bằng cấu hình** — danh sách trong mã, hiện rỗng |
+| Tin endpoint | Endpoint này có được giao việc thật không? | `Ai:{provider}:SyntheticDataOnly` |
+| Qua biên giới | Dữ liệu cá nhân có được rời Việt Nam không? | `Ai:AllowCrossBorderTransfer` → `B-2` |
+
+Nghĩa là: **đặt `SyntheticDataOnly = false` cho một reseller vẫn không gửi được bài thật qua đó**, và
+API sẽ **không khởi động** với tổ hợp đó. Muốn cho phép thì phải sửa mã — hiện ra trong review, đúng
+trọng lượng như quyết định loại Claude.
+
+Hợp đồng chi tiết cho người viết adapter (FS6.3 OpenAI, FS6.4 Gemini):
+→ [`../security/ai-security.md` § The egress guard](../security/ai-security.md)
 
 ---
 
@@ -256,4 +277,7 @@ Domain và Application chỉ được nhìn thấy port, SDK của nhà cung c�
 
 Và trước khi bất kỳ tính năng AI nào lên production, `B-2` vẫn phải có kết luận.
 
-→ [`../ai/provider-comparison.md`](../ai/provider-comparison.md) · [`../decisions/0005-ai-provider-abstraction.md`](../decisions/0005-ai-provider-abstraction.md) · [`../security/privacy-vietnam-pdpl.md`](../security/privacy-vietnam-pdpl.md)
+→ [`../ai/provider-comparison.md`](../ai/provider-comparison.md) · [`../decisions/0005-ai-provider-abstraction.md`](../decisions/0005-ai-provider-abstraction.md) · [`../security/privacy-vietnam-pdpl.md`](../security/privacy-vietnam-pdpl.md) · [`../security/ai-security.md`](../security/ai-security.md)
+
+**Object storage cho ghi âm Speaking** là một tài liệu riêng, cùng quy tắc "không ghi credential":
+→ [`../security/object-storage-r2-setup.md`](../security/object-storage-r2-setup.md)

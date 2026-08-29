@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Logging;
+using Vni.Ielts.Infrastructure.Configuration;
 using Vni.Ielts.Infrastructure.Observability;
 using Vni.Ielts.Application.Dictation;
 using Vni.Ielts.Application.Exams;
@@ -70,10 +71,86 @@ public sealed class ObjectStorageOptions
     /// <summary>Dictation audio, which is a separate catalogue with its own lifecycle.</summary>
     public string DictationBucket { get; set; } = "vni-audio-90d";
 
+    /// <summary>
+    /// Where a learner's Speaking recording is written. <b>No default, and the
+    /// absence is the point.</b>
+    ///
+    /// <para>
+    /// Every other bucket on this type has a default because every other bucket
+    /// holds authored content — content VNI made, which VNI may keep. This one
+    /// holds a named person's voice, and the buckets in this product are laid
+    /// out by <i>retention class</i>: <c>vni-audio-90d</c> says ninety days in
+    /// its own name. Defaulting to it would decide, in a property initialiser,
+    /// how long a minor's voice recording is kept — a business and legal
+    /// decision nobody has made. → <c>G-11</c>, <c>B-2</c>
+    /// </para>
+    ///
+    /// <para>
+    /// Unset today, so no Speaking recording can be written. That is the
+    /// truthful state until FS5 and the retention decision arrive together.
+    /// </para>
+    /// </summary>
+    public string SpeakingRecordingsBucket { get; set; } = string.Empty;
+
+    /// <summary>
+    /// How long a Speaking recording is kept before the lifecycle rule deletes
+    /// it. <b>Null, deliberately — this is the retention decision itself.</b>
+    ///
+    /// <para>
+    /// Nothing in this process enforces it: the value exists so that the
+    /// bucket's lifecycle rule and this configuration can be checked against
+    /// each other, and so that "how long do we keep a recording" has one
+    /// answer written down in one place rather than living only in a Cloudflare
+    /// console nobody diffs.
+    /// </para>
+    ///
+    /// <para>
+    /// PDPL storage limitation makes an unbounded retention a compliance
+    /// problem, and the <c>[OPEN QUESTION]</c> about candidates under 18 makes
+    /// it a sharper one. A number invented here would look like an answer.
+    /// </para>
+    /// </summary>
+    public int? SpeakingRecordingRetentionDays { get; set; }
+
     public bool IsConfigured =>
         !string.IsNullOrWhiteSpace(ServiceUrl)
         && !string.IsNullOrWhiteSpace(AccessKey)
         && !string.IsNullOrWhiteSpace(SecretKey);
+
+    /// <summary>
+    /// The host suffix Cloudflare R2 serves its S3-compatible API on.
+    ///
+    /// <b>FS0.4 — R2 is a configuration profile, not an abstraction.</b> Plan
+    /// decision 4: R2 is the production candidate for Speaking recordings, it
+    /// speaks the same S3 protocol this adapter already speaks, and no R2 type
+    /// may appear in Domain or Application. So the only thing the code knows
+    /// about R2 is that one of its documented requirements differs from AWS's
+    /// — see <see cref="IsCloudflareR2"/> and the startup gate — and that
+    /// knowledge lives in a string constant rather than in a second adapter.
+    /// </summary>
+    public const string CloudflareR2HostSuffix = ".r2.cloudflarestorage.com";
+
+    /// <summary>
+    /// Whether <see cref="ServiceUrl"/> points at Cloudflare R2.
+    ///
+    /// Used only by the startup gate, to catch the one misconfiguration that
+    /// otherwise surfaces as an opaque SDK signature error at the first upload:
+    /// R2 requires the region <c>auto</c>, and the AWS SDK's own default is
+    /// <c>us-east-1</c>, so the wrong value is the one you get by not thinking
+    /// about it. → https://developers.cloudflare.com/r2/api/s3/api/
+    /// </summary>
+    public bool IsCloudflareR2 =>
+        Uri.TryCreate(ServiceUrl, UriKind.Absolute, out var parsed)
+        && parsed.Host.EndsWith(CloudflareR2HostSuffix, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// A description safe to print — see the same override on
+    /// <c>AiProviderOptions</c> for why the type owns its own rendering.
+    /// </summary>
+    public override string ToString() =>
+        $"ServiceUrl={SecretRedaction.Url(ServiceUrl)}, "
+        + $"AccessKey={SecretRedaction.Identifier(AccessKey)}, "
+        + $"SecretKey={SecretRedaction.Describe(SecretKey)}, Region={Region}";
 }
 
 /// <summary>

@@ -215,4 +215,18 @@ public static class ErrorCodes
     public const string RateLimited = "RATE_LIMITED";
 
     public const string PayloadTooLarge = "PAYLOAD_TOO_LARGE";
+
+    /// <summary>
+    /// The publish target's source material carries no recorded right to reach
+    /// a learner — because nothing in the registry covers it, because the
+    /// grant is for a different environment, because it has lapsed, or because
+    /// the grant has no proof behind it.
+    ///
+    /// <b>One code for all four</b>, with the specific reason in the
+    /// <c>reason</c> extension. The caller here is a named CMS operator rather
+    /// than an anonymous prober, so the detail is safe to give — but a client
+    /// branching on the distinction would be branching on a policy that
+    /// <c>M-53</c> has not settled yet.
+    /// </summary>
+    public const string ContentRightMissing = "CONTENT_RIGHT_MISSING";
 }

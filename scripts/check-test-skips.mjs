@@ -17,12 +17,30 @@
 //      first legitimate skip forces the gate to be deleted rather than
 //      narrowed.
 //
+// FS0.6 added the two failures below, because a gate that cannot read a report
+// used to say nothing at all about it:
+//
+//   4. a result file that cannot be parsed was dropped in silence. On
+//      2026-08-29 `verify.mjs` captured Playwright's JSON by scraping stdout,
+//      pnpm printed `WARN Unsupported engine` onto line 1 of it, `JSON.parse`
+//      threw, and `parseFile()` returned `null` — so the gate reported "OK, no
+//      unauthorized skips" over 7 Playwright tests it never looked at. It
+//      failed OPEN, which is the one direction a gate must never fail;
+//   5. a report that a stage was supposed to produce and did not is now
+//      declarable with --expect-report. Counting what happens to be on disk
+//      cannot distinguish "the browser suite passed" from "the browser suite
+//      wrote nothing".
+//
 // Usage:
 //   node scripts/check-test-skips.mjs --results _artifacts/verify/test-results
 //   node scripts/check-test-skips.mjs --results <dir> --allowlist ci/test-skip-allowlist.json
+//   node scripts/check-test-skips.mjs --results <dir> --expect-report <file>
+//   node scripts/check-test-skips.mjs --static-only     configuration only
 //
-// Exit codes: 0 clean · 1 an unauthorized skip, an expired exemption, or
-// (with --require-results) no result files at all.
+// Exit codes: 0 clean · 1 an unauthorized skip, an expired exemption, a result
+// file that could not be parsed, an expected report that is absent, a
+// `dotnet test` script that does not require its dependencies, or (with
+// --require-results) no result files at all.
 
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, extname, relative, resolve } from 'node:path';
@@ -46,13 +64,15 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 function parseArgs(argv) {
   const args = {
     results: [],
+    expectReports: [],
+    staticOnly: false,
     allowlist: join(ROOT, 'ci', 'test-skip-allowlist.json'),
     json: null,
     requireResults: false,
     now: new Date(),
   };
 
-  const takesValue = new Set(['--results', '--allowlist', '--json', '--now']);
+  const takesValue = new Set(['--results', '--expect-report', '--allowlist', '--json', '--now']);
   const rest = [...argv];
 
   while (rest.length > 0) {
@@ -75,6 +95,11 @@ function parseArgs(argv) {
       case '--results':
         args.results.push(value);
         break;
+      case '--expect-report':
+        // A report the caller knows a stage produced. Absent, it is a failure
+        // rather than one fewer file to count.
+        args.expectReports.push(value);
+        break;
       case '--allowlist':
         args.allowlist = value;
         break;
@@ -83,6 +108,14 @@ function parseArgs(argv) {
         break;
       case '--require-results':
         args.requireResults = true;
+        break;
+      case '--static-only':
+        // `pnpm check` produces no machine-readable test results, so the only
+        // honest thing it can check here is the configuration: that no
+        // configured test command can skip its dependencies and still exit 0.
+        // Reading a results directory it did not write would report on
+        // whatever the last `pnpm verify` happened to leave behind.
+        args.staticOnly = true;
         break;
       case '--now':
         // Test seam. The expiry rule is a date comparison and a gate whose
@@ -99,7 +132,7 @@ function parseArgs(argv) {
   return args;
 }
 
-export { parseArgs, parseTrx };
+export { parseArgs, parseTrx, dotnetTestScriptProblems };
 
 function walk(dir, out = []) {
   let entries;
@@ -222,21 +255,80 @@ function parsePlaywrightJson(file, doc) {
   return { skipped, total };
 }
 
+// <b>An unreadable report is a failure, never a shrug.</b>
+//
+// This function used to answer `null` for every JSON it could not make sense
+// of, and `main()` then simply did not add it to the parsed set. So the single
+// worst outcome — the gate cannot see the results — was indistinguishable from
+// the best one. It is what happened on 2026-08-29: `verify.mjs` scraped
+// Playwright's report off stdout, pnpm's `WARN Unsupported engine` landed on
+// line 1, and 7 browser tests vanished from a gate whose whole purpose is that
+// a `test.fixme` there cannot pass unnoticed.
+//
+// The capture mechanism is fixed at the other end (Playwright now writes the
+// file itself), and no attempt is made here to salvage a file with a preamble:
+// tolerating junk in a report would only hide the next tool that starts
+// writing it. `{ unreadable }` is a problem the caller must raise.
 function parseFile(file) {
   const ext = extname(file).toLowerCase();
   if (ext === '.trx') return parseTrx(file, readFileSync(file, 'utf8'));
   if (ext === '.json') {
+    const text = readFileSync(file, 'utf8');
     let doc;
     try {
-      doc = JSON.parse(readFileSync(file, 'utf8'));
-    } catch {
-      return null;
+      doc = JSON.parse(text);
+    } catch (error) {
+      const firstLine = (text.split(/\r?\n/, 1)[0] ?? '').trim().slice(0, 160);
+      return {
+        unreadable:
+          `${relative(ROOT, file)} could not be parsed as JSON (${error.message}). ` +
+          `First line: ${firstLine || '<empty>'} — a test report nothing can read is ` +
+          'not a test report that passed.',
+      };
     }
     if (Array.isArray(doc?.testResults)) return parseVitestJson(file, doc);
     if (Array.isArray(doc?.suites)) return parsePlaywrightJson(file, doc);
-    return null;
+    return {
+      unreadable:
+        `${relative(ROOT, file)} parses as JSON but is neither a vitest nor a Playwright ` +
+        'report (no testResults[], no suites[]). Either the reporter changed shape or ' +
+        'something that is not a test report is being counted as one.',
+    };
   }
   return null;
+}
+
+// ── Static check: a test command that cannot fail for want of a database ───
+//
+// FS0.6, defect 2. `VNI_REQUIRE_MONGO` and `VNI_REQUIRE_MINIO` are what turn
+// "no dependency" from a `Skip.IfNot` into a failed run. `scripts/verify.mjs`
+// sets them per stage; `pnpm test:api` did not, and `pnpm check` calls
+// `test:api` — so on a host with no Mongo up, all 164 conditional sites in the
+// backend tree skipped and `pnpm check` reported success over a suite that
+// tested nothing.
+//
+// This lives in the skip gate rather than in a new script because it is the
+// same failure the gate exists for, one step earlier: not a skip that slipped
+// past the report, but a command configured so that skipping everything is a
+// pass. A runtime gate cannot catch it — by the time the results are written
+// there is nothing in them to see.
+const REQUIRED_DEPENDENCY_FLAGS = ['VNI_REQUIRE_MONGO', 'VNI_REQUIRE_MINIO'];
+
+function dotnetTestScriptProblems(pkg) {
+  const problems = [];
+  for (const [name, command] of Object.entries(pkg?.scripts ?? {})) {
+    if (!/\bdotnet\s+test\b/.test(command)) continue;
+    for (const flag of REQUIRED_DEPENDENCY_FLAGS) {
+      if (command.includes(flag)) continue;
+      problems.push(
+        `package.json scripts.${name} runs \`dotnet test\` without ${flag}=1 ` +
+          `(\`${command}\`). Without it, a host with no Mongo/MinIO skips every ` +
+          'dependency-backed test and the suite still exits 0. Pass it with ' +
+          `\`-e ${flag}=1\`, which dotnet test forwards to the test host on every platform.`,
+      );
+    }
+  }
+  return problems;
 }
 
 // ── Allowlist ──────────────────────────────────────────────────────────────
@@ -272,17 +364,67 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   const allowlist = loadAllowlist(args.allowlist);
 
-  const files = args.results
-    .flatMap((dir) => walk(dir))
-    .filter((f) => ['.trx', '.json'].includes(extname(f).toLowerCase()));
+  const staticProblems = dotnetTestScriptProblems(
+    JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')),
+  );
+
+  if (args.staticOnly) {
+    for (const problem of staticProblems) console.error(`error: ${problem}`);
+    if (staticProblems.length > 0) process.exit(1);
+    console.log(
+      'OK — every configured `dotnet test` command requires its dependencies. ' +
+        '(--static-only: no test results were read.)',
+    );
+    return;
+  }
+
+  const expected = args.expectReports.map((p) => resolve(ROOT, p));
+
+  // An expected report may sit outside every --results directory, so it is
+  // added to the file list rather than merely looked for in it.
+  const files = [
+    ...new Set([
+      ...args.results
+        .flatMap((dir) => walk(dir))
+        .filter((f) => ['.trx', '.json'].includes(extname(f).toLowerCase()))
+        .map((f) => resolve(f)),
+      ...expected.filter((f) => existsSync(f)),
+    ]),
+  ];
+
+  const problems = [];
 
   const parsed = [];
   for (const file of files) {
     const result = parseFile(file);
-    if (result) parsed.push({ file, ...result });
+    if (!result) continue;
+    if (result.unreadable) {
+      problems.push(result.unreadable);
+      continue;
+    }
+    parsed.push({ file, ...result });
   }
 
-  const problems = [];
+  for (const file of expected) {
+    if (!existsSync(file)) {
+      problems.push(
+        `Expected test report is missing: ${relative(ROOT, file)}. The stage that ` +
+          'should have written it either did not run or produced nothing, and a gate ' +
+          'cannot pass over a report that is not there.',
+      );
+      continue;
+    }
+    if (!parsed.some((p) => p.file === file)) {
+      // It exists and it was not parsed — the parse problem is already in the
+      // list above, but say plainly that this was a report somebody expected.
+      problems.push(`Expected test report ${relative(ROOT, file)} yielded no readable results.`);
+    }
+  }
+
+  // The static half of the gate: a configured test command that cannot fail
+  // for want of its dependencies is a skip nobody will ever see in a report.
+  problems.push(...staticProblems);
+
   const allowed = [];
   const unauthorized = [];
   const usedEntries = new Set();
