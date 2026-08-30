@@ -22,6 +22,8 @@ export interface ExamCatalogueItem {
   title: string;
   variant: string;
   modules: ModuleSummary[];
+  /** Sitting order from the exam version; do not hard-code skill order. */
+  moduleSequence: ExamModule[];
 }
 
 export interface QuestionOptionView {
@@ -69,6 +71,8 @@ export interface QuestionView {
   options: QuestionOptionView[];
   maxWords: number | null;
   group: QuestionGroupView | null;
+  /** Public answer-sheet positions; keys and explanations never travel here. */
+  slots: { id: string; number: number }[];
 }
 
 export interface PartView {
@@ -91,8 +95,15 @@ export interface SpeakingPartTimingView {
   responseSeconds: number;
 }
 
+export interface AudioPlaybackPolicyView {
+  playOnce: boolean;
+  allowSeek: boolean;
+}
+
 export interface CurrentSectionView {
   module: ExamModule;
+  /** Server-owned current part for a projected practice unit; null on legacy v1 sessions. */
+  partId: string | null;
   startedAt: string;
   /**
    * Null for luyện đề, which has no deadline at all.
@@ -165,17 +176,26 @@ export interface CurrentSectionView {
   speakingTiming: SpeakingPartTimingView[];
   /** Listening only: extra time after the audio to copy answers over. */
   transferSeconds: number | null;
+  /** Listening only. Resolved from the immutable version and server-owned run kind. */
+  audioPlayback: AudioPlaybackPolicyView | null;
 }
 
 export interface SessionView {
   sessionId: string;
   examVersionId: string;
   examTitle: string;
+  /** Null only for a legacy v1 session during its deprecation window. */
+  practiceUnitId: string | null;
+  /** The immutable projection scope resolved by the server. */
+  scope: string | null;
+  completedPartIds: string[];
   mode: 'full' | 'single';
   status: 'inprogress' | 'submitted' | 'expired' | 'abandoned';
   startedAt: string;
   serverNow: string;
   completedModules: ExamModule[];
+  /** Sitting order for this exam version. Full Test advance follows this, not a client constant. */
+  moduleSequence: ExamModule[];
   current: CurrentSectionView | null;
 }
 
@@ -183,8 +203,24 @@ export interface SectionResultView {
   module: ExamModule;
   rawScore: number;
   maxScore: number;
-  band: number;
-  questions: { questionId: string; submitted: string | null; isCorrect: boolean }[];
+  band: number | null;
+  questions: QuestionResultView[];
+}
+
+export interface ExplanationContentView {
+  correctAnswer: string;
+  shortReason: string;
+  evidence: string[];
+  commonMistake: string | null;
+}
+
+export interface QuestionResultView {
+  questionId: string;
+  submitted: string | null;
+  isCorrect: boolean;
+  /** Present only in post-submit result payloads. Never appears in live question views. */
+  correctAnswer?: string | null;
+  canonicalExplanation?: ExplanationContentView | null;
 }
 
 /**
@@ -256,6 +292,8 @@ export interface SessionResultsView {
    * Empty when everything that can be marked has been.
    */
   markingStatuses: MarkingStatusView[];
+  /** Per-question explanation status for submitted Reading/Listening answers. */
+  explanationStatuses: QuestionExplanationStatusView[];
   /** Null until all four modules are marked. The screen draws that as `—`. */
   overallBand: number | null;
 }
@@ -272,6 +310,23 @@ export interface MarkingStatusView {
    * prompt fragment, a request id, or the learner's own words back at them.
    */
   reason: string | null;
+  code?: string | null;
+}
+
+export interface QuestionExplanationStatusView {
+  questionId: string;
+  module: ExamModule;
+  state: 'none' | 'pending' | 'running' | 'ready' | 'failed';
+  attempts: number;
+  reason: string | null;
+}
+
+export interface PersonalizedExplanationView {
+  questionId: string;
+  state: 'pending' | 'running' | 'ready' | 'failed';
+  attempts: number;
+  reason: string | null;
+  explanation: ExplanationContentView | null;
 }
 
 /**
@@ -415,17 +470,18 @@ export const saveAnswers = (
   accessToken: string,
   sessionId: string,
   module: ExamModule,
+  /** Patch entries keyed by response slot id, or question id when slotless. */
   changes: Record<string, string | null>,
   baseRevision: number | null,
   /**
-   * A per-question ordering token, one for each entry in `changes`.
+   * A per-slot ordering token, one for each entry in `changes`.
    *
    * <b>Because the write that arrives last is not the edit that came last.</b>
-   * Two writes for one question can be reordered by a retry on a changed
-   * network, a proxy, a stalled request, or a second tab — and without a token
-   * the server keeps whichever it happened to apply last, which is the older
-   * answer as often as the newer one. The learner watches their correction
-   * revert and nothing on screen says why.
+   * Two writes for one slot can be reordered by a retry on a changed network, a
+   * proxy, a stalled request, or a second tab — and without a token the server
+   * keeps whichever it happened to apply last, which is the older answer as
+   * often as the newer one. The learner watches their correction revert and
+   * nothing on screen says why.
    *
    * Not a timestamp. Clocks disagree between two tabs on one machine, and a
    * client running behind would have every edit ignored for as long as the skew
@@ -480,6 +536,23 @@ export const submitSession = (accessToken: string, sessionId: string, idempotenc
 
 export const getResults = (accessToken: string, sessionId: string) =>
   request<SessionResultsView>(`/api/v1/sessions/${sessionId}/results`, { accessToken });
+
+export const requestExplanation = (
+  accessToken: string,
+  sessionId: string,
+  questionId: string,
+  idempotencyKey: string,
+) =>
+  retryingWhileInFlight(() =>
+    request<PersonalizedExplanationView>(
+      `/api/v1/sessions/${sessionId}/questions/${questionId}/explanation`,
+      {
+        method: 'POST',
+        accessToken,
+        idempotencyKey,
+      },
+    ),
+  );
 
 /**
  * Start or stop the count-up clock. Luyện đề only; a deadlined sitting is a

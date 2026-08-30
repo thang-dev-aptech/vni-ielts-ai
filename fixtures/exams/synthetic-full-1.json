@@ -35,6 +35,18 @@
       }
     }
   },
+  "policyProfile": {
+    "listeningPlayback": {
+      "practice": {
+        "playOnce": false,
+        "allowSeek": true
+      },
+      "mock": {
+        "playOnce": true,
+        "allowSeek": false
+      }
+    }
+  },
   "scoringProfile": {
     "rawToBand": {
       "reading": [

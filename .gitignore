@@ -9,6 +9,8 @@
 *.pfx
 credentials.json
 secrets.json
+secrets.team.json
+**/secrets.team.json
 
 # Google hands you this file at the moment an OAuth client is created, and the
 # browser drops it wherever downloads go — which on 2026-08-21 was the root of

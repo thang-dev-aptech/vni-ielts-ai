@@ -198,4 +198,22 @@ internal sealed class GridFsRecordingStore(IMongoDatabase database, IClock clock
             }
         }
     }
+
+    public async Task DeleteForSessionAsync(ExamSessionId sessionId, CancellationToken ct)
+    {
+        var files = await _bucket
+            .Find(Builders<GridFSFileInfo>.Filter.Eq("metadata.sessionId", sessionId.Value), null, ct)
+            .ToListAsync(ct);
+
+        foreach (var file in files)
+        {
+            try
+            {
+                await _bucket.DeleteAsync(file.Id, ct);
+            }
+            catch (GridFSFileNotFoundException)
+            {
+            }
+        }
+    }
 }

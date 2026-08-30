@@ -29,6 +29,7 @@ public sealed class AssessmentOptions
 
     public RubricOptions Writing { get; set; } = new();
     public RubricOptions Speaking { get; set; } = new();
+    public WritingMarkingOptions WritingMarking { get; set; } = new();
 }
 
 /// <summary>One module's rubric, or — when either field is unset — no rubric at all.</summary>
@@ -51,6 +52,13 @@ public sealed class RubricOptions
     /// under which answer. No default: see the note on <see cref="AssessmentOptions"/>.
     /// </summary>
     public string? DescriptorSource { get; set; }
+
+    /// <summary>
+    /// Optional path to a JSON rubric artifact. When set with
+    /// <see cref="AssessmentOptions.WritingMarking"/>, version and
+    /// descriptorSource may be taken from the artifact at startup.
+    /// </summary>
+    public string? ArtifactPath { get; set; }
 }
 
 /// <summary>
@@ -68,8 +76,44 @@ public sealed class ConfiguredRubricSource : IRubricSource
 
     public ConfiguredRubricSource(IOptions<AssessmentOptions> options)
     {
-        Add(ExamModule.Writing, options.Value.Writing, CriterionKeys.Writing);
-        Add(ExamModule.Speaking, options.Value.Speaking, CriterionKeys.Speaking);
+        var assessment = options.Value;
+        ApplyArtifactMetadata(assessment);
+
+        Add(ExamModule.Writing, assessment.Writing, CriterionKeys.Writing);
+        Add(ExamModule.Speaking, assessment.Speaking, CriterionKeys.Speaking);
+    }
+
+    /// <summary>
+    /// When a rubric artifact is configured, stamp version and provenance from it
+    /// so configuration and prompt content stay aligned.
+    /// </summary>
+    private static void ApplyArtifactMetadata(AssessmentOptions assessment)
+    {
+        if (!assessment.WritingMarking.Enabled) return;
+
+        try
+        {
+            var artifact = WritingRubricLoader.Load(
+                assessment.WritingMarking.RubricArtifactPath ?? assessment.Writing.ArtifactPath,
+                assessment.WritingMarking.RubricContentHash);
+
+            if (string.IsNullOrWhiteSpace(assessment.Writing.Version))
+                assessment.Writing.Version = artifact.Version;
+
+            if (string.IsNullOrWhiteSpace(assessment.Writing.DescriptorSource))
+                assessment.Writing.DescriptorSource = artifact.DescriptorSource;
+
+            if (string.IsNullOrWhiteSpace(assessment.WritingMarking.PromptVersion))
+                assessment.WritingMarking.PromptVersion = artifact.PromptVersion;
+        }
+        catch (InvalidOperationException)
+        {
+            // Artifact missing — rubric remains unset until configured explicitly.
+        }
+        catch (FileNotFoundException)
+        {
+            // Development may enable marking later; do not fail DI construction.
+        }
     }
 
     public Rubric? For(ExamModule module) => _rubrics.GetValueOrDefault(module);

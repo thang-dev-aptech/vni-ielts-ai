@@ -69,10 +69,48 @@
 
 /* `min-width: 0` or the ellipsis never engages and the title runs past its
    parent with the clock painted on top of it. → `.exam-bar-names` */
-.prun-title {
+.prun-context {
   flex: 1 1 12rem;
   min-width: 0;
-  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.prun-skill-icon {
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.prun-context-names {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.prun-context-sub {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  color: var(--muted);
+}
+
+.prun-part {
+  flex: none;
+  font-weight: var(--w-emph);
+  color: var(--ink-2);
+}
+
+.prun-title {
+  min-width: 0;
   font-size: var(--t-14);
   line-height: var(--lh-body);
   color: var(--muted);
@@ -88,6 +126,7 @@
   gap: var(--s-3);
 }
 
+.prun-exit,
 .prun-run,
 .prun-target-open {
   min-height: 40px;
@@ -104,6 +143,59 @@
   font-weight: var(--w-emph);
   line-height: var(--lh-body);
   cursor: pointer;
+}
+
+.prun-exit:focus-visible,
+.prun-run:focus-visible,
+.prun-target-open:focus-visible {
+  outline: 3px solid var(--acc-line);
+  outline-offset: 2px;
+}
+
+.prun-shell-state {
+  min-height: 2.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-2) var(--s-4);
+  padding: var(--s-2) var(--s-5);
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.prun-connection {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--ink-2);
+  font-weight: var(--w-emph);
+}
+
+.prun-connection::before {
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  content: '';
+}
+
+.prun-connection.is-online::before {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.prun-connection.is-offline {
+  color: var(--warn);
+}
+
+/* Offline is a hollow ring with a gap, not a hue swap alone — the online
+   state fills the disc. The sentence next to it still carries the name. */
+.prun-connection.is-offline::before {
+  background: transparent;
+  border-style: dashed;
 }
 
 .prun-run:disabled,
@@ -293,6 +385,10 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
+.prun-mobile-tabs {
+  display: none;
+}
+
 .prun-pane {
   min-width: 0;
   min-height: 0;
@@ -383,8 +479,8 @@
 
 .prun-box {
   position: relative;
-  min-width: 2.25rem;
-  min-height: 2.25rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -399,6 +495,11 @@
   font-weight: var(--w-emph);
   line-height: 1;
   cursor: pointer;
+}
+
+.prun-box:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
 }
 
 /* Answered AND confirmed: fill, tick, and a name that says both. */
@@ -459,7 +560,14 @@
   cursor: pointer;
 }
 
-.prun-step:disabled {
+.prun-step:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/* `[aria-disabled]` rather than `:disabled` — the controls stay focusable so
+   a section turn does not drop keyboard focus. → `Pagination` */
+.prun-step[aria-disabled='true'] {
   color: var(--muted);
   cursor: not-allowed;
 }
@@ -580,6 +688,39 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .prun-mobile-tabs {
+    display: flex;
+    gap: var(--s-2);
+    padding: var(--s-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    background: var(--sunk);
+  }
+
+  .prun-mobile-tabs button {
+    flex: 1;
+    min-height: 44px;
+    border: 1px solid transparent;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: var(--t-14);
+    font-weight: var(--w-emph);
+    cursor: pointer;
+  }
+
+  .prun-mobile-tabs button[aria-pressed='true'] {
+    border-color: var(--acc-line);
+    background: var(--card);
+    color: var(--acc-700);
+  }
+
+  .prun-body[data-split='reading'][data-mobile-pane='passage'] .prun-questions,
+  .prun-body[data-split='reading'][data-mobile-pane='questions'] .prun-passage {
+    display: none;
+  }
+
   .prun-pane {
     max-height: none;
     overflow-y: visible;
@@ -596,8 +737,19 @@
   }
 
   .prun-bar,
-  .prun-foot {
+  .prun-foot,
+  .prun-shell-state {
     padding-inline: var(--s-4);
+  }
+
+  .prun-controls {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+
+  .prun-context {
+    order: 3;
+    flex-basis: 100%;
   }
 
   .prun-pane {
@@ -610,5 +762,38 @@
 
   .prun-actions .exam-submit {
     flex: 1 1 100%;
+  }
+}
+
+/* ── Long content / zoom / reduced motion ───────────────────────────────── */
+
+.prun-pane .exam-passage-body,
+.prun-pane .exam-passage-text,
+.prun-pane .q-essay {
+  overflow-wrap: anywhere;
+}
+
+/*
+ * At 200% zoom the sticky header + footer can eat most of a short viewport.
+ * Cap sticky chrome so the paper stays reachable without inventing a second
+ * scroll model.
+ */
+@media (max-height: 480px) {
+  .prun-bar {
+    position: static;
+  }
+
+  .prun-foot {
+    position: static;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prun-page *,
+  .prun-page *::before,
+  .prun-page *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
   }
 }

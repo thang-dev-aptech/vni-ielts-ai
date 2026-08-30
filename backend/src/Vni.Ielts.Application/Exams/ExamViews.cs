@@ -1,3 +1,5 @@
+using Vni.Ielts.Application.Explanations;
+using Vni.Ielts.Application.Practice;
 using Vni.Ielts.Domain.Assessment;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Sessions;
@@ -21,7 +23,8 @@ public sealed record ExamCatalogueItem(
     string ExamVersionId,
     string Title,
     string Variant,
-    IReadOnlyList<ModuleSummary> Modules);
+    IReadOnlyList<ModuleSummary> Modules,
+    IReadOnlyList<string> ModuleSequence);
 
 public sealed record ModuleSummary(string Module, int QuestionCount, int DurationSeconds);
 
@@ -43,6 +46,12 @@ public sealed record QuestionGroupView(
     string? Text,
     bool EachLetterOnce);
 
+/// <summary>
+/// A public answer-sheet position. It deliberately has no answer key or
+/// explanation; those are post-submit review data, never sitting data.
+/// </summary>
+public sealed record ResponseSlotView(string Id, int Number);
+
 public sealed record QuestionView(
     string Id,
     int Order,
@@ -50,7 +59,8 @@ public sealed record QuestionView(
     string? Prompt,
     IReadOnlyList<QuestionOptionView> Options,
     int? MaxWords,
-    QuestionGroupView? Group);
+    QuestionGroupView? Group,
+    IReadOnlyList<ResponseSlotView> Slots);
 
 public sealed record QuestionOptionView(string Key, string Text);
 
@@ -79,8 +89,11 @@ public sealed record PartView(
 /// </summary>
 public sealed record SpeakingPartTimingView(int Part, int PrepSeconds, int ResponseSeconds);
 
+public sealed record AudioPlaybackPolicyView(bool PlayOnce, bool AllowSeek);
+
 public sealed record CurrentSectionView(
     string Module,
+    string? PartId,
     DateTimeOffset StartedAt,
     /// <summary>
     /// Null for luyện đề, which has no deadline at all.
@@ -129,18 +142,19 @@ public sealed record CurrentSectionView(
     /// </summary>
     int AnswerRevision,
     /// <summary>
-    /// Per-question ordering tokens, as the sheet currently holds them.
+    /// Per-position ordering tokens, as the sheet currently holds them.
     ///
-    /// <b>A page restoring unsent work from disk needs these to tell what is
-    /// still unsent.</b> The client journals every keystroke before it goes on
-    /// the wire, so a tab that crashes mid-section comes back with entries that
-    /// may or may not have landed. Comparing each entry's token against the
-    /// stored one is what distinguishes "the server never saw this" from "this
-    /// already landed" — and restoring the second kind would put an old answer
-    /// back on screen over a newer one.
+    /// <b>Slot-keyed for slotted questions, question-keyed for slotless ones.</b>
+    /// A page restoring unsent work from disk needs these to tell what is still
+    /// unsent. The client journals every keystroke before it goes on the wire,
+    /// so a tab that crashes mid-section comes back with entries that may or may
+    /// not have landed. Comparing each entry's token against the stored one is
+    /// what distinguishes "the server never saw this" from "this already
+    /// landed" — and restoring the second kind would put an old answer back on
+    /// screen over a newer one.
     ///
     /// The revision cannot answer it: one number for the whole sheet says
-    /// whether the page is behind, not which questions it is behind on.
+    /// whether the page is behind, not which positions it is behind on.
     /// → `patchJournal.ts`, `IAnswerSheetStore.PatchAsync`
     /// </summary>
     IReadOnlyDictionary<string, long> AnswerSequences,
@@ -158,34 +172,58 @@ public sealed record CurrentSectionView(
     /// Listening only: extra time after the audio to copy answers over. Null
     /// when the version does not configure it.
     /// </summary>
-    int? TransferSeconds);
+    int? TransferSeconds,
+    /// <summary>Server-resolved Listening policy; null for every other module.</summary>
+    AudioPlaybackPolicyView? AudioPlayback);
 
 public sealed record SessionView(
     string SessionId,
     string ExamVersionId,
     string ExamTitle,
+    string? PracticeUnitId,
+    string? Scope,
+    IReadOnlyList<string> CompletedPartIds,
     string Mode,
     string Status,
     DateTimeOffset StartedAt,
     DateTimeOffset ServerNow,
     IReadOnlyList<string> CompletedModules,
+    /// <summary>
+    /// The sitting order for this exam version. The client must not hard-code
+    /// module order — it takes this from the server. → `E-12`, FS7.1
+    /// </summary>
+    IReadOnlyList<string> ModuleSequence,
     CurrentSectionView? Current);
 
-public sealed record QuestionResultView(string QuestionId, string? Submitted, bool IsCorrect);
+public sealed record SlotResultView(
+    string SlotId,
+    int Number,
+    string? Submitted,
+    string Status,
+    string? CorrectAnswer);
+
+public sealed record QuestionResultView(
+    string QuestionId,
+    string? Submitted,
+    bool IsCorrect,
+    string? CorrectAnswer = null,
+    IReadOnlyList<SlotResultView>? Slots = null,
+    ExplanationContentView? CanonicalExplanation = null);
 
 /// <summary>
 /// A marked section.
 ///
-/// <c>Band</c> is a <see cref="decimal"/> straight off <see cref="BandScore"/>,
-/// which only admits whole and half bands — so a client cannot be handed a
-/// 6.25 to round however it likes. Product law L3 lives on the other side:
-/// a section with no result is absent from the list, never present with a zero.
+/// <c>Band</c> is absent when the sitting has no calibrated band table for this
+/// scope — practice parts report raw and accuracy only. Product law L3: a
+/// section with no result is absent from the list, never present with a zero.
 /// </summary>
 public sealed record SectionResultView(
     string Module,
     int RawScore,
     int MaxScore,
-    decimal Band,
+    decimal? Accuracy,
+    decimal? Band,
+    string ScoreLabel,
     IReadOnlyList<QuestionResultView> Questions);
 
 public sealed record SessionResultsView(
@@ -223,6 +261,11 @@ public sealed record SessionResultsView(
     /// </summary>
     IReadOnlyList<MarkingStatusView> MarkingStatuses,
     /// <summary>
+    /// Per-question explanation availability for Reading/Listening.
+    /// Independent from the deterministic score — FS5.6.
+    /// </summary>
+    IReadOnlyList<QuestionExplanationStatusView> ExplanationStatuses,
+    /// <summary>
     /// Null until every one of the four modules has a band. Absent is the
     /// honest state; the client draws it as `—`, never as a partial average.
     /// </summary>
@@ -251,7 +294,14 @@ public sealed record MarkingStatusView(
     string Module,
     string State,
     int Attempts,
-    string? Reason);
+    string? Reason,
+    /// <summary>
+    /// Stable machine code when marking is blocked — e.g.
+    /// <c>AwaitingVoiceProvider</c> when recordings exist but ASR is deferred.
+    /// Null while nothing is owed or while the job is still running with no
+    /// known blocker yet.
+    /// </summary>
+    string? Code = null);
 
 /// <summary>
 /// One marked Writing task, or one marked Speaking test.
@@ -300,6 +350,10 @@ public sealed record SittingSummaryView(
     string ExamVersionId,
     string ExamTitle,
     string Variant,
+    string? PracticeUnitId,
+    string? Scope,
+    string HistoryTrack,
+    bool IncludeInIeltsTrend,
     string Mode,
     string Status,
     DateTimeOffset StartedAt,
@@ -327,10 +381,11 @@ public sealed record SittingSectionView(string Module, decimal? Band);
 /// </summary>
 public static class SittingBand
 {
-    private static readonly IReadOnlyList<ExamModule> FourSkills =
-    [
-        ExamModule.Listening, ExamModule.Reading, ExamModule.Writing, ExamModule.Speaking,
-    ];
+    /// <summary>
+    /// <b>Set membership only — never sitting order.</b> Overall band needs every
+    /// IELTS module marked; the order they were sat does not affect the mean.
+    /// </summary>
+    private static readonly IReadOnlySet<ExamModule> FourSkills = SequenceProfile.FourSkills;
 
     /// <summary>
     /// <b>All four skills or nothing.</b> An IELTS overall band is the mean of
@@ -378,7 +433,8 @@ internal static class ExamViewMapping
                 .Select(s => new ModuleSummary(
                     s.Module.ToString().ToLowerInvariant(),
                     s.Questions.Count(),
-                    (int)version.Timing.DurationFor(s.Module).TotalSeconds))]);
+                    (int)version.Timing.DurationFor(s.Module).TotalSeconds))],
+            SequenceProfile.ToWire(version.ModuleSequence));
 
     public static QuestionView ToView(this Question question) =>
         new(
@@ -390,7 +446,8 @@ internal static class ExamViewMapping
             question.MaxWords,
             question.Group is { } g
                 ? new QuestionGroupView(g.Id, g.Title, g.Instruction, g.Image, g.Text, g.EachLetterOnce)
-                : null);
+                : null,
+            [.. (question.Slots ?? []).OrderBy(s => s.Number).Select(s => new ResponseSlotView(s.Id, s.Number))]);
 
     public static PartView ToView(this SectionPart part) =>
         new(
@@ -418,13 +475,62 @@ internal static class ExamViewMapping
             ],
             [.. marking.Flags.Select(f => f.ToString())]);
 
-    public static SectionResultView ToView(this SectionScore score) =>
+    public static SectionResultView ToView(
+        this SectionScore score,
+        PracticeScoreCapability? capability,
+        ExamVersion? version = null) =>
         new(
             score.Module.ToString().ToLowerInvariant(),
             score.RawScore,
             score.MaxScore,
-            score.Band.Value,
-            [.. score.Questions.Select(q => new QuestionResultView(q.QuestionId, q.Submitted, q.IsCorrect))]);
+            score.MaxScore > 0
+                ? Math.Round((decimal)score.RawScore / score.MaxScore, 4, MidpointRounding.AwayFromZero)
+                : null,
+            score.Band?.Value,
+            PracticeScorePolicy.ScoreLabel(capability, score.Band),
+            [.. score.Questions.Select(q => q.ToView(version, score.Module))]);
+
+    private static QuestionResultView ToView(
+        this QuestionResult q, ExamVersion? version, ExamModule module)
+    {
+        ExplanationContentView? canonical = null;
+        if (version is not null)
+        {
+            var question = version.Section(module)?.Questions.FirstOrDefault(x => x.Id == q.QuestionId);
+            if (question?.Explanation is { } exp)
+            {
+                canonical = new ExplanationContentView(
+                    exp.CorrectAnswer ?? q.CorrectAnswer ?? string.Empty,
+                    exp.ShortReason,
+                    exp.Evidence,
+                    exp.CommonMistake);
+            }
+        }
+
+        return new QuestionResultView(
+            q.QuestionId,
+            q.Submitted,
+            q.IsCorrect,
+            q.CorrectAnswer,
+            [.. (q.Slots ?? []).OrderBy(s => s.Number).Select(s => s.ToView())],
+            canonical);
+    }
+
+    private static SlotResultView ToView(this SlotResult result) =>
+        new(
+            result.SlotId,
+            result.Number,
+            result.Submitted,
+            result.Status.ToWire(),
+            result.CorrectAnswer);
+
+    private static string ToWire(this SlotOutcome outcome) => outcome switch
+    {
+        SlotOutcome.Correct => "correct",
+        SlotOutcome.Incorrect => "incorrect",
+        SlotOutcome.Unanswered => "unanswered",
+        _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, "Unmapped slot outcome."),
+    };
 
     /// <summary>
     /// `true-false-notgiven`, not `TrueFalseNotGiven`.

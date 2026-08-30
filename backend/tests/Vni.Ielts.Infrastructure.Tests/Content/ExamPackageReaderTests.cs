@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Infrastructure.Content;
 
@@ -31,6 +32,30 @@ public sealed class ExamPackageReaderTests
     private static string ValidExamJson() =>
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Content", "valid-exam.json"));
 
+    private static string ValidV2Json() => """
+    {
+      "formatVersion": "2.0", "formatProfile": "vni-practice", "scoringProfileRef": "validation-v1",
+      "contentSourceRef": { "sourceId": "synthetic-validation", "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+      "title": "Validation", "variant": "academic",
+      "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+      "scoringProfile": { "rawToBand": { "reading": [
+        { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 }, { "minRaw": 2, "band": 2 } ] } },
+      "sequenceProfile": { "modules": ["reading"] },
+      "sections": [{ "module": "reading", "order": 1, "parts": [{ "order": 1, "kind": "passage",
+        "body": "Evidence here.", "questions": [{
+          "id": "q-1", "order": 1, "type": "multiple-select", "marks": 2,
+          "options": [{ "key": "A", "text": "Alpha" }, { "key": "B", "text": "Beta" }],
+          "group": { "id": "bank-1", "instruction": "Choose." },
+          "slots": [
+            { "id": "slot-1", "number": 1, "answerKey": { "accepted": ["A"] } },
+            { "id": "slot-2", "number": 2, "answerKey": { "accepted": ["B"] } }
+          ],
+          "explanation": { "shortReason": "Both are stated.", "evidence": ["Evidence here."] }
+        }]
+      }]}]
+    }
+    """;
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
@@ -41,6 +66,44 @@ public sealed class ExamPackageReaderTests
 
     private static ExamPackageResult Read(string json) =>
         Reader.Read(json, ExamDefinitionId.New(), 1);
+
+    [Fact]
+    public void Listening_playback_rules_are_versioned_package_data()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["policyProfile"] = JsonNode.Parse("""
+        {
+          "listeningPlayback": {
+            "practice": { "playOnce": false, "allowSeek": true },
+            "mock": { "playOnce": true, "allowSeek": false }
+          }
+        }
+        """);
+
+        var result = Read(root.ToJsonString());
+
+        Assert.True(result.IsValid, string.Join("; ", result.Findings.Select(f => f.Message)));
+        Assert.Equal(new AudioPlaybackRule(false, true), result.Version!.ListeningPlayback.Practice);
+        Assert.Equal(new AudioPlaybackRule(true, false), result.Version.ListeningPlayback.Mock);
+    }
+
+    [Fact]
+    public void An_incomplete_listening_playback_profile_is_rejected_not_guessed()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["policyProfile"] = JsonNode.Parse("""
+        {
+          "listeningPlayback": {
+            "practice": { "playOnce": false, "allowSeek": true }
+          }
+        }
+        """);
+
+        var result = Read(root.ToJsonString());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, finding => finding.Code == "SCHEMA_INVALID");
+    }
 
     [Fact]
     public void The_committed_specimen_exam_is_valid_against_the_committed_schema()
@@ -149,7 +212,7 @@ public sealed class ExamPackageReaderTests
 
         Assert.Equal(40, score.MaxScore);
         Assert.Equal(40, score.RawScore);
-        Assert.Equal(9.0m, score.Band.Value);   // 40 correct on the specimen's table
+        Assert.Equal(9.0m, score.Band!.Value.Value);   // 40 correct on the specimen's table
     }
 
     /// <summary>
@@ -433,5 +496,206 @@ public sealed class ExamPackageReaderTests
         // Named, because a negative assertion that passes for the wrong reason
         // is worse than none: it stays green when the rule is deleted.
         Assert.Contains(result.Findings, f => f.Path.Contains("questions/0", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void V2_preserves_two_response_slots_and_part_timing()
+    {
+        var result = Read("""
+        {
+          "formatVersion": "2.0",
+          "formatProfile": "vni-practice",
+          "scoringProfileRef": "reading-demo-v2",
+          "contentSourceRef": { "sourceId": "synthetic-slots", "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+          "title": "Slots",
+          "variant": "academic",
+          "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+          "scoringProfile": { "rawToBand": { "reading": [
+            { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 }, { "minRaw": 2, "band": 2 } ] } },
+          "sequenceProfile": { "modules": ["reading"] },
+          "sections": [{ "module": "reading", "order": 1, "parts": [{
+            "order": 1, "kind": "passage", "timing": { "durationSeconds": 120 },
+            "questions": [{
+              "id": "q-1", "order": 1, "type": "multiple-select", "marks": 2,
+              "options": [{ "key": "A", "text": "A" }, { "key": "B", "text": "B" }],
+              "group": { "id": "inline-gaps", "text": "Complete [1] and [2]." },
+              "slots": [
+                { "id": "q-1-slot-1", "number": 1, "answerKey": { "accepted": ["A"] } },
+                { "id": "q-1-slot-2", "number": 2, "answerKey": { "accepted": ["B"] } }
+              ],
+              "explanation": { "shortReason": "The text states both.", "evidence": [{ "source": "passage", "quote": "both" }] }
+            }]
+          }]}]
+        }
+        """);
+
+        Assert.True(result.IsValid, string.Join("; ", result.Findings.Select(f => f.Message)));
+        var question = result.Version!.Sections[0].Questions.Single();
+        Assert.Equal(2, question.Slots!.Count);
+        Assert.Equal(new[] { 1, 2 }, question.Slots.Select(s => s.Number));
+        Assert.Equal("A", question.Slots[0].AnswerKey!.Accepted[0].Single);
+        Assert.Equal("Complete [1] and [2].", question.Group!.Text);
+        Assert.Equal("both", question.Explanation!.Evidence[0]);
+        Assert.Equal(120, result.Version.Sections[0].Parts[0].Timing!.DurationSeconds);
+    }
+
+    [Fact]
+    public void V1_multiple_mark_question_migrates_to_stable_slots_without_changing_answers()
+    {
+        var result = Read(ValidExamJson());
+        Assert.True(result.IsValid);
+        var question = result.Version!.Sections[0].Questions.Single(q => q.Marks == 2);
+
+        Assert.Equal(2, question.Slots!.Count);
+        Assert.Equal(new[] { 2, 3 }, question.Slots.Select(s => s.Number));
+        Assert.Equal("A", question.Slots[0].AnswerKey!.Accepted[0].Single);
+        Assert.Equal("D", question.Slots[1].AnswerKey!.Accepted[0].Single);
+    }
+
+    [Fact]
+    public void Duplicate_response_slot_number_is_rejected_by_the_reader()
+    {
+        var json = """
+        {
+          "formatVersion": "2.0", "formatProfile": "vni-practice", "scoringProfileRef": "duplicate-v1",
+          "contentSourceRef": { "sourceId": "synthetic-duplicate", "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+          "title": "Duplicate", "variant": "academic",
+          "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+          "scoringProfile": { "rawToBand": { "reading": [{ "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 }] } },
+          "sections": [{ "module": "reading", "order": 1, "parts": [{ "order": 1, "kind": "passage",
+            "questions": [{ "id": "q-1", "order": 1, "type": "short-answer", "marks": 2,
+              "slots": [
+                { "id": "s1", "number": 1, "answerKey": { "accepted": ["a"] } },
+                { "id": "s2", "number": 1, "answerKey": { "accepted": ["b"] } }
+              ]
+            }]
+          }]}]
+        }
+        """;
+
+        var result = Read(json);
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "RESPONSE_SLOT_DUPLICATE");
+    }
+
+    [Fact]
+    public void Unknown_v2_major_is_rejected_instead_of_guessed()
+    {
+        var json = ValidExamJson().Replace("\"formatVersion\": \"1.0\"", "\"formatVersion\": \"3.0\"");
+
+        var result = Read(json);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "SCHEMA_INVALID" && f.Path.Contains("formatVersion"));
+    }
+
+    [Fact]
+    public void Auto_scored_slot_without_a_key_is_rejected()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["sections"]![0]!["parts"]![0]!["questions"]![0]!["slots"]![1]!.AsObject().Remove("answerKey");
+
+        var result = Read(root.ToJsonString());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "RESPONSE_SLOT_KEY_MISSING");
+    }
+
+    [Fact]
+    public void Absent_sequence_profile_resolves_canonical_order_for_present_modules()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root.Remove("sequenceProfile");
+
+        var result = Read(root.ToJsonString());
+
+        Assert.True(result.IsValid, string.Join("; ", result.Findings.Select(f => f.Message)));
+        Assert.Equal([ExamModule.Reading], result.Version!.ModuleSequence);
+    }
+
+    [Fact]
+    public void Sequence_naming_an_absent_module_is_rejected()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["sequenceProfile"]!["modules"] = new JsonArray("reading", "speaking");
+
+        var result = Read(root.ToJsonString());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "SEQUENCE_MODULE_MISMATCH");
+    }
+
+    [Fact]
+    public void V2_referenced_asset_without_checksum_manifest_is_rejected()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["sections"]![0]!["parts"]![0]!["audio"] = "assets/part-1.mp3";
+
+        var result = Read(root.ToJsonString());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "ASSET_CHECKSUM_MISSING");
+    }
+
+    [Fact]
+    public void Duplicate_option_key_is_rejected()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["sections"]![0]!["parts"]![0]!["questions"]![0]!["options"]![1]!["key"] = "A";
+
+        var result = Read(root.ToJsonString());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "QUESTION_OPTION_DUPLICATE");
+    }
+
+    [Fact]
+    public void Members_of_one_group_cannot_disagree_on_the_option_bank()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        var questions = root["sections"]![0]!["parts"]![0]!["questions"]!.AsArray();
+        var first = questions[0]!.AsObject();
+        first["marks"] = 1;
+        first["slots"]!.AsArray().RemoveAt(1);
+
+        var second = first.DeepClone().AsObject();
+        second["id"] = "q-2";
+        second["order"] = 2;
+        second["slots"]![0]!["id"] = "slot-2";
+        second["slots"]![0]!["number"] = 2;
+        second["slots"]![0]!["answerKey"]!["accepted"]![0] = "B";
+        second["options"]![1]!["text"] = "Different bank";
+        questions.Add(second);
+
+        var result = Read(root.ToJsonString());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "QUESTION_GROUP_OPTION_MISMATCH");
+    }
+
+    [Fact]
+    public void Authored_policy_without_question_evidence_is_rejected()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["policyProfile"] = JsonNode.Parse("""{ "explanation": { "mode": "authored" } }""");
+        root["sections"]![0]!["parts"]![0]!["questions"]![0]!.AsObject().Remove("explanation");
+
+        var result = Read(root.ToJsonString());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "AUTHORED_EXPLANATION_MISSING");
+    }
+
+    [Fact]
+    public void Full_IELTS_profile_refuses_practice_shape()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["formatProfile"] = "ielts-academic-full";
+
+        var result = Read(root.ToJsonString());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "FORMAT_PROFILE_PART_COUNT");
+        Assert.Contains(result.Findings, f => f.Code == "FORMAT_PROFILE_SLOT_COUNT");
     }
 }

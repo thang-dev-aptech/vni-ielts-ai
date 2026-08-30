@@ -2,9 +2,11 @@ using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Application.Assessment;
+using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Application.Dictation;
 using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
+using Vni.Ielts.Application.Practice;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
@@ -14,7 +16,9 @@ using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Persistence.Exams;
 using Vni.Ielts.Infrastructure.Persistence.Identity;
 using Vni.Ielts.Infrastructure.Ai;
+using Vni.Ielts.Infrastructure.Ai.Writing;
 using Vni.Ielts.Infrastructure.Assessment;
+using Vni.Ielts.Infrastructure.Explanations;
 using Vni.Ielts.Infrastructure.Security;
 using Vni.Ielts.Infrastructure.Security.Sso;
 using Microsoft.Extensions.Logging;
@@ -103,50 +107,88 @@ public static class DependencyInjection
         services.AddScoped<IExamCatalogue, MongoExamCatalogue>();
         services.AddScoped<IExamSessionRepository, MongoExamSessionRepository>();
         services.AddScoped<IAnswerSheetStore, MongoAnswerSheetStore>();
-        services.AddScoped<IRecordingStore, GridFsRecordingStore>();
         services.AddScoped<ISectionResultStore, MongoSectionResultStore>();
         services.AddScoped<ISectionMarkingStore, MongoSectionMarkingStore>();
+        services.AddScoped<ISpeakingRecordingMetadataStore, MongoSpeakingRecordingMetadataStore>();
 
         // The durable record that a marking is owed. Closing a section writes
         // one; the worker turns it into a band. → `IMarkingOutbox`
         services.AddScoped<IMarkingOutbox, MongoMarkingOutbox>();
 
-        // Reconciles stored audio against the sheets that reference it. Run by
-        // the worker, and off unless configured on. → `RecordingReconciliation`
-        services.AddScoped<RecordingReconciliation>();
+        // Reconciles stored audio against the sheets that reference it, and
+        // aborts stale pending inits. Run by the worker; off unless configured
+        // on. → `RecordingReconciliation`, FS8.3 / FS8.6
+        services.AddScoped<AbortStaleSpeakingUploads>();
+        services.AddScoped<RecordingReconciliation>(sp =>
+            new RecordingReconciliation(
+                sp.GetRequiredService<IRecordingStore>(),
+                sp.GetRequiredService<IAnswerSheetStore>(),
+                sp.GetRequiredService<AbortStaleSpeakingUploads>(),
+                sp.GetRequiredService<IClock>()));
+        services.AddScoped<PurgeSpeakingRecordings>();
 
         /*
-         * Writing and Speaking marking: the pipeline is whole, the evaluator
-         * is not there, and both of those are deliberate.
-         *
-         * `CriterionMarking` validates a model's claim and refuses it rather
-         * than repairing it; the runner turns a refusal, a missing transcript
-         * or a missing key into a stated reason instead of a band. What is
-         * absent is the adapter that calls a provider — `B-2`, the Vietnam
-         * PDPL cross-border position, is unresolved, so no real learner essay
-         * may cross a border yet, and speech-to-text has not been selected at
-         * all.
-         *
-         * Registering the absence rather than leaving the port unbound is the
-         * point: `IsConfigured` answers honestly and the call refuses loudly,
-         * where an unregistered port would be a null nobody checked. → `G-11`
+         * Writing and Speaking marking: the pipeline is whole; Writing may be
+         * wired when Assessment:WritingMarking:Enabled and a provider are set.
+         * Speaking remains on NoTranscriptSource until ASR is selected.
          */
         services.AddSingleton<IRubricSource, ConfiguredRubricSource>();
         services.AddSingleton<ITranscriptSource, NoTranscriptSource>();
-        services.AddSingleton<ISectionEvaluator>(_ => new UnconfiguredEvaluator(ExamModule.Writing));
+
+        services.AddHttpClient(nameof(OpenAiWritingEvaluationClient));
+        services.AddHttpClient(nameof(GeminiWritingEvaluationClient));
+        services.AddHttpClient(nameof(OpenAiExplanationGenerator));
+        services.AddSingleton<IWritingEvaluationCostMetric, NullWritingEvaluationCostMetric>();
+        services.AddSingleton<WritingEvaluationRouter>();
+        services.AddSingleton<OpenAiWritingEvaluationClient>();
+        services.AddSingleton<GeminiWritingEvaluationClient>();
+        services.AddSingleton<IWritingEvaluationClient>(sp => sp.GetRequiredService<OpenAiWritingEvaluationClient>());
+        services.AddSingleton<IWritingEvaluationClient>(sp => sp.GetRequiredService<GeminiWritingEvaluationClient>());
+
+        services.AddSingleton<ISectionEvaluator>(sp =>
+        {
+            var assessment = configuration.GetSection(AssessmentOptions.SectionName).Get<AssessmentOptions>()
+                ?? new AssessmentOptions();
+            var ai = configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+
+            return WritingSectionEvaluator.IsConfiguredFor(assessment, ai)
+                ? sp.GetRequiredService<WritingSectionEvaluator>()
+                : new UnconfiguredEvaluator(ExamModule.Writing);
+        });
+
+        services.AddSingleton<WritingSectionEvaluator>();
         services.AddSingleton<ISectionEvaluator>(_ => new UnconfiguredEvaluator(ExamModule.Speaking));
         services.AddScoped<SectionMarkingRunner>();
 
+        services.AddSingleton<RecordedExplanationGenerator>();
+        services.AddSingleton<OpenAiExplanationGenerator>();
+        services.AddSingleton<IReadingListeningExplanationGenerator>(sp =>
+        {
+            var ai = configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+            return ai.OpenAi.IsConfigured
+                ? sp.GetRequiredService<OpenAiExplanationGenerator>()
+                : sp.GetRequiredService<RecordedExplanationGenerator>();
+        });
+        services.AddScoped<ICanonicalExplanationCache, MongoCanonicalExplanationCache>();
+        services.AddScoped<IPersonalizedExplanationStore, MongoPersonalizedExplanationStore>();
+        services.AddScoped<CanonicalExplanationWorkflow>();
+        services.AddScoped<PersonalizedExplanationService>();
+
         services.AddScoped<ListExams>();
+        services.AddScoped<ListPracticeUnits>();
         services.AddScoped<StartExamSession>();
+        services.AddScoped<StartPracticeUnitSession>();
         services.AddScoped<GetExamSession>();
         services.AddScoped<SaveAnswers>();
         services.AddScoped<SubmitSpeakingRecording>();
+        services.AddScoped<InitSpeakingRecording>();
+        services.AddScoped<CompleteSpeakingRecording>();
         services.AddScoped<AdvanceSection>();
         services.AddScoped<SubmitExamSession>();
         services.AddScoped<SetStopwatch>();
         services.AddScoped<SetTargetTime>();
         services.AddScoped<GetSessionResults>();
+        services.AddScoped<RequestPersonalizedExplanation>();
         services.AddScoped<ListMySittings>();
 
         // Development only: it publishes what it loads, which is a reviewed
@@ -173,7 +215,21 @@ public static class DependencyInjection
         var storage = configuration.GetSection(ObjectStorageOptions.SectionName)
             .Get<ObjectStorageOptions>() ?? new ObjectStorageOptions();
 
-        if (!services.AddObjectStorage(storage) && isDevelopment)
+        var objectStorageRegistered = services.AddObjectStorage(storage);
+
+        if (objectStorageRegistered
+            && !string.IsNullOrWhiteSpace(storage.SpeakingRecordingsBucket))
+        {
+            services.AddScoped<IRecordingStore, S3SpeakingRecordingStore>();
+        }
+        else
+        {
+            services.AddScoped<IRecordingStore, GridFsRecordingStore>();
+            services.AddSingleton<ISpeakingRecordingBlobStore, UnconfiguredSpeakingRecordingBlobStore>();
+            services.AddSingleton(new ObjectStorageSpeakingOptions());
+        }
+
+        if (!objectStorageRegistered && isDevelopment)
         {
             services.AddSingleton<IExamAssetStore, FixtureAssetStore>();
         }
@@ -337,6 +393,7 @@ public static class DependencyInjection
         await MongoHandoffCodeStore.EnsureIndexesAsync(ctx.Database, ct);
         await MongoAuditLog.EnsureIndexesAsync(ctx.Database, ct);
         await MongoLoginThrottle.EnsureIndexesAsync(ctx.Database, ct);
+        await MongoSpeakingRecordingMetadataStore.EnsureIndexesAsync(ctx.Database, ct);
 
         // Development only, and registered only there — see AddInfrastructure.
         // It loads fixtures/exams through the package reader, which is the same

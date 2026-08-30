@@ -442,6 +442,7 @@
   font-size: var(--t-16);
   line-height: 1.7;
   color: var(--ink-2);
+  overflow-wrap: anywhere;
 }
 
 .exam-passage-body p {
@@ -589,6 +590,7 @@
 .q-essay {
   width: 100%;
   resize: vertical;
+  overflow-wrap: anywhere;
 }
 
 .q-hint {
@@ -863,6 +865,73 @@
   color: var(--bad);
 }
 
+/*
+ * Held on the device, not yet on the server. Shape differs from `.rec-stored`
+ * (solid green) and `.rec-error` (red text) so L2's "Chưa gửi được" chip is
+ * not mistaken for either saved or failed — border dashed, warn tone.
+ */
+.rec-queued {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s-6);
+  padding-inline: var(--s-3);
+  border: 1px dashed var(--warn);
+  border-radius: var(--r-pill);
+  background: var(--warn-soft);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--warn);
+}
+
+/*
+ * Input level during prep/record. Accent blue bars on a sunk strip — not a
+ * purple equaliser, not a pulsing red panic light (L1). Decorative only;
+ * state is already named by the phase label and the clock.
+ */
+.rec-meter {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 28px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--sunk);
+}
+
+.rec-meter-bar {
+  display: block;
+  width: 3px;
+  min-height: 3px;
+  border-radius: 2px;
+  background: var(--acc);
+  transition: height 60ms linear;
+}
+
+.rec-progress {
+  flex-basis: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--line);
+}
+
+.rec-progress > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--acc);
+  transition: width 120ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-meter-bar,
+  .rec-progress > i {
+    transition: none;
+  }
+}
+
 /* ── Results ────────────────────────────────────────────────────────────── */
 
 .result-overall {
@@ -985,6 +1054,33 @@
 
   .exam-submit {
     width: 100%;
+  }
+}
+
+/*
+ * Escalation grows the clock by size and border, not by animation. At a short
+ * or heavily zoomed viewport the largest size would shove the save chip off
+ * the bar — clamp without removing the word that carries the state.
+ */
+@media (max-height: 480px), (max-width: 420px) {
+  .exam-clock.level-2,
+  .exam-clock.level-3 {
+    font-size: var(--t-24);
+    line-height: var(--lh-body);
+  }
+
+  .exam-bar {
+    position: static;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exam-page *,
+  .exam-page *::before,
+  .exam-page *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -1130,6 +1226,7 @@
 
 .result-review-grid > li {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--s-3);
   min-width: 0;
@@ -1184,6 +1281,155 @@
   color: var(--ink-2);
   font-size: var(--t-14);
   line-height: var(--lh-body);
+}
+
+.result-explanation {
+  flex: 1 1 100%;
+  margin-left: calc(54px + var(--s-3));
+}
+
+.result-explanation-action {
+  min-height: 36px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.result-explanation-action:hover:not(:disabled) {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.result-explanation-action:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.result-explanation-status {
+  display: block;
+  margin-top: var(--s-2);
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.result-explanation-status.is-bad {
+  color: var(--bad);
+}
+
+.result-explanation-card {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  border: 1px solid #c4e6d2;
+  border-radius: var(--r-md);
+  background: var(--ok-soft);
+  color: var(--ink);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.result-explanation-card p,
+.result-explanation-card ul {
+  margin: 0;
+}
+
+.result-explanation-card ul {
+  padding-left: var(--s-5);
+}
+
+.result-marking-body {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.result-marking-card {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+}
+
+.result-marking-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.result-marking-head h3,
+.result-marking-rubric,
+.result-marking-flags {
+  margin: 0;
+}
+
+.result-marking-band {
+  flex: none;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.result-marking-rubric {
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.result-marking-flags {
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid #e7b4b0;
+  border-radius: var(--r-md);
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.result-criteria {
+  display: grid;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result-criteria > li {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--card);
+}
+
+.result-criteria > li > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.result-criteria p,
+.result-criteria blockquote {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.result-criteria blockquote {
+  padding-left: var(--s-3);
+  border-left: 3px solid var(--line);
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -1318,6 +1564,50 @@
  */
 .q-bank {
   display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.q-inline-bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.q-bank-token,
+.q-drop-target {
+  min-height: 44px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.q-bank-token[aria-pressed='true'],
+.q-drop-target.is-filled {
+  border-color: var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc-700);
+}
+
+.q-drop-target {
+  width: 100%;
+  max-width: 46ch;
+  text-align: left;
+  border-style: dashed;
+}
+
+.q-bank-token:focus-visible,
+.q-drop-target:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
 }
 
 .q-bank-select {
@@ -1439,12 +1729,54 @@
 }
 
 .exam-bank-item {
-  display: flex;
-  align-items: baseline;
-  gap: var(--s-3);
+  display: block;
   font-size: var(--t-14);
   line-height: var(--lh-body);
   color: var(--ink);
+}
+
+.exam-bank-dnd {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.exam-bank-instructions {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.exam-bank-button {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--s-2);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.exam-bank-button[aria-pressed='true'] {
+  border-color: var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc-700);
+}
+
+.exam-bank-button:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.exam-bank-used {
+  margin-inline-start: auto;
+  color: var(--ink-2);
+  white-space: nowrap;
 }
 
 .exam-bank-key {

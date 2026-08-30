@@ -118,10 +118,12 @@ public interface IExamSessionRepository
 /// a competing writer has just produced and lets both through.
 /// </summary>
 public sealed record SessionState(
-    SessionStatus Status, ExamModule? OpenModule, bool OpenSectionRunning)
+    SessionStatus Status, ExamModule? OpenModule, bool OpenSectionRunning,
+    string? OpenPartId = null)
 {
     public static SessionState Of(ExamSession session) =>
-        new(session.Status, session.Current?.Module, session.Current?.RunningSince is not null);
+        new(session.Status, session.Current?.Module, session.Current?.RunningSince is not null,
+            session.CurrentPartId);
 }
 
 /// <summary>
@@ -435,6 +437,15 @@ public interface IRecordingStore
     /// → ADR-0015, <c>SubmitSpeakingRecording</c>
     /// </summary>
     Task DeleteAsync(string recordingId, CancellationToken ct);
+
+    /// <summary>
+    /// Removes every recording filed for one sitting.
+    ///
+    /// <b>Account and attempt deletion must reach the object store</b> — a
+    /// Mongo row gone while the bucket still holds the voice is a PDPL
+    /// retention failure. Idempotent. → FS8.6
+    /// </summary>
+    Task DeleteForSessionAsync(ExamSessionId sessionId, CancellationToken ct);
 
     /// <summary>
     /// Every stored recording older than <paramref name="olderThan"/>, with its

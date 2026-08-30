@@ -40,8 +40,20 @@ internal sealed class ExamVersionDocument
     [BsonElement("scoring")]
     public ScoringDocument Scoring { get; set; } = new();
 
+    [BsonElement("listeningPlayback")]
+    [BsonIgnoreIfNull]
+    public ListeningPlaybackDocument? ListeningPlayback { get; set; }
+
     [BsonElement("sections")]
     public List<SectionDocument> Sections { get; set; } = [];
+
+    /// <summary>
+    /// Resolved sitting order for this version. Absent on legacy documents —
+    /// rehydration falls back to <see cref="SequenceProfile.CanonicalOrder"/>.
+    /// </summary>
+    [BsonElement("moduleSequence")]
+    [BsonIgnoreIfNull]
+    public List<string>? ModuleSequence { get; set; }
 
     /// <summary>
     /// A fingerprint of everything a sitting is scored against.
@@ -73,6 +85,26 @@ internal sealed class ExamVersionDocument
     [BsonElement("contentHash")]
     [BsonIgnoreIfNull]
     public string? ContentHash { get; set; }
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class ListeningPlaybackDocument
+{
+    [BsonElement("practice")]
+    public AudioPlaybackRuleDocument Practice { get; set; } = new();
+
+    [BsonElement("mock")]
+    public AudioPlaybackRuleDocument Mock { get; set; } = new();
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class AudioPlaybackRuleDocument
+{
+    [BsonElement("playOnce")]
+    public bool PlayOnce { get; set; } = true;
+
+    [BsonElement("allowSeek")]
+    public bool AllowSeek { get; set; }
 }
 
 [BsonIgnoreExtraElements]
@@ -238,8 +270,27 @@ internal sealed class PartDocument
     [BsonIgnoreIfNull]
     public int? MinWords { get; set; }
 
+    [BsonElement("timing")]
+    [BsonIgnoreIfNull]
+    public PartTimingDocument? Timing { get; set; }
+
     [BsonElement("questions")]
     public List<QuestionDocument> Questions { get; set; } = [];
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class PartTimingDocument
+{
+    [BsonElement("durationSeconds")]
+    public int DurationSeconds { get; set; }
+
+    [BsonElement("prepSeconds")]
+    [BsonIgnoreIfNull]
+    public int? PrepSeconds { get; set; }
+
+    [BsonElement("responseSeconds")]
+    [BsonIgnoreIfNull]
+    public int? ResponseSeconds { get; set; }
 }
 
 [BsonIgnoreExtraElements]
@@ -297,6 +348,45 @@ internal sealed class QuestionDocument
     [BsonElement("answerKey")]
     [BsonIgnoreIfNull]
     public AnswerKeyDocument? AnswerKey { get; set; }
+
+    [BsonElement("slots")]
+    public List<ResponseSlotDocument> Slots { get; set; } = [];
+
+    [BsonElement("explanation")]
+    [BsonIgnoreIfNull]
+    public QuestionExplanationDocument? Explanation { get; set; }
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class ResponseSlotDocument
+{
+    [BsonElement("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [BsonElement("number")]
+    public int Number { get; set; }
+
+    [BsonElement("answerKey")]
+    [BsonIgnoreIfNull]
+    public AnswerKeyDocument? AnswerKey { get; set; }
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class QuestionExplanationDocument
+{
+    [BsonElement("correctAnswer")]
+    [BsonIgnoreIfNull]
+    public string? CorrectAnswer { get; set; }
+
+    [BsonElement("shortReason")]
+    public string ShortReason { get; set; } = string.Empty;
+
+    [BsonElement("evidence")]
+    public List<string> Evidence { get; set; } = [];
+
+    [BsonElement("commonMistake")]
+    [BsonIgnoreIfNull]
+    public string? CommonMistake { get; set; }
 }
 
 [BsonIgnoreExtraElements]
@@ -378,6 +468,13 @@ internal sealed class ExamSessionDocument
     [BsonElement("examVersionId")]
     public string ExamVersionId { get; set; } = string.Empty;
 
+    [BsonElement("practiceUnitId")]
+    [BsonIgnoreIfNull]
+    public string? PracticeUnitId { get; set; }
+
+    [BsonElement("partIds")]
+    public List<string> PartIds { get; set; } = [];
+
     [BsonElement("mode")]
     public string Mode { get; set; } = "Single";
 
@@ -412,6 +509,10 @@ internal sealed class AttemptDocument
 {
     [BsonElement("module")]
     public string Module { get; set; } = string.Empty;
+
+    [BsonElement("partId")]
+    [BsonIgnoreIfNull]
+    public string? PartId { get; set; }
 
     [BsonElement("startedAt")]
     public DateTime StartedAt { get; set; }
@@ -616,7 +717,8 @@ internal sealed class SectionResultDocument
 
     [BsonElement("band")]
     [BsonRepresentation(MongoDB.Bson.BsonType.Decimal128)]
-    public decimal Band { get; set; }
+    [BsonIgnoreIfNull]
+    public decimal? Band { get; set; }
 
     [BsonElement("questions")]
     public List<QuestionResultDocument> Questions { get; set; } = [];
@@ -729,4 +831,33 @@ internal sealed class QuestionResultDocument
 
     [BsonElement("isCorrect")]
     public bool IsCorrect { get; set; }
+
+    [BsonElement("correctAnswer")]
+    [BsonIgnoreIfNull]
+    public string? CorrectAnswer { get; set; }
+
+    [BsonElement("slots")]
+    [BsonIgnoreIfNull]
+    public List<SlotResultDocument>? Slots { get; set; }
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class SlotResultDocument
+{
+    [BsonElement("slotId")]
+    public string SlotId { get; set; } = string.Empty;
+
+    [BsonElement("number")]
+    public int Number { get; set; }
+
+    [BsonElement("submitted")]
+    [BsonIgnoreIfNull]
+    public string? Submitted { get; set; }
+
+    [BsonElement("status")]
+    public string Status { get; set; } = string.Empty;
+
+    [BsonElement("correctAnswer")]
+    [BsonIgnoreIfNull]
+    public string? CorrectAnswer { get; set; }
 }

@@ -5,32 +5,38 @@ import { useI18n } from '../../i18n/index.js';
 import { formatClock } from './examApi.js';
 import '../../styles/audio.css';
 
+const PAUSE_LISTENING_AUDIO = 'vni:pause-listening-audio';
+
+export function pauseListeningAudio() {
+  window.dispatchEvent(new Event(PAUSE_LISTENING_AUDIO));
+}
+
 /**
  * The Listening player.
  *
- * <b>No seek bar, and `<audio controls>` is not an option.</b> The browser's
- * default control set hands a candidate a scrubber, and a Listening section
- * where the audio can be rewound is not a Listening section — it is a reading
- * comprehension of a transcript the learner produces themselves. The bar below
- * shows progress and accepts no input at all. → `DESIGN.md` § Chrome
+ * <b>No browser-native controls.</b> They expose a scrubber regardless of the
+ * exam version. This component renders either a passive progress bar or an
+ * accessible seek control from the server-resolved policy.
  *
  * <b>It plays once.</b> That is the real examination's behaviour and the
- * prototype's. It is <i>not</i> a confirmed requirement yet, so it is one
- * `playOnce` prop rather than something welded into the component — and it is
- * announced before the first press rather than discovered after it.
+ * mock profile's usual behaviour. It is policy data rather than a client
+ * default, and is announced before the first press rather than discovered
+ * after it.
  *
  * <b>The audio is fetched with the access token, not linked.</b> An
  * `<audio src>` cannot carry an Authorization header, so a plain URL would
  * mean anonymous access to exam content — collectable and transcribable by
  * anyone who can guess a filename. Fetching it into a blob keeps the route
- * authenticated.
+ * authenticated. The request carries a byte Range and accepts 206; because
+ * the authenticated response is still materialised as one blob, this is not
+ * claimed as progressive streaming.
  */
 export function AudioPlayer({
   reference,
-  playOnce = true,
+  policy,
 }: {
   reference: string;
-  playOnce?: boolean;
+  policy: { playOnce: boolean; allowSeek: boolean };
 }) {
   const { accessToken } = useAuth();
   const { t } = useI18n();
@@ -42,12 +48,25 @@ export function AudioPlayer({
   const [elapsed, setElapsed] = useState(0);
   const [duration, setDuration] = useState(0);
   const [spent, setSpent] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+
+  useEffect(() => {
+    const pause = () => audio.current?.pause();
+    window.addEventListener(PAUSE_LISTENING_AUDIO, pause);
+    return () => window.removeEventListener(PAUSE_LISTENING_AUDIO, pause);
+  }, []);
 
   useEffect(() => {
     if (accessToken === null) return;
 
     let url: string | null = null;
     const controller = new AbortController();
+    setSource(null);
+    setFailed(false);
+    setPlaying(false);
+    setElapsed(0);
+    setDuration(0);
+    setSpent(false);
 
     void (async () => {
       try {
@@ -60,9 +79,11 @@ export function AudioPlayer({
         // experience, it is a paper that cannot be sat.
         const response = await authedFetch(`${base}/api/v1/exams/assets/${path}`, accessToken, {
           signal: controller.signal,
+          headers: { Range: 'bytes=0-' },
         });
 
-        if (!response.ok) throw new Error(String(response.status));
+        if (response.status !== 200 && response.status !== 206)
+          throw new Error(String(response.status));
 
         url = URL.createObjectURL(await response.blob());
         setSource(url);
@@ -78,13 +99,16 @@ export function AudioPlayer({
       // Listening section holds several.
       if (url !== null) URL.revokeObjectURL(url);
     };
-  }, [accessToken, reference]);
+  }, [accessToken, reference, retryAttempt]);
 
   if (failed) {
     return (
-      <p className="audio-failed" role="alert">
-        {t('exam.audioFailed')}
-      </p>
+      <div className="audio-failed" role="alert">
+        <p>{t('exam.audioFailed')}</p>
+        <button type="button" onClick={() => setRetryAttempt((attempt) => attempt + 1)}>
+          {t('exam.audioRetry')}
+        </button>
+      </div>
     );
   }
 
@@ -95,7 +119,7 @@ export function AudioPlayer({
       <audio
         ref={audio}
         {...(source !== null ? { src: source } : {})}
-        preload="auto"
+        preload="metadata"
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
         onTimeUpdate={(event) => setElapsed(event.currentTarget.currentTime)}
         /*
@@ -112,7 +136,7 @@ export function AudioPlayer({
         onPause={() => setPlaying(false)}
         onEnded={() => {
           setPlaying(false);
-          if (playOnce) setSpent(true);
+          if (policy.playOnce) setSpent(true);
         }}
       />
 
@@ -162,9 +186,27 @@ export function AudioPlayer({
           A progress indicator, not a control. No role="slider", no tabindex,
           no click handler — there is nothing here to operate.
         */}
-        <div className="audio-track" aria-hidden="true">
-          <div className="audio-fill" style={{ width: `${progress}%` }} />
-        </div>
+        {policy.allowSeek ? (
+          <input
+            className="audio-seek"
+            type="range"
+            min="0"
+            max={Math.max(0, duration)}
+            step="1"
+            value={Math.min(elapsed, duration || 0)}
+            disabled={source === null || duration <= 0}
+            aria-label={t('exam.audioSeek')}
+            onChange={(event) => {
+              const next = Number(event.currentTarget.value);
+              if (audio.current !== null) audio.current.currentTime = next;
+              setElapsed(next);
+            }}
+          />
+        ) : (
+          <div className="audio-track" aria-hidden="true">
+            <div className="audio-fill" style={{ width: `${progress}%` }} />
+          </div>
+        )}
 
         <div className="audio-meta">
           <span className="num">
@@ -173,9 +215,11 @@ export function AudioPlayer({
           <span>
             {spent
               ? t('exam.audioSpent')
-              : playOnce
+              : policy.playOnce
                 ? t('exam.audioOnce')
-                : t('exam.audioReplayable')}
+                : policy.allowSeek
+                  ? t('exam.audioSeekable')
+                  : t('exam.audioReplayable')}
           </span>
         </div>
       </div>

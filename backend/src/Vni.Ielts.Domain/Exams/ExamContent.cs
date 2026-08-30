@@ -54,11 +54,14 @@ public sealed class ExamVersion
         ExamVersionId id, ExamDefinitionId definitionId, int versionNumber,
         string title, ExamVariant variant, ExamVersionStatus status,
         DateTimeOffset? publishedAt, ScoringProfile scoring, TimingProfile timing,
-        IReadOnlyList<Section> sections)
+        IReadOnlyList<Section> sections, IReadOnlyList<ExamModule> moduleSequence,
+        ListeningPlaybackProfile? listeningPlayback)
     {
         Id = id; DefinitionId = definitionId; VersionNumber = versionNumber;
         Title = title; Variant = variant; Status = status; PublishedAt = publishedAt;
         Scoring = scoring; Timing = timing; Sections = sections;
+        ModuleSequence = moduleSequence;
+        ListeningPlayback = listeningPlayback ?? ListeningPlaybackProfile.Conservative;
     }
 
     public ExamVersionId Id { get; }
@@ -70,22 +73,42 @@ public sealed class ExamVersion
     public DateTimeOffset? PublishedAt { get; private set; }
     public ScoringProfile Scoring { get; }
     public TimingProfile Timing { get; }
+    public ListeningPlaybackProfile ListeningPlayback { get; }
     public IReadOnlyList<Section> Sections { get; }
+
+    /// <summary>
+    /// The order a Full Test advances through this version's modules.
+    /// Resolved from <c>sequenceProfile</c> at import, or from
+    /// <see cref="SequenceProfile.CanonicalOrder"/> when absent. → `E-12`
+    /// </summary>
+    public IReadOnlyList<ExamModule> ModuleSequence { get; }
 
     public bool IsSittable => Status == ExamVersionStatus.Published;
 
     public static ExamVersion CreateDraft(
         ExamDefinitionId definitionId, int versionNumber, string title, ExamVariant variant,
-        ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections) =>
-        new(ExamVersionId.New(), definitionId, versionNumber, title, variant,
-            ExamVersionStatus.Draft, null, scoring, timing, sections);
+        ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections,
+        ListeningPlaybackProfile? listeningPlayback = null,
+        IReadOnlyList<ExamModule>? declaredSequence = null)
+    {
+        var present = sections.Select(s => s.Module).ToHashSet();
+        var sequence = SequenceProfile.Resolve(declaredSequence, present);
+        return new(ExamVersionId.New(), definitionId, versionNumber, title, variant,
+            ExamVersionStatus.Draft, null, scoring, timing, sections, sequence, listeningPlayback);
+    }
 
     public static ExamVersion Rehydrate(
         ExamVersionId id, ExamDefinitionId definitionId, int versionNumber, string title,
         ExamVariant variant, ExamVersionStatus status, DateTimeOffset? publishedAt,
-        ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections) =>
-        new(id, definitionId, versionNumber, title, variant, status, publishedAt,
-            scoring, timing, sections);
+        ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections,
+        ListeningPlaybackProfile? listeningPlayback = null,
+        IReadOnlyList<ExamModule>? moduleSequence = null)
+    {
+        var present = sections.Select(s => s.Module).ToHashSet();
+        var sequence = moduleSequence ?? SequenceProfile.Resolve(null, present);
+        return new(id, definitionId, versionNumber, title, variant, status, publishedAt,
+            scoring, timing, sections, sequence, listeningPlayback);
+    }
 
     public void Publish(DateTimeOffset now)
     {
@@ -106,24 +129,25 @@ public sealed class ExamVersion
         Sections.FirstOrDefault(s => s.Module == module);
 
     /// <summary>
-    /// The order a Full Test advances through: Reading → Listening → Writing →
-    /// Speaking. A VNI product decision (`E-12`), deliberately not the official
-    /// IELTS order. The client never chooses; a client-supplied "next" would be
-    /// a way to skip Writing.
+    /// The settled Full Test fallback order (`E-12`). Prefer
+    /// <see cref="ModuleSequence"/> for a specific version.
     /// </summary>
-    public static readonly IReadOnlyList<ExamModule> FullTestOrder =
-        [ExamModule.Reading, ExamModule.Listening, ExamModule.Writing, ExamModule.Speaking];
+    public static IReadOnlyList<ExamModule> FullTestOrder => SequenceProfile.CanonicalOrder;
 
     /// <summary>The next module in a Full Test, or null when the session is complete.</summary>
     public ExamModule? NextModuleAfter(ExamModule current)
     {
-        var present = FullTestOrder.Where(m => Section(m) is not null).ToList();
-        var index = present.IndexOf(current);
-        return index >= 0 && index + 1 < present.Count ? present[index + 1] : null;
+        for (var i = 0; i < ModuleSequence.Count; i++)
+        {
+            if (ModuleSequence[i] != current) continue;
+            return i + 1 < ModuleSequence.Count ? ModuleSequence[i + 1] : null;
+        }
+
+        return null;
     }
 
     public ExamModule FirstModule() =>
-        FullTestOrder.FirstOrDefault(m => Section(m) is not null,
+        ModuleSequence.FirstOrDefault(m => Section(m) is not null,
             Sections.Count > 0 ? Sections[0].Module
                 : throw new InvalidOperationException("An exam version has no sections."));
 }
@@ -160,7 +184,11 @@ public sealed record SectionPart(
     int? PartNumber,
     CueCard? CueCard,
     int? MinWords,
-    IReadOnlyList<Question> Questions);
+    IReadOnlyList<Question> Questions,
+    PartTiming? Timing = null);
+
+/// <summary>Optional per-part timing override carried by package v2.</summary>
+public sealed record PartTiming(int DurationSeconds, int? PrepSeconds = null, int? ResponseSeconds = null);
 
 public sealed record CueCard(string Topic, IReadOnlyList<string> Bullets);
 
@@ -191,6 +219,18 @@ public sealed record QuestionGroup(
     string? Text,
     bool EachLetterOnce);
 
+/// <summary>
+/// One answer-sheet position. A question may occupy more than one position
+/// (for example, a "Choose TWO" prompt) while retaining one shared prompt.
+/// </summary>
+public sealed record ResponseSlot(string Id, int Number, AnswerKey? AnswerKey);
+
+public sealed record QuestionExplanation(
+    string? CorrectAnswer,
+    string ShortReason,
+    IReadOnlyList<string> Evidence,
+    string? CommonMistake = null);
+
 public sealed record Question(
     string Id,
     int Order,
@@ -214,7 +254,9 @@ public sealed record Question(
     /// a half-mark rule needs an answer-key shape that does not exist and a
     /// decision nobody has made. → `[OPEN QUESTION]`
     /// </summary>
-    int Marks = 1);
+    int Marks = 1,
+    IReadOnlyList<ResponseSlot>? Slots = null,
+    QuestionExplanation? Explanation = null);
 
 /// <summary>
 /// The accepted answers. <b>Never sent to a client before scoring</b> — a
@@ -276,6 +318,23 @@ public sealed record TimingProfile(
 
 public sealed record SpeakingPartTiming(int Part, int PrepSeconds, int ResponseSeconds);
 
+/// <summary>
+/// Versioned Listening playback rules. Practice and mock are intentionally
+/// separate: a client must not infer exam conditions from its route or ship a
+/// permanent one-pass default. Older packages resolve fail-closed to one pass
+/// with no seek for both run kinds.
+/// </summary>
+public sealed record ListeningPlaybackProfile(
+    AudioPlaybackRule Practice,
+    AudioPlaybackRule Mock)
+{
+    public static readonly ListeningPlaybackProfile Conservative = new(
+        new AudioPlaybackRule(true, false),
+        new AudioPlaybackRule(true, false));
+}
+
+public sealed record AudioPlaybackRule(bool PlayOnce, bool AllowSeek);
+
 public sealed record AnswerMatchingRules(
     bool CaseSensitive = false,
     bool TrimWhitespace = true,
@@ -285,6 +344,10 @@ public sealed record AnswerMatchingRules(
 {
     public static readonly AnswerMatchingRules Default = new();
 }
+
+public enum MultiMarkPartialCredit { AllOrNothing }
+
+public sealed record PartialCreditPolicy(MultiMarkPartialCredit MultiMark);
 
 /// <summary>
 /// Raw score to band, plus how answers are compared. <b>Configuration, not
@@ -296,7 +359,8 @@ public sealed record ScoringProfile(
     IReadOnlyDictionary<ExamModule, IReadOnlyList<BandBoundary>> RawToBand,
     AnswerMatchingRules Matching,
     decimal? WritingTask1Weight = null,
-    decimal? WritingTask2Weight = null)
+    decimal? WritingTask2Weight = null,
+    PartialCreditPolicy? PartialCredit = null)
 {
     /// <summary>
     /// The relative weight of Writing Task 1 and Task 2, or a refusal.

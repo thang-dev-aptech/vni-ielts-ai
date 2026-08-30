@@ -78,6 +78,38 @@ public sealed class PublishedExamImmutabilityTests(SsoAppFactory app) : IClassFi
             paper.Status, paper.PublishedAt, paper.Scoring, paper.Timing, sections);
     }
 
+    private static ExamVersion WithFirstSlotAnswer(ExamVersion paper, string accepted)
+    {
+        var sections = paper.Sections.Select(section => section.Module != ExamModule.Reading
+            ? section
+            : section with
+            {
+                Parts = [.. section.Parts.Select((part, partAt) => partAt != 0
+                    ? part
+                    : part with
+                    {
+                        Questions = [.. part.Questions.Select((question, questionAt) => questionAt != 0
+                            ? question
+                            : question with
+                            {
+                                Slots =
+                                [
+                                    question.Slots![0] with
+                                    {
+                                        AnswerKey = new AnswerKey(
+                                            [new AcceptedAnswer(accepted, null, null)], null),
+                                    },
+                                    .. question.Slots.Skip(1),
+                                ],
+                            })],
+                    })],
+            }).ToList();
+
+        return ExamVersion.Rehydrate(
+            paper.Id, paper.DefinitionId, paper.VersionNumber, paper.Title, paper.Variant,
+            paper.Status, paper.PublishedAt, paper.Scoring, paper.Timing, sections);
+    }
+
     [SkippableFact]
     public async Task A_published_version_cannot_have_its_answer_key_rewritten()
     {
@@ -108,6 +140,27 @@ public sealed class PublishedExamImmutabilityTests(SsoAppFactory app) : IClassFi
         var key = stored!.Section(ExamModule.Reading)!.Parts[0].Questions[0].AnswerKey!;
 
         Assert.Equal("cartography", key.Accepted[0].Single);
+    }
+
+    [SkippableFact]
+    public async Task A_published_version_cannot_have_a_response_slot_key_rewritten()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        using var scope = Scope();
+        var catalogue = CatalogueIn(scope);
+        var original = WithFirstSlotAnswer(await SeededPaperAsync(catalogue), "slot-original");
+        await catalogue.UpsertAsync(original, default);
+        original.Publish(At);
+        await catalogue.UpsertAsync(original, default);
+
+        await Assert.ThrowsAsync<PublishedExamVersionIsImmutableException>(
+            () => catalogue.UpsertAsync(WithFirstSlotAnswer(original, "slot-rewritten"), default));
+
+        var stored = await catalogue.FindAsync(original.Id, default);
+        Assert.Equal(
+            "slot-original",
+            stored!.Section(ExamModule.Reading)!.Parts[0].Questions[0].Slots![0].AnswerKey!.Accepted[0].Single);
     }
 
     [SkippableFact]

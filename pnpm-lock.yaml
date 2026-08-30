@@ -78,6 +78,9 @@ importers:
       '@vni/design-system':
         specifier: workspace:*
         version: link:../../packages/design-system
+      '@vni/speaking-audio':
+        specifier: workspace:*
+        version: link:../../plugins/speaking-audio
       '@vni/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -219,6 +222,24 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      vitest:
+        specifier: 3.2.7
+        version: 3.2.7(@types/node@22.20.1)(jsdom@27.0.0)
+
+  plugins/speaking-audio:
+    devDependencies:
+      '@vni/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      jsdom:
+        specifier: 27.0.0
+        version: 27.0.0
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vite:
+        specifier: 7.3.6
+        version: 7.3.6(@types/node@22.20.1)
       vitest:
         specifier: 3.2.7
         version: 3.2.7(@types/node@22.20.1)(jsdom@27.0.0)

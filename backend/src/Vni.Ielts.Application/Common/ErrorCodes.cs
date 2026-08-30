@@ -101,6 +101,18 @@ public static class ErrorCodes
     /// <summary>A Speaking upload larger than any real answer could be.</summary>
     public const string RecordingTooLarge = "RECORDING_TOO_LARGE";
 
+    /// <summary>The declared checksum or size does not match the stored object.</summary>
+    public const string RecordingChecksumMismatch = "RECORDING_CHECKSUM_MISMATCH";
+
+    /// <summary>Object storage HEAD did not confirm the upload.</summary>
+    public const string RecordingVerificationFailed = "RECORDING_VERIFICATION_FAILED";
+
+    /// <summary>Presigned upload is not configured for this deployment.</summary>
+    public const string RecordingUploadUnavailable = "RECORDING_UPLOAD_UNAVAILABLE";
+
+    /// <summary>No matching init upload for this complete request.</summary>
+    public const string RecordingUploadNotFound = "RECORDING_UPLOAD_NOT_FOUND";
+
     /// <summary>
     /// A replayed refresh token. The whole family is revoked when this fires —
     /// rotation without reuse detection is not enough on its own, because a

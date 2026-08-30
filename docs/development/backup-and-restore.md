@@ -68,6 +68,26 @@ Versioning lo lỗi soạn thảo; mirror lo mất kho.
 Script **không bao giờ nhận credential trên dòng lệnh** — một tham số là thứ mọi user trên máy đọc được
 qua `ps`. Cả hai đầu cấu hình bằng `mc alias set` trước.
 
+### Content publish rollback (FS9.5)
+
+Xuất bản đề là **bất biến** ở tầng phiên bản: sửa nội dung = phiên bản mới, không ghi đè bản đang
+phục vụ sitting. → [`../ux/cms-content-operations.md`](../ux/cms-content-operations.md) § 3.1
+
+Khi bản vừa xuất bản sai (metadata, asset, import hỏng):
+
+| Bước | Việc | Ghi chú |
+|---|---|---|
+| 1 | **Gỡ xuất bản** bản xấu (`POST …/exams/{examVersionId}/unpublish`, quyền `exam.unpublish`) | Chặn sitting **mới**; sitting đang chạy giữ version id đã gắn — không tự nhảy sang bản khác |
+| 2 | Xuất bản lại bản **trước** còn đúng (cùng quyền `exam.publish` + `ContentPublishGuard`) | Rights registry vẫn phải cho phép `learner-production` |
+| 3 | Nếu object trên bucket `vni-exam-assets` / `vni-packages` bị ghi đè | Khôi phục **phiên bản object** (bucket versioning bật) — không dùng mirror làm máy thời gian cho bản đã bị mirror lan truyền |
+| 4 | Ghi audit | `ExamUnpublished` / publish đã có trong audit log; không ghi URL media dài hạn |
+
+**Không** rollback bằng cách sửa document Mongo của version đã publish. Immutability fingerprint có
+chủ đích; phá nó làm sitting giữa chừng thấy câu hỏi renderer không vẽ được.
+
+Ghi âm Speaking **không** rollback qua versioning — bucket recordings tắt versioning cố ý (PDPL).
+Xóa recording: → [`../security/object-storage-r2-setup.md` § Recording deletion](../security/object-storage-r2-setup.md)
+
 ---
 
 ## Diễn tập khôi phục

@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Exams;
+using Vni.Ielts.Application.Explanations;
+using Vni.Ielts.Application.Practice;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Sessions;
@@ -25,7 +27,8 @@ namespace Vni.Ielts.Api.Endpoints;
 /// exam length is threat `T6`.
 /// </param>
 public sealed record StartSessionRequest(
-    string ExamVersionId, string Mode, string? Module,
+    string? PracticeUnitId = null,
+    string? ExamVersionId = null, string? Mode = null, string? Module = null,
     string? Timing = null, int? TargetSeconds = null);
 
 /// <param name="Running">
@@ -88,6 +91,13 @@ public static class ExamEndpoints
             .WithName("ListExams")
             .WithSummary("The exams this learner can sit");
 
+        app.MapGet("/api/v1/practice-units", ListPracticeUnitsEndpoint)
+            .WithTags("Exams")
+            .WithName("ListPracticeUnits")
+            .WithSummary("Practice and mock units projected from published exam versions")
+            .Produces<PracticeUnitCatalogueView>()
+            .RequireAuthorization();
+
         exams.MapGet("/assets/{**reference}", AssetEndpoint)
             .WithName("GetExamAsset")
             .WithSummary("Listening audio and question images");
@@ -136,6 +146,16 @@ public static class ExamEndpoints
             // — see `UploadRecordingEndpoint`.
             .RequireRateLimiting(RateLimitPolicies.Authentication);
 
+        sessions.MapPost("/{sessionId}/recordings/init", InitRecordingEndpoint)
+            .WithName("InitSpeakingRecording")
+            .WithSummary("Begin a presigned Speaking upload")
+            .RequireRateLimiting(RateLimitPolicies.Authentication);
+
+        sessions.MapPost("/{sessionId}/recordings/{uploadId}/complete", CompleteRecordingEndpoint)
+            .WithName("CompleteSpeakingRecording")
+            .WithSummary("Verify a presigned upload and link it to the answer sheet")
+            .RequireRateLimiting(RateLimitPolicies.Authentication);
+
         sessions.MapPut("/{sessionId}/stopwatch", StopwatchEndpoint)
             .WithName("SetExamStopwatch")
             .WithSummary("Luyện đề only: start or stop the count-up clock");
@@ -163,6 +183,49 @@ public static class ExamEndpoints
             .WithName("GetExamResults")
             .WithSummary("Bands for the sections that have been marked")
             .Produces<SessionResultsView>();
+
+        sessions.MapPost("/{sessionId}/questions/{questionId}/explanation", ExplanationEndpoint)
+            .WithName("RequestPersonalizedExplanation")
+            .WithSummary("On-demand personalized explanation for one Reading/Listening question")
+            .Produces<PersonalizedExplanationView>()
+            .RequireRateLimiting(RateLimitPolicies.Transition);
+    }
+
+    private static async Task<IResult> ListPracticeUnitsEndpoint(
+        string? skill, string? scope, string? variant,
+        ListPracticeUnits handler, CancellationToken ct)
+    {
+        ExamModule? module = null;
+        if (skill is not null)
+        {
+            if (!TryParseModule(skill, out var parsed))
+                return Problem("SKILL_INVALID", "Skill must be reading, listening, writing or speaking.", 400);
+            module = parsed;
+        }
+
+        PracticeScope? parsedScope = scope?.Trim().ToLowerInvariant() switch
+        {
+            null => null,
+            "part" => PracticeScope.Part,
+            "skill" => PracticeScope.Skill,
+            "full-test" => PracticeScope.FullTest,
+            _ => (PracticeScope)(-1),
+        };
+        if (parsedScope is (PracticeScope)(-1))
+            return Problem("SCOPE_INVALID", "Scope must be part, skill or full-test.", 400);
+
+        ExamVariant? parsedVariant = variant?.Trim().ToLowerInvariant() switch
+        {
+            null => null,
+            "academic" => ExamVariant.Academic,
+            "general" => ExamVariant.General,
+            _ => (ExamVariant)(-1),
+        };
+        if (parsedVariant is (ExamVariant)(-1))
+            return Problem("VARIANT_INVALID", "Variant must be academic or general.", 400);
+
+        return Results.Ok(await handler.HandleAsync(
+            new ListPracticeUnitsQuery(module, parsedScope, parsedVariant), ct));
     }
 
     /// <summary>
@@ -232,10 +295,39 @@ public static class ExamEndpoints
     }
 
     private static async Task<IResult> StartEndpoint(
-        ClaimsPrincipal principal, StartSessionRequest request, StartExamSession handler,
+        ClaimsPrincipal principal, StartSessionRequest request, HttpContext http,
+        StartExamSession legacyHandler, StartPracticeUnitSession practiceHandler,
         CancellationToken ct)
     {
         if (principal.UserId() is not { } id) return Results.Unauthorized();
+
+        if (!string.IsNullOrWhiteSpace(request.PracticeUnitId))
+        {
+            if (request.ExamVersionId is not null || request.Mode is not null
+                || request.Module is not null || request.Timing is not null)
+                return Problem(
+                    "PRACTICE_UNIT_CONFLICT",
+                    "A practiceUnitId resolves exam, scope, module, parts and timing; do not send overrides.",
+                    StatusCodes.Status400BadRequest);
+
+            try
+            {
+                var view = await practiceHandler.HandleAsync(
+                    new StartPracticeUnitSessionCommand(
+                        new UserId(id), request.PracticeUnitId, request.TargetSeconds), ct);
+                return Results.Created($"/api/v1/sessions/{view.SessionId}", view);
+            }
+            catch (SessionNotFoundException)
+            {
+                return Problem("PRACTICE_UNIT_NOT_FOUND", "No such available practice unit.", 404);
+            }
+        }
+
+        // Compatibility window for pre-PracticeUnit clients. This path remains functional but
+        // advertises a finite sunset on every response so its removal cannot be silent.
+        http.Response.Headers["Deprecation"] = "true";
+        http.Response.Headers["Sunset"] = "Wed, 31 Dec 2026 23:59:59 GMT";
+        http.Response.Headers.Link = "</api/v1/practice-units>; rel=successor-version";
 
         if (!TryParseMode(request.Mode, out var mode))
             return Problem("MODE_INVALID", "Mode must be 'full' or 'single'.", StatusCodes.Status400BadRequest);
@@ -280,9 +372,9 @@ public static class ExamEndpoints
 
         try
         {
-            var view = await handler.HandleAsync(
+            var view = await legacyHandler.HandleAsync(
                 new StartExamSessionCommand(
-                    new UserId(id), new ExamVersionId(request.ExamVersionId), mode, module,
+                    new UserId(id), new ExamVersionId(request.ExamVersionId!), mode, module,
                     timing,
                     // Silently dropped for a deadlined sitting rather than
                     // refused: a client sending both is confused, not hostile,
@@ -647,6 +739,159 @@ public static class ExamEndpoints
         }
     }
 
+    private sealed record InitRecordingRequest(
+        string QuestionId, string ContentType, long SizeBytes, string ChecksumSha256);
+
+    private sealed record CompleteRecordingRequest(long SizeBytes, string ChecksumSha256);
+
+    private static async Task<IResult> InitRecordingEndpoint(
+        string sessionId,
+        InitRecordingRequest body,
+        ClaimsPrincipal principal,
+        InitSpeakingRecording handler,
+        CancellationToken ct)
+    {
+        if (principal.UserId() is not { } id) return Results.Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(body.QuestionId)
+            || string.IsNullOrWhiteSpace(body.ContentType)
+            || body.SizeBytes <= 0)
+        {
+            return Problem(
+                ErrorCodes.ValidationFailed,
+                "Init needs questionId, contentType and sizeBytes.",
+                StatusCodes.Status400BadRequest);
+        }
+
+        try
+        {
+            var result = await handler.HandleAsync(
+                new InitSpeakingRecordingCommand(
+                    new UserId(id),
+                    new ExamSessionId(sessionId),
+                    body.QuestionId,
+                    body.ContentType,
+                    body.SizeBytes,
+                    body.ChecksumSha256),
+                ct);
+
+            return Results.Ok(new
+            {
+                result.UploadId,
+                result.RecordingId,
+                uploadUrl = result.UploadUrl?.ToString(),
+                expiresAt = result.ExpiresAt,
+                contentType = result.ContentType,
+                uploadMode = result.UploadMode,
+                multipartThresholdBytes = result.MultipartThresholdBytes,
+            });
+        }
+        catch (SessionNotFoundException) { return SessionMissing(); }
+        catch (SessionExpiredException) { return Expired(); }
+        catch (SectionNotOpenException e) { return WrongSection(e); }
+        catch (SessionNotInProgressException e)
+        {
+            return Problem(
+                ErrorCodes.SessionNotInProgress,
+                $"This sitting is {e.Status}.",
+                StatusCodes.Status409Conflict);
+        }
+        catch (SpeakingRecordingUploadUnavailableException)
+        {
+            return Problem(
+                ErrorCodes.RecordingUploadUnavailable,
+                "Presigned Speaking upload is not configured.",
+                StatusCodes.Status503ServiceUnavailable);
+        }
+        catch (ArgumentException e)
+        {
+            return Problem(ErrorCodes.ValidationFailed, e.Message, StatusCodes.Status400BadRequest);
+        }
+    }
+
+    private static async Task<IResult> CompleteRecordingEndpoint(
+        string sessionId,
+        string uploadId,
+        CompleteRecordingRequest body,
+        ClaimsPrincipal principal,
+        CompleteSpeakingRecording handler,
+        CancellationToken ct)
+    {
+        if (principal.UserId() is not { } id) return Results.Unauthorized();
+
+        if (body.SizeBytes <= 0 || string.IsNullOrWhiteSpace(body.ChecksumSha256))
+        {
+            return Problem(
+                ErrorCodes.ValidationFailed,
+                "Complete needs sizeBytes and checksumSha256.",
+                StatusCodes.Status400BadRequest);
+        }
+
+        try
+        {
+            var recordingId = await handler.HandleAsync(
+                new CompleteSpeakingRecordingCommand(
+                    new UserId(id),
+                    new ExamSessionId(sessionId),
+                    uploadId,
+                    body.SizeBytes,
+                    body.ChecksumSha256),
+                ct);
+
+            return Results.Ok(new { recordingId });
+        }
+        catch (SessionNotFoundException) { return SessionMissing(); }
+        catch (SessionExpiredException) { return Expired(); }
+        catch (SectionNotOpenException e) { return WrongSection(e); }
+        catch (SectionSheetClosedException)
+        {
+            return Problem(
+                ErrorCodes.SectionNotOpen,
+                "The Speaking section closed before this recording could be filed, so it "
+                + "will not be marked. Nothing already submitted is affected.",
+                StatusCodes.Status409Conflict);
+        }
+        catch (SessionNotInProgressException e)
+        {
+            return Problem(
+                ErrorCodes.SessionNotInProgress,
+                $"This sitting is {e.Status}.",
+                StatusCodes.Status409Conflict);
+        }
+        catch (SpeakingRecordingUploadUnavailableException)
+        {
+            return Problem(
+                ErrorCodes.RecordingUploadUnavailable,
+                "Presigned Speaking upload is not configured.",
+                StatusCodes.Status503ServiceUnavailable);
+        }
+        catch (SpeakingRecordingUploadNotFoundException)
+        {
+            return Problem(
+                ErrorCodes.RecordingUploadNotFound,
+                "No such Speaking recording upload.",
+                StatusCodes.Status404NotFound);
+        }
+        catch (SpeakingRecordingChecksumMismatchException)
+        {
+            return Problem(
+                ErrorCodes.RecordingChecksumMismatch,
+                "The declared checksum or size does not match the upload session.",
+                StatusCodes.Status409Conflict);
+        }
+        catch (SpeakingRecordingVerificationFailedException)
+        {
+            return Problem(
+                ErrorCodes.RecordingVerificationFailed,
+                "The uploaded recording could not be verified.",
+                StatusCodes.Status409Conflict);
+        }
+        catch (ArgumentException e)
+        {
+            return Problem(ErrorCodes.ValidationFailed, e.Message, StatusCodes.Status400BadRequest);
+        }
+    }
+
     /// <summary>
     /// 12 MB. A two-minute Part 2 answer in Opus is well under 2 MB; the
     /// headroom is for a browser that falls back to an uncompressed format.
@@ -777,6 +1022,37 @@ public static class ExamEndpoints
                 new GetSessionResultsQuery(new UserId(id), new ExamSessionId(sessionId)), ct));
         }
         catch (SessionNotFoundException) { return SessionMissing(); }
+    }
+
+    private static async Task<IResult> ExplanationEndpoint(
+        string sessionId,
+        string questionId,
+        HttpContext http,
+        ClaimsPrincipal principal,
+        RequestPersonalizedExplanation handler,
+        CancellationToken ct)
+    {
+        if (principal.UserId() is not { } id) return Results.Unauthorized();
+
+        var operationId = http.Request.Headers[IdempotencyMiddleware.HeaderName].FirstOrDefault();
+
+        try
+        {
+            var view = await handler.HandleAsync(
+                new RequestPersonalizedExplanationCommand(
+                    new UserId(id),
+                    new ExamSessionId(sessionId),
+                    questionId,
+                    operationId ?? string.Empty),
+                ct);
+
+            return Results.Ok(Committed(http, view));
+        }
+        catch (SessionNotFoundException) { return SessionMissing(); }
+        catch (InvalidOperationException e) when (e.Message.StartsWith("EXPLANATION_", StringComparison.Ordinal))
+        {
+            return Problem(e.Message, e.Message, StatusCodes.Status409Conflict);
+        }
     }
 
     /// <summary>404, not 403 — see <c>SessionProjection.LoadOwnedAsync</c>.</summary>

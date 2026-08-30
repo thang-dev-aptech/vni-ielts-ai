@@ -3,6 +3,15 @@ import { ApiError } from '../../lib/api.js';
 import { useAlive } from '../../lib/useAlive.js';
 import { saveAnswers, type CurrentSectionView } from './examApi.js';
 import { acknowledge, forgetSection, remember, restore } from './patchJournal.js';
+import {
+  collapseSlotValuesToQuestions,
+  diffSlotValues,
+  expandQuestionValueToSlots,
+  findQuestion,
+  normalizeStoredSequences,
+  questionHasPendingSlots,
+  storageKeysForQuestion,
+} from './slotAnswers.js';
 
 /**
  * The answer sheet of one open section, and everything that gets it to the
@@ -291,7 +300,7 @@ export function useAnswerSheet({
   const latestSheet = useRef<Record<string, string | null>>({});
 
   /**
-   * The questions edited since the last save the server acknowledged.
+   * The response slots edited since the last save the server acknowledged.
    *
    * <b>This, and not the sheet, is what an autosave carries.</b> Sending the
    * whole sheet meant sending blanks, and a blank cannot say whether the
@@ -311,11 +320,11 @@ export function useAnswerSheet({
   const pendingChanges = useRef<Record<string, string | null>>({});
 
   /*
-   * ── Per-question ordering tokens ───────────────────────────────────────
+   * ── Per-slot ordering tokens ───────────────────────────────────────────
    *
    * <b>The write that arrives last is not the edit that came last.</b>
    *
-   * Two writes for one question can be reordered by anything between the
+   * Two writes for one slot can be reordered by anything between the
    * keyboard and the database — a retry on a changed network, a proxy, a
    * request that stalled while its successor went straight through, a second
    * tab. Without an order the server keeps whichever it applied last, which is
@@ -440,13 +449,13 @@ export function useAnswerSheet({
 
       setSave('sending');
       try {
-        // Only the tokens for what is being sent. A map of every question the
-        // page has ever touched would grow for the length of the section and
-        // put the whole history on the wire every 1.2 seconds.
+        // Only the tokens for what is being sent. A map of every slot the page
+        // has ever touched would grow for the length of the section and put the
+        // whole history on the wire every 1.2 seconds.
         const sendingSequences: Record<string, number> = {};
-        for (const questionId of Object.keys(sending)) {
-          const seq = sequences.current[questionId];
-          if (seq !== undefined) sendingSequences[questionId] = seq;
+        for (const slotId of Object.keys(sending)) {
+          const seq = sequences.current[slotId];
+          if (seq !== undefined) sendingSequences[slotId] = seq;
         }
 
         const saved = await saveAnswers(
@@ -472,9 +481,9 @@ export function useAnswerSheet({
          * answer before "Nộp bài", which is the one a learner goes back to fix.
          */
         const outstanding: Record<string, string | null> = {};
-        for (const [questionId, value] of Object.entries(pendingChanges.current)) {
-          if (!(questionId in sending) || !Object.is(sending[questionId], value)) {
-            outstanding[questionId] = value;
+        for (const [slotId, value] of Object.entries(pendingChanges.current)) {
+          if (!(slotId in sending) || !Object.is(sending[slotId], value)) {
+            outstanding[slotId] = value;
           }
         }
         pendingChanges.current = outstanding;
@@ -491,8 +500,8 @@ export function useAnswerSheet({
          */
         if (journalKey.current !== null) {
           const key = journalKey.current;
-          for (const questionId of Object.keys(sendingSequences)) {
-            void acknowledge(key.sessionId, key.module, questionId, sendingSequences[questionId]!);
+          for (const slotId of Object.keys(sendingSequences)) {
+            void acknowledge(key.sessionId, key.module, slotId, sendingSequences[slotId]!);
           }
         }
 
@@ -539,10 +548,12 @@ export function useAnswerSheet({
          */
         const theirs = saved?.sequences;
         if (theirs !== undefined) {
-          for (const [questionId, seq] of Object.entries(theirs)) {
+          for (const [slotId, seq] of Object.entries(
+            normalizeStoredSequences(section, theirs),
+          )) {
             observe(seq);
-            if (questionId in pendingChanges.current) continue;
-            sequences.current[questionId] = seq;
+            if (slotId in pendingChanges.current) continue;
+            sequences.current[slotId] = seq;
           }
         }
 
@@ -559,7 +570,10 @@ export function useAnswerSheet({
             // stop `answers` being a map of what is on screen — and force a
             // re-render on every autosave for a value nothing draws.
             if (!mine.has(questionId)) continue;
-            if (questionId in pendingChanges.current) continue;
+            const question = findQuestion(section, questionId);
+            if (question !== undefined && questionHasPendingSlots(question, pendingChanges.current)) {
+              continue;
+            }
             if (Object.is(next[questionId], value)) continue;
             next[questionId] = value;
             absorbed = true;
@@ -630,7 +644,11 @@ export function useAnswerSheet({
            */
           const named = (caught.problem.errors ?? [])
             .map((error) => error.path)
-            .filter((questionId) => questionId in sending);
+            .filter((questionId) => {
+              const question = findQuestion(section, questionId);
+              if (question === undefined) return false;
+              return storageKeysForQuestion(question).some((slotId) => slotId in sending);
+            });
 
           if (named.length === 0) {
             // Nothing to keep and nothing to retry. Same shape as a terminal
@@ -651,7 +669,12 @@ export function useAnswerSheet({
               caught.problem.errors?.find((error) => error.path === questionId)?.message ??
               caught.problem.detail;
 
-            if (Object.is(kept[questionId], sending[questionId])) delete kept[questionId];
+            const question = findQuestion(section, questionId);
+            if (question === undefined) continue;
+
+            for (const slotId of storageKeysForQuestion(question)) {
+              if (Object.is(kept[slotId], sending[slotId])) delete kept[slotId];
+            }
           }
 
           pendingChanges.current = kept;
@@ -664,7 +687,11 @@ export function useAnswerSheet({
           if (journalKey.current !== null) {
             const key = journalKey.current;
             for (const questionId of named) {
-              void acknowledge(key.sessionId, key.module, questionId, Number.MAX_SAFE_INTEGER);
+              const question = findQuestion(section, questionId);
+              if (question === undefined) continue;
+              for (const slotId of storageKeysForQuestion(question)) {
+                void acknowledge(key.sessionId, key.module, slotId, Number.MAX_SAFE_INTEGER);
+              }
             }
           }
 
@@ -838,6 +865,9 @@ export function useAnswerSheet({
    * re-run in production, which is the version nobody would find.
    */
   const change = useCallback((questionId: string, value: string | null) => {
+    const question = findQuestion(section, questionId);
+    if (question === undefined) return;
+
     /*
      * <b>Built from the mirror, not from the `answers` closure.</b>
      *
@@ -849,6 +879,10 @@ export function useAnswerSheet({
      * offer the merged sheet again. The learner would watch the other device's
      * answer appear and then vanish on their next keypress, for good.
      */
+    const previousSlots = expandQuestionValueToSlots(question, latestSheet.current[questionId] ?? null);
+    const nextSlots = expandQuestionValueToSlots(question, value);
+    const slotChanges = diffSlotValues(previousSlots, nextSlots);
+
     const next = { ...latestSheet.current, [questionId]: value };
     setAnswers(next);
 
@@ -861,33 +895,32 @@ export function useAnswerSheet({
      * the previous draft that it no longer speaks for the current one.
      */
     latestSheet.current = next;
-    pendingChanges.current = { ...pendingChanges.current, [questionId]: value };
 
-    // One token per edit, monotonic across the section. Re-typing the same
-    // question issues a higher one, which is what makes the later keystroke win
-    // however the two requests are ordered on the way out.
-    const sequence = nextSequence.current++;
-    sequences.current = { ...sequences.current, [questionId]: sequence };
+    for (const [slotId, slotValue] of Object.entries(slotChanges)) {
+      pendingChanges.current[slotId] = slotValue;
 
-    /*
-     * <b>To disk before it is on the wire.</b> The 1.2 s debounce is 1.2 s in
-     * which the only copy of this keystroke is in memory, and the whole point
-     * of the journal is that a tab which goes away in that window does not take
-     * the answer with it.
-     *
-     * Not awaited, and the failure is not reported: a keystroke must not wait
-     * on a disk write, and a journal that cannot be written is a journal that
-     * is not there — the exam carries on exactly as it did before this existed.
-     */
-    if (journalKey.current !== null) {
-      void remember({
-        sessionId: journalKey.current.sessionId,
-        module: journalKey.current.module,
-        questionId,
-        value,
-        sequence,
-        savedAt: Date.now(),
-      });
+      // One token per slot edit, monotonic across the section. Re-typing the
+      // same slot issues a higher one, which is what makes the later keystroke
+      // win however the two requests are ordered on the way out.
+      const sequence = nextSequence.current++;
+      sequences.current[slotId] = sequence;
+
+      /*
+       * <b>To disk before it is on the wire.</b> The 1.2 s debounce is 1.2 s in
+       * which the only copy of this keystroke is in memory, and the whole point
+       * of the journal is that a tab which goes away in that window does not take
+       * the answer with it.
+       */
+      if (journalKey.current !== null) {
+        void remember({
+          sessionId: journalKey.current.sessionId,
+          module: journalKey.current.module,
+          responseSlotId: slotId,
+          value: slotValue,
+          sequence,
+          savedAt: Date.now(),
+        });
+      }
     }
 
     draftGeneration.current += 1;
@@ -908,7 +941,7 @@ export function useAnswerSheet({
 
     if (timer.current !== null) clearTimeout(timer.current);
     timer.current = setTimeout(() => void flushRef.current(), AUTOSAVE_MS);
-  }, []);
+  }, [section]);
 
   /**
    * The sitting this sheet belongs to, for the journal's key.
@@ -1010,19 +1043,35 @@ export function useAnswerSheet({
     let cancelled = false;
 
     void (async () => {
+      const stored = normalizeStoredSequences(section, section.answerSequences ?? {});
+      for (const [slotId, seq] of Object.entries(stored)) {
+        observe(seq);
+        if (!(slotId in pendingChanges.current)) sequences.current[slotId] = seq;
+      }
+
       const held = await restore(key.sessionId, key.module);
       if (cancelled || held.length === 0) return;
 
-      const stored = section.answerSequences ?? {};
       const next = { ...latestSheet.current };
       let restoredAny = false;
 
       for (const entry of held) {
-        if (entry.sequence <= (stored[entry.questionId] ?? -1)) continue;
+        if (entry.sequence <= (stored[entry.responseSlotId] ?? -1)) continue;
 
-        next[entry.questionId] = entry.value;
-        pendingChanges.current[entry.questionId] = entry.value;
-        sequences.current[entry.questionId] = entry.sequence;
+        const question = section.parts
+          .flatMap((part) => part.questions)
+          .find((candidate) => storageKeysForQuestion(candidate).includes(entry.responseSlotId));
+
+        if (question === undefined) continue;
+
+        const slotValues = {
+          ...expandQuestionValueToSlots(question, next[question.id] ?? null),
+          [entry.responseSlotId]: entry.value,
+        };
+        next[question.id] = collapseSlotValuesToQuestions(section, slotValues)[question.id] ?? null;
+
+        pendingChanges.current[entry.responseSlotId] = entry.value;
+        sequences.current[entry.responseSlotId] = entry.sequence;
         observe(entry.sequence);
         restoredAny = true;
       }

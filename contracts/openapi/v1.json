@@ -32,6 +32,58 @@
         ]
       }
     },
+    "/api/v1/practice-units": {
+      "get": {
+        "tags": [
+          "Exams"
+        ],
+        "summary": "Practice and mock units projected from published exam versions",
+        "operationId": "ListPracticeUnits",
+        "parameters": [
+          {
+            "name": "skill",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "variant",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeUnitCatalogueView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/health/live": {
       "get": {
         "tags": [
@@ -873,6 +925,104 @@
         ]
       }
     },
+    "/api/v1/sessions/{sessionId}/recordings/init": {
+      "post": {
+        "tags": [
+          "Exams"
+        ],
+        "summary": "Begin a presigned Speaking upload",
+        "operationId": "InitSpeakingRecording",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitRecordingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/sessions/{sessionId}/recordings/{uploadId}/complete": {
+      "post": {
+        "tags": [
+          "Exams"
+        ],
+        "summary": "Verify a presigned upload and link it to the answer sheet",
+        "operationId": "CompleteSpeakingRecording",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uploadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteRecordingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/sessions/{sessionId}/stopwatch": {
       "put": {
         "tags": [
@@ -1071,6 +1221,56 @@
           },
           "401": {
             "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/sessions/{sessionId}/questions/{questionId}/explanation": {
+      "post": {
+        "tags": [
+          "Exams"
+        ],
+        "summary": "On-demand personalized explanation for one Reading/Listening question",
+        "operationId": "RequestPersonalizedExplanation",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalizedExplanationView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
           }
         },
         "security": [
@@ -1612,6 +1812,21 @@
           }
         }
       },
+      "AudioPlaybackPolicyView": {
+        "required": [
+          "playOnce",
+          "allowSeek"
+        ],
+        "type": "object",
+        "properties": {
+          "playOnce": {
+            "type": "boolean"
+          },
+          "allowSeek": {
+            "type": "boolean"
+          }
+        }
+      },
       "ChangeEmailRequest": {
         "required": [
           "email"
@@ -1635,6 +1850,22 @@
             "format": "int32"
           },
           "typed": {
+            "type": "string"
+          }
+        }
+      },
+      "CompleteRecordingRequest": {
+        "required": [
+          "sizeBytes",
+          "checksumSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "checksumSha256": {
             "type": "string"
           }
         }
@@ -1709,6 +1940,7 @@
       "CurrentSectionView": {
         "required": [
           "module",
+          "partId",
           "startedAt",
           "deadlineAt",
           "remainingSeconds",
@@ -1720,12 +1952,19 @@
           "answerRevision",
           "answerSequences",
           "speakingTiming",
-          "transferSeconds"
+          "transferSeconds",
+          "audioPlayback"
         ],
         "type": "object",
         "properties": {
           "module": {
             "type": "string"
+          },
+          "partId": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "startedAt": {
             "type": "string",
@@ -1794,6 +2033,45 @@
               "integer"
             ],
             "format": "int32"
+          },
+          "audioPlayback": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AudioPlaybackPolicyView"
+              }
+            ]
+          }
+        }
+      },
+      "ExplanationContentView": {
+        "required": [
+          "correctAnswer",
+          "shortReason",
+          "evidence",
+          "commonMistake"
+        ],
+        "type": "object",
+        "properties": {
+          "correctAnswer": {
+            "type": "string"
+          },
+          "shortReason": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "commonMistake": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1804,6 +2082,30 @@
         "type": "object",
         "properties": {
           "email": {
+            "type": "string"
+          }
+        }
+      },
+      "InitRecordingRequest": {
+        "required": [
+          "questionId",
+          "contentType",
+          "sizeBytes",
+          "checksumSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "checksumSha256": {
             "type": "string"
           }
         }
@@ -1843,6 +2145,12 @@
             "format": "int32"
           },
           "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "code": {
             "type": [
               "null",
               "string"
@@ -1936,6 +2244,152 @@
           }
         }
       },
+      "PersonalizedExplanationView": {
+        "required": [
+          "questionId",
+          "state",
+          "attempts",
+          "reason",
+          "explanation"
+        ],
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "explanation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ExplanationContentView"
+              }
+            ]
+          }
+        }
+      },
+      "PracticeUnitCatalogueView": {
+        "required": [
+          "units"
+        ],
+        "type": "object",
+        "properties": {
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PracticeUnitView"
+            }
+          }
+        }
+      },
+      "PracticeUnitView": {
+        "required": [
+          "id",
+          "examVersionId",
+          "title",
+          "variant",
+          "runKind",
+          "scope",
+          "module",
+          "partIds",
+          "slotCount",
+          "durationSeconds",
+          "available",
+          "scoreCapability"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "examVersionId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "variant": {
+            "type": "string"
+          },
+          "runKind": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "module": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "partIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "slotCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "scoreCapability": {
+            "type": "string"
+          }
+        }
+      },
+      "QuestionExplanationStatusView": {
+        "required": [
+          "questionId",
+          "module",
+          "state",
+          "attempts",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "string"
+          },
+          "module": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "QuestionGroupView": {
         "required": [
           "id",
@@ -2013,6 +2467,31 @@
           },
           "isCorrect": {
             "type": "boolean"
+          },
+          "correctAnswer": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "slots": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SlotResultView"
+            }
+          },
+          "canonicalExplanation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ExplanationContentView"
+              }
+            ]
           }
         }
       },
@@ -2024,7 +2503,8 @@
           "prompt",
           "options",
           "maxWords",
-          "group"
+          "group",
+          "slots"
         ],
         "type": "object",
         "properties": {
@@ -2066,6 +2546,12 @@
                 "$ref": "#/components/schemas/QuestionGroupView"
               }
             ]
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResponseSlotView"
+            }
           }
         }
       },
@@ -2111,6 +2597,22 @@
           },
           "newPassword": {
             "type": "string"
+          }
+        }
+      },
+      "ResponseSlotView": {
+        "required": [
+          "id",
+          "number"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -2199,7 +2701,9 @@
           "module",
           "rawScore",
           "maxScore",
+          "accuracy",
           "band",
+          "scoreLabel",
           "questions"
         ],
         "type": "object",
@@ -2215,9 +2719,22 @@
             "type": "integer",
             "format": "int32"
           },
-          "band": {
-            "type": "number",
+          "accuracy": {
+            "type": [
+              "null",
+              "number"
+            ],
             "format": "double"
+          },
+          "band": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "scoreLabel": {
+            "type": "string"
           },
           "questions": {
             "type": "array",
@@ -2237,6 +2754,7 @@
           "sections",
           "markings",
           "markingStatuses",
+          "explanationStatuses",
           "overallBand"
         ],
         "type": "object",
@@ -2278,6 +2796,12 @@
               "$ref": "#/components/schemas/MarkingStatusView"
             }
           },
+          "explanationStatuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionExplanationStatusView"
+            }
+          },
           "overallBand": {
             "type": [
               "null",
@@ -2292,11 +2816,15 @@
           "sessionId",
           "examVersionId",
           "examTitle",
+          "practiceUnitId",
+          "scope",
+          "completedPartIds",
           "mode",
           "status",
           "startedAt",
           "serverNow",
           "completedModules",
+          "moduleSequence",
           "current"
         ],
         "type": "object",
@@ -2309,6 +2837,24 @@
           },
           "examTitle": {
             "type": "string"
+          },
+          "practiceUnitId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "scope": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "completedPartIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "mode": {
             "type": "string"
@@ -2325,6 +2871,12 @@
             "format": "date-time"
           },
           "completedModules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "moduleSequence": {
             "type": "array",
             "items": {
               "type": "string"
@@ -2374,6 +2926,40 @@
           }
         }
       },
+      "SlotResultView": {
+        "required": [
+          "slotId",
+          "number",
+          "submitted",
+          "status",
+          "correctAnswer"
+        ],
+        "type": "object",
+        "properties": {
+          "slotId": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "submitted": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "correctAnswer": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SpeakingPartTimingView": {
         "required": [
           "part",
@@ -2397,18 +2983,25 @@
         }
       },
       "StartSessionRequest": {
-        "required": [
-          "examVersionId",
-          "mode",
-          "module"
-        ],
         "type": "object",
         "properties": {
+          "practiceUnitId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "examVersionId": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "mode": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "module": {
             "type": [
@@ -2497,13 +3090,13 @@
       "name": "Identity"
     },
     {
+      "name": "Exams"
+    },
+    {
       "name": "Ops"
     },
     {
       "name": "Auth"
-    },
-    {
-      "name": "Exams"
     },
     {
       "name": "Dictation"

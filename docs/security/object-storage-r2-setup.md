@@ -82,6 +82,21 @@ In the Cloudflare dashboard, **R2 → Manage R2 API Tokens → Create API token*
 Losing them costs a token rotation and nothing else, which is the point of keeping them out of every
 durable place except the deployment's own secret store.
 
+### Key rotation (FS9.5)
+
+Same shape as AI provider keys — create the replacement first, cut over, then revoke.
+
+1. Cloudflare dashboard → **R2 → Manage R2 API Tokens → Create API token** with the same narrow
+   scope (Object Read & Write, one recordings bucket).
+2. Store Access Key ID + Secret Access Key in the password manager, then in the environment as
+   `ObjectStorage__AccessKey` / `ObjectStorage__SecretKey` (API and worker).
+3. Restart both processes. Confirm `/health/ready` object-storage check is healthy — a wrong secret
+   fails readiness rather than hanging (`ObjectStorageHealthTests`).
+4. Revoke the previous R2 API token. Treat any token that appeared in chat, a ticket, or a log line
+   as compromised.
+5. Rotate authored-content bucket credentials the same way when those tokens are shared; do not
+   reuse a recordings token on `vni-exam-assets`.
+
 ---
 
 ## 4 · Public access must stay off
@@ -150,6 +165,31 @@ convenient — a version history is the last thing a recording should have. It i
 it does **not** carry to the authored-content buckets, three of which are versioned in the local
 stack for a reason, and moving those to R2 would silently drop that protection. Confirm before
 migrating anything other than recordings.
+
+### Recording deletion (FS9.5)
+
+Deletion must be **final** for learner voice. Versioning is off on this bucket so a delete is not
+undone by an object history. Three paths, none of which paste a URL into chat or an audit field:
+
+| Trigger | What runs | Notes |
+|---|---|---|
+| Bucket lifecycle | Expire objects after `ObjectStorage:SpeakingRecordingRetentionDays` | Same `N` in config and in the R2 rule; **no default** until the owner sets it (`G-11`) |
+| Account / attempt deletion | Application deletes metadata then object via the S3 port (`ISpeakingRecordingStore.DeleteAsync`) | Must reach object storage, not only Mongo — PDPL |
+| Orphan sweep | `RecordingReconciliation` removes objects past an age bound with no sheet link | Age bound is configuration; do not invent a production default here |
+
+**Operator checklist when a learner exercises deletion rights**
+
+1. Confirm the account/attempt deletion job completed (API audit + worker logs) — correlation id only,
+   never the audio URL.
+2. HEAD the object key via the server tooling / signed admin path if one exists; expect not found.
+   Do not open a public `r2.dev` URL (that switch must stay off — §4).
+3. Mirror destination (`backup-objects.sh`) uses `--remove`, so a deliberate delete propagates; if
+   mirror was paused, run it or delete the copy manually on the backup alias.
+4. Provider copies (ASR) are out of scope until a voice provider is selected (`V1`); when one exists,
+   deletion runbooks must include that processor.
+
+Incomplete multipart parts are not objects — lifecycle rule 2 (§6) is what makes retention true for
+abandoned uploads.
 
 ---
 

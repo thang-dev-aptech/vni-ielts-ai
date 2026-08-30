@@ -1,5 +1,16 @@
 import { expect, test } from '@playwright/test';
-import { API, getSession, registerLearner, signIn, startFullTest, storedSession } from './harness';
+import {
+  API,
+  findSyntheticPartUnit,
+  getSession,
+  listPracticeUnits,
+  registerLearner,
+  showPracticeQuestions,
+  signIn,
+  startFullTest,
+  startPracticeUnit,
+  storedSession,
+} from './harness';
 
 const READING_Q1 = /What did the survey team measure/;
 
@@ -63,6 +74,41 @@ test.describe('races', () => {
       'The earlier answer overwrote the later one — the learner’s correction was lost ' +
         'while both saves reported success.',
     ).toBe('river depth');
+  });
+
+  test('on a practice sitting the answer typed last wins when saves arrive out of order', async ({
+    page,
+    request,
+  }) => {
+    const learner = await registerLearner(request);
+    const units = await listPracticeUnits(request, learner.session.accessToken, {
+      skill: 'reading',
+      scope: 'part',
+    });
+    const unit = findSyntheticPartUnit(units, 'reading');
+    const sitting = await startPracticeUnit(request, learner.session.accessToken, unit.id);
+
+    await signIn(page, learner, `/students/practice/${sitting.sessionId}`);
+    await showPracticeQuestions(page);
+
+    const answer = page.getByRole('textbox', { name: READING_Q1 });
+    await expect(answer).toBeVisible();
+
+    let held = 0;
+    await page.route(`${API}/api/v1/sessions/*/answers`, async (route) => {
+      held += 1;
+      if (held === 1) await new Promise((resolve) => setTimeout(resolve, 4_000));
+      await route.continue();
+    });
+
+    await answer.fill('the wrong one');
+    await page.waitForTimeout(2_000);
+    await answer.fill('river depth');
+
+    await expect(page.locator('.save-chip')).toHaveClass(/is-saved/, { timeout: 20_000 });
+
+    const stored = await getSession(request, learner.session.accessToken, sitting.sessionId);
+    expect(stored.current.answers['syn-r-1']).toBe('river depth');
   });
 
   /**

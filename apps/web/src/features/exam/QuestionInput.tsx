@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useI18n } from '../../i18n/index.js';
 import type { QuestionView } from './examApi.js';
 
@@ -23,12 +24,19 @@ const YES_NO_NOT_GIVEN = ['YES', 'NO', 'NOT GIVEN'];
 /** Multiple-select joins its picks with a pipe — a character no answer contains. */
 const MULTI_SEPARATOR = '|';
 
+export interface BankInteraction {
+  selectedKey: string | null;
+  onSelect: (key: string) => void;
+  onAssigned: () => void;
+}
+
 export function QuestionInput({
   question,
   value,
   disabled,
   labelledBy,
   takenBy,
+  bankInteraction,
   onChange,
 }: {
   question: QuestionView;
@@ -47,10 +55,13 @@ export function QuestionInput({
    * rubric is a scoring rule, and the scorer is what applies it.
    */
   takenBy?: Record<string, number>;
+  /** Shared matching/labelling bank owned by the surrounding question group. */
+  bankInteraction?: BankInteraction;
   onChange: (next: string | null) => void;
 }) {
   const { t } = useI18n();
   const name = `q-${question.id}`;
+  const [localBankSelection, setLocalBankSelection] = useState<string | null>(null);
 
   /*
    * <b>Named by its own question, or by nothing useful.</b>
@@ -94,28 +105,85 @@ export function QuestionInput({
     );
   }
 
-  /*
-   * <b>Matching and labelling are a bank, and a bank is a select.</b>
-   *
-   * They fell through to the radio branch below, which is right for four
-   * options and wrong for ten: a heading-matching set is six questions against
-   * one bank of ten, so the radio rendering drew sixty controls repeating the
-   * same ten headings. It filled a screen, it buried the passage, and choosing
-   * an answer meant reading the whole bank again each time.
-   *
-   * A native `<select>` is also the control that already works on a phone,
-   * with a keyboard, and with a screen reader, without this file implementing
-   * any of it.
-   */
+  /* Matching/labelling supports three equivalent paths: drag a bank item onto
+     the target, tap/click a bank item and then the target, or use the native
+     select. The select remains the robust platform fallback; it is no longer
+     the only experience. */
   if (question.type === 'matching' || question.type === 'labelling') {
+    const selectedKey = bankInteraction?.selectedKey ?? localBankSelection;
+    const selectedOption = question.options.find((option) => option.key === selectedKey) ?? null;
+    const current = question.options.find((option) => option.key === value) ?? null;
+    const pick = bankInteraction?.onSelect ?? setLocalBankSelection;
+    const assigned = bankInteraction?.onAssigned ?? (() => setLocalBankSelection(null));
+    const assign = (key: string) => {
+      if (!question.options.some((option) => option.key === key)) return;
+      onChange(key);
+      assigned();
+    };
+
     return (
       <div className="q-bank">
+        {bankInteraction === undefined && (
+          <ul className="q-inline-bank" aria-label={t('exam.answerBank')}>
+            {question.options.map((option) => (
+              <li key={option.key}>
+                <button
+                  type="button"
+                  className="q-bank-token"
+                  draggable={!disabled}
+                  disabled={disabled}
+                  aria-pressed={selectedKey === option.key}
+                  onClick={() => pick(option.key)}
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = 'copy';
+                    event.dataTransfer.setData('text/plain', option.key);
+                    pick(option.key);
+                  }}
+                >
+                  <b>{option.key}</b> {option.text}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <button
+          type="button"
+          className={`q-drop-target${current !== null ? ' is-filled' : ''}`}
+          disabled={disabled}
+          {...naming}
+          aria-describedby={`${name}-bank-state`}
+          onClick={() => {
+            if (selectedOption !== null) assign(selectedOption.key);
+          }}
+          onDragOver={(event) => {
+            if (!disabled) event.preventDefault();
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            assign(event.dataTransfer.getData('text/plain'));
+          }}
+        >
+          {current === null
+            ? selectedOption === null
+              ? t('exam.dropAnswer')
+              : t('exam.assignAnswer', { key: selectedOption.key })
+            : `${current.key} — ${current.text}`}
+        </button>
+        <span className="sr-only" id={`${name}-bank-state`} aria-live="polite">
+          {current === null ? t('exam.dropAnswer') : `${current.key} — ${current.text}`}
+        </span>
+
         <select
           className="q-bank-select"
           value={value ?? ''}
           disabled={disabled}
           {...naming}
-          onChange={(event) => onChange(event.target.value === '' ? null : event.target.value)}
+          onChange={(event) => {
+            const next = event.target.value;
+            if (next === '') onChange(null);
+            else assign(next);
+          }}
         >
           <option value="">{t('exam.pickAnswer')}</option>
           {question.options.map((option) => {

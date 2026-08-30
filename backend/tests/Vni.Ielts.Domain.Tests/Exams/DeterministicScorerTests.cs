@@ -44,7 +44,7 @@ public sealed class DeterministicScorerTests
 
         Assert.Equal(40, score.RawScore);
         Assert.Equal(40, score.MaxScore);
-        Assert.Equal(9m, score.Band.Value);
+        Assert.Equal(9m, score.Band!.Value.Value);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public sealed class DeterministicScorerTests
         var score = DeterministicScorer.Score(Reading(40), Profile(), new Dictionary<string, string?>());
 
         Assert.Equal(0, score.RawScore);
-        Assert.Equal(0m, score.Band.Value);
+        Assert.Equal(0m, score.Band!.Value.Value);
         Assert.All(score.Questions, q => Assert.False(q.IsCorrect));
     }
 
@@ -71,7 +71,7 @@ public sealed class DeterministicScorerTests
         var score = DeterministicScorer.Score(section, Profile(), answers);
 
         Assert.Equal(correct, score.RawScore);
-        Assert.Equal(expected, score.Band.Value);
+        Assert.Equal(expected, score.Band!.Value.Value);
     }
 
     [Fact]
@@ -120,58 +120,168 @@ public sealed class DeterministicScorerTests
         Assert.Equal(1, score.RawScore);
     }
 
-    /// <summary>
-    /// A "Choose TWO letters" question is one object and two marks.
-    ///
-    /// <b>The band table is equated against the answer sheet, not against
-    /// however many objects an author modelled.</b> A real Listening paper has
-    /// forty numbered lines; a two-letter question fills two of them. Counting
-    /// objects scored a forty-mark section out of thirty-six, which put the
-    /// table's own top bands out of reach and read every score below them off
-    /// the wrong row — and it looked like nothing, because the arithmetic was
-    /// internally consistent.
-    ///
-    /// The first real package authored against this schema has three such
-    /// questions: 36 objects, 40 marks.
-    /// </summary>
-    [Fact]
-    public void A_multi_mark_question_contributes_all_of_its_marks()
-    {
-        var section = new Section(ExamModule.Reading, 1,
+  /// <summary>
+  /// A "Choose TWO letters" question is one object and two marks.
+  ///
+  /// <b>The band table is equated against the answer sheet, not against
+  /// however many objects an author modelled.</b> A real Listening paper has
+  /// forty numbered lines; a two-letter question fills two of them. Counting
+  /// objects scored a forty-mark section out of thirty-six, which put the
+  /// table's own top bands out of reach and read every score below them off
+  /// the wrong row — and it looked like nothing, because the arithmetic was
+  /// internally consistent.
+  ///
+  /// The first real package authored against this schema has three such
+  /// questions: 36 objects, 40 marks.
+  /// </summary>
+  [Fact]
+  public void A_multi_mark_question_contributes_all_of_its_marks()
+  {
+    var section = new Section(ExamModule.Reading, 1,
+    [
+      new SectionPart(1, "passage", "P", "body", null, null, null, null, null, null, null,
+      [
+        new Question("r-1", 1, QuestionType.MultipleSelect, "Choose TWO letters.",
+          [new QuestionOption("A", "A"), new QuestionOption("B", "B")],
+          null,
+          new AnswerKey([new AcceptedAnswer(null, ["A", "B"], null)], null),
+          null,
+          Marks: 2),
+        new Question("r-2", 2, QuestionType.ShortAnswer, "Q2", [], null,
+          new AnswerKey([new AcceptedAnswer("answer2", null, null)], null)),
+      ]),
+    ]);
+
+    var both = DeterministicScorer.Score(section, Profile(),
+      new Dictionary<string, string?> { ["r-1"] = "A,B", ["r-2"] = "answer2" });
+
+    Assert.Equal(3, both.MaxScore);
+    Assert.Equal(3, both.RawScore);
+
+    // And nothing when it is wrong: the answer key is a set that must
+    // match, so part-marking a multi-mark question would need an
+    // answer-key shape that does not exist.
+    //
+    // This under-scores a real candidate — IELTS awards one mark per
+    // correct letter, so two of three right earns 2 and this earns 0. It
+    // stands because the alternative is an invented policy in the
+    // direction that inflates a band. → `H-12`
+    var half = DeterministicScorer.Score(section, Profile(),
+      new Dictionary<string, string?> { ["r-1"] = "A", ["r-2"] = "answer2" });
+
+    Assert.Equal(3, half.MaxScore);
+    Assert.Equal(1, half.RawScore);
+  }
+
+  [Fact]
+  public void Slotted_questions_award_partial_credit_per_slot()
+  {
+    var section = new Section(ExamModule.Reading, 1,
+    [
+      new SectionPart(1, "part", "P", null, null, null, null, null, 1, null, null,
+      [
+        new Question(
+          "q-1", 1, QuestionType.MultipleSelect, "Choose TWO",
+          [], null, null, null, Marks: 2,
+          Slots:
+          [
+            new ResponseSlot("slot-1", 1, new AnswerKey([new AcceptedAnswer("A", null, null)], null)),
+            new ResponseSlot("slot-2", 2, new AnswerKey([new AcceptedAnswer("B", null, null)], null)),
+          ]),
+      ]),
+    ]);
+
+    var oneRight = DeterministicScorer.Score(section, Profile(),
+      new Dictionary<string, string?> { ["slot-1"] = "A", ["slot-2"] = "C" });
+
+    Assert.Equal(2, oneRight.MaxScore);
+    Assert.Equal(1, oneRight.RawScore);
+    Assert.False(oneRight.Questions.Single().IsCorrect);
+    Assert.Equal(SlotOutcome.Correct, oneRight.Questions.Single().Slots![0].Status);
+    Assert.Equal(SlotOutcome.Incorrect, oneRight.Questions.Single().Slots![1].Status);
+  }
+
+  [Fact]
+  public void A_blank_slot_is_unanswered_not_incorrect()
+  {
+    var section = SlottedSection("paper");
+    var score = DeterministicScorer.Score(section, Profile(),
+      new Dictionary<string, string?> { ["slot-1"] = "paper" });
+
+    Assert.Equal(SlotOutcome.Unanswered, score.Questions.Single().Slots![1].Status);
+  }
+
+  [Fact]
+  public void Accepted_variants_work_per_slot()
+  {
+    var section = new Section(ExamModule.Reading, 1,
+    [
+      new SectionPart(1, "passage", "P", null, null, null, null, null, null, null, null,
+      [
+        new Question("q-1", 1, QuestionType.ShortAnswer, "Q", [], null, null, null, Marks: 1,
+          Slots:
+          [
+            new ResponseSlot("slot-1", 1, new AnswerKey(
+              [new AcceptedAnswer("20th July", null, null), new AcceptedAnswer("July 20", null, null)],
+              null)),
+          ]),
+      ]),
+    ]);
+
+    var score = DeterministicScorer.Score(section, Profile(),
+      new Dictionary<string, string?> { ["slot-1"] = "july 20" });
+
+    Assert.Equal(1, score.RawScore);
+    Assert.Equal("20th July", score.Questions.Single().Slots!.Single().CorrectAnswer);
+  }
+
+  [Fact]
+  public void Word_limit_violation_marks_a_slot_wrong()
+  {
+    var section = new Section(ExamModule.Reading, 1,
+    [
+      new SectionPart(1, "passage", "P", null, null, null, null, null, null, null, null,
+      [
+        new Question("q-1", 1, QuestionType.ShortAnswer, "Q", [], MaxWords: 2, null, null, Marks: 1,
+          Slots:
+          [
+            new ResponseSlot("slot-1", 1, new AnswerKey([new AcceptedAnswer("pulp paper", null, null)], null)),
+          ]),
+      ]),
+    ]);
+
+    var score = DeterministicScorer.Score(section, Profile(),
+      new Dictionary<string, string?> { ["slot-1"] = "the pulp paper" });
+
+    Assert.Equal(0, score.RawScore);
+    Assert.Equal(SlotOutcome.Incorrect, score.Questions.Single().Slots!.Single().Status);
+  }
+
+  [Fact]
+  public void Practice_scope_without_band_omits_the_band_entirely()
+  {
+    var section = Reading(2);
+    var answers = new Dictionary<string, string?> { ["r-1"] = "answer1" };
+    var context = new DeterministicScoringContext(new HashSet<string>(["r-1"]), IncludeBand: false);
+
+    var score = DeterministicScorer.Score(section, Profile(), answers, context);
+
+    Assert.Equal(1, score.RawScore);
+    Assert.Null(score.Band);
+  }
+
+  private static Section SlottedSection(string accepted) => new(ExamModule.Reading, 1,
+  [
+    new SectionPart(1, "passage", "P", null, null, null, null, null, null, null, null,
+    [
+      new Question("q-1", 1, QuestionType.ShortAnswer, "Q", [], null, null, null, Marks: 2,
+        Slots:
         [
-            new SectionPart(1, "passage", "P", "body", null, null, null, null, null, null, null,
-            [
-                new Question("r-1", 1, QuestionType.MultipleSelect, "Choose TWO letters.",
-                    [new QuestionOption("A", "A"), new QuestionOption("B", "B")],
-                    null,
-                    new AnswerKey([new AcceptedAnswer(null, ["A", "B"], null)], null),
-                    null,
-                    Marks: 2),
-                new Question("r-2", 2, QuestionType.ShortAnswer, "Q2", [], null,
-                    new AnswerKey([new AcceptedAnswer("answer2", null, null)], null)),
-            ]),
-        ]);
-
-        var both = DeterministicScorer.Score(section, Profile(),
-            new Dictionary<string, string?> { ["r-1"] = "A,B", ["r-2"] = "answer2" });
-
-        Assert.Equal(3, both.MaxScore);
-        Assert.Equal(3, both.RawScore);
-
-        // And nothing when it is wrong: the answer key is a set that must
-        // match, so part-marking a multi-mark question would need an
-        // answer-key shape that does not exist.
-        //
-        // This under-scores a real candidate — IELTS awards one mark per
-        // correct letter, so two of three right earns 2 and this earns 0. It
-        // stands because the alternative is an invented policy in the
-        // direction that inflates a band. → `H-12`
-        var half = DeterministicScorer.Score(section, Profile(),
-            new Dictionary<string, string?> { ["r-1"] = "A", ["r-2"] = "answer2" });
-
-        Assert.Equal(3, half.MaxScore);
-        Assert.Equal(1, half.RawScore);
-    }
+          new ResponseSlot("slot-1", 1, new AnswerKey([new AcceptedAnswer(accepted, null, null)], null)),
+          new ResponseSlot("slot-2", 2, new AnswerKey([new AcceptedAnswer("other", null, null)], null)),
+        ]),
+    ]),
+  ]);
 }
 
 /// <summary>

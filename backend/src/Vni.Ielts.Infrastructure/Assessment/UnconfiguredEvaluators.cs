@@ -43,7 +43,7 @@ public sealed class UnconfiguredEvaluator(ExamModule module) : ISectionEvaluator
 /// is audio and nothing has read it.
 ///
 /// Returning null here is what makes Speaking report
-/// <c>AwaitingTranscript</c> instead of `AwaitingEvaluator` — two different
+/// <c>AwaitingVoiceProvider</c> instead of `AwaitingEvaluator` — two different
 /// blockers, and naming the further one first is the difference between a
 /// useful status and a shrug.
 /// </summary>

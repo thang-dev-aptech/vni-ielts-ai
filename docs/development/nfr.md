@@ -40,6 +40,28 @@ Requirement §12, with **MVP** and **future scale** deliberately separated. Requ
 
 The autosave target matters more than its size suggests: a save that feels slow during a timed exam produces anxiety and duplicate submissions.
 
+### Four Skills reliability seams (FS9.3)
+
+**These are configured budgets and behavioural gates, not production SLOs.** The
+MVP latency table above remains `[ASSUMPTION]` until measured under real load
+(`M-3`). FS9.3 documents what the code already enforces and which tests lock it,
+so an operator can tune a timeout without inventing a commitment nobody made
+(`G-11`).
+
+| Concern | Configured seam | Behaviour under stress | Gate (existing / cheap) |
+|---|---|---|---|
+| Catalogue / session start / autosave | No invented p95 gate in CI | Contract tests prove correctness; latency stays an assumption from the table above | `ExamRunContractTests`, practice-unit start contracts — **not** a load harness |
+| Listening audio range / cache | Client sends `Range: bytes=0-`; response is materialised as one authenticated blob | Seek only when server policy allows; retry after transport/decode failure; no CDN cache invented | `practice-runner` Range assertion; `AudioPlayer` |
+| Concurrent Speaking uploads | Server-generated object key per session/question; complete verifies size/checksum/type | Two workers cannot both own one marking job; re-record replaces sheet answer without orphaning the prior take forever | `MarkingOutboxTests` exclusive claim; `SpeakingRecordingUploadTests`; `RecordingReconciliationTests` |
+| AI queue backpressure | `Alerts:QueueDepth` / `Alerts:QueueOldestAgeSeconds` (see [`alerting.md`](alerting.md)) | Enqueue is idempotent per `(session, module, rubric)`; workers claim with leases; owed backlog excludes live leases | `QueueBacklogTests`, `MarkingOutboxTests` |
+| Provider timeout / retry | `Assessment:WritingMarking:TimeoutSeconds` (default **120**, clamped **10…300**); `MaxAttempts` (default **3** **per provider**); optional `FallbackProvider` | Transient failures retry on the current provider, then fall back; exhausted attempts surface as marking failure — **not** a half-open circuit breaker with an invented open threshold | `WritingEvaluationRouterTests`, `WritingSectionEvaluatorConfigurationTests` |
+| AI egress / disable | `Assessment:WritingMarking:Enabled` (default **false**); `Ai:AllowCrossBorderTransfer` (default **false**); per-provider `SyntheticDataOnly` | Evaluator reports unconfigured; exams continue; R/L scores never depend on AI (`A-11`) | `AiEgressTests`, `WritingSectionEvaluatorConfigurationTests` |
+| Object-store outage | Readiness probe with a hard deadline | `/health/ready` fails without hanging; uploads refuse rather than write to a dead endpoint | `ObjectStorageHealthTests` (wrong secret, closed port, black-hole timeout) |
+
+**There is no classic circuit breaker.** Spend and hang risk are bounded by timeout + attempt ceiling + outbox exponential backoff with jitter (`MarkingWorker`) + the egress guard. Adding a breaker later is fine; inventing an open/half-open threshold in this document is not.
+
+Operator runbooks for the same seams: [`ai-provider-setup.md`](ai-provider-setup.md) · [`alerting.md`](alerting.md) · [`../security/object-storage-r2-setup.md`](../security/object-storage-r2-setup.md) · [`backup-and-restore.md`](backup-and-restore.md).
+
 ---
 
 ## Availability

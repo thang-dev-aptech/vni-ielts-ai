@@ -94,6 +94,12 @@ public sealed class MongoContext
     internal IMongoCollection<Exams.MarkingJobDocument> MarkingJobs =>
         _db.GetCollection<Exams.MarkingJobDocument>("marking_jobs");
 
+    internal IMongoCollection<Explanations.PersonalizedExplanationDocument> PersonalizedExplanations =>
+        _db.GetCollection<Explanations.PersonalizedExplanationDocument>("personalized_explanations");
+
+    internal IMongoCollection<Explanations.CanonicalExplanationDocument> CanonicalExplanations =>
+        _db.GetCollection<Explanations.CanonicalExplanationDocument>("canonical_explanations");
+
     /// <summary>
     /// Refuses to start against a node that cannot do transactions.
     ///
@@ -294,6 +300,15 @@ public sealed class MongoContext
             new CreateIndexModel<Exams.MarkingJobDocument>(
                 Builders<Exams.MarkingJobDocument>.IndexKeys.Ascending(j => j.SessionId),
                 new CreateIndexOptions { Name = "ix_marking_jobs_session" }),
+            cancellationToken: ct);
+
+        await PersonalizedExplanations.Indexes.CreateOneAsync(
+            new CreateIndexModel<Explanations.PersonalizedExplanationDocument>(
+                Builders<Explanations.PersonalizedExplanationDocument>.IndexKeys
+                    .Ascending(j => j.SessionId)
+                    .Ascending(j => j.QuestionId)
+                    .Ascending(j => j.AnswerHash),
+                new CreateIndexOptions { Name = "ix_personalized_explanations_lookup" }),
             cancellationToken: ct);
 
         // Expired tokens remove themselves. A TTL index does this without a

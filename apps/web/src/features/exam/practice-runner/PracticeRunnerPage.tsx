@@ -5,11 +5,12 @@ import { useI18n } from '../../../i18n/index.js';
 import { Paths } from '../../../routes/paths.js';
 import { usePageTitle } from '../../../routes/usePageTitle.js';
 import { useAlive } from '../../../lib/useAlive.js';
-import { AudioPlayer } from '../AudioPlayer.js';
+import { AudioPlayer, pauseListeningAudio } from '../AudioPlayer.js';
 import { ExamImage } from '../ExamImage.js';
 import { PassageBody } from '../PassageBody.js';
 import { QuestionInput } from '../QuestionInput.js';
 import { QuestionList } from '../QuestionList.js';
+import { SpeakingRecorder } from '../SpeakingRecorder.js';
 import {
   countWords,
   getSession,
@@ -24,6 +25,8 @@ import { usePracticeClock } from './usePracticeClock.js';
 import { PracticeHeader, type ControlState } from './PracticeHeader.js';
 import { PracticeFooter } from './PracticeFooter.js';
 import { SubmitConfirmCard } from './SubmitConfirmCard.js';
+import { LeaveConfirmCard } from './LeaveConfirmCard.js';
+import { projectRunnerParts } from './sessionProjection.js';
 import '../../../styles/exam.css';
 import '../../../styles/practice-run.css';
 
@@ -65,7 +68,9 @@ export function PracticeRunnerPage() {
   const [session, setSession] = useState<SessionView | null>(null);
   const [failed, setFailed] = useState(false);
   const [activePart, setActivePart] = useState(0);
+  const [mobilePane, setMobilePane] = useState<'passage' | 'questions'>('passage');
   const [confirming, setConfirming] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [submitState, setSubmitState] = useState<'idle' | 'submitting' | 'failed'>('idle');
   const [clockState, setClockState] = useState<ControlState>('idle');
   const [targetState, setTargetState] = useState<ControlState>('idle');
@@ -87,6 +92,7 @@ export function PracticeRunnerPage() {
   const signedIn = accessToken !== null;
   /** The control that opened the card, so focus can be given back to it. */
   const submitTrigger = useRef<Element | null>(null);
+  const leaveTrigger = useRef<Element | null>(null);
 
   /**
    * Questions edited here whose save the server has not acknowledged.
@@ -110,7 +116,7 @@ export function PracticeRunnerPage() {
       setSaveBlocked(false);
     }, []),
   });
-  const { answers, save, dirty, change, flush, seed, cancelPending } = sheet;
+  const { answers, save, dirty, change, recorded, flush, seed, cancelPending } = sheet;
 
   const markEdited = useCallback(
     (questionId: string, value: string | null) => {
@@ -130,14 +136,26 @@ export function PracticeRunnerPage() {
   const offsets = useRef<Record<number, { passage: number; questions: number }>>({});
 
   const goToPart = useCallback(
-    (index: number) => {
+    async (index: number) => {
+      if (index === activePart) return;
+
+      if (dirty.current) {
+        cancelPending();
+        const outcome = await flush();
+        if (outcome === 'failed') {
+          setSaveBlocked(true);
+          return;
+        }
+      }
+
       offsets.current[activePart] = {
         passage: passage.current?.scrollTop ?? 0,
         questions: questionPane.current?.scrollTop ?? 0,
       };
       setActivePart(index);
+      setMobilePane('passage');
     },
-    [activePart],
+    [activePart, cancelPending, flush],
   );
 
   useLayoutEffect(() => {
@@ -303,6 +321,7 @@ export function PracticeRunnerPage() {
   // ── Submit ──────────────────────────────────────────────────────────────
   function openConfirm() {
     submitTrigger.current = document.activeElement;
+    pauseListeningAudio();
     setSubmitState('idle');
     setConfirming(true);
   }
@@ -310,6 +329,22 @@ export function PracticeRunnerPage() {
   function closeConfirm() {
     setConfirming(false);
     (submitTrigger.current as HTMLElement | null)?.focus?.();
+  }
+
+  function openLeave() {
+    leaveTrigger.current = document.activeElement;
+    pauseListeningAudio();
+    setLeaving(true);
+  }
+
+  function closeLeave() {
+    setLeaving(false);
+    (leaveTrigger.current as HTMLElement | null)?.focus?.();
+  }
+
+  function leave() {
+    setLeaving(false);
+    navigate(Paths.practice);
   }
 
   async function submit() {
@@ -361,7 +396,15 @@ export function PracticeRunnerPage() {
     }
   }
 
-  function scrollToQuestion(questionId: string) {
+  function scrollToSlot(questionId: string, slotIndex: number) {
+    /*
+     * Narrow reading view hides the questions column until the learner opens
+     * it. A footer map tap that scrolled a `display: none` node would look
+     * like the map was broken — flip the pane first so the target can receive
+     * focus. Listening (and any non-split layout) has no toggle.
+     */
+    setMobilePane('questions');
+
     const target =
       document.getElementById(`q-${questionId}`) ?? document.getElementById(`q-${questionId}-name`);
     if (target === null) return;
@@ -377,7 +420,9 @@ export function PracticeRunnerPage() {
      * it. `tabIndex = -1` makes a non-interactive element focusable once
      * without putting it in the tab order.
      */
-    const field = target.querySelector<HTMLElement>('input, select, textarea, button');
+    const fields = [...target.querySelectorAll<HTMLElement>('input, select, textarea, button')];
+    const checked = fields.filter((field) => field instanceof HTMLInputElement && field.checked);
+    const field = checked[slotIndex] ?? fields[slotIndex] ?? fields[0] ?? null;
     if (field !== null) {
       field.focus({ preventScroll: true });
       return;
@@ -399,14 +444,17 @@ export function PracticeRunnerPage() {
     );
   }
 
-  const parts = section?.parts ?? [];
+  const projection = session === null ? { valid: true, parts: [] } : projectRunnerParts(session);
+  const parts = projection.parts;
   const part = parts[activePart];
 
-  if (session === null || section === null || part === undefined) {
+  if (session !== null && section !== null && !projection.valid) {
     return (
-      <div className="prun-page">
+      <div className="prun-page" data-surface="exam">
         <PracticeHeader
-          examTitle={session?.examTitle ?? null}
+          examTitle={session.examTitle}
+          module={section.module}
+          partNumber={null}
           elapsed={null}
           running={false}
           targetSeconds={null}
@@ -414,10 +462,43 @@ export function PracticeRunnerPage() {
           target="idle"
           onToggleRun={() => {}}
           onSetTarget={() => {}}
+          onExit={openLeave}
         />
-        <div className="exam-fallback">
+        <main className="exam-fallback" role="alert">
+          <h1>{t('practice.scopeInvalidTitle')}</h1>
+          <p>{t('practice.scopeInvalidBody')}</p>
+        </main>
+        <footer className="prun-foot" aria-hidden="true" />
+        {leaving && (
+          <LeaveConfirmCard offline={offline} save={save} onCancel={closeLeave} onLeave={leave} />
+        )}
+      </div>
+    );
+  }
+
+  if (session === null || section === null || part === undefined) {
+    return (
+      <div className="prun-page">
+        <PracticeHeader
+          examTitle={session?.examTitle ?? null}
+          module={session?.current?.module ?? null}
+          partNumber={null}
+          elapsed={null}
+          running={false}
+          targetSeconds={null}
+          clock="idle"
+          target="idle"
+          onToggleRun={() => {}}
+          onSetTarget={() => {}}
+          onExit={openLeave}
+        />
+        <main className="exam-fallback">
           <p>{t('exam.loading')}</p>
-        </div>
+        </main>
+        <footer className="prun-foot" aria-hidden="true" />
+        {leaving && (
+          <LeaveConfirmCard offline={offline} save={save} onCancel={closeLeave} onLeave={leave} />
+        )}
       </div>
     );
   }
@@ -428,6 +509,8 @@ export function PracticeRunnerPage() {
     <div className="prun-page" data-surface="exam">
       <PracticeHeader
         examTitle={session.examTitle}
+        module={section.module}
+        partNumber={part.order}
         elapsed={clock.elapsed}
         running={clock.running}
         targetSeconds={section.targetSeconds ?? null}
@@ -435,7 +518,19 @@ export function PracticeRunnerPage() {
         target={targetState}
         onToggleRun={() => void toggleRun()}
         onSetTarget={(seconds) => void applyTarget(seconds)}
+        onExit={openLeave}
       />
+
+      <div className="prun-shell-state" aria-label={t('practice.runnerState')}>
+        <span
+          className={`prun-connection is-${offline ? 'offline' : 'online'}`}
+          role="status"
+          aria-live="polite"
+        >
+          {offline ? t('practice.connectionOffline') : t('practice.connectionOnline')}
+        </span>
+        <SaveNote state={save} />
+      </div>
 
       {/*
         <b>A full-test sitting has no luyện đề chaining, and this page will not
@@ -465,7 +560,29 @@ export function PracticeRunnerPage() {
         </p>
       )}
 
-      <div className="prun-body" data-split={split ? 'reading' : 'single'}>
+      <main
+        className="prun-body"
+        data-split={split ? 'reading' : 'single'}
+        data-mobile-pane={split ? mobilePane : undefined}
+      >
+        {split && (
+          <div className="prun-mobile-tabs" role="group" aria-label={t('practice.readingView')}>
+            <button
+              type="button"
+              aria-pressed={mobilePane === 'passage'}
+              onClick={() => setMobilePane('passage')}
+            >
+              {t('exam.passageLabel')}
+            </button>
+            <button
+              type="button"
+              aria-pressed={mobilePane === 'questions'}
+              onClick={() => setMobilePane('questions')}
+            >
+              {t('exam.questionsLabel')}
+            </button>
+          </div>
+        )}
         {/*
           Reading: passage left, questions right, each scrolling inside itself.
           `E-31`. Below the breakpoint the split becomes one column — a
@@ -498,9 +615,30 @@ export function PracticeRunnerPage() {
                 a separate task; nothing here occupies that space or would have
                 to be unpicked to add it.
               */}
-              {part.audioKey !== null && <AudioPlayer reference={part.audioKey} />}
+              {part.audioKey !== null && section.audioPlayback != null && (
+                <AudioPlayer
+                  key={part.audioKey}
+                  reference={part.audioKey}
+                  policy={section.audioPlayback}
+                />
+              )}
+              {part.audioKey !== null && section.audioPlayback == null && (
+                <p className="audio-failed" role="alert">
+                  {t('exam.audioPolicyMissing')}
+                </p>
+              )}
               {part.imageKey !== null && (
                 <ExamImage reference={part.imageKey} caption={part.title} />
+              )}
+              {part.cueCard !== null && (
+                <div className="exam-cue">
+                  <h2>{part.cueCard.topic}</h2>
+                  <ul>
+                    {part.cueCard.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
               {part.body !== null && <PassageBody body={part.body} />}
             </>
@@ -508,7 +646,6 @@ export function PracticeRunnerPage() {
 
           <div className="exam-questions-head">
             <h2>{t('exam.questionsIn', { number: part.order })}</h2>
-            <SaveNote state={save} />
           </div>
 
           <QuestionList
@@ -523,7 +660,17 @@ export function PracticeRunnerPage() {
             disabled={submitState === 'submitting'}
             onChange={markEdited}
             renderSpecial={(question, value) =>
-              question.type === 'essay-task' ? (
+              question.type === 'speaking-response' ? (
+                <SpeakingRecorder
+                  sessionId={sessionId}
+                  questionId={question.id}
+                  prepSeconds={timingFor(section, part.partNumber).prepSeconds}
+                  responseSeconds={timingFor(section, part.partNumber).responseSeconds}
+                  storedId={value}
+                  disabled={submitState === 'submitting'}
+                  onStored={(recordingId) => recorded(question.id, recordingId)}
+                />
+              ) : question.type === 'essay-task' ? (
                 <>
                   <QuestionInput
                     question={question}
@@ -538,7 +685,7 @@ export function PracticeRunnerPage() {
             }
           />
         </section>
-      </div>
+      </main>
 
       <PracticeFooter
         parts={parts}
@@ -547,7 +694,7 @@ export function PracticeRunnerPage() {
         unconfirmed={unconfirmed}
         busy={submitState === 'submitting'}
         onGoToPart={goToPart}
-        onScrollToQuestion={scrollToQuestion}
+        onScrollToSlot={scrollToSlot}
         onSubmit={openConfirm}
       />
 
@@ -561,8 +708,17 @@ export function PracticeRunnerPage() {
           onConfirm={() => void submit()}
         />
       )}
+
+      {leaving && (
+        <LeaveConfirmCard offline={offline} save={save} onCancel={closeLeave} onLeave={leave} />
+      )}
     </div>
   );
+}
+
+function timingFor(section: SessionView['current'], partNumber: number | null) {
+  const configured = section?.speakingTiming.find((p) => p.part === partNumber);
+  return configured ?? { part: partNumber ?? 1, prepSeconds: 0, responseSeconds: 300 };
 }
 
 /**
@@ -619,6 +775,11 @@ function WordCount({ text, minWords }: { text: string; minWords: number | null }
 
   return (
     <p className={`word-count${short ? ' is-short' : ''}`}>
+      {/*
+        Text carries the under-min state; colour is never the only channel.
+        No live region: the count moves on every keystroke, and announcing that
+        would make the essay unusable with a screen reader.
+      */}
       <span className="num">{t('exam.words', { count: words })}</span>
       {minWords !== null && (
         <span>

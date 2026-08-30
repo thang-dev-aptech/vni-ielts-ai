@@ -152,12 +152,18 @@ function readingSession() {
  * answer-shape mismatch survived on both sides at once.
  */
 let answerWrites: { module: string; changes: Record<string, string | null> }[] = [];
-/** Every `POST …/recordings`, with the form the recorder built. */
+/** Every `POST …/recordings` (multipart fallback), with the form the recorder built. */
 let uploads: { url: string; questionId: string | null; hasAudio: boolean }[] = [];
+/** Init → PUT → complete path counters. */
+let initCalls = 0;
+let putCalls = 0;
+let completeCalls = 0;
 
 /** What `PUT …/answers` replies with. Re-pointed per test. */
 let answersReply: () => Response = () => json({ revision: 1 });
 let sessionPayload: unknown = speakingSession();
+/** When true, init returns 503 so the multipart fallback is exercised. */
+let forceMultipart = false;
 
 function json(body: unknown, status = 200): Response {
   return new Response(body === undefined ? null : JSON.stringify(body), {
@@ -177,6 +183,28 @@ function mockApi() {
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.endsWith('/api/v1/exams')) return json({ exams: [] });
+
+      if (url.includes('/recordings/init') && method === 'POST') {
+        initCalls += 1;
+        if (forceMultipart) return new Response(null, { status: 503 });
+        const body = JSON.parse(String(init?.body ?? '{}')) as { questionId?: string };
+        uploads.push({
+          url,
+          questionId: body.questionId ?? null,
+          hasAudio: false,
+        });
+        return json({
+          uploadId: 'up-1',
+          recordingId: 'rec-server-generated',
+          uploadUrl: 'https://storage.test/put',
+          contentType: 'audio/webm',
+        });
+      }
+
+      if (url.includes('/recordings/') && url.includes('/complete') && method === 'POST') {
+        completeCalls += 1;
+        return json({ recordingId: 'rec-server-generated' });
+      }
 
       if (url.endsWith('/recordings') && method === 'POST') {
         const form = init?.body as FormData;
@@ -204,6 +232,25 @@ function mockApi() {
       return json({ code: 'NOT_FOUND' }, 404);
     }),
   );
+
+  class FakeXHR {
+    status = 200;
+    statusText = 'OK';
+    response = null;
+    upload = { onprogress: null as ((event: ProgressEvent) => void) | null };
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    onabort: (() => void) | null = null;
+
+    open() {}
+    setRequestHeader() {}
+    send() {
+      putCalls += 1;
+      queueMicrotask(() => this.onload?.());
+    }
+  }
+
+  vi.stubGlobal('XMLHttpRequest', FakeXHR as unknown as typeof XMLHttpRequest);
 }
 
 /**
@@ -217,6 +264,7 @@ class FakeMediaRecorder {
   static instances: FakeMediaRecorder[] = [];
 
   mimeType = 'audio/webm';
+  state: RecordingState = 'inactive';
   ondataavailable: ((event: { data: Blob }) => void) | null = null;
   onstop: (() => void) | null = null;
   onerror: (() => void) | null = null;
@@ -225,9 +273,12 @@ class FakeMediaRecorder {
     FakeMediaRecorder.instances.push(this);
   }
 
-  start() {}
+  start() {
+    this.state = 'recording';
+  }
 
   stop() {
+    this.state = 'inactive';
     this.ondataavailable?.({ data: new Blob(['audio'], { type: this.mimeType }) });
     this.onstop?.();
   }
@@ -238,7 +289,11 @@ function stubMicrophone() {
   vi.stubGlobal('MediaRecorder', FakeMediaRecorder);
   Object.defineProperty(navigator, 'mediaDevices', {
     configurable: true,
-    value: { getUserMedia: async () => ({ getTracks: () => [] }) },
+    value: {
+      getUserMedia: async () => ({
+        getTracks: () => [{ stop: () => undefined }],
+      }),
+    },
   });
 }
 
@@ -287,6 +342,10 @@ beforeEach(() => {
   localStorage.setItem('vni.locale', 'vi');
   answerWrites = [];
   uploads = [];
+  initCalls = 0;
+  putCalls = 0;
+  completeCalls = 0;
+  forceMultipart = false;
   answersReply = () => new Response(null, { status: 204 });
   sessionPayload = speakingSession();
   mockApi();
@@ -388,9 +447,11 @@ it('files the recording against the question id the server sent', async () => {
 
   await recordOnce();
 
-  expect(uploads[0]!.url).toContain('/api/v1/sessions/sit-full/recordings');
+  expect(initCalls).toBe(1);
+  expect(putCalls).toBe(1);
+  expect(completeCalls).toBe(1);
+  expect(uploads[0]!.url).toContain('/api/v1/sessions/sit-full/recordings/init');
   expect(uploads[0]!.questionId).toBe('s-part-2');
-  expect(uploads[0]!.hasAudio).toBe(true);
 });
 
 /**
@@ -408,6 +469,8 @@ it('opens a question the server already has a recording for as answered', async 
 
   expect(await screen.findByText('Đã lưu bản ghi')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Bắt đầu ghi âm' })).toBeNull();
+  // Re-record is offered so the learner can replace the answer deliberately.
+  expect(screen.getByRole('button', { name: 'Ghi lại từ đầu' })).toBeInTheDocument();
 });
 
 /* ── SECTION_NOT_OPEN ──────────────────────────────────────────────────── */

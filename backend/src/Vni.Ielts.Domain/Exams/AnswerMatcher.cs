@@ -22,6 +22,22 @@ namespace Vni.Ielts.Domain.Exams;
 /// </summary>
 public static partial class AnswerMatcher
 {
+    public static bool IsCorrectSlot(
+        ResponseSlot slot, Question question, string? submitted, AnswerMatchingRules rules)
+    {
+        if (slot.AnswerKey is null || slot.AnswerKey.Accepted.Count == 0)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(submitted))
+            return false;
+
+        if (ExceedsWordLimit(question, submitted))
+            return false;
+
+        var effective = slot.AnswerKey.Overrides ?? rules;
+        return slot.AnswerKey.Accepted.Any(accepted => Matches(accepted, submitted, effective));
+    }
+
     public static bool IsCorrect(Question question, string? submitted, AnswerMatchingRules rules)
     {
         if (question.AnswerKey is null || question.AnswerKey.Accepted.Count == 0)
@@ -32,10 +48,7 @@ public static partial class AnswerMatcher
 
         var effective = question.AnswerKey.Overrides ?? rules;
 
-        // Word limit first. An over-length answer is wrong regardless of what
-        // it contains, so checking it after a content match would award marks
-        // the real exam would not.
-        if (question.MaxWords is { } limit && CountWords(submitted) > limit)
+        if (ExceedsWordLimit(question, submitted))
             return false;
 
         // <b>The shape of the answer comes from the key, not from the question
@@ -150,6 +163,35 @@ public static partial class AnswerMatcher
         return decimal.TryParse(stripped, NumberStyles.Any, CultureInfo.InvariantCulture, out var n)
             ? n.ToString(CultureInfo.InvariantCulture)
             : value;
+    }
+
+    public static bool ExceedsWordLimit(Question question, string? submitted) =>
+        question.MaxWords is { } limit
+        && !string.IsNullOrWhiteSpace(submitted)
+        && CountWords(submitted) > limit;
+
+    public static SlotOutcome Outcome(string? submitted, bool isCorrect)
+    {
+        if (string.IsNullOrWhiteSpace(submitted)) return SlotOutcome.Unanswered;
+        return isCorrect ? SlotOutcome.Correct : SlotOutcome.Incorrect;
+    }
+
+    /// <summary>
+    /// The canonical correct answer for post-submit review. Uses the first
+    /// accepted variant only — alternates are equivalent for marking.
+    /// </summary>
+    public static string? FormatAcceptedAnswer(AnswerKey? key, AnswerMatchingRules rules)
+    {
+        if (key is null || key.Accepted.Count == 0) return null;
+
+        var accepted = key.Accepted[0];
+        return accepted switch
+        {
+            { Single: { } single } => single,
+            { All: { } all } => string.Join(", ", all),
+            { Pair: { } pair } => $"{pair.Left}:{pair.Right}",
+            _ => null,
+        };
     }
 
     private static int CountWords(string value) =>

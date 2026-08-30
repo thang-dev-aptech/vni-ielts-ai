@@ -301,12 +301,12 @@ public sealed class MarkingWorker(
         /*
          * <b>An outcome that is not a marking is not a success.</b>
          *
-         * "Awaiting evaluator" and "awaiting transcript" describe a product
+         * "Awaiting evaluator" and "awaiting voice provider" describe a product
          * that is not finished, and completing the job on them would delete the
          * record that this section is still owed a band — quietly, and for
          * good. They are thrown so the job stays in the queue, backs off, and
          * eventually dead-letters with the reason visible on the results
-         * screen. → `MarkingAvailability`
+         * screen. → `MarkingAvailability`, FS8.7
          *
          * `NothingSubmitted` is the exception: the learner wrote nothing, there
          * is no band to produce, and retrying will not change that.

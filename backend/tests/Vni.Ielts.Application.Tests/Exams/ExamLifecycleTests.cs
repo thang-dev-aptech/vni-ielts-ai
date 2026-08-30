@@ -63,7 +63,10 @@ public sealed class ExamLifecycleTests
                 KeyedSection(ExamModule.Listening, 2, "l"),
                 WritingSection(),
                 SpeakingSection(),
-            ]);
+            ],
+            new ListeningPlaybackProfile(
+                new AudioPlaybackRule(false, true),
+                new AudioPlaybackRule(true, false)));
 
         version.Publish(T0.AddDays(-1));
         return version;
@@ -153,9 +156,9 @@ public sealed class ExamLifecycleTests
             Advance = new AdvanceSection(
                 Catalogue, Sessions, Answers, Results, Marker, Outbox, Rubrics, Clock);
             Submit = new SubmitExamSession(
-                Catalogue, Sessions, Answers, Results, Markings, Marker, Outbox, Rubrics, Clock);
+                Catalogue, Sessions, Answers, Results, Markings, Marker, Outbox, Rubrics, Explanations, Clock);
             ReadResults = new GetSessionResults(
-                Catalogue, Sessions, Answers, Results, Markings, Marker, Outbox, Rubrics, Clock);
+                Catalogue, Sessions, Answers, Results, Markings, Marker, Outbox, Rubrics, Explanations, Clock);
         }
 
         public ExamVersion Version { get; }
@@ -166,6 +169,7 @@ public sealed class ExamLifecycleTests
         public FakeMarkingStore Markings { get; } = new();
         public FakeRecordingStore Recordings { get; } = new();
         public FakeMarkingOutbox Outbox { get; } = new();
+        public FakePersonalizedExplanationStore Explanations { get; } = new();
         public IRubricSource Rubrics { get; }
         public MovableClock Clock { get; }
         public SectionMarkingRunner Marker { get; }
@@ -218,6 +222,25 @@ public sealed class ExamLifecycleTests
     // ── Full Test versus Single Skill ─────────────────────────────────────
 
     [Fact]
+    public async Task Server_resolves_listening_playback_from_run_kind_and_version_profile()
+    {
+        var h = new Harness();
+        var practice = await h.Start.HandleAsync(
+            new StartExamSessionCommand(
+                Learner, h.Version.Id, SessionMode.Single, ExamModule.Listening,
+                SessionTiming.OpenEnded),
+            default);
+
+        Assert.Equal(new AudioPlaybackPolicyView(false, true), practice.Current!.AudioPlayback);
+
+        var mock = await h.StartFullAsync();
+        mock = await h.AdvanceAsync(mock.SessionId);
+
+        Assert.Equal("listening", mock.Current!.Module);
+        Assert.Equal(new AudioPlaybackPolicyView(true, false), mock.Current.AudioPlayback);
+    }
+
+    [Fact]
     public async Task A_full_test_walks_all_four_skills_in_one_sitting_and_marks_each_as_it_closes()
     {
         // CLAUDE.md rule 10 and `E-11`…`E-13`. The domain proves the order;
@@ -236,7 +259,7 @@ public sealed class ExamLifecycleTests
 
         // Marked already, not held until submission.
         var scored = await h.Results.ListAsync(new ExamSessionId(id), default);
-        Assert.Equal(7.0m, Assert.Single(scored).Band.Value);
+        Assert.Equal(7.0m, Assert.Single(scored).Band!.Value.Value);
 
         await h.SaveAsync(id, ExamModule.Listening, ("l-1", "paper"), ("l-2", "brick"));
         Assert.Equal("writing", (await h.AdvanceAsync(id)).Current!.Module);
@@ -341,7 +364,7 @@ public sealed class ExamLifecycleTests
 
         Assert.Equal(SessionStatus.Expired, h.Session(id).Status);
         var scored = await h.Results.ListAsync(new ExamSessionId(id), default);
-        Assert.Equal(7.0m, Assert.Single(scored).Band.Value);
+        Assert.Equal(7.0m, Assert.Single(scored).Band!.Value.Value);
     }
 
     [Fact]
@@ -365,7 +388,7 @@ public sealed class ExamLifecycleTests
         Assert.Null(view.Current);
 
         var scored = await h.Results.ListAsync(new ExamSessionId(id), default);
-        Assert.Equal(7.0m, Assert.Single(scored).Band.Value);
+        Assert.Equal(7.0m, Assert.Single(scored).Band!.Value.Value);
     }
 
     [Fact]
@@ -582,6 +605,20 @@ public sealed class ExamLifecycleTests
             () => h.Record.HandleAsync(intruder, default));
     }
 
+    [Fact]
+    public async Task Another_learners_results_are_not_found_rather_than_forbidden()
+    {
+        var h = new Harness();
+        var session = await h.StartSingleAsync(ExamModule.Reading);
+        await h.SaveAsync(session.SessionId, ExamModule.Reading, ("r-1", "paper"));
+        await h.SubmitAsync(session.SessionId);
+
+        await Assert.ThrowsAsync<SessionNotFoundException>(() =>
+            h.ReadResults.HandleAsync(
+                new GetSessionResultsQuery(UserId.New(), new ExamSessionId(session.SessionId)),
+                default));
+    }
+
     // ── What marking reports for the two judged skills ────────────────────
 
     [Fact]
@@ -616,7 +653,7 @@ public sealed class ExamLifecycleTests
             speech.Answers, default);
 
         Assert.Equal(MarkingAvailability.NothingSubmitted, Assert.Single(forSilence).Availability);
-        Assert.Equal(MarkingAvailability.AwaitingTranscript, Assert.Single(forSpeech).Availability);
+        Assert.Equal(MarkingAvailability.AwaitingVoiceProvider, Assert.Single(forSpeech).Availability);
     }
 
     [Fact]

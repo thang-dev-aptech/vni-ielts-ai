@@ -16,7 +16,7 @@ stay out of the learner payload, answer keys travel but never reach a client,
 and the band tables are copied verbatim because substituting one unsourced
 table for another would be inventing a policy (G-11).
 
-Usage:  python3 scripts/import-exam-package.py exam/Exam1 exam-1
+Usage:  python3 scripts/import-exam-package.py exam/Exam1 exam-1 [reading,listening,...]
 """
 
 import json
@@ -251,7 +251,7 @@ def write_answer_keys(package: pathlib.Path, sections: list[dict]) -> None:
     only part of the file a person put judgement into.
     """
     out = package / "answer-keys.json"
-    existing = json.loads(out.read_text()) if out.exists() else {}
+    existing = json.loads(out.read_text(encoding="utf-8")) if out.exists() else {}
     previous = existing.get("modules", {})
 
     modules = {}
@@ -293,7 +293,7 @@ def write_answer_keys(package: pathlib.Path, sections: list[dict]) -> None:
         for i, j in zip(spec["items"], previous.get(module, {}).get("items", []))
     )
 
-    out.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n")
+    out.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"wrote {out.relative_to(ROOT)}")
     for module, spec in modules.items():
         print(f"  {module}: {spec['questionObjects']} objects, {spec['rawMarks']} marks")
@@ -303,22 +303,26 @@ def write_answer_keys(package: pathlib.Path, sections: list[dict]) -> None:
 
 
 def main() -> None:
-    if len(sys.argv) != 3:
+    if len(sys.argv) not in (3, 4):
         raise SystemExit(__doc__)
 
     package = (ROOT / sys.argv[1]).resolve()
     slug = sys.argv[2]
+    selected = MODULE_ORDER if len(sys.argv) == 3 else sys.argv[3].split(",")
+    unknown = set(selected) - set(MODULE_ORDER)
+    if unknown or not selected:
+        raise SystemExit(f"unknown or empty module selection: {','.join(sorted(unknown))}")
 
-    manifest = json.loads((package / "manifest.json").read_text())
-    exam = json.loads((package / "exam.json").read_text())
+    manifest = json.loads((package / "manifest.json").read_text(encoding="utf-8"))
+    exam = json.loads((package / "exam.json").read_text(encoding="utf-8"))
 
     sections = []
-    for order, module in enumerate(MODULE_ORDER, start=1):
+    for order, module in enumerate(selected, start=1):
         path = package / module / "section.json"
         if not path.exists():
             print(f"  · no {module} section — skipped")
             continue
-        section = json.loads(path.read_text())
+        section = json.loads(path.read_text(encoding="utf-8"))
         sections.append(
             {
                 "module": module,
@@ -349,7 +353,7 @@ def main() -> None:
 
     FIXTURES.mkdir(parents=True, exist_ok=True)
     out = FIXTURES / f"{slug}.json"
-    out.write_text(json.dumps(fixture, indent=2, ensure_ascii=False) + "\n")
+    out.write_text(json.dumps(fixture, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     counts = {s["module"]: sum(len(p["questions"]) for p in s["parts"]) for s in sections}
     print(f"wrote {out.relative_to(ROOT)}")

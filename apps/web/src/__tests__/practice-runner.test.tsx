@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
@@ -78,6 +78,9 @@ const practiceSession = ({
   sessionId: 'sit-1',
   examVersionId: 'exam-1',
   examTitle: 'Academic Practice Test 1',
+  practiceUnitId: null,
+  scope: null,
+  completedPartIds: [],
   mode: 'single',
   status: 'inprogress',
   startedAt: new Date().toISOString(),
@@ -85,6 +88,7 @@ const practiceSession = ({
   completedModules: [],
   current: {
     module: 'reading',
+    partId: null,
     startedAt: new Date().toISOString(),
     deadlineAt: null,
     remainingSeconds: null,
@@ -123,6 +127,7 @@ const practiceSession = ({
     answerRevision: 4,
     speakingTiming: [],
     transferSeconds: null,
+    audioPlayback: null,
     ...currentOver,
   },
   ...over,
@@ -250,16 +255,30 @@ async function until(done: () => boolean, budgetMs = 20_000) {
 }
 
 beforeEach(() => {
+  Object.defineProperty(navigator, 'onLine', { configurable: true, value: true });
   localStorage.clear();
   localStorage.setItem('vni.locale', 'vi');
   calls = { starts: [], stopwatch: [], target: [], answers: [], submits: 0 };
   sessionPayload = practiceSession();
   releaseSave = null;
   holdSaves = false;
+  Object.defineProperty(URL, 'createObjectURL', {
+    configurable: true,
+    value: vi.fn(() => 'blob:listening-audio'),
+  });
+  Object.defineProperty(URL, 'revokeObjectURL', {
+    configurable: true,
+    value: vi.fn(),
+  });
   mockApi();
 });
 
 afterEach(() => {
+  // A timed-out holdSaves test must not leave the next one blocked on a
+  // never-resolving PUT /answers.
+  releaseSave?.();
+  releaseSave = null;
+  holdSaves = false;
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -309,6 +328,12 @@ it('counts up from the server, and never draws a countdown', async () => {
 
   await screen.findByText('The History of Cartography');
 
+  const header = document.querySelector('.prun-bar') as HTMLElement;
+  expect(within(header).getByText('Reading')).toBeInTheDocument();
+  expect(within(header).getByText('Phần 1')).toBeInTheDocument();
+  expect(within(header).getByText('Academic Practice Test 1')).toBeInTheDocument();
+  expect(header.querySelector('.prun-skill-icon svg')).toBeInTheDocument();
+
   // 125 seconds of work, as the server measured it.
   const clock = screen.getByRole('timer');
   expect(clock).toHaveTextContent('02:05');
@@ -320,13 +345,114 @@ it('counts up from the server, and never draws a countdown', async () => {
   expect(document.querySelector('.exam-clock')).toBeNull();
 });
 
-it('gives a sitting no way out of itself', async () => {
+it('keeps mock timing on the deadline-only runner with no practice controls', async () => {
+  const legacy = practiceSession() as ReturnType<typeof practiceSession>;
+  sessionPayload = practiceSession({
+    practiceUnitId: 'unit-full-mock',
+    scope: 'full-test',
+    completedPartIds: [],
+    mode: 'full',
+    current: {
+      partId: 'reading-part-1',
+      deadlineAt: new Date(Date.now() + 600_000).toISOString(),
+      remainingSeconds: 600,
+      // Negative proof: these practice-looking values must not make practice
+      // controls appear on a deadline-owned mock route.
+      running: true,
+      targetSeconds: 1200,
+      parts: [legacy.current.parts[0]],
+    },
+  });
+
+  open('/students/session/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  expect(screen.getByRole('timer')).toHaveClass('exam-clock');
+  expect(screen.queryByRole('button', { name: /Dừng đồng hồ|Chạy tiếp/ })).toBeNull();
+  expect(screen.queryByRole('button', { name: /Mốc mục tiêu/ })).toBeNull();
+  expect(document.querySelector('.prun-clock')).toBeNull();
+});
+
+it('keeps a stable semantic shell and confirms before leaving it', async () => {
   open('/students/practice/sit-1');
   await screen.findByText('The History of Cartography');
 
-  // Not "few links" — none. The wordmark is text, not an anchor.
+  expect(document.querySelector('.prun-page > header')).toBeInTheDocument();
+  expect(document.querySelector('.prun-page > main')).toBeInTheDocument();
+  expect(document.querySelector('.prun-page > footer')).toBeInTheDocument();
+  expect(screen.getByText('Đã kết nối')).toBeInTheDocument();
+
+  // There is still no link that can leave on one accidental click. Exit is a
+  // button and the recoverable action receives focus in the confirmation.
   expect(document.querySelectorAll('.prun-page a')).toHaveLength(0);
   expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole('button', { name: 'Thoát' }));
+  const card = await screen.findByRole('dialog', { name: 'Thoát khỏi bài đang làm?' });
+  expect(document.activeElement).toBe(within(card).getByRole('button', { name: 'Huỷ' }));
+  expect(window.location.pathname).toBe('/students/practice/sit-1');
+
+  await userEvent.click(within(card).getByRole('button', { name: 'Huỷ' }));
+  expect(screen.queryByRole('dialog', { name: 'Thoát khỏi bài đang làm?' })).toBeNull();
+  expect(window.location.pathname).toBe('/students/practice/sit-1');
+
+  await userEvent.click(screen.getByRole('button', { name: 'Thoát' }));
+  await userEvent.click(
+    within(await screen.findByRole('dialog')).getByRole('button', { name: 'Thoát khỏi bài' }),
+  );
+  await waitFor(() => expect(window.location.pathname).toBe('/practice'));
+  expect(calls.submits).toBe(0);
+});
+
+it('states connection loss without removing the runner shell', async () => {
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  act(() => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
+    window.dispatchEvent(new Event('offline'));
+  });
+
+  expect(await screen.findByText('Mất kết nối')).toBeInTheDocument();
+  expect(document.querySelector('.prun-page > main')).toBeInTheDocument();
+  expect(document.querySelector('.prun-page > footer')).toBeInTheDocument();
+});
+
+it('renders only the server-owned current part from a projected session', async () => {
+  const legacy = practiceSession() as ReturnType<typeof practiceSession>;
+  sessionPayload = practiceSession({
+    practiceUnitId: 'unit-reading-part-1',
+    scope: 'part',
+    completedPartIds: [],
+    current: {
+      partId: 'reading-part-1',
+      // Negative proof: even if a stale/malformed response includes a second
+      // part, the runner does not put it or its question in the DOM.
+      parts: legacy.current.parts,
+    },
+  });
+
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  expect(screen.queryByText('Wayfinding')).toBeNull();
+  expect(screen.queryByRole('textbox', { name: /Câu hỏi 3/ })).toBeNull();
+  expect(document.querySelectorAll('.prun-box')).toHaveLength(2);
+});
+
+it('fails closed when the session part does not match its projection', async () => {
+  sessionPayload = practiceSession({
+    practiceUnitId: 'unit-reading-part-9',
+    scope: 'part',
+    completedPartIds: [],
+    current: { partId: 'reading-part-9' },
+  });
+
+  open('/students/practice/sit-1');
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Không thể mở đúng phần bài tập');
+  expect(screen.queryByText('The History of Cartography')).toBeNull();
+  expect(screen.queryByRole('textbox')).toBeNull();
 });
 
 it('stops the clock through the server, and sends no timestamp with it', async () => {
@@ -436,14 +562,69 @@ it('shows the open section as boxes and every other section as a count', async (
 
   // Prev is disabled at the first part; Next is not, because part 2 is open —
   // the server opens a module's parts together.
-  expect(screen.getByRole('button', { name: 'Section trước' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Section trước' })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  );
   await userEvent.click(screen.getByRole('button', { name: 'Section sau' }));
 
   expect(await screen.findByText('Wayfinding')).toBeInTheDocument();
   expect(document.querySelectorAll('.prun-box')).toHaveLength(1);
-  expect(screen.getByRole('button', { name: 'Section trước' })).toBeEnabled();
+  expect(screen.getByRole('button', { name: 'Section trước' })).toHaveAttribute(
+    'aria-disabled',
+    'false',
+  );
   // And it does not silently become "start the next skill" at the end.
-  expect(screen.getByRole('button', { name: 'Section sau' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Section sau' })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  );
+});
+
+it('numbers, counts and focuses the footer by response slot rather than question', async () => {
+  const legacy = practiceSession() as ReturnType<typeof practiceSession>;
+  const multi = {
+    id: 'r-multi',
+    order: 4,
+    type: 'multiple-select',
+    prompt: 'Choose TWO answers',
+    options: [
+      { key: 'A', text: 'Alpha' },
+      { key: 'B', text: 'Beta' },
+      { key: 'C', text: 'Gamma' },
+      { key: 'D', text: 'Delta' },
+    ],
+    maxWords: null,
+    group: null,
+    slots: [
+      { id: 'slot-17', number: 17 },
+      { id: 'slot-18', number: 18 },
+    ],
+  };
+  sessionPayload = practiceSession({
+    current: {
+      parts: [legacy.current.parts[0], { ...legacy.current.parts[1], questions: [multi] }],
+      answers: { 'r-multi': 'A|D' },
+    },
+  });
+
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  // Negative proof: one question with two marks is 2/2, never 1/1.
+  const collapsed = screen.getByRole('button', { name: 'Section 2 · 2/2' });
+  expect(screen.queryByRole('button', { name: 'Section 2 · 1/1' })).toBeNull();
+  await userEvent.click(collapsed);
+
+  const boxes = document.querySelectorAll<HTMLElement>('.prun-box');
+  expect(boxes).toHaveLength(2);
+  expect(boxes[0]).toHaveTextContent('17');
+  expect(boxes[1]).toHaveTextContent('18');
+  expect(boxes[0]?.dataset.state).toBe('answered');
+  expect(boxes[1]?.dataset.state).toBe('answered');
+
+  await userEvent.click(boxes[1] as HTMLElement);
+  expect(document.activeElement).toBe(screen.getByRole('checkbox', { name: /Delta/ }));
 });
 
 it('names an empty section rather than drawing zero boxes', async () => {
@@ -499,8 +680,10 @@ it('confirms a submit in a card, with Cancel holding the keyboard', async () => 
   expect(document.activeElement).toBe(within(card).getByRole('button', { name: 'Huỷ' }));
 
   // It states the count as a sentence, which is the only place it appears
-  // as one — three unanswered across two sections.
-  expect(within(card).getByText('Còn 3 câu chưa trả lời.')).toBeInTheDocument();
+  // as one — three unanswered across two sections. `role="status"` so the
+  // count is not only a coloured box.
+  const unanswered = within(card).getByRole('status');
+  expect(unanswered).toHaveTextContent('Còn 3 câu chưa trả lời.');
   expect(within(card).getByText('Section 1: 2 câu')).toBeInTheDocument();
 
   // Dismissible, and dismissing submits nothing.
@@ -567,6 +750,194 @@ it('splits Reading into a passage pane and a question pane', async () => {
   expect(within(questions).getByRole('textbox', { name: /Câu hỏi 1/ })).toBeInTheDocument();
   // The passage pane holds no answer field, and the question pane no passage.
   expect(within(passage).queryByRole('textbox')).toBeNull();
+
+  const view = screen.getByRole('group', { name: 'Chọn phần hiển thị trên màn hình nhỏ' });
+  const passageButton = within(view).getByRole('button', { name: 'Bài đọc' });
+  const questionsButton = within(view).getByRole('button', { name: 'Câu hỏi' });
+  expect(passageButton).toHaveAttribute('aria-pressed', 'true');
+
+  const answer = within(questions).getByRole('textbox', { name: /Câu hỏi 1/ });
+  await userEvent.type(answer, 'atlas');
+  await userEvent.click(questionsButton);
+  expect(questionsButton).toHaveAttribute('aria-pressed', 'true');
+  await userEvent.click(passageButton);
+  await userEvent.click(questionsButton);
+
+  // Negative proof: mobile pane changes keep the same field mounted and do
+  // not erase the answer waiting for autosave.
+  expect(within(questions).getByRole('textbox', { name: /Câu hỏi 1/ })).toBe(answer);
+  expect(answer).toHaveValue('atlas');
+});
+
+it('restores both Reading pane scroll positions for each part', async () => {
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  const passage = screen.getByRole('region', { name: 'Bài đọc' });
+  const questions = screen.getByRole('region', { name: 'Câu hỏi' });
+  passage.scrollTop = 240;
+  questions.scrollTop = 120;
+
+  await userEvent.click(screen.getByRole('button', { name: 'Section sau' }));
+  expect(await screen.findByText('Wayfinding')).toBeInTheDocument();
+  passage.scrollTop = 40;
+  questions.scrollTop = 20;
+
+  await userEvent.click(screen.getByRole('button', { name: 'Section trước' }));
+  expect(await screen.findByText('The History of Cartography')).toBeInTheDocument();
+  expect(passage.scrollTop).toBe(240);
+  expect(questions.scrollTop).toBe(120);
+});
+
+function listeningSession(policy: { playOnce: boolean; allowSeek: boolean }) {
+  return practiceSession({
+    current: {
+      module: 'listening',
+      audioPlayback: policy,
+      parts: [
+        {
+          order: 1,
+          kind: 'listening',
+          title: 'Listening Part 1',
+          body: 'Listen and answer.',
+          audioKey: 'assets/listening/part-1.mp3',
+          imageKey: null,
+          taskNumber: null,
+          partNumber: null,
+          cueCard: null,
+          minWords: null,
+          questions: [question('l-1', 1, 'Complete the note')],
+        },
+      ],
+    },
+  });
+}
+
+function speakingPracticeSession() {
+  return practiceSession({
+    current: {
+      module: 'speaking',
+      speakingTiming: [{ part: 2, prepSeconds: 0, responseSeconds: 120 }],
+      parts: [
+        {
+          order: 1,
+          kind: 'speaking-part',
+          title: 'Individual long turn',
+          body: null,
+          audioKey: null,
+          imageKey: null,
+          taskNumber: null,
+          partNumber: 2,
+          cueCard: { topic: 'Describe a time you concentrated hard.', bullets: ['what', 'when'] },
+          minWords: null,
+          questions: [
+            {
+              id: 's-part-2',
+              order: 1,
+              type: 'speaking-response',
+              prompt: 'Individual long turn',
+              options: [],
+              maxWords: null,
+              group: null,
+            },
+          ],
+        },
+      ],
+    },
+  });
+}
+
+it('uses the server playback policy, a byte range, and metadata preload for Listening', async () => {
+  const assetRequests: RequestInit[] = [];
+  sessionPayload = listeningSession({ playOnce: false, allowSeek: true });
+  mockApi((url, init) => {
+    if (!url.includes('/api/v1/exams/assets/listening/part-1.mp3')) return null;
+    assetRequests.push(init ?? {});
+    return new Response(new Blob(['audio']), {
+      status: 206,
+      headers: { 'Content-Type': 'audio/mpeg', 'Content-Range': 'bytes 0-4/5' },
+    });
+  });
+
+  open('/students/practice/sit-1');
+
+  await screen.findByRole('button', { name: 'Phát' });
+  const headers = assetRequests.at(-1)?.headers as Record<string, string>;
+  expect(headers.Range).toBe('bytes=0-');
+  expect(document.querySelector('audio')).toHaveAttribute('preload', 'metadata');
+  expect(screen.getByRole('slider', { name: 'Tua audio' })).toBeInTheDocument();
+  expect(screen.getByText('Có thể phát lại và tua theo chính sách bài luyện.')).toBeInTheDocument();
+});
+
+it('does not expose seek when the resolved mock policy is one-pass', async () => {
+  sessionPayload = listeningSession({ playOnce: true, allowSeek: false });
+  mockApi((url) =>
+    url.includes('/api/v1/exams/assets/listening/part-1.mp3')
+      ? new Response(new Blob(['audio']), { status: 206 })
+      : null,
+  );
+
+  open('/students/practice/sit-1');
+
+  await screen.findByRole('button', { name: 'Phát' });
+  expect(screen.queryByRole('slider')).toBeNull();
+  expect(screen.getByText('Audio chỉ phát một lần, không tua được.')).toBeInTheDocument();
+});
+
+it('pauses Listening audio when a confirmation card opens', async () => {
+  const pause = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined);
+  sessionPayload = listeningSession({ playOnce: false, allowSeek: true });
+  mockApi((url) =>
+    url.includes('/api/v1/exams/assets/listening/part-1.mp3')
+      ? new Response(new Blob(['audio']), { status: 206 })
+      : null,
+  );
+
+  open('/students/practice/sit-1');
+  await screen.findByRole('button', { name: 'Phát' });
+
+  const audio = document.querySelector('audio')!;
+  fireEvent.play(audio);
+
+  await userEvent.click(screen.getByRole('button', { name: 'Nộp bài' }));
+  expect(pause).toHaveBeenCalledTimes(1);
+
+  await userEvent.keyboard('{Escape}');
+  pause.mockClear();
+  fireEvent.play(audio);
+
+  await userEvent.click(screen.getByRole('button', { name: 'Thoát' }));
+  expect(pause).toHaveBeenCalledTimes(1);
+});
+
+it('uses the Speaking recorder in open practice mode', async () => {
+  sessionPayload = speakingPracticeSession();
+
+  open('/students/practice/sit-1');
+
+  expect(await screen.findByText('Describe a time you concentrated hard.')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Bắt đầu ghi âm' })).toBeInTheDocument();
+  expect(screen.queryByRole('textbox')).toBeNull();
+});
+
+it.each([404, 416])('turns audio HTTP %s into a retryable failure', async (status) => {
+  let attempts = 0;
+  sessionPayload = listeningSession({ playOnce: false, allowSeek: true });
+  mockApi((url) => {
+    if (!url.includes('/api/v1/exams/assets/listening/part-1.mp3')) return null;
+    attempts += 1;
+    return attempts <= 2
+      ? new Response(null, { status })
+      : new Response(new Blob(['audio']), { status: 206 });
+  });
+
+  open('/students/practice/sit-1');
+
+  const alert = await screen.findByRole('alert');
+  expect(alert).toHaveTextContent('Không tải được audio');
+  await userEvent.click(within(alert).getByRole('button', { name: 'Thử tải lại' }));
+  await screen.findByRole('button', { name: 'Phát' });
+  expect(attempts).toBeGreaterThanOrEqual(3);
 });
 
 it('moves the keyboard to the question a footer box points at', async () => {
@@ -582,4 +953,125 @@ it('moves the keyboard to the question a footer box points at', async () => {
   await userEvent.click(boxes[1] as HTMLElement);
 
   expect(document.activeElement).toBe(screen.getByRole('textbox', { name: /Câu hỏi 2/ }));
+});
+
+it('does not change part when the final save fails on navigation', async () => {
+  mockApi((url, init) => {
+    if (url.endsWith('/answers') && (init?.method ?? 'GET') === 'PUT') {
+      return json({ code: 'INTERNAL', status: 500 }, 500);
+    }
+    return null;
+  });
+
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  await userEvent.type(screen.getByRole('textbox', { name: /Câu hỏi 1/ }), 'cartography');
+  await userEvent.click(screen.getByRole('button', { name: 'Section sau' }));
+
+  await waitFor(() =>
+    expect(screen.getByText(/Câu trả lời cuối chưa lưu được/i)).toBeInTheDocument(),
+  );
+  expect(screen.getByText('The History of Cartography')).toBeInTheDocument();
+  expect(screen.queryByText('Wayfinding')).toBeNull();
+});
+
+it('keeps section step controls focusable at the ends and refuses the move', async () => {
+  /*
+   * Product law mirrored from `Pagination`: `disabled` drops focus to
+   * `<body>` when the learner reaches the first or last section. `aria-disabled`
+   * keeps the control in the tab order; the guarded handler is what refuses.
+   */
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  const prev = screen.getByRole('button', { name: 'Section trước' });
+  prev.focus();
+  expect(document.activeElement).toBe(prev);
+  expect(prev).toHaveAttribute('aria-disabled', 'true');
+  await userEvent.click(prev);
+  expect(screen.getByText('The History of Cartography')).toBeInTheDocument();
+  expect(document.activeElement).toBe(prev);
+
+  await userEvent.click(screen.getByRole('button', { name: 'Section sau' }));
+  expect(await screen.findByText('Wayfinding')).toBeInTheDocument();
+
+  const next = screen.getByRole('button', { name: 'Section sau' });
+  next.focus();
+  expect(next).toHaveAttribute('aria-disabled', 'true');
+  await userEvent.click(next);
+  expect(screen.getByText('Wayfinding')).toBeInTheDocument();
+  expect(document.activeElement).toBe(next);
+});
+
+it('names footer boxes by state without relying on colour alone', async () => {
+  /*
+   * Three channels: fill, glyph, accessible name. The name is what survives a
+   * reader who never looks at the box — and what this test locks.
+   */
+  holdSaves = true;
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  expect(screen.getByRole('button', { name: /Câu 1 · chưa trả lời/i })).toHaveAttribute(
+    'data-state',
+    'empty',
+  );
+
+  await userEvent.type(screen.getByRole('textbox', { name: /Câu hỏi 1/ }), 'map');
+
+  expect(
+    await screen.findByRole('button', { name: /Câu 1 · đã nhập, chưa lưu xong/i }),
+  ).toHaveAttribute('data-state', 'unsaved');
+
+  await until(() => calls.answers.length === 1);
+  releaseSave?.();
+
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: /Câu 1 · đã trả lời, đã lưu/i })).toHaveAttribute(
+      'data-state',
+      'answered',
+    ),
+  );
+});
+
+it('exposes target aria-controls only while the panel is open', async () => {
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  const trigger = screen.getByRole('button', { name: /Mốc mục tiêu/i });
+  expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  expect(trigger).not.toHaveAttribute('aria-controls');
+
+  await userEvent.click(trigger);
+  expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  const panelId = trigger.getAttribute('aria-controls');
+  expect(panelId).toBeTruthy();
+  expect(document.getElementById(panelId!)).not.toBeNull();
+
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(trigger).toHaveAttribute('aria-expanded', 'false'));
+  expect(trigger).not.toHaveAttribute('aria-controls');
+});
+
+it('states connection as words, not as a colour alone', async () => {
+  /*
+   * `role="status"` does not take a name from content (ARIA), so the channel
+   * that survives greyscale is the visible sentence — same pattern as the
+   * existing offline shell test, with an explicit role check.
+   */
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  const online = screen.getByText('Đã kết nối');
+  expect(online).toHaveAttribute('role', 'status');
+
+  act(() => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
+    window.dispatchEvent(new Event('offline'));
+  });
+
+  const offline = await screen.findByText('Mất kết nối');
+  expect(offline).toHaveAttribute('role', 'status');
+  expect(screen.queryByText('Đã kết nối')).toBeNull();
 });

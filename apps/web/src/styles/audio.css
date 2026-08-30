@@ -15,3 +15,16 @@
   font-size: var(--t-16);
   line-height: var(--lh-body);
 }
+
+.audio-failed p {
+  margin: 0;
+}
+
+.audio-failed button {
+  margin-top: var(--s-3);
+}
+
+.audio-seek {
+  width: 100%;
+  accent-color: var(--accent);
+}

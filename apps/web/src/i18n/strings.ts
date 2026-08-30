@@ -346,6 +346,11 @@ const vi = {
   'exam.answeredOf': 'Đã trả lời {answered}/{total}',
   'exam.answerLabel': 'Câu trả lời của bạn',
   'exam.pickAnswer': '— chọn —',
+  'exam.answerBank': 'Ngân hàng đáp án',
+  'exam.bankInstructions':
+    'Kéo đáp án vào câu hỏi, hoặc chọn một đáp án rồi chọn ô trả lời. Có thể dùng danh sách chọn bên dưới bằng bàn phím.',
+  'exam.dropAnswer': 'Thả hoặc chọn đáp án',
+  'exam.assignAnswer': 'Chọn {key} cho câu này',
   'exam.usedAt': '(đã dùng ở câu {number})',
   'exam.maxWords': 'Tối đa {count} từ',
   'exam.saved': 'Đã lưu',
@@ -390,7 +395,7 @@ const vi = {
     'Luyện từng kỹ năng kết thúc ở đây — không có bước chuyển sang kỹ năng khác.',
   'exam.nothingMarkedTitle': 'Chưa có kết quả nào cho buổi này',
   'exam.nothingMarkedBody':
-    'Bài đã nộp và đang nằm trên máy chủ. Kỹ năng do AI chấm chưa nối với mô hình nào nên chưa có band; bấm “Kiểm tra lại” sau ít phút.',
+    'Bài đã nộp và đang nằm trên máy chủ. Kỹ năng do AI chấm đang chờ xử lý hoặc chờ cấu hình chấm; bấm “Kiểm tra lại” sau ít phút.',
 
   'exam.gone': 'Không tìm thấy phiên thi',
   'exam.goneBody': 'Phiên thi này không còn nữa, hoặc không thuộc về tài khoản của bạn.',
@@ -402,8 +407,12 @@ const vi = {
   'exam.pause': 'Tạm dừng',
   'exam.audioOnce': 'Audio chỉ phát một lần, không tua được.',
   'exam.audioReplayable': 'Không tua được.',
+  'exam.audioSeekable': 'Có thể phát lại và tua theo chính sách bài luyện.',
+  'exam.audioSeek': 'Tua audio',
   'exam.audioSpent': 'Audio đã phát xong.',
   'exam.audioFailed': 'Không tải được audio. Kiểm tra kết nối rồi mở lại phần này.',
+  'exam.audioRetry': 'Thử tải lại',
+  'exam.audioPolicyMissing': 'Thiếu chính sách phát audio từ máy chủ. Không thể bắt đầu phần nghe.',
   'exam.imageLoading': 'Đang tải hình…',
   'exam.imageFailed': 'Không tải được hình. Kiểm tra kết nối rồi mở lại phần này.',
   'exam.imageNoDescription':
@@ -427,8 +436,14 @@ const vi = {
   'exam.recording': 'Đang ghi âm',
   'exam.stopRecording': 'Dừng',
   'exam.uploading': 'Đang gửi bản ghi…',
+  'exam.uploadingPercent': 'Đang gửi bản ghi… {percent}%',
   'exam.recordingStored': 'Đã lưu bản ghi',
   'exam.uploadFailed': 'Gửi bản ghi thất bại. Bản ghi vẫn còn, thử gửi lại.',
+  'exam.recordingQueued':
+    'Bản ghi đang giữ trên máy — sẽ gửi khi có mạng, hoặc bấm Gửi lại.',
+  'exam.micPermissionHint':
+    'Trình duyệt sẽ hỏi quyền micro trước khi đồng hồ chuẩn bị hoặc ghi âm bắt đầu.',
+  'exam.levelMeter': 'Mức âm thanh micro',
 
   /*
    * ── Luyện đề · `E-20`…`E-32` ─────────────────────────────────────────
@@ -438,6 +453,19 @@ const vi = {
    * vocabulary: nothing "hết giờ", nothing "còn lại".
    */
   'practice.modeBadge': 'Luyện đề',
+  'practice.leave': 'Thoát',
+  'practice.leaveTitle': 'Thoát khỏi bài đang làm?',
+  'practice.leaveBody': 'Bài chưa được nộp. Bạn có thể quay lại phiên này để làm tiếp.',
+  'practice.leaveUnsettled':
+    'Một số thay đổi chưa được máy chủ xác nhận. Trạng thái trên màn hình cho biết phần nào còn đang chờ.',
+  'practice.leaveConfirm': 'Thoát khỏi bài',
+  'practice.runnerState': 'Trạng thái bài làm',
+  'practice.readingView': 'Chọn phần hiển thị trên màn hình nhỏ',
+  'practice.connectionOnline': 'Đã kết nối',
+  'practice.connectionOffline': 'Mất kết nối',
+  'practice.scopeInvalidTitle': 'Không thể mở đúng phần bài tập',
+  'practice.scopeInvalidBody':
+    'Dữ liệu phiên không khớp với phần máy chủ đã chọn. Không có câu hỏi nào được hiển thị; hãy quay lại thư viện và mở lại phiên.',
   'practice.startPractice': 'Luyện đề',
   'practice.startPracticeHint': 'Đồng hồ đếm lên, dừng được',
   'practice.clockLabel': 'Thời gian đã làm',
@@ -492,7 +520,7 @@ const vi = {
   'exam.essayLabel': 'Bài viết của bạn',
   'exam.speakingLabel': 'Phần nói',
   'exam.recordingsLabel': 'Câu trả lời của bạn',
-  'exam.aiNotMarked': 'Writing và Speaking chưa được chấm — chưa nối với mô hình nào.',
+  'exam.aiNotMarked': 'Writing và Speaking chưa được chấm xong.',
 
   'exam.resultsEyebrow': 'Kết quả',
   'exam.resultsLead': 'Điểm từng kỹ năng của lần làm bài này.',
@@ -505,11 +533,19 @@ const vi = {
   // an older sitting, or one closed before the outbox existed. Everything with
   // a job says what actually happened instead. → `exam.markingWaiting`
   'exam.aiPending':
-    'Writing và Speaking do AI chấm và chưa nối với mô hình nào, nên hai kỹ năng đó hiện dấu gạch ngang.',
+    'Writing và Speaking do AI chấm đang chờ xử lý, nên kỹ năng chưa có điểm hiện dấu gạch ngang.',
   // One sentence per state, because one sentence for every state is a lie: the
   // learner's next move is different for each of them.
   'exam.markingWaiting': 'Đang chờ chấm.',
   'exam.markingRunning': 'Đang chấm.',
+  'exam.markingRetryable': 'Đang thử chấm lại.',
+  'exam.markingFailed': 'Chưa chấm được. Bạn có thể kiểm tra lại sau.',
+  'exam.markingAwaitingEvaluator': 'Đang chờ bộ chấm tự động sẵn sàng.',
+  'exam.markingAwaitingRubric': 'Đang chờ cấu hình bộ tiêu chí chấm.',
+  'exam.markingAwaitingVoiceProvider':
+    'Bản ghi đã nhận. Chấm Speaking chờ nhà cung cấp giọng nói.',
+  'exam.markingNothingSubmitted': 'Chưa có bài nộp để chấm.',
+  'exam.markingRejected': 'Bài chấm bị từ chối khi kiểm tra an toàn.',
   'exam.checkAgain': 'Kiểm tra lại',
   'exam.reviewTitle': 'Xem lại từng câu · {skill}',
   'exam.reviewQuestion': 'Câu {number}:',
@@ -519,6 +555,19 @@ const vi = {
   'exam.reviewAnswered': 'bạn trả lời "{answer}"',
   'exam.reviewNoKey':
     'Đây là những gì bạn đã điền. Đáp án đúng không hiển thị ở đây, để đề này còn làm lại được.',
+  'exam.reviewExplanationNote':
+    'Giải thích chỉ mở sau khi nộp bài và không thay đổi điểm đã chấm theo đáp án.',
+  'exam.explanationRequest': 'Vì sao đúng?',
+  'exam.explanationRetry': 'Thử tạo lại giải thích',
+  'exam.explanationLoading': 'Đang tạo giải thích…',
+  'exam.explanationPending': 'Đang tạo giải thích cá nhân.',
+  'exam.explanationFailed': 'Chưa tạo được giải thích. Hãy thử lại.',
+  'exam.explanationCorrectAnswer': 'Đáp án đúng',
+  'exam.markingReviewTitle': 'Xem nhận xét · {skill}',
+  'exam.markingTask': 'Task {number}',
+  'exam.markingWholeSkill': 'Toàn bộ kỹ năng',
+  'exam.markingRubric': 'Bộ tiêu chí: {version}',
+  'exam.markingFlags': 'Có {count} cảnh báo cần giáo viên xem lại.',
   'exam.backToPractice': '← Về danh sách đề',
 
   'dash.railLabel': 'Dành cho học sinh',
@@ -614,7 +663,7 @@ const vi = {
   'dash.ai.sub': 'Trợ lý luyện thi',
   'dash.ai.emptyTitle': 'Trợ lý chưa được kết nối',
   'dash.ai.emptyBody':
-    'Hỏi đáp AI nằm trong bản phát hành đầu tiên, nhưng chưa nối với mô hình nào. Phạm vi được phép trả lời, nhà cung cấp và mức token cho mỗi câu hỏi vẫn đang được chốt.',
+    'Hỏi đáp AI nằm trong bản phát hành đầu tiên, nhưng phạm vi được phép trả lời và mức token cho mỗi câu hỏi vẫn đang được chốt.',
   'dash.ai.inputLabel': 'Câu hỏi cho trợ lý AI',
   'dash.ai.placeholder': 'Ô nhập sẽ mở khi trợ lý được kết nối',
   'dash.ai.note': 'Ô nhập đang tắt, để không nhận câu hỏi mà chưa có gì trả lời.',
@@ -970,6 +1019,11 @@ const en: Record<StringKey, string> = {
   'exam.answeredOf': '{answered}/{total} answered',
   'exam.answerLabel': 'Your answer',
   'exam.pickAnswer': '— choose —',
+  'exam.answerBank': 'Answer bank',
+  'exam.bankInstructions':
+    'Drag an answer to a question, or select an answer and then activate its answer target. The select below is also available from the keyboard.',
+  'exam.dropAnswer': 'Drop or assign an answer',
+  'exam.assignAnswer': 'Assign {key} to this question',
   'exam.usedAt': '(already at {number})',
   'exam.maxWords': 'At most {count} words',
   'exam.saved': 'Saved',
@@ -1001,7 +1055,7 @@ const en: Record<StringKey, string> = {
   'exam.singleEndsHere': 'Single-skill practice ends here — there is no next skill to move on to.',
   'exam.nothingMarkedTitle': 'No result for this sitting yet',
   'exam.nothingMarkedBody':
-    'Your work was submitted and is on the server. The AI-marked skills are not wired to a model yet, so there is no band; press “Check again” in a few minutes.',
+    'Your work was submitted and is on the server. AI-marked skills are waiting for processing or marking configuration; press “Check again” in a few minutes.',
 
   'exam.gone': 'No such exam session',
   'exam.goneBody': 'This sitting no longer exists, or it does not belong to your account.',
@@ -1013,9 +1067,14 @@ const en: Record<StringKey, string> = {
   'exam.pause': 'Pause',
   'exam.audioOnce': 'The audio plays once and cannot be rewound.',
   'exam.audioReplayable': 'Cannot be rewound.',
+  'exam.audioSeekable': 'Replay and seeking are available for this practice.',
+  'exam.audioSeek': 'Seek audio',
   'exam.audioSpent': 'The audio has finished.',
   'exam.audioFailed':
     'The audio could not be loaded. Check your connection and reopen this section.',
+  'exam.audioRetry': 'Retry audio',
+  'exam.audioPolicyMissing':
+    'The server did not provide an audio playback policy. This Listening part cannot start.',
   'exam.imageLoading': 'Loading the image…',
   'exam.imageFailed':
     'The image could not be loaded. Check your connection and reopen this section.',
@@ -1033,11 +1092,30 @@ const en: Record<StringKey, string> = {
   'exam.recording': 'Recording',
   'exam.stopRecording': 'Stop',
   'exam.uploading': 'Sending the recording…',
+  'exam.uploadingPercent': 'Sending the recording… {percent}%',
   'exam.recordingStored': 'Recording saved',
   'exam.uploadFailed': 'The recording could not be sent. It is still here — try again.',
+  'exam.recordingQueued':
+    'The recording is held on this device — it will send when you are back online, or tap Send again.',
+  'exam.micPermissionHint':
+    'The browser will ask for microphone permission before the preparation or recording clock starts.',
+  'exam.levelMeter': 'Microphone input level',
 
   /* ── Practice mode · `E-20`…`E-32` ──────────────────────────────────── */
   'practice.modeBadge': 'Practice',
+  'practice.leave': 'Exit',
+  'practice.leaveTitle': 'Exit this sitting?',
+  'practice.leaveBody': 'The paper has not been submitted. You can return to this sitting later.',
+  'practice.leaveUnsettled':
+    'Some changes have not been confirmed by the server. The on-screen status shows what is still pending.',
+  'practice.leaveConfirm': 'Exit sitting',
+  'practice.runnerState': 'Sitting status',
+  'practice.readingView': 'Choose the pane shown on a small screen',
+  'practice.connectionOnline': 'Connected',
+  'practice.connectionOffline': 'Offline',
+  'practice.scopeInvalidTitle': 'The selected practice part cannot be opened',
+  'practice.scopeInvalidBody':
+    'The session data does not match the part selected by the server. No questions are shown; return to the library and reopen the sitting.',
   'practice.startPractice': 'Practice',
   'practice.startPracticeHint': 'Count-up clock you can stop',
   'practice.clockLabel': 'Time worked',
@@ -1092,7 +1170,7 @@ const en: Record<StringKey, string> = {
   'exam.essayLabel': 'Your answer',
   'exam.speakingLabel': 'Speaking part',
   'exam.recordingsLabel': 'Your answers',
-  'exam.aiNotMarked': 'Writing and Speaking are not marked yet — no model is wired.',
+  'exam.aiNotMarked': 'Writing and Speaking are not marked yet.',
 
   'exam.resultsEyebrow': 'Results',
   'exam.resultsLead': 'Per-skill bands for this sitting.',
@@ -1103,9 +1181,17 @@ const en: Record<StringKey, string> = {
   'exam.rawOf': '{raw}/{max} correct',
   'exam.notMarked': 'Not marked',
   'exam.aiPending':
-    'Writing and Speaking are AI marked and are not wired to a model yet, so both show a dash.',
+    'Writing and Speaking are AI marked and still processing, so unmarked skills show a dash.',
   'exam.markingWaiting': 'Waiting to be marked.',
   'exam.markingRunning': 'Being marked now.',
+  'exam.markingRetryable': 'Trying to mark it again.',
+  'exam.markingFailed': 'Marking is not ready. Check again later.',
+  'exam.markingAwaitingEvaluator': 'Waiting for automated marking to be available.',
+  'exam.markingAwaitingRubric': 'Waiting for the marking rubric to be configured.',
+  'exam.markingAwaitingVoiceProvider':
+    'Recording received. Speaking marking is waiting for the voice provider.',
+  'exam.markingNothingSubmitted': 'There is no submitted answer to mark.',
+  'exam.markingRejected': 'The marking was rejected by safety validation.',
   'exam.checkAgain': 'Check again',
   'exam.reviewTitle': 'Review each question · {skill}',
   'exam.reviewQuestion': 'Question {number}:',
@@ -1115,6 +1201,19 @@ const en: Record<StringKey, string> = {
   'exam.reviewAnswered': 'you answered "{answer}"',
   'exam.reviewNoKey':
     'This is what you entered. The correct answers are not shown here, so this paper can be sat again.',
+  'exam.reviewExplanationNote':
+    'Explanations are available only after submit and do not change the answer-key score.',
+  'exam.explanationRequest': 'Why is this correct?',
+  'exam.explanationRetry': 'Try the explanation again',
+  'exam.explanationLoading': 'Creating explanation…',
+  'exam.explanationPending': 'Creating a personal explanation.',
+  'exam.explanationFailed': 'The explanation is not ready. Try again.',
+  'exam.explanationCorrectAnswer': 'Correct answer',
+  'exam.markingReviewTitle': 'Review feedback · {skill}',
+  'exam.markingTask': 'Task {number}',
+  'exam.markingWholeSkill': 'Whole skill',
+  'exam.markingRubric': 'Rubric: {version}',
+  'exam.markingFlags': '{count} validation warnings need teacher review.',
   'exam.backToPractice': '← Back to the exam list',
 
   'dash.railLabel': 'Student area',
@@ -1206,7 +1305,7 @@ const en: Record<StringKey, string> = {
   'dash.ai.sub': 'Practice assistant',
   'dash.ai.emptyTitle': 'The assistant is not connected',
   'dash.ai.emptyBody':
-    'AI chat is in the first release, but it is not wired to a model yet. What it may answer, which provider serves it, and the token cost per question are all still being settled.',
+    'AI chat is in the first release, but its allowed scope and token cost per question are still being settled.',
   'dash.ai.inputLabel': 'Question for the AI assistant',
   'dash.ai.placeholder': 'The composer opens once the assistant is connected',
   'dash.ai.note': 'The composer is disabled so it cannot take a question nothing can answer.',

@@ -145,7 +145,7 @@ internal sealed class MongoExamSessionRepository(MongoContext context) : IExamSe
         var filter = Builders<ExamSessionDocument>.Filter.And(
             Builders<ExamSessionDocument>.Filter.Eq(s => s.Id, session.Id.Value),
             Builders<ExamSessionDocument>.Filter.Eq(s => s.Status, from.Status.ToString()),
-            OpenSectionIs(from.OpenModule, from.OpenSectionRunning));
+            OpenSectionIs(from.OpenModule, from.OpenSectionRunning, from.OpenPartId));
 
         var result = await context.ExamSessions.ReplaceOneAsync(
             filter, session.ToDocument(), cancellationToken: ct);
@@ -183,12 +183,13 @@ internal sealed class MongoExamSessionRepository(MongoContext context) : IExamSe
     /// <c>runningSince</c> and each adding the same interval to the total.
     /// </summary>
     private static FilterDefinition<ExamSessionDocument> OpenSectionIs(
-        ExamModule? module, bool running) =>
+        ExamModule? module, bool running, string? partId) =>
         module is { } open
             ? Builders<ExamSessionDocument>.Filter.ElemMatch(
                 s => s.Attempts,
                 Builders<AttemptDocument>.Filter.And(
                     Builders<AttemptDocument>.Filter.Eq(a => a.Module, open.ToString()),
+                    Builders<AttemptDocument>.Filter.Eq(a => a.PartId, partId),
                     Builders<AttemptDocument>.Filter.Eq(a => a.SubmittedAt, null),
                     running
                         ? Builders<AttemptDocument>.Filter.Ne(a => a.RunningSince, null)
@@ -670,12 +671,26 @@ internal sealed class MongoSectionResultStore(MongoContext context, IClock clock
             Module = score.Module.ToString(),
             RawScore = score.RawScore,
             MaxScore = score.MaxScore,
-            Band = score.Band.Value,
+            Band = score.Band?.Value,
             Questions =
             [
                 .. score.Questions.Select(q => new QuestionResultDocument
                 {
-                    QuestionId = q.QuestionId, Submitted = q.Submitted, IsCorrect = q.IsCorrect,
+                    QuestionId = q.QuestionId,
+                    Submitted = q.Submitted,
+                    IsCorrect = q.IsCorrect,
+                    CorrectAnswer = q.CorrectAnswer,
+                    Slots = q.Slots is null ? null :
+                    [
+                        .. q.Slots.Select(s => new SlotResultDocument
+                        {
+                            SlotId = s.SlotId,
+                            Number = s.Number,
+                            Submitted = s.Submitted,
+                            Status = s.Status.ToString().ToLowerInvariant(),
+                            CorrectAnswer = s.CorrectAnswer,
+                        }),
+                    ],
                 }),
             ],
             ScoredAt = clock.UtcNow.UtcDateTime,

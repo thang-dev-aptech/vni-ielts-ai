@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
@@ -138,6 +138,8 @@ const results = {
     },
   ],
   markings: [] as unknown[],
+  markingStatuses: [] as unknown[],
+  explanationStatuses: [] as unknown[],
   overallBand: null,
 };
 
@@ -146,6 +148,7 @@ let savedRevision = 0;
 let releaseSave: (() => void) | null = null;
 /** Every `Idempotency-Key` presented to `/submit`, in order. */
 let submitKeys: string[] = [];
+let explanationCalls = 0;
 
 function json(body: unknown, status = 200): Response {
   return new Response(body === undefined ? null : JSON.stringify(body), {
@@ -176,6 +179,21 @@ function mockApi() {
 
       if (url.endsWith('/api/v1/sessions') && method === 'POST') return json(openSession(), 201);
       if (url.endsWith('/results')) return json(resultsPayload);
+      if (url.endsWith('/questions/r-1/explanation') && method === 'POST') {
+        explanationCalls += 1;
+        return json({
+          questionId: 'r-1',
+          state: 'ready',
+          attempts: 1,
+          reason: null,
+          explanation: {
+            correctAnswer: 'cartography',
+            shortReason: 'The passage identifies cartography as the relevant field.',
+            evidence: ['The History of Cartography'],
+            commonMistake: 'Do not answer with the whole sentence.',
+          },
+        });
+      }
       if (url.endsWith('/submit')) {
         submitKeys.push(String((init?.headers as Record<string, string>)?.['Idempotency-Key']));
         return json(results);
@@ -217,6 +235,7 @@ beforeEach(() => {
   savedRevision = 0;
   releaseSave = null;
   submitKeys = [];
+  explanationCalls = 0;
   resultsPayload = results;
   mockApi();
 });
@@ -563,7 +582,32 @@ it('shows what was answered question by question, without the answer key', async
   expect(screen.getByText('cartography')).toBeInTheDocument();
   // A blank answer is named, not rendered as an empty cell.
   expect(screen.getAllByText('bỏ trống').length).toBeGreaterThan(0);
-  expect(screen.getByText(/Đáp án đúng không hiển thị ở đây/)).toBeInTheDocument();
+  expect(screen.getByText(/không thay đổi điểm đã chấm theo đáp án/)).toBeInTheDocument();
+});
+
+it('requests and shows a post-submit explanation without changing the score', async () => {
+  resultsPayload = {
+    ...results,
+    explanationStatuses: [
+      { questionId: 'r-1', module: 'reading', state: 'none', attempts: 0, reason: null },
+    ],
+  };
+
+  open('/students/session/sit-1/results');
+  await userEvent.click(await screen.findByRole('button', { name: /Xem lại từng câu/ }));
+
+  await userEvent.click(screen.getAllByRole('button', { name: 'Vì sao đúng?' })[0]!);
+
+  const correctAnswerLabel = await screen.findByText('Đáp án đúng:');
+  expect(correctAnswerLabel).toBeInTheDocument();
+  expect(within(correctAnswerLabel.closest('p')!).getByText('cartography')).toBeInTheDocument();
+  expect(screen.getByText(/identifies cartography/)).toBeInTheDocument();
+  expect(explanationCalls).toBe(1);
+
+  const row = screen.getByText('Reading').closest('li')!;
+  expect(within(row).getByText('Đúng 1/2 câu')).toBeInTheDocument();
+  expect(within(row).queryByText('4.5')).toBeNull();
+  expect(screen.getByText(/không thay đổi điểm/)).toBeInTheDocument();
 });
 
 it('says right and wrong with a shape, not only a colour', async () => {
@@ -707,6 +751,89 @@ it('shows the bank of headings above the questions, not only inside them', async
   expect(screen.getByText(/NB Use each letter once only/)).toBeInTheDocument();
 });
 
+it('assigns a matching answer by tap/click without opening the select', async () => {
+  openGrouped();
+  await screen.findByText('Leatherback Turtles');
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+
+  await userEvent.click(
+    within(bank).getByRole('button', {
+      name: 'iSea turtles are found in unusual locations',
+    }),
+  );
+  await userEvent.click(
+    screen.getByRole('button', {
+      name: /Choose the most suitable heading for paragraph B/,
+    }),
+  );
+
+  expect(
+    screen.getByRole('combobox', {
+      name: /Choose the most suitable heading for paragraph B/,
+    }),
+  ).toHaveValue('i');
+});
+
+it('supports the answer-bank flow with keyboard only', async () => {
+  openGrouped();
+  await screen.findByText('Leatherback Turtles');
+
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+  const option = within(bank).getByRole('button', {
+    name: 'iiUnique features of the Leatherbacks',
+  });
+  option.focus();
+  await userEvent.keyboard('{Enter}');
+
+  const target = screen.getByRole('button', {
+    name: /Choose the most suitable heading for paragraph C/,
+  });
+  target.focus();
+  await userEvent.keyboard('{Enter}');
+
+  expect(
+    screen.getByRole('combobox', {
+      name: /Choose the most suitable heading for paragraph C/,
+    }),
+  ).toHaveValue('ii');
+});
+
+it('accepts a real drag payload only when its key belongs to the question bank', async () => {
+  openGrouped();
+  await screen.findByText('Leatherback Turtles');
+
+  const data = new Map<string, string>();
+  const dataTransfer = {
+    effectAllowed: 'none',
+    setData: (type: string, value: string) => data.set(type, value),
+    getData: (type: string) => data.get(type) ?? '',
+  };
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+  const option = within(bank).getByRole('button', {
+    name: 'iSea turtles are found in unusual locations',
+  });
+  const target = screen.getByRole('button', {
+    name: /Choose the most suitable heading for paragraph B/,
+  });
+
+  fireEvent.dragStart(option, { dataTransfer });
+  fireEvent.dragOver(target, { dataTransfer });
+  fireEvent.drop(target, { dataTransfer });
+  expect(
+    screen.getByRole('combobox', {
+      name: /Choose the most suitable heading for paragraph B/,
+    }),
+  ).toHaveValue('i');
+
+  data.set('text/plain', 'not-in-bank');
+  fireEvent.drop(target, { dataTransfer });
+  expect(
+    screen.getByRole('combobox', {
+      name: /Choose the most suitable heading for paragraph B/,
+    }),
+  ).toHaveValue('i');
+});
+
 it('says where a letter is already used when the rubric allows it once', async () => {
   openGrouped();
   await screen.findByText('Leatherback Turtles');
@@ -809,6 +936,8 @@ it('shows both Writing task bands rather than an average of them', async () => {
         flags: [],
       },
     ],
+    markingStatuses: [],
+    explanationStatuses: [],
     overallBand: null,
   };
 
@@ -830,6 +959,69 @@ it('shows both Writing task bands rather than an average of them', async () => {
   // each an unmarked row showing the same dash, so a bare text query matches
   // four elements and says nothing about the one that matters.
   expect(document.querySelector('.result-overall-value')).toHaveTextContent('—');
+
+  await userEvent.click(screen.getByRole('button', { name: /Xem nhận xét · Writing/ }));
+  expect(screen.getByText('Task 1')).toBeInTheDocument();
+  expect(screen.getAllByText('Bộ tiêu chí: ielts-writing-2023.1')).toHaveLength(2);
+  expect(screen.getByText('Covers the task.')).toBeInTheDocument();
+  expect(screen.getByText('a steady rise')).toBeInTheDocument();
+});
+
+it.each([
+  ['AwaitingEvaluator', 'Đang chờ bộ chấm tự động sẵn sàng.'],
+  ['AwaitingRubric', 'Đang chờ cấu hình bộ tiêu chí chấm.'],
+  ['AwaitingVoiceProvider', 'Bản ghi đã nhận. Chấm Speaking chờ nhà cung cấp giọng nói.'],
+  ['NothingSubmitted', 'Chưa có bài nộp để chấm.'],
+  ['Rejected', 'Bài chấm bị từ chối khi kiểm tra an toàn.'],
+])('explains Writing marking blocker %s', async (code, message) => {
+  resultsPayload = {
+    ...results,
+    sections: [],
+    markings: [],
+    markingStatuses: [
+      {
+        module: 'writing',
+        state: code === 'Rejected' ? 'failed' : 'pending',
+        attempts: code === 'Rejected' ? 1 : 0,
+        reason: null,
+        code,
+      },
+    ],
+    explanationStatuses: [],
+  };
+
+  open('/students/session/sit-1/results');
+
+  expect(await screen.findByText(/Writing:/)).toBeInTheDocument();
+  expect(screen.getByText(message)).toBeInTheDocument();
+});
+
+it('puts the Speaking pending reason beside its dash', async () => {
+  resultsPayload = {
+    ...results,
+    mode: 'full',
+    sections: [{ ...results.sections[0] }],
+    markings: [],
+    markingStatuses: [
+      {
+        module: 'speaking',
+        state: 'pending',
+        attempts: 1,
+        reason: null,
+        code: 'AwaitingVoiceProvider',
+      },
+    ],
+    explanationStatuses: [],
+  };
+
+  open('/students/session/sit-1/results');
+
+  const row = (await screen.findByText('Speaking')).closest('li')!;
+  expect(within(row).getByText('Chưa chấm')).toBeInTheDocument();
+  expect(
+    within(row).getByText('Bản ghi đã nhận. Chấm Speaking chờ nhà cung cấp giọng nói.'),
+  ).toBeInTheDocument();
+  expect(within(row).getByText('—')).toBeInTheDocument();
 });
 
 /**

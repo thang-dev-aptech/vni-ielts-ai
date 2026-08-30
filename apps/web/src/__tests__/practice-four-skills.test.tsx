@@ -571,7 +571,7 @@ it('explains an unmarked sitting instead of rendering an empty page', async () =
   open('/students/session/sit-one/results');
 
   expect(await screen.findByText('Chưa có kết quả nào cho buổi này')).toBeInTheDocument();
-  expect(screen.getByText(/chưa nối với mô hình nào nên chưa có band/)).toBeInTheDocument();
+  expect(screen.getByText(/đang chờ xử lý hoặc chờ cấu hình chấm/)).toBeInTheDocument();
 
   // The page fetches once and will not change on its own, so it has to offer
   // the ask.

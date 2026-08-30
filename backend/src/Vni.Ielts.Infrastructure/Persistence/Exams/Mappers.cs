@@ -46,10 +46,17 @@ internal static class ExamMappers
             .Append(version.VersionNumber).Append('\u0000')
             .Append(version.Title).Append('\u0000')
             .Append(version.Variant).Append('\u0000')
-            .Append(version.Timing.ListeningTransferSeconds).Append('\u0000');
+            .Append(version.Timing.ListeningTransferSeconds).Append('\u0000')
+            .Append(version.ListeningPlayback.Practice.PlayOnce).Append(':')
+            .Append(version.ListeningPlayback.Practice.AllowSeek).Append('\u0000')
+            .Append(version.ListeningPlayback.Mock.PlayOnce).Append(':')
+            .Append(version.ListeningPlayback.Mock.AllowSeek).Append('\u0000');
 
         foreach (var (module, seconds) in version.Timing.SectionDurationSeconds.OrderBy(kv => kv.Key))
             text.Append(module).Append('=').Append(seconds).Append('\u0000');
+
+        foreach (var module in version.ModuleSequence)
+            text.Append(module).Append('\u0000');
 
         foreach (var part in version.Timing.SpeakingParts.OrderBy(p => p.Part))
             text.Append(part.Part).Append(':').Append(part.PrepSeconds).Append(':')
@@ -71,7 +78,10 @@ internal static class ExamMappers
             {
                 text.Append(part.Order).Append('|').Append(part.Kind).Append('|')
                     .Append(part.Body).Append('|').Append(part.AudioKey).Append('|')
-                    .Append(part.ImageKey).Append('|').Append(part.TaskNumber).Append('|');
+                    .Append(part.ImageKey).Append('|').Append(part.TaskNumber).Append('|')
+                    .Append(part.Timing?.DurationSeconds).Append('|')
+                    .Append(part.Timing?.PrepSeconds).Append('|')
+                    .Append(part.Timing?.ResponseSeconds).Append('|');
 
                 foreach (var question in part.Questions.OrderBy(q => q.Order))
                 {
@@ -85,6 +95,21 @@ internal static class ExamMappers
                     // to: the passage looks the same and the marking changes.
                     foreach (var accepted in question.AnswerKey?.Accepted ?? [])
                         text.Append(accepted).Append('!');
+
+                    foreach (var slot in question.Slots ?? [])
+                    {
+                        text.Append(slot.Id).Append('@').Append(slot.Number).Append('@');
+                        foreach (var accepted in slot.AnswerKey?.Accepted ?? [])
+                            text.Append(accepted).Append('!');
+                    }
+
+                    if (question.Explanation is { } explanation)
+                    {
+                        text.Append(explanation.CorrectAnswer).Append('~')
+                            .Append(explanation.ShortReason).Append('~')
+                            .Append(explanation.CommonMistake).Append('~');
+                        foreach (var evidence in explanation.Evidence) text.Append(evidence).Append('!');
+                    }
 
                     text.Append('\u0000');
                 }
@@ -106,6 +131,19 @@ internal static class ExamMappers
         Variant = version.Variant.ToString(),
         Status = version.Status.ToString(),
         PublishedAt = version.PublishedAt is { } at ? Utc(at) : null,
+        ListeningPlayback = new ListeningPlaybackDocument
+        {
+            Practice = new AudioPlaybackRuleDocument
+            {
+                PlayOnce = version.ListeningPlayback.Practice.PlayOnce,
+                AllowSeek = version.ListeningPlayback.Practice.AllowSeek,
+            },
+            Mock = new AudioPlaybackRuleDocument
+            {
+                PlayOnce = version.ListeningPlayback.Mock.PlayOnce,
+                AllowSeek = version.ListeningPlayback.Mock.AllowSeek,
+            },
+        },
         Timing = new TimingDocument
         {
             Sections =
@@ -151,6 +189,7 @@ internal static class ExamMappers
                 Parts = [.. s.Parts.Select(ToDocument)],
             }),
         ],
+        ModuleSequence = [.. version.ModuleSequence.Select(m => m.ToString())],
     };
 
     private static MatchingRulesDocument ToDocument(this AnswerMatchingRules rules) => new()
@@ -176,6 +215,14 @@ internal static class ExamMappers
             ? new CueCardDocument { Topic = c.Topic, Bullets = [.. c.Bullets] }
             : null,
         MinWords = part.MinWords,
+        Timing = part.Timing is { } timing
+            ? new PartTimingDocument
+            {
+                DurationSeconds = timing.DurationSeconds,
+                PrepSeconds = timing.PrepSeconds,
+                ResponseSeconds = timing.ResponseSeconds,
+            }
+            : null,
         Questions =
         [
             .. part.Questions.Select(q => new QuestionDocument
@@ -199,23 +246,40 @@ internal static class ExamMappers
                     }
                     : null,
                 AnswerKey = q.AnswerKey is { } key
-                    ? new AnswerKeyDocument
+                    ? ToDocument(key)
+                    : null,
+                Slots = [.. (q.Slots ?? []).Select(slot => new ResponseSlotDocument
+                {
+                    Id = slot.Id,
+                    Number = slot.Number,
+                    AnswerKey = slot.AnswerKey is { } slotKey ? ToDocument(slotKey) : null,
+                })],
+                Explanation = q.Explanation is { } explanation
+                    ? new QuestionExplanationDocument
                     {
-                        Accepted =
-                        [
-                            .. key.Accepted.Select(a => new AcceptedAnswerDocument
-                            {
-                                Single = a.Single,
-                                All = a.All is null ? null : [.. a.All],
-                                PairLeft = a.Pair?.Left,
-                                PairRight = a.Pair?.Right,
-                            }),
-                        ],
-                        Overrides = key.Overrides?.ToDocument(),
+                        CorrectAnswer = explanation.CorrectAnswer,
+                        ShortReason = explanation.ShortReason,
+                        Evidence = [.. explanation.Evidence],
+                        CommonMistake = explanation.CommonMistake,
                     }
                     : null,
             }),
         ],
+    };
+
+    private static AnswerKeyDocument ToDocument(AnswerKey key) => new()
+    {
+        Accepted =
+        [
+            .. key.Accepted.Select(a => new AcceptedAnswerDocument
+            {
+                Single = a.Single,
+                All = a.All is null ? null : [.. a.All],
+                PairLeft = a.Pair?.Left,
+                PairRight = a.Pair?.Right,
+            }),
+        ],
+        Overrides = key.Overrides?.ToDocument(),
     };
 
     public static ExamVersion ToDomain(this ExamVersionDocument doc)
@@ -246,46 +310,107 @@ internal static class ExamMappers
             doc.PublishedAt is { } at ? Offset(at) : null,
             scoring,
             timing,
-            [.. doc.Sections.Select(ToDomain)]);
+            [.. doc.Sections.Select(ToDomain)],
+            doc.ListeningPlayback is null
+                ? ListeningPlaybackProfile.Conservative
+                : new ListeningPlaybackProfile(
+                    new AudioPlaybackRule(
+                        doc.ListeningPlayback.Practice.PlayOnce,
+                        doc.ListeningPlayback.Practice.AllowSeek),
+                    new AudioPlaybackRule(
+                        doc.ListeningPlayback.Mock.PlayOnce,
+                        doc.ListeningPlayback.Mock.AllowSeek)),
+            doc.ModuleSequence is { Count: > 0 } stored
+                ? [.. stored.Select(m => Enum.Parse<ExamModule>(m, ignoreCase: true))]
+                : null);
     }
 
     private static AnswerMatchingRules ToDomain(this MatchingRulesDocument doc) =>
         new(doc.CaseSensitive, doc.TrimWhitespace, doc.CollapseInnerWhitespace, doc.AllowSpellingVariants);
 
-    private static Section ToDomain(SectionDocument doc) =>
-        new(Enum.Parse<ExamModule>(doc.Module), doc.Order, [.. doc.Parts.Select(ToDomain)]);
+    private static Section ToDomain(SectionDocument doc)
+    {
+        var nextSlot = 1;
+        var parts = new List<SectionPart>();
+        foreach (var part in doc.Parts.OrderBy(p => p.Order)) parts.Add(ToDomain(part, ref nextSlot));
+        return new Section(Enum.Parse<ExamModule>(doc.Module), doc.Order, parts);
+    }
 
-    private static SectionPart ToDomain(PartDocument doc) =>
+    private static SectionPart ToDomain(PartDocument doc, ref int nextSlot)
+    {
+        var questions = new List<Question>();
+        foreach (var q in doc.Questions.OrderBy(q => q.Order))
+        {
+            var questionKey = q.AnswerKey is { } key ? ToDomain(key) : null;
+            IReadOnlyList<ResponseSlot> slots;
+            if (q.Slots.Count > 0)
+            {
+                slots = [.. q.Slots.Select(slot => new ResponseSlot(
+                    slot.Id, slot.Number, slot.AnswerKey is { } slotKey ? ToDomain(slotKey) : null))];
+                nextSlot = Math.Max(nextSlot, slots.Max(s => s.Number) + 1);
+            }
+            else
+            {
+                var generated = new List<ResponseSlot>();
+                for (var i = 0; i < q.Marks; i++)
+                    generated.Add(new ResponseSlot(
+                        $"{q.Id}-slot-{i + 1}", nextSlot++, SlotAnswerKey(questionKey, i)));
+                slots = generated;
+            }
+
+            questions.Add(new Question(
+                q.Id,
+                q.Order,
+                Enum.Parse<QuestionType>(q.Type),
+                q.Prompt,
+                [.. q.Options.Select(o => new QuestionOption(o.Key, o.Text))],
+                q.MaxWords,
+                questionKey,
+                q.Group is { } g
+                    ? new QuestionGroup(g.Id, g.Title, g.Instruction, g.Image, g.Text, g.EachLetterOnce)
+                    : null,
+                q.Marks,
+                slots,
+                q.Explanation is { } explanation
+                    ? new QuestionExplanation(explanation.CorrectAnswer, explanation.ShortReason,
+                        [.. explanation.Evidence], explanation.CommonMistake)
+                    : null));
+        }
+
+        return
         new(
             doc.Order, doc.Kind, doc.Title, doc.Body, doc.AudioKey, doc.ImageKey, doc.Transcript,
             doc.TaskNumber, doc.PartNumber,
             doc.CueCard is { } c ? new CueCard(c.Topic, [.. c.Bullets]) : null,
             doc.MinWords,
-            [
-                .. doc.Questions.Select(q => new Question(
-                    q.Id,
-                    q.Order,
-                    Enum.Parse<QuestionType>(q.Type),
-                    q.Prompt,
-                    [.. q.Options.Select(o => new QuestionOption(o.Key, o.Text))],
-                    q.MaxWords,
-                    q.AnswerKey is { } key
-                        ? new AnswerKey(
-                            [
-                                .. key.Accepted.Select(a => new AcceptedAnswer(
-                                    a.Single,
-                                    a.All is null ? null : [.. a.All],
-                                    a.PairLeft is not null && a.PairRight is not null
-                                        ? (a.PairLeft, a.PairRight)
-                                        : null)),
-                            ],
-                            key.Overrides?.ToDomain())
-                        : null,
-                    q.Group is { } g
-                        ? new QuestionGroup(g.Id, g.Title, g.Instruction, g.Image, g.Text, g.EachLetterOnce)
-                        : null,
-                    q.Marks)),
-            ]);
+            questions,
+            doc.Timing is { } timing
+                ? new PartTiming(timing.DurationSeconds, timing.PrepSeconds, timing.ResponseSeconds)
+                : null);
+    }
+
+    private static AnswerKey ToDomain(AnswerKeyDocument key) => new(
+        [
+            .. key.Accepted.Select(a => new AcceptedAnswer(
+                a.Single,
+                a.All is null ? null : [.. a.All],
+                a.PairLeft is not null && a.PairRight is not null ? (a.PairLeft, a.PairRight) : null)),
+        ],
+        key.Overrides?.ToDomain());
+
+    private static AnswerKey? SlotAnswerKey(AnswerKey? key, int index)
+    {
+        if (key is null) return null;
+        return new AnswerKey(
+            [.. key.Accepted.Select(a => a switch
+            {
+                { All: { } all } when index < all.Count => new AcceptedAnswer(all[index], null, null),
+                { Single: { } single } => new AcceptedAnswer(single, null, null),
+                { Pair: { } pair } => new AcceptedAnswer(null, null, pair),
+                _ => a,
+            })],
+            key.Overrides);
+    }
 
     // ── Session ──────────────────────────────────────────────────────────
 
@@ -294,6 +419,8 @@ internal static class ExamMappers
         Id = session.Id.Value,
         UserId = session.UserId.Value,
         ExamVersionId = session.ExamVersionId.Value,
+        PracticeUnitId = session.PracticeUnitId,
+        PartIds = [.. session.PartIds],
         Mode = session.Mode.ToString(),
         Timing = session.Timing.ToString(),
         Status = session.Status.ToString(),
@@ -304,6 +431,7 @@ internal static class ExamMappers
             .. session.Attempts.Select(a => new AttemptDocument
             {
                 Module = a.Module.ToString(),
+                PartId = a.PartId,
                 StartedAt = Utc(a.StartedAt),
                 DeadlineAt = a.DeadlineAt is { } d ? Utc(d) : null,
                 SubmittedAt = a.SubmittedAt is { } s ? Utc(s) : null,
@@ -330,12 +458,15 @@ internal static class ExamMappers
                 a.SubmittedAt is { } s ? Offset(s) : null,
                 a.AccumulatedSeconds,
                 a.RunningSince is { } r ? Offset(r) : null,
-                a.TargetSeconds)),
+                a.TargetSeconds,
+                a.PartId)),
             // Absent means Deadline: every sitting written before this field
             // existed was a timed one, because there was no other kind.
             Enum.TryParse<SessionTiming>(doc.Timing, out var timing)
                 ? timing
-                : SessionTiming.Deadline);
+                : SessionTiming.Deadline,
+            doc.PracticeUnitId,
+            doc.PartIds);
 
     // ── Results ──────────────────────────────────────────────────────────
 
@@ -365,6 +496,22 @@ internal static class ExamMappers
             Enum.Parse<ExamModule>(doc.Module),
             doc.RawScore,
             doc.MaxScore,
-            BandScore.Create(doc.Band),
-            [.. doc.Questions.Select(q => new QuestionResult(q.QuestionId, q.Submitted, q.IsCorrect))]);
+            doc.Band is { } band ? BandScore.Create(band) : null,
+            [.. doc.Questions.Select(q => q.ToDomain())]);
+
+    private static QuestionResult ToDomain(this QuestionResultDocument doc) =>
+        new(
+            doc.QuestionId,
+            doc.Submitted,
+            doc.IsCorrect,
+            doc.Slots?.Select(s => s.ToDomain()).ToArray(),
+            doc.CorrectAnswer);
+
+    private static SlotResult ToDomain(this SlotResultDocument doc) =>
+        new(
+            doc.SlotId,
+            doc.Number,
+            doc.Submitted,
+            Enum.Parse<SlotOutcome>(doc.Status, ignoreCase: true),
+            doc.CorrectAnswer);
 }

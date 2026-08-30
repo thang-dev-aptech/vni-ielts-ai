@@ -3,10 +3,16 @@ import { Link, useParams } from 'react-router-dom';
 import { isUnreachable } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
+import type { StringKey } from '../../i18n/strings.js';
 import { Paths } from '../../routes/paths.js';
 import {
   getResults,
+  requestExplanation,
+  type ExplanationContentView,
   type ExamModule,
+  type PersonalizedExplanationView,
+  type QuestionExplanationStatusView,
+  type MarkingStatusView,
   type SectionResultView,
   type SectionMarkingView,
   type SessionResultsView,
@@ -109,6 +115,10 @@ export function ExamResultsPage() {
     if (list === undefined) markedBy.set(marking.module, [marking]);
     else list.push(marking);
   }
+  const explanationStatuses = new Map(
+    (results.explanationStatuses ?? []).map((status) => [status.questionId, status]),
+  );
+  const statusByModule = new Map((results.markingStatuses ?? []).map((status) => [status.module, status]));
 
   // Single-skill sittings only ever have one section; showing the other three
   // as "chưa chấm" would imply an exam the learner never sat.
@@ -160,6 +170,11 @@ export function ExamResultsPage() {
             const skill = SKILLS[moduleId];
             const Icon = skill.icon;
             const section = marked.get(moduleId);
+            const moduleMarkings = markedBy.get(moduleId);
+            const reason =
+              section !== undefined || moduleMarkings !== undefined || !isAiMarked(moduleId)
+                ? null
+                : markingStatusText(statusByModule.get(moduleId) ?? fallbackStatus(moduleId), t);
 
             return (
               <li className="result-row" key={moduleId}>
@@ -178,6 +193,7 @@ export function ExamResultsPage() {
                       ? t('exam.rawOf', { raw: section.rawScore, max: section.maxScore })
                       : t('exam.notMarked')}
                   </span>
+                  {reason !== null && <span className="result-reason">{reason}</span>}
                 </span>
 
                 {/* The tag says where the band came from. Answer-key and AI
@@ -200,7 +216,7 @@ export function ExamResultsPage() {
                   averaging them — that average would be answering `H-8b` by
                   arithmetic, in the one place a learner would read it as fact.
                 */}
-                <span className="result-band num">{bandCell(section, markedBy.get(moduleId))}</span>
+                <span className="result-band num">{bandCell(section, moduleMarkings)}</span>
               </li>
             );
           })}
@@ -218,10 +234,10 @@ export function ExamResultsPage() {
           markup so much as an empty state nobody had a reason to look for,
           because every fixture in the repo is a Reading one.
 
-          It says what is true — the work is on the server, no model is wired,
-          so there is no band — and offers the same "Kiểm tra lại" the marked
-          case gets, because this page fetches once and will not change on its
-          own. → product law L3
+          It says what is true — the work is on the server and the marked-by-AI
+          skills do not have a band yet — and offers the same "Kiểm tra lại"
+          the marked case gets, because this page fetches once and will not
+          change on its own. → product law L3
         */}
         {shown.length === 0 && (
           <div className="dash-empty">
@@ -245,21 +261,19 @@ export function ExamResultsPage() {
           <b>What actually happened, per module — not one sentence for four
           situations.</b>
 
-          The notice below says "no model is wired", which was true of every
-          case while nothing was wired and is wrong the moment something is: an
-          essay that is queued, a recording with no transcript, and a marking
-          the platform tried five times and gave up on are three different
-          states with three different answers to "what do I do now". The server
-          reports the job's own state and a sentence written for the learner;
-          this renders it. → `I3.6`
+          The notice below used to give one provider-wiring explanation for
+          every case: an essay that is queued, a recording with no transcript,
+          and a marking the platform tried five times and gave up on are three
+          different states with three different answers to "what do I do now".
+          The server reports the job's own state and a sentence written for the
+          learner; this renders it. → `I3.6`
         */}
         {(results.markingStatuses ?? [])
           .filter((status) => status.state !== 'completed')
           .map((status) => (
             <p className="dash-notice" key={status.module}>
               <strong>{SKILLS[status.module].name}: </strong>
-              {status.reason ??
-                (status.state === 'running' ? t('exam.markingRunning') : t('exam.markingWaiting'))}
+              {markingStatusText(status, t)}
             </p>
           ))}
 
@@ -311,8 +325,21 @@ export function ExamResultsPage() {
           const section = marked.get(moduleId);
           if (section === undefined || section.questions.length === 0) return null;
 
-          return <SectionReview key={moduleId} module={moduleId} section={section} />;
+          return (
+            <SectionReview
+              key={moduleId}
+              module={moduleId}
+              section={section}
+              sessionId={sessionId}
+              accessToken={accessToken}
+              explanationStatuses={explanationStatuses}
+            />
+          );
         })}
+
+        {[...markedBy.entries()].map(([moduleId, moduleMarkings]) => (
+          <MarkingReview key={moduleId} module={moduleId} markings={moduleMarkings} />
+        ))}
 
         {/*
           <b>`E-13` is a control, not a sentence in a FAQ.</b>
@@ -376,14 +403,54 @@ export function ExamResultsPage() {
 function SectionReview({
   module: moduleId,
   section,
+  sessionId,
+  accessToken,
+  explanationStatuses,
 }: {
   module: ExamModule;
   section: SectionResultView;
+  sessionId: string;
+  accessToken: string | null;
+  explanationStatuses: ReadonlyMap<string, QuestionExplanationStatusView>;
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [explanations, setExplanations] = useState<Record<string, PersonalizedExplanationView>>({});
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
+  const [requestErrors, setRequestErrors] = useState<Record<string, string>>({});
   const panelId = useId();
   const skill = SKILLS[moduleId];
+  const explainable = moduleId === 'reading' || moduleId === 'listening';
+
+  async function askForExplanation(questionId: string) {
+    if (accessToken === null) return;
+
+    setBusy((was) => ({ ...was, [questionId]: true }));
+    setRequestErrors((was) => {
+      const next = { ...was };
+      delete next[questionId];
+      return next;
+    });
+
+    try {
+      const view = await requestExplanation(
+        accessToken,
+        sessionId,
+        questionId,
+        crypto.randomUUID(),
+      );
+      setExplanations((was) => ({ ...was, [questionId]: view }));
+    } catch (caught) {
+      setRequestErrors((was) => ({
+        ...was,
+        [questionId]: isUnreachable(caught)
+          ? t('common.notConnected')
+          : t('exam.explanationFailed'),
+      }));
+    } finally {
+      setBusy((was) => ({ ...was, [questionId]: false }));
+    }
+  }
 
   return (
     <section className="result-review">
@@ -405,38 +472,229 @@ function SectionReview({
       {open && (
         <div className="result-review-body" id={panelId}>
           <ol className="result-review-grid">
-            {section.questions.map((question, at) => (
-              <li key={question.questionId}>
-                <span className={`result-q${question.isCorrect ? ' is-right' : ' is-wrong'}`}>
-                  <span className="num" aria-hidden="true">
-                    {at + 1}
+            {section.questions.map((question, at) => {
+              const existing = explanations[question.questionId];
+              const content = question.canonicalExplanation ?? existing?.explanation ?? null;
+              const status = explanationStatuses.get(question.questionId) ?? null;
+              const state =
+                existing?.state ?? status?.state ?? (content === null ? 'none' : 'ready');
+              const reason = existing?.reason ?? status?.reason ?? null;
+              const questionBusy = busy[question.questionId] === true;
+
+              return (
+                <li key={question.questionId}>
+                  <span className={`result-q${question.isCorrect ? ' is-right' : ' is-wrong'}`}>
+                    <span className="num" aria-hidden="true">
+                      {at + 1}
+                    </span>
+                    <span className="result-q-mark" aria-hidden="true">
+                      {question.isCorrect ? '✓' : '✕'}
+                    </span>
+                    <span className="sr-only">
+                      {t('exam.reviewQuestion', { number: at + 1 })}{' '}
+                      {question.isCorrect ? t('exam.reviewRight') : t('exam.reviewWrong')}
+                      {'. '}
+                      {question.submitted === null || question.submitted === ''
+                        ? t('exam.reviewBlank')
+                        : t('exam.reviewAnswered', { answer: question.submitted })}
+                    </span>
                   </span>
-                  <span className="result-q-mark" aria-hidden="true">
-                    {question.isCorrect ? '✓' : '✕'}
-                  </span>
-                  <span className="sr-only">
-                    {t('exam.reviewQuestion', { number: at + 1 })}{' '}
-                    {question.isCorrect ? t('exam.reviewRight') : t('exam.reviewWrong')}
-                    {'. '}
+                  <span className="result-q-answer" aria-hidden="true">
                     {question.submitted === null || question.submitted === ''
                       ? t('exam.reviewBlank')
-                      : t('exam.reviewAnswered', { answer: question.submitted })}
+                      : question.submitted}
                   </span>
-                </span>
-                <span className="result-q-answer" aria-hidden="true">
-                  {question.submitted === null || question.submitted === ''
-                    ? t('exam.reviewBlank')
-                    : question.submitted}
-                </span>
-              </li>
-            ))}
+
+                  {explainable && (
+                    <div className="result-explanation">
+                      {content === null ? (
+                        <>
+                          <button
+                            type="button"
+                            className="result-explanation-action"
+                            disabled={questionBusy}
+                            aria-describedby={
+                              reason !== null || requestErrors[question.questionId] !== undefined
+                                ? `explain-${question.questionId}-status`
+                                : undefined
+                            }
+                            onClick={() => void askForExplanation(question.questionId)}
+                          >
+                            {questionBusy
+                              ? t('exam.explanationLoading')
+                              : state === 'failed'
+                                ? t('exam.explanationRetry')
+                                : t('exam.explanationRequest')}
+                          </button>
+                          {(state === 'pending' || state === 'running') && (
+                            <span
+                              className="result-explanation-status"
+                              id={`explain-${question.questionId}-status`}
+                              role="status"
+                            >
+                              {reason ?? t('exam.explanationPending')}
+                            </span>
+                          )}
+                          {(state === 'failed' ||
+                            requestErrors[question.questionId] !== undefined) && (
+                            <span
+                              className="result-explanation-status is-bad"
+                              id={`explain-${question.questionId}-status`}
+                              role="alert"
+                            >
+                              {requestErrors[question.questionId] ??
+                                reason ??
+                                t('exam.explanationFailed')}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <ExplanationBlock explanation={content} />
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ol>
 
           <p className="result-review-note">{t('exam.reviewNoKey')}</p>
+          {explainable && <p className="result-review-note">{t('exam.reviewExplanationNote')}</p>}
         </div>
       )}
     </section>
   );
+}
+
+function ExplanationBlock({ explanation }: { explanation: ExplanationContentView }) {
+  const { t } = useI18n();
+
+  return (
+    <div className="result-explanation-card">
+      <p>
+        <strong>{t('exam.explanationCorrectAnswer')}: </strong>
+        {explanation.correctAnswer}
+      </p>
+      <p>{explanation.shortReason}</p>
+      {explanation.evidence.length > 0 && (
+        <ul>
+          {explanation.evidence.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      )}
+      {explanation.commonMistake !== null && <p>{explanation.commonMistake}</p>}
+    </div>
+  );
+}
+
+function MarkingReview({
+  module: moduleId,
+  markings,
+}: {
+  module: ExamModule;
+  markings: SectionMarkingView[];
+}) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+  const skill = SKILLS[moduleId];
+  const sorted = markings.slice().sort((a, b) => (a.taskNumber ?? 0) - (b.taskNumber ?? 0));
+
+  return (
+    <section className="result-review result-marking">
+      <h2 className="result-review-head">
+        <button
+          type="button"
+          className="result-review-trigger"
+          aria-expanded={open}
+          {...(open ? { 'aria-controls': panelId } : {})}
+          onClick={() => setOpen((was) => !was)}
+        >
+          <span>{t('exam.markingReviewTitle', { skill: skill.name })}</span>
+          <span className="result-review-caret" aria-hidden="true">
+            {open ? '−' : '+'}
+          </span>
+        </button>
+      </h2>
+
+      {open && (
+        <div className="result-review-body result-marking-body" id={panelId}>
+          {sorted.map((marking) => (
+            <article
+              className="result-marking-card"
+              key={`${marking.module}-${marking.taskNumber ?? 'whole'}`}
+            >
+              <header className="result-marking-head">
+                <h3>
+                  {marking.taskNumber === null
+                    ? t('exam.markingWholeSkill')
+                    : t('exam.markingTask', { number: marking.taskNumber })}
+                </h3>
+                <span className="result-marking-band num">{marking.band.toFixed(1)}</span>
+              </header>
+              <p className="result-marking-rubric">
+                {t('exam.markingRubric', { version: marking.rubricVersion })}
+              </p>
+              {marking.flags.length > 0 && (
+                <p className="result-marking-flags" role="alert">
+                  {t('exam.markingFlags', { count: marking.flags.length })}
+                </p>
+              )}
+              <ul className="result-criteria">
+                {marking.criteria.map((criterion) => (
+                  <li key={criterion.criterion}>
+                    <span>
+                      <strong>{criterion.criterion}</strong>
+                      <span className="num">{criterion.band.toFixed(1)}</span>
+                    </span>
+                    <p>{criterion.feedback}</p>
+                    {criterion.evidence.length > 0 && (
+                      <blockquote>{criterion.evidence.join(' · ')}</blockquote>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function markingStatusText(
+  status: { state: string; reason: string | null; code?: string | null },
+  t: (key: StringKey, values?: Record<string, string | number>) => string,
+): string {
+  if (status.reason !== null) return status.reason;
+
+  if (status.code === 'AwaitingEvaluator') return t('exam.markingAwaitingEvaluator');
+  if (status.code === 'AwaitingRubric') return t('exam.markingAwaitingRubric');
+  if (status.code === 'AwaitingVoiceProvider' || status.code === 'AwaitingTranscript') {
+    return t('exam.markingAwaitingVoiceProvider');
+  }
+  if (status.code === 'NothingSubmitted') return t('exam.markingNothingSubmitted');
+  if (status.code === 'Rejected') return t('exam.markingRejected');
+
+  if (status.state === 'running') return t('exam.markingRunning');
+  if (status.state === 'retryable') return t('exam.markingRetryable');
+  if (status.state === 'failed') return t('exam.markingFailed');
+  return t('exam.markingWaiting');
+}
+
+function isAiMarked(moduleId: ExamModule): boolean {
+  return moduleId === 'writing' || moduleId === 'speaking';
+}
+
+function fallbackStatus(moduleId: ExamModule): MarkingStatusView {
+  return {
+    module: moduleId,
+    state: 'pending',
+    attempts: 0,
+    reason: null,
+    code: null,
+  };
 }
 
 /**

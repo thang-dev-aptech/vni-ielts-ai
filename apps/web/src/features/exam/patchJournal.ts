@@ -17,10 +17,10 @@
  * entire purpose is not to lose updates. IndexedDB is asynchronous and keyed
  * per record, so neither applies.
  *
- * <b>One record per question, not per keystroke.</b> An earlier value for a
- * question is superseded by a later one by definition — the ordering token says
+ * <b>One record per response slot, not per keystroke.</b> An earlier value for a
+ * slot is superseded by a later one by definition — the ordering token says
  * so — so keeping both would be keeping something the server would ignore. The
- * key is `session:module:question` and a re-type overwrites in place.
+ * key is `session:module:responseSlotId` and a re-type overwrites in place.
  *
  * <b>An entry is deleted only when its own sequence is acknowledged.</b> Not
  * when "a save succeeded": the learner can type again while a request is in
@@ -41,11 +41,11 @@ const DATABASE = 'vni.exam';
 const STORE = 'patches';
 const VERSION = 1;
 
-/** One unsent answer. */
+/** One unsent answer for one response slot. */
 export interface JournalEntry {
   sessionId: string;
   module: string;
-  questionId: string;
+  responseSlotId: string;
   value: string | null;
   /** The ordering token this value was issued under. → `useAnswerSheet` */
   sequence: number;
@@ -53,8 +53,8 @@ export interface JournalEntry {
   savedAt: number;
 }
 
-function keyOf(sessionId: string, module: string, questionId: string): string {
-  return `${sessionId}:${module}:${questionId}`;
+function keyOf(sessionId: string, module: string, responseSlotId: string): string {
+  return `${sessionId}:${module}:${responseSlotId}`;
 }
 
 /**
@@ -129,7 +129,7 @@ async function inStore<T>(
 }
 
 /**
- * Records one unsent answer, replacing whatever that question held.
+ * Records one unsent answer, replacing whatever that slot held.
  *
  * Fire and forget from the caller's point of view: a keystroke must not wait
  * on a disk write, and a disk write that fails must not surface as an error in
@@ -138,7 +138,10 @@ async function inStore<T>(
  */
 export async function remember(entry: JournalEntry): Promise<void> {
   await inStore<void>('readwrite', undefined, (store, done) => {
-    const request = store.put(entry, keyOf(entry.sessionId, entry.module, entry.questionId));
+    const request = store.put(
+      entry,
+      keyOf(entry.sessionId, entry.module, entry.responseSlotId),
+    );
     request.onsuccess = () => done(undefined);
     request.onerror = () => done(undefined);
   });
@@ -155,10 +158,10 @@ export async function remember(entry: JournalEntry): Promise<void> {
 export async function acknowledge(
   sessionId: string,
   module: string,
-  questionId: string,
+  responseSlotId: string,
   sequence: number,
 ): Promise<void> {
-  const key = keyOf(sessionId, module, questionId);
+  const key = keyOf(sessionId, module, responseSlotId);
 
   await inStore<void>('readwrite', undefined, (store, done) => {
     const read = store.get(key);

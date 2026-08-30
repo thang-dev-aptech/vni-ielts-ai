@@ -146,6 +146,7 @@ services:
       mc mb --ignore-existing local/vni-documents &&
       mc mb --ignore-existing local/vni-packages &&
       mc mb --ignore-existing local/vni-backups &&
+      mc mb --ignore-existing local/vni-speaking &&
       mc version enable local/vni-exam-assets &&
       mc version enable local/vni-packages &&
       mc version enable local/vni-documents &&

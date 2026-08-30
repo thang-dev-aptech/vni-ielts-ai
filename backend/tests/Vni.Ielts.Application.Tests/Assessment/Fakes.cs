@@ -1,5 +1,6 @@
 using Vni.Ielts.Application.Assessment;
 using Vni.Ielts.Application.Exams;
+using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Domain.Assessment;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Sessions;
@@ -98,7 +99,11 @@ internal sealed class FakeAnswerSheetStore(
 
         return Task.FromResult(
             new PatchedSheet(
-                new AnswerSheet(new Dictionary<string, string?>(sheet), previous + 1), previous));
+                new AnswerSheet(
+                    new Dictionary<string, string?>(sheet),
+                    previous + 1,
+                    new Dictionary<string, long>(seen)),
+                previous));
     }
 
     public Task SetAnswerAsync(
@@ -301,4 +306,35 @@ internal sealed class FakeMarkingOutbox : IMarkingOutbox
     public Task<IReadOnlyList<MarkingJob>> ListAsync(ExamSessionId sessionId, CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<MarkingJob>>(
             [.. _jobs.Values.Where(j => j.SessionId == sessionId)]);
+}
+
+internal sealed class FakePersonalizedExplanationStore : IPersonalizedExplanationStore
+{
+    private readonly Dictionary<string, PersonalizedExplanationJob> _jobs = new();
+
+    public Task<PersonalizedExplanationJob?> FindByOperationAsync(
+        string operationId, CancellationToken ct) =>
+        Task.FromResult(_jobs.TryGetValue(operationId, out var job) ? job : null);
+
+    public Task<PersonalizedExplanationJob?> FindReadyAsync(
+        ExamSessionId sessionId, string questionId, string answerHash, CancellationToken ct) =>
+        Task.FromResult(_jobs.Values.FirstOrDefault(j =>
+            j.SessionId == sessionId
+            && j.QuestionId == questionId
+            && j.AnswerHash == answerHash
+            && j.State == ExplanationJobState.Ready));
+
+    public Task<bool> TryInsertAsync(PersonalizedExplanationJob job, CancellationToken ct) =>
+        Task.FromResult(_jobs.TryAdd(job.OperationId, job));
+
+    public Task<bool> UpdateAsync(PersonalizedExplanationJob job, CancellationToken ct)
+    {
+        _jobs[job.OperationId] = job;
+        return Task.FromResult(true);
+    }
+
+    public Task<IReadOnlyList<PersonalizedExplanationJob>> ListForSessionAsync(
+        ExamSessionId sessionId, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<PersonalizedExplanationJob>>(
+            _jobs.Values.Where(j => j.SessionId == sessionId).ToList());
 }

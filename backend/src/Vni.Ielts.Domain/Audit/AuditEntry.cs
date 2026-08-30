@@ -56,4 +56,10 @@ public enum AuditAction
     UserReinstated,
     RoleAssigned,
     RoleRemoved,
+
+    /// <summary>
+    /// Speaking audio removed because an account or attempt was deleted.
+    /// Detail carries recording/session/question ids only — never a URL.
+    /// </summary>
+    SpeakingRecordingPurged,
 }

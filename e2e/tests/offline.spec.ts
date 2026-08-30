@@ -1,5 +1,14 @@
 import { expect, test } from '@playwright/test';
-import { getSession, registerLearner, signIn, startFullTest } from './harness';
+import {
+  findSyntheticPartUnit,
+  getSession,
+  listPracticeUnits,
+  registerLearner,
+  showPracticeQuestions,
+  signIn,
+  startFullTest,
+  startPracticeUnit,
+} from './harness';
 
 /**
  * A learner whose network goes away mid-answer.
@@ -127,5 +136,38 @@ test.describe('offline', () => {
         },
       )
       .toBe('river depth');
+  });
+
+  test('an answer typed offline on a practice sitting is saved when the connection returns', async ({
+    page,
+    context,
+    request,
+  }) => {
+    const learner = await registerLearner(request);
+    const units = await listPracticeUnits(request, learner.session.accessToken, {
+      skill: 'reading',
+      scope: 'part',
+    });
+    const unit = findSyntheticPartUnit(units, 'reading');
+    const sitting = await startPracticeUnit(request, learner.session.accessToken, unit.id);
+
+    await signIn(page, learner, `/students/practice/${sitting.sessionId}`);
+    await showPracticeQuestions(page);
+
+    const answer = page.getByRole('textbox', { name: /What did the survey team measure/ });
+    await expect(answer).toBeVisible();
+
+    await context.setOffline(true);
+    await answer.fill('river depth');
+
+    const chip = page.locator('.save-chip');
+    await expect(chip).toHaveClass(/is-queued|is-pending|is-sending/, { timeout: 10_000 });
+    await expect(chip).not.toHaveClass(/is-saved/);
+
+    await context.setOffline(false);
+    await expect(chip).toHaveClass(/is-saved/, { timeout: 15_000 });
+
+    const stored = await getSession(request, learner.session.accessToken, sitting.sessionId);
+    expect(stored.current.answers['syn-r-1']).toBe('river depth');
   });
 });

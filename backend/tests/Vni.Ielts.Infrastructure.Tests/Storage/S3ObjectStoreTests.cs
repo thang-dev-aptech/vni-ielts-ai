@@ -4,6 +4,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Microsoft.Extensions.Logging.Abstractions;
 using Vni.Ielts.Infrastructure.Storage;
+using System.Security.Cryptography;
 
 namespace Vni.Ielts.Infrastructure.Tests.Storage;
 
@@ -25,6 +26,36 @@ public sealed class S3ObjectStoreTests
 
     public static bool MinioAvailable => ObjectStorageProbe.MinioAvailable;
     public const string SkipReason = ObjectStorageProbe.SkipReason;
+
+    [SkippableFact]
+    public async Task Probed_import_asset_round_trips_with_its_sha256_metadata()
+    {
+        Skip.IfNot(MinioAvailable, SkipReason);
+        using var client = NewClient();
+        var options = new ObjectStorageOptions { ExamAssetsBucket = RealBucket };
+        var store = new S3PrivateImportAssetStore(client, options);
+        var bytes = new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00 };
+        var hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        var key = $"imports/test/{Guid.NewGuid():n}.png";
+
+        try
+        {
+            await using var input = new MemoryStream(bytes, writable: false);
+            var reference = await store.PutPrivateAsync(key, input, "image/png", hash, default);
+            using var response = await client.GetObjectAsync(RealBucket, reference);
+            using var copy = new MemoryStream();
+            await response.ResponseStream.CopyToAsync(copy);
+
+            Assert.Equal(bytes, copy.ToArray());
+            Assert.Equal(hash, Convert.ToHexStringLower(SHA256.HashData(copy.ToArray())));
+            Assert.Equal(hash, response.Metadata["x-amz-meta-sha256"]);
+            Assert.Equal("image/png", response.Headers.ContentType);
+        }
+        finally
+        {
+            await client.DeleteObjectAsync(RealBucket, key);
+        }
+    }
 
     [SkippableFact]
     public async Task A_missing_key_in_a_real_bucket_returns_null()
@@ -67,7 +98,13 @@ public sealed class S3ObjectStoreTests
 
     private static S3ObjectStore NewStore(string secretKey = "vni-local-dev-only")
     {
-        var client = new AmazonS3Client(
+        var client = NewClient(secretKey);
+
+        return new S3ObjectStore(client, NullLogger<S3ObjectStore>.Instance);
+    }
+
+    private static AmazonS3Client NewClient(string secretKey = "vni-local-dev-only") =>
+        new(
             new BasicAWSCredentials("vni-local", secretKey),
             new AmazonS3Config
             {
@@ -75,9 +112,6 @@ public sealed class S3ObjectStoreTests
                 ForcePathStyle = true,
                 AuthenticationRegion = "us-east-1",
             });
-
-        return new S3ObjectStore(client, NullLogger<S3ObjectStore>.Instance);
-    }
 }
 
 /// <summary>Shared MinIO reachability probe, so every suite in this project asks once.</summary>

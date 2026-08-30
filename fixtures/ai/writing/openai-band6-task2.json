@@ -1,0 +1,26 @@
+{
+  "criteria": {
+    "taskResponse": {
+      "band": 6,
+      "feedback": "Addresses both views and states a clear opinion, though some ideas could be extended further.",
+      "evidence": ["funding public transport brings clear benefits", "I think governments should prioritise public transport"]
+    },
+    "coherenceAndCohesion": {
+      "band": 6,
+      "feedback": "Information is arranged coherently with clear paragraphing and linking phrases.",
+      "evidence": ["Firstly", "However", "Overall"]
+    },
+    "lexicalResource": {
+      "band": 6,
+      "feedback": "Uses an adequate range of vocabulary for the task with generally appropriate word choice.",
+      "evidence": ["air pollution fell", "prioritise public transport"]
+    },
+    "grammaticalRangeAndAccuracy": {
+      "band": 6,
+      "feedback": "Uses a mix of simple and complex forms with some errors that do not impede communication.",
+      "evidence": ["If roads are not maintained, traffic becomes worse"]
+    }
+  },
+  "sectionBand": 6,
+  "summary": "A competent Task 2 response that discusses both views, gives an opinion, and organises ideas clearly with adequate vocabulary and grammar."
+}

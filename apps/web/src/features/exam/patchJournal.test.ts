@@ -32,11 +32,11 @@ afterEach(() => {
   resetJournalConnection();
 });
 
-it('keeps an unsent answer, keyed by its question', async () => {
+it('keeps an unsent answer, keyed by its response slot', async () => {
   await remember({
     sessionId: 'sit-1',
     module: 'reading',
-    questionId: 'r-1',
+    responseSlotId: 'r-1',
     value: 'cartography',
     sequence: 3,
     savedAt: 1,
@@ -49,7 +49,7 @@ it('keeps an unsent answer, keyed by its question', async () => {
   expect(held[0]!.sequence).toBe(3);
 });
 
-it('replaces a question rather than stacking every keystroke', async () => {
+it('replaces a slot rather than stacking every keystroke', async () => {
   // An earlier value for a question is superseded by a later one by definition
   // — the ordering token says so — so keeping both would keep something the
   // server would ignore, and would grow the journal for the length of an essay.
@@ -61,7 +61,7 @@ it('replaces a question rather than stacking every keystroke', async () => {
     await remember({
       sessionId: 'sit-1',
       module: 'reading',
-      questionId: 'r-1',
+      responseSlotId: 'r-1',
       value,
       sequence,
       savedAt: sequence,
@@ -81,7 +81,7 @@ it('keeps each section apart', async () => {
   await remember({
     sessionId: 'sit-1',
     module: 'reading',
-    questionId: 'r-1',
+    responseSlotId: 'r-1',
     value: 'reading',
     sequence: 1,
     savedAt: 1,
@@ -89,7 +89,7 @@ it('keeps each section apart', async () => {
   await remember({
     sessionId: 'sit-1',
     module: 'listening',
-    questionId: 'l-1',
+    responseSlotId: 'l-1',
     value: 'listening',
     sequence: 1,
     savedAt: 1,
@@ -104,7 +104,7 @@ it('forgets an answer once its own sequence is acknowledged', async () => {
   await remember({
     sessionId: 'sit-1',
     module: 'reading',
-    questionId: 'r-1',
+    responseSlotId: 'r-1',
     value: 'sent',
     sequence: 4,
     savedAt: 1,
@@ -128,7 +128,7 @@ it('keeps an answer typed while the save that acknowledged the last one was in f
   await remember({
     sessionId: 'sit-1',
     module: 'reading',
-    questionId: 'r-1',
+    responseSlotId: 'r-1',
     value: 'typed while in flight',
     sequence: 5,
     savedAt: 2,
@@ -150,7 +150,7 @@ it('drops a whole section when it closes', async () => {
   await remember({
     sessionId: 'sit-1',
     module: 'reading',
-    questionId: 'r-1',
+    responseSlotId: 'r-1',
     value: 'one',
     sequence: 1,
     savedAt: 1,
@@ -158,7 +158,7 @@ it('drops a whole section when it closes', async () => {
   await remember({
     sessionId: 'sit-1',
     module: 'reading',
-    questionId: 'r-2',
+    responseSlotId: 'r-2',
     value: 'two',
     sequence: 2,
     savedAt: 2,
@@ -166,7 +166,7 @@ it('drops a whole section when it closes', async () => {
   await remember({
     sessionId: 'sit-1',
     module: 'listening',
-    questionId: 'l-1',
+    responseSlotId: 'l-1',
     value: 'kept',
     sequence: 1,
     savedAt: 1,
@@ -185,7 +185,7 @@ it('records a cleared answer, because an erase is work too', async () => {
   await remember({
     sessionId: 'sit-1',
     module: 'reading',
-    questionId: 'r-1',
+    responseSlotId: 'r-1',
     value: null,
     sequence: 2,
     savedAt: 1,
@@ -195,6 +195,33 @@ it('records a cleared answer, because an erase is work too', async () => {
 
   expect(held).toHaveLength(1);
   expect(held[0]!.value).toBeNull();
+});
+
+it('forgets one slot without touching its sibling', async () => {
+  await remember({
+    sessionId: 'sit-1',
+    module: 'reading',
+    responseSlotId: 'slot-17',
+    value: 'A',
+    sequence: 1,
+    savedAt: 1,
+  });
+  await remember({
+    sessionId: 'sit-1',
+    module: 'reading',
+    responseSlotId: 'slot-18',
+    value: 'D',
+    sequence: 2,
+    savedAt: 2,
+  });
+
+  await acknowledge('sit-1', 'reading', 'slot-17', 1);
+
+  const held = await restore('sit-1', 'reading');
+
+  expect(held).toHaveLength(1);
+  expect(held[0]!.responseSlotId).toBe('slot-18');
+  expect(held[0]!.value).toBe('D');
 });
 
 it('does nothing at all, quietly, where there is no IndexedDB', async () => {
@@ -215,7 +242,7 @@ it('does nothing at all, quietly, where there is no IndexedDB', async () => {
       remember({
         sessionId: 'sit-1',
         module: 'reading',
-        questionId: 'r-1',
+        responseSlotId: 'r-1',
         value: 'nowhere to put this',
         sequence: 1,
         savedAt: 1,

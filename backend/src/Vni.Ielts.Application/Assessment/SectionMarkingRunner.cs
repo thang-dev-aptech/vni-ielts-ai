@@ -41,6 +41,17 @@ public enum MarkingAvailability
     /// turned them into text — speech-to-text is still unselected, and the
     /// requirement for word-level timings narrows the field. Marking
     /// pronunciation from no transcript would be inventing the whole judgement.
+    ///
+    /// Wire name on results: <c>AwaitingVoiceProvider</c> (FS8.7). The older
+    /// synonym <see cref="AwaitingTranscript"/> is retained only so stored
+    /// <c>LastError</c> strings from earlier builds still map to a learner
+    /// sentence.
+    /// </summary>
+    AwaitingVoiceProvider,
+
+    /// <summary>
+    /// Historical synonym of <see cref="AwaitingVoiceProvider"/>. Prefer that
+    /// name in new writes; this value remains so older job errors still parse.
     /// </summary>
     AwaitingTranscript,
 
@@ -178,7 +189,7 @@ public sealed class SectionMarkingRunner(
 
             if (string.IsNullOrWhiteSpace(submission))
                 return Pending(
-                    MarkingAvailability.AwaitingTranscript,
+                    MarkingAvailability.AwaitingVoiceProvider,
                     $"{recordings.Count} recording(s) exist for this section and no transcript "
                     + "does: no speech-to-text provider has been selected, and pronunciation "
                     + "additionally needs word-level timings.");
@@ -282,7 +293,7 @@ public sealed class SectionMarkingRunner(
 /// and requiring word-level timings — which Pronunciation needs — narrows the
 /// field enough that the choice is not a formality. Until one is chosen this
 /// returns null and Speaking reports
-/// <see cref="MarkingAvailability.AwaitingTranscript"/>. → `G-11`
+/// <see cref="MarkingAvailability.AwaitingVoiceProvider"/>. → `G-11`, FS8.7
 /// </summary>
 public interface ITranscriptSource
 {

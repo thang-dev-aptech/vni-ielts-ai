@@ -1,5 +1,5 @@
 import { useI18n } from '../../../i18n/index.js';
-import type { PartView } from '../examApi.js';
+import type { PartView, QuestionView } from '../examApi.js';
 
 /**
  * What a question's box is saying.
@@ -48,7 +48,7 @@ export function PracticeFooter({
   unconfirmed,
   busy,
   onGoToPart,
-  onScrollToQuestion,
+  onScrollToSlot,
   onSubmit,
 }: {
   parts: PartView[];
@@ -58,26 +58,33 @@ export function PracticeFooter({
   unconfirmed: ReadonlySet<string>;
   busy: boolean;
   onGoToPart: (index: number) => void;
-  onScrollToQuestion: (questionId: string) => void;
+  onScrollToSlot: (questionId: string, slotIndex: number) => void;
   onSubmit: () => void;
 }) {
   const { t } = useI18n();
 
   const part = parts[activePart];
   const questions = part?.questions ?? [];
+  const slots = questions.flatMap((question) =>
+    slotsOf(question).map((slot, slotIndex) => ({ question, slot, slotIndex })),
+  );
 
-  function state(questionId: string): BoxState {
-    const value = answers[questionId];
-    const filled = value !== null && value !== undefined && value !== '';
+  function state(question: QuestionView, slotIndex: number): BoxState {
+    const value = answers[question.id];
+    const filled = slotIndex < filledSlotCount(question, value);
     if (!filled) return 'empty';
-    return unconfirmed.has(questionId) ? 'unsaved' : 'answered';
+    return unconfirmed.has(question.id) ? 'unsaved' : 'answered';
   }
 
   function answeredIn(one: PartView): number {
-    return one.questions.filter((question) => {
-      const value = answers[question.id];
-      return value !== null && value !== undefined && value !== '';
-    }).length;
+    return one.questions.reduce(
+      (total, question) => total + filledSlotCount(question, answers[question.id]),
+      0,
+    );
+  }
+
+  function totalIn(one: PartView): number {
+    return one.questions.reduce((total, question) => total + slotsOf(question).length, 0);
   }
 
   return (
@@ -91,7 +98,7 @@ export function PracticeFooter({
                 <span className="prun-map-count">
                   {t('practice.sectionCount', {
                     answered: answeredIn(one),
-                    total: one.questions.length,
+                    total: totalIn(one),
                   })}
                 </span>
               </p>
@@ -101,16 +108,16 @@ export function PracticeFooter({
                 zero boxes. An empty row reads as a rendering failure, which is
                 the one thing a footer over a live paper must never look like.
               */}
-              {questions.length === 0 ? (
+              {slots.length === 0 ? (
                 <p className="prun-map-empty">
                   {t('practice.emptySection', { number: one.order })}
                 </p>
               ) : (
                 <ol className="prun-boxes">
-                  {questions.map((question) => {
-                    const box = state(question.id);
+                  {slots.map(({ question, slot, slotIndex }) => {
+                    const box = state(question, slotIndex);
                     return (
-                      <li key={question.id}>
+                      <li key={slot.id}>
                         {/*
                           Three channels, not one colour: the fill, a glyph
                           (tick for confirmed, hollow ring for unsaved, nothing
@@ -122,14 +129,15 @@ export function PracticeFooter({
                           type="button"
                           className="prun-box"
                           data-state={box}
-                          onClick={() => onScrollToQuestion(question.id)}
+                          data-response-slot-id={slot.id}
+                          onClick={() => onScrollToSlot(question.id, slotIndex)}
                         >
                           <span className="num" aria-hidden="true">
-                            {question.order}
+                            {slot.number}
                           </span>
                           <BoxGlyph state={box} />
                           <span className="sr-only">
-                            {t('exam.questionNumber', { number: question.order })} ·{' '}
+                            {t('exam.questionNumber', { number: slot.number })} ·{' '}
                             {box === 'answered'
                               ? t('practice.boxAnswered')
                               : box === 'unsaved'
@@ -153,7 +161,7 @@ export function PracticeFooter({
               {t('practice.sectionProgress', {
                 number: one.order,
                 answered: answeredIn(one),
-                total: one.questions.length,
+                total: totalIn(one),
               })}
             </button>
           ),
@@ -161,19 +169,32 @@ export function PracticeFooter({
       </div>
 
       <div className="prun-actions">
+        {/*
+          `aria-disabled`, not `disabled` — same contract as `Pagination`.
+          Reaching the first or last section used to disable the control that
+          still held focus, drop `document.activeElement` to `<body>`, and force
+          a keyboard learner to Tab from the top of the paper. The buttons stay
+          in the tab order; the guarded handler is what refuses the move.
+        */}
         <button
           type="button"
           className="prun-step"
-          disabled={activePart === 0}
-          onClick={() => onGoToPart(activePart - 1)}
+          aria-disabled={activePart === 0}
+          onClick={() => {
+            if (activePart === 0) return;
+            onGoToPart(activePart - 1);
+          }}
         >
           {t('practice.prevSection')}
         </button>
         <button
           type="button"
           className="prun-step"
-          disabled={activePart >= parts.length - 1}
-          onClick={() => onGoToPart(activePart + 1)}
+          aria-disabled={activePart >= parts.length - 1}
+          onClick={() => {
+            if (activePart >= parts.length - 1) return;
+            onGoToPart(activePart + 1);
+          }}
         >
           {t('practice.nextSection')}
         </button>
@@ -183,6 +204,28 @@ export function PracticeFooter({
       </div>
     </footer>
   );
+}
+
+/** Rolling-deploy fallback: pre-v2 responses still get one stable visible box. */
+function slotsOf(question: QuestionView): { id: string; number: number }[] {
+  return question.slots?.length > 0
+    ? question.slots
+    : [{ id: `legacy:${question.id}`, number: question.order }];
+}
+
+/**
+ * A question-level answer temporarily backs one or more public response slots.
+ * Multiple-select serialises picks with `|`; each pick fills one slot. Other
+ * renderers currently expose one field, so a non-empty value fills one slot.
+ * FS4.7 moves the storage boundary itself to response-slot ids.
+ */
+function filledSlotCount(question: QuestionView, value: string | null | undefined): number {
+  if (value === null || value === undefined || value === '') return 0;
+  const capacity = slotsOf(question).length;
+  if (capacity === 1) return 1;
+
+  const tokens = question.type === 'multiple-select' ? value.split('|').filter(Boolean) : [value];
+  return Math.min(capacity, tokens.length);
 }
 
 function BoxGlyph({ state }: { state: BoxState }) {

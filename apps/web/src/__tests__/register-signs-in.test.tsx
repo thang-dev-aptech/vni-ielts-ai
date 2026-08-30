@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
@@ -89,9 +89,15 @@ function open(path: string) {
 
 async function fillRegistration() {
   const user = userEvent.setup();
-  await user.type(await screen.findByLabelText(/họ và tên/i), 'Nguyễn Thắng');
-  await user.type(screen.getByLabelText(/^email$/i), 'ngdthang.dev@gmail.com');
-  await user.type(screen.getByLabelText(/^mật khẩu$/i), 'mot-mat-khau-du-dai-2026');
+  fireEvent.change(await screen.findByLabelText(/họ và tên/i), {
+    target: { value: 'Nguyễn Thắng' },
+  });
+  fireEvent.change(screen.getByLabelText(/^email$/i), {
+    target: { value: 'ngdthang.dev@gmail.com' },
+  });
+  fireEvent.change(screen.getByLabelText(/^mật khẩu$/i), {
+    target: { value: 'mot-mat-khau-du-dai-2026' },
+  });
   await user.click(screen.getByRole('button', { name: /tạo tài khoản/i }));
   return user;
 }

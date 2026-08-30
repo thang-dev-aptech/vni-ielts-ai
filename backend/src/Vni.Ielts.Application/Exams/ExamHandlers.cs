@@ -2,8 +2,10 @@ using Vni.Ielts.Application.Common;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Application.Assessment;
+using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Domain.Assessment;
 using Vni.Ielts.Domain.Sessions;
+using Vni.Ielts.Application.Practice;
 
 namespace Vni.Ielts.Application.Exams;
 
@@ -129,6 +131,34 @@ public sealed class StartExamSession(
     }
 }
 
+public sealed record StartPracticeUnitSessionCommand(
+    UserId UserId, string PracticeUnitId, int? TargetSeconds = null);
+
+public sealed class StartPracticeUnitSession(
+    IExamCatalogue catalogue, IExamSessionRepository sessions, IClock clock)
+{
+    public async Task<SessionView> HandleAsync(
+        StartPracticeUnitSessionCommand command, CancellationToken ct)
+    {
+        var versions = await catalogue.ListSittableAsync(ct);
+        var unit = versions.SelectMany(PracticeUnitProjection.From)
+            .SingleOrDefault(candidate => candidate.Id == command.PracticeUnitId)
+            ?? throw new SessionNotFoundException();
+        var version = versions.Single(candidate => candidate.Id == unit.ExamVersionId);
+        var mode = unit.Scope == PracticeScope.FullTest ? SessionMode.Full : SessionMode.Single;
+        var timing = unit.RunKind == PracticeRunKind.Mock
+            ? SessionTiming.Deadline : SessionTiming.OpenEnded;
+        var firstModule = unit.Module ?? version.FirstModule();
+        var now = clock.UtcNow;
+        var session = ExamSession.Start(
+            command.UserId, version, mode, timing, firstModule, now,
+            timing == SessionTiming.OpenEnded ? command.TargetSeconds : null,
+            unit.Id, unit.PartIds);
+        await sessions.AddAsync(session, ct);
+        return session.ToView(version, now, SessionProjection.Empty, []);
+    }
+}
+
 public sealed record GetExamSessionQuery(UserId UserId, ExamSessionId SessionId);
 
 public sealed class GetExamSession(
@@ -213,10 +243,11 @@ public sealed record SaveAnswersCommand(
 /// </param>
 /// <param name="Sequences">
 /// The ordering tokens the sheet now holds, sent back whenever
-/// <paramref name="Answers"/> is. A caller that has taken in another writer's
-/// answers has to raise its own counters past theirs, or its next edit to one
-/// of those questions carries a token the server will ignore — and the learner
-/// watches their correction do nothing.
+/// <paramref name="Answers"/> is. Slot-keyed for slotted questions and
+/// question-keyed for slotless ones. A caller that has taken in another
+/// writer's answers has to raise its own counters past theirs, or its next edit
+/// to one of those positions carries a token the server will ignore — and the
+/// learner watches their correction do nothing.
 /// </param>
 public sealed record SaveAnswersResult(
     int Revision,
@@ -290,9 +321,19 @@ public sealed class SaveAnswers(
         var section = version.Section(command.Module)
             ?? throw new SectionNotOpenException(command.Module, current.Module);
 
-        var known = section.Questions.Select(q => q.Id).ToHashSet(StringComparer.Ordinal);
-        var unknown = command.Changes.Keys.Where(id => !known.Contains(id)).ToList();
+        var visibleQuestions = section.Parts
+            .Where(part => current.PartId is null
+                || current.PartId == $"{command.Module.ToString().ToLowerInvariant()}-part-{part.Order}")
+            .SelectMany(part => part.Questions)
+            .ToArray();
+        var knownQuestions = visibleQuestions.Select(q => q.Id).ToHashSet(StringComparer.Ordinal);
+        var slotIndex = ResponseSlotAnswers.BuildSlotIndex(visibleQuestions);
+        var unknown = ResponseSlotAnswers.ResolveChangeKeys(
+            command.Changes.Keys, knownQuestions, slotIndex);
         if (unknown.Count > 0) throw new UnknownQuestionException(unknown);
+
+        var slotChanges = ResponseSlotAnswers.ToSlotChanges(command.Changes, section);
+        var slotSequences = ResponseSlotAnswers.ToSlotSequences(command.Sequences, section);
 
         /*
          * <b>A patch grows the sheet; a whole-sheet write could not.</b>
@@ -315,13 +356,14 @@ public sealed class SaveAnswers(
          */
         var oversized = command.Changes
             .Where(c => c.Value is { Length: > MaxAnswerCharacters })
-            .Select(c => c.Key)
+            .Select(c => ResponseSlotAnswers.MapSlotToQuestion(c.Key, slotIndex))
+            .Distinct(StringComparer.Ordinal)
             .ToList();
 
         if (oversized.Count > 0) throw new AnswerTooLongException(oversized, MaxAnswerCharacters);
 
         var patched = await answers.PatchAsync(
-            command.SessionId, command.Module, command.Changes, now, ct, command.Sequences);
+            command.SessionId, command.Module, slotChanges, now, ct, slotSequences);
 
         /*
          * <b>Behind, so take the whole sheet back.</b>
@@ -340,8 +382,9 @@ public sealed class SaveAnswers(
 
         return new SaveAnswersResult(
             patched.Sheet.Revision,
-            caughtUp ? null : patched.Sheet.Answers,
-            caughtUp ? null : patched.Sheet.Sequences);
+            caughtUp ? null : ResponseSlotAnswers.ToQuestionAnswers(patched.Sheet.Answers, section),
+            caughtUp ? null : ResponseSlotAnswers.ToWireSequences(
+                patched.Sheet.Sequences, visibleQuestions));
     }
 }
 
@@ -552,6 +595,38 @@ public sealed class AdvanceSection(
         var leaving = session.Current;
         var from = SessionState.Of(session);
 
+        var partOutcome = session.AdvanceToNextPart(version, now);
+        if (partOutcome != PartAdvanceOutcome.NotPartScoped)
+        {
+            if (partOutcome == PartAdvanceOutcome.SessionNotInProgress)
+                throw new SessionNotInProgressException(session.Status.ToString());
+
+            var frozenPartScope = partOutcome == PartAdvanceOutcome.ScopeComplete && leaving is not null
+                ? await answers.CloseAsync(session.Id, leaving.Module, now, ct)
+                : null;
+            if (!await sessions.TrySaveAsync(session, from, ct))
+            {
+                var (moved, movedVersion) = await sessions.LoadOwnedAsync(
+                    catalogue, command.SessionId, command.UserId, ct);
+                var movedSheet = moved.Current is { } open
+                    ? await answers.ReadAsync(moved.Id, open.Module, ct)
+                    : SessionProjection.Empty;
+                return moved.ToView(movedVersion, now, movedSheet,
+                    await results.ListAsync(moved.Id, ct));
+            }
+
+            if (partOutcome == PartAdvanceOutcome.ScopeComplete && leaving is not null)
+                await MarkSection.RunAsync(
+                    version, leaving.Module, session.Id, answers, results, marker, ct,
+                    frozenPartScope, outbox, rubrics, clock, session);
+
+            var partSheet = session.Current is { } nextPart
+                ? await answers.ReadAsync(session.Id, nextPart.Module, ct)
+                : SessionProjection.Empty;
+            return session.ToView(version, now, partSheet,
+                await results.ListAsync(session.Id, ct));
+        }
+
         var outcome = session.AdvanceToNextSection(version, now);
         if (outcome is AdvanceOutcome.NotAFullTest)
             throw new InvalidOperationException(
@@ -619,7 +694,7 @@ public sealed class AdvanceSection(
         if (leaving is not null)
             await MarkSection.RunAsync(
                 version, leaving.Module, session.Id, answers, results, marker, ct, frozen,
-                outbox, rubrics, clock);
+                outbox, rubrics, clock, session);
 
         var saved = session.Current is { } next
             ? await answers.ReadAsync(session.Id, next.Module, ct)
@@ -640,6 +715,7 @@ public sealed class SubmitExamSession(
     SectionMarkingRunner marker,
     IMarkingOutbox outbox,
     IRubricSource rubrics,
+    IPersonalizedExplanationStore explanationStore,
     IClock clock)
 {
     public async Task<SessionResultsView> HandleAsync(
@@ -698,7 +774,7 @@ public sealed class SubmitExamSession(
                     if (open is not null)
                         await MarkSection.RunAsync(
                             version, open.Module, session.Id, answers, results, marker, ct, frozen,
-                            outbox, rubrics, clock);
+                            outbox, rubrics, clock, session);
 
                     break;
                 }
@@ -731,8 +807,16 @@ public sealed class SubmitExamSession(
             version,
             await results.ListAsync(session.Id, ct),
             await markings.ListAsync(session.Id, ct),
-            await outbox.ListAsync(session.Id, ct));
+            await outbox.ListAsync(session.Id, ct),
+            await explanationStore.ListForSessionAsync(session.Id, ct));
     }
+}
+
+public sealed class RequestPersonalizedExplanation(PersonalizedExplanationService service)
+{
+    public Task<PersonalizedExplanationView> HandleAsync(
+        RequestPersonalizedExplanationCommand command, CancellationToken ct) =>
+        service.RequestAsync(command, ct);
 }
 
 public sealed record ListMySittingsQuery(UserId UserId, int Limit);
@@ -799,18 +883,35 @@ public sealed class ListMySittings(
             // lower-case; one PascalCase field here would silently fail every
             // comparison rather than fail to compile.
             var sections = session.Attempts
-                .Select(a => new SittingSectionView(
-                    a.Module.ToString().ToLowerInvariant(),
-                    byModule.TryGetValue(a.Module, out var band) ? band.Value : null))
+                .GroupBy(a => a.Module)
+                .Select(group => new SittingSectionView(
+                    group.Key.ToString().ToLowerInvariant(),
+                    byModule.TryGetValue(group.Key, out var band) && band is { } scored
+                        ? scored.Value
+                        : null))
                 .ToList();
 
             var current = session.Status == SessionStatus.InProgress ? session.Current : null;
+
+            var scope = session.PracticeUnitId is null
+                ? null
+                : session.PartIds.Count == 1 ? "part"
+                : session.Mode == SessionMode.Full ? "full-test" : "skill";
+            var historyTrack = session.Mode == SessionMode.Full
+                && session.Timing == SessionTiming.Deadline
+                ? "full-mock"
+                : scope == "part" ? "practice-part" : "practice-skill";
+            var overall = SittingBand.Overall(sections);
 
             summaries.Add(new SittingSummaryView(
                 session.Id.Value,
                 version.Id.Value,
                 version.Title,
                 version.Variant.ToString().ToLowerInvariant(),
+                session.PracticeUnitId,
+                scope,
+                historyTrack,
+                historyTrack == "full-mock" && overall is not null,
                 session.Mode.ToString().ToLowerInvariant(),
                 session.Status.ToString().ToLowerInvariant(),
                 session.StartedAt,
@@ -818,7 +919,7 @@ public sealed class ListMySittings(
                 current?.Module.ToString().ToLowerInvariant(),
                 current?.DeadlineAt,
                 sections,
-                SittingBand.Overall(sections)));
+                overall));
         }
 
         return summaries;
@@ -845,6 +946,7 @@ public sealed class GetSessionResults(
     SectionMarkingRunner marker,
     IMarkingOutbox outbox,
     IRubricSource rubrics,
+    IPersonalizedExplanationStore explanationStore,
     IClock clock)
 {
     public async Task<SessionResultsView> HandleAsync(GetSessionResultsQuery query, CancellationToken ct)
@@ -870,7 +972,8 @@ public sealed class GetSessionResults(
             version,
             await results.ListAsync(session.Id, ct),
             await markings.ListAsync(session.Id, ct),
-            await outbox.ListAsync(session.Id, ct));
+            await outbox.ListAsync(session.Id, ct),
+            await explanationStore.ListForSessionAsync(session.Id, ct));
     }
 }
 
@@ -1022,10 +1125,15 @@ internal static class MarkSection
         AnswerSheet? frozen = null,
         IMarkingOutbox? outbox = null,
         IRubricSource? rubrics = null,
-        IClock? clock = null)
+        IClock? clock = null,
+        ExamSession? session = null)
     {
+        var context = session is null
+            ? DeterministicScoringContext.FullSection
+            : PracticeScorePolicy.ScoringContext(session, version);
+
         await ScoreIfDeterministic.RunAsync(
-            version, module, sessionId, answers, results, ct, frozen);
+            version, module, sessionId, answers, results, ct, context, frozen);
 
         /*
          * <b>The intent is made durable before the attempt is made.</b>
@@ -1096,7 +1204,8 @@ internal static class MarkSection
             if (attempt.Module is not (ExamModule.Reading or ExamModule.Listening)) continue;
             if (scored.Any(s => s.Module == attempt.Module)) continue;
 
-            await RunAsync(version, attempt.Module, session.Id, answers, results, marker, ct);
+            await RunAsync(version, attempt.Module, session.Id, answers, results, marker, ct,
+                session: session);
         }
     }
 }
@@ -1211,7 +1320,7 @@ internal static class ExpiredSittings
         if (open is not null)
             await MarkSection.RunAsync(
                 version, open.Module, session.Id, answers, results, marker, ct, frozen,
-                            outbox, rubrics, clock);
+                outbox, rubrics, clock, session);
 
         return ExpirySweep.Closed;
     }
@@ -1236,13 +1345,14 @@ internal static class ScoreIfDeterministic
     public static async Task RunAsync(
         ExamVersion version, ExamModule module, ExamSessionId sessionId,
         IAnswerSheetStore answers, ISectionResultStore results, CancellationToken ct,
+        DeterministicScoringContext context,
         AnswerSheet? frozen = null)
     {
         if (module is not (ExamModule.Reading or ExamModule.Listening)) return;
         if (version.Section(module) is not { } section) return;
 
-        var sheet = frozen?.Answers ?? await answers.LoadAsync(sessionId, module, ct);
-        var score = DeterministicScorer.Score(section, version.Scoring, sheet);
+        var rawAnswers = frozen?.Answers ?? await answers.LoadAsync(sessionId, module, ct);
+        var score = DeterministicScorer.Score(section, version.Scoring, rawAnswers, context);
 
         await results.SaveAsync(sessionId, score, ct);
     }
@@ -1299,24 +1409,45 @@ internal static class SessionProjection
                 ? (int)Math.Max(0, (deadline - now).TotalSeconds)
                 : null;
 
+            var visibleParts = section.Parts.OrderBy(p => p.Order)
+                .Where(p => attempt.PartId is null
+                    || attempt.PartId == $"{attempt.Module.ToString().ToLowerInvariant()}-part-{p.Order}")
+                .ToArray();
+            var visibleQuestions = visibleParts.SelectMany(p => p.Questions).ToArray();
+            var visibleQuestionIds = visibleQuestions.Select(q => q.Id).ToHashSet(StringComparer.Ordinal);
+            var questionAnswers = ResponseSlotAnswers.ToQuestionAnswers(sheet.Answers, section);
+            var visibleAnswers = questionAnswers
+                .Where(entry => visibleQuestionIds.Contains(entry.Key))
+                .ToDictionary(entry => entry.Key, entry => entry.Value, StringComparer.Ordinal);
+            var visibleSequences = ResponseSlotAnswers.ToWireSequences(
+                sheet.Sequences, visibleQuestions);
+
             current = new CurrentSectionView(
                 attempt.Module.ToString().ToLowerInvariant(),
+                attempt.PartId,
                 attempt.StartedAt,
                 attempt.DeadlineAt,
                 remaining,
                 attempt.ElapsedSeconds(now),
                 attempt.RunningSince is not null,
                 attempt.TargetSeconds,
-                [.. section.Parts.OrderBy(p => p.Order).Select(p => p.ToView())],
-                sheet.Answers,
+                [.. visibleParts.Select(p => p.ToView())],
+                visibleAnswers,
                 sheet.Revision,
-                sheet.Sequences ?? new Dictionary<string, long>(),
+                visibleSequences,
                 attempt.Module == ExamModule.Speaking
                     ? [.. version.Timing.SpeakingParts.Select(p =>
                         new SpeakingPartTimingView(p.Part, p.PrepSeconds, p.ResponseSeconds))]
                     : [],
                 attempt.Module == ExamModule.Listening
                     ? version.Timing.ListeningTransferSeconds
+                    : null,
+                attempt.Module == ExamModule.Listening
+                    ? (session.Timing == SessionTiming.Deadline
+                        ? version.ListeningPlayback.Mock
+                        : version.ListeningPlayback.Practice) is { } rule
+                        ? new AudioPlaybackPolicyView(rule.PlayOnce, rule.AllowSeek)
+                        : null
                     : null);
         }
 
@@ -1324,12 +1455,19 @@ internal static class SessionProjection
             session.Id.Value,
             session.ExamVersionId.Value,
             version.Title,
+            session.PracticeUnitId,
+            session.PracticeUnitId is null
+                ? null
+                : session.PartIds.Count == 1 ? "part"
+                : session.Mode == SessionMode.Full ? "full-test" : "skill",
+            session.CompletedPartIds,
             session.Mode.ToString().ToLowerInvariant(),
             session.Status.ToString().ToLowerInvariant(),
             session.StartedAt,
             now,
             [.. session.Attempts.Where(a => a.SubmittedAt is not null)
                 .Select(a => a.Module.ToString().ToLowerInvariant())],
+            SequenceProfile.ToWire(version.ModuleSequence),
             current);
     }
 
@@ -1337,7 +1475,8 @@ internal static class SessionProjection
         this ExamSession session, ExamVersion version,
         IReadOnlyList<SectionScore> scores,
         IReadOnlyList<SectionMarking> markings,
-        IReadOnlyList<MarkingJob>? jobs = null)
+        IReadOnlyList<MarkingJob>? jobs = null,
+        IReadOnlyList<PersonalizedExplanationJob>? explanationJobs = null)
     {
         // <b>Writing's two task bands do not become a Writing band here.</b>
         // IELTS marks Task 1 and Task 2 separately and combines them on a ratio
@@ -1345,8 +1484,9 @@ internal static class SessionProjection
         // refuses to guess one (`H-8b`). So Writing contributes a module band
         // only when the exam version carries the weighting — otherwise the two
         // task bands are reported as what they are, and Writing has no band.
+        var capability = PracticeScorePolicy.ScoreCapability(session, version);
         var moduleBands = new List<BandScore>();
-        moduleBands.AddRange(scores.Select(s => s.Band));
+        moduleBands.AddRange(scores.Select(s => s.Band).OfType<BandScore>());
 
         if (WritingBand(version, markings) is { } writing) moduleBands.Add(writing);
 
@@ -1355,7 +1495,8 @@ internal static class SessionProjection
 
         // Four bands or none. A mean over two sections is not an overall band,
         // and presenting one would be inventing a number. → product law L3
-        decimal? overall = moduleBands.Count == ExamVersion.FullTestOrder.Count
+        decimal? overall = moduleBands.Count == version.ModuleSequence.Count
+            && SequenceProfile.IsFullMock(version.ModuleSequence.ToHashSet())
             ? BandScore.Overall(moduleBands).Value
             : null;
 
@@ -1365,9 +1506,10 @@ internal static class SessionProjection
             session.Mode.ToString().ToLowerInvariant(),
             session.Status.ToString().ToLowerInvariant(),
             session.SubmittedAt,
-            [.. scores.OrderBy(s => s.Module).Select(s => s.ToView())],
+            [.. scores.OrderBy(s => s.Module).Select(s => s.ToView(capability, version))],
             [.. markings.OrderBy(m => m.Module).ThenBy(m => m.TaskNumber).Select(m => m.ToView())],
             [.. (jobs ?? []).OrderBy(j => j.Module).Select(ToStatusView)],
+            PersonalizedExplanationService.ProjectStatuses(version, explanationJobs ?? []),
             overall);
     }
 
@@ -1380,29 +1522,37 @@ internal static class SessionProjection
     /// needs is which of four situations they are in, because each has a
     /// different answer to "what do I do now".
     /// </summary>
-    private static MarkingStatusView ToStatusView(MarkingJob job) => new(
-        job.Module.ToString().ToLowerInvariant(),
-        job.State.ToString().ToLowerInvariant(),
-        job.Attempts,
-        job.State switch
+    private static MarkingStatusView ToStatusView(MarkingJob job)
+    {
+        var code = ExtractAvailabilityCode(job.LastError);
+        var reason = job.State switch
         {
             MarkingJobState.Completed => null,
 
-            // Nothing has gone wrong; it simply has not happened yet.
+            // Nothing has gone wrong; it simply has not happened yet — unless
+            // a prior attempt already named a durable blocker (voice/ASR).
+            MarkingJobState.Pending or MarkingJobState.Running
+                when code is nameof(MarkingAvailability.AwaitingVoiceProvider)
+                    or nameof(MarkingAvailability.AwaitingTranscript) =>
+                "Bản ghi đã nhận. Chấm Speaking chờ nhà cung cấp giọng nói (ASR) — chưa có điểm Speaking.",
+
             MarkingJobState.Pending or MarkingJobState.Running => null,
+
+            MarkingJobState.Retryable
+                when code is nameof(MarkingAvailability.AwaitingVoiceProvider)
+                    or nameof(MarkingAvailability.AwaitingTranscript) =>
+                "Bản ghi đã nhận. Chấm Speaking chờ nhà cung cấp giọng nói (ASR) — chưa có điểm Speaking.",
 
             MarkingJobState.Retryable => "Chấm bài chưa xong. Hệ thống sẽ thử lại.",
 
-            MarkingJobState.Failed when job.LastError?.Contains(
-                nameof(MarkingAvailability.AwaitingEvaluator), StringComparison.Ordinal) == true =>
+            MarkingJobState.Failed when code == nameof(MarkingAvailability.AwaitingEvaluator) =>
                 "Chấm tự động chưa được bật cho phần này.",
 
-            MarkingJobState.Failed when job.LastError?.Contains(
-                nameof(MarkingAvailability.AwaitingTranscript), StringComparison.Ordinal) == true =>
-                "Bản ghi của bạn chưa được chuyển thành văn bản để chấm.",
+            MarkingJobState.Failed when code is nameof(MarkingAvailability.AwaitingVoiceProvider)
+                or nameof(MarkingAvailability.AwaitingTranscript) =>
+                "Bản ghi đã nhận. Chấm Speaking chờ nhà cung cấp giọng nói (ASR) — chưa có điểm Speaking.",
 
-            MarkingJobState.Failed when job.LastError?.Contains(
-                nameof(MarkingAvailability.AwaitingRubric), StringComparison.Ordinal) == true =>
+            MarkingJobState.Failed when code == nameof(MarkingAvailability.AwaitingRubric) =>
                 "Chưa có thang chấm cho phần này.",
 
             // Everything else that reached the end of its attempts. Deliberately
@@ -1412,7 +1562,46 @@ internal static class SessionProjection
             MarkingJobState.Failed => "Chấm bài không thành công. Đội ngũ VNI đã được thông báo.",
 
             _ => null,
-        });
+        };
+
+        return new MarkingStatusView(
+            job.Module.ToString().ToLowerInvariant(),
+            job.State.ToString().ToLowerInvariant(),
+            job.Attempts,
+            reason,
+            code);
+    }
+
+    /// <summary>
+    /// Pulls a <see cref="MarkingAvailability"/> name out of a job error, if
+    /// one is present. Codes are what admin screens and clients branch on;
+    /// learner sentences stay mapped above.
+    /// </summary>
+    private static string? ExtractAvailabilityCode(string? lastError)
+    {
+        if (string.IsNullOrWhiteSpace(lastError)) return null;
+
+        foreach (var name in new[]
+        {
+            nameof(MarkingAvailability.AwaitingVoiceProvider),
+            nameof(MarkingAvailability.AwaitingTranscript),
+            nameof(MarkingAvailability.AwaitingEvaluator),
+            nameof(MarkingAvailability.AwaitingRubric),
+            nameof(MarkingAvailability.NothingSubmitted),
+            nameof(MarkingAvailability.Rejected),
+        })
+        {
+            if (lastError.Contains(name, StringComparison.Ordinal))
+            {
+                // Prefer the FS8.7 wire name when either synonym is present.
+                return name is nameof(MarkingAvailability.AwaitingTranscript)
+                    ? nameof(MarkingAvailability.AwaitingVoiceProvider)
+                    : name;
+            }
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// Writing's module band, or null while the ratio is unknown.

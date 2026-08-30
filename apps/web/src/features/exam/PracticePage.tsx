@@ -115,9 +115,10 @@ const FAQ: FaqEntry[] = [
     q: 'AI chấm Writing và Speaking có sát tiêu chí IELTS không?',
     a: (
       <p>
-        Chưa nối với mô hình nào, nên chưa có kết quả để so. Điều đã chốt là cách dùng: điểm do AI
-        đưa ra luôn mang nhãn <em>tham khảo</em> — nó là ước lượng để luyện tập, không phải điểm
-        thi, và không có điểm nào vào hồ sơ của bạn mà không qua kiểm tra ở máy chủ trước.
+        Khi bài chưa chấm xong, kết quả sẽ hiện trạng thái chờ thay vì điểm tạm. Điều đã chốt là
+        cách dùng: điểm do AI đưa ra luôn mang nhãn <em>tham khảo</em> — nó là ước lượng để luyện
+        tập, không phải điểm thi, và không có điểm nào vào hồ sơ của bạn mà không qua kiểm tra ở máy
+        chủ trước.
       </p>
     ),
   },

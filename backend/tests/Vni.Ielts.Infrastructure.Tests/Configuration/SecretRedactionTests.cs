@@ -98,4 +98,27 @@ public sealed class SecretRedactionTests
         Assert.Equal("…", SecretRedaction.Identifier("short"));
         Assert.Equal("not set", SecretRedaction.Identifier(null));
     }
+
+    /// <summary>
+    /// FS9.1 / FS8.6 — a Speaking presigned PUT must not survive into logs or
+    /// audit detail. The redactor is what Infrastructure call sites use when
+    /// an operator-facing message has to mention the URL at all.
+    /// </summary>
+    [Fact]
+    public void A_speaking_presigned_put_url_loses_its_signature_and_credential()
+    {
+        const string signature = "FAKE-NOT-A-REAL-SPEAKING-SIGNATURE";
+        const string credential = "FAKE-NOT-A-REAL-SPEAKING-CRED/20260829/auto/s3/aws4_request";
+
+        var redacted = SecretRedaction.Url(
+            "https://minio.example.com/vni-speaking/recordings/abcdef0123456789abcdef0123456789"
+            + $"?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential={credential}"
+            + $"&X-Amz-Signature={signature}");
+
+        Assert.DoesNotContain(signature, redacted, StringComparison.Ordinal);
+        Assert.DoesNotContain(credential, redacted, StringComparison.Ordinal);
+        Assert.DoesNotContain("X-Amz-", redacted, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("recordings/abcdef0123456789abcdef0123456789", redacted, StringComparison.Ordinal);
+        Assert.EndsWith("?«redacted»", redacted, StringComparison.Ordinal);
+    }
 }

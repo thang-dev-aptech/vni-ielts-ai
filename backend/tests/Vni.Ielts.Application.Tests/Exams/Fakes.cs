@@ -104,8 +104,10 @@ internal sealed class FakeSessionRepository : IExamSessionRepository
                 // read would hand back an attempt paused at zero — so a handler
                 // that paused, saved and re-read would see its own write undone
                 // and these tests would agree that it worked.
-                a.AccumulatedSeconds, a.RunningSince, a.TargetSeconds)),
-            session.Timing);
+                a.AccumulatedSeconds, a.RunningSince, a.TargetSeconds, a.PartId)),
+            session.Timing,
+            session.PracticeUnitId,
+            session.PartIds);
 
     public Task<ExamSession?> FindAsync(ExamSessionId id, CancellationToken ct) =>
         Task.FromResult(
@@ -217,6 +219,17 @@ internal sealed class FakeRecordingStore : IRecordingStore
     {
         Deleted.Add(recordingId);
         Saved.RemoveAll(s => s.Id == recordingId);
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteForSessionAsync(ExamSessionId sessionId, CancellationToken ct)
+    {
+        foreach (var row in Saved.Where(s => s.SessionId == sessionId).ToList())
+        {
+            Deleted.Add(row.Id);
+            Saved.Remove(row);
+        }
+
         return Task.CompletedTask;
     }
 

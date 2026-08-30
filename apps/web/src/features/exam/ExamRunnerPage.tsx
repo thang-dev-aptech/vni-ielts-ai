@@ -3,13 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
-import { AudioPlayer } from './AudioPlayer.js';
+import { AudioPlayer, pauseListeningAudio } from './AudioPlayer.js';
 import { ExamImage } from './ExamImage.js';
 import { QuestionInput } from './QuestionInput.js';
 import { PassageBody } from './PassageBody.js';
 import { QuestionList } from './QuestionList.js';
 import { SpeakingRecorder } from './SpeakingRecorder.js';
-import { SKILLS, SKILL_ORDER } from './skills.js';
+import { SKILLS, resolveModuleSequence } from './skills.js';
 import {
   advanceSection,
   countWords,
@@ -303,6 +303,7 @@ export function ExamRunnerPage() {
   async function submit() {
     if (accessToken === null) return;
     if (submitting_.current) return;
+    pauseListeningAudio();
     submitting_.current = true;
     setStepFailed(null);
     setSubmitting(true);
@@ -379,6 +380,7 @@ export function ExamRunnerPage() {
   async function advance() {
     if (accessToken === null) return;
     if (submitting_.current) return;
+    pauseListeningAudio();
     submitting_.current = true;
     setStepFailed(null);
     setSubmitting(true);
@@ -521,38 +523,28 @@ export function ExamRunnerPage() {
   }
 
   const skill = SKILLS[session.current.module];
+  const moduleSequence = resolveModuleSequence(session.moduleSequence);
+  const currentIndex = moduleSequence.indexOf(session.current.module);
 
   /**
    * Whether this section ends with "Tiếp theo" or with "Nộp bài".
    *
-   * <b>`SessionView` carries no list of the exam's modules, so the "is this the
-   * last one" test is derived from `SKILL_ORDER`.</b> That is sound for every
-   * full test this client can start: `toFullItems` admits an exam into full-test
-   * mode only when it carries all four modules, and `E-12` fixes their order.
-   * It is still only a label — `advance()` reads the server's answer and goes
-   * to the results screen whenever the sitting turns out to be over, so the
-   * worst a wrong guess can do is put the right words on the wrong press.
+   * <b>Derived from the server's `moduleSequence`, not a client constant.</b>
+   * The label follows the package's sitting order; `advance()` reads the
+   * server's answer and routes to results whenever the sitting is over.
    */
-  const advances =
-    session.mode === 'full' && SKILL_ORDER.indexOf(session.current.module) < SKILL_ORDER.length - 1;
+  const advances = session.mode === 'full' && currentIndex >= 0 && currentIndex < moduleSequence.length - 1;
 
-  const nextSkill = advances
-    ? SKILLS[SKILL_ORDER[SKILL_ORDER.indexOf(session.current.module) + 1]!]
-    : null;
+  const nextSkill = advances ? SKILLS[moduleSequence[currentIndex + 1]!] : null;
 
   /**
    * "Kỹ năng 2/4", in a Full Test only.
    *
-   * <b>Counted from the server's `completedModules`, not from `SKILL_ORDER`.</b>
-   * The position is a fact the session already knows, and deriving it a second
-   * way is how two numbers on one screen start disagreeing. A full test ran
-   * four sections with nothing on screen saying which one this was or how many
-   * were left — the header named the skill, and a learner who had been going
-   * for ninety minutes had no way to tell whether they were near the end.
+   * <b>Counted from the server's `completedModules` and `moduleSequence`.</b>
    */
   const position =
     session.mode === 'full'
-      ? { number: session.completedModules.length + 1, total: SKILL_ORDER.length }
+      ? { number: session.completedModules.length + 1, total: moduleSequence.length }
       : null;
   /*
    * `remaining === 0` used to fall into `< 60` and render "còn dưới 1 phút" —
@@ -699,7 +691,18 @@ export function ExamRunnerPage() {
             thing the section is about — and it is a player with no scrubber,
             not `<audio controls>`. → DESIGN.md § Chrome
           */}
-          {part.audioKey !== null && <AudioPlayer reference={part.audioKey} />}
+          {part.audioKey !== null && session.current.audioPlayback != null && (
+            <AudioPlayer
+              key={part.audioKey}
+              reference={part.audioKey}
+              policy={session.current.audioPlayback}
+            />
+          )}
+          {part.audioKey !== null && session.current.audioPlayback == null && (
+            <p className="audio-failed" role="alert">
+              {t('exam.audioPolicyMissing')}
+            </p>
+          )}
 
           {/*
             `!= null`, not `!== null`. A field the server omits arrives as
@@ -862,6 +865,13 @@ export function ExamRunnerPage() {
 
         <button
           type="button"
+          /*
+           * Remount when the open skill changes. A dblclick whose second click
+           * lands after a fast advance would otherwise press "Tiếp theo" on the
+           * *next* skill and skip one — the latch only covers the in-flight
+           * window. A new button node makes the stale second click a no-op.
+           */
+          key={session.current.module}
           className="exam-submit"
           disabled={submitting}
           onClick={() => void (advances ? advance() : submit())}
@@ -893,6 +903,11 @@ function WordCount({ text, minWords }: { text: string; minWords: number | null }
 
   return (
     <p className={`word-count${short ? ' is-short' : ''}`}>
+      {/*
+        Text carries the under-min state; colour is never the only channel.
+        No live region: the count moves on every keystroke, and announcing that
+        would make the essay unusable with a screen reader.
+      */}
       <span className="num">{t('exam.words', { count: words })}</span>
       {minWords !== null && (
         <span>

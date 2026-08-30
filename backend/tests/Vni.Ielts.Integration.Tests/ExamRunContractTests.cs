@@ -41,14 +41,27 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
     private HttpClient NewClient() =>
         app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-    /// <summary>A signed-in learner. The stub provider, the same route the SSO suite uses.</summary>
+    /// <summary>
+    /// A signed-in learner. The stub provider, the same route the SSO suite uses.
+    ///
+    /// <b>One token is reused for the whole fixture.</b> Each SignIn is three
+    /// Authentication-limited hops keyed on the TestServer IP; minting a fresh
+    /// session per test exhausts the 120/min bucket mid-class and later cases
+    /// fail with a 429 that looks like a missing <c>authorizationUrl</c>.
+    /// </summary>
     private async Task<(HttpClient Client, string Access)> SignInAsync()
     {
         var client = NewClient();
+        if (app.SharedAccessToken is { } cached)
+            return (client, cached);
 
         var start = await client.PostAsJsonAsync("/api/v1/auth/sso/google/start", new { });
-        var url = new Uri((await start.Content.ReadFromJsonAsync<JsonElement>())
-            .GetProperty("authorizationUrl").GetString()!);
+        start.EnsureSuccessStatusCode();
+        var startBody = await start.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(
+            startBody.TryGetProperty("authorizationUrl", out var authorizationUrl),
+            $"SSO start missing authorizationUrl (status {(int)start.StatusCode}): {startBody}");
+        var url = new Uri(authorizationUrl.GetString()!);
 
         var callback = await client.GetAsync(url.PathAndQuery);
         var code = System.Web.HttpUtility.ParseQueryString(callback.Headers.Location!.Query)["code"];
@@ -57,8 +70,10 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
             "/api/v1/auth/sso/complete", new { handoffCode = code });
         complete.EnsureSuccessStatusCode();
 
-        return (client, (await complete.Content.ReadFromJsonAsync<JsonElement>())
-            .GetProperty("accessToken").GetString()!);
+        var access = (await complete.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("accessToken").GetString()!;
+        app.SharedAccessToken = access;
+        return (client, access);
     }
 
     private static HttpRequestMessage Authed(HttpMethod method, string path, string access)
@@ -95,6 +110,274 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
         return full.GetProperty("examVersionId").GetString()!;
     }
 
+    [SkippableFact]
+    public async Task Practice_unit_catalogue_filters_and_exposes_capability_without_content()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsync();
+        var response = await client.SendAsync(Authed(
+            HttpMethod.Get,
+            "/api/v1/practice-units?skill=reading&scope=part&variant=academic",
+            access));
+
+        response.EnsureSuccessStatusCode();
+        var units = (await BodyOf(response)).GetProperty("units").EnumerateArray().ToArray();
+        Assert.NotEmpty(units);
+        Assert.All(units, unit =>
+        {
+            Assert.Equal("reading", unit.GetProperty("module").GetString());
+            Assert.Equal("part", unit.GetProperty("scope").GetString());
+            Assert.Equal("raw", unit.GetProperty("scoreCapability").GetString());
+            Assert.True(unit.GetProperty("slotCount").GetInt32() > 0);
+            Assert.True(unit.GetProperty("durationSeconds").GetInt32() > 0);
+            Assert.False(unit.TryGetProperty("questions", out _));
+            Assert.False(unit.TryGetProperty("answerKey", out _));
+        });
+    }
+
+    [SkippableFact]
+    public async Task Unknown_practice_scope_is_refused_not_treated_as_all()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsync();
+        var response = await client.SendAsync(Authed(
+            HttpMethod.Get, "/api/v1/practice-units?scope=chapter", access));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("SCOPE_INVALID", await CodeOf(response));
+    }
+
+    [SkippableFact]
+    public async Task Practice_unit_start_resolves_part_module_mode_and_open_timing_server_side()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsync();
+        var catalogue = await client.SendAsync(Authed(
+            HttpMethod.Get, "/api/v1/practice-units?skill=reading&scope=part", access));
+        catalogue.EnsureSuccessStatusCode();
+        var unit = (await BodyOf(catalogue)).GetProperty("units").EnumerateArray().First();
+        var unitId = unit.GetProperty("id").GetString()!;
+        var partId = unit.GetProperty("partIds")[0].GetString();
+        var request = Authed(HttpMethod.Post, "/api/v1/sessions", access);
+        request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        request.Content = JsonContent.Create(new { practiceUnitId = unitId, targetSeconds = 1200 });
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.False(response.Headers.Contains("Deprecation"));
+        var session = await BodyOf(response);
+        Assert.Equal(unitId, session.GetProperty("practiceUnitId").GetString());
+        Assert.Equal("part", session.GetProperty("scope").GetString());
+        Assert.Equal("single", session.GetProperty("mode").GetString());
+        var current = session.GetProperty("current");
+        Assert.Equal("reading", current.GetProperty("module").GetString());
+        Assert.Equal(JsonValueKind.Null, current.GetProperty("deadlineAt").ValueKind);
+        Assert.Equal(1200, current.GetProperty("targetSeconds").GetInt32());
+        var part = Assert.Single(current.GetProperty("parts").EnumerateArray());
+        Assert.Equal(partId, $"reading-part-{part.GetProperty("order").GetInt32()}");
+    }
+
+    [SkippableFact]
+    public async Task Practice_unit_start_refuses_client_scope_overrides()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsync();
+        var catalogue = await client.SendAsync(Authed(
+            HttpMethod.Get, "/api/v1/practice-units?skill=reading&scope=part", access));
+        var unitId = (await BodyOf(catalogue)).GetProperty("units")[0].GetProperty("id").GetString();
+        var request = Authed(HttpMethod.Post, "/api/v1/sessions", access);
+        request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        request.Content = JsonContent.Create(new
+        {
+            practiceUnitId = unitId,
+            examVersionId = "attacker-version",
+            mode = "full",
+            module = "speaking",
+            timing = "deadline",
+        });
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("PRACTICE_UNIT_CONFLICT", await CodeOf(response));
+    }
+
+    [SkippableFact]
+    public async Task Legacy_start_contract_remains_functional_and_advertises_sunset()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsync();
+        var examId = await FullExamIdAsync(client, access);
+        var request = Authed(HttpMethod.Post, "/api/v1/sessions", access);
+        request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        request.Content = JsonContent.Create(new { examVersionId = examId, mode = "single", module = "reading" });
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal("true", Assert.Single(response.Headers.GetValues("Deprecation")));
+        Assert.True(response.Headers.Contains("Sunset"));
+        Assert.True(response.Headers.Contains("Link"));
+    }
+
+    [SkippableFact]
+    public async Task Skill_practice_persists_current_part_timer_and_part_scoped_sheet_across_reload()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsync();
+        var catalogue = await client.SendAsync(Authed(
+            HttpMethod.Get, "/api/v1/practice-units?skill=reading&scope=skill", access));
+        var unit = (await BodyOf(catalogue)).GetProperty("units").EnumerateArray().First();
+        Assert.True(unit.GetProperty("partIds").GetArrayLength() > 1);
+        var unitId = unit.GetProperty("id").GetString();
+        var start = Authed(HttpMethod.Post, "/api/v1/sessions", access);
+        start.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        start.Content = JsonContent.Create(new { practiceUnitId = unitId, targetSeconds = 900 });
+        var startedResponse = await client.SendAsync(start);
+        var started = await BodyOf(startedResponse);
+        var sessionId = started.GetProperty("sessionId").GetString();
+        var first = started.GetProperty("current");
+        var firstPartId = first.GetProperty("partId").GetString();
+        var firstQuestion = first.GetProperty("parts")[0].GetProperty("questions")[0]
+            .GetProperty("id").GetString()!;
+
+        var save = Authed(HttpMethod.Put, $"/api/v1/sessions/{sessionId}/answers", access);
+        save.Content = JsonContent.Create(new
+        {
+            module = "reading",
+            changes = new Dictionary<string, string?> { [firstQuestion] = "saved in part one" },
+            baseRevision = 0,
+        });
+        (await client.SendAsync(save)).EnsureSuccessStatusCode();
+
+        var advance = Authed(HttpMethod.Post, $"/api/v1/sessions/{sessionId}/advance", access);
+        advance.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        var advancedResponse = await client.SendAsync(advance);
+        advancedResponse.EnsureSuccessStatusCode();
+        var advanced = await BodyOf(advancedResponse);
+        var second = advanced.GetProperty("current");
+        Assert.NotEqual(firstPartId, second.GetProperty("partId").GetString());
+        Assert.Contains(firstPartId, advanced.GetProperty("completedPartIds").EnumerateArray()
+            .Select(value => value.GetString()));
+        Assert.Equal(0, second.GetProperty("elapsedSeconds").GetInt32());
+        Assert.Equal(900, second.GetProperty("targetSeconds").GetInt32());
+        Assert.Empty(second.GetProperty("answers").EnumerateObject());
+
+        var reload = await client.SendAsync(Authed(
+            HttpMethod.Get, $"/api/v1/sessions/{sessionId}", access));
+        reload.EnsureSuccessStatusCode();
+        var restored = await BodyOf(reload);
+        Assert.Equal(second.GetProperty("partId").GetString(),
+            restored.GetProperty("current").GetProperty("partId").GetString());
+        Assert.Contains(firstPartId, restored.GetProperty("completedPartIds").EnumerateArray()
+            .Select(value => value.GetString()));
+
+        var crossPart = Authed(HttpMethod.Put, $"/api/v1/sessions/{sessionId}/answers", access);
+        crossPart.Content = JsonContent.Create(new
+        {
+            module = "reading",
+            changes = new Dictionary<string, string?> { [firstQuestion] = "late overwrite" },
+        });
+        var refused = await client.SendAsync(crossPart);
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+        Assert.Equal("VALIDATION_FAILED", await CodeOf(refused));
+    }
+
+    [SkippableFact]
+    public async Task Full_mock_unit_has_server_deadline_and_cannot_pause()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsync();
+        var catalogue = await client.SendAsync(Authed(
+            HttpMethod.Get, "/api/v1/practice-units?scope=full-test", access));
+        var unitId = (await BodyOf(catalogue)).GetProperty("units")[0].GetProperty("id").GetString();
+        var start = Authed(HttpMethod.Post, "/api/v1/sessions", access);
+        start.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        start.Content = JsonContent.Create(new { practiceUnitId = unitId });
+        var started = await BodyOf(await client.SendAsync(start));
+        var sessionId = started.GetProperty("sessionId").GetString();
+        Assert.Equal("full", started.GetProperty("mode").GetString());
+        Assert.NotEqual(JsonValueKind.Null, started.GetProperty("current").GetProperty("deadlineAt").ValueKind);
+
+        var pause = Authed(HttpMethod.Put, $"/api/v1/sessions/{sessionId}/stopwatch", access);
+        pause.Content = JsonContent.Create(new { running = false });
+        var refused = await client.SendAsync(pause);
+        Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
+        Assert.Equal("VALIDATION_FAILED", await CodeOf(refused));
+    }
+
+    [SkippableFact]
+    public async Task Advancing_a_part_unit_submits_exactly_that_scope()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsync();
+        var catalogue = await client.SendAsync(Authed(
+            HttpMethod.Get, "/api/v1/practice-units?skill=reading&scope=part", access));
+        var unit = (await BodyOf(catalogue)).GetProperty("units")[0];
+        var unitId = unit.GetProperty("id").GetString();
+        var partId = unit.GetProperty("partIds")[0].GetString();
+        var start = Authed(HttpMethod.Post, "/api/v1/sessions", access);
+        start.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        start.Content = JsonContent.Create(new { practiceUnitId = unitId });
+        var started = await BodyOf(await client.SendAsync(start));
+        var sessionId = started.GetProperty("sessionId").GetString();
+        var advance = Authed(HttpMethod.Post, $"/api/v1/sessions/{sessionId}/advance", access);
+        advance.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+
+        var response = await client.SendAsync(advance);
+
+        response.EnsureSuccessStatusCode();
+        var submitted = await BodyOf(response);
+        Assert.Equal("submitted", submitted.GetProperty("status").GetString());
+        Assert.Equal(JsonValueKind.Null, submitted.GetProperty("current").ValueKind);
+        Assert.Equal(partId, Assert.Single(submitted.GetProperty("completedPartIds").EnumerateArray())
+            .GetString());
+    }
+
+    [SkippableFact]
+    public async Task Practice_history_is_structurally_excluded_from_full_mock_ielts_trend()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsync();
+        async Task<JsonElement> StartUnit(string scope)
+        {
+            var catalogue = await client.SendAsync(Authed(
+                HttpMethod.Get, $"/api/v1/practice-units?scope={scope}", access));
+            var unitId = (await BodyOf(catalogue)).GetProperty("units")[0].GetProperty("id").GetString();
+            var request = Authed(HttpMethod.Post, "/api/v1/sessions", access);
+            request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+            request.Content = JsonContent.Create(new { practiceUnitId = unitId });
+            return await BodyOf(await client.SendAsync(request));
+        }
+
+        var practice = await StartUnit("part");
+        var mock = await StartUnit("full-test");
+        var historyResponse = await client.SendAsync(Authed(HttpMethod.Get, "/api/v1/sessions?limit=20", access));
+        historyResponse.EnsureSuccessStatusCode();
+        var history = (await BodyOf(historyResponse)).GetProperty("sittings").EnumerateArray().ToArray();
+        var practiceRow = history.Single(row => row.GetProperty("sessionId").GetString()
+            == practice.GetProperty("sessionId").GetString());
+        var mockRow = history.Single(row => row.GetProperty("sessionId").GetString()
+            == mock.GetProperty("sessionId").GetString());
+
+        Assert.Equal("practice-part", practiceRow.GetProperty("historyTrack").GetString());
+        Assert.False(practiceRow.GetProperty("includeInIeltsTrend").GetBoolean());
+        Assert.Equal("part", practiceRow.GetProperty("scope").GetString());
+        Assert.Equal(JsonValueKind.Null, practiceRow.GetProperty("overallBand").ValueKind);
+        Assert.Equal("full-mock", mockRow.GetProperty("historyTrack").GetString());
+        Assert.False(mockRow.GetProperty("includeInIeltsTrend").GetBoolean());
+    }
+
     private async Task<JsonElement> StartAsync(
         HttpClient client, string access, string examVersionId, string mode, string? module = null)
     {
@@ -128,12 +411,21 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
     /// </summary>
     private async Task<HttpResponseMessage> SaveAnswersAsync(
         HttpClient client, string access, string sessionId,
-        string module, Dictionary<string, string?> changes, int? baseRevision = null)
+        string module, Dictionary<string, string?> changes, int? baseRevision = null,
+        IReadOnlyDictionary<string, long>? sequences = null)
     {
         var request = Authed(HttpMethod.Put, $"/api/v1/sessions/{sessionId}/answers", access);
         request.Content = baseRevision is { } known
-            ? JsonContent.Create(new { module, changes, baseRevision = known })
-            : JsonContent.Create(new { module, changes });
+            ? JsonContent.Create(new
+            {
+                module,
+                changes,
+                baseRevision = known,
+                sequences,
+            })
+            : sequences is null
+                ? JsonContent.Create(new { module, changes })
+                : JsonContent.Create(new { module, changes, sequences });
         return await client.SendAsync(request);
     }
 
@@ -191,6 +483,140 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
             .Select(q => q.GetProperty("id").GetString()!);
 
     private static string FirstQuestionId(JsonElement view) => QuestionIds(view).First();
+
+    [SkippableFact]
+    public async Task Pre_submit_session_exposes_slots_but_not_keys_or_explanations()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access) = await SignInAsync();
+        var examId = await FullExamIdAsync(client, access);
+        var started = await StartAsync(client, access, examId, "full");
+        var questions = started.GetProperty("current").GetProperty("parts").EnumerateArray()
+            .SelectMany(p => p.GetProperty("questions").EnumerateArray()).ToArray();
+
+        Assert.NotEmpty(questions);
+        Assert.All(questions, question =>
+        {
+            Assert.False(question.TryGetProperty("answerKey", out _));
+            Assert.False(question.TryGetProperty("explanation", out _));
+            var slots = question.GetProperty("slots").EnumerateArray().ToArray();
+            Assert.NotEmpty(slots);
+            Assert.All(slots, slot =>
+            {
+                Assert.True(slot.GetProperty("number").GetInt32() > 0);
+                Assert.False(slot.TryGetProperty("answerKey", out _));
+            });
+        });
+    }
+
+    [SkippableFact]
+    public async Task Practice_part_submit_returns_raw_accuracy_without_band()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access) = await SignInAsync();
+        var catalogue = await client.SendAsync(Authed(
+            HttpMethod.Get, "/api/v1/practice-units?skill=reading&scope=part", access));
+        catalogue.EnsureSuccessStatusCode();
+        var unit = (await BodyOf(catalogue)).GetProperty("units").EnumerateArray().First();
+        var unitId = unit.GetProperty("id").GetString()!;
+
+        var start = Authed(HttpMethod.Post, "/api/v1/sessions", access);
+        start.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        start.Content = JsonContent.Create(new { practiceUnitId = unitId });
+        var started = await BodyOf(await client.SendAsync(start));
+        var sessionId = started.GetProperty("sessionId").GetString()!;
+        var questionId = started.GetProperty("current").GetProperty("parts")[0]
+            .GetProperty("questions")[0].GetProperty("id").GetString()!;
+
+        var save = Authed(HttpMethod.Put, $"/api/v1/sessions/{sessionId}/answers", access);
+        save.Content = JsonContent.Create(new
+        {
+            module = "reading",
+            changes = new Dictionary<string, string?> { [questionId] = "ZZZZZ_NOT_A_VALID_ANSWER_999" },
+            baseRevision = 0,
+        });
+        (await client.SendAsync(save)).EnsureSuccessStatusCode();
+
+        var advance = Authed(HttpMethod.Post, $"/api/v1/sessions/{sessionId}/advance", access);
+        advance.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        (await client.SendAsync(advance)).EnsureSuccessStatusCode();
+
+        var resultsResponse = await client.SendAsync(
+            Authed(HttpMethod.Get, $"/api/v1/sessions/{sessionId}/results", access));
+        resultsResponse.EnsureSuccessStatusCode();
+        var results = await BodyOf(resultsResponse);
+        var reading = results.GetProperty("sections").EnumerateArray()
+            .Single(s => s.GetProperty("module").GetString() == "reading");
+
+        Assert.Equal("raw", reading.GetProperty("scoreLabel").GetString());
+        Assert.Equal(JsonValueKind.Null, reading.GetProperty("band").ValueKind);
+        Assert.True(reading.GetProperty("maxScore").GetInt32() > 0);
+        Assert.Equal(
+            (decimal)reading.GetProperty("rawScore").GetInt32() / reading.GetProperty("maxScore").GetInt32(),
+            reading.GetProperty("accuracy").GetDecimal());
+
+        var question = reading.GetProperty("questions").EnumerateArray()
+            .First(q => q.GetProperty("questionId").GetString() == questionId);
+        Assert.False(question.GetProperty("isCorrect").GetBoolean());
+        Assert.True(HasRevealedCorrectAnswer(question));
+    }
+
+    [SkippableFact]
+    public async Task Post_submit_results_reveal_correct_answers_pre_submit_does_not()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access) = await SignInAsync();
+        var examId = await FullExamIdAsync(client, access);
+        var started = await StartAsync(client, access, examId, "single", "reading");
+        var sessionId = started.GetProperty("sessionId").GetString()!;
+        var questionId = FirstQuestionId(started);
+
+        Assert.All(
+            started.GetProperty("current").GetProperty("parts").EnumerateArray()
+                .SelectMany(p => p.GetProperty("questions").EnumerateArray()),
+            q => Assert.False(q.TryGetProperty("correctAnswer", out _)));
+
+        var save = Authed(HttpMethod.Put, $"/api/v1/sessions/{sessionId}/answers", access);
+        save.Content = JsonContent.Create(new
+        {
+            module = "reading",
+            changes = new Dictionary<string, string?> { [questionId] = "ZZZZZ_NOT_A_VALID_ANSWER_999" },
+            baseRevision = 0,
+        });
+        (await client.SendAsync(save)).EnsureSuccessStatusCode();
+
+        var submit = Authed(HttpMethod.Post, $"/api/v1/sessions/{sessionId}/submit", access);
+        submit.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        (await client.SendAsync(submit)).EnsureSuccessStatusCode();
+
+        var results = await BodyOf(await client.SendAsync(
+            Authed(HttpMethod.Get, $"/api/v1/sessions/{sessionId}/results", access)));
+        var reviewed = results.GetProperty("sections").EnumerateArray()
+            .Single(s => s.GetProperty("module").GetString() == "reading")
+            .GetProperty("questions").EnumerateArray()
+            .First(q => q.GetProperty("questionId").GetString() == questionId);
+
+        Assert.True(HasRevealedCorrectAnswer(reviewed));
+        Assert.Equal("band", results.GetProperty("sections")[0].GetProperty("scoreLabel").GetString());
+    }
+
+    private static bool HasRevealedCorrectAnswer(JsonElement question)
+    {
+        if (question.TryGetProperty("correctAnswer", out var answer)
+            && !string.IsNullOrWhiteSpace(answer.GetString()))
+            return true;
+
+        return question.TryGetProperty("slots", out var slots)
+            && slots.EnumerateArray().Any(slot =>
+                slot.TryGetProperty("correctAnswer", out var slotAnswer)
+                && !string.IsNullOrWhiteSpace(slotAnswer.GetString()));
+    }
 
     /// <summary>Walks a Full Test forward until the named module is the open one.</summary>
     private async Task<JsonElement> AdvanceToAsync(
@@ -872,6 +1298,102 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
         Assert.Equal("ANSWER_TOO_LONG", errors[0].GetProperty("code").GetString());
     }
 
+    /// <summary>
+    /// Autosave keyed by <c>responseSlotId</c> lands in storage, and per-slot
+    /// Lamport tokens are independent — a stale write to one slot does not block
+    /// a newer write to its sibling.
+    /// </summary>
+    [SkippableFact]
+    public async Task Autosave_with_direct_slot_ids_honours_per_slot_sequences()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access) = await SignInAsync();
+        var examId = await FullExamIdAsync(client, access);
+
+        var started = await StartAsync(client, access, examId, "full");
+        var sessionId = started.GetProperty("sessionId").GetString()!;
+
+        var advanced = await AdvanceAsync(client, access, sessionId, Guid.NewGuid().ToString("n"));
+        advanced.EnsureSuccessStatusCode();
+        var listening = await BodyOf(advanced);
+        Assert.Equal("listening", ModuleOf(listening));
+
+        var listeningQuestions = listening
+            .GetProperty("current").GetProperty("parts").EnumerateArray()
+            .SelectMany(p => p.GetProperty("questions").EnumerateArray())
+            .ToArray();
+        var slotPairs = listeningQuestions
+            .SelectMany(q => q.GetProperty("slots").EnumerateArray()
+                .Select(s => (QuestionId: q.GetProperty("id").GetString()!, SlotId: s.GetProperty("id").GetString()!)))
+            .Take(2)
+            .ToArray();
+        Assert.Equal(2, slotPairs.Length);
+
+        var slots = slotPairs.Select(p => p.SlotId).ToArray();
+        var questionIds = slotPairs.Select(p => p.QuestionId).Distinct().ToArray();
+
+        var first = await SaveAnswersAsync(
+            client, access, sessionId, "listening",
+            new Dictionary<string, string?> { [slots[0]] = "A" },
+            baseRevision: 0,
+            sequences: new Dictionary<string, long> { [slots[0]] = 1 });
+        first.EnsureSuccessStatusCode();
+
+        var second = await SaveAnswersAsync(
+            client, access, sessionId, "listening",
+            new Dictionary<string, string?>
+            {
+                [slots[0]] = "stale",
+                [slots[1]] = "C",
+            },
+            baseRevision: 0,
+            sequences: new Dictionary<string, long>
+            {
+                [slots[0]] = 1,
+                [slots[1]] = 2,
+            });
+        second.EnsureSuccessStatusCode();
+
+        var body = await BodyOf(second);
+        var merged = body.GetProperty("answers");
+        foreach (var questionId in questionIds)
+            Assert.True(merged.TryGetProperty(questionId, out _));
+
+        var seqs = body.GetProperty("sequences");
+        Assert.Equal(1, seqs.GetProperty(slots[0]).GetInt64());
+        Assert.Equal(2, seqs.GetProperty(slots[1]).GetInt64());
+
+        var reloaded = await GetSessionAsync(client, access, sessionId);
+        var currentSeqs = reloaded.GetProperty("current").GetProperty("answerSequences");
+        Assert.Equal(1, currentSeqs.GetProperty(slots[0]).GetInt64());
+        Assert.Equal(2, currentSeqs.GetProperty(slots[1]).GetInt64());
+    }
+
+    /// <summary>
+    /// A slot id this paper does not contain is refused, not stored.
+    /// </summary>
+    [SkippableFact]
+    public async Task An_autosave_naming_an_unknown_slot_is_refused()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access) = await SignInAsync();
+        var examId = await FullExamIdAsync(client, access);
+
+        var started = await StartAsync(client, access, examId, "full");
+        var sessionId = started.GetProperty("sessionId").GetString()!;
+
+        var refused = await SaveAnswersAsync(
+            client, access, sessionId, "reading",
+            new Dictionary<string, string?> { ["no-such-slot"] = "anything" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+        Assert.Equal("VALIDATION_FAILED", await CodeOf(refused));
+    }
+
 
     /// <summary>
     /// <b>An answer accepted after its section was marked is data loss the
@@ -1173,6 +1695,101 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
 
         app.Clock.Reset();
     }
+
+    // ── 7 · FS7 Mock state machine ───────────────────────────────────────
+
+    /// <summary>
+    /// Full Test sessions carry the version's sitting order so the client never
+    /// hard-codes module sequence. → FS7.1, FS7.5
+    /// </summary>
+    [SkippableFact]
+    public async Task Full_mock_session_carries_package_module_sequence()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access) = await SignInAsync();
+        var examId = await FullExamIdAsync(client, access);
+
+        var started = await StartAsync(client, access, examId, "full");
+        var sequence = started.GetProperty("moduleSequence").EnumerateArray()
+            .Select(m => m.GetString()!).ToArray();
+
+        Assert.Equal(["reading", "listening", "writing", "speaking"], sequence);
+        Assert.Equal("reading", ModuleOf(started));
+    }
+
+    /// <summary>
+    /// <b>A production-default no-voice run ends honestly.</b> Reading and
+    /// Listening bands appear; Writing and Speaking stay pending; overall is
+    /// absent — not a partial mean. → FS7.4
+    /// </summary>
+    [SkippableFact]
+    public async Task Full_mock_through_four_skills_ends_with_speaking_and_overall_pending()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access, sessionId, view) = await SittingOnSpeakingAsync();
+
+        foreach (var question in view.GetProperty("current").GetProperty("parts").EnumerateArray()
+            .SelectMany(p => p.GetProperty("questions").EnumerateArray()))
+        {
+            var upload = await UploadRecordingAsync(
+                client, access, sessionId, question.GetProperty("id").GetString()!);
+            upload.EnsureSuccessStatusCode();
+        }
+
+        var completed = await AdvanceAsync(client, access, sessionId, Guid.NewGuid().ToString("n"));
+        completed.EnsureSuccessStatusCode();
+        Assert.Equal("submitted", (await BodyOf(completed)).GetProperty("status").GetString());
+
+        var resultsResponse = await client.SendAsync(
+            Authed(HttpMethod.Get, $"/api/v1/sessions/{sessionId}/results", access));
+        resultsResponse.EnsureSuccessStatusCode();
+        var results = await BodyOf(resultsResponse);
+
+        var marked = results.GetProperty("sections").EnumerateArray()
+            .Select(s => s.GetProperty("module").GetString()!).Order().ToArray();
+        Assert.Equal(["listening", "reading"], marked);
+
+        Assert.Equal(JsonValueKind.Null, results.GetProperty("overallBand").ValueKind);
+        Assert.Empty(results.GetProperty("markings").EnumerateArray());
+
+        // Speaking has no band and no fake overall — honest pending state.
+        Assert.DoesNotContain(
+            results.GetProperty("sections").EnumerateArray(),
+            s => s.GetProperty("module").GetString() == "speaking");
+        Assert.DoesNotContain(
+            results.GetProperty("sections").EnumerateArray(),
+            s => s.GetProperty("module").GetString() == "writing");
+    }
+
+    /// <summary>
+    /// Reload during a Full Test opens the same skill the server had open.
+    /// → FS7.5
+    /// </summary>
+    [SkippableFact]
+    public async Task Reload_during_full_mock_returns_current_skill_and_sequence()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access) = await SignInAsync();
+        var examId = await FullExamIdAsync(client, access);
+
+        var started = await StartAsync(client, access, examId, "full");
+        var sessionId = started.GetProperty("sessionId").GetString()!;
+
+        var advanced = await AdvanceAsync(client, access, sessionId, Guid.NewGuid().ToString("n"));
+        advanced.EnsureSuccessStatusCode();
+
+        var reloaded = await GetSessionAsync(client, access, sessionId);
+        Assert.Equal("listening", ModuleOf(reloaded));
+        Assert.Equal(["reading"], reloaded.GetProperty("completedModules").EnumerateArray()
+            .Select(m => m.GetString()!).ToArray());
+        Assert.Equal(4, reloaded.GetProperty("moduleSequence").GetArrayLength());
+    }
 }
 
 /// <summary>
@@ -1216,6 +1833,12 @@ public class ExamAppFactory : WebApplicationFactory<Program>
     private readonly string _database = $"vni_ielts_exam_test_{Guid.NewGuid():n}";
 
     public MovableClock Clock { get; } = new();
+
+    /// <summary>
+    /// Access token shared across tests on this factory. See
+    /// <see cref="ExamRunContractTests.SignInAsync"/>.
+    /// </summary>
+    public string? SharedAccessToken { get; set; }
 
     public static bool MongoAvailable => SsoAppFactory.MongoAvailable;
 

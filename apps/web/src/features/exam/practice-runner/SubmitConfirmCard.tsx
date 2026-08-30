@@ -122,7 +122,7 @@ export function SubmitConfirmCard({
         </p>
 
         {total > 0 && (
-          <div className="prun-card-warn">
+          <div className="prun-card-warn" role="status">
             <p>{t('practice.confirmUnanswered', { count: total })}</p>
             <ul>
               {missing.map((row) => (

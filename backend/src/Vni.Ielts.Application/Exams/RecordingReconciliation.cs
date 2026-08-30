@@ -37,8 +37,17 @@ namespace Vni.Ielts.Application.Exams;
 public sealed class RecordingReconciliation(
     IRecordingStore recordings,
     IAnswerSheetStore answers,
+    AbortStaleSpeakingUploads? abortStale,
     IClock clock)
 {
+    public RecordingReconciliation(
+        IRecordingStore recordings,
+        IAnswerSheetStore answers,
+        IClock clock)
+        : this(recordings, answers, null, clock)
+    {
+    }
+
     /// <param name="minimumAge">
     /// How long a recording must have existed before it may be considered
     /// orphaned. → the age bound above.
@@ -51,6 +60,12 @@ public sealed class RecordingReconciliation(
     public async Task<ReconciliationReport> SweepAsync(
         TimeSpan minimumAge, int limit, CancellationToken ct)
     {
+        // Pending inits whose PUT window elapsed — before the orphan sweep so
+        // a abandoned row is not later mistaken for a Linked orphan.
+        StaleUploadAbortReport? stale = null;
+        if (abortStale is not null)
+            stale = await abortStale.HandleAsync(limit, ct);
+
         var cutoff = clock.UtcNow - minimumAge;
         var candidates = await recordings.ListOlderThanAsync(cutoff, limit, ct);
 
@@ -102,7 +117,9 @@ public sealed class RecordingReconciliation(
             }
         }
 
-        return new ReconciliationReport(examined, orphaned, removed, failed);
+        return new ReconciliationReport(
+            examined, orphaned, removed, failed,
+            stale?.Abandoned ?? 0, stale?.ObjectsRemoved ?? 0);
     }
 }
 
@@ -119,4 +136,10 @@ public sealed class RecordingReconciliation(
 /// steady trickle is the ordinary consequence of refused uploads; a spike means
 /// something is writing audio that never reaches a sheet.
 /// </param>
-public sealed record ReconciliationReport(int Examined, int Orphaned, int Removed, int Failed);
+public sealed record ReconciliationReport(
+    int Examined,
+    int Orphaned,
+    int Removed,
+    int Failed,
+    int StaleUploadsAbandoned = 0,
+    int StaleObjectsRemoved = 0);

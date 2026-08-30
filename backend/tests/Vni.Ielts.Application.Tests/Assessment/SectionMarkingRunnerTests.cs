@@ -198,7 +198,7 @@ public sealed class SectionMarkingRunnerTests
             .RunAsync(Version(), ExamModule.Speaking, Session, SpeakingSheet(), default);
 
         var only = Assert.Single(outcomes);
-        Assert.Equal(MarkingAvailability.AwaitingTranscript, only.Availability);
+        Assert.Equal(MarkingAvailability.AwaitingVoiceProvider, only.Availability);
         Assert.Empty(evaluator.Requests);
     }
 
@@ -208,7 +208,7 @@ public sealed class SectionMarkingRunnerTests
         // <b>The bug this test exists for.</b> Speaking could not report
         // "nothing submitted" at all: the runner went straight to the
         // transcript source, got null — which is all it can return until an
-        // ASR is chosen — and reported AwaitingTranscript. So a learner who
+        // ASR is chosen — and reported AwaitingVoiceProvider. So a learner who
         // said nothing and a platform with no speech-to-text produced the same
         // line on the results screen, and the one that was the learner's own
         // doing read as the platform's fault.

@@ -90,8 +90,13 @@ export const SKILLS: Record<ExamModule, SkillIdentity> = {
   },
 };
 
-/** Reading → Listening → Writing → Speaking. The Full Test order (`E-12`). */
+/** Default display order (`E-12`). Prefer `session.moduleSequence` / `exam.moduleSequence` at runtime. */
 export const SKILL_ORDER: ExamModule[] = ['reading', 'listening', 'writing', 'speaking'];
+
+/** Resolves sitting order from the server payload, falling back to `E-12`. */
+export function resolveModuleSequence(sequence: ExamModule[] | undefined): ExamModule[] {
+  return sequence?.length ? sequence : SKILL_ORDER;
+}
 
 /** `60 phút`, `1 giờ 30 phút`. Rounds down — a duration is a budget, not an estimate. */
 export function formatDuration(seconds: number): string {

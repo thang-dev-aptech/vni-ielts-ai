@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useI18n } from '../../../i18n/index.js';
-import { formatElapsed } from '../examApi.js';
+import { formatElapsed, type ExamModule } from '../examApi.js';
+import { SKILLS } from '../skills.js';
 
 /**
  * How a control that talks to the server may be drawn.
@@ -33,6 +34,8 @@ export type ControlState = 'idle' | 'pending' | 'failed' | 'offline';
  */
 export function PracticeHeader({
   examTitle,
+  module,
+  partNumber,
   elapsed,
   running,
   targetSeconds,
@@ -40,8 +43,11 @@ export function PracticeHeader({
   target,
   onToggleRun,
   onSetTarget,
+  onExit,
 }: {
   examTitle: string | null;
+  module: ExamModule | null;
+  partNumber: number | null;
   /** Null while the sitting loads. Drawn as an em dash, never as zero. */
   elapsed: number | null;
   running: boolean;
@@ -51,11 +57,13 @@ export function PracticeHeader({
   onToggleRun: () => void;
   /** Seconds, or null to clear. The server owns the range check. */
   onSetTarget: (seconds: number | null) => void;
+  onExit: () => void;
 }) {
   const { t } = useI18n();
 
   const unknown = elapsed === null;
   const past = targetSeconds !== null && elapsed !== null && elapsed >= targetSeconds;
+  const skill = module === null ? null : SKILLS[module];
 
   return (
     <header className="prun-bar">
@@ -65,16 +73,34 @@ export function PracticeHeader({
         <span className="prun-mode">{t('practice.modeBadge')}</span>
       </div>
 
-      {/*
-        The paper's name. `flex: 1 1 auto` with `min-width: 0` so the ellipsis
-        engages instead of the title running past its parent and being painted
-        over by the clock — the failure `.exam-bar-names` documents.
-      */}
-      <p className="prun-title" title={examTitle ?? undefined}>
-        {examTitle ?? '—'}
-      </p>
+      <div className="prun-context">
+        {skill !== null && (
+          <span
+            className="prun-skill-icon"
+            style={{ color: skill.ink, background: skill.tint }}
+            aria-hidden="true"
+          >
+            <skill.icon size={18} />
+          </span>
+        )}
+        <span className="prun-context-names">
+          <strong>{skill?.name ?? '—'}</strong>
+          <span className="prun-context-sub">
+            <span className="prun-part">
+              {partNumber === null ? '—' : t('exam.part', { number: partNumber })}
+            </span>
+            {/* The title is the only context allowed to ellipsise on a phone. */}
+            <span className="prun-title" title={examTitle ?? undefined}>
+              {examTitle ?? '—'}
+            </span>
+          </span>
+        </span>
+      </div>
 
       <div className="prun-controls">
+        <button type="button" className="prun-exit" onClick={onExit}>
+          {t('practice.leave')}
+        </button>
         {/*
           Play / pause. The label says which way it will go, and the state is
           also stated in words next to the clock — a glyph swap alone is a shape
@@ -252,7 +278,9 @@ function TargetControl({
         className="prun-target-open"
         disabled={disabled || state === 'pending'}
         aria-expanded={open}
-        aria-controls={panelId}
+        /* `aria-controls` only while the panel exists — a closed disclosure
+           that names a missing id is a broken relationship, not a hint. */
+        {...(open ? { 'aria-controls': panelId } : {})}
         onClick={() => setOpen((was) => !was)}
       >
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">

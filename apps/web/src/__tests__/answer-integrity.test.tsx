@@ -95,18 +95,20 @@ const openSession = () => ({
             order: 1,
             type: 'short-answer',
             prompt: 'Câu hỏi 1',
-            options: [],
+            options: [] as { key: string; text: string }[],
             maxWords: 2,
             group: null,
+            slots: [{ id: 'r-1', number: 1 }],
           },
           {
             id: 'r-2',
             order: 2,
             type: 'true-false-notgiven',
             prompt: 'Câu hỏi 2',
-            options: [],
+            options: [] as { key: string; text: string }[],
             maxWords: null,
             group: null,
+            slots: [{ id: 'r-2', number: 2 }],
           },
         ],
       },
@@ -177,6 +179,8 @@ function open(path: string) {
 }
 
 beforeEach(() => {
+  globalThis.indexedDB = new IDBFactory();
+  resetJournalConnection();
   localStorage.clear();
   localStorage.setItem('vni.locale', 'vi');
 });
@@ -419,7 +423,7 @@ it('writes a keystroke to the journal before the autosave has fired', async () =
   });
 
   expect(held[0]!.value).toBe('cartography');
-  expect(held[0]!.questionId).toBe('r-1');
+  expect(held[0]!.responseSlotId).toBe('r-1');
 
   page.unmount();
 }, 30_000);
@@ -438,7 +442,7 @@ it('brings back an answer the tab was carrying when it went away', async () => {
   await remember({
     sessionId: 'sit-1',
     module: 'reading',
-    questionId: 'r-1',
+    responseSlotId: 'r-1',
     value: 'cartography',
     sequence: 0,
     savedAt: 1,
@@ -500,7 +504,7 @@ it('does not restore work the server has already recorded', async () => {
   await remember({
     sessionId: 'sit-1',
     module: 'reading',
-    questionId: 'r-1',
+    responseSlotId: 'r-1',
     value: 'the older answer',
     sequence: 2,
     savedAt: 1,
@@ -534,4 +538,147 @@ it('does not restore work the server has already recorded', async () => {
   expect((field as HTMLInputElement).value).toBe('the newer answer');
 
   page.unmount();
+}, 30_000);
+
+/**
+ * Two slots on one question carry independent ordering tokens on the wire.
+ *
+ * <b>Negative proof for FS4.7.</b> When the storage boundary moved from
+ * question id to response slot id, a single token shared across slots would
+ * let a late save for slot two revert slot one. Independent tokens are the
+ * guard.
+ */
+it('issues independent sequences for two slots on one question', async () => {
+  const sent: { changes: Record<string, string | null>; sequences: Record<string, number> }[] = [];
+
+  const multiSession = () => {
+    const view = openSession();
+    view.current.parts[0]!.questions.push({
+      id: 'r-multi',
+      order: 3,
+      type: 'multiple-select',
+      prompt: 'Choose TWO answers',
+      options: [
+        { key: 'A', text: 'Alpha' },
+        { key: 'B', text: 'Beta' },
+        { key: 'C', text: 'Gamma' },
+        { key: 'D', text: 'Delta' },
+      ],
+      maxWords: null,
+      group: null,
+      slots: [
+        { id: 'slot-17', number: 17 },
+        { id: 'slot-18', number: 18 },
+      ],
+    });
+    return view;
+  };
+
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? 'GET';
+
+      if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me')) return json(me);
+      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
+      if (url.includes('/auth/refresh')) return json(refreshed());
+      if (url.endsWith('/api/v1/exams')) return json({ exams: [exam] });
+
+      if (url.endsWith('/answers') && method === 'PUT') {
+        const body = JSON.parse(String(init?.body));
+        sent.push({ changes: body.changes, sequences: body.sequences });
+        return json({ revision: sent.length });
+      }
+
+      if (url.includes('/api/v1/sessions/')) return json(multiSession());
+      return json({ code: 'NOT_FOUND' }, 404);
+    }),
+  );
+
+  open('/students/session/sit-1');
+
+  await userEvent.click(await screen.findByRole('checkbox', { name: /Alpha/ }));
+  await settle(() => sent.some((entry) => 'slot-17' in entry.changes), 20_000);
+
+  const firstSlotSave = sent.find((entry) => 'slot-17' in entry.changes)!;
+  expect(Object.keys(firstSlotSave.changes)).toEqual(['slot-17']);
+  expect(Object.keys(firstSlotSave.sequences)).toEqual(['slot-17']);
+  const firstToken = firstSlotSave.sequences['slot-17']!;
+
+  await userEvent.click(screen.getByRole('checkbox', { name: /Delta/ }));
+  await settle(
+    () => sent.filter((entry) => 'slot-18' in entry.changes).length > 0,
+    20_000,
+  );
+
+  const secondSlotSave = sent.find((entry) => 'slot-18' in entry.changes)!;
+  expect(Object.keys(secondSlotSave.changes)).toEqual(['slot-18']);
+  expect(secondSlotSave.sequences['slot-18']!).toBeGreaterThan(firstToken);
+  expect(secondSlotSave.sequences['slot-17']).toBeUndefined();
+}, 45_000);
+
+/**
+ * Journal restore puts each slot back independently.
+ */
+it('restores journal entries per response slot', async () => {
+  globalThis.indexedDB = new IDBFactory();
+  resetJournalConnection();
+
+  await remember({
+    sessionId: 'sit-1',
+    module: 'reading',
+    responseSlotId: 'slot-17',
+    value: 'A',
+    sequence: 1,
+    savedAt: 1,
+  });
+  await remember({
+    sessionId: 'sit-1',
+    module: 'reading',
+    responseSlotId: 'slot-18',
+    value: 'D',
+    sequence: 2,
+    savedAt: 2,
+  });
+
+  const multiSession = () => {
+    const view = openSession();
+    view.current.parts[0]!.questions.push({
+      id: 'r-multi',
+      order: 3,
+      type: 'multiple-select',
+      prompt: 'Choose TWO answers',
+      options: [
+        { key: 'A', text: 'Alpha' },
+        { key: 'B', text: 'Beta' },
+        { key: 'C', text: 'Gamma' },
+        { key: 'D', text: 'Delta' },
+      ],
+      maxWords: null,
+      group: null,
+      slots: [
+        { id: 'slot-17', number: 17 },
+        { id: 'slot-18', number: 18 },
+      ],
+    });
+    return view;
+  };
+
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/api/v1/sessions/')) return json(multiSession());
+      return stubbed(url);
+    }),
+  );
+
+  open('/students/session/sit-1');
+
+  await waitFor(() => {
+    expect(screen.getByRole('checkbox', { name: /Alpha/ })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /Delta/ })).toBeChecked();
+  });
 }, 30_000);

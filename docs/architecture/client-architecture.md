@@ -93,9 +93,11 @@ Sources: [Apple Developer Forums — WKWebView microphone muted in background](h
 
 ### Mitigation — mandatory
 
-**Speaking capture must be implemented as a native Capacitor plugin. The WebView `MediaRecorder` API must never be used for exam recording.** ([ADR-0006](../decisions/0006-speaking-audio-capture-native-plugin.md)) Nothing is built yet — this is the accepted decision, not a description of running code.
+**Speaking capture must be implemented as a native Capacitor plugin. The WebView `MediaRecorder` API must never be used for exam recording on mobile.** ([ADR-0006](../decisions/0006-speaking-audio-capture-native-plugin.md))
 
-Verified capabilities available in existing plugins:
+**Seam status (FS8.5):** the TypeScript port and web adapter live in [`plugins/speaking-audio`](../../plugins/speaking-audio/) (`@vni/speaking-audio`). The learner UI talks only to `SpeakingAudioCapture`. Desktop/browser uses `WebSpeakingAudioCapture` (`MediaRecorder`). A Capacitor native shell receives `DeferredNativeSpeakingAudioCapture`, which fails closed with `nativeDeferred` — it does **not** fall back to WebView `MediaRecorder`. The real Android/iOS plugin is **deferred** until a mobile build target exists; iOS device validation remains `[NEEDS VALIDATION]` (Xcode not installed).
+
+Verified capabilities available in existing third-party plugins (evaluation candidates, not yet selected):
 
 | Capability | Source |
 |---|---|

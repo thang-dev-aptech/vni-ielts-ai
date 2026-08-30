@@ -8,6 +8,7 @@ using Vni.Ielts.Infrastructure.Configuration;
 using Vni.Ielts.Infrastructure.Observability;
 using Vni.Ielts.Application.Dictation;
 using Vni.Ielts.Application.Exams;
+using Vni.Ielts.Application.Importing;
 
 namespace Vni.Ielts.Infrastructure.Storage;
 
@@ -290,6 +291,12 @@ internal sealed class S3ObjectStorageHealthCheck(IAmazonS3 client, ObjectStorage
             new HeadBucketRequest { BucketName = options.ExamAssetsBucket }, ct);
         await client.HeadBucketAsync(
             new HeadBucketRequest { BucketName = options.DictationBucket }, ct);
+
+        if (!string.IsNullOrWhiteSpace(options.SpeakingRecordingsBucket))
+        {
+            await client.HeadBucketAsync(
+                new HeadBucketRequest { BucketName = options.SpeakingRecordingsBucket }, ct);
+        }
     }
 }
 
@@ -309,6 +316,35 @@ internal sealed class S3DictationAssetStore(S3ObjectStore store, ObjectStorageOp
         await store.OpenAsync(options.DictationBucket, reference, ct) is { } found
             ? new DictationAsset(found.Content, found.ContentType, found.Length, found.ETag)
             : null;
+}
+
+/// <summary>
+/// Private staging for media discovered during import. A staged object is not an exam asset and
+/// therefore cannot be served by the learner-facing asset reader until review maps it explicitly.
+/// </summary>
+internal sealed class S3PrivateImportAssetStore(IAmazonS3 client, ObjectStorageOptions options)
+    : IPrivateImportAssetStore
+{
+    public async Task<string> PutPrivateAsync(
+        string key, Stream content, string contentType, string sha256, CancellationToken ct)
+    {
+        if (!key.StartsWith("imports/", StringComparison.Ordinal)
+            || key.Split('/').Any(segment => segment is "" or "." or ".."))
+            throw new ArgumentException("Import asset key must stay below imports/.", nameof(key));
+
+        var request = new PutObjectRequest
+        {
+            BucketName = options.ExamAssetsBucket,
+            Key = key,
+            InputStream = content,
+            ContentType = contentType,
+            CannedACL = S3CannedACL.Private,
+            AutoCloseStream = false,
+        };
+        request.Metadata["sha256"] = sha256;
+        await client.PutObjectAsync(request, ct);
+        return key;
+    }
 }
 
 /// <summary>
@@ -346,12 +382,26 @@ internal static class ObjectStorageRegistration
                 ServiceURL = options.ServiceUrl,
                 ForcePathStyle = options.ForcePathStyle,
                 AuthenticationRegion = options.Region,
+                UseHttp = Uri.TryCreate(options.ServiceUrl, UriKind.Absolute, out var endpoint)
+                    && endpoint.Scheme == Uri.UriSchemeHttp,
             }));
 
         services.AddSingleton<S3ObjectStore>();
         services.AddSingleton<IExamAssetStore, S3ExamAssetStore>();
         services.AddSingleton<IDictationAssetStore, S3DictationAssetStore>();
+        services.AddSingleton<IPrivateImportAssetStore, S3PrivateImportAssetStore>();
         services.AddSingleton<IObjectStorageHealthCheck, S3ObjectStorageHealthCheck>();
+
+        if (!string.IsNullOrWhiteSpace(options.SpeakingRecordingsBucket))
+        {
+            services.AddSingleton<S3SpeakingRecordingBlobStore>();
+            services.AddSingleton<ISpeakingRecordingBlobStore>(sp =>
+                sp.GetRequiredService<S3SpeakingRecordingBlobStore>());
+            services.AddSingleton(new ObjectStorageSpeakingOptions
+            {
+                RetentionDays = options.SpeakingRecordingRetentionDays,
+            });
+        }
 
         return true;
     }

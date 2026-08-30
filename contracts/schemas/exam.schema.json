@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vni-ielts.example/schemas/exam/1.0.json",
-  "title": "VNI IELTS exam definition, package format v1",
+  "title": "VNI IELTS exam definition, package format v2 (v1 compatible)",
   "description": "The single definition of a valid exam. Three producers validate against this file and no other: the development seeder, the ZIP importer, and in-place CMS authoring. Two definitions of validity would drift, and the drift surfaces as a learner mid-attempt hitting a question the renderer cannot draw. See ADR-0008 and ADR-0012.",
   "type": "object",
   "additionalProperties": false,
@@ -11,7 +11,22 @@
     "formatVersion": {
       "description": "Minor versions are additive; unknown optional fields are ignored rather than rejected, which is what lets content authored against a newer minor import into an older backend. A major version outside the supported range is rejected explicitly.",
       "type": "string",
-      "pattern": "^1\\.[0-9]+$"
+      "pattern": "^(?:1\\.[0-9]+|2\\.[0-9]+)$"
+    },
+    "formatProfile": {
+      "description": "Named structural profile. vni-practice is package-defined; IELTS profiles carry the standard part-count invariants.",
+      "type": "string",
+      "enum": ["ielts-academic-full", "ielts-general-full", "vni-practice"]
+    },
+    "scoringProfileRef": {
+      "description": "Stable reference to a shared scoring profile. Inline scoringProfile remains supported for migration.",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$"
+    },
+    "contentSourceRef": { "$ref": "#/$defs/contentSourceRef" },
+    "assetManifest": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/manifestAsset" }
     },
     "title": { "type": "string", "minLength": 1, "maxLength": 200 },
     "variant": {
@@ -33,8 +48,36 @@
     }
   },
 
+  "allOf": [
+    {
+      "if": { "properties": { "formatVersion": { "pattern": "^2\\." } } },
+      "then": { "required": ["formatProfile", "scoringProfileRef", "contentSourceRef"] }
+    }
+  ],
+
   "$defs": {
     "module": { "enum": ["reading", "listening", "writing", "speaking"] },
+
+    "contentSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "sourceHash"],
+      "properties": {
+        "sourceId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+        "sourceHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+
+    "manifestAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/assetRef" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "sizeBytes": { "type": "integer", "minimum": 1 }
+      }
+    },
 
     "band": {
       "description": "Bands are whole and half steps only. Declared as a closed enum rather than a numeric range, both because a range permits 6.3 and 7.77 which are not band scores, and because structured-output implementations commonly honour enum while ignoring minimum/maximum.",
@@ -250,7 +293,29 @@
       "additionalProperties": false,
       "properties": {
         "explanation": { "$ref": "#/$defs/explanationPolicy" },
-        "practiceHistory": { "$ref": "#/$defs/practiceHistoryPolicy" }
+        "practiceHistory": { "$ref": "#/$defs/practiceHistoryPolicy" },
+        "listeningPlayback": { "$ref": "#/$defs/listeningPlaybackPolicy" }
+      }
+    },
+
+    "listeningPlaybackPolicy": {
+      "description": "Versioned Listening playback behaviour. The server selects practice or mock from the server-owned run timing; the browser must not infer it from a route. Omission remains v1-compatible and resolves conservatively to one pass with no seek.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["practice", "mock"],
+      "properties": {
+        "practice": { "$ref": "#/$defs/audioPlaybackRule" },
+        "mock": { "$ref": "#/$defs/audioPlaybackRule" }
+      }
+    },
+
+    "audioPlaybackRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["playOnce", "allowSeek"],
+      "properties": {
+        "playOnce": { "type": "boolean" },
+        "allowSeek": { "type": "boolean" }
       }
     },
 
@@ -262,7 +327,7 @@
       "properties": {
         "mode": {
           "description": "none: no explanation is offered. ai-generated: an LLM may be asked for one, subject to the content rights registry and the B-2 cross-border gate. An authored member - explanations written into the package - is deliberately absent until FS1.1 adds the evidence reference it would point at; declaring a mode with nothing behind it produces a blank review screen rather than a refusal.",
-          "enum": ["none", "ai-generated"]
+          "enum": ["none", "ai-generated", "authored"]
         }
       }
     },
@@ -332,6 +397,7 @@
           }
         },
         "constraints": { "$ref": "#/$defs/constraints" },
+        "timing": { "$ref": "#/$defs/partTiming" },
         "rubricRef": { "type": "string" },
         "questions": { "type": "array", "items": { "$ref": "#/$defs/question" } }
       }
@@ -355,6 +421,17 @@
           "maximum": 10
         },
         "minWords": { "type": "integer", "minimum": 1, "maximum": 1000 }
+      }
+    },
+
+    "partTiming": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["durationSeconds"],
+      "properties": {
+        "durationSeconds": { "type": "integer", "minimum": 1, "maximum": 21600 },
+        "prepSeconds": { "type": "integer", "minimum": 0, "maximum": 300 },
+        "responseSeconds": { "type": "integer", "minimum": 1, "maximum": 1800 }
       }
     },
 
@@ -438,7 +515,14 @@
         },
         "group": { "$ref": "#/$defs/questionGroup" },
         "constraints": { "$ref": "#/$defs/constraints" },
-        "answerKey": { "$ref": "#/$defs/answerKey" }
+        "answerKey": { "$ref": "#/$defs/answerKey" },
+        "slots": {
+          "description": "Answer-sheet positions occupied by this question. Omitted on v1 and deterministically synthesized during migration.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/responseSlot" }
+        },
+        "explanation": { "$ref": "#/$defs/questionExplanation" }
       },
 
       "allOf": [
@@ -460,7 +544,9 @@
               }
             }
           },
-          "then": { "required": ["answerKey"] }
+          "then": {
+            "oneOf": [{ "required": ["answerKey"] }, { "required": ["slots"] }]
+          }
         },
         {
           "description": "AI-evaluated types must NOT carry one. An answer key here would imply a deterministic path that does not exist.",
@@ -507,6 +593,53 @@
           }
         },
         "matchingOverrides": { "$ref": "#/$defs/answerMatching" }
+      }
+    },
+
+    "responseSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "number"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9\\-]{0,127}$"
+        },
+        "number": { "type": "integer", "minimum": 1 },
+        "answerKey": { "$ref": "#/$defs/answerKey" }
+      }
+    },
+
+    "questionExplanation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shortReason", "evidence"],
+      "properties": {
+        "correctAnswer": { "type": "string", "maxLength": 1000 },
+        "shortReason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              { "type": "string", "minLength": 1, "maxLength": 1000 },
+              { "$ref": "#/$defs/evidenceReference" }
+            ]
+          }
+        },
+        "commonMistake": { "type": "string", "maxLength": 1000 }
+      }
+    },
+
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "quote"],
+      "properties": {
+        "source": { "enum": ["passage", "transcript", "prompt"] },
+        "quote": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "start": { "type": "integer", "minimum": 0 },
+        "end": { "type": "integer", "minimum": 1 }
       }
     }
   }

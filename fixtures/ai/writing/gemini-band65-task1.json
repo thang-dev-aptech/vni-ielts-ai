@@ -1,0 +1,26 @@
+{
+  "criteria": {
+    "taskResponse": {
+      "band": 6.5,
+      "feedback": "Summarises the main trends and makes relevant comparisons between coffee and tea.",
+      "evidence": ["coffee consumption rose steadily while tea consumption declined", "coffee became more popular over the decade"]
+    },
+    "coherenceAndCohesion": {
+      "band": 6.5,
+      "feedback": "Presents information logically with clear overall progression.",
+      "evidence": ["Overall, coffee consumption rose steadily", "In summary, coffee became more popular"]
+    },
+    "lexicalResource": {
+      "band": 6.5,
+      "feedback": "Uses sufficient vocabulary to describe trends and comparisons.",
+      "evidence": ["fell sharply after 2015", "continued to climb throughout the period"]
+    },
+    "grammaticalRangeAndAccuracy": {
+      "band": 6.5,
+      "feedback": "Uses a variety of structures with good control and few errors.",
+      "evidence": ["Tea began at a similar level to coffee but fell sharply after 2015"]
+    }
+  },
+  "sectionBand": 6.5,
+  "summary": "A clear Task 1 summary that identifies key trends and compares the two products over time."
+}

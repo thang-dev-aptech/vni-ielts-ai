@@ -185,20 +185,28 @@ dotnet user-secrets init                      # đã init sẵn, chạy lại v�
 open ~/.microsoft/usersecrets/7ef8200d-2eb5-4a26-974f-b9ab754ba109/secrets.json
 ```
 
-File đó là JSON phẳng. Thêm vào (giữ nguyên các dòng SSO nếu đã có):
+Dùng **JSON lồng (nested)** — dễ đọc hơn dạng phẳng `Ai:OpenAi:…`. .NET bind cả hai kiểu như nhau.
+Bản mẫu đầy đủ (AI · Assessment · SSO · ObjectStorage):
+[`secrets.json.example`](../../backend/src/Vni.Ielts.Api/secrets.json.example).
+
+Tối thiểu để test qua reseller (giữ nguyên SSO nếu đã có):
 
 ```json
 {
-  "Ai:OpenAi:BaseUrl": "https://api.vietapi.tech/v1",
-  "Ai:OpenAi:ApiKey": "",
-  "Ai:OpenAi:Model": "gpt-5.5"
+  "Ai": {
+    "AllowCrossBorderTransfer": false,
+    "OpenAi": {
+      "BaseUrl": "https://api.vietapi.tech/v1",
+      "ApiKey": "<khóa của bạn>",
+      "Model": "gpt-5.5",
+      "SyntheticDataOnly": true
+    }
+  }
 }
 ```
 
-Khi có khóa chính thống: **xóa dòng `BaseUrl`** (để trống = gọi thẳng nhà cung cấp), thay `ApiKey`,
-và đặt lại `Model` theo tên OpenAI công bố. Ba dòng, một lần sửa.
-
-Có sẵn bản mẫu để chép: [`secrets.json.example`](../../backend/src/Vni.Ielts.Api/secrets.json.example).
+Khi có khóa chính thống: **xóa / để trống `BaseUrl`** (gọi thẳng nhà cung cấp), thay `ApiKey`,
+và đặt lại `Model` theo tên OpenAI công bố.
 
 > **Vì sao cách này an toàn hơn gõ lệnh:** khóa không đi qua lịch sử shell. `dotnet user-secrets set`
 > ghi nguyên văn khóa vào `~/.zsh_history`.
@@ -238,7 +246,7 @@ Ra dòng `Ai:OpenAi:ApiKey = ...` là xong. **Đừng dán kết quả lệnh n�
 
 ---
 
-## 4 · Mất khóa thì sao
+## 4 · Mất khóa thì sao — và cách xoay khóa
 
 | Lớp | Là gì |
 |---|---|
@@ -248,6 +256,19 @@ Ra dòng `Ai:OpenAi:ApiKey = ...` là xong. **Đừng dán kết quả lệnh n�
 
 Với OpenAI, khóa **chỉ hiện một lần** lúc tạo, giống hệt client secret của Google. Đóng cửa sổ rồi thì
 không lấy lại được — chỉ còn cách tạo khóa mới.
+
+### Quy trình xoay khóa provider (không có secret trong tài liệu này)
+
+1. Tạo khóa mới trên cổng OpenAI / Google AI Studio (hoặc reseller). **Không** dán vào chat.
+2. Ghi khóa mới vào password manager, rồi vào `user-secrets` (dev) hoặc secret store của môi trường
+   (staging/production) dưới `Ai__OpenAi__ApiKey` / `Ai__Gemini__ApiKey`.
+3. Khởi động lại API **và** worker — cả hai đọc cấu hình lúc boot; worker đang giữ lease vẫn hoàn
+   tất job hiện tại rồi mới nhận khóa mới ở vòng claim kế.
+4. Xác nhận bằng một đánh giá synthetic (`SyntheticDataOnly = true`) hoặc recorded fixture — **không**
+   gửi bài học viên thật chỉ để thử khóa.
+5. Thu hồi khóa cũ trên cổng nhà cung cấp. Coi mọi khóa từng dán vào chat / ticket / log là đã lộ.
+6. Xoay song song credential object storage nếu cùng một sự cố lộ secret: →
+   [`../security/object-storage-r2-setup.md` § Key rotation](../security/object-storage-r2-setup.md)
 
 ---
 
@@ -265,17 +286,54 @@ trong review — đúng trọng lượng cho một quyết định của chủ s
 
 ---
 
-## 6 · Có khóa rồi thì làm được gì ngay?
+## 6 · Công tắc tắt AI — hai lớp, không phải một
 
-**Chưa gì cả, và đó không phải lỗi cấu hình.** Hiện tại chưa có adapter nào, và **cũng chưa có port
-nào** — grep toàn bộ Domain và Application không có `IWritingEvaluator`, `ISpeechRecognizer` hay
-`IChat`. Cái đã có là `Domain/Assessment/` (`Rubric`, `CriterionMarking`), tức chỗ **nhận** kết quả
-chấm, chứ chưa có đường đi tới mô hình.
+Hai khóa độc lập. Tắt **một** trong hai là đủ để Writing AI không chạy với bài thật. Reading /
+Listening **không** đi qua mô hình (`A-11`), nên tắt AI không làm mất band R/L.
 
-Việc đầu tiên sau khi có khóa không phải viết adapter mà là **khai port ở Application theo ADR-0005** —
-Domain và Application chỉ được nhìn thấy port, SDK của nhà cung cấp chỉ tồn tại trong Infrastructure.
+| Khóa | Mặc định | Tác dụng khi `false` / tắt |
+|---|---|---|
+| `Assessment:WritingMarking:Enabled` | `false` | Port evaluator không được coi là đã cấu hình — worker để job trong hàng đợi / dead-letter với lý do hiện trên màn kết quả, **không** gọi provider |
+| `Ai:AllowCrossBorderTransfer` | `false` | `AiEgress` từ chối payload học viên thật; `IsConfigured` = false dù `Enabled` đã bật |
 
-Và trước khi bất kỳ tính năng AI nào lên production, `B-2` vẫn phải có kết luận.
+### Tắt khẩn (sự cố provider / chi phí / PDPL)
+
+1. Đặt `Assessment__WritingMarking__Enabled=false` trên API **và** worker (cùng secret store).
+2. Khởi động lại cả hai tiến trình — hoặc đợi rolling deploy. Job đang chạy hết timeout/lease rồi
+   retry; lần claim sau sẽ thấy evaluator unconfigured.
+3. **Không** cần đụng `Ai:AllowCrossBorderTransfer` nếu chỉ muốn dừng chấm — nhưng giữ nó `false`
+   cho tới khi có CTIA (`B-2`) vẫn là đúng mặc định.
+4. Học viên vẫn nộp bài, R/L vẫn có điểm; Writing hiện trạng chờ / failed có lý do, không hiện band
+   bịa.
+
+### Bật lại (chỉ khi đủ điều kiện)
+
+Cần **đồng thời**: `Enabled=true`, `PrimaryProvider` + `Model` + `ApiKey`, rubric
+`Assessment:Writing:Version` + `DescriptorSource`, `AllowCrossBorderTransfer=true` **chỉ khi** đã có
+vị thế PDPL, và `SyntheticDataOnly=false` **chỉ** trên endpoint đã được phép nhận dữ liệu thật.
+Thiếu một cổng → `IsConfigured` vẫn false. → mục 1 · FS0.4 ở trên.
+
+Ngân sách mỗi lần gọi (không phải SLO sản xuất): `TimeoutSeconds` (mặc định 120, kẹp 10…300),
+`MaxAttempts` (mặc định 3), `FallbackProvider` tùy chọn. → [`nfr.md` § FS9.3](nfr.md)
+
+---
+
+## 7 · Có khóa rồi thì làm được gì?
+
+Adapter Writing (OpenAI + Gemini) và `WritingEvaluationRouter` đã có — gated bởi mục 6. Speaking
+ASR / band vẫn thuộc backlog voice (`V1`…`V5`); không có khóa nào bật được Speaking AI khi chưa chọn
+nhà cung cấp speech-to-text.
+
+Việc vận hành hàng ngày:
+
+| Việc | Tài liệu |
+|---|---|
+| Cấu hình R2 / MinIO cho ghi âm | [`../security/object-storage-r2-setup.md`](../security/object-storage-r2-setup.md) |
+| Hàng đợi chấm, retry, dead-letter | [`alerting.md` § Replay / dead-letter](alerting.md) |
+| Gỡ xuất bản đề / rollback nội dung | [`backup-and-restore.md` § Content publish rollback](backup-and-restore.md) |
+| Xóa ghi âm | [`../security/object-storage-r2-setup.md` § Recording deletion](../security/object-storage-r2-setup.md) |
+
+Trước khi bất kỳ tính năng AI nào mang dữ liệu học viên lên production, `B-2` vẫn phải có kết luận.
 
 → [`../ai/provider-comparison.md`](../ai/provider-comparison.md) · [`../decisions/0005-ai-provider-abstraction.md`](../decisions/0005-ai-provider-abstraction.md) · [`../security/privacy-vietnam-pdpl.md`](../security/privacy-vietnam-pdpl.md) · [`../security/ai-security.md`](../security/ai-security.md)
 

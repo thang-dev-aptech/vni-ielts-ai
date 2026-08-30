@@ -84,6 +84,41 @@ mất worker thì hàng đợi kẹt vĩnh viễn mà chẳng ai biết. Khoá b
 
 ---
 
+## Replay / dead-letter (FS9.5)
+
+Hàng đợi chấm Writing (và Speaking khi có evaluator) sống trong Mongo `marking_jobs`, không phải một
+broker bên ngoài. Worker claim bằng lease; thất bại → `RetryAsync` với backoff mũ + jitter; hết
+`MaxAttempts` (worker: **5**) → `FailAsync` — **dead-letter trong database**, lý do hiện trên màn
+kết quả học viên. → [`MarkingOutboxTests.cs`](../../backend/tests/Vni.Ielts.Integration.Tests/MarkingOutboxTests.cs)
+
+### Khi cảnh báo backlog kêu
+
+1. Đọc **cùng lúc** `vni.queue.depth` và `vni.queue.oldest_age`. Depth cao + age thấp = bận; age cao
+   = kẹt.
+2. Kiểm `/health/ready` trên API (Mongo + object storage) và log worker (`vni.queue.jobs` outcome).
+3. Nếu provider down: tắt AI theo
+   [`ai-provider-setup.md` § 6](ai-provider-setup.md) — hàng đợi sẽ dead-letter có lý do thay vì đốt
+   tiền retry vô hạn sau khi hết attempt.
+4. **Không** xóa document `Failed` chỉ để "dọn". Đó là bằng chứng cho học viên và cho audit.
+
+### Replay một job đã Failed (thủ công)
+
+Không có nút CMS "replay" trong Functional Core. Quy trình an toàn:
+
+1. Xác nhận nguyên nhân đã hết (khóa mới, provider khỏe, `Enabled=true`, PDPL cho phép nếu dữ liệu
+   thật).
+2. Chèn **job mới** với cùng `(session, module)` nhưng **rubric version** đúng — operation id mang
+   rubric; enqueue trùng id bị từ chối có chủ đích (`MarkingOutboxTests`).
+3. Hoặc, trên môi trường không mang dữ liệu học viên thật: xóa document Failed của đúng
+   `operationId` rồi để sitting đóng lại enqueue (chỉ khi quy trình sản phẩm cho phép chấm lại).
+4. Theo dõi `vni.queue.job.duration` và validation failure — một replay thành công nhưng schema
+   reject vẫn là dead-letter lần sau.
+
+**Deploy:** drain hàng đợi (không còn `Running` với lease sống) trước khi cắt cấu hình đánh giá —
+một job bắt đầu trước deploy và kết thúc sau có thể ghi band dưới rubric/prompt cũ. → `nfr.md`
+
+---
+
 ## Còn thiếu
 
 | Hạng mục | Vì sao chưa làm |
@@ -91,3 +126,4 @@ mất worker thì hàng đợi kẹt vĩnh viễn mà chẳng ai biết. Khoá b
 | Quy tắc cảnh báo chạy thật (PromQL, OTTL, …) | Cần chọn backend observability — thuộc backlog Production Ready |
 | Định tuyến / lịch trực | Quyết định vận hành, chưa có đội trực |
 | Ngưỡng đã được chủ sản phẩm duyệt | `[BUSINESS DECISION]` — tất cả giá trị trên là mặc định kỹ thuật, chưa phải cam kết |
+| Nút CMS replay dead-letter | Chưa có yêu cầu; replay thủ công ở trên là đủ cho Functional Core |

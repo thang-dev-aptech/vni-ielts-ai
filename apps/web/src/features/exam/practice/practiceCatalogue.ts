@@ -1,5 +1,5 @@
 import type { ExamCatalogueItem, ExamModule } from '../examApi.js';
-import { SKILL_ORDER } from '../skills.js';
+import { SKILL_ORDER, resolveModuleSequence } from '../skills.js';
 
 /**
  * The exam catalogue, turned into the thing the page actually lists.
@@ -140,6 +140,7 @@ export function toFullItems(exams: ExamCatalogueItem[]): {
 
   for (const exam of exams) {
     const modules = exam.modules.map((m) => m.module);
+    const sequence = resolveModuleSequence(exam.moduleSequence);
 
     if (!SKILL_ORDER.every((m) => modules.includes(m))) {
       incomplete += 1;
@@ -153,11 +154,9 @@ export function toFullItems(exams: ExamCatalogueItem[]): {
       variant: exam.variant,
       mode: 'full',
       module: null,
-      // In sitting order, not in whatever order the API returned them. A card
-      // that prints "Writing → Reading → Speaking → Listening" is describing a
-      // session the engine will never run. → `E-12`
-      modules: SKILL_ORDER.filter((m) => modules.includes(m)),
-      parts: SKILL_ORDER.filter((m) => modules.includes(m)).map((m) => ({
+      // In sitting order from the version's sequence profile.
+      modules: sequence.filter((m) => modules.includes(m)),
+      parts: sequence.filter((m) => modules.includes(m)).map((m) => ({
         module: m,
         minutes: Math.round(exam.modules.find((one) => one.module === m)!.durationSeconds / 60),
       })),

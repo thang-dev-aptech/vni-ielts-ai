@@ -65,15 +65,19 @@ public sealed class ExamSession
     private ExamSession(
         ExamSessionId id, UserId userId, ExamVersionId examVersionId, SessionMode mode,
         SessionTiming timing, SessionStatus status, DateTimeOffset startedAt,
-        DateTimeOffset? submittedAt, List<SectionAttempt> attempts)
+        DateTimeOffset? submittedAt, List<SectionAttempt> attempts,
+        string? practiceUnitId = null, IReadOnlyList<string>? partIds = null)
     {
         Id = id; UserId = userId; ExamVersionId = examVersionId; Mode = mode; Timing = timing;
         Status = status; StartedAt = startedAt; SubmittedAt = submittedAt; _attempts = attempts;
+        PracticeUnitId = practiceUnitId; PartIds = partIds ?? [];
     }
 
     public ExamSessionId Id { get; }
     public UserId UserId { get; }
     public ExamVersionId ExamVersionId { get; }
+    public string? PracticeUnitId { get; }
+    public IReadOnlyList<string> PartIds { get; }
     public SessionMode Mode { get; }
 
     /// <summary>
@@ -93,6 +97,10 @@ public sealed class ExamSession
     public SectionAttempt? AttemptFor(ExamModule module) =>
         _attempts.FirstOrDefault(a => a.Module == module);
 
+    public string? CurrentPartId => Current?.PartId;
+    public IReadOnlyList<string> CompletedPartIds =>
+        [.. _attempts.Where(a => a.SubmittedAt is not null && a.PartId is not null).Select(a => a.PartId!)];
+
     /// <summary>
     /// Starts a session and opens its first section.
     ///
@@ -106,7 +114,8 @@ public sealed class ExamSession
     /// </param>
     public static ExamSession Start(
         UserId userId, ExamVersion version, SessionMode mode, SessionTiming timing,
-        ExamModule firstModule, DateTimeOffset now, int? targetSeconds = null)
+        ExamModule firstModule, DateTimeOffset now, int? targetSeconds = null,
+        string? practiceUnitId = null, IReadOnlyList<string>? partIds = null)
     {
         if (!version.IsSittable)
             throw new InvalidOperationException(
@@ -115,20 +124,26 @@ public sealed class ExamSession
         if (version.Section(firstModule) is null)
             throw new InvalidOperationException($"This version has no {firstModule} section.");
 
+        var firstPart = mode == SessionMode.Single
+            ? partIds?.FirstOrDefault(id => id.StartsWith(
+                $"{firstModule.ToString().ToLowerInvariant()}-part-", StringComparison.Ordinal))
+            : null;
         var attempt = timing == SessionTiming.OpenEnded
-            ? SectionAttempt.OpenEnded(firstModule, now, targetSeconds)
-            : SectionAttempt.Open(firstModule, now, version.Timing.DurationFor(firstModule));
+            ? SectionAttempt.OpenEnded(firstModule, now, targetSeconds, firstPart)
+            : SectionAttempt.Open(firstModule, now, version.Timing.DurationFor(firstModule), firstPart);
 
         return new ExamSession(
             ExamSessionId.New(), userId, version.Id, mode, timing,
-            SessionStatus.InProgress, now, null, [attempt]);
+            SessionStatus.InProgress, now, null, [attempt], practiceUnitId, partIds);
     }
 
     public static ExamSession Rehydrate(
         ExamSessionId id, UserId userId, ExamVersionId examVersionId, SessionMode mode,
         SessionStatus status, DateTimeOffset startedAt, DateTimeOffset? submittedAt,
-        IEnumerable<SectionAttempt> attempts, SessionTiming timing = SessionTiming.Deadline) =>
-        new(id, userId, examVersionId, mode, timing, status, startedAt, submittedAt, [.. attempts]);
+        IEnumerable<SectionAttempt> attempts, SessionTiming timing = SessionTiming.Deadline,
+        string? practiceUnitId = null, IReadOnlyList<string>? partIds = null) =>
+        new(id, userId, examVersionId, mode, timing, status, startedAt, submittedAt,
+            [.. attempts], practiceUnitId, partIds);
 
     /// <summary>
     /// Closes the current section and opens the next one in a Full Test.
@@ -174,6 +189,36 @@ public sealed class ExamSession
                 : SectionAttempt.Open(next.Value, now, version.Timing.DurationFor(next.Value)));
 
         return AdvanceOutcome.Advanced;
+    }
+
+    public PartAdvanceOutcome AdvanceToNextPart(ExamVersion version, DateTimeOffset now)
+    {
+        if (Status != SessionStatus.InProgress) return PartAdvanceOutcome.SessionNotInProgress;
+        var current = Current;
+        if (PracticeUnitId is null || current?.PartId is null || PartIds.Count == 0)
+            return PartAdvanceOutcome.NotPartScoped;
+
+        current.Submit(now);
+        var moduleParts = PartIds.Where(id => id.StartsWith(
+            $"{current.Module.ToString().ToLowerInvariant()}-part-", StringComparison.Ordinal)).ToArray();
+        var index = Array.IndexOf(moduleParts, current.PartId);
+        if (index < 0 || index + 1 >= moduleParts.Length)
+        {
+            Status = SessionStatus.Submitted;
+            SubmittedAt = now;
+            return PartAdvanceOutcome.ScopeComplete;
+        }
+
+        var nextPartId = moduleParts[index + 1];
+        var partOrder = int.Parse(nextPartId[(nextPartId.LastIndexOf('-') + 1)..]);
+        var section = version.Section(current.Module)!;
+        var part = section.Parts.Single(p => p.Order == partOrder);
+        var duration = TimeSpan.FromSeconds(part.Timing?.DurationSeconds
+            ?? (int)version.Timing.DurationFor(current.Module).TotalSeconds / section.Parts.Count);
+        _attempts.Add(Timing == SessionTiming.OpenEnded
+            ? SectionAttempt.OpenEnded(current.Module, now, current.TargetSeconds, nextPartId)
+            : SectionAttempt.Open(current.Module, now, duration, nextPartId));
+        return PartAdvanceOutcome.Advanced;
     }
 
     /// <summary>
@@ -238,6 +283,14 @@ public enum AdvanceOutcome
     SessionNotInProgress,
 }
 
+public enum PartAdvanceOutcome
+{
+    Advanced,
+    ScopeComplete,
+    NotPartScoped,
+    SessionNotInProgress,
+}
+
 /// <summary>
 /// One module inside a sitting, with <b>its own</b> deadline. IELTS modules
 /// are timed independently, so a single session-level deadline cannot express
@@ -248,14 +301,16 @@ public sealed class SectionAttempt
     private SectionAttempt(
         ExamModule module, DateTimeOffset startedAt, DateTimeOffset? deadlineAt,
         DateTimeOffset? submittedAt, int accumulatedSeconds, DateTimeOffset? runningSince,
-        int? targetSeconds)
+        int? targetSeconds, string? partId = null)
     {
         Module = module; StartedAt = startedAt; DeadlineAt = deadlineAt; SubmittedAt = submittedAt;
         AccumulatedSeconds = accumulatedSeconds; RunningSince = runningSince;
         TargetSeconds = targetSeconds;
+        PartId = partId;
     }
 
     public ExamModule Module { get; }
+    public string? PartId { get; }
     public DateTimeOffset StartedAt { get; }
 
     /// <summary>
@@ -308,8 +363,9 @@ public sealed class SectionAttempt
     /// </summary>
     public int? TargetSeconds { get; private set; }
 
-    public static SectionAttempt Open(ExamModule module, DateTimeOffset now, TimeSpan duration) =>
-        new(module, now, now + duration, null, 0, now, null);
+    public static SectionAttempt Open(
+        ExamModule module, DateTimeOffset now, TimeSpan duration, string? partId = null) =>
+        new(module, now, now + duration, null, 0, now, null, partId);
 
     /// <summary>
     /// An attempt with no deadline, running from the moment it opened.
@@ -318,15 +374,16 @@ public sealed class SectionAttempt
     /// working, and making them press play as well would be a stopwatch that
     /// lies about the first thing they did.
     /// </summary>
-    public static SectionAttempt OpenEnded(ExamModule module, DateTimeOffset now, int? targetSeconds) =>
-        new(module, now, null, null, 0, now, targetSeconds);
+    public static SectionAttempt OpenEnded(
+        ExamModule module, DateTimeOffset now, int? targetSeconds, string? partId = null) =>
+        new(module, now, null, null, 0, now, targetSeconds, partId);
 
     public static SectionAttempt Rehydrate(
         ExamModule module, DateTimeOffset startedAt, DateTimeOffset? deadlineAt,
         DateTimeOffset? submittedAt, int accumulatedSeconds = 0,
-        DateTimeOffset? runningSince = null, int? targetSeconds = null) =>
+        DateTimeOffset? runningSince = null, int? targetSeconds = null, string? partId = null) =>
         new(module, startedAt, deadlineAt, submittedAt, accumulatedSeconds, runningSince,
-            targetSeconds);
+            targetSeconds, partId);
 
     /// <summary>
     /// Closes the attempt, and stops the clock with it.

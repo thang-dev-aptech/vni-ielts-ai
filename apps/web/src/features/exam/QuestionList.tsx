@@ -1,7 +1,7 @@
-import { Fragment, useId, type ReactNode } from 'react';
+import { Fragment, useId, useState, type ReactNode } from 'react';
 import { useI18n } from '../../i18n/index.js';
 import { ExamImage } from './ExamImage.js';
-import { QuestionInput } from './QuestionInput.js';
+import { QuestionInput, type BankInteraction } from './QuestionInput.js';
 import type { QuestionGroupView, QuestionView } from './examApi.js';
 
 /**
@@ -119,6 +119,7 @@ function GroupBlock({
 }) {
   const { t } = useI18n();
   const headingId = useId();
+  const [selectedBankKey, setSelectedBankKey] = useState<string | null>(null);
 
   const first = questions[0]?.order;
   const last = questions[questions.length - 1]?.order;
@@ -152,16 +153,30 @@ function GroupBlock({
    * offer the wrong options to the second.
    */
   const first0 = questions[0];
-  const sameBank =
+  const sameOptions =
     first0 !== undefined &&
     first0.options.length > 0 &&
-    first0.options.some((option) => option.text !== option.key) &&
     questions.every(
       (question) =>
         question.options.length === first0.options.length &&
         question.options.every((option, at) => option.key === first0.options[at]?.key),
     );
-  const bank = sameBank ? first0.options : null;
+  const interactiveBank =
+    sameOptions && questions.every((question) => ['matching', 'labelling'].includes(question.type))
+      ? first0.options
+      : null;
+  const bank =
+    sameOptions && first0.options.some((option) => option.text !== option.key)
+      ? first0.options
+      : null;
+  const bankInteraction: BankInteraction | undefined =
+    interactiveBank === null
+      ? undefined
+      : {
+          selectedKey: selectedBankKey,
+          onSelect: setSelectedBankKey,
+          onAssigned: () => setSelectedBankKey(null),
+        };
 
   return (
     <section className="exam-group" aria-labelledby={headingId}>
@@ -194,7 +209,39 @@ function GroupBlock({
         letters A–J and the labels are the letters, so listing them separately
         would be ten rows saying "A. A".
       */}
-      {bank !== null && (
+      {interactiveBank !== null ? (
+        <div className="exam-bank-dnd">
+          <p className="exam-bank-instructions">{t('exam.bankInstructions')}</p>
+          <ol className="exam-bank" aria-label={t('exam.answerBank')}>
+            {interactiveBank.map((option) => {
+              const taken = takenBy?.[option.key];
+              return (
+                <li className="exam-bank-item" key={option.key}>
+                  <button
+                    type="button"
+                    className="exam-bank-button"
+                    draggable={!disabled}
+                    disabled={disabled}
+                    aria-pressed={selectedBankKey === option.key}
+                    onClick={() => setSelectedBankKey(option.key)}
+                    onDragStart={(event) => {
+                      event.dataTransfer.effectAllowed = 'copy';
+                      event.dataTransfer.setData('text/plain', option.key);
+                      setSelectedBankKey(option.key);
+                    }}
+                  >
+                    <span className="exam-bank-key num">{option.key}</span>
+                    <span>{option.text}</span>
+                    {taken !== undefined && (
+                      <span className="exam-bank-used">{t('exam.usedAt', { number: taken })}</span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ) : bank !== null ? (
         <ol className="exam-bank">
           {bank.map((option) => (
             <li className="exam-bank-item" key={option.key}>
@@ -203,7 +250,7 @@ function GroupBlock({
             </li>
           ))}
         </ol>
-      )}
+      ) : null}
 
       {group.text !== null ? (
         <SummaryGaps
@@ -222,6 +269,7 @@ function GroupBlock({
               value={answers[question.id] ?? null}
               disabled={disabled}
               {...(takenBy !== undefined ? { takenBy } : {})}
+              {...(bankInteraction !== undefined ? { bankInteraction } : {})}
               onChange={onChange}
               renderSpecial={renderSpecial}
             />
@@ -308,6 +356,7 @@ function QuestionItem({
   value,
   disabled,
   takenBy,
+  bankInteraction,
   onChange,
   renderSpecial,
 }: {
@@ -315,6 +364,7 @@ function QuestionItem({
   value: string | null;
   disabled: boolean;
   takenBy?: Record<string, number>;
+  bankInteraction?: BankInteraction;
   onChange: (questionId: string, value: string | null) => void;
   renderSpecial: (question: QuestionView, value: string | null) => ReactNode | null;
 }) {
@@ -340,6 +390,7 @@ function QuestionItem({
           disabled={disabled}
           labelledBy={`q-${question.id}-name`}
           {...(takenBy !== undefined ? { takenBy } : {})}
+          {...(bankInteraction !== undefined ? { bankInteraction } : {})}
           onChange={(next) => onChange(question.id, next)}
         />
       )}

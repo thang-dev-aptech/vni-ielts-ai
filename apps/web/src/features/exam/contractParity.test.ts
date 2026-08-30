@@ -1,10 +1,19 @@
 import { expectTypeOf, it } from 'vitest';
 import type {
+  CurrentSectionView as ContractCurrentSection,
   MarkingStatusView as ContractMarkingStatus,
+  QuestionView as ContractQuestion,
   SaveAnswersRequest as ContractSaveAnswers,
+  SessionView as ContractSession,
   SessionResultsView as ContractResults,
 } from '@vni/api-client';
-import type { MarkingStatusView, SessionResultsView } from './examApi.js';
+import type {
+  CurrentSectionView,
+  MarkingStatusView,
+  QuestionView,
+  SessionView,
+  SessionResultsView,
+} from './examApi.js';
 
 /**
  * The hand-written client types, checked against the API's own contract.
@@ -64,6 +73,32 @@ it('the marking status matches the contract', () => {
    */
   expectTypeOf<MarkingStatusView['attempts']>().toEqualTypeOf<ContractMarkingStatus['attempts']>();
   expectTypeOf<MarkingStatusView['reason']>().toEqualTypeOf<ContractMarkingStatus['reason']>();
+});
+
+it('response slots match the public question contract', () => {
+  expectTypeOf<QuestionView['slots']>().toEqualTypeOf<ContractQuestion['slots']>();
+});
+
+it('the runner scope matches the server-owned session projection', () => {
+  /*
+   * OpenAPI emits `string[]` for module lists; the hand-written client narrows
+   * sitting order to `ExamModule[]` the same way it already does for
+   * `completedModules`. Exact equality would force the client to drop that
+   * narrowing, so the wire shape and the client narrowing are checked apart.
+   */
+  expectTypeOf<ContractSession['moduleSequence']>().toEqualTypeOf<string[]>();
+  expectTypeOf<SessionView['moduleSequence'][number]>().toEqualTypeOf<
+    'reading' | 'listening' | 'writing' | 'speaking'
+  >();
+  expectTypeOf<SessionView['practiceUnitId']>().toEqualTypeOf<ContractSession['practiceUnitId']>();
+  expectTypeOf<SessionView['scope']>().toEqualTypeOf<ContractSession['scope']>();
+  expectTypeOf<SessionView['completedPartIds']>().toEqualTypeOf<
+    ContractSession['completedPartIds']
+  >();
+  expectTypeOf<CurrentSectionView['partId']>().toEqualTypeOf<ContractCurrentSection['partId']>();
+  expectTypeOf<CurrentSectionView['audioPlayback']>().toEqualTypeOf<
+    ContractCurrentSection['audioPlayback']
+  >();
 });
 
 it('an autosave can clear an answer', () => {

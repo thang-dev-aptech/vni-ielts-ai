@@ -258,10 +258,20 @@ public sealed class IdempotencyMiddleware(
     /// → the note above on the guard denying by default.
     /// </para>
     /// </summary>
-    private static bool IsRecordingUpload(HttpRequest request) =>
-        HttpMethods.IsPost(request.Method)
-        && request.Path.StartsWithSegments("/api/v1/sessions")
-        && request.Path.Value?.EndsWith("/recordings", StringComparison.Ordinal) == true;
+    private static bool IsRecordingUpload(HttpRequest request)
+    {
+        if (!HttpMethods.IsPost(request.Method)
+            || !request.Path.StartsWithSegments("/api/v1/sessions"))
+            return false;
+
+        var path = request.Path.Value;
+        if (path is null) return false;
+
+        return path.EndsWith("/recordings", StringComparison.Ordinal)
+            || path.Contains("/recordings/init", StringComparison.Ordinal)
+            || path.Contains("/recordings/", StringComparison.Ordinal)
+                && path.EndsWith("/complete", StringComparison.Ordinal);
+    }
 
     private IMongoCollection<BsonDocument> Keys => db.GetCollection<BsonDocument>("idempotency_keys");
 
