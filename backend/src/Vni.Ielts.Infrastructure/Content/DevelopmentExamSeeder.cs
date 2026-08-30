@@ -190,7 +190,7 @@ public sealed class DevelopmentExamSeeder(
                 if (stale.Status != ExamVersionStatus.Published) continue;
 
                 stale.Unpublish();
-                await catalogue.UpsertAsync(stale, ct);
+                await catalogue.SetStatusAsync(stale.Id, ExamVersionStatus.Unpublished, ct);
 
                 logger.LogInformation(
                     "Unpublished {Id}: {File} has changed, so it is a new version.",
@@ -233,7 +233,7 @@ public sealed class DevelopmentExamSeeder(
             if (present.Contains(slug)) continue;
 
             version.Unpublish();
-            await catalogue.UpsertAsync(version, ct);
+            await catalogue.SetStatusAsync(version.Id, ExamVersionStatus.Unpublished, ct);
 
             logger.LogInformation(
                 "Unpublished {Id}: fixture {Slug}.json no longer exists.",

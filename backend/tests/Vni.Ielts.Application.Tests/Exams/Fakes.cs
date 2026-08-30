@@ -32,6 +32,14 @@ internal sealed class FakeExamCatalogue(params ExamVersion[] versions) : IExamCa
         _versions.Add(version);
         return Task.CompletedTask;
     }
+
+    public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct)
+    {
+        if (_versions.FirstOrDefault(v => v.Id == id) is { } version && status == ExamVersionStatus.Unpublished)
+            version.Unpublish();
+
+        return Task.CompletedTask;
+    }
 }
 
 /// <summary>

@@ -378,7 +378,7 @@ public static class AdminEndpoints
             return Conflict("Version này chưa được xuất bản.");
 
         version.Unpublish();
-        await catalogue.UpsertAsync(version, ct);
+        await catalogue.SetStatusAsync(version.Id, ExamVersionStatus.Unpublished, ct);
 
         await Record(audit, principal, AuditAction.ExamUnpublished, "exam-version",
             version.Id.Value, $"{version.Title} v{version.VersionNumber}", clock.UtcNow, ct);

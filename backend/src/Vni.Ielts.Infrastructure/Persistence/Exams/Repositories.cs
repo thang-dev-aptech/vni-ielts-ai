@@ -89,6 +89,12 @@ internal sealed class MongoExamCatalogue(MongoContext context) : IExamCatalogue
             throw new PublishedExamVersionIsImmutableException(version.Id);
         }
     }
+
+    public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) =>
+        context.ExamVersions.UpdateOneAsync(
+            Builders<ExamVersionDocument>.Filter.Eq(v => v.Id, id.Value),
+            Builders<ExamVersionDocument>.Update.Set(v => v.Status, status.ToString()),
+            cancellationToken: ct);
 }
 
 internal sealed class MongoExamSessionRepository(MongoContext context) : IExamSessionRepository

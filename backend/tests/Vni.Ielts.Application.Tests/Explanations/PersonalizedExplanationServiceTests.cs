@@ -115,6 +115,7 @@ public sealed class PersonalizedExplanationServiceTests
         Task.FromResult<ExamVersion?>(id == version.Id ? version : null);
 
     public Task UpsertAsync(ExamVersion v, CancellationToken ct) => Task.CompletedTask;
+    public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) => Task.CompletedTask;
   }
 
   private sealed class FixedSessions(ExamSession session) : IExamSessionRepository

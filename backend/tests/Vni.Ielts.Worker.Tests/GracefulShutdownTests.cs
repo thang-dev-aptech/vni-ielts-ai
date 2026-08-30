@@ -176,6 +176,9 @@ public sealed class GracefulShutdownTests
 
         public Task UpsertAsync(ExamVersion toSave, CancellationToken ct) =>
             throw new NotSupportedException("Not exercised by this test.");
+
+        public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) =>
+            throw new NotSupportedException("Not exercised by this test.");
     }
 
     // ExamModule.Reading makes SectionMarkingRunner return [] before any of

@@ -44,6 +44,14 @@ public interface IExamCatalogue
     /// The version is published and the content differs from what is stored.
     /// </exception>
     Task UpsertAsync(ExamVersion version, CancellationToken ct);
+
+    /// <summary>
+    /// Changes lifecycle status without rewriting content.
+    ///
+    /// Used when withdrawing a published version whose content fingerprint
+    /// no longer round-trips through persistence — status moves, content does not.
+    /// </summary>
+    Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct);
 }
 
 /// <summary>
