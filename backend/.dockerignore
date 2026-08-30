@@ -11,4 +11,6 @@ tests/
 # image layer is a credential in every registry that image reaches, and it
 # survives being deleted in a later layer. → CLAUDE.md rule 6
 **/secrets.json
+**/secrets.develop.json
+**/secrets.production.json
 **/.env*

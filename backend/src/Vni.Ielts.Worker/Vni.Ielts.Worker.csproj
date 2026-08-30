@@ -4,7 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-Vni.Ielts.Worker-490e8688-a4f8-4b24-b382-22a2373dcf6d</UserSecretsId>
   </PropertyGroup>
 
   <!--

@@ -172,22 +172,23 @@ nhánh nào** trong bộ chấm để chúng chạm tới một model. → `A-11
 
 ---
 
-## 2 · Cất ở đâu: `user-secrets` — vẫn là file, chỉ khác chỗ đặt
+## 2 · Cất ở đâu: `secrets.develop.json` (dev) · env vars (production)
 
-.NET có sẵn kho bí mật cho môi trường phát triển, nằm **ngoài thư mục dự án** và chỉ nạp khi
-environment là `Development`. Dự án đã bật sẵn (cùng `UserSecretsId` mà SSO đang dùng).
+**Không dùng `dotnet user-secrets` nữa.** File nằm cạnh `appsettings` trong thư mục Api, gitignored.
 
-### Cách A — mở file ra dán, không cần gõ khóa vào terminal
+### Dev — copy mẫu rồi điền
 
-```bash
-cd "backend/src/Vni.Ielts.Api"
-dotnet user-secrets init                      # đã init sẵn, chạy lại vô hại
-open ~/.microsoft/usersecrets/7ef8200d-2eb5-4a26-974f-b9ab754ba109/secrets.json
+```powershell
+cd backend\src\Vni.Ielts.Api
+Copy-Item secrets.example.json secrets.develop.json
+# Mở secrets.develop.json → điền ApiKey, SSO, storage…
+dotnet run --launch-profile http
 ```
 
-Dùng **JSON lồng (nested)** — dễ đọc hơn dạng phẳng `Ai:OpenAi:…`. .NET bind cả hai kiểu như nhau.
-Bản mẫu đầy đủ (AI · Assessment · SSO · ObjectStorage):
-[`secrets.json.example`](../../backend/src/Vni.Ielts.Api/secrets.json.example).
+Bản mẫu đầy đủ (AI · Assessment · SSO · Email · ObjectStorage · Jwt):
+[`secrets.example.json`](../../backend/src/Vni.Ielts.Api/secrets.example.json).
+
+Hướng dẫn chi tiết: [`secrets.README.md`](../../backend/src/Vni.Ielts.Api/secrets.README.md).
 
 Tối thiểu để test qua reseller (giữ nguyên SSO nếu đã có):
 
@@ -208,18 +209,7 @@ Tối thiểu để test qua reseller (giữ nguyên SSO nếu đã có):
 Khi có khóa chính thống: **xóa / để trống `BaseUrl`** (gọi thẳng nhà cung cấp), thay `ApiKey`,
 và đặt lại `Model` theo tên OpenAI công bố.
 
-> **Vì sao cách này an toàn hơn gõ lệnh:** khóa không đi qua lịch sử shell. `dotnet user-secrets set`
-> ghi nguyên văn khóa vào `~/.zsh_history`.
-
-### Cách B — dòng lệnh, nếu không ngại lịch sử shell
-
-```bash
-cd "backend/src/Vni.Ielts.Api"
-dotnet user-secrets set "Ai:OpenAi:BaseUrl" "<base url>"
-dotnet user-secrets set "Ai:OpenAi:ApiKey"  "<api key>"
-```
-
-Xem lại đã đặt gì: `dotnet user-secrets list`.
+> **Vì sao cách này tiện hơn user-secrets:** một file JSON trong project, mở/sửa trực tiếp, chia sẻ team qua kênh riêng (không git). Worker tự đọc cùng file Api.
 
 ### Ở máy chủ thật: biến môi trường
 
@@ -238,11 +228,9 @@ Không có file nào cả — deployment cấp thẳng. Cùng cách `Jwt__Signin
 
 ## 3 · Kiểm tra đã nạp được chưa
 
-```bash
-cd "backend/src/Vni.Ielts.Api" && dotnet user-secrets list
-```
+Khởi động API — log startup in `[config] Ai:OpenAi:ApiKey = set (N characters)`.
 
-Ra dòng `Ai:OpenAi:ApiKey = ...` là xong. **Đừng dán kết quả lệnh này vào chat** — nó in nguyên văn khóa.
+Hoặc mở `secrets.develop.json` và kiểm tra trường `ApiKey` không rỗng. **Đừng dán nội dung file vào chat.**
 
 ---
 
@@ -251,7 +239,7 @@ Ra dòng `Ai:OpenAi:ApiKey = ...` là xong. **Đừng dán kết quả lệnh n�
 | Lớp | Là gì |
 |---|---|
 | **1 · Trình quản lý mật khẩu** | Nơi ở chính thức. Cất ngay lúc nhà cung cấp hiện khóa lần đầu |
-| **2 · `secrets.json` ở trên** | Bản đang chạy. Quyền `-rw-------`, ngoài repo nên không thể lỡ tay `git add` |
+| **2 · `secrets.develop.json`** | Bản đang chạy local (gitignored). Production: env vars hoặc `secrets.production.json` mount |
 | **3 · Xoay khóa** | Mất cả hai lớp trên vẫn không chết: vào cổng của nhà cung cấp, thu hồi khóa cũ và tạo khóa mới |
 
 Với OpenAI, khóa **chỉ hiện một lần** lúc tạo, giống hệt client secret của Google. Đóng cửa sổ rồi thì
@@ -260,7 +248,7 @@ không lấy lại được — chỉ còn cách tạo khóa mới.
 ### Quy trình xoay khóa provider (không có secret trong tài liệu này)
 
 1. Tạo khóa mới trên cổng OpenAI / Google AI Studio (hoặc reseller). **Không** dán vào chat.
-2. Ghi khóa mới vào password manager, rồi vào `user-secrets` (dev) hoặc secret store của môi trường
+2. Ghi khóa mới vào password manager, rồi vào `secrets.develop.json` (dev) hoặc secret store / env vars (production)
    (staging/production) dưới `Ai__OpenAi__ApiKey` / `Ai__Gemini__ApiKey`.
 3. Khởi động lại API **và** worker — cả hai đọc cấu hình lúc boot; worker đang giữ lease vẫn hoàn
    tất job hiện tại rồi mới nhận khóa mới ở vòng claim kế.

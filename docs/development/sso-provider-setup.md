@@ -89,40 +89,31 @@ API **từ chối khởi động** nếu `EnableStubProvider` bật ngoài Devel
 Nạp ở đâu tùy nơi chạy — biến môi trường của container, secret của orchestrator, hoặc file `.env`
 **không** nằm trong repo. Không có file mẫu nào trong repo để tránh ai đó điền thật vào rồi commit.
 
-### Ở máy cá nhân: dùng `user-secrets`, đừng tạo file
+### Ở máy cá nhân: `secrets.develop.json`
 
-.NET có sẵn kho bí mật cho môi trường phát triển, nằm **ngoài thư mục dự án** (`~/.microsoft/usersecrets/`)
-và chỉ được nạp khi environment là `Development`. Dự án đã bật sẵn, chạy ba lệnh là xong:
+Điền SSO vào file secrets chung (cùng chỗ với AI keys):
 
-```bash
-cd backend/src/Vni.Ielts.Api
-dotnet user-secrets set "Sso:Google:ClientId"     "<client id>"
-dotnet user-secrets set "Sso:Google:ClientSecret" "<client secret>"
+```powershell
+cd backend\src\Vni.Ielts.Api
+Copy-Item secrets.example.json secrets.develop.json   # nếu chưa có
+# Mở secrets.develop.json → Sso:Google:ClientId / ClientSecret
 ```
 
-Không tạo file nào trong repo, không có gì để lỡ tay commit, và không phải nhớ export biến môi trường
-mỗi lần mở terminal mới. Xem lại đã đặt gì: `dotnet user-secrets list`.
+Chi tiết: [`secrets.README.md`](../../backend/src/Vni.Ielts.Api/secrets.README.md).
 
 > **`RedirectUri` thì không cần đặt** — `appsettings.Development.json` đã ghi sẵn
 > `http://localhost:5099/api/v1/auth/sso/google/callback`. Nó không phải bí mật.
 
-#### "Nhỡ quên khóa thì sao?" — nó vẫn là một file, mở ra xem được
+#### "Nhỡ quên khóa thì sao?" — mở file ra xem được
 
-`user-secrets` **không** giấu giá trị đi. Nó là một file JSON bình thường:
-
-```
-~/.microsoft/usersecrets/7ef8200d-2eb5-4a26-974f-b9ab754ba109/secrets.json
-```
-
-Mở bằng editor được, hoặc đọc bằng `dotnet user-secrets list`. Khác biệt duy nhất so với file `.env`
-trong repo là **chỗ đặt**: ngoài thư mục dự án, quyền `-rw-------`, nên không thể lỡ tay `git add`.
+`secrets.develop.json` nằm cạnh `appsettings`, **gitignored** — sửa trực tiếp bằng editor.
 
 Ba lớp phòng quên, xếp theo thứ tự nên tin cậy:
 
 | Lớp | Là gì |
 |---|---|
 | **1 · Trình quản lý mật khẩu** | Nơi ở chính thức của khóa. Lúc tạo client, Google cho tải file `client_secret_*.json` — cất bản đó vào đây ngay |
-| **2 · `secrets.json` ở trên** | Bản đang dùng để chạy. Sao lưu cùng chỗ với lớp 1 nếu muốn |
+| **2 · `secrets.develop.json`** | Bản đang dùng để chạy local. Sao lưu cùng chỗ với lớp 1 nếu muốn |
 | **3 · Xoay khóa** | Mất cả hai lớp trên vẫn **không chết**: vào Google Console, thêm secret mới cho đúng client đó. Client ID giữ nguyên, chỉ secret đổi |
 
 Điều đáng nhớ nhất: **mất client secret là chuyện khôi phục được**, không phải mất vĩnh viễn. Cái thật

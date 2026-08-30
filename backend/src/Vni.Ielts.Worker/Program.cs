@@ -1,4 +1,5 @@
 using Vni.Ielts.Infrastructure;
+using Vni.Ielts.Infrastructure.Configuration;
 using Vni.Ielts.Infrastructure.Observability;
 using Vni.Ielts.Worker;
 
@@ -41,6 +42,8 @@ if (args.Contains("--healthcheck"))
  * filed a bug against.
  */
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddVniSecretsFile();
 
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
 

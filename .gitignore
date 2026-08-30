@@ -9,7 +9,11 @@
 *.pfx
 credentials.json
 secrets.json
+secrets.develop.json
+secrets.production.json
 secrets.team.json
+**/secrets.develop.json
+**/secrets.production.json
 **/secrets.team.json
 
 # Google hands you this file at the moment an OAuth client is created, and the

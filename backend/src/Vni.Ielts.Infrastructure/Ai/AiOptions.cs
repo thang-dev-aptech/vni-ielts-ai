@@ -8,7 +8,7 @@ namespace Vni.Ielts.Infrastructure.Ai;
 /// <para>
 /// <b>Keys come from environment configuration and nothing else.</b>
 /// <c>Ai__OpenAi__ApiKey</c>, <c>Ai__Gemini__ApiKey</c> — supplied by the
-/// deployment, or by <c>dotnet user-secrets</c> on a developer machine. Never
+/// deployment, or by <c>secrets.develop.json</c> / environment variables. Never
 /// an <c>appsettings</c> file, never a committed file of any kind: .gitignore
 /// and a PreToolUse hook both block <c>.env*</c>, and CI scans for
 /// credential-shaped strings. → CLAUDE.md rule 6

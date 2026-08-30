@@ -6,6 +6,7 @@ using Vni.Ielts.Api.Common;
 using Vni.Ielts.Api.Endpoints;
 using OpenTelemetry.Trace;
 using Vni.Ielts.Infrastructure;
+using Vni.Ielts.Infrastructure.Configuration;
 using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Observability;
 using Vni.Ielts.Infrastructure.Security;
@@ -43,6 +44,8 @@ if (args.Contains("--healthcheck"))
 }
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddVniSecretsFile();
 
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
 
