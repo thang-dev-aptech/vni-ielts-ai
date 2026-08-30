@@ -171,7 +171,7 @@ public sealed class ContentRightsPublishTests(SsoAppFactory app) : IClassFixture
         var catalogue = scope.ServiceProvider.GetRequiredService<IExamCatalogue>();
         var registry = scope.ServiceProvider.GetRequiredService<IContentRightsRegistry>();
 
-        var seededSource = await registry.FindAsync(new ContentSourceId("synthetic-full-1"), default);
+        var seededSource = await registry.FindAsync(new ContentSourceId("exam1"), default);
         Assert.True(
             seededSource is not null,
             "The content rights seed did not run, so this case would prove nothing.");
@@ -179,7 +179,7 @@ public sealed class ContentRightsPublishTests(SsoAppFactory app) : IClassFixture
         Assert.DoesNotContain(
             ContentEnvironment.LearnerProduction, seededSource!.AllowedEnvironments);
 
-        var draft = await DraftAsync(catalogue, new ExamDefinitionId("seed-synthetic-full-1"));
+        var draft = await DraftAsync(catalogue, new ExamDefinitionId("seed-exam-1"));
 
         var response = await PublishAsync(client, access, draft.Id);
 
@@ -188,7 +188,7 @@ public sealed class ContentRightsPublishTests(SsoAppFactory app) : IClassFixture
         var body = await BodyOf(response);
         Assert.Equal("CONTENT_RIGHT_MISSING", body.GetProperty("code").GetString());
         Assert.Equal("environment-not-granted", body.GetProperty("reason").GetString());
-        Assert.Equal("synthetic-full-1", body.GetProperty("sourceId").GetString());
+        Assert.Equal("exam1", body.GetProperty("sourceId").GetString());
 
         Assert.Equal(
             ExamVersionStatus.Draft, (await catalogue.FindAsync(draft.Id, default))!.Status);
@@ -310,7 +310,7 @@ public sealed class ContentRightsPublishTests(SsoAppFactory app) : IClassFixture
         // rather than on the whole collection.
         var seededIds = sources
             .Where(s => s.GetProperty("sourceId").GetString() is "exam1"
-                or "cambridge-ielts-16" or "vol9-test-1" or "synthetic-full-1")
+                or "cambridge-ielts-16" or "vol9-test-1" or "vol9-test-2")
             .ToArray();
 
         Assert.Equal(4, seededIds.Length);

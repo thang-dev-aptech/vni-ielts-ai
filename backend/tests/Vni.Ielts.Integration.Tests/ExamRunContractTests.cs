@@ -1858,8 +1858,7 @@ public class ExamAppFactory : WebApplicationFactory<Program>
 
         // The synthetic four-module paper, which is the only exam a clean
         // checkout has. Off by default so it never reaches a learner's
-        // catalogue. → DevelopmentExamSeeder.IncludeSynthetic
-        builder.UseSetting("Seed:IncludeSyntheticExams", "true");
+        // catalogue. Exam 1 is seeded from fixtures/exams/exam-1.json.
 
         // Blanked deliberately: a developer with real Google credentials in user
         // secrets would otherwise have this suite reach Google from a test.

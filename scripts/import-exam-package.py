@@ -298,7 +298,7 @@ def write_answer_keys(package: pathlib.Path, sections: list[dict]) -> None:
     for module, spec in modules.items():
         print(f"  {module}: {spec['questionObjects']} objects, {spec['rawMarks']} marks")
     if changed:
-        print("  ⚠ keys changed since the last export — update `updatedOn` and the "
+        print("  WARNING: keys changed since the last export — update `updatedOn` and the "
               "human-readable answer-key.md files to match")
 
 

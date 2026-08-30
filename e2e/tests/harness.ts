@@ -3,7 +3,7 @@ import { expect, type APIRequestContext, type BrowserContext, type Page } from '
 export const API = 'http://localhost:5199';
 export const WEB = 'http://localhost:5273';
 
-/** The four-module paper. Selected by name — see `FullSittingJourneyTests`. */
+/** The four-module synthetic paper used by E2E only (staged in global-setup). */
 export const SYNTHETIC_EXAM = 'VNI Synthetic Practice Test';
 
 const PASSWORD = 'mot-mat-khau-du-dai-2026';

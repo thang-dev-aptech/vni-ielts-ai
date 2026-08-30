@@ -110,7 +110,7 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
     /// and is deliberately not under version control, so it can never be the
     /// thing a test asserts against.
     /// </summary>
-    private const string SyntheticExamTitle = "VNI Synthetic Practice Test";
+    private const string SeededExamTitle = "Exam 1";
 
     private async Task<string> FullExamIdAsync(HttpClient client, string access)
     {
@@ -118,12 +118,12 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
         response.EnsureSuccessStatusCode();
 
         var full = (await BodyOf(response)).GetProperty("exams").EnumerateArray()
-            .FirstOrDefault(e => e.GetProperty("title").GetString() == SyntheticExamTitle);
+            .FirstOrDefault(e => e.GetProperty("title").GetString() == SeededExamTitle);
 
         Assert.True(
             full.ValueKind == JsonValueKind.Object,
-            $"'{SyntheticExamTitle}' is not in the catalogue. It is seeded only when "
-            + "`Seed:IncludeSyntheticExams` is on, which this factory sets.");
+            $"'{SeededExamTitle}' is not in the catalogue. It is seeded from "
+            + "fixtures/exams/exam-1.json on Development boot.");
 
         Assert.Equal(4, full.GetProperty("modules").EnumerateArray().Count());
 
@@ -646,7 +646,7 @@ public sealed class MarkingQueuedOnSubmitTests(RubricConfiguredAppFactory app)
         catalogue.EnsureSuccessStatusCode();
 
         var examId = (await BodyOf(catalogue)).GetProperty("exams").EnumerateArray()
-            .First(e => e.GetProperty("title").GetString() == "VNI Synthetic Practice Test")
+            .First(e => e.GetProperty("title").GetString() == "Exam 1")
             .GetProperty("examVersionId").GetString()!;
 
         var start = Authed(HttpMethod.Post, "/api/v1/sessions", access);

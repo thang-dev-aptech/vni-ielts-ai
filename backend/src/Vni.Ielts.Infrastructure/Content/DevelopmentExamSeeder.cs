@@ -204,6 +204,41 @@ public sealed class DevelopmentExamSeeder(
                     published.Title, versionId.Value, published.Sections.Count);
             }
         }
+
+        await UnpublishOrphanedFixturesAsync(directory, ct);
+    }
+
+    /// <summary>
+    /// Unpublish seeded exams whose fixture file was removed from disk.
+    ///
+    /// <b>Demo papers deleted from <c>fixtures/exams</c> must not linger in
+    /// Mongo.</b> The seeder only adds or refreshes what is present; without
+    /// this pass a removed synthetic or pilot fixture stays sittable until
+    /// someone clears the database by hand.
+    /// </summary>
+    private async Task UnpublishOrphanedFixturesAsync(string directory, CancellationToken ct)
+    {
+        var present = Directory.EnumerateFiles(directory, "*.json")
+            .Select(f => Path.GetFileNameWithoutExtension(f))
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var version in await catalogue.ListAllAsync(ct))
+        {
+            if (version.Status != ExamVersionStatus.Published) continue;
+
+            var definition = version.DefinitionId.Value;
+            if (!definition.StartsWith("seed-", StringComparison.Ordinal)) continue;
+
+            var slug = definition["seed-".Length..];
+            if (present.Contains(slug)) continue;
+
+            version.Unpublish();
+            await catalogue.UpsertAsync(version, ct);
+
+            logger.LogInformation(
+                "Unpublished {Id}: fixture {Slug}.json no longer exists.",
+                version.Id.Value, slug);
+        }
     }
 
     /// <summary>

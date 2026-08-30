@@ -71,6 +71,9 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
 
+  globalSetup: './global-setup.ts',
+  globalTeardown: './global-teardown.ts',
+
   webServer: [
     {
       command: 'dotnet run --project ../backend/src/Vni.Ielts.Api --no-launch-profile',
@@ -85,8 +88,7 @@ export default defineConfig({
         // Its own database, dropped and reseeded by the fixtures rather than
         // shared with whatever a developer has been doing.
         Mongo__Database: 'vni_ielts_e2e',
-        // The four-module synthetic paper. Off by default so it never reaches
-        // a learner's catalogue. → DevelopmentExamSeeder
+        // Synthetic paper is staged by e2e/global-setup.ts for test stability.
         Seed__IncludeSyntheticExams: 'true',
         // Fixed, so a restart mid-suite does not invalidate every session the
         // suite is holding. Test-only, 48 characters, and never a production

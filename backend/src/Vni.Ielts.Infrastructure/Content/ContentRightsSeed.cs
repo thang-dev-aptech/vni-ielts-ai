@@ -225,28 +225,9 @@ public static class ContentRightsSeed
                 new ContentFileRef("exam/Exam1/manifest.json", null, null),
                 new ContentFileRef("exam/Exam1/exam.json", null, null),
                 new ContentFileRef("exam/Exam1/answer-keys.json", null, null),
+                new ContentFileRef("fixtures/exams/exam-1.json", null, null),
             ],
             examDefinitionIds: [new ExamDefinitionId("seed-exam-1")]));
-
-        // ── The synthetic four-module paper ──────────────────────────────
-        //
-        // Authored in this repository for the test suite, and the only exam a
-        // clean checkout has. It is registered for the same reason as
-        // everything else: an unregistered exam version is refused at publish,
-        // and leaving the project's own fixture unregistered would make that
-        // refusal look like a bug rather than the rule working.
-        //
-        // Still `fixture` only, and deliberately so — `DevelopmentExamSeeder`
-        // already keeps it out of a learner catalogue unless
-        // `Seed:IncludeSyntheticExams` is on, and a test paper reaching a
-        // learner is exactly what the owner's 2026-08-27 direction removed.
-        sources.Add(Fixture(
-            "synthetic-full-1",
-            "Synthetic four-module paper — authored in this repository for tests",
-            owner: "VNI Education (authored in this repository)",
-            rootPath: "fixtures/exams",
-            [new ContentFileRef("fixtures/exams/synthetic-full-1.json", null, null)],
-            examDefinitionIds: [new ExamDefinitionId("seed-synthetic-full-1")]));
 
         return sources;
     }

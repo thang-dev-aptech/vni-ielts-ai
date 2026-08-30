@@ -141,28 +141,25 @@ public sealed class ExamPackageReaderTests
     /// </summary>
 
     /// <summary>
-    /// The committed catalogue fixture is valid, and it is a whole Full Test.
+    /// The test-suite catalogue fixture is valid, and it is a whole Full Test.
     ///
-    /// <b>Written 2026-08-27, because a clean clone could not run this
-    /// product.</b> Every exam the seeder had was built locally from
-    /// <c>exam/Exam1</c> into <c>fixtures/exams/exam-1.json</c>, and both are
-    /// gitignored — the source material is watermarked third-party content
-    /// whose licence is unestablished, so committing it was never an option.
-    /// The cost was silent: <c>ExamRunContractTests</c> asks the catalogue for a
-    /// paper carrying all four modules, and on a fresh checkout there was none,
-    /// so the entire exam engine went untested on any machine that had not run
-    /// the importer by hand.
-    ///
-    /// <c>synthetic-full-1.json</c> is written for this repository — invented
-    /// passages, invented prompts, invented band tables — so it can be
-    /// committed without inheriting anybody's rights. This test is what stops
-    /// it from drifting away from the schema unnoticed, and what states the
-    /// property the integration suite actually depends on: four modules.
+    /// <b>Written for schema validation only — never learner-facing.</b>
+    /// Owner-supplied content lives in <c>fixtures/exams/exam-1.json</c>.
+    /// <c>synthetic-full-1.json</c> is invented material kept under test
+    /// fixtures so the exam contract suite can run without demo papers in the
+    /// learner catalogue.
     /// </summary>
     [Fact]
     public void The_committed_catalogue_fixture_is_a_valid_four_module_paper()
     {
-        var path = Path.Combine(RepoRoot, "fixtures", "exams", "synthetic-full-1.json");
+        var path = Path.Combine(
+            RepoRoot,
+            "backend",
+            "tests",
+            "Vni.Ielts.Infrastructure.Tests",
+            "Content",
+            "Fixtures",
+            "synthetic-full-1.json");
 
         Assert.True(
             File.Exists(path),
