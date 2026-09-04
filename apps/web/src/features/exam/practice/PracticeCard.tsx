@@ -88,6 +88,19 @@ export function PracticeCard({
       <h3 className="prac-title">{item.title}</h3>
 
       {/*
+        <b>The paper's own sentence, and the reason it exists.</b> Until
+        2026-09-03 a card could say a title, a variant and a question count —
+        enough to choose between two papers only if their titles already did the
+        work. "VOL 9 Test 3" beside "VOL 9 Test 4" is not a choice anyone can
+        make, and sixteen more of those are being imported.
+
+        Rendered only when the package supplied one. A missing description is a
+        card with one less line, never a placeholder: an invented sentence under
+        a real paper reads as editorial the academic team did not write.
+      */}
+      {item.description !== null && <p className="prac-desc">{item.description}</p>}
+
+      {/*
         <b>Per-module minutes, not a sentence.</b> This slot held "Bốn kỹ năng
         trong một phiên, theo thứ tự Reading → Listening → Writing → Speaking",
         which a comment defended as differing between cards. It cannot:

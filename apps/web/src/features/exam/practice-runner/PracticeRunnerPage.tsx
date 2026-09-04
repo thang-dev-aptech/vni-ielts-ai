@@ -11,10 +11,13 @@ import { PassageBody } from '../PassageBody.js';
 import { QuestionInput } from '../QuestionInput.js';
 import { QuestionList } from '../QuestionList.js';
 import { SpeakingRecorder } from '../SpeakingRecorder.js';
+import { SKILLS, resolveModuleSequence } from '../skills.js';
 import {
+  advanceSection,
   countWords,
   getSession,
   isOver,
+  remainingSeconds,
   setStopwatch,
   setTargetTime,
   submitSession,
@@ -31,32 +34,22 @@ import '../../../styles/exam.css';
 import '../../../styles/practice-run.css';
 
 /**
- * Luyện đề — a sitting with a stopwatch instead of a deadline.
+ * Shared sitting shell — luyện đề (open clock) and thi thử / Full Test
+ * (deadline) share this chrome.
  *
- * <b>A separate page from `ExamRunnerPage`, on purpose.</b> The chrome is
- * entirely different — a count-up clock the learner can stop, a target marker,
- * a section map, prev/next across parts — and the two have different failure
- * rules: a deadlined sitting refuses a late write, and luyện đề has no late.
- * Branching inside the timed runner would put practice-mode conditionals
- * through the code path that was hardened last week, in the one file where an
- * accidental change costs somebody a real exam.
+ * <b>Timing rules stay branched.</b> Open timing keeps pause, target and leave;
+ * deadline timing is a countdown with L1 escalation and no way out. Autosave,
+ * drafts, terminal-refusal classification and the submit gate all come from
+ * `useAnswerSheet`, which both modes call — those lines each fixed a specific
+ * data-loss bug and must not drift.
  *
- * <b>What is not duplicated is the part that matters.</b> The autosave queue,
- * the draft generations, the terminal-refusal classification and the submit
- * gate all come from `useAnswerSheet`, which both pages call. Those lines each
- * fixed a specific data-loss bug; a second copy of them would drift, and the
- * copy that drifts is the one with no bugs filed against it yet.
+ * <b>The clock is display only.</b> Open mode derives elapsed from the server
+ * anchor; deadline mode recomputes from `deadlineAt` and the response offset.
+ * Nothing here decides the outcome. → ADR-0007
  *
- * <b>The clock is display only, in this mode too.</b> `elapsedSeconds` is the
- * server's, pause and resume are server operations that carry no timestamp, and
- * nothing here accumulates a total or sends one. → ADR-0007, `usePracticeClock`
- *
- * <b>What this page does not decide.</b> Whether a revisited section may be
- * edited (`M-40`) — the inputs stay enabled, because disabling them would
- * itself be a policy. What reaching the target does (`M-38`) — it draws a
- * marker and nothing else. Whether luyện đề composes with Full Test (`B-13`) —
- * this route is entered from a single-skill card and a `full` sitting that
- * arrives here is told so rather than being given an invented "Tiếp theo".
+ * <b>Full Test and Single Skill end differently.</b> `E-12`: Full Test
+ * mid-run ends with "Tiếp theo" (`advanceSection`). `E-13`: Single Skill ends
+ * only with "Nộp bài".
  */
 export function PracticeRunnerPage() {
   const { sessionId = '' } = useParams();
@@ -76,6 +69,19 @@ export function PracticeRunnerPage() {
   const [targetState, setTargetState] = useState<ControlState>('idle');
   const [saveBlocked, setSaveBlocked] = useState(false);
   const [offline, setOffline] = useState(() => navigator.onLine === false);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [expired, setExpired] = useState(false);
+  /** Whether the last-chance flush at expiry landed. See the clock effect. */
+  const [expiredFlush, setExpiredFlush] = useState<'none' | 'saved' | 'failed'>('none');
+  /**
+   * Which step stopped, so the message can say the true thing.
+   *
+   * <b>`'save'` is not a flavour of `'submit'`.</b> Telling someone "could not
+   * submit — your work is still on the server" when the truth is "your last
+   * answer never reached the server" is wrong in the one direction that
+   * matters.
+   */
+  const [stepFailed, setStepFailed] = useState<'submit' | 'advance' | 'save' | null>(null);
 
   usePageTitle(session?.examTitle);
 
@@ -85,11 +91,18 @@ export function PracticeRunnerPage() {
    * twice is not a harmless duplicate. → `examApi` § retryingWhileInFlight
    */
   const submitKey = useRef(crypto.randomUUID());
+  /**
+   * One key per section left behind, regenerated only after a section actually
+   * closes. Same reasoning as `submitKey`.
+   */
+  const advanceKey = useRef(crypto.randomUUID());
   /** Synchronous latch: `setSubmitState` does not land until React re-renders. */
   const submitting_ = useRef(false);
   const tokenRef = useRef(accessToken);
   tokenRef.current = accessToken;
   const signedIn = accessToken !== null;
+  /** Guards the expiry flush against the interval firing `left === 0` twice. */
+  const expiredRef = useRef(false);
   /** The control that opened the card, so focus can be given back to it. */
   const submitTrigger = useRef<Element | null>(null);
   const leaveTrigger = useRef<Element | null>(null);
@@ -114,9 +127,10 @@ export function PracticeRunnerPage() {
     onAcknowledged: useCallback(() => {
       setUnconfirmed(new Set());
       setSaveBlocked(false);
+      setStepFailed((step) => (step === 'save' ? null : step));
     }, []),
   });
-  const { answers, save, dirty, change, recorded, flush, seed, cancelPending } = sheet;
+  const { answers, save, dirty, change, recorded, flush, flushRef, seed, cancelPending } = sheet;
 
   const markEdited = useCallback(
     (questionId: string, value: string | null) => {
@@ -129,7 +143,7 @@ export function PracticeRunnerPage() {
   /*
    * Where the reader was in each part's pane. The passage column is one DOM
    * node reused by every part, so switching from a passage read to the bottom
-   * to the next one opened it two thousand pixels in. → `ExamRunnerPage`
+   * to the next one opened it two thousand pixels in.
    */
   const passage = useRef<HTMLElement>(null);
   const questionPane = useRef<HTMLElement>(null);
@@ -144,6 +158,7 @@ export function PracticeRunnerPage() {
         const outcome = await flush();
         if (outcome === 'failed') {
           setSaveBlocked(true);
+          setStepFailed('save');
           return;
         }
       }
@@ -223,8 +238,7 @@ export function PracticeRunnerPage() {
    *
    * <b>The sheet is deliberately not re-seeded.</b> Re-seeding would drop the
    * outstanding patch — the answer the learner typed and the server has not
-   * taken yet — which is precisely the bug the timed runner's token-rotation
-   * note describes. Only the chrome is adopted.
+   * taken yet. Only the chrome is adopted.
    */
   useEffect(() => {
     if (session === null) return;
@@ -254,24 +268,64 @@ export function PracticeRunnerPage() {
     return () => document.removeEventListener('visibilitychange', wake);
   }, [session, sessionId, navigate, alive]);
 
+  const section = session?.current ?? null;
+  const isDeadline = section?.deadlineAt != null;
+  const deadline = section?.deadlineAt ?? null;
+
+  // ── Deadline countdown ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (deadline === null) return;
+
+    const tick = () => {
+      const left = remainingSeconds(deadline);
+      setRemaining(left);
+      /*
+       * The server owns the outcome. This only stops accepting input and
+       * hands over; the sitting is closed on the next call.
+       *
+       * <b>But it flushes first.</b> Expiry used to disable the inputs and
+       * stop, leaving dirty work stranded with no press left. The answers
+       * exist and the connection is up; there is no reason not to send them.
+       */
+      if (left === 0 && !expiredRef.current) {
+        expiredRef.current = true;
+        setExpired(true);
+        cancelPending();
+        if (dirty.current) {
+          void flushRef
+            .current()
+            .then((outcome) =>
+              setExpiredFlush(outcome === 'failed' || outcome === 'refused' ? 'failed' : 'saved'),
+            );
+        }
+      }
+    };
+
+    tick();
+    const handle = setInterval(tick, 1000);
+    return () => clearInterval(handle);
+  }, [deadline]);
+
   // ── Leaving ─────────────────────────────────────────────────────────────
   /*
-   * Back, Ctrl-W and a back-swipe all still work, and here nothing is lost by
-   * them — the clock is a stopwatch and the answers are on the server. The
-   * warning is registered only while a write is outstanding, which is the one
-   * thing leaving can actually cost.
+   * Deadline: warn whenever the section is still live — Back / Ctrl-W / a
+   * back-swipe all still work, and the learner loses the running clock.
+   * Open: warn only while a write is outstanding — the clock is a stopwatch
+   * and answers already on the server are not lost by leaving.
    */
   useEffect(() => {
-    if (save !== 'pending' && save !== 'sending' && save !== 'queued') return;
+    if (isDeadline) {
+      if (expired || submitState === 'submitting') return;
+    } else if (save !== 'pending' && save !== 'sending' && save !== 'queued') {
+      return;
+    }
 
     const warn = (event: BeforeUnloadEvent) => event.preventDefault();
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [save]);
+  }, [isDeadline, expired, submitState, save]);
 
-  // ── The stopwatch ───────────────────────────────────────────────────────
-  const section = session?.current ?? null;
-
+  // ── The stopwatch (open timing only) ────────────────────────────────────
   async function toggleRun() {
     const access = tokenRef.current;
     if (access === null || section === null) return;
@@ -323,6 +377,7 @@ export function PracticeRunnerPage() {
     submitTrigger.current = document.activeElement;
     pauseListeningAudio();
     setSubmitState('idle');
+    setStepFailed(null);
     setConfirming(true);
   }
 
@@ -350,9 +405,11 @@ export function PracticeRunnerPage() {
   async function submit() {
     if (accessToken === null) return;
     if (submitting_.current) return;
+    pauseListeningAudio();
     submitting_.current = true;
     setSubmitState('submitting');
     setSaveBlocked(false);
+    setStepFailed(null);
 
     try {
       cancelPending();
@@ -373,6 +430,7 @@ export function PracticeRunnerPage() {
           if (!alive.current) return;
           setSubmitState('idle');
           setSaveBlocked(true);
+          setStepFailed('save');
           setConfirming(false);
           return;
         }
@@ -389,10 +447,89 @@ export function PracticeRunnerPage() {
         navigate(Paths.examResults(sessionId), { replace: true });
         return;
       }
-      // The card stays open, with the error and a retry. Answers are never
-      // discarded, and closing on failure would send the learner back to a page
-      // that looks exactly as it did.
+      // Open timing and deadline both keep the card open with a retry.
       setSubmitState('failed');
+      setStepFailed('submit');
+    }
+  }
+
+  /**
+   * "Tiếp theo" — the Full Test ending. `E-12`.
+   *
+   * Stays on this route. The server closes the section being left, marks it,
+   * opens the next one with its own fresh deadline, and answers back a whole
+   * `SessionView`. Every piece of section-scoped state is reset from that
+   * response.
+   */
+  async function advance() {
+    if (accessToken === null) return;
+    if (submitting_.current) return;
+    pauseListeningAudio();
+    submitting_.current = true;
+    setStepFailed(null);
+    setSaveBlocked(false);
+    setSubmitState('submitting');
+
+    try {
+      cancelPending();
+
+      if (dirty.current) {
+        const outcome = await flush();
+        if (outcome === 'failed') {
+          submitting_.current = false;
+          if (!alive.current) return;
+          setSubmitState('idle');
+          setSaveBlocked(true);
+          setStepFailed('save');
+          return;
+        }
+      }
+
+      const next = await advanceSection(accessToken, sessionId, advanceKey.current);
+      if (!alive.current) return;
+
+      if (next.status !== 'inprogress' || next.current === null) {
+        navigate(Paths.examResults(sessionId), { replace: true });
+        return;
+      }
+
+      /*
+       * Every piece of section-scoped state, listed rather than derived.
+       *
+       * `expiredRef` is the one that bites: a section whose clock ran out
+       * latches it, and leaving it latched would open Listening with every
+       * input already disabled.
+       */
+      advanceKey.current = crypto.randomUUID();
+      submitKey.current = crypto.randomUUID();
+      offsets.current = {};
+      expiredRef.current = false;
+      submitting_.current = false;
+
+      seed({
+        answers: next.current.answers,
+        answerRevision: next.current.answerRevision,
+      });
+
+      setUnconfirmed(new Set());
+      setSession(next);
+      setActivePart(0);
+      setMobilePane('passage');
+      setExpired(false);
+      setExpiredFlush('none');
+      setRemaining(null);
+      setSubmitState('idle');
+      setConfirming(false);
+      setLeaving(false);
+    } catch (caught) {
+      submitting_.current = false;
+      if (!alive.current) return;
+      if (isOver(caught)) {
+        navigate(Paths.examResults(sessionId), { replace: true });
+        return;
+      }
+      setSubmitState('idle');
+      setStepFailed('advance');
     }
   }
 
@@ -432,6 +569,7 @@ export function PracticeRunnerPage() {
   }
 
   const clock = usePracticeClock(section);
+  const inputsLocked = expired || submitState === 'submitting';
 
   if (failed) {
     return (
@@ -452,6 +590,7 @@ export function PracticeRunnerPage() {
     return (
       <div className="prun-page" data-surface="exam">
         <PracticeHeader
+          timing="open"
           examTitle={session.examTitle}
           module={section.module}
           partNumber={null}
@@ -480,6 +619,7 @@ export function PracticeRunnerPage() {
     return (
       <div className="prun-page">
         <PracticeHeader
+          timing="open"
           examTitle={session?.examTitle ?? null}
           module={session?.current?.module ?? null}
           partNumber={null}
@@ -504,56 +644,96 @@ export function PracticeRunnerPage() {
   }
 
   const split = section.module === 'reading';
+  const skill = SKILLS[section.module];
+  const moduleSequence = resolveModuleSequence(session.moduleSequence);
+  const currentIndex = moduleSequence.indexOf(section.module);
+  const advances =
+    session.mode === 'full' && currentIndex >= 0 && currentIndex < moduleSequence.length - 1;
+  const nextSkill = advances ? SKILLS[moduleSequence[currentIndex + 1]!] : null;
+  const skillPosition =
+    session.mode === 'full'
+      ? { number: session.completedModules.length + 1, total: moduleSequence.length }
+      : null;
+  const nextNote =
+    advances && nextSkill !== null
+      ? t('exam.nextNote', { current: skill.name, next: nextSkill.name })
+      : null;
+
+  const stepFailedMessage =
+    stepFailed === 'save'
+      ? t('exam.saveBlockedStep')
+      : stepFailed === 'advance'
+        ? t('exam.advanceFailed')
+        : stepFailed === 'submit'
+          ? t('exam.submitFailed')
+          : null;
 
   return (
-    <div className="prun-page" data-surface="exam">
-      <PracticeHeader
-        examTitle={session.examTitle}
-        module={section.module}
-        partNumber={part.order}
-        elapsed={clock.elapsed}
-        running={clock.running}
-        targetSeconds={section.targetSeconds ?? null}
-        clock={offline ? 'offline' : clockState}
-        target={targetState}
-        onToggleRun={() => void toggleRun()}
-        onSetTarget={(seconds) => void applyTarget(seconds)}
-        onExit={openLeave}
-      />
+    <div className="prun-page exam-page" data-surface="exam">
+      {isDeadline ? (
+        <PracticeHeader
+          timing="deadline"
+          examTitle={session.examTitle}
+          module={section.module}
+          partNumber={part.order}
+          skillPosition={skillPosition}
+          remaining={remaining}
+        />
+      ) : (
+        <PracticeHeader
+          timing="open"
+          examTitle={session.examTitle}
+          module={section.module}
+          partNumber={part.order}
+          skillPosition={skillPosition}
+          elapsed={clock.elapsed}
+          running={clock.running}
+          targetSeconds={section.targetSeconds ?? null}
+          clock={offline ? 'offline' : clockState}
+          target={targetState}
+          onToggleRun={() => void toggleRun()}
+          onSetTarget={(seconds) => void applyTarget(seconds)}
+          onExit={openLeave}
+        />
+      )}
 
       <div className="prun-shell-state" aria-label={t('practice.runnerState')}>
         <span
           className={`prun-connection is-${offline ? 'offline' : 'online'}`}
-          role="status"
-          aria-live="polite"
+          {...(isDeadline && !offline
+            ? { 'aria-hidden': true as const }
+            : { role: 'status' as const, 'aria-live': 'polite' as const })}
         >
           {offline ? t('practice.connectionOffline') : t('practice.connectionOnline')}
         </span>
         <SaveNote state={save} />
       </div>
 
-      {/*
-        <b>A full-test sitting has no luyện đề chaining, and this page will not
-        invent one.</b> `B-13` has not settled how Luyện đề / Thi thử composes
-        with Full Test / Single Skill, and a "Tiếp theo" here would close a
-        section irreversibly on the strength of a guess. The paper stays
-        answerable and submittable; only the chaining is absent. → `G-11`
-      */}
-      {session.mode === 'full' && (
-        <p className="prun-notice" role="status">
-          {t('practice.fullNotSupported')}
+      {stepFailedMessage !== null && (
+        <p className="exam-submit-error prun-notice is-bad" role="alert">
+          {stepFailedMessage}
         </p>
       )}
 
-      {saveBlocked && (
-        <p className="prun-notice is-bad" role="alert">
+      {saveBlocked && stepFailed !== 'save' && (
+        <p className="exam-submit-error prun-notice is-bad" role="alert">
           {t('exam.saveBlockedStep')}
         </p>
       )}
 
-      {/* Which answer the server would not take. → the notice in `ExamRunnerPage` */}
+      {expired && (
+        <p className="prun-notice exam-expired" role="status">
+          {expiredFlush === 'failed' ? t('exam.expiredUnsaved') : t('exam.expired')}
+        </p>
+      )}
+
+      {isDeadline && !expired && (
+        <p className="prun-notice exam-foot-note">{t('exam.clockKeepsRunning')}</p>
+      )}
+
+      {/* Which answer the server would not take. */}
       {Object.keys(sheet.refused).length > 0 && (
-        <p className="prun-notice is-bad" role="alert">
+        <p className="exam-submit-error prun-notice is-bad" role="alert">
           {t('exam.answersRefused', {
             questions: refusedNumbers(session.current, sheet.refused),
           })}
@@ -651,13 +831,7 @@ export function PracticeRunnerPage() {
           <QuestionList
             questions={part.questions}
             answers={answers}
-            /*
-             * Never disabled by this page. There is no deadline to pass, and
-             * whether a revisited section accepts edits is `M-40` — locking the
-             * inputs would be answering it. The one thing that does close the
-             * paper is submitting, and by then this page is gone.
-             */
-            disabled={submitState === 'submitting'}
+            disabled={inputsLocked}
             onChange={markEdited}
             renderSpecial={(question, value) =>
               question.type === 'speaking-response' ? (
@@ -667,7 +841,7 @@ export function PracticeRunnerPage() {
                   prepSeconds={timingFor(section, part.partNumber).prepSeconds}
                   responseSeconds={timingFor(section, part.partNumber).responseSeconds}
                   storedId={value}
-                  disabled={submitState === 'submitting'}
+                  disabled={inputsLocked}
                   onStored={(recordingId) => recorded(question.id, recordingId)}
                 />
               ) : question.type === 'essay-task' ? (
@@ -675,7 +849,7 @@ export function PracticeRunnerPage() {
                   <QuestionInput
                     question={question}
                     value={value}
-                    disabled={submitState === 'submitting'}
+                    disabled={inputsLocked}
                     labelledBy={`q-${question.id}-name`}
                     onChange={(next) => markEdited(question.id, next)}
                   />
@@ -688,14 +862,18 @@ export function PracticeRunnerPage() {
       </main>
 
       <PracticeFooter
+        key={section.module}
         parts={parts}
         activePart={activePart}
         answers={answers}
         unconfirmed={unconfirmed}
         busy={submitState === 'submitting'}
+        ending={advances ? 'advance' : 'submit'}
+        nextNote={nextNote}
         onGoToPart={goToPart}
         onScrollToSlot={scrollToSlot}
         onSubmit={openConfirm}
+        onAdvance={() => void advance()}
       />
 
       {confirming && (

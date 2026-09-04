@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { GoalCoachingPanel } from '../learning/GoalCoachingPanel.js';
+import { StreakPanel } from '../learning/StreakPanel.js';
 import type { ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.js';
@@ -204,7 +206,9 @@ export function StudentDashboardPage() {
       <main className="dash-main">
         <header className="dash-head">
           <p className="dash-eyebrow">{t('dash.eyebrow')}</p>
-          <h1 className="dash-greeting">{t('home.greeting', { name: user.displayName })}</h1>
+          <h1 className="dash-greeting">
+            {t('home.greeting', { name: user.displayName })} <StreakPanel variant="badge" />
+          </h1>
           <p className="dash-lead">{t('dash.lead')}</p>
         </header>
 
@@ -407,6 +411,11 @@ export function StudentDashboardPage() {
             back.
           */}
           <aside className="dash-col-side" aria-label={t('dash.progressLabel')}>
+            {/* Goal first: "where do I stand" is the question the rail answers,
+                and the coaching block answers it in one sentence before the
+                numbers do. */}
+            <GoalCoachingPanel />
+
             {sittings !== null && sittings.length > 0 && <StatStrip sittings={sittings} />}
 
             {sittings !== null && (

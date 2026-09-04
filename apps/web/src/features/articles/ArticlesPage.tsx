@@ -2,6 +2,9 @@ import { useI18n } from '../../i18n/index.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
+import { PageHead } from '../chrome/PageHead.js';
+import { useAuth } from '../auth/AuthContext.js';
+import '../../styles/app-shell.css';
 import { Pagination } from '../chrome/Pagination.js';
 import { fold } from '../../lib/fold.js';
 import { useReveal } from '../landing/useReveal.js';
@@ -83,11 +86,22 @@ export function ArticlesPage() {
     setQuery('');
   }
 
+  const { user } = useAuth();
+  const compact = user !== null;
+
   return (
-    <div className="art-page prac-page">
+    <div className={`art-page prac-page${compact ? ' app-page' : ''}`}>
       <Breadcrumb trail={[{ label: 'Trang chủ', to: Paths.home }, { label: 'Bài viết' }]} />
 
-      <KnowledgeHero />
+      {compact ? (
+        <PageHead
+          eyebrow="Kiến thức"
+          title="Bài viết"
+          lead="Bài hướng dẫn và mẹo luyện thi do VNI đăng."
+        />
+      ) : (
+        <KnowledgeHero />
+      )}
 
       {/* The toolbar overlaps the hero's lower edge, so the first thing under
           the headline is the control the page is organised around. */}

@@ -547,7 +547,7 @@ it('sends a sitting that has already expired to its results rather than renderin
 
   open('/students/session/sit-full');
 
-  await waitFor(() => expect(window.location.pathname).toBe('/students/session/sit-full/results'));
+  await waitFor(() => expect(window.location.pathname).toBe('/practice/results/sit-full'));
 
   // And the runner is gone, rather than sitting behind the results.
   expect(screen.queryByRole('button', { name: 'Nộp bài' })).toBeNull();

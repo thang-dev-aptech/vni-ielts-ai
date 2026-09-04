@@ -100,6 +100,15 @@ public sealed class MongoContext
     internal IMongoCollection<Explanations.CanonicalExplanationDocument> CanonicalExplanations =>
         _db.GetCollection<Explanations.CanonicalExplanationDocument>("canonical_explanations");
 
+    internal IMongoCollection<Learning.LearnerGoalDocument> LearnerGoals =>
+        _db.GetCollection<Learning.LearnerGoalDocument>("learner_goals");
+
+    internal IMongoCollection<Learning.LearnerActivityDayDocument> LearnerActivityDays =>
+        _db.GetCollection<Learning.LearnerActivityDayDocument>("learner_activity_days");
+
+    internal IMongoCollection<Learning.CoachingAdviceDocument> CoachingAdvice =>
+        _db.GetCollection<Learning.CoachingAdviceDocument>("coaching_advice");
+
     /// <summary>
     /// Refuses to start against a node that cannot do transactions.
     ///
@@ -216,6 +225,24 @@ public sealed class MongoContext
                     .Ascending(t => t.UserId)
                     .Ascending(t => t.FamilyId),
                 new CreateIndexOptions { Name = "ix_refresh_user_family" }),
+            cancellationToken: ct);
+
+        // The heatmap reads one learner's days in a date range.
+        await LearnerActivityDays.Indexes.CreateOneAsync(
+            new CreateIndexModel<Learning.LearnerActivityDayDocument>(
+                Builders<Learning.LearnerActivityDayDocument>.IndexKeys
+                    .Ascending(d => d.UserId)
+                    .Ascending(d => d.Day),
+                new CreateIndexOptions { Name = "ix_activity_user_day" }),
+            cancellationToken: ct);
+
+        // Advice for one standing is worth a week; after that the model is
+        // asked again so a prompt improvement reaches learners who have not
+        // moved.
+        await CoachingAdvice.Indexes.CreateOneAsync(
+            new CreateIndexModel<Learning.CoachingAdviceDocument>(
+                Builders<Learning.CoachingAdviceDocument>.IndexKeys.Ascending(a => a.CreatedAt),
+                new CreateIndexOptions { Name = "ttl_coaching_advice", ExpireAfter = TimeSpan.FromDays(7) }),
             cancellationToken: ct);
 
         // Idempotency records expire themselves after 24 hours. Without a TTL

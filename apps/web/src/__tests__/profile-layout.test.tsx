@@ -37,6 +37,33 @@ const me = {
   hasPassword: false,
 };
 
+/** No goal, no bands: the coaching block opens on the target picker. */
+const coachingFixture = {
+  goal: null,
+  skills: ['reading', 'listening', 'writing', 'speaking'].map((module) => ({
+    module,
+    currentBand: null,
+    gap: null,
+    state: 'none',
+    sessionId: null,
+    measuredAt: null,
+    detail: null,
+  })),
+  focus: [],
+  ai: { status: 'no-goal', summary: null, tips: [], model: null },
+};
+
+const activityFixture = {
+  timeZone: 'Asia/Ho_Chi_Minh',
+  today: '2026-09-04',
+  days: [],
+  currentStreak: 0,
+  longestStreak: 0,
+  activeToday: false,
+  flame: false,
+  flameThreshold: 3,
+};
+
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -51,6 +78,9 @@ function openProfile(path = '/profile') {
     vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes('/api/v1/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       return json({ providers: [] });
     }),
@@ -77,35 +107,24 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it('shows the IELTS goal block with every figure absent rather than invented', async () => {
-  await openProfile();
-
-  const goal = screen.getByRole('region', { name: 'Mục tiêu IELTS' });
-
-  for (const label of ['Band hiện tại', 'Band mục tiêu', 'Ngày thi dự kiến']) {
-    expect(within(goal).getByText(label)).toBeInTheDocument();
-  }
-
-  // Four stats and four skills, and not one of them carries a number.
-  expect(within(goal).getAllByText('—')).toHaveLength(8);
-
-  const text = goal.textContent ?? '';
-  expect(text).not.toMatch(/\d/);
-  expect(text).not.toMatch(/%/);
-});
-
-it('lists the four skills as one component, not four different cards', async () => {
-  await openProfile();
-
-  const goal = screen.getByRole('region', { name: 'Mục tiêu IELTS' });
-  const rows = within(goal).getAllByRole('listitem');
-
-  expect(rows.map((row) => row.textContent?.replace('—', '').trim())).toEqual([
+it('shows the goal block with the four skills and no invented band', async () => {
+  // The goal block used to be a placeholder of em dashes. It is now the
+  // coaching panel: a target picker and the four skills, each honestly
+  // "Chưa có điểm" until a sitting produces a band. Nothing numeric is drawn
+  // for a skill that has no band; the only digits on the block are the
+  // targets a learner can pick.
+  await openProfile('/profile?tab=progress');
+  const goal = await screen.findByRole('region', { name: 'Mục tiêu và lời khuyên' });
+  // The heading is on screen before the fetch resolves; the rows are not.
+  const rows = await within(goal).findAllByRole('listitem');
+  expect(rows.map((row) => row.textContent?.replace(/—|Chưa có điểm/g, '').trim())).toEqual([
     'Reading',
     'Listening',
     'Writing',
     'Speaking',
   ]);
+  expect(within(goal).getAllByText('Chưa có điểm')).toHaveLength(4);
+  expect(within(goal).getByRole('combobox', { name: 'Mục tiêu band' })).toHaveValue('');
 });
 
 it('separates account actions from the learning view in the module nav', async () => {
@@ -133,17 +152,20 @@ it('keeps ?tab=progress addressable after the rename', async () => {
   // label must not move the address.
   await openProfile('/profile?tab=progress');
 
-  expect(await screen.findByText(/chưa có gì/i)).toBeInTheDocument();
+  // `toBeTruthy`, not `toBeInTheDocument`: the panel swaps its loading tree for
+  // the loaded one, and the heading found first may be the one just replaced.
+  expect(await screen.findByRole('heading', { name: 'Ngày học liên tiếp' })).toBeTruthy();
 });
 
-it('states no XP, no streak and no purchased plan', async () => {
+it('states no XP and no purchased plan', async () => {
   await openProfile();
 
   const page = document.body.textContent ?? '';
 
   // XP and streaks are gamification nobody has asked for; a plan implies a
   // commercial model that `B-4`/`B-5` have not settled.
+  // The streak is real now (server-counted active days, 04/09/2026), so it is
+  // no longer on this list; XP and purchased plans still do not exist.
   expect(page).not.toMatch(/\bXP\b/);
-  expect(page).not.toMatch(/chuỗi ngày|streak/i);
   expect(page).not.toMatch(/Gói đã mua|Nạp tiền/);
 });

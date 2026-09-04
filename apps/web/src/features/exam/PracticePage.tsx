@@ -1,6 +1,9 @@
 import { useI18n } from '../../i18n/index.js';
 import { Link } from 'react-router-dom';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
+import { PageHead } from '../chrome/PageHead.js';
+import { useAuth } from '../auth/AuthContext.js';
+import '../../styles/app-shell.css';
 import { Contact } from '../landing/contact.js';
 import { useReveal } from '../landing/useReveal.js';
 import { Paths } from '../../routes/paths.js';
@@ -135,8 +138,10 @@ const FAQ: FaqEntry[] = [
     q: 'Xem lại bài đã làm ở đâu?',
     a: (
       <p>
-        Trong khu vực học sinh. Mỗi buổi nằm lại kèm điểm từng kỹ năng, và bạn xem được từng câu
-        mình đã trả lời gì. Buổi nào chưa chấm thì hiện dấu gạch chứ không hiện 0.
+        Ngay sau khi nộp bài, trên một trang kết quả riêng (cùng header với trang luyện tập). Mỗi
+        buổi nằm lại kèm điểm từng kỹ năng, và bạn xem được từng câu mình đã trả lời gì. Buổi nào
+        chưa chấm thì hiện dấu gạch chứ không hiện 0. Lịch sử các buổi vẫn xem được từ trang học
+        sinh.
       </p>
     ),
   },
@@ -146,6 +151,8 @@ export function PracticePage() {
   const { t } = useI18n();
   usePageTitle(t('title.practice'));
   useReveal();
+  const { user } = useAuth();
+  const compact = user !== null;
 
   return (
     /*
@@ -154,13 +161,20 @@ export function PracticePage() {
       them. Scoping it to a class rather than editing the shared selectors
       leaves the landing page's display headings alone.
     */
-    <div className="prac-page">
+    <div className={`prac-page${compact ? ' app-page' : ''}`}>
       {/* Two crumbs, not three. The middle one read "Luyện IELTS" and pointed
           at `/practice` — the page it was rendered on. `Breadcrumb` states the
           rule that broke: linking a page to itself is a control that appears to
           do something and does nothing. There is no parent between the home
           page and this one. */}
       <Breadcrumb trail={[{ label: 'Trang chủ', to: Paths.home }, { label: 'Luyện 4 kỹ năng' }]} />
+      {compact && (
+        <PageHead
+          eyebrow="Luyện IELTS"
+          title="Luyện 4 kỹ năng"
+          lead="Chọn kỹ năng, chọn đề, làm như thi thật. Reading và Listening chấm theo đáp án; Writing và Speaking do AI chấm, luôn mang nhãn tham khảo."
+        />
+      )}
 
       {/*
           ── Hero ────────────────────────────────────────────────────────────
@@ -168,41 +182,45 @@ export function PracticePage() {
           Short on purpose. The workspace under it is the reason for the page,
           and every pixel here is a pixel the reader scrolls past to reach it.
         */}
-      <section className="prac-hero">
-        <div className="container prac-hero-grid">
-          <div className="prac-hero-copy">
-            <div className="eyebrow green-eyebrow">Luyện IELTS</div>
-            {/* "theo đúng mục tiêu của bạn" is 26 characters and does not fit
+      {!compact && (
+        <>
+          <section className="prac-hero">
+            <div className="container prac-hero-grid">
+              <div className="prac-hero-copy">
+                <div className="eyebrow green-eyebrow">Luyện IELTS</div>
+                {/* "theo đúng mục tiêu của bạn" is 26 characters and does not fit
                 one line at 390px, so it wrapped and left "bạn" alone on a third.
                 Dropping "đúng" costs nothing and makes the headline two lines at
                 every width — which is what the `<br>` is there to promise. */}
-            <h1>
-              Luyện 4 kỹ năng <br />
-              <span>theo mục tiêu của bạn</span>
-            </h1>
-            <p>
-              Chọn kỹ năng, chọn đề, làm như thi thật. Reading và Listening chấm theo đáp án ngay
-              khi hết phần; Writing và Speaking do AI chấm và luôn mang nhãn tham khảo.
-            </p>
+                <h1>
+                  Luyện 4 kỹ năng <br />
+                  <span>theo mục tiêu của bạn</span>
+                </h1>
+                <p>
+                  Chọn kỹ năng, chọn đề, làm như thi thật. Reading và Listening chấm theo đáp án
+                  ngay khi hết phần; Writing và Speaking do AI chấm và luôn mang nhãn tham khảo.
+                </p>
 
-            <div className="prac-hero-ctas">
-              {/* The browser scrolls; `jumpToSection` moves the keyboard with
+                <div className="prac-hero-ctas">
+                  {/* The browser scrolls; `jumpToSection` moves the keyboard with
                   it. Following an anchor leaves focus on `<body>`. */}
-              <a className="btn btn-primary" href="#work" onClick={() => jumpToSection('work')}>
-                Bắt đầu luyện <span aria-hidden="true">→</span>
-              </a>
-              <a className="btn btn-secondary" href="#how" onClick={() => jumpToSection('how')}>
-                Cách luyện ở đây
-              </a>
-            </div>
-          </div>
+                  <a className="btn btn-primary" href="#work" onClick={() => jumpToSection('work')}>
+                    Bắt đầu luyện <span aria-hidden="true">→</span>
+                  </a>
+                  <a className="btn btn-secondary" href="#how" onClick={() => jumpToSection('how')}>
+                    Cách luyện ở đây
+                  </a>
+                </div>
+              </div>
 
-          {/* Below 980px this is `display: none` — it is `aria-hidden`
+              {/* Below 980px this is `display: none` — it is `aria-hidden`
               decoration, and on a tablet it was 340px of the only screen the
               reader sees before the workspace. → `practice.css` */}
-          <PracticeHeroArt />
-        </div>
-      </section>
+              <PracticeHeroArt />
+            </div>
+          </section>
+        </>
+      )}
 
       {/*
           ── Workspace ───────────────────────────────────────────────────────
@@ -219,120 +237,128 @@ export function PracticePage() {
       </section>
 
       {/* ── Giới thiệu ──────────────────────────────────────────────────── */}
-      <section className="section intro-section" id="about">
-        <div className="container intro-wrap">
-          <div className="section-heading" data-reveal>
-            <div className="eyebrow green-eyebrow">Về khu luyện tập</div>
-            <h2>Luyện IELTS đủ 4 kỹ năng</h2>
-          </div>
+      {!compact && (
+        <>
+          <section className="section intro-section" id="about">
+            <div className="container intro-wrap">
+              <div className="section-heading" data-reveal>
+                <div className="eyebrow green-eyebrow">Về khu luyện tập</div>
+                <h2>Luyện IELTS đủ 4 kỹ năng</h2>
+              </div>
 
-          <div className="intro-body" data-reveal>
-            <p>
-              Đây là khu luyện tập của VNI Education. Đề do đội ngũ học thuật biên soạn và rà trước
-              khi xuất bản, chạy trên cùng một engine với phần thi thử — cùng đồng hồ, cùng cách
-              chấm, cùng cách lưu bài.
-            </p>
+              <div className="intro-body" data-reveal>
+                <p>
+                  Đây là khu luyện tập của VNI Education. Đề do đội ngũ học thuật biên soạn và rà
+                  trước khi xuất bản, chạy trên cùng một engine với phần thi thử — cùng đồng hồ,
+                  cùng cách chấm, cùng cách lưu bài.
+                </p>
 
-            <h3>Bạn luyện được gì</h3>
-            <p>
-              Bốn kỹ năng, ở hai chế độ. Luyện từng kỹ năng khi bạn có 20–40 phút và muốn tập trung
-              vào một chỗ yếu; thi thử full khi bạn muốn đo sức trong một phiên đủ bốn kỹ năng theo
-              đúng thứ tự phòng thi.
-            </p>
+                <h3>Bạn luyện được gì</h3>
+                <p>
+                  Bốn kỹ năng, ở hai chế độ. Luyện từng kỹ năng khi bạn có 20–40 phút và muốn tập
+                  trung vào một chỗ yếu; thi thử full khi bạn muốn đo sức trong một phiên đủ bốn kỹ
+                  năng theo đúng thứ tự phòng thi.
+                </p>
 
-            <h3>Phù hợp với ai</h3>
-            <ul>
-              <li>Người mới bắt đầu, cần một mốc thật thay vì tự đoán trình độ.</li>
-              <li>Người đang ôn thi, cần làm đề đều và xem lại chỗ sai.</li>
-              <li>
-                Người đã học ở lớp và muốn luyện thêm ngoài giờ — kết quả nằm trong tài khoản, giáo
-                viên không phải chấm lại từ đầu.
-              </li>
-            </ul>
+                <h3>Phù hợp với ai</h3>
+                <ul>
+                  <li>Người mới bắt đầu, cần một mốc thật thay vì tự đoán trình độ.</li>
+                  <li>Người đang ôn thi, cần làm đề đều và xem lại chỗ sai.</li>
+                  <li>
+                    Người đã học ở lớp và muốn luyện thêm ngoài giờ — kết quả nằm trong tài khoản,
+                    giáo viên không phải chấm lại từ đầu.
+                  </li>
+                </ul>
 
-            <h3>Dùng trang này thế nào</h3>
-            <p>
-              Chọn kỹ năng ở hàng trên cùng, lọc theo loại đề hoặc thời lượng nếu cần, rồi bấm{' '}
-              <em>Bắt đầu</em> ở bài bạn muốn làm. Bài mở ra ngay, không qua bước xác nhận nào.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <SkillsOverview />
-
-      <HowItWorks />
-
-      {/* ── Tài nguyên ──────────────────────────────────────────────────── */}
-      <section className="section" id="resources">
-        <div className="container">
-          <div className="section-heading row-heading" data-reveal>
-            <div>
-              <div className="eyebrow green-eyebrow">Tài nguyên</div>
-              <h2>Tài nguyên giúp bạn học tốt hơn</h2>
+                <h3>Dùng trang này thế nào</h3>
+                <p>
+                  Chọn kỹ năng ở hàng trên cùng, lọc theo loại đề hoặc thời lượng nếu cần, rồi bấm{' '}
+                  <em>Bắt đầu</em> ở bài bạn muốn làm. Bài mở ra ngay, không qua bước xác nhận nào.
+                </p>
+              </div>
             </div>
-            <Link className="text-link" to={Paths.documents}>
-              Vào kho tài liệu →
-            </Link>
-          </div>
+          </section>
 
-          <div className="resource-grid" data-reveal data-reveal-stagger>
-            <Link className="resource-card" to={Paths.documents}>
-              <h3>Kho tài liệu</h3>
-              <p>Tài liệu luyện thi theo kỹ năng, đọc ngay trên web hoặc tải về dùng offline.</p>
-              <span className="resource-go">Mở kho tài liệu →</span>
-            </Link>
+          <SkillsOverview />
 
-            <Link className="resource-card" to={Paths.articles}>
-              <h3>Trung tâm kiến thức</h3>
-              <p>Hướng dẫn từng dạng câu hỏi, cách phân bổ thời gian và những lỗi hay gặp.</p>
-              <span className="resource-go">Đọc bài viết →</span>
-            </Link>
+          <HowItWorks />
 
-            <Link className="resource-card" to={Paths.dictation}>
-              <h3>Nghe chép chính tả</h3>
-              <p>Nghe từng câu, gõ lại, và đối chiếu tới từng từ. Luyện tai trước khi vào đề.</p>
-              <span className="resource-go">Luyện chính tả →</span>
-            </Link>
-          </div>
-        </div>
-      </section>
+          {/* ── Tài nguyên ──────────────────────────────────────────────────── */}
+          <section className="section" id="resources">
+            <div className="container">
+              <div className="section-heading row-heading" data-reveal>
+                <div>
+                  <div className="eyebrow green-eyebrow">Tài nguyên</div>
+                  <h2>Tài nguyên giúp bạn học tốt hơn</h2>
+                </div>
+                <Link className="text-link" to={Paths.documents}>
+                  Vào kho tài liệu →
+                </Link>
+              </div>
 
-      {/* ── Câu hỏi thường gặp ──────────────────────────────────────────── */}
-      <section className="faq-section" id="faq">
-        <div className="container faq-wrap">
-          <div className="section-heading centered" data-reveal>
-            <div className="eyebrow green-eyebrow">Bạn có thể đang hỏi</div>
-            <h2>Câu hỏi thường gặp</h2>
-          </div>
+              <div className="resource-grid" data-reveal data-reveal-stagger>
+                <Link className="resource-card" to={Paths.documents}>
+                  <h3>Kho tài liệu</h3>
+                  <p>
+                    Tài liệu luyện thi theo kỹ năng, đọc ngay trên web hoặc tải về dùng offline.
+                  </p>
+                  <span className="resource-go">Mở kho tài liệu →</span>
+                </Link>
 
-          <FaqAccordion entries={FAQ} />
-        </div>
-      </section>
+                <Link className="resource-card" to={Paths.articles}>
+                  <h3>Trung tâm kiến thức</h3>
+                  <p>Hướng dẫn từng dạng câu hỏi, cách phân bổ thời gian và những lỗi hay gặp.</p>
+                  <span className="resource-go">Đọc bài viết →</span>
+                </Link>
 
-      {/* ── CTA ─────────────────────────────────────────────────────────── */}
-      <section className="cta-section">
-        <div className="container cta-box">
-          <div className="cta-content">
-            {/* Sentence case. All-caps Vietnamese collides tone marks with
+                <Link className="resource-card" to={Paths.dictation}>
+                  <h3>Nghe chép chính tả</h3>
+                  <p>
+                    Nghe từng câu, gõ lại, và đối chiếu tới từng từ. Luyện tai trước khi vào đề.
+                  </p>
+                  <span className="resource-go">Luyện chính tả →</span>
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Câu hỏi thường gặp ──────────────────────────────────────────── */}
+          <section className="faq-section" id="faq">
+            <div className="container faq-wrap">
+              <div className="section-heading centered" data-reveal>
+                <div className="eyebrow green-eyebrow">Bạn có thể đang hỏi</div>
+                <h2>Câu hỏi thường gặp</h2>
+              </div>
+
+              <FaqAccordion entries={FAQ} />
+            </div>
+          </section>
+
+          {/* ── CTA ─────────────────────────────────────────────────────────── */}
+          <section className="cta-section">
+            <div className="container cta-box">
+              <div className="cta-content">
+                {/* Sentence case. All-caps Vietnamese collides tone marks with
                 the cap height — "SẴN SÀNG LÀM ĐỀ" stacks three of them. */}
-            <span className="eyebrow">✦ Sẵn sàng làm đề?</span>
-            <h2>
-              Chọn <span>một kỹ năng</span> và bắt đầu bài luyện đầu tiên
-            </h2>
-            <p>Không cần thẻ. Còn phân vân thì gọi cho đội ngũ VNI, có người nghe máy.</p>
-          </div>
+                <span className="eyebrow">✦ Sẵn sàng làm đề?</span>
+                <h2>
+                  Chọn <span>một kỹ năng</span> và bắt đầu bài luyện đầu tiên
+                </h2>
+                <p>Không cần thẻ. Còn phân vân thì gọi cho đội ngũ VNI, có người nghe máy.</p>
+              </div>
 
-          <div className="cta-actions">
-            <a className="btn btn-white" href="#work" onClick={() => jumpToSection('work')}>
-              Bắt đầu luyện <span aria-hidden="true">→</span>
-            </a>
-            <a className="btn btn-outline-white" href={Contact.phoneHref}>
-              Hotline {Contact.phoneDisplay}
-            </a>
-          </div>
-        </div>
-      </section>
+              <div className="cta-actions">
+                <a className="btn btn-white" href="#work" onClick={() => jumpToSection('work')}>
+                  Bắt đầu luyện <span aria-hidden="true">→</span>
+                </a>
+                <a className="btn btn-outline-white" href={Contact.phoneHref}>
+                  Hotline {Contact.phoneDisplay}
+                </a>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

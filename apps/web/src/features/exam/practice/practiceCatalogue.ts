@@ -29,6 +29,15 @@ export interface PracticeItem {
   title: string;
   /** `academic` · `general`, lower-cased by the API. */
   variant: string;
+  /**
+   * The paper's own description, or null.
+   *
+   * <b>The same sentence on every card derived from one exam, and that is
+   * correct.</b> It describes the paper, not the sitting — so Đề 1's four
+   * single-skill cards and its full-test card all carry it. What differs
+   * between them is already said by the skill badge and the minutes.
+   */
+  description: string | null;
   mode: PracticeMode;
   /** The skill being sat. Null for a full test, which sits all of them. */
   module: ExamModule | null;
@@ -104,6 +113,7 @@ export function toSingleItems(exams: ExamCatalogueItem[]): PracticeItem[] {
         examVersionId: exam.examVersionId,
         title: exam.title,
         variant: exam.variant,
+        description: exam.description,
         mode: 'single',
         module: summary.module,
         modules,
@@ -152,6 +162,7 @@ export function toFullItems(exams: ExamCatalogueItem[]): {
       examVersionId: exam.examVersionId,
       title: exam.title,
       variant: exam.variant,
+      description: exam.description,
       mode: 'full',
       module: null,
       // In sitting order from the version's sequence profile.

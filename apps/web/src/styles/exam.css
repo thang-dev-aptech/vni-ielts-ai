@@ -934,34 +934,71 @@
 
 /* ── Results ────────────────────────────────────────────────────────────── */
 
+/*
+ * ── The overall band ──────────────────────────────────────────────────────
+ *
+ * <b>The one moment in the product worth celebrating, styled like it.</b> A
+ * learner reaches this screen having just finished a timed exam; everything
+ * before it is deliberately calm (product law L1) and this is where the
+ * restraint is allowed to stop. It is the surface the 2026-09-03 Duolingo
+ * adaptation exists for.
+ *
+ * Treatment is `landing.css`'s, not a second dialect: a solid green sticker
+ * with a 2px edge and a hard `0 4px 0` offset — physical thickness, not
+ * elevation — rather than the soft tinted panel that stood here.
+ *
+ * <b>The label is near-black on the green, and that is measured.</b> White on
+ * `--green` is 2.86:1; `--ink` on it is 7.9. `assets/brand/README.md` reached
+ * the same rule independently for the brand orange and green: a surface filled
+ * with either carries black text. This is that rule, applied.
+ */
 .result-overall {
   display: flex;
   flex-wrap: wrap;
-  /* Centre, not baseline: the value is a 44px mono glyph beside a 16px label,
-     and an em dash sits high in its own box — on the baseline it floated above
-     the words it belongs to. */
+  /* Centre, not baseline: the value is a 44px glyph beside a 16px label, and
+     an em dash sits high in its own box — on the baseline it floated above the
+     words it belongs to. */
   align-items: center;
   gap: var(--s-3);
   padding: var(--s-5);
-  border: 1px solid #c4e6d2;
-  border-radius: 20px;
-  background: var(--ok-soft);
+  border: var(--bw-2) solid var(--ink);
+  border-radius: var(--r-lg);
+  background: var(--green, #10b050);
+  box-shadow: 0 4px 0 var(--green-dark, #0a8d3c);
 }
 
 .result-overall-label {
   font-size: var(--t-16);
-  font-weight: var(--w-emph);
+  font-weight: var(--w-display);
   line-height: var(--lh-body);
-  color: var(--ink-2);
+  color: var(--ink);
 }
 
 .result-overall-value {
-  font-family: var(--mono);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
   font-size: var(--t-44);
-  font-weight: var(--w-display);
+  font-weight: var(--w-display-heavy);
   line-height: var(--lh-display);
   color: var(--ink);
+}
+
+/*
+ * <b>No band, no celebration.</b> A green sticker around an em dash congratulates
+ * a learner on a result they have not been given — and Speaking reaches exactly
+ * that state on every sitting until an ASR provider exists. The panel drops back
+ * to paper with a plain edge, and the note beside it keeps saying why.
+ * → product law L3
+ */
+.result-overall:has(.result-overall-value.is-none) {
+  border-color: var(--line);
+  background: var(--card);
+  box-shadow: none;
+}
+
+.result-overall:has(.result-overall-value.is-none) .result-overall-label {
+  color: var(--ink-2);
+  font-weight: var(--w-emph);
 }
 
 /*
@@ -992,13 +1029,19 @@
   list-style: none;
 }
 
+/*
+ * One skill's row. A 2px edge and the tokenised radius — the raw `14px` here
+ * was one of the seventeen loose values DESIGN.md counted, and a row that sits
+ * beside the band sticker cannot be a hairline without looking unfinished next
+ * to it.
+ */
 .result-row {
   display: flex;
   align-items: center;
   gap: var(--s-3);
   padding: var(--s-3) var(--s-4);
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: var(--bw-2) solid var(--line);
+  border-radius: var(--r-md);
   background: var(--card);
 }
 
@@ -1006,10 +1049,10 @@
   flex: none;
   min-width: var(--s-7);
   text-align: right;
-  font-family: var(--mono);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
   font-size: var(--t-24);
-  font-weight: var(--w-display);
+  font-weight: var(--w-display-heavy);
   line-height: var(--lh-body);
   color: var(--ink);
 }
@@ -1350,11 +1393,20 @@
   gap: var(--s-4);
 }
 
+/*
+ * One marked Writing task — the AI's four criterion bands and the evidence for
+ * each. Live since 2026-09-02; before that this card had never rendered a real
+ * marking in anyone's browser.
+ *
+ * A 2px edge rather than a hairline, because this card is the one carrying a
+ * judgement about the learner's own writing. It is a surface to read a score
+ * off, which is the split `--bw-2` was introduced for.
+ */
 .result-marking-card {
   display: grid;
   gap: var(--s-3);
   padding: var(--s-4);
-  border: 1px solid var(--line);
+  border: var(--bw-2) solid var(--line);
   border-radius: var(--r-md);
   background: var(--sunk);
 }
@@ -1374,8 +1426,10 @@
 
 .result-marking-band {
   flex: none;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
   font-size: var(--t-24);
-  font-weight: var(--w-display);
+  font-weight: var(--w-display-heavy);
   line-height: var(--lh-body);
 }
 
@@ -1404,12 +1458,30 @@
   list-style: none;
 }
 
+/*
+ * One criterion. Paper on the sunken card, keeping a hairline rather than the
+ * 2px edge above it: four boxed criteria inside a boxed card inside a boxed
+ * section is the "cards inside cards" the design guide warns about, and the
+ * nesting reads as clutter rather than structure.
+ */
 .result-criteria > li {
   display: grid;
   gap: var(--s-2);
   padding: var(--s-3);
+  border: var(--bw-1) solid var(--line-2);
   border-radius: var(--r-md);
   background: var(--card);
+}
+
+/* The criterion's band, in the display voice — the number only. Setting this on
+   the flex wrapper would put display weight on the criterion's name as well,
+   and four heavy labels beside four heavy numbers is a row with no hierarchy
+   left in it. */
+.result-criteria > li > span > .num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--w-display-heavy);
+  color: var(--ink);
 }
 
 .result-criteria > li > span {
@@ -1784,4 +1856,60 @@
   min-width: 3ch;
   font-weight: var(--w-emph);
   color: var(--ink-2);
+}
+
+/* ── Results page under `/practice` chrome ───────────────────────────────
+ *
+ * Same breadcrumb + container rhythm as the catalogue. Not the dashboard
+ * column: finishing a paper is still that paper.
+ */
+.result-page .result-hero {
+  padding: 28px 0 56px;
+  background:
+    radial-gradient(circle at 88% 12%, rgb(16 176 80 / 9%) 0%, transparent 42%),
+    linear-gradient(180deg, #f3f9f4 0%, rgb(255 255 255 / 0) 100%);
+  border-bottom: 1px solid rgb(229 229 229 / 60%);
+}
+
+.result-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  max-width: 880px;
+}
+
+.result-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.result-eyebrow {
+  margin: 0;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.result-title {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.result-lead {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--ink-2);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.result-next .btn {
+  text-decoration: none;
 }

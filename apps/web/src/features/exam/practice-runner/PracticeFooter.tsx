@@ -47,9 +47,12 @@ export function PracticeFooter({
   answers,
   unconfirmed,
   busy,
+  ending = 'submit',
+  nextNote,
   onGoToPart,
   onScrollToSlot,
   onSubmit,
+  onAdvance,
 }: {
   parts: PartView[];
   activePart: number;
@@ -57,9 +60,18 @@ export function PracticeFooter({
   /** Questions edited here whose save the server has not acknowledged. */
   unconfirmed: ReadonlySet<string>;
   busy: boolean;
+  /**
+   * Full Test mid-run ends with "Tiếp theo" (`E-12`); everything else ends
+   * with "Nộp bài". The two are never shown together — a footer with both
+   * would invite closing the session when the learner meant to advance.
+   */
+  ending?: 'submit' | 'advance';
+  /** Said beside "Tiếp theo" — irreversible, named skills. */
+  nextNote?: string | null;
   onGoToPart: (index: number) => void;
   onScrollToSlot: (questionId: string, slotIndex: number) => void;
   onSubmit: () => void;
+  onAdvance?: () => void;
 }) {
   const { t } = useI18n();
 
@@ -198,9 +210,25 @@ export function PracticeFooter({
         >
           {t('practice.nextSection')}
         </button>
-        <button type="button" className="exam-submit" disabled={busy} onClick={onSubmit}>
-          {t('exam.submit')}
-        </button>
+        {ending === 'advance' ? (
+          <>
+            <button
+              type="button"
+              className="exam-submit"
+              disabled={busy}
+              onClick={() => onAdvance?.()}
+            >
+              {t('exam.next')}
+            </button>
+            {nextNote != null && nextNote !== '' && (
+              <p className="result-next-note prun-next-note">{nextNote}</p>
+            )}
+          </>
+        ) : (
+          <button type="button" className="exam-submit" disabled={busy} onClick={onSubmit}>
+            {t('exam.submit')}
+          </button>
+        )}
       </div>
     </footer>
   );

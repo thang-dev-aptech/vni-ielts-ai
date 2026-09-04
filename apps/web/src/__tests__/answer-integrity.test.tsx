@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { StrictMode } from 'react';
 import { IDBFactory } from 'fake-indexeddb';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
@@ -136,6 +136,16 @@ function json(body: unknown, status = 200): Response {
     status,
     headers: { 'Content-Type': 'application/json', 'X-Server-Time': new Date().toISOString() },
   });
+}
+
+async function confirmSubmit() {
+  const footer = [...screen.getAllByRole('button', { name: 'Nộp bài' })].find(
+    (button) => button.closest('dialog, [role="dialog"]') === null,
+  );
+  expect(footer).toBeTruthy();
+  await userEvent.click(footer!);
+  const card = await screen.findByRole('dialog');
+  await userEvent.click(within(card).getByRole('button', { name: 'Nộp bài' }));
 }
 
 /**
@@ -302,7 +312,7 @@ it('keeps the answers a refused batch did not name, and does not submit without 
    * never be written. The ordering is the whole point, so it is recorded rather
    * than inferred from two independent counters.
    */
-  await userEvent.click(screen.getByRole('button', { name: /Nộp bài/ }));
+  await confirmSubmit();
 
   await waitFor(() => expect(submits).toBe(1));
 
@@ -481,7 +491,7 @@ it('brings back an answer the tab was carrying when it went away', async () => {
   // Unsent, not saved: the chip does not claim it, and the next flush carries it.
   expect(document.querySelector('.save-chip')?.textContent).not.toContain('Đã lưu');
 
-  await userEvent.click(screen.getByRole('button', { name: /Nộp bài/ }));
+  await confirmSubmit();
   await waitFor(() => expect(sent.length).toBeGreaterThan(0));
   expect(sent[0]!['r-1']).toBe('cartography');
 
@@ -608,10 +618,7 @@ it('issues independent sequences for two slots on one question', async () => {
   const firstToken = firstSlotSave.sequences['slot-17']!;
 
   await userEvent.click(screen.getByRole('checkbox', { name: /Delta/ }));
-  await settle(
-    () => sent.filter((entry) => 'slot-18' in entry.changes).length > 0,
-    20_000,
-  );
+  await settle(() => sent.filter((entry) => 'slot-18' in entry.changes).length > 0, 20_000);
 
   const secondSlotSave = sent.find((entry) => 'slot-18' in entry.changes)!;
   expect(Object.keys(secondSlotSave.changes)).toEqual(['slot-18']);

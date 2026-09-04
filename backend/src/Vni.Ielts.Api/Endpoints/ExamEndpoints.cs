@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Exams;
+using Vni.Ielts.Application.Learning;
+using Vni.Ielts.Domain.Learning;
 using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Application.Practice;
 using Vni.Ielts.Domain.Common;
@@ -297,9 +299,12 @@ public static class ExamEndpoints
     private static async Task<IResult> StartEndpoint(
         ClaimsPrincipal principal, StartSessionRequest request, HttpContext http,
         StartExamSession legacyHandler, StartPracticeUnitSession practiceHandler,
+        LearnerPresence presence,
         CancellationToken ct)
     {
         if (principal.UserId() is not { } id) return Results.Unauthorized();
+        // Opening a paper is a day of practice whether or not it is finished.
+        await presence.TouchAsync(new UserId(id), ActivityKind.Practice, ct);
 
         if (!string.IsNullOrWhiteSpace(request.PracticeUnitId))
         {
@@ -977,7 +982,7 @@ public static class ExamEndpoints
 
     private static async Task<IResult> SubmitEndpoint(
         string sessionId, ClaimsPrincipal principal, HttpContext http,
-        SubmitExamSession handler, CancellationToken ct)
+        SubmitExamSession handler, LearnerPresence presence, CancellationToken ct)
     {
         if (principal.UserId() is not { } id) return Results.Unauthorized();
 
@@ -985,6 +990,7 @@ public static class ExamEndpoints
         {
             var results = await handler.HandleAsync(
                 new SubmitExamSessionCommand(new UserId(id), new ExamSessionId(sessionId)), ct);
+            await presence.TouchAsync(new UserId(id), ActivityKind.Submit, ct);
 
             // The paper is in. A retry must never hand it in twice.
             return Committed(http, Results.Ok(results));

@@ -44,7 +44,7 @@ async function submitPractice(page: Page, sessionId: string) {
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
   await dialog.locator('.exam-submit').click();
-  await expect(page).toHaveURL(`/students/session/${sessionId}/results`, { timeout: 30_000 });
+  await expect(page).toHaveURL(`/practice/results/${sessionId}`, { timeout: 30_000 });
   await expect(page.getByText(/Kết quả|Results/i).first()).toBeVisible();
 }
 
@@ -164,7 +164,7 @@ test.describe('practice runner', () => {
     const confirm = dialog.locator('.exam-submit');
     await confirm.dblclick({ delay: 50 });
 
-    await expect(page).toHaveURL(`/students/session/${sitting.sessionId}/results`, { timeout: 30_000 });
+    await expect(page).toHaveURL(`/practice/results/${sitting.sessionId}`, { timeout: 30_000 });
     expect(
       submits.filter((status) => status >= 200 && status < 300).length,
       'Submit must be idempotent under a double-click — one success, not two competing papers.',

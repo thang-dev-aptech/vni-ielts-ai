@@ -480,6 +480,7 @@ app.UseMiddleware<IdempotencyMiddleware>();
 app.MapAuthEndpoints();
 app.MapSsoEndpoints();
 app.MapAccountEndpoints();
+app.MapLearningEndpoints();
 app.MapExamEndpoints();
 app.MapDictationEndpoints();
 app.MapAdminEndpoints();

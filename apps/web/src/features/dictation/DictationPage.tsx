@@ -1,6 +1,9 @@
 import { useI18n } from '../../i18n/index.js';
 import { Link } from 'react-router-dom';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
+import { PageHead } from '../chrome/PageHead.js';
+import { useAuth } from '../auth/AuthContext.js';
+import '../../styles/app-shell.css';
 import { FaqAccordion, type FaqEntry } from '../chrome/FaqAccordion.js';
 import { jumpToSection } from '../chrome/jumpToSection.js';
 import { Contact } from '../landing/contact.js';
@@ -180,11 +183,21 @@ export function DictationPage() {
   usePageTitle(t('title.dictation'));
   useReveal();
 
+  const { user } = useAuth();
+  const compact = user !== null;
+
   return (
-    <div className="dict-page prac-page">
+    <div className={`dict-page prac-page${compact ? ' app-page' : ''}`}>
       <Breadcrumb
         trail={[{ label: 'Trang chủ', to: Paths.home }, { label: 'Nghe chép chính tả' }]}
       />
+      {compact && (
+        <PageHead
+          eyebrow="Luyện Listening"
+          title="Nghe chép chính tả"
+          lead="Nghe từng câu, gõ lại điều bạn nghe được, máy chủ đối chiếu tới từng từ. Không tính giờ, không có band."
+        />
+      )}
 
       {/*
           ── Hero ────────────────────────────────────────────────────────────
@@ -193,28 +206,36 @@ export function DictationPage() {
           looking for a set, and the search field is the first thing they need
           to reach. No illustration: the library below it is the visual.
         */}
-      <section className="dict-hero">
-        <div className="container">
-          <div className="eyebrow green-eyebrow">Luyện Listening</div>
-          <h1>
-            Nghe chép chính tả <br />
-            <span>để nghe rõ hơn mỗi ngày</span>
-          </h1>
-          <p>
-            Nghe từng câu, gõ lại điều bạn nghe được, và máy chủ đối chiếu tới từng từ. Không tính
-            giờ, không có band, nghe lại bao nhiêu lần cũng được.
-          </p>
+      {!compact && (
+        <>
+          <section className="dict-hero">
+            <div className="container">
+              <div className="eyebrow green-eyebrow">Luyện Listening</div>
+              <h1>
+                Nghe chép chính tả <br />
+                <span>để nghe rõ hơn mỗi ngày</span>
+              </h1>
+              <p>
+                Nghe từng câu, gõ lại điều bạn nghe được, và máy chủ đối chiếu tới từng từ. Không
+                tính giờ, không có band, nghe lại bao nhiêu lần cũng được.
+              </p>
 
-          <div className="dict-hero-ctas">
-            <a className="btn btn-primary" href="#library" onClick={() => jumpToSection('library')}>
-              Chọn bài nghe <span aria-hidden="true">→</span>
-            </a>
-            <a className="btn btn-secondary" href="#how" onClick={() => jumpToSection('how')}>
-              Cách luyện hiệu quả
-            </a>
-          </div>
-        </div>
-      </section>
+              <div className="dict-hero-ctas">
+                <a
+                  className="btn btn-primary"
+                  href="#library"
+                  onClick={() => jumpToSection('library')}
+                >
+                  Chọn bài nghe <span aria-hidden="true">→</span>
+                </a>
+                <a className="btn btn-secondary" href="#how" onClick={() => jumpToSection('how')}>
+                  Cách luyện hiệu quả
+                </a>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
 
       {/*
           ── Library ─────────────────────────────────────────────────────────
@@ -230,207 +251,220 @@ export function DictationPage() {
       </section>
 
       {/* ── Nghe chép chính tả là gì ─────────────────────────────────────── */}
-      <section className="section intro-section" id="about">
-        <div className="container intro-wrap">
-          <div className="section-heading" data-reveal>
-            <div className="eyebrow green-eyebrow">Phương pháp</div>
-            <h2>Nghe chép chính tả là gì?</h2>
-          </div>
+      {!compact && (
+        <>
+          <section className="section intro-section" id="about">
+            <div className="container intro-wrap">
+              <div className="section-heading" data-reveal>
+                <div className="eyebrow green-eyebrow">Phương pháp</div>
+                <h2>Nghe chép chính tả là gì?</h2>
+              </div>
 
-          <div className="intro-body" data-reveal>
-            <p>
-              Là bài tập nghe một câu rồi chép lại đúng những gì bạn nghe được. Không tóm ý, không
-              diễn giải — chép lại từng từ. Sau đó đối chiếu với câu gốc để biết mình nghe nhầm ở
-              đâu.
-            </p>
+              <div className="intro-body" data-reveal>
+                <p>
+                  Là bài tập nghe một câu rồi chép lại đúng những gì bạn nghe được. Không tóm ý,
+                  không diễn giải — chép lại từng từ. Sau đó đối chiếu với câu gốc để biết mình nghe
+                  nhầm ở đâu.
+                </p>
 
-            <h3>Vì sao nó hợp với Listening</h3>
-            <p>
-              Bài thi Listening chấm theo từ: điền đúng từ thì được điểm, sai một chữ là mất câu.
-              Nhưng khi luyện đề, bạn chỉ biết mình sai câu nào chứ không biết vì sao — có thể vì
-              không nghe ra từ, có thể vì nghe ra nhưng viết sai. Chép chính tả tách hai chuyện đó
-              ra.
-            </p>
+                <h3>Vì sao nó hợp với Listening</h3>
+                <p>
+                  Bài thi Listening chấm theo từ: điền đúng từ thì được điểm, sai một chữ là mất
+                  câu. Nhưng khi luyện đề, bạn chỉ biết mình sai câu nào chứ không biết vì sao — có
+                  thể vì không nghe ra từ, có thể vì nghe ra nhưng viết sai. Chép chính tả tách hai
+                  chuyện đó ra.
+                </p>
 
-            <h3>Ở VNI thì làm thế nào</h3>
-            <p>
-              Chọn một bộ câu, bấm nghe, gõ lại, rồi kiểm tra. Câu đúng nằm trên máy chủ và chỉ được
-              gửi về sau khi bạn đã trả lời — nghĩa là không có cách nào xem trước, kể cả khi bạn mở
-              công cụ nhà phát triển. Việc so sánh cũng chạy trên máy chủ chứ không chạy trong trình
-              duyệt.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Vì sao nên luyện ─────────────────────────────────────────────── */}
-      <section className="section" id="why">
-        <div className="container">
-          <div className="section-heading centered" data-reveal>
-            <div className="eyebrow green-eyebrow">Lợi ích</div>
-            <h2>Vì sao nên luyện nghe chép chính tả?</h2>
-            <p>Bốn điều bài thi Listening không nói cho bạn, còn bài chép chính tả thì có.</p>
-          </div>
-
-          <div className="dict-benefits" data-reveal data-reveal-stagger>
-            {BENEFITS.map((benefit) => (
-              <article className="dict-benefit" key={benefit.title}>
-                <h3>{benefit.title}</h3>
-                <p>{benefit.body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Cách luyện ───────────────────────────────────────────────────── */}
-      <section className="section how-section" id="how" tabIndex={-1}>
-        <div className="container">
-          <div className="section-heading centered" data-reveal>
-            <div className="eyebrow green-eyebrow">Bốn bước</div>
-            <h2>Cách luyện một bộ câu</h2>
-          </div>
-
-          <ol className="steps dict-steps" data-reveal data-reveal-stagger>
-            <li className="step">
-              <span className="step-n num" aria-hidden="true">
-                01
-              </span>
-              <h3>Nghe hết câu một lần</h3>
-              <p>Chưa gõ gì cả. Lần đầu chỉ để nắm nhịp và biết câu dài bao nhiêu.</p>
-            </li>
-            <li className="step">
-              <span className="step-n num" aria-hidden="true">
-                02
-              </span>
-              <h3>Nghe lại và gõ</h3>
-              <p>
-                Nghe lại bao nhiêu lần cũng được. Gõ những gì bạn chắc trước, chỗ chưa nghe ra thì
-                bỏ trống rồi quay lại.
-              </p>
-            </li>
-            <li className="step">
-              <span className="step-n num" aria-hidden="true">
-                03
-              </span>
-              <h3>Kiểm tra</h3>
-              <p>
-                Kết quả chỉ ra từng từ sai, sót và thừa. Câu đúng hiện ra cùng lúc — không sớm hơn.
-              </p>
-            </li>
-            <li className="step">
-              <span className="step-n num" aria-hidden="true">
-                04
-              </span>
-              <h3>Nghe lại chỗ sai</h3>
-              <p>
-                Đây là bước hay bị bỏ nhất và cũng là bước có tác dụng nhất. Nghe lại đúng đoạn bạn
-                nghe nhầm cho tới khi ra được.
-              </p>
-            </li>
-          </ol>
-        </div>
-      </section>
-
-      {/* ── Lộ trình theo cách luyện ─────────────────────────────────────── */}
-      <section className="section dict-path-section" id="path">
-        <div className="container">
-          <div className="section-heading centered" data-reveal>
-            <div className="eyebrow green-eyebrow">Lộ trình</div>
-            <h2>Luyện tới đâu thì đổi cách luyện?</h2>
-            <p>
-              Không chia theo band, vì nghe chép chính tả không chấm band. Thứ thay đổi khi bạn khá
-              lên là số lần bạn cần nghe lại.
-            </p>
-          </div>
-
-          <ol className="dict-path" data-reveal data-reveal-stagger>
-            {STAGES.map((stage) => (
-              <li className="dict-stage" key={stage.n}>
-                <span className="dict-stage-n num" aria-hidden="true">
-                  {stage.n}
-                </span>
-                <div>
-                  <h3>{stage.title}</h3>
-                  <p>{stage.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* ── Tài nguyên ───────────────────────────────────────────────────── */}
-      <section className="section" id="resources">
-        <div className="container">
-          <div className="section-heading row-heading" data-reveal>
-            <div>
-              <div className="eyebrow green-eyebrow">Bước tiếp theo</div>
-              <h2>Tai đã quen rồi, vào đề thôi</h2>
+                <h3>Ở VNI thì làm thế nào</h3>
+                <p>
+                  Chọn một bộ câu, bấm nghe, gõ lại, rồi kiểm tra. Câu đúng nằm trên máy chủ và chỉ
+                  được gửi về sau khi bạn đã trả lời — nghĩa là không có cách nào xem trước, kể cả
+                  khi bạn mở công cụ nhà phát triển. Việc so sánh cũng chạy trên máy chủ chứ không
+                  chạy trong trình duyệt.
+                </p>
+              </div>
             </div>
-            <Link className="text-link" to={Paths.practice}>
-              Vào phòng luyện →
-            </Link>
-          </div>
+          </section>
 
-          <div className="resource-grid" data-reveal data-reveal-stagger>
-            <Link className="resource-card" to={Paths.practice}>
-              <h3>Luyện 4 kỹ năng</h3>
-              <p>Làm một đề Listening đủ bốn section, tính giờ như thi thật và chấm theo đáp án.</p>
-              <span className="resource-go">Chọn đề →</span>
-            </Link>
+          {/* ── Vì sao nên luyện ─────────────────────────────────────────────── */}
+          <section className="section" id="why">
+            <div className="container">
+              <div className="section-heading centered" data-reveal>
+                <div className="eyebrow green-eyebrow">Lợi ích</div>
+                <h2>Vì sao nên luyện nghe chép chính tả?</h2>
+                <p>Bốn điều bài thi Listening không nói cho bạn, còn bài chép chính tả thì có.</p>
+              </div>
 
-            <Link className="resource-card" to={Paths.documents}>
-              <h3>Kho tài liệu</h3>
-              <p>Tài liệu luyện nghe theo dạng câu hỏi, đọc trên web hoặc tải về dùng offline.</p>
-              <span className="resource-go">Mở kho tài liệu →</span>
-            </Link>
+              <div className="dict-benefits" data-reveal data-reveal-stagger>
+                {BENEFITS.map((benefit) => (
+                  <article className="dict-benefit" key={benefit.title}>
+                    <h3>{benefit.title}</h3>
+                    <p>{benefit.body}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
 
-            <Link className="resource-card" to={Paths.articles}>
-              <h3>Bài viết</h3>
-              <p>Cách nghe số và tên riêng ở Section 1, và ba lỗi hay gặp ở dạng bản đồ.</p>
-              <span className="resource-go">Đọc bài viết →</span>
-            </Link>
-          </div>
-        </div>
-      </section>
+          {/* ── Cách luyện ───────────────────────────────────────────────────── */}
+          <section className="section how-section" id="how" tabIndex={-1}>
+            <div className="container">
+              <div className="section-heading centered" data-reveal>
+                <div className="eyebrow green-eyebrow">Bốn bước</div>
+                <h2>Cách luyện một bộ câu</h2>
+              </div>
 
-      {/* ── Câu hỏi thường gặp ───────────────────────────────────────────── */}
-      <section className="faq-section" id="faq">
-        <div className="container faq-wrap">
-          <div className="section-heading centered" data-reveal>
-            <div className="eyebrow green-eyebrow">Bạn có thể đang hỏi</div>
-            <h2>Câu hỏi thường gặp</h2>
-          </div>
+              <ol className="steps dict-steps" data-reveal data-reveal-stagger>
+                <li className="step">
+                  <span className="step-n num" aria-hidden="true">
+                    01
+                  </span>
+                  <h3>Nghe hết câu một lần</h3>
+                  <p>Chưa gõ gì cả. Lần đầu chỉ để nắm nhịp và biết câu dài bao nhiêu.</p>
+                </li>
+                <li className="step">
+                  <span className="step-n num" aria-hidden="true">
+                    02
+                  </span>
+                  <h3>Nghe lại và gõ</h3>
+                  <p>
+                    Nghe lại bao nhiêu lần cũng được. Gõ những gì bạn chắc trước, chỗ chưa nghe ra
+                    thì bỏ trống rồi quay lại.
+                  </p>
+                </li>
+                <li className="step">
+                  <span className="step-n num" aria-hidden="true">
+                    03
+                  </span>
+                  <h3>Kiểm tra</h3>
+                  <p>
+                    Kết quả chỉ ra từng từ sai, sót và thừa. Câu đúng hiện ra cùng lúc — không sớm
+                    hơn.
+                  </p>
+                </li>
+                <li className="step">
+                  <span className="step-n num" aria-hidden="true">
+                    04
+                  </span>
+                  <h3>Nghe lại chỗ sai</h3>
+                  <p>
+                    Đây là bước hay bị bỏ nhất và cũng là bước có tác dụng nhất. Nghe lại đúng đoạn
+                    bạn nghe nhầm cho tới khi ra được.
+                  </p>
+                </li>
+              </ol>
+            </div>
+          </section>
 
-          <FaqAccordion entries={FAQ} />
-        </div>
-      </section>
+          {/* ── Lộ trình theo cách luyện ─────────────────────────────────────── */}
+          <section className="section dict-path-section" id="path">
+            <div className="container">
+              <div className="section-heading centered" data-reveal>
+                <div className="eyebrow green-eyebrow">Lộ trình</div>
+                <h2>Luyện tới đâu thì đổi cách luyện?</h2>
+                <p>
+                  Không chia theo band, vì nghe chép chính tả không chấm band. Thứ thay đổi khi bạn
+                  khá lên là số lần bạn cần nghe lại.
+                </p>
+              </div>
 
-      {/* ── CTA ──────────────────────────────────────────────────────────── */}
-      <section className="cta-section">
-        <div className="container cta-box">
-          <div className="cta-content">
-            <span className="eyebrow">✦ Bắt đầu hôm nay?</span>
-            <h2>
-              Chọn <span>một bộ câu</span> và nghe thử câu đầu tiên
-            </h2>
-            <p>
-              Không cần thẻ, không tính giờ, nghe lại bao nhiêu lần cũng được. Còn phân vân thì gọi
-              cho đội ngũ VNI, có người nghe máy.
-            </p>
-          </div>
+              <ol className="dict-path" data-reveal data-reveal-stagger>
+                {STAGES.map((stage) => (
+                  <li className="dict-stage" key={stage.n}>
+                    <span className="dict-stage-n num" aria-hidden="true">
+                      {stage.n}
+                    </span>
+                    <div>
+                      <h3>{stage.title}</h3>
+                      <p>{stage.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
 
-          <div className="cta-actions">
-            <a className="btn btn-white" href="#library" onClick={() => jumpToSection('library')}>
-              Chọn bài nghe <span aria-hidden="true">→</span>
-            </a>
-            <a className="btn btn-outline-white" href={Contact.phoneHref}>
-              Hotline {Contact.phoneDisplay}
-            </a>
-          </div>
-        </div>
-      </section>
+          {/* ── Tài nguyên ───────────────────────────────────────────────────── */}
+          <section className="section" id="resources">
+            <div className="container">
+              <div className="section-heading row-heading" data-reveal>
+                <div>
+                  <div className="eyebrow green-eyebrow">Bước tiếp theo</div>
+                  <h2>Tai đã quen rồi, vào đề thôi</h2>
+                </div>
+                <Link className="text-link" to={Paths.practice}>
+                  Vào phòng luyện →
+                </Link>
+              </div>
+
+              <div className="resource-grid" data-reveal data-reveal-stagger>
+                <Link className="resource-card" to={Paths.practice}>
+                  <h3>Luyện 4 kỹ năng</h3>
+                  <p>
+                    Làm một đề Listening đủ bốn section, tính giờ như thi thật và chấm theo đáp án.
+                  </p>
+                  <span className="resource-go">Chọn đề →</span>
+                </Link>
+
+                <Link className="resource-card" to={Paths.documents}>
+                  <h3>Kho tài liệu</h3>
+                  <p>
+                    Tài liệu luyện nghe theo dạng câu hỏi, đọc trên web hoặc tải về dùng offline.
+                  </p>
+                  <span className="resource-go">Mở kho tài liệu →</span>
+                </Link>
+
+                <Link className="resource-card" to={Paths.articles}>
+                  <h3>Bài viết</h3>
+                  <p>Cách nghe số và tên riêng ở Section 1, và ba lỗi hay gặp ở dạng bản đồ.</p>
+                  <span className="resource-go">Đọc bài viết →</span>
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Câu hỏi thường gặp ───────────────────────────────────────────── */}
+          <section className="faq-section" id="faq">
+            <div className="container faq-wrap">
+              <div className="section-heading centered" data-reveal>
+                <div className="eyebrow green-eyebrow">Bạn có thể đang hỏi</div>
+                <h2>Câu hỏi thường gặp</h2>
+              </div>
+
+              <FaqAccordion entries={FAQ} />
+            </div>
+          </section>
+
+          {/* ── CTA ──────────────────────────────────────────────────────────── */}
+          <section className="cta-section">
+            <div className="container cta-box">
+              <div className="cta-content">
+                <span className="eyebrow">✦ Bắt đầu hôm nay?</span>
+                <h2>
+                  Chọn <span>một bộ câu</span> và nghe thử câu đầu tiên
+                </h2>
+                <p>
+                  Không cần thẻ, không tính giờ, nghe lại bao nhiêu lần cũng được. Còn phân vân thì
+                  gọi cho đội ngũ VNI, có người nghe máy.
+                </p>
+              </div>
+
+              <div className="cta-actions">
+                <a
+                  className="btn btn-white"
+                  href="#library"
+                  onClick={() => jumpToSection('library')}
+                >
+                  Chọn bài nghe <span aria-hidden="true">→</span>
+                </a>
+                <a className="btn btn-outline-white" href={Contact.phoneHref}>
+                  Hotline {Contact.phoneDisplay}
+                </a>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

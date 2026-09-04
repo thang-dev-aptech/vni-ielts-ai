@@ -26,6 +26,32 @@ const session = {
   displayName: 'Nguyễn Thị Đào',
 };
 
+/** No goal, no bands: the coaching block opens on the target picker. */
+const coaching = {
+  goal: null,
+  skills: ['reading', 'listening', 'writing', 'speaking'].map((module) => ({
+    module,
+    currentBand: null,
+    gap: null,
+    state: 'none',
+    sessionId: null,
+    measuredAt: null,
+  })),
+  focus: [],
+  ai: { status: 'no-goal', summary: null, tips: [], model: null },
+};
+
+const activity = {
+  timeZone: 'Asia/Ho_Chi_Minh',
+  today: '2026-09-04',
+  days: [],
+  currentStreak: 0,
+  longestStreak: 0,
+  activeToday: false,
+  flame: false,
+  flameThreshold: 3,
+};
+
 const me = {
   userId: 'user-1',
   displayName: 'Nguyễn Thị Đào',
@@ -50,6 +76,9 @@ function signedIn(sittings?: unknown[]) {
     vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes('/api/v1/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coaching);
+      if (url.includes('/api/v1/me/activity')) return json(activity);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (sittings !== undefined && url.includes('/api/v1/sessions')) return json({ sittings });
@@ -194,7 +223,16 @@ it('runs in its own shell: a sidebar, and no marketing navigation', async () => 
       .map((a) => a.textContent),
     // 'Nghe chép chính tả' is a confirmed module (`M-22`) with a route of
     // its own; 'Hỏi đáp AI' is a button, so it is not among the links.
-  ).toEqual(['Tổng quan', 'Luyện tập', 'Nghe chép chính tả', 'Buổi gần đây', 'Phần khác']);
+  ).toEqual([
+    'Tổng quan',
+    'Luyện tập',
+    'Nghe chép chính tả',
+    'Tài liệu',
+    'Bài viết',
+    'Hồ sơ',
+    'Buổi gần đây',
+    'Phần khác',
+  ]);
 
   // The landing header's links pointed at marketing anchors on `/`. Those do
   // not belong here.
@@ -225,21 +263,16 @@ it('lists the assistant among the modules, and the way out below them', async ()
   expect(nav.contains(home)).toBe(false);
 });
 
-it('keeps every profile link out of the student area', async () => {
-  // The sidebar's first version carried "Hồ sơ học sinh" and "Theo dõi", both
-  // account surfaces. They live in the account menu now, which is the one
-  // place navigation to them belongs.
+it('links to the profile once, from the rail, and nowhere in the body', async () => {
+  // `[QUYẾT ĐỊNH]` chủ sản phẩm, 04/09/2026: the student chrome is the app's
+  // chrome, so the rail carries the profile. The body still does not — one
+  // way to a page, not two on one screen.
   await openDashboard();
 
   const sidebar = screen.getByRole('navigation', { name: 'Dành cho học sinh' });
   const links = within(sidebar).getAllByRole('link');
-  expect(links.filter((a) => a.getAttribute('href')?.startsWith('/profile'))).toHaveLength(0);
+  expect(links.filter((a) => a.getAttribute('href')?.startsWith('/profile'))).toHaveLength(1);
 
-  // The assertion used to be "the dashboard body contains no anchors at all".
-  // That held only because the page was a dead menu — every card showed a
-  // "chưa có đề" chip rather than a link. It became wrong the moment the page
-  // acquired real destinations, so it now checks the rule it was written for
-  // rather than the accident that satisfied it.
   const dash = document.querySelector('.dash');
   const inBody = [...(dash?.querySelectorAll('a') ?? [])];
   expect(inBody.filter((a) => a.getAttribute('href')?.startsWith('/profile'))).toHaveLength(0);
@@ -375,6 +408,9 @@ function signedInWithExams(exams: unknown[]) {
       const url = String(input);
       if (url.endsWith('/api/v1/exams')) return json({ exams });
       if (url.includes('/api/v1/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coaching);
+      if (url.includes('/api/v1/me/activity')) return json(activity);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/api/v1/sessions')) return json({ sittings: [] });

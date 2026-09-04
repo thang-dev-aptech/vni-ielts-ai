@@ -702,7 +702,7 @@ it('submits once the card is confirmed, and only then', async () => {
   await userEvent.click(within(card).getByRole('button', { name: 'Nộp bài' }));
 
   await waitFor(() => expect(calls.submits).toBe(1));
-  await waitFor(() => expect(window.location.pathname).toBe('/students/session/sit-1/results'));
+  await waitFor(() => expect(window.location.pathname).toBe('/practice/results/sit-1'));
 
   // <b>Not just the address — the page behind it.</b> Asserting the pathname
   // and returning left the results page mounting after the test had ended, so

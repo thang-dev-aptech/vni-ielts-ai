@@ -6,6 +6,7 @@ import { Paths } from '../../routes/paths.js';
 import { readLocal, writeLocal } from '../../lib/storage.js';
 import { jumpToSection } from './jumpToSection.js';
 import { AccountMenu } from '../landing/AccountMenu.js';
+import { ArticleIcon, DocumentIcon, PersonIcon } from '../landing/MenuIcons.js';
 import { NotificationMenu } from '../landing/NotificationMenu.js';
 import { AiChatPanel } from '../student/AiChatPanel.js';
 import { SkipLink } from './SkipLink.js';
@@ -24,6 +25,7 @@ import {
 } from '../student/StudentIcons.js';
 import '../../styles/landing.css';
 import '../../styles/shell.css';
+import '../../styles/app-shell.css';
 
 /**
  * The student area's own chrome: sidebar left, content right, no marketing nav.
@@ -77,10 +79,19 @@ interface Item {
  * route that has not been built — a sidebar item landing on a 404 is worse
  * than an item that is not there — and nothing points into `/profile`.
  */
+/*
+ * Every module a signed-in learner uses, in one rail. `[QUYẾT ĐỊNH]` chủ sản
+ * phẩm, 04/09/2026: the dashboard chrome is the app's chrome, so the rail
+ * carries the four header modules and the profile rather than only the
+ * overview's own anchors. The two anchors stay, and stay overview-only.
+ */
 const ITEMS: Item[] = [
   { key: 'dash.nav.overview', to: Paths.dashboard, icon: GridIcon },
   { key: 'dash.nav.practice', to: Paths.practice, icon: FullTestIcon },
   { key: 'dash.more.dictation', to: Paths.dictation, icon: DictationIcon },
+  { key: 'dash.more.documents', to: Paths.documents, icon: DocumentIcon },
+  { key: 'dash.more.articles', to: Paths.articles, icon: ArticleIcon },
+  { key: 'nav.profile', to: Paths.profile, icon: PersonIcon },
   { key: 'dash.ai.open', icon: SparkIcon, opensAssistant: true },
   /*
    * Both are in-page anchors into the overview, and both were renamed on
@@ -261,7 +272,8 @@ export function DashboardShell() {
             {ITEMS.filter((item) => item.href === undefined || onOverview).map(
               ({ key, href, to, icon: Icon, opensAssistant }, index) => {
                 const label = t(key);
-                const current = to !== undefined && pathname === to;
+                const current =
+                  to !== undefined && (pathname === to || pathname.startsWith(to + '/'));
                 const body = (
                   <>
                     <Icon size={18} />

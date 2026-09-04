@@ -68,7 +68,7 @@ async function fillWriting(page: Page) {
 
 /** Footer primary action — "Tiếp theo" while skills remain, "Nộp bài" on the last. */
 function primaryAction(page: Page) {
-  return page.locator('.exam-foot .exam-submit');
+  return page.locator('.prun-foot .exam-submit, .exam-foot .exam-submit');
 }
 
 async function clickNext(page: Page) {
@@ -139,7 +139,7 @@ test.describe('four-skill mock', () => {
     // (NothingSubmitted / AwaitingVoiceProvider / dash) must still hold.
     await clickNext(page);
 
-    await expect(page).toHaveURL(`/students/session/${sitting.sessionId}/results`, {
+    await expect(page).toHaveURL(`/practice/results/${sitting.sessionId}`, {
       timeout: 30_000,
     });
     await expect(page.getByText(/Kết quả|Results/i).first()).toBeVisible();
@@ -287,7 +287,7 @@ test.describe('four-skill mock', () => {
     await expect(submit).toHaveText(/Nộp bài|Submit/i);
     await submit.dblclick({ delay: 40 });
 
-    await expect(page).toHaveURL(`/students/session/${sitting.sessionId}/results`, {
+    await expect(page).toHaveURL(`/practice/results/${sitting.sessionId}`, {
       timeout: 30_000,
     });
 

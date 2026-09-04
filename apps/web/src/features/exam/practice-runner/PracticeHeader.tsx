@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useI18n } from '../../../i18n/index.js';
-import { formatElapsed, type ExamModule } from '../examApi.js';
+import { formatClock, formatElapsed, type ExamModule } from '../examApi.js';
 import { SKILLS } from '../skills.js';
 
 /**
@@ -14,66 +14,90 @@ import { SKILLS } from '../skills.js';
 export type ControlState = 'idle' | 'pending' | 'failed' | 'offline';
 
 /**
- * The luyện đề header — `E-22`, verbatim.
+ * The sitting header — one chrome for luyện đề and thi thử.
  *
- * *"trên thành header có logo + tên đề ở góc đối diện sẽ có nút play (mục đích
- * để dừng thời gian đếm), nút icon sấm sét dùng để set thời gian mục tiêu làm
- * bài (20,40,60,90, hoặc có thể tự điền thời gian), ô thời gian đếm"*
+ * <b>Same bar, different clock rules.</b> Open timing keeps pause, target and
+ * leave. Deadline timing is a countdown with L1 escalation and no way out —
+ * those controls would invent an escape hatch on a timed exam.
  *
- * <b>The wordmark is not a link, and that is the one place this header differs
- * from a marketing one.</b> A brand mark that navigates is how someone loses an
- * hour of work to muscle memory; the timed runner solved that by rendering no
- * anchors at all, and luyện đề keeps the rule even though its clock can be
- * stopped. What the learner does *not* get here is a link that quietly leaves.
- *
- * <b>The clock has one size and no colours.</b> `L1`'s three-tier countdown
- * escalation exists because a countdown ends; reusing it against a target the
- * learner chose themselves would put warning styling on a limit they invented,
- * in the mode explicitly designed to remove time pressure. Past the target is a
- * word, not a hue.
+ * <b>The wordmark is never a link.</b> A brand mark that navigates is how
+ * someone loses an hour of work to muscle memory.
  */
 export function PracticeHeader({
+  timing,
   examTitle,
   module,
   partNumber,
+  skillPosition,
   elapsed,
   running,
   targetSeconds,
   clock,
   target,
+  remaining,
   onToggleRun,
   onSetTarget,
   onExit,
 }: {
+  timing: 'open' | 'deadline';
   examTitle: string | null;
   module: ExamModule | null;
   partNumber: number | null;
+  /** Full Test only — "Kỹ năng 2/4". */
+  skillPosition?: { number: number; total: number } | null;
   /** Null while the sitting loads. Drawn as an em dash, never as zero. */
-  elapsed: number | null;
-  running: boolean;
-  targetSeconds: number | null;
-  clock: ControlState;
-  target: ControlState;
-  onToggleRun: () => void;
+  elapsed?: number | null;
+  running?: boolean;
+  targetSeconds?: number | null;
+  clock?: ControlState;
+  target?: ControlState;
+  remaining?: number | null;
+  onToggleRun?: () => void;
   /** Seconds, or null to clear. The server owns the range check. */
-  onSetTarget: (seconds: number | null) => void;
-  onExit: () => void;
+  onSetTarget?: (seconds: number | null) => void;
+  onExit?: () => void;
 }) {
   const { t } = useI18n();
 
-  const unknown = elapsed === null;
-  const past = targetSeconds !== null && elapsed !== null && elapsed >= targetSeconds;
+  const open = timing === 'open';
+  const unknown = open && (elapsed === null || elapsed === undefined);
+  const past =
+    open &&
+    targetSeconds !== null &&
+    targetSeconds !== undefined &&
+    elapsed !== null &&
+    elapsed !== undefined &&
+    elapsed >= targetSeconds;
   const skill = module === null ? null : SKILLS[module];
+
+  const left = remaining ?? null;
+  const level =
+    left === null ? 1 : left === 0 ? 4 : left < 60 ? 3 : left < 300 ? 2 : 1;
+  const timeWarning =
+    left === null
+      ? null
+      : left === 0
+        ? t('exam.expired')
+        : left === 60
+          ? t('exam.underOneMinute')
+          : left === 300
+            ? t('exam.underFiveMinutes')
+            : null;
 
   return (
     <header className="prun-bar">
       <div className="prun-brand">
         {/* Plain text, deliberately not a link. See the note above. */}
         <span className="prun-wordmark">{t('app.name')}</span>
-        <span className="prun-mode">{t('practice.modeBadge')}</span>
+        <span className="prun-mode">
+          {open ? t('practice.modeBadge') : t('practice.mockBadge')}
+        </span>
       </div>
 
-      <div className="prun-context">
+      <div
+        className="prun-context"
+        {...(skillPosition != null ? { role: 'status' as const } : {})}
+      >
         {skill !== null && (
           <span
             className="prun-skill-icon"
@@ -86,6 +110,14 @@ export function PracticeHeader({
         <span className="prun-context-names">
           <strong>{skill?.name ?? '—'}</strong>
           <span className="prun-context-sub">
+            {skillPosition != null && (
+              <span className="prun-skill-step">
+                {t('exam.sectionOf', {
+                  number: skillPosition.number,
+                  total: skillPosition.total,
+                })}
+              </span>
+            )}
             <span className="prun-part">
               {partNumber === null ? '—' : t('exam.part', { number: partNumber })}
             </span>
@@ -98,80 +130,89 @@ export function PracticeHeader({
       </div>
 
       <div className="prun-controls">
-        <button type="button" className="prun-exit" onClick={onExit}>
-          {t('practice.leave')}
-        </button>
-        {/*
-          Play / pause. The label says which way it will go, and the state is
-          also stated in words next to the clock — a glyph swap alone is a shape
-          change a screen reader never sees and a hurried eye misses.
-        */}
-        <button
-          type="button"
-          className="prun-run"
-          disabled={unknown || clock === 'pending' || clock === 'offline'}
-          aria-describedby={clock === 'offline' ? 'prun-clock-note' : undefined}
-          onClick={onToggleRun}
-        >
-          <RunGlyph running={running} />
-          {running ? t('practice.pause') : t('practice.resume')}
-        </button>
+        {open && onExit !== undefined && (
+          <button type="button" className="prun-exit" onClick={onExit}>
+            {t('practice.leave')}
+          </button>
+        )}
+        {open && onToggleRun !== undefined && (
+          <button
+            type="button"
+            className="prun-run"
+            disabled={unknown || clock === 'pending' || clock === 'offline'}
+            aria-describedby={clock === 'offline' ? 'prun-clock-note' : undefined}
+            onClick={onToggleRun}
+          >
+            <RunGlyph running={running === true} />
+            {running ? t('practice.pause') : t('practice.resume')}
+          </button>
+        )}
 
-        <TargetControl
-          targetSeconds={targetSeconds}
-          state={target}
-          disabled={unknown}
-          onSetTarget={onSetTarget}
-        />
+        {open && onSetTarget !== undefined && (
+          <TargetControl
+            targetSeconds={targetSeconds ?? null}
+            state={target ?? 'idle'}
+            disabled={unknown}
+            onSetTarget={onSetTarget}
+          />
+        )}
+
+        {!open && (
+          <span className="sr-only" role="alert">
+            {timeWarning}
+          </span>
+        )}
 
         {/*
           `aria-live="off"` on the readout itself: a per-second announcement
-          makes the page unusable. Nothing here needs an assertive channel —
-          a count-up clock crosses no threshold the learner did not choose, and
-          the one it can cross is announced once by `.prun-target-passed`.
+          makes the page unusable.
         */}
-        <span className="prun-clock" role="timer" aria-live="off">
-          <span className="sr-only">{t('practice.clockLabel')}</span>
-          <span className="num">{unknown ? '—' : formatElapsed(elapsed)}</span>
-        </span>
+        {open ? (
+          <span className="prun-clock" role="timer" aria-live="off">
+            <span className="sr-only">{t('practice.clockLabel')}</span>
+            <span className="num">{unknown ? '—' : formatElapsed(elapsed ?? 0)}</span>
+          </span>
+        ) : (
+          <span className={`exam-clock level-${level}`} role="timer" aria-live="off">
+            <span className="num">{left === null ? '--:--' : formatClock(left)}</span>
+            {level > 1 && level < 4 && (
+              <span className="exam-clock-note">
+                {level >= 3 ? t('exam.underOneMinute') : t('exam.underFiveMinutes')}
+              </span>
+            )}
+          </span>
+        )}
       </div>
 
-      {/*
-        The states that are not a colour. Each is a sentence, and each occupies
-        the row under the controls so nothing jumps when one appears.
-      */}
-      <p className="prun-clock-state" id="prun-clock-note">
-        {clock === 'offline' ? (
-          <span role="status">{t('practice.clockOffline')}</span>
-        ) : clock === 'failed' ? (
-          <span role="alert">{t('practice.clockFailed')}</span>
-        ) : clock === 'pending' ? (
-          <span role="status">{t('practice.clockBusy')}</span>
-        ) : unknown ? null : running ? (
-          <span>{t('practice.running')}</span>
-        ) : (
-          <span role="status">{t('practice.paused')}</span>
-        )}
+      {open && (
+        <p className="prun-clock-state" id="prun-clock-note">
+          {clock === 'offline' ? (
+            <span role="status">{t('practice.clockOffline')}</span>
+          ) : clock === 'failed' ? (
+            <span role="alert">{t('practice.clockFailed')}</span>
+          ) : clock === 'pending' ? (
+            <span role="status">{t('practice.clockBusy')}</span>
+          ) : unknown ? null : running ? (
+            <span>{t('practice.running')}</span>
+          ) : (
+            <span role="status">{t('practice.paused')}</span>
+          )}
 
-        {targetSeconds !== null && (
-          <span className="prun-target-read">
-            {t('practice.targetSet', { time: formatElapsed(targetSeconds) })}
-          </span>
-        )}
+          {targetSeconds != null && (
+            <span className="prun-target-read">
+              {t('practice.targetSet', { time: formatElapsed(targetSeconds) })}
+            </span>
+          )}
 
-        {/*
-          `M-38` has not said what reaching the target does, so it does exactly
-          one thing: it says so. No auto-submit, no lock, no styling change.
-          Announced once, because it happens once. → `G-11`
-        */}
-        {past && (
-          <span className="prun-target-passed" role="status">
-            {t('practice.targetPassed')}
-          </span>
-        )}
+          {past && (
+            <span className="prun-target-passed" role="status">
+              {t('practice.targetPassed')}
+            </span>
+          )}
 
-        {target === 'failed' && <span role="alert">{t('practice.targetFailed')}</span>}
-      </p>
+          {target === 'failed' && <span role="alert">{t('practice.targetFailed')}</span>}
+        </p>
+      )}
     </header>
   );
 }

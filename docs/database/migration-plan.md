@@ -31,7 +31,7 @@ Preconditions 3 and 4 are the ones that silently fail, so both are now automated
 
 ## What is actually stored
 
-Fifteen collections, read from `MongoContext` and `AuditLog` — twelve on 2026-08-28, plus `content_sources` added on 2026-08-29 with the content rights registry (`FS0.1`), plus `canonical_explanations` and `personalized_explanations` with the R/L explanation pipeline (`FS5`). The right-hand column is the target shape, and the notes column is where the work actually is.
+Eighteen collections, read from `MongoContext` and `AuditLog` — twelve on 2026-08-28, plus `content_sources` added on 2026-08-29 with the content rights registry (`FS0.1`), plus `canonical_explanations` and `personalized_explanations` with the R/L explanation pipeline (`FS5`), plus `learner_goals`, `learner_activity_days` and `coaching_advice` added on 2026-09-04 with goal coaching and the study streak. The right-hand column is the target shape, and the notes column is where the work actually is.
 
 | Collection | Target in PostgreSQL | What makes it non-trivial |
 |---|---|---|
@@ -49,6 +49,9 @@ Fifteen collections, read from `MongoContext` and `AuditLog` — twelve on 2026-
 | `content_sources` | Table + child table for files | The rights record per source: owner, licence proof, allowed environments, expiry, reviewer, and the paths and SHA-256 of its files. `allowedEnvironments`, `examVersionIds` and `examDefinitionIds` are Mongo arrays with multikey indexes — in Postgres either `text[]` with GIN, or three small join tables, and the join tables are the better fit because a grant will eventually want its own audit trail. Environment names are stored as **strings**, never ordinals: an ordinal shift would turn a fixture-only record into a publication right silently |
 | `canonical_explanations` | Table, FK to `exam_versions` (+ question id) | Authored/cacheable R/L explanation text keyed by exam version and question. Provider metadata is stamped on the row; the explanation must never be able to change a band (`A-11`). Shape of evidence spans is variable → `jsonb` for evidence only |
 | `personalized_explanations` | Table, FK to `exam_sessions` | Per-sitting explanation jobs. Lookup index `ix_personalized_explanations_lookup` on `(sessionId, questionId, answerHash)` — Postgres needs the same composite unique or unique-ish constraint so a retry with the same answer hash does not double-call a provider. Operation id + answer-hash cache is the idempotency seam |
+| `learner_goals` | Table, FK to `users` (one row per learner) | `_id` is the user id and the write is a replace-upsert; in Postgres a `PRIMARY KEY (user_id)` and `INSERT … ON CONFLICT DO UPDATE`. `target_band numeric(2,1)` |
+| `learner_activity_days` | Table, FK to `users` | `_id = {userId}:{yyyy-MM-dd}` with an upsert that `$inc`s a counter and `$addToSet`s the kind — the day is computed in `Learning:TimeZone`, so the stored `day` is a local calendar date, not a UTC timestamp. Postgres: `PRIMARY KEY (user_id, day)`, `ON CONFLICT DO UPDATE SET count = count + 1, kinds = array_union`. Index `ix_activity_user_day` |
+| `coaching_advice` | Table (a cache) | **TTL index `ttl_coaching_advice`, 7 days** on `createdAt`; `_id` is a hash of the standing (target + four bands), not a learner id, so rows are shared and carry no personal data. Postgres needs a sweep for the TTL |
 | `audit_log` | Table, append-only, no `UPDATE` grant | Append-only is a grant, not a convention |
 
 Use `jsonb` where the shape is genuinely variable. Do not use it to avoid designing: that reproduces MongoDB inside PostgreSQL and forfeits the reason for moving.

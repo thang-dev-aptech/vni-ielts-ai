@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { isUnreachable } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
+import { Breadcrumb } from '../chrome/Breadcrumb.js';
 import { useI18n } from '../../i18n/index.js';
 import type { StringKey } from '../../i18n/strings.js';
 import { Paths } from '../../routes/paths.js';
@@ -18,6 +19,7 @@ import {
   type SessionResultsView,
 } from './examApi.js';
 import { SKILLS, SKILL_ORDER } from './skills.js';
+import '../../styles/practice.css';
 import '../../styles/dashboard.css';
 import '../../styles/exam.css';
 import { usePageTitle } from '../../routes/usePageTitle.js';
@@ -35,7 +37,32 @@ import { useAlive } from '../../lib/useAlive.js';
  * <b>Overall needs all four.</b> The server returns null until then, and this
  * screen does not average what it has — a mean over two sections is not an
  * overall band, it is a made-up one.
+ *
+ * <b>Chrome is the student shell, like every signed-in page.</b> `[QUYẾT
+ * ĐỊNH]` chủ sản phẩm 04/09/2026 — one chrome after sign-in. The concern the
+ * earlier note raised ("finishing a paper should not feel like leaving the
+ * module") is answered by this page's own heading and breadcrumb, not by a
+ * different frame.
  */
+function ResultsChrome({ children, examTitle }: { children: ReactNode; examTitle?: string }) {
+  const { t } = useI18n();
+
+  return (
+    <div className="prac-page result-page">
+      <Breadcrumb
+        trail={[
+          { label: t('nav.home'), to: Paths.home },
+          { label: t('title.practice'), to: Paths.practice },
+          { label: examTitle ?? t('title.results') },
+        ]}
+      />
+      <section className="result-hero">
+        <div className="container result-stack">{children}</div>
+      </section>
+    </div>
+  );
+}
+
 export function ExamResultsPage() {
   const { sessionId = '' } = useParams();
   const { accessToken } = useAuth();
@@ -71,29 +98,25 @@ export function ExamResultsPage() {
 
   if (failed !== null) {
     return (
-      <div className="dash">
-        <main className="dash-main">
-          <div className="dash-empty">
-            <h3>{failed === 'offline' ? t('common.notConnected') : t('exam.gone')}</h3>
-            <p>{failed === 'offline' ? t('exam.resultsRetryBody') : t('exam.goneBody')}</p>
-            {failed === 'offline' && (
-              <button type="button" className="dash-retry" onClick={() => void load()}>
-                {t('common.retry')}
-              </button>
-            )}
-          </div>
-        </main>
-      </div>
+      <ResultsChrome>
+        <div className="dash-empty">
+          <h3>{failed === 'offline' ? t('common.notConnected') : t('exam.gone')}</h3>
+          <p>{failed === 'offline' ? t('exam.resultsRetryBody') : t('exam.goneBody')}</p>
+          {failed === 'offline' && (
+            <button type="button" className="dash-retry" onClick={() => void load()}>
+              {t('common.retry')}
+            </button>
+          )}
+        </div>
+      </ResultsChrome>
     );
   }
 
   if (results === null) {
     return (
-      <div className="dash">
-        <main className="dash-main">
-          <p className="dash-notice">{t('exam.loading')}</p>
-        </main>
-      </div>
+      <ResultsChrome>
+        <p className="dash-notice">{t('exam.loading')}</p>
+      </ResultsChrome>
     );
   }
 
@@ -118,7 +141,9 @@ export function ExamResultsPage() {
   const explanationStatuses = new Map(
     (results.explanationStatuses ?? []).map((status) => [status.questionId, status]),
   );
-  const statusByModule = new Map((results.markingStatuses ?? []).map((status) => [status.module, status]));
+  const statusByModule = new Map(
+    (results.markingStatuses ?? []).map((status) => [status.module, status]),
+  );
 
   // Single-skill sittings only ever have one section; showing the other three
   // as "chưa chấm" would imply an exam the learner never sat.
@@ -140,89 +165,93 @@ export function ExamResultsPage() {
   const only = results.mode === 'full' || shown.length !== 1 ? null : shown[0]!;
 
   return (
-    <div className="dash">
-      <main className="dash-main" id="dash-top">
-        <header className="dash-head">
-          <p className="dash-eyebrow">{t('exam.resultsEyebrow')}</p>
-          <h1 className="dash-greeting">{results.examTitle}</h1>
-          <p className="dash-lead">
-            {results.status === 'expired' ? t('exam.resultsExpired') : t('exam.resultsLead')}
-          </p>
-        </header>
+    <ResultsChrome examTitle={results.examTitle}>
+      <header className="result-head">
+        <p className="result-eyebrow">{t('exam.resultsEyebrow')}</p>
+        <h1 className="result-title">{results.examTitle}</h1>
+        <p className="result-lead">
+          {results.status === 'expired' ? t('exam.resultsExpired') : t('exam.resultsLead')}
+        </p>
+      </header>
 
-        <section className="result-overall">
-          <span className="result-overall-label">{t('exam.overall')}</span>
-          {/* `is-none` when there is no band: the em dash inherited a 44px
+      <section className="result-overall">
+        <span className="result-overall-label">{t('exam.overall')}</span>
+        {/* `is-none` when there is no band: the em dash inherited a 44px
               display weight and rendered as a thick black bar — it read as a
               redaction, not as "not marked yet". */}
-          <span
-            className={`result-overall-value num${results.overallBand === null ? ' is-none' : ''}`}
-          >
-            {results.overallBand === null ? '—' : results.overallBand.toFixed(1)}
-          </span>
-          {results.overallBand === null && (
-            <span className="result-overall-note">{t('exam.overallPending')}</span>
-          )}
-        </section>
+        <span
+          className={`result-overall-value num${results.overallBand === null ? ' is-none' : ''}`}
+        >
+          {results.overallBand === null ? '—' : results.overallBand.toFixed(1)}
+        </span>
+        {results.overallBand === null && (
+          <span className="result-overall-note">{t('exam.overallPending')}</span>
+        )}
+      </section>
 
-        <ul className="result-list">
-          {shown.map((moduleId) => {
-            const skill = SKILLS[moduleId];
-            const Icon = skill.icon;
-            const section = marked.get(moduleId);
-            const moduleMarkings = markedBy.get(moduleId);
-            const reason =
-              section !== undefined || moduleMarkings !== undefined || !isAiMarked(moduleId)
-                ? null
-                : markingStatusText(statusByModule.get(moduleId) ?? fallbackStatus(moduleId), t);
+      <ul className="result-list">
+        {shown.map((moduleId) => {
+          const skill = SKILLS[moduleId];
+          const Icon = skill.icon;
+          const section = marked.get(moduleId);
+          const moduleMarkings = markedBy.get(moduleId);
+          const reason =
+            section !== undefined || moduleMarkings !== undefined || !isAiMarked(moduleId)
+              ? null
+              : markingStatusText(statusByModule.get(moduleId) ?? fallbackStatus(moduleId), t);
 
-            return (
-              <li className="result-row" key={moduleId}>
-                <span
-                  className="result-icon"
-                  style={{ background: skill.tint, color: skill.ink }}
-                  aria-hidden="true"
-                >
-                  <Icon size={20} />
-                </span>
+          return (
+            <li className="result-row" key={moduleId}>
+              <span
+                className="result-icon"
+                style={{ background: skill.tint, color: skill.ink }}
+                aria-hidden="true"
+              >
+                <Icon size={20} />
+              </span>
 
-                <span className="result-text">
-                  <strong>{skill.name}</strong>
-                  <span>
-                    {section
-                      ? t('exam.rawOf', { raw: section.rawScore, max: section.maxScore })
+              <span className="result-text">
+                <strong>{skill.name}</strong>
+                {/* A Writing row with two task bands beside it read "Chưa
+                      chấm" — the subtitle only knew about answer-key sections.
+                      Seen on the first AI-marked essay, 2026-09-03. */}
+                <span>
+                  {section
+                    ? t('exam.rawOf', { raw: section.rawScore, max: section.maxScore })
+                    : moduleMarkings !== undefined
+                      ? t('exam.aiMarkedTasks', { count: moduleMarkings.length })
                       : t('exam.notMarked')}
-                  </span>
-                  {reason !== null && <span className="result-reason">{reason}</span>}
                 </span>
+                {reason !== null && <span className="result-reason">{reason}</span>}
+              </span>
 
-                {/* The tag says where the band came from. Answer-key and AI
+              {/* The tag says where the band came from. Answer-key and AI
                     bands must never look interchangeable. → product law L4 */}
-                <span
-                  className={
-                    moduleId === 'writing' || moduleId === 'speaking'
-                      ? 'dash-tag dash-tag-ai'
-                      : 'dash-tag'
-                  }
-                >
-                  {moduleId === 'writing' || moduleId === 'speaking'
-                    ? t('dash.scoring.ai')
-                    : t('dash.scoring.key')}
-                </span>
+              <span
+                className={
+                  moduleId === 'writing' || moduleId === 'speaking'
+                    ? 'dash-tag dash-tag-ai'
+                    : 'dash-tag'
+                }
+              >
+                {moduleId === 'writing' || moduleId === 'speaking'
+                  ? t('dash.scoring.ai')
+                  : t('dash.scoring.key')}
+              </span>
 
-                {/*
+              {/*
                   <b>Two task bands where there are two, and never their mean.</b>
                   Writing shows "6.5 · 7.0", not the 6.75 that would come from
                   averaging them — that average would be answering `H-8b` by
                   arithmetic, in the one place a learner would read it as fact.
                 */}
-                <span className="result-band num">{bandCell(section, moduleMarkings)}</span>
-              </li>
-            );
-          })}
-        </ul>
+              <span className="result-band num">{bandCell(section, moduleMarkings)}</span>
+            </li>
+          );
+        })}
+      </ul>
 
-        {/*
+      {/*
           <b>A sitting with nothing marked still has to say something.</b>
 
           `shown` is empty on a single-skill Writing or Speaking sitting until
@@ -239,17 +268,17 @@ export function ExamResultsPage() {
           the marked case gets, because this page fetches once and will not
           change on its own. → product law L3
         */}
-        {shown.length === 0 && (
-          <div className="dash-empty">
-            <h3>{t('exam.nothingMarkedTitle')}</h3>
-            <p>{t('exam.nothingMarkedBody')}</p>
-            <button type="button" className="dash-retry" onClick={() => void load()}>
-              {t('exam.checkAgain')}
-            </button>
-          </div>
-        )}
+      {shown.length === 0 && (
+        <div className="dash-empty">
+          <h3>{t('exam.nothingMarkedTitle')}</h3>
+          <p>{t('exam.nothingMarkedBody')}</p>
+          <button type="button" className="dash-retry" onClick={() => void load()}>
+            {t('exam.checkAgain')}
+          </button>
+        </div>
+      )}
 
-        {/*
+      {/*
           Only when it is about a skill on this page.
 
           It rendered unconditionally — including on a single-skill Reading
@@ -257,7 +286,7 @@ export function ExamResultsPage() {
           above, so the page explained the state of two skills the learner had
           not sat.
         */}
-        {/*
+      {/*
           <b>What actually happened, per module — not one sentence for four
           situations.</b>
 
@@ -268,29 +297,29 @@ export function ExamResultsPage() {
           The server reports the job's own state and a sentence written for the
           learner; this renders it. → `I3.6`
         */}
-        {(results.markingStatuses ?? [])
-          .filter((status) => status.state !== 'completed')
-          .map((status) => (
-            <p className="dash-notice" key={status.module}>
-              <strong>{SKILLS[status.module].name}: </strong>
-              {markingStatusText(status, t)}
-            </p>
-          ))}
+      {(results.markingStatuses ?? [])
+        .filter((status) => status.state !== 'completed')
+        .map((status) => (
+          <p className="dash-notice" key={status.module}>
+            <strong>{SKILLS[status.module].name}: </strong>
+            {markingStatusText(status, t)}
+          </p>
+        ))}
 
-        {/*
+      {/*
           The blanket notice, kept only for a sitting with no job behind it —
           one closed before the outbox existed, or a module the outbox does not
           cover. With a job present the per-module lines above are strictly more
           truthful, so showing both would be the page contradicting itself.
         */}
-        {(results.markingStatuses ?? []).length === 0 &&
-          shown.some(
-            (moduleId) =>
-              (moduleId === 'writing' || moduleId === 'speaking') && !markedBy.has(moduleId),
-          ) && (
-            <>
-              <p className="dash-notice">{t('exam.aiPending')}</p>
-              {/*
+      {(results.markingStatuses ?? []).length === 0 &&
+        shown.some(
+          (moduleId) =>
+            (moduleId === 'writing' || moduleId === 'speaking') && !markedBy.has(moduleId),
+        ) && (
+          <>
+            <p className="dash-notice">{t('exam.aiPending')}</p>
+            {/*
               A screen that will not change on its own needs a way to ask.
 
               Writing and Speaking are marked asynchronously by design, and this
@@ -300,15 +329,15 @@ export function ExamResultsPage() {
               a screen nobody is watching costs requests for nothing, and this
               way the learner is told the answer is being asked for.
             */}
-              <p>
-                <button type="button" className="dash-retry" onClick={() => void load()}>
-                  {t('exam.checkAgain')}
-                </button>
-              </p>
-            </>
-          )}
+            <p>
+              <button type="button" className="dash-retry" onClick={() => void load()}>
+                {t('exam.checkAgain')}
+              </button>
+            </p>
+          </>
+        )}
 
-        {/*
+      {/*
           What you answered, question by question.
 
           `/practice`'s own FAQ promises "bạn xem được từng câu mình đã trả lời
@@ -321,27 +350,27 @@ export function ExamResultsPage() {
           key never reaches the client, which is what lets the same exam be sat
           again. → `A-11`
         */}
-        {shown.map((moduleId) => {
-          const section = marked.get(moduleId);
-          if (section === undefined || section.questions.length === 0) return null;
+      {shown.map((moduleId) => {
+        const section = marked.get(moduleId);
+        if (section === undefined || section.questions.length === 0) return null;
 
-          return (
-            <SectionReview
-              key={moduleId}
-              module={moduleId}
-              section={section}
-              sessionId={sessionId}
-              accessToken={accessToken}
-              explanationStatuses={explanationStatuses}
-            />
-          );
-        })}
+        return (
+          <SectionReview
+            key={moduleId}
+            module={moduleId}
+            section={section}
+            sessionId={sessionId}
+            accessToken={accessToken}
+            explanationStatuses={explanationStatuses}
+          />
+        );
+      })}
 
-        {[...markedBy.entries()].map(([moduleId, moduleMarkings]) => (
-          <MarkingReview key={moduleId} module={moduleId} markings={moduleMarkings} />
-        ))}
+      {[...markedBy.entries()].map(([moduleId, moduleMarkings]) => (
+        <MarkingReview key={moduleId} module={moduleId} markings={moduleMarkings} />
+      ))}
 
-        {/*
+      {/*
           <b>`E-13` is a control, not a sentence in a FAQ.</b>
 
           The owner's words are verbatim: *"muốn luyện 1 kĩ năng thì có thể ấn
@@ -359,30 +388,29 @@ export function ExamResultsPage() {
           single-skill paper, and "Tiếp theo" belongs to the runner, which is
           the screen that has a next section to advance to.
         */}
-        <div className="result-next">
-          {results.mode === 'full' ? (
-            <Link className="dash-link" to={Paths.practice}>
+      <div className="result-next">
+        {results.mode === 'full' ? (
+          <Link className="btn btn-secondary" to={Paths.practice}>
+            {t('exam.backToPractice')}
+          </Link>
+        ) : (
+          <>
+            <Link
+              className="btn btn-primary"
+              to={only === null ? Paths.practice : `${Paths.practice}?skill=${only}&mode=single`}
+            >
+              {t('exam.newTest')}
+            </Link>
+            <Link className="btn btn-secondary" to={Paths.practice}>
               {t('exam.backToPractice')}
             </Link>
-          ) : (
-            <>
-              <Link
-                className="dash-go"
-                to={only === null ? Paths.practice : `${Paths.practice}?skill=${only}&mode=single`}
-              >
-                {t('exam.newTest')}
-              </Link>
-              <Link className="dash-link" to={Paths.practice}>
-                {t('exam.backToPractice')}
-              </Link>
-              {/* Said once, plainly. A learner who has done a full test before
+            {/* Said once, plainly. A learner who has done a full test before
                   is looking for the "Tiếp theo" that is not here. */}
-              <p className="result-next-note">{t('exam.singleEndsHere')}</p>
-            </>
-          )}
-        </div>
-      </main>
-    </div>
+            <p className="result-next-note">{t('exam.singleEndsHere')}</p>
+          </>
+        )}
+      </div>
+    </ResultsChrome>
   );
 }
 

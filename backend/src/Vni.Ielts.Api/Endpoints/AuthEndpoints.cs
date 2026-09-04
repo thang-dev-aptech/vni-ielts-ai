@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.RateLimiting;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Identity;
+using Vni.Ielts.Application.Learning;
+using Vni.Ielts.Domain.Learning;
 using Vni.Ielts.Domain.Common;
 
 namespace Vni.Ielts.Api.Endpoints;
@@ -164,20 +166,25 @@ public static class AuthEndpoints
     private static async Task<IResult> Login(
         [FromBody] LoginRequest request,
         LoginWithPassword handler,
+        LearnerPresence presence,
         HttpContext http,
         CancellationToken ct)
     {
         var result = await handler.HandleAsync(new LoginCommand(request.Email, request.Password), ct);
+        if (result.IsSuccess) await presence.TouchAsync(result.Value!.UserId, ActivityKind.SignIn, ct);
         return result.Match(ok => Results.Ok(ToSession(ok)), error => ApiProblem.From(error, http));
     }
 
     private static async Task<IResult> Refresh(
         [FromBody] RefreshRequest request,
         RefreshTokens handler,
+        LearnerPresence presence,
         HttpContext http,
         CancellationToken ct)
     {
         var result = await handler.HandleAsync(new RefreshCommand(request.RefreshToken), ct);
+        // A refresh is a learner still here today; the streak counts it.
+        if (result.IsSuccess) await presence.TouchAsync(result.Value!.UserId, ActivityKind.SignIn, ct);
         return result.Match(ok => Results.Ok(ToSession(ok)), error => ApiProblem.From(error, http));
     }
 

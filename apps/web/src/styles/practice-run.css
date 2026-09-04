@@ -103,6 +103,19 @@
   color: var(--muted);
 }
 
+.prun-skill-step {
+  flex: none;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--ink-2);
+}
+
+.prun-skill-step::after {
+  content: '·';
+  margin-left: var(--s-2);
+  color: var(--muted);
+}
+
 .prun-part {
   flex: none;
   font-weight: var(--w-emph);
@@ -124,6 +137,13 @@
   display: flex;
   align-items: center;
   gap: var(--s-3);
+}
+
+/* Deadline countdown reuses `.exam-clock` from exam.css; keep it aligned in
+   the practice bar the same way the open stopwatch sits. */
+.prun-bar .exam-clock {
+  flex: none;
+  align-self: center;
 }
 
 .prun-exit,
@@ -360,6 +380,23 @@
   background: var(--bad-soft);
   color: var(--bad);
   font-weight: var(--w-emph);
+}
+
+/* Exam-flow tests look for `.exam-submit-error`; practice chrome still wants
+   the notice strip. Either class alone still reads as an error. */
+.prun-notice.exam-submit-error,
+.exam-submit-error.prun-notice {
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-weight: var(--w-emph);
+}
+
+.prun-next-note {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
 }
 
 .prun-body {

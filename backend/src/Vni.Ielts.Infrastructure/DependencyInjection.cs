@@ -6,6 +6,7 @@ using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Application.Dictation;
 using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
+using Vni.Ielts.Application.Learning;
 using Vni.Ielts.Application.Practice;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
@@ -275,6 +276,20 @@ public static class DependencyInjection
         services.AddScoped<ChangeEmail>();
         services.AddScoped<ResendVerification>();
         services.AddScoped<ConfirmEmailCode>();
+
+        // Learning: goal, coaching, daily activity. The advisor is the AI half
+        // and is gated exactly like the Writing marker; the rest is arithmetic.
+        services.AddScoped<ILearnerGoalStore, Persistence.Learning.MongoLearnerGoalStore>();
+        services.AddScoped<ILearnerActivityLog, Persistence.Learning.MongoLearnerActivityLog>();
+        services.AddScoped<ICoachingAdviceCache, Persistence.Learning.MongoCoachingAdviceCache>();
+        services.AddSingleton<ILearnerCalendar, Learning.LearnerCalendar>();
+        services.AddHttpClient(nameof(Ai.Coaching.OpenAiCoachingAdvisor));
+        services.AddSingleton<ICoachingAdvisor, Ai.Coaching.OpenAiCoachingAdvisor>();
+        services.AddScoped<GetLearnerGoal>();
+        services.AddScoped<SetLearnerGoal>();
+        services.AddScoped<GetCoaching>();
+        services.AddScoped<GetLearnerActivity>();
+        services.AddScoped<LearnerPresence>();
 
         AddSsoProviders(services, configuration, isDevelopment);
 

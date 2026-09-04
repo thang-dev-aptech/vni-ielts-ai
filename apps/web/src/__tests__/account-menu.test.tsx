@@ -35,6 +35,33 @@ const me = {
   hasPassword: false,
 };
 
+/** No goal, no bands: the coaching block opens on the target picker. */
+const coachingFixture = {
+  goal: null,
+  skills: ['reading', 'listening', 'writing', 'speaking'].map((module) => ({
+    module,
+    currentBand: null,
+    gap: null,
+    state: 'none',
+    sessionId: null,
+    measuredAt: null,
+    detail: null,
+  })),
+  focus: [],
+  ai: { status: 'no-goal', summary: null, tips: [], model: null },
+};
+
+const activityFixture = {
+  timeZone: 'Asia/Ho_Chi_Minh',
+  today: '2026-09-04',
+  days: [],
+  currentStreak: 0,
+  longestStreak: 0,
+  activeToday: false,
+  flame: false,
+  flameThreshold: 3,
+};
+
 const sessions = [
   {
     id: 'fam-here',
@@ -66,6 +93,9 @@ function signedIn() {
     vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes('/api/v1/me/sessions')) return json({ sessions });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       return json({ code: 'NOT_FOUND', status: 404, title: '', detail: '' }, 404);
@@ -207,7 +237,7 @@ it('opens the progress module from its own address', async () => {
   window.history.pushState({}, '', '/profile?tab=progress');
   open();
 
-  expect(await screen.findByText(/chưa có gì/i)).toBeTruthy();
+  expect(await screen.findByRole('heading', { name: 'Ngày học liên tiếp' })).toBeTruthy();
 });
 
 it('lists the devices signed in to the account', async () => {

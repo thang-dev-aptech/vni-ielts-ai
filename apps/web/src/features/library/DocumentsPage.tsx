@@ -1,4 +1,7 @@
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
+import { PageHead } from '../chrome/PageHead.js';
+import { useAuth } from '../auth/AuthContext.js';
+import '../../styles/app-shell.css';
 import { FaqAccordion, type FaqEntry } from '../chrome/FaqAccordion.js';
 import { jumpToSection } from '../chrome/jumpToSection.js';
 import { useReveal } from '../landing/useReveal.js';
@@ -94,24 +97,36 @@ export function DocumentsPage() {
   const freeCount = DOCUMENTS.filter((doc) => doc.access === 'free').length;
   const skillCount = new Set(DOCUMENTS.map((doc) => doc.skill)).size;
 
+  const { user } = useAuth();
+  const compact = user !== null;
+
   return (
-    <div className="res-page prac-page">
+    <div className={`res-page prac-page${compact ? ' app-page' : ''}`}>
       <Breadcrumb trail={[{ label: 'Trang chủ', to: Paths.home }, { label: 'Tài liệu IELTS' }]} />
+      {compact && (
+        <PageHead
+          eyebrow="Thư viện"
+          title="Tài liệu IELTS"
+          lead="Tài liệu chọn lọc cho Reading, Listening, Writing, Speaking và quá trình ôn thi."
+        />
+      )}
 
-      <section className="res-hero">
-        <div className="container">
-          <span className="res-hero-badge">IELTS Resource Library</span>
-          <h1>
-            Tài liệu IELTS
-            <br />
-            <span>học đúng thứ bạn cần</span>
-          </h1>
-          <p>
-            Khám phá tài liệu được chọn lọc cho Reading, Listening, Writing, Speaking và quá trình
-            ôn thi IELTS.
-          </p>
+      {!compact && (
+        <>
+          <section className="res-hero">
+            <div className="container">
+              <span className="res-hero-badge">IELTS Resource Library</span>
+              <h1>
+                Tài liệu IELTS
+                <br />
+                <span>học đúng thứ bạn cần</span>
+              </h1>
+              <p>
+                Khám phá tài liệu được chọn lọc cho Reading, Listening, Writing, Speaking và quá
+                trình ôn thi IELTS.
+              </p>
 
-          {/*
+              {/*
             <b>Three zeros are not honesty, they are a broken boast.</b>
 
             "0 tài liệu trong kho · 0 miễn phí ngay · 0 nhóm kỹ năng" reads as a
@@ -119,33 +134,39 @@ export function DocumentsPage() {
             library is the one in the list below — *"Chưa có tài liệu nào"* —
             and it only needs saying once.
           */}
-          {DOCUMENTS.length > 0 && (
-            <ul className="res-hero-stats" aria-label="Quy mô thư viện">
-              <li>
-                <strong>{DOCUMENTS.length}</strong>
-                <span>tài liệu trong kho</span>
-              </li>
-              <li>
-                <strong>{freeCount}</strong>
-                <span>miễn phí ngay</span>
-              </li>
-              <li>
-                <strong>{skillCount}</strong>
-                <span>nhóm kỹ năng</span>
-              </li>
-            </ul>
-          )}
+              {DOCUMENTS.length > 0 && (
+                <ul className="res-hero-stats" aria-label="Quy mô thư viện">
+                  <li>
+                    <strong>{DOCUMENTS.length}</strong>
+                    <span>tài liệu trong kho</span>
+                  </li>
+                  <li>
+                    <strong>{freeCount}</strong>
+                    <span>miễn phí ngay</span>
+                  </li>
+                  <li>
+                    <strong>{skillCount}</strong>
+                    <span>nhóm kỹ năng</span>
+                  </li>
+                </ul>
+              )}
 
-          <div className="res-hero-ctas">
-            <a className="btn btn-primary" href="#library" onClick={() => jumpToSection('library')}>
-              Tìm tài liệu <span aria-hidden="true">→</span>
-            </a>
-            <a className="btn btn-secondary" href="#faq" onClick={() => jumpToSection('faq')}>
-              Câu hỏi thường gặp
-            </a>
-          </div>
-        </div>
-      </section>
+              <div className="res-hero-ctas">
+                <a
+                  className="btn btn-primary"
+                  href="#library"
+                  onClick={() => jumpToSection('library')}
+                >
+                  Tìm tài liệu <span aria-hidden="true">→</span>
+                </a>
+                <a className="btn btn-secondary" href="#faq" onClick={() => jumpToSection('faq')}>
+                  Câu hỏi thường gặp
+                </a>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
 
       <section className="res-lib-band" id="library" tabIndex={-1}>
         <div className="container">
@@ -153,16 +174,20 @@ export function DocumentsPage() {
         </div>
       </section>
 
-      <section className="section faq-section" id="faq" tabIndex={-1}>
-        <div className="container">
-          <div className="section-heading centered" data-reveal>
-            <div className="eyebrow green-eyebrow">Hỗ trợ</div>
-            <h2>Câu hỏi thường gặp</h2>
-            <p>Những điều người học thường hỏi trước khi tải tài liệu đầu tiên.</p>
-          </div>
-          <FaqAccordion entries={FAQ} />
-        </div>
-      </section>
+      {!compact && (
+        <>
+          <section className="section faq-section" id="faq" tabIndex={-1}>
+            <div className="container">
+              <div className="section-heading centered" data-reveal>
+                <div className="eyebrow green-eyebrow">Hỗ trợ</div>
+                <h2>Câu hỏi thường gặp</h2>
+                <p>Những điều người học thường hỏi trước khi tải tài liệu đầu tiên.</p>
+              </div>
+              <FaqAccordion entries={FAQ} />
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

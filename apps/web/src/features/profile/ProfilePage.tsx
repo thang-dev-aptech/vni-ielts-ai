@@ -7,7 +7,8 @@ import { currentAvatarTint } from '../landing/avatarTint.js';
 import { initialOf } from '../landing/avatarInitial.js';
 import { ChartIcon, DevicesIcon, LockIcon } from '../landing/MenuIcons.js';
 import { DevicePanel } from './DevicePanel.js';
-import { LearningGoal } from './LearningGoal.js';
+import { GoalCoachingPanel } from '../learning/GoalCoachingPanel.js';
+import { StreakPanel } from '../learning/StreakPanel.js';
 import { PasswordPanel } from './PasswordPanel.js';
 import { PersonalInfo } from './PersonalInfo.js';
 import '../../styles/profile.css';
@@ -74,7 +75,7 @@ function parseTab(raw: string | null): ProfileTab {
  * without adding anything to fill space with.
  *
  * <b>The page now answers one question.</b> `§15` of the brief: Profile is
- * *"what is my information and where does my learning stand"*. `LearningGoal`
+ * *"what is my information and where does my learning stand"*. `GoalCoachingPanel`
  * supplies the second half. Recent activity is deliberately NOT here — the
  * dashboard already carries it, and a second copy would make this a second
  * dashboard, which the same rule forbids.
@@ -116,9 +117,9 @@ export function ProfilePage() {
       <>
         <h2 className="profile-panel-title">{t('profile.progress.title')}</h2>
         <p className="profile-panel-lead">{t('profile.progress.lead')}</p>
-        <div className="profile-empty">
-          <h3>{t('progress.empty')}</h3>
-          <p>{t('progress.emptyBody')}</p>
+        <div className="profile-learning">
+          <StreakPanel />
+          <GoalCoachingPanel compact />
         </div>
       </>
     );
@@ -193,7 +194,9 @@ export function ProfilePage() {
             <PersonalInfo />
           </aside>
 
-          <LearningGoal />
+          <div className="profile-streak">
+            <StreakPanel variant="badge" />
+          </div>
 
           {/*
             Vertical, and grouped under real headings. A horizontal strip could

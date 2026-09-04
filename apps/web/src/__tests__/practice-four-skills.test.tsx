@@ -377,7 +377,7 @@ it('sends a sitting that is already closed to its results instead of offering a 
 
   await userEvent.click(screen.getByRole('button', { name: 'Tiếp theo' }));
 
-  await waitFor(() => expect(window.location.pathname).toBe('/students/session/sit-full/results'));
+  await waitFor(() => expect(window.location.pathname).toBe('/practice/results/sit-full'));
   expect(screen.queryByText(/Không chuyển được/)).toBeNull();
 });
 
@@ -397,23 +397,23 @@ it('gives each part its own scroll position in the passage pane', async () => {
   open('/students/session/sit-full');
   await screen.findByText('reading phần một');
 
-  const pane = document.querySelector('.exam-passage') as HTMLElement;
+  const pane = document.querySelector('.prun-passage') as HTMLElement;
   pane.scrollTop = 420;
 
-  const parts = screen.getByRole('group', { name: 'Các phần' });
-  await userEvent.click(within(parts).getByRole('button', { name: 'Phần 2' }));
+  const parts = screen.getByRole('group', { name: /Bản đồ câu hỏi theo section/ });
+  await userEvent.click(within(parts).getByRole('button', { name: /Section 2/ }));
 
   // A part opened for the first time starts at its own beginning.
   expect(screen.getByText('reading phần hai')).toBeInTheDocument();
   expect(pane.scrollTop).toBe(0);
 
   pane.scrollTop = 90;
-  await userEvent.click(within(parts).getByRole('button', { name: 'Phần 1' }));
+  await userEvent.click(within(parts).getByRole('button', { name: /Section 1/ }));
 
   // And a part returned to is where it was left.
   expect(pane.scrollTop).toBe(420);
 
-  await userEvent.click(within(parts).getByRole('button', { name: 'Phần 2' }));
+  await userEvent.click(within(parts).getByRole('button', { name: /Section 2/ }));
   expect(pane.scrollTop).toBe(90);
 });
 
@@ -530,7 +530,7 @@ const readingResults = {
  */
 it('offers a new test in the skill just sat, and never a next skill', async () => {
   resultsPayload = readingResults;
-  open('/students/session/sit-one/results');
+  open('/practice/results/sit-one');
 
   const again = await screen.findByRole('link', { name: 'Làm đề mới' });
 
@@ -546,7 +546,7 @@ it('offers a new test in the skill just sat, and never a next skill', async () =
 /** A Full Test's ending is not a new single-skill paper. */
 it('does not offer a single-skill new test at the end of a Full Test', async () => {
   resultsPayload = { ...readingResults, mode: 'full' };
-  open('/students/session/sit-full/results');
+  open('/practice/results/sit-full');
 
   await screen.findByText('Điểm tổng');
 
@@ -568,7 +568,7 @@ it('does not offer a single-skill new test at the end of a Full Test', async () 
  */
 it('explains an unmarked sitting instead of rendering an empty page', async () => {
   resultsPayload = { ...readingResults, sections: [], markings: [] };
-  open('/students/session/sit-one/results');
+  open('/practice/results/sit-one');
 
   expect(await screen.findByText('Chưa có kết quả nào cho buổi này')).toBeInTheDocument();
   expect(screen.getByText(/đang chờ xử lý hoặc chờ cấu hình chấm/)).toBeInTheDocument();

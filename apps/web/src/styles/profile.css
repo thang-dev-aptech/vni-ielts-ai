@@ -1040,3 +1040,16 @@
   background: transparent;
   text-decoration: underline;
 }
+
+/* Learning tab: the streak above the goal, one column, each its own card. */
+.profile-learning {
+  display: grid;
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+
+.profile-streak {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--s-3);
+}

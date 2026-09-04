@@ -1,10 +1,11 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider } from './features/auth/AuthContext.js';
 import { AuthPage } from './features/auth/AuthPage.js';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage.js';
 import { ResetPasswordPage } from './features/auth/ResetPasswordPage.js';
 import { SsoCallbackPage } from './features/auth/SsoCallbackPage.js';
 import { VerifyEmailPage } from './features/auth/VerifyEmailPage.js';
+import { AppShell } from './features/chrome/AppShell.js';
 import { DashboardShell } from './features/chrome/DashboardShell.js';
 import { DictationPage } from './features/dictation/DictationPage.js';
 import { DictationSetPage } from './features/dictation/DictationSetPage.js';
@@ -12,7 +13,6 @@ import { ExamResultsPage } from './features/exam/ExamResultsPage.js';
 import { ExamRunnerPage } from './features/exam/ExamRunnerPage.js';
 import { PracticeRunnerPage } from './features/exam/practice-runner/PracticeRunnerPage.js';
 import { PracticePage } from './features/exam/PracticePage.js';
-import { LearnerShell } from './features/chrome/LearnerShell.js';
 import { PublicShell } from './features/chrome/PublicShell.js';
 import { ArticlePage } from './features/articles/ArticlePage.js';
 import { ArticlesPage } from './features/articles/ArticlesPage.js';
@@ -37,6 +37,11 @@ import { RequireAnonymous, RequireAuth } from './routes/RequireAuth.js';
  * loading label while restoring a session, and that label has to be
  * translatable.
  */
+function LegacyResultsRedirect() {
+  const { sessionId = '' } = useParams();
+  return <Navigate to={Paths.examResults(sessionId)} replace />;
+}
+
 export function App() {
   return (
     <ErrorBoundary>
@@ -68,6 +73,14 @@ export function App() {
               */}
               <Route element={<PublicShell />}>
                 <Route path={Paths.home} element={<LandingPage />} />
+              </Route>
+
+              {/*
+                The four modules: the landing chrome for a visitor, the student
+                chrome for a learner who is signed in. Same routes, same pages;
+                only the frame changes. → `AppShell`
+              */}
+              <Route element={<AppShell />}>
                 <Route path={Paths.practice} element={<PracticePage />} />
                 <Route path={Paths.dictation} element={<DictationPage />} />
                 {/* The library lists; this one is the exercise. Split on 24/08
@@ -112,7 +125,19 @@ export function App() {
                 */}
                 <Route element={<DashboardShell />}>
                   <Route path={Paths.dashboard} element={<StudentDashboardPage />} />
+                </Route>
+
+                {/*
+                  Results wear the same chrome as `/practice` — header and
+                  footer — not the dashboard sidebar. Finishing a paper is
+                  still that paper, not a jump into "trang học sinh".
+                */}
+                <Route element={<DashboardShell />}>
                   <Route path={Paths.examResultsPattern} element={<ExamResultsPage />} />
+                  <Route
+                    path="/students/session/:sessionId/results"
+                    element={<LegacyResultsRedirect />}
+                  />
                 </Route>
 
                 {/*
@@ -134,7 +159,7 @@ export function App() {
 
                 {/* Profile keeps the landing header: it is reached from the
                     public side of the product as often as from the app. */}
-                <Route element={<LearnerShell />}>
+                <Route element={<DashboardShell />}>
                   <Route path={Paths.profile} element={<ProfilePage />} />
                 </Route>
               </Route>

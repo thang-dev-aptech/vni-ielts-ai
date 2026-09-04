@@ -143,3 +143,6 @@ _artifacts/
 # and `scripts/certify-foundation.mjs` counts a missing handoff as a refusal
 # — so ignoring it would make that gate permanently unsatisfiable on a fresh
 # checkout, which is the opposite of what a certification gate is for.
+
+# Playwright MCP session artefacts (screenshots, snapshots)
+.playwright-mcp/

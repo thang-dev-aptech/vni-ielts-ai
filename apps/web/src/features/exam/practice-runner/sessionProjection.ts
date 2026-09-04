@@ -18,7 +18,10 @@ export function projectRunnerParts(session: SessionView): RunnerProjection {
   const current = session.current;
   if (current === null) return { valid: true, parts: [] };
 
-  if (session.practiceUnitId === null) {
+  // `== null` — a response that omits the field is still a legacy module
+  // sitting, same as an explicit null. Strict `=== null` would fail closed on
+  // every timed fixture that predates the practice-unit fields.
+  if (session.practiceUnitId == null) {
     return { valid: true, parts: current.parts };
   }
 

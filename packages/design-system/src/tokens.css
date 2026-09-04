@@ -73,8 +73,31 @@
    * Fonts CSS API. Outfit was rejected for lacking one — diacritics fell
    * back mid-word. Any future font must be checked the same way.
    */
-  --font: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Nunito, not Archivo — and this token was wrong until 2026-09-03.
+   *
+   * `apps/web/index.html` has loaded **only** Nunito since 2026-08-21, when the
+   * owner directed the port from the confirmed redesign. This token was never
+   * updated, so every surface reading `var(--font)` asked for a family the page
+   * does not fetch and silently fell through to `system-ui`. The app looked
+   * roughly right on macOS, where the fallback is a humanist sans, and wrong
+   * everywhere else — which is exactly how a font bug survives review.
+   *
+   * Nunito carries a `vietnamese` subset, verified against the Google Fonts CSS
+   * API on 2026-08-21 and again on 2026-09-03. That check is not optional:
+   * `Outfit` was rejected for failing it, and `Fredoka` — the obvious "rounded
+   * and playful" pick when reaching for this look — fails it too. */
+  --font: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* The same family at display weight, for 32px and up only.
+   *
+   * One family, two voices — Duolingo's own arrangement, where the distinction
+   * is weight rather than a face change. Kept as its own token so a rule can
+   * say "this is a display setting" without hard-coding a weight, and so a
+   * future display face has one place to land.
+   * → docs/ux/DESIGN.md § Duolingo, lần thứ hai */
+  --font-display: var(--font);
+  --w-display-heavy: 800;
 
   /* Closed scale. Values outside it are a defect, half-pixels especially.
    * 13px is for ASCII only (codes, IDs). 14px is the floor for any
@@ -118,6 +141,21 @@
   --r-md: 12px;
   --r-sm: 8px;
   --r-pill: 999px;
+
+  /* Border weight, as a decision rather than a number typed per rule.
+   *
+   * Added 2026-09-03. The Duolingo adaptation makes an outline a first-class
+   * surface treatment rather than a fallback: a 2px edge is what lets a filled
+   * panel read as a sticker pressed onto the page instead of a tinted
+   * rectangle. It is also the only way to carry that weight without shadow,
+   * which this system removed on 2026-08-20 and Duolingo independently forbids.
+   *
+   * The split is the point. 2px is for a surface somebody acts on or reads a
+   * score off. 1px stays for quiet separation — a table rule at 2px turns a
+   * list into a grid of boxes.
+   * → docs/ux/DESIGN.md § Duolingo, lần thứ hai */
+  --bw-1: 1px;
+  --bw-2: 2px;
 
   --container: 1200px;
   --measure: 720px; /* reading column ceiling */

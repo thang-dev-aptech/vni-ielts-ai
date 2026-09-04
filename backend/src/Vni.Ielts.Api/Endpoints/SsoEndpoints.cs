@@ -6,6 +6,8 @@ using Microsoft.Extensions.Options;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Identity;
+using Vni.Ielts.Application.Learning;
+using Vni.Ielts.Domain.Learning;
 using Vni.Ielts.Infrastructure.Security.Sso;
 
 namespace Vni.Ielts.Api.Endpoints;
@@ -138,10 +140,12 @@ public static class SsoEndpoints
     private static async Task<IResult> Complete(
         [FromBody] CompleteSsoRequest request,
         CompleteSsoSignIn handler,
+        LearnerPresence presence,
         HttpContext http,
         CancellationToken ct)
     {
         var result = await handler.HandleAsync(new CompleteSsoCommand(request.HandoffCode), ct);
+        if (result.IsSuccess) await presence.TouchAsync(result.Value!.UserId, ActivityKind.SignIn, ct);
 
         return result.Match(
             ok => Results.Ok(AuthEndpoints.ToSession(ok)),

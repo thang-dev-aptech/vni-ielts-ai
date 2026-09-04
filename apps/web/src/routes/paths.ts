@@ -92,8 +92,18 @@ export const Paths = {
   practiceSession: (sessionId: string) => `/students/practice/${sessionId}`,
   practiceSessionPattern: '/students/practice/:sessionId',
 
-  examResults: (sessionId: string) => `/students/session/${sessionId}/results`,
-  examResultsPattern: '/students/session/:sessionId/results',
+  /**
+   * What a sitting produced.
+   *
+   * <b>A page of its own, under `/practice`, not under `/students`.</b> The
+   * results used to render inside the dashboard shell — sidebar, "Trang học
+   * sinh", a different header — so finishing a paper felt like leaving the
+   * module. The catalogue is `/practice`; the paper is a sitting; the score
+   * is still that paper. Same chrome as the catalogue (site header and
+   * footer). The runner stays fullscreen with no nav, on purpose.
+   */
+  examResults: (sessionId: string) => `/practice/results/${sessionId}`,
+  examResultsPattern: '/practice/results/:sessionId',
 
   /**
    * Tài liệu — the document library, as a page of its own.

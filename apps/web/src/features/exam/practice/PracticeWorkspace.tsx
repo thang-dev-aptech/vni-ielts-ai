@@ -217,10 +217,9 @@ export function PracticeWorkspace() {
       // the learner pressed "bắt đầu" and the next thing they should see is
       // the first question.
       //
-      // Two runners, two routes. The open-ended one counts up and can be
-      // stopped; the deadlined one counts down and refuses a late write. A
-      // single route with a flag would put practice branches through the timed
-      // runner. → `Paths.practiceSession`
+      // Two routes still, because the clocks have different failure rules: a
+      // late write is refused on a deadline and never on an open stopwatch.
+      // The chrome is the same page; only the URL and the clock differ.
       navigate(
         timing === 'open'
           ? Paths.practiceSession(session.sessionId)

@@ -439,8 +439,7 @@ const vi = {
   'exam.uploadingPercent': 'Đang gửi bản ghi… {percent}%',
   'exam.recordingStored': 'Đã lưu bản ghi',
   'exam.uploadFailed': 'Gửi bản ghi thất bại. Bản ghi vẫn còn, thử gửi lại.',
-  'exam.recordingQueued':
-    'Bản ghi đang giữ trên máy — sẽ gửi khi có mạng, hoặc bấm Gửi lại.',
+  'exam.recordingQueued': 'Bản ghi đang giữ trên máy — sẽ gửi khi có mạng, hoặc bấm Gửi lại.',
   'exam.micPermissionHint':
     'Trình duyệt sẽ hỏi quyền micro trước khi đồng hồ chuẩn bị hoặc ghi âm bắt đầu.',
   'exam.levelMeter': 'Mức âm thanh micro',
@@ -453,6 +452,7 @@ const vi = {
    * vocabulary: nothing "hết giờ", nothing "còn lại".
    */
   'practice.modeBadge': 'Luyện đề',
+  'practice.mockBadge': 'Thi thử',
   'practice.leave': 'Thoát',
   'practice.leaveTitle': 'Thoát khỏi bài đang làm?',
   'practice.leaveBody': 'Bài chưa được nộp. Bạn có thể quay lại phiên này để làm tiếp.',
@@ -529,6 +529,7 @@ const vi = {
   'exam.overallPending': 'Điểm tổng chỉ có khi đủ cả bốn kỹ năng.',
   'exam.rawOf': 'Đúng {raw}/{max} câu',
   'exam.notMarked': 'Chưa chấm',
+  'exam.aiMarkedTasks': 'AI đã chấm {count} bài',
   // Kept as the fallback for a sitting whose marking has no job behind it —
   // an older sitting, or one closed before the outbox existed. Everything with
   // a job says what actually happened instead. → `exam.markingWaiting`
@@ -542,8 +543,7 @@ const vi = {
   'exam.markingFailed': 'Chưa chấm được. Bạn có thể kiểm tra lại sau.',
   'exam.markingAwaitingEvaluator': 'Đang chờ bộ chấm tự động sẵn sàng.',
   'exam.markingAwaitingRubric': 'Đang chờ cấu hình bộ tiêu chí chấm.',
-  'exam.markingAwaitingVoiceProvider':
-    'Bản ghi đã nhận. Chấm Speaking chờ nhà cung cấp giọng nói.',
+  'exam.markingAwaitingVoiceProvider': 'Bản ghi đã nhận. Chấm Speaking chờ nhà cung cấp giọng nói.',
   'exam.markingNothingSubmitted': 'Chưa có bài nộp để chấm.',
   'exam.markingRejected': 'Bài chấm bị từ chối khi kiểm tra an toàn.',
   'exam.checkAgain': 'Kiểm tra lại',
@@ -608,6 +608,64 @@ const vi = {
 
   'dash.recent.title': 'Buổi gần đây',
   'dash.progressLabel': 'Tiến độ của bạn',
+  'coach.eyebrow': 'Mục tiêu của bạn',
+  'coach.title': 'Mục tiêu và lời khuyên',
+  'coach.targetLabel': 'Mục tiêu band',
+  'coach.targetPick': 'Chọn mục tiêu',
+  'coach.save': 'Lưu mục tiêu',
+  'coach.saving': 'Đang lưu…',
+  'coach.noGoal': 'Chọn band mục tiêu để xem bạn đang đứng ở đâu và nên ưu tiên kỹ năng nào.',
+  'coach.noData':
+    'Chưa có điểm kỹ năng nào. Làm một bài Reading hoặc Listening để có mốc đầu tiên.',
+  'coach.focus':
+    'Bạn đang yếu nhất ở {skill}: {band} so với mục tiêu {target}. Ưu tiên kỹ năng này trước.',
+  'coach.allMet': 'Mọi kỹ năng đã có điểm đều đạt mục tiêu {target}. Giữ nhịp và làm thêm đề mới.',
+  'coach.nextSteps': 'Việc nên làm',
+  'coach.viewSitting': 'Xem bài',
+  'coach.aiNote':
+    'Lời khuyên do AI viết từ các con số ở trên — tham khảo, không phải kết luận của giáo viên.',
+  'coach.aiUnavailable':
+    'Phần lời khuyên AI tạm chưa có; các con số và việc nên làm ở trên vẫn đúng.',
+  'coach.aiPending': 'AI đang viết lời khuyên từ các con số trên…',
+  'coach.state.none': 'Chưa có điểm',
+  'coach.state.met': 'Đạt mục tiêu',
+  'coach.state.close': 'Gần đạt',
+  'coach.state.behind': 'Cần cải thiện',
+  'coach.tip.reading.behind':
+    'Đọc mỗi ngày một passage có bấm giờ, chấm theo đáp án rồi xem giải thích từng câu sai; tập trung dạng True/False/Not Given và matching headings.',
+  'coach.tip.reading.close':
+    'Làm đủ đề Reading 60 phút mỗi tuần và xem lại các câu sai để đóng nốt khoảng cách.',
+  'coach.tip.listening.behind':
+    'Nghe từng part có transcript, chép chính tả câu nghe sót; luyện Part 3–4 vì đó là nơi mất điểm nhiều nhất.',
+  'coach.tip.listening.close':
+    'Nghe đủ 4 part một lượt không tua, rồi đối chiếu transcript ở những câu sai.',
+  'coach.tip.writing.behind':
+    'Viết mỗi tuần một Task 1 và một Task 2, nộp để AI chấm theo bốn tiêu chí, rồi viết lại đúng chỗ bị trừ.',
+  'coach.tip.writing.close':
+    'Tập trung vào tiêu chí thấp nhất trong nhận xét AI (thường là Task Response hoặc Coherence) trong bài kế tiếp.',
+  'coach.tip.speaking.behind':
+    'Ghi âm Part 2 mỗi ngày 2 phút theo cue card, nghe lại và sửa phát âm, độ trôi chảy.',
+  'coach.tip.speaking.close':
+    'Luyện Part 3 với câu hỏi mở rộng, kéo dài câu trả lời bằng lý do và ví dụ.',
+  'streak.eyebrow': 'Chuỗi ngày học',
+  'streak.title': 'Ngày học liên tiếp',
+  'streak.days': 'ngày',
+  'streak.lit': 'Chuỗi {n} ngày đang cháy. Vào làm một bài hôm nay để giữ lửa.',
+  'streak.warming': 'Bạn đang ở ngày thứ {n}. Thêm {need} ngày nữa là thắp lửa.',
+  'streak.cold': 'Học liên tiếp {need} ngày để thắp lửa chuỗi.',
+  'streak.longest': 'Dài nhất',
+  'streak.activeDays': 'Ngày có học',
+  'streak.today': 'Hôm nay',
+  'streak.todayYes': 'Đã học',
+  'streak.todayNo': 'Chưa học',
+  'streak.rule':
+    'Một ngày được tính khi bạn đăng nhập hoặc làm bài. Từ {need} ngày liên tiếp, ngọn lửa sáng.',
+  'streak.heatLabel': 'Lịch hoạt động một năm, {days} ngày có học',
+  'streak.month': 'T{m}',
+  'streak.less': 'Ít',
+  'streak.more': 'Nhiều',
+  'streak.flameTitle': 'Chuỗi {n} ngày đang cháy',
+  'streak.badgeTitle': 'Chuỗi ngày học',
   'dash.recent.view': 'Xem chi tiết',
   'dash.recent.unmarked': 'Chưa chấm',
   'dash.recent.inProgress': 'Đang làm',
@@ -710,8 +768,7 @@ const vi = {
     'Danh sách thiết bị và phiên đăng nhập. Hiện chỉ hiện trình duyệt đang dùng — thu hồi phiên từ xa sẽ bổ sung sau.',
   'profile.devices.thisBrowser': 'Trình duyệt hiện tại',
   'profile.devices.thisBrowserBody': 'Bạn đang đăng nhập trên thiết bị này.',
-  'profile.progress.lead':
-    'Tiến độ và lịch sử luyện tập. Engine thi chưa có nên phần này còn trống có chủ đích.',
+  'profile.progress.lead': 'Chuỗi ngày học, mục tiêu band và khoảng cách từng kỹ năng của bạn.',
 
   'notFound.title': 'Không tìm thấy trang',
   'notFound.body': 'Đường dẫn bạn mở không tồn tại hoặc đã bị đổi.',
@@ -1103,6 +1160,7 @@ const en: Record<StringKey, string> = {
 
   /* ── Practice mode · `E-20`…`E-32` ──────────────────────────────────── */
   'practice.modeBadge': 'Practice',
+  'practice.mockBadge': 'Mock test',
   'practice.leave': 'Exit',
   'practice.leaveTitle': 'Exit this sitting?',
   'practice.leaveBody': 'The paper has not been submitted. You can return to this sitting later.',
@@ -1180,6 +1238,7 @@ const en: Record<StringKey, string> = {
   'exam.overallPending': 'An overall band needs all four skills.',
   'exam.rawOf': '{raw}/{max} correct',
   'exam.notMarked': 'Not marked',
+  'exam.aiMarkedTasks': '{count} task(s) marked by AI',
   'exam.aiPending':
     'Writing and Speaking are AI marked and still processing, so unmarked skills show a dash.',
   'exam.markingWaiting': 'Waiting to be marked.',
@@ -1250,6 +1309,63 @@ const en: Record<StringKey, string> = {
 
   'dash.recent.title': 'Recent sittings',
   'dash.progressLabel': 'Your progress',
+  'coach.eyebrow': 'Your goal',
+  'coach.title': 'Goal and advice',
+  'coach.targetLabel': 'Target band',
+  'coach.targetPick': 'Pick a target',
+  'coach.save': 'Save goal',
+  'coach.saving': 'Saving…',
+  'coach.noGoal': 'Pick a target band to see where you stand and which skill to work on first.',
+  'coach.noData': 'No skill has a band yet. Sit a Reading or Listening paper for a first mark.',
+  'coach.focus':
+    'Your weakest skill is {skill}: {band} against a target of {target}. Work on it first.',
+  'coach.allMet':
+    'Every marked skill is at or above {target}. Keep the rhythm and sit a new paper.',
+  'coach.nextSteps': 'What to do',
+  'coach.viewSitting': 'View sitting',
+  'coach.aiNote': "Written by AI from the numbers above — a reference, not a teacher's verdict.",
+  'coach.aiUnavailable':
+    'AI advice is not available right now; the numbers and steps above still stand.',
+  'coach.aiPending': 'AI is writing advice from the numbers above…',
+  'coach.state.none': 'No band yet',
+  'coach.state.met': 'On target',
+  'coach.state.close': 'Nearly there',
+  'coach.state.behind': 'Needs work',
+  'coach.tip.reading.behind':
+    'Read one timed passage a day, mark it against the key and read the explanation for every wrong answer; focus on True/False/Not Given and matching headings.',
+  'coach.tip.reading.close':
+    'Sit a full 60-minute Reading paper each week and review the wrong answers to close the last gap.',
+  'coach.tip.listening.behind':
+    'Listen part by part with the transcript and dictate the sentences you missed; drill Parts 3–4, where most marks go.',
+  'coach.tip.listening.close':
+    'Listen to all four parts in one pass without rewinding, then check the transcript on the wrong ones.',
+  'coach.tip.writing.behind':
+    'Write one Task 1 and one Task 2 a week, submit for AI marking on the four criteria, then rewrite where marks were lost.',
+  'coach.tip.writing.close':
+    'Target the lowest criterion in the AI feedback (usually Task Response or Coherence) in your next essay.',
+  'coach.tip.speaking.behind':
+    'Record a two-minute Part 2 every day from a cue card, listen back and fix pronunciation and fluency.',
+  'coach.tip.speaking.close':
+    'Practise Part 3 with extended questions, stretching answers with reasons and examples.',
+  'streak.eyebrow': 'Study streak',
+  'streak.title': 'Days in a row',
+  'streak.days': 'days',
+  'streak.lit': 'Your {n}-day streak is lit. Do one paper today to keep it.',
+  'streak.warming': 'Day {n}. {need} more and the flame lights.',
+  'streak.cold': 'Study {need} days in a row to light the flame.',
+  'streak.longest': 'Longest',
+  'streak.activeDays': 'Active days',
+  'streak.today': 'Today',
+  'streak.todayYes': 'Done',
+  'streak.todayNo': 'Not yet',
+  'streak.rule':
+    'A day counts when you sign in or sit a paper. From {need} days in a row, the flame is lit.',
+  'streak.heatLabel': 'A year of activity, {days} active days',
+  'streak.month': 'M{m}',
+  'streak.less': 'Less',
+  'streak.more': 'More',
+  'streak.flameTitle': '{n}-day streak lit',
+  'streak.badgeTitle': 'Study streak',
   'dash.recent.view': 'View',
   'dash.recent.unmarked': 'Not marked',
   'dash.recent.inProgress': 'In progress',
@@ -1352,8 +1468,7 @@ const en: Record<StringKey, string> = {
     'Signed-in devices and sessions. Today this only shows the current browser — remote revoke comes later.',
   'profile.devices.thisBrowser': 'This browser',
   'profile.devices.thisBrowserBody': 'You are signed in on this device.',
-  'profile.progress.lead':
-    'Progress and practice history. Empty on purpose until the exam engine exists.',
+  'profile.progress.lead': 'Your study streak, target band and the gap per skill.',
 
   'notFound.title': 'Page not found',
   'notFound.body': 'The address you opened does not exist, or has moved.',

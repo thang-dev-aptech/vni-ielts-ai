@@ -42,6 +42,33 @@ const me = {
   hasPassword: true,
 };
 
+/** No goal, no bands: the coaching block opens on the target picker. */
+const coachingFixture = {
+  goal: null,
+  skills: ['reading', 'listening', 'writing', 'speaking'].map((module) => ({
+    module,
+    currentBand: null,
+    gap: null,
+    state: 'none',
+    sessionId: null,
+    measuredAt: null,
+    detail: null,
+  })),
+  focus: [],
+  ai: { status: 'no-goal', summary: null, tips: [], model: null },
+};
+
+const activityFixture = {
+  timeZone: 'Asia/Ho_Chi_Minh',
+  today: '2026-09-04',
+  days: [],
+  currentStreak: 0,
+  longestStreak: 0,
+  activeToday: false,
+  flame: false,
+  flameThreshold: 3,
+};
+
 const exam = {
   examVersionId: 'exam-1',
   title: 'Academic Practice Test 1',
@@ -158,6 +185,23 @@ function json(body: unknown, status = 200): Response {
 }
 
 /**
+ * The confirm card that now sits in front of every submit, luyện đề and thi thử.
+ *
+ * Footer "Nộp bài" only opens the card; the POST waits on the card's own
+ * button. Tests that used to click once now go through this, so they still
+ * assert the submit rather than the dialog.
+ */
+async function confirmSubmit() {
+  const footer = [...screen.getAllByRole('button', { name: 'Nộp bài' })].find(
+    (button) => button.closest('dialog, [role="dialog"]') === null,
+  );
+  expect(footer).toBeTruthy();
+  await userEvent.click(footer!);
+  const card = await screen.findByRole('dialog');
+  await userEvent.click(within(card).getByRole('button', { name: 'Nộp bài' }));
+}
+
+/**
  * What `/results` answers with, so a test can vary it without rebuilding the
  * whole API stub — and, more to the point, without accidentally taking
  * `/api/v1/me` down with it. Re-pointed at the default in `beforeEach`.
@@ -172,6 +216,9 @@ function mockApi() {
       const method = init?.method ?? 'GET';
 
       if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());
@@ -363,9 +410,12 @@ it('gives a sitting no way out of itself', async () => {
   await screen.findByText('The History of Cartography');
 
   // Not "few links" — none. The sidebar, the account menu and the brand are
-  // all absent because this route is outside every shell.
-  expect(document.querySelectorAll('.exam-page a')).toHaveLength(0);
+  // all absent because this route is outside every shell. Timed sittings also
+  // omit luyện đề's leave control — that would be an escape hatch on a clock
+  // that cannot be paused.
+  expect(document.querySelectorAll('.exam-page a, .prun-page a')).toHaveLength(0);
   expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Thoát' })).not.toBeInTheDocument();
   expect(screen.getByText(/Đồng hồ do máy chủ giữ/)).toBeInTheDocument();
 });
 
@@ -417,7 +467,7 @@ it('renders the canonical three answers for True/False/Not Given', async () => {
 });
 
 it('shows a dash for the overall band until all four skills are marked', async () => {
-  open('/students/session/sit-1/results');
+  open('/practice/results/sit-1');
 
   expect(await screen.findByText('Điểm tổng')).toBeInTheDocument();
   expect(document.querySelector('.result-overall-value')).toHaveTextContent('—');
@@ -429,6 +479,24 @@ it('shows a dash for the overall band until all four skills are marked', async (
   const row = screen.getByText('Reading').closest('li')!;
   expect(within(row).getByText('Đúng 1/2 câu')).toBeInTheDocument();
   expect(within(row).getByText('Chấm theo đáp án')).toBeInTheDocument();
+});
+
+it('shows results under the practice chrome, not the student dashboard', async () => {
+  open('/practice/results/sit-1');
+
+  await screen.findByText('Điểm tổng');
+
+  expect(window.location.pathname).toBe('/practice/results/sit-1');
+  expect(screen.getByRole('navigation', { name: 'Đường dẫn' })).toBeInTheDocument();
+  expect(document.querySelector('.result-page')).not.toBeNull();
+  expect(document.querySelector('.dash-main')).toBeNull();
+});
+
+it('sends old result bookmarks to the practice results page', async () => {
+  open('/students/session/sit-1/results');
+
+  await waitFor(() => expect(window.location.pathname).toBe('/practice/results/sit-1'));
+  expect(await screen.findByText('Điểm tổng')).toBeInTheDocument();
 });
 
 /**
@@ -446,7 +514,7 @@ it('shows a dash for the overall band until all four skills are marked', async (
  * "wiring up the band we already have".
  */
 it('never shows the Reading band, however confidently the server sends one', async () => {
-  open('/students/session/sit-1/results');
+  open('/practice/results/sit-1');
 
   const row = (await screen.findByText('Reading')).closest('li')!;
 
@@ -472,7 +540,9 @@ it('submits once however many times the button is pressed', async () => {
   open('/students/session/sit-1');
   await screen.findByText('The History of Cartography');
 
-  const submit = screen.getByRole('button', { name: 'Nộp bài' });
+  await userEvent.click(screen.getByRole('button', { name: 'Nộp bài' }));
+  const card = await screen.findByRole('dialog');
+  const submit = within(card).getByRole('button', { name: 'Nộp bài' });
 
   /*
    * <b>Raw `.click()`, and all three inside one `act`.</b>
@@ -482,6 +552,8 @@ it('submits once however many times the button is pressed', async () => {
    * is three presses arriving faster than a render. The raw clicks stay; the
    * `act` wrapper is what was missing, and without it every state update these
    * caused landed outside one and React said so on stderr.
+   *
+   * The footer click only opens the card; the POST is the card's own button.
    */
   act(() => {
     submit.click();
@@ -507,6 +579,9 @@ it('reports a failed submission out loud, not through the autosave chip', async 
       const url = String(input);
       if (url.endsWith('/submit')) return json({ code: 'INTERNAL' }, 500);
       if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());
@@ -519,16 +594,12 @@ it('reports a failed submission out loud, not through the autosave chip', async 
   open('/students/session/sit-1');
   await screen.findByText('The History of Cartography');
 
-  await userEvent.click(screen.getByRole('button', { name: 'Nộp bài' }));
+  await confirmSubmit();
 
-  /*
-   * By its text, not by `getByRole('alert')`: the clock's warning region is a
-   * permanently-mounted empty `role="alert"`, which is the correct shape for a
-   * live region — it announces *changes*, so it has to exist before the change.
-   */
-  expect(await screen.findByText(/Không nộp được bài/)).toBeInTheDocument();
+  const card = await screen.findByRole('dialog');
+  expect(within(card).getByText(/Không nộp được bài/)).toBeInTheDocument();
   // And the button comes back, because the learner has to be able to retry.
-  expect(screen.getByRole('button', { name: 'Nộp bài' })).toBeEnabled();
+  expect(within(card).getByRole('button', { name: 'Thử lại' })).toBeEnabled();
 });
 
 it('names every answer field by its own question', async () => {
@@ -572,7 +643,7 @@ it('shows what was answered question by question, without the answer key', async
    * The right answers stay off the page on purpose: the key never reaches the
    * client, which is what lets the same paper be sat again. → `A-11`
    */
-  open('/students/session/sit-1/results');
+  open('/practice/results/sit-1');
 
   const trigger = await screen.findByRole('button', { name: /Xem lại từng câu · Reading/ });
   expect(trigger).toHaveAttribute('aria-expanded', 'false');
@@ -593,7 +664,7 @@ it('requests and shows a post-submit explanation without changing the score', as
     ],
   };
 
-  open('/students/session/sit-1/results');
+  open('/practice/results/sit-1');
   await userEvent.click(await screen.findByRole('button', { name: /Xem lại từng câu/ }));
 
   await userEvent.click(screen.getAllByRole('button', { name: 'Vì sao đúng?' })[0]!);
@@ -611,7 +682,7 @@ it('requests and shows a post-submit explanation without changing the score', as
 });
 
 it('says right and wrong with a shape, not only a colour', async () => {
-  open('/students/session/sit-1/results');
+  open('/practice/results/sit-1');
   await userEvent.click(await screen.findByRole('button', { name: /Xem lại từng câu/ }));
 
   const chips = document.querySelectorAll('.result-q');
@@ -721,6 +792,9 @@ function openGrouped() {
     vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());
@@ -943,7 +1017,7 @@ it('shows both Writing task bands rather than an average of them', async () => {
 
   resultsPayload = marked;
 
-  open('/students/session/sit-1/results');
+  open('/practice/results/sit-1');
 
   expect(await screen.findByText('6.5 · 7.0')).toBeInTheDocument();
 
@@ -990,7 +1064,7 @@ it.each([
     explanationStatuses: [],
   };
 
-  open('/students/session/sit-1/results');
+  open('/practice/results/sit-1');
 
   expect(await screen.findByText(/Writing:/)).toBeInTheDocument();
   expect(screen.getByText(message)).toBeInTheDocument();
@@ -1014,7 +1088,7 @@ it('puts the Speaking pending reason beside its dash', async () => {
     explanationStatuses: [],
   };
 
-  open('/students/session/sit-1/results');
+  open('/practice/results/sit-1');
 
   const row = (await screen.findByText('Speaking')).closest('li')!;
   expect(within(row).getByText('Chưa chấm')).toBeInTheDocument();
@@ -1058,7 +1132,7 @@ it('drops the pending notice for a skill once its marking arrives', async () => 
 
   resultsPayload = marked;
 
-  open('/students/session/sit-1/results');
+  open('/practice/results/sit-1');
 
   expect(await screen.findByText('6.0')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /Kiểm tra lại/ })).toBeNull();
@@ -1092,6 +1166,9 @@ it("takes in another tab's answer without disturbing the one being typed", async
       const method = init?.method ?? 'GET';
 
       if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());
@@ -1187,6 +1264,9 @@ it('sends only the questions that changed, and a cleared one as null', async () 
       const method = init?.method ?? 'GET';
 
       if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());
@@ -1247,6 +1327,9 @@ it.each([
       const method = init?.method ?? 'GET';
 
       if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());
@@ -1270,7 +1353,7 @@ it.each([
   await userEvent.type(field, 'cartography');
 
   // Straight to submit, inside the debounce window — the case the gate is for.
-  await userEvent.click(screen.getByRole('button', { name: /Nộp bài/ }));
+  await confirmSubmit();
 
   // The paper was not marked from a stale sheet…
   await waitFor(() => expect(document.querySelector('.exam-submit-error')).toBeInTheDocument());
@@ -1302,6 +1385,9 @@ it('does not advance when the final save fails', async () => {
       const method = init?.method ?? 'GET';
 
       if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());
@@ -1356,6 +1442,9 @@ it('does not report a failure when a submit meets its own key still in flight', 
       const method = init?.method ?? 'GET';
 
       if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());
@@ -1390,7 +1479,7 @@ it('does not report a failure when a submit meets its own key still in flight', 
   open('/students/session/sit-1');
 
   await screen.findByRole('textbox');
-  await userEvent.click(screen.getByRole('button', { name: /Nộp bài/ }));
+  await confirmSubmit();
 
   // It came back, and the second attempt is the one that was answered.
   await waitFor(() => expect(submits).toBe(2));
@@ -1438,6 +1527,9 @@ it.each([
         const method = init?.method ?? 'GET';
 
         if (url.includes('/me/sessions')) return json({ sessions: [] });
+        if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+        if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+        if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
         if (url.includes('/api/v1/me')) return json(me);
         if (url.includes('/auth/sso/providers')) return json({ providers: [] });
         if (url.includes('/auth/refresh')) return json(refreshed());
@@ -1466,7 +1558,7 @@ it.each([
     const field = await screen.findByRole('textbox');
     await userEvent.type(field, 'cartography');
 
-    await userEvent.click(screen.getByRole('button', { name: /Nộp bài/ }));
+    await confirmSubmit();
 
     // The paper is handed in. Being unable to save one last keystroke must not
     // cost the whole sitting.
@@ -1509,6 +1601,9 @@ it('does not call an in-flight edit saved because an older save came back', asyn
       const method = init?.method ?? 'GET';
 
       if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());
@@ -1580,7 +1675,7 @@ it('does not call an in-flight edit saved because an older save came back', asyn
   expect(document.querySelector('.save-chip')?.textContent).not.toContain('Đã lưu');
 
   // The submit gate agrees: the ending is held while B is outstanding.
-  await userEvent.click(screen.getByRole('button', { name: /Nộp bài/ }));
+  await confirmSubmit();
 
   /*
    * <b>Inside `act`, because pressing submit is what renders.</b> A bare
@@ -1644,6 +1739,9 @@ it('keeps one autosave in flight at a time however fast the learner types', asyn
       const method = init?.method ?? 'GET';
 
       if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
       if (url.includes('/api/v1/me')) return json(me);
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());

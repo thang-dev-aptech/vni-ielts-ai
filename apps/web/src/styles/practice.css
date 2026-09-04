@@ -552,6 +552,28 @@
 }
 
 /*
+ * The paper's description.
+ *
+ * <b>Mid-grey and clamped to three lines.</b> Grey because the card is scanned
+ * by title and the description is what someone reads only once a title has
+ * caught them — the Duolingo adaptation's rule that body recedes so the things
+ * that identify a card can lead. Clamped because these sentences are authored
+ * per paper and a long one would push the Start button out of line with its
+ * neighbours, which is the alignment `margin-top: auto` below exists to hold.
+ */
+.prac-desc {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: var(--lh-body);
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+/*
  * `margin-top: auto` is what keeps the buttons on one line across a row.
  *
  * A single-skill card has no description and a full-test card does, so two

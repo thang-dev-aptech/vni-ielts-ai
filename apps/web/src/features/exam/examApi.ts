@@ -24,6 +24,11 @@ export interface ExamCatalogueItem {
   modules: ModuleSummary[];
   /** Sitting order from the exam version; do not hard-code skill order. */
   moduleSequence: ExamModule[];
+  /**
+   * What this paper is, written for a learner. Null when the package supplied
+   * none — render nothing, never a placeholder.
+   */
+  description: string | null;
 }
 
 export interface QuestionOptionView {

@@ -227,6 +227,16 @@ Phân biệt được khi chuyển ảnh sang xám.
 
 ## Chrome trong / ngoài phiên thi
 
+> **Cập nhật 04/09/2026 — một khung cho người đã đăng nhập.** `[QUYẾT ĐỊNH]` chủ sản phẩm:
+> *"redesign lại giao diện tất cả các trang … cho đồng bộ"* với trang học sinh. Sau đăng nhập, mọi
+> trang ngoài phiên thi — Luyện tập, Nghe chép, Tài liệu, Bài viết, Hồ sơ, Kết quả — dùng chung
+> khung của trang học sinh (thanh bên trái, thanh trên, thẻ trắng viền mảnh, một màu nhấn). Khách
+> chưa đăng nhập vẫn thấy trang đầy đủ với header landing trên cùng các địa chỉ đó (`AppShell`).
+> Trang module khi ở trong khung bỏ hero/FAQ/CTA tiếp thị và mở bằng `PageHead` kiểu dashboard.
+> Điều này **thay thế** hai ghi chú 21/08/2026 giữ Kết quả và Hồ sơ ngoài khung dashboard.
+> Quy tắc *trong phiên thi không có chrome* dưới đây không đổi.
+
+
 | | Ngoài phiên thi | Trong phiên thi |
 |---|---|---|
 | Header | 72px, logo, nav, tài khoản | Chỉ chip lưu · tên phần · đồng hồ |
@@ -573,8 +583,112 @@ Phần "pause được, và timer vẫn chạy khi pause" thì `UNCONFIRMED` →
 
 ---
 
+## Duolingo, lần thứ hai — `[QUYẾT ĐỊNH]` chủ sản phẩm 03/09/2026
+
+Chủ sản phẩm đưa lại bản trích style của Duolingo và yêu cầu **làm đẹp giao diện theo hướng đó**, ghi
+lại phần nào sửa thành của mình. Mục này là bản ghi đó.
+
+**Nó đảo một phần kết luận ở [§ Duolingo — reference "đúng ngành" nhưng sai sản phẩm](#duolingo--reference-đúng-ngành-nhưng-sai-sản-phẩm) bên trên.** Mục cũ giữ nguyên,
+không xóa: nó là nơi ghi *bằng chứng*, và bằng chứng không đổi theo quyết định. Cái đổi là kết luận —
+từ *"giữ lại đúng một điều"* thành *"lấy toàn bộ hình học và kỷ luật bề mặt"*.
+
+### Cái không đảo được, vì nó là sự thật về tiếng Việt chứ không phải khẩu vị
+
+Hai ràng buộc làm Duolingo bị bác lần đầu **vẫn giữ nguyên**. Chúng không phải lựa chọn thẩm mỹ để
+chủ sản phẩm chọn lại — chúng là tính chất của chữ Việt:
+
+| Duolingo | Ta làm gì | Vì sao không thương lượng |
+|---|---|---|
+| Nhãn nav **viết hoa** 15px/700, tracking 0.053em | **Không dùng.** Nhãn nav giữ chữ thường, weight 700 làm việc nhấn | `text-transform: uppercase` làm mất dấu tiếng Việt |
+| Body 17px **`line-height: 1.18`** | **Giữ `--lh-body: 1.5`** | Dấu chồng hai tầng (`ế ộ ằ`) ở 1.18 đâm vào dòng trên |
+| Display face `feather`, thay bằng `Nunito` | **Nhận `Nunito`** cho cỡ ≥ 32px | Đã kiểm cửa 2: `Nunito` **có** subset `vietnamese`. `Fredoka` — ứng viên "bo tròn vui" hay được chọn — **trượt**, nên đừng dùng |
+
+### Palette — đo, và kết quả là không lấy một màu nào của họ
+
+Luật [§ Ràng buộc với mọi nguồn tham khảo](#ràng-buộc-với-mọi-nguồn-tham-khảo) vẫn áp: **không lấy
+palette từ bất kỳ đâu**, mọi cặp chữ/nền ≥ 4.5. Đo trên nền trắng, 03/09/2026:
+
+| Token Duolingo | Tỉ lệ trên `#fff` | Phán quyết |
+|---|---|---|
+| Eager Green `#58cc02` | **2.09** | Trượt cả ngưỡng chữ lớn 3.0. **Chữ trắng trên nền này cũng 2.09** — chính CTA chính của họ |
+| Spark Blue `#1cb0f6` | **2.44** | Trượt cho link. Ta giữ `--acc #2867ac` = **5.79** |
+| Pencil Gray `#777777` | **4.48** | Trượt AA **0.02**. Ta giữ `--muted #6b6a71` = **5.35** |
+| Faded Gray `#afafaf` viền | **2.19** | Trượt cả ngưỡng 3.0 cho thành phần giao diện |
+| Charcoal `#4b4b4b` | 8.72 | Đạt — nhưng ta đã có `--ink-2 #4a4950`, gần như trùng. Không cần thêm token |
+
+**Không màu nào của Duolingo vào hệ.** Điều lấy được không phải giá trị màu mà là **cách dùng màu**.
+
+### Điều thực sự lấy — và nó hóa ra khớp với thứ ta đã tự kết luận
+
+**Mảng màu đặc, chữ đen lên trên.** Duolingo dán màu như dán sticker: nền đặc, viền dày, không đổ
+bóng. Chỗ họ sai là để chữ *trắng* lên xanh (2.09). Đo màu xanh của **ta**:
+
+| | Trên `#fff` | Chữ trắng trên nền đó | **Chữ đen trên nền đó** |
+|---|---|---|---|
+| `--brand-green #16ad54` | 2.94 | 2.94 ✗ | **7.14 ✓** |
+| Duolingo `#58cc02` | 2.09 | 2.09 ✗ | 10.05 ✓ |
+
+Đây đúng là kết luận [`assets/brand/README.md`](../../assets/brand/README.md) đã tự rút ra độc lập:
+*"nếu một bề mặt được tô bằng cam hoặc xanh lá, chữ trên đó **phải là màu đen**"*. Duolingo cho ta
+*hình thức* của mảng màu; phép đo của ta cho *quy tắc* dùng nó.
+
+> **Luật mới:** `--brand-green` và `--brand-orange` được dùng làm **nền đặc**, và chữ trên nền đó
+> **luôn là `--ink`**. Không bao giờ dùng chúng làm màu chữ, ở bất kỳ cỡ nào.
+
+### Bảng thích ứng — token đổi gì
+
+### Hướng này **đã bắt đầu từ 21/08** — xem banner đầu file
+
+Banner `[SUPERSEDED 2026-08-21]` ở đầu tài liệu này đã ghi sẵn bốn thứ đã đổi (Nunito · shadow dùng
+lại · bo góc 20–22px · xanh lá làm màu chính) **và** cả bảng đo tương phản kèm hai cách sửa. Khảo sát
+code ngày 03/09 xác nhận `apps/web/src/styles/landing.css` đã cài đặt đúng như vậy, và đã đi xa hơn
+banner một bước: `--green-btn #0a8438` đo **4.80** và `.btn-primary` dùng `#06803a` đo **5.05** — tức
+lỗi *"nút chính chưa đạt chuẩn tương phản"* mà banner ghi thì **landing đã sửa xong**, banner chưa
+cập nhật.
+
+Nghĩa là bản trích Duolingo chủ sản phẩm đưa hôm nay **không phải một hướng mới** — nó mô tả gần đúng
+thứ `landing.css` đang làm. Điều đó đổi bản chất công việc:
+
+> **Việc thật không phải "áp Duolingo vào sản phẩm" mà là "kéo các màn còn lại về ngang
+> `landing.css`".** Màn kết quả lệch xa nhất: viền 1px, bo góc viết thẳng `20px`/`14px`, không mảng
+> màu, không chữ display, số điểm đặt bằng font mono.
+
+**Một lỗi thật tìm được khi kiểm:** `tokens.css` khai `--font: 'Archivo'` trong khi `index.html` chỉ
+nạp Nunito từ 21/08 — nên **mọi chỗ đọc `var(--font)` đều rơi về `system-ui`**. Trên macOS nó ra một
+font sans dễ nhìn nên không ai để ý; trên Windows và Android thì không. Đã sửa 03/09.
+
+### Bảng thích ứng — token đổi gì
+
+| Duolingo | Ta | Token |
+|---|---|---|
+| Bo góc 12px cho **mọi** nút, pill, thẻ | Nhận. Bỏ mọi giá trị bo góc viết thẳng (`20px`, `14px` trong `exam.css`) | `--r-md: 12px` |
+| Viền **2px** đặc, "viền là công dân hạng nhất" | Nhận **có phân biệt**: 2px cho bề mặt tương tác và bề mặt mang điểm; 1px giữ cho đường kẻ phân cách | `--bw-2: 2px` **(mới)** |
+| Không shadow | **Không nhận.** Ta đã đi đường khác từ 21/08: đổ bóng cứng `0 4px 0` không mờ, dùng như *độ dày vật lý* chứ không như *độ cao*. Đây là chỗ ta cố ý lệch cả Duolingo lẫn hướng C cũ | — |
+| Nền trang trắng tinh | **Không nhận.** Giữ `--page #f6f5f3` + `--card #fff`: độ sâu của ta đến từ chênh lệch nền | — |
+| Một accent bão hòa duy nhất, dùng tiết kiệm | Đã có `--acc`. Duolingo củng cố kỷ luật *một hành động chính mỗi khung nhìn* | — |
+| Body xám vừa để màu dẫn dắt | Nhận **nguyên tắc**, không nhận giá trị: `--muted` lùi lại, điểm số và mảng màu dẫn | — |
+| Display face bo tròn 48–64px | Nhận, **chỉ cho ≥ 32px**: điểm band và tiêu đề màn. Cùng một họ Nunito, phân biệt bằng weight 800 | `--font-display` · `--w-display-heavy` **(mới)** |
+| Nhãn nav viết hoa | **Bác** — tiếng Việt | — |
+| `line-height 1.18` | **Bác** — tiếng Việt | — |
+
+### Register — chỗ mục cũ vẫn đúng và phải giữ
+
+Mục cũ bác Duolingo một phần vì *register*: linh vật và sticker hợp học vui 5 phút, không hợp phòng
+thi có tính giờ. **Điều đó vẫn đúng, và nó chia đôi sản phẩm:**
+
+| Vùng | Ngôn ngữ |
+|---|---|
+| **Trong phiên thi** (`ExamRunnerPage`, đồng hồ chạy) | Giữ nguyên tiết chế. Không mảng màu, không chữ display, không sticker. Luật L1 — giao diện phải bình tĩnh |
+| **Ngoài phiên thi** (kết quả, trang chủ, thư viện, tài liệu) | Đây là nơi ngôn ngữ Duolingo được áp: mảng màu đặc, viền 2px, chữ display cho điểm |
+
+Màn kết quả là chỗ đáng áp nhất: nó là lúc học viên **đã nộp bài xong**, và là màn duy nhất trong sản
+phẩm có một con số đáng ăn mừng.
+
+---
+
 ## Nguồn
 
+- Bản trích style Duolingo: chủ sản phẩm cung cấp 03/09/2026 — đã đo lại toàn bộ, không nhận màu nào
 - Token: artboard `3x` trong `VNI IELTS AI v3 - luong thi.dc.html`
 - CSS sống: `styles.css` (Token Version: Q1 Approved 19/08/2026)
 - Màu logo: [`assets/brand/README.md`](../../assets/brand/README.md)

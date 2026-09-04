@@ -683,6 +683,172 @@
         ]
       }
     },
+    "/api/v1/me/goal": {
+      "get": {
+        "tags": [
+          "Learning"
+        ],
+        "summary": "The caller\u0027s target band and exam date, or 204 when none is set",
+        "operationId": "GetLearnerGoal",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerGoalView"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Learning"
+        ],
+        "summary": "Set or replace the caller\u0027s target band",
+        "operationId": "SetLearnerGoal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetGoalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerGoalView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/coaching": {
+      "get": {
+        "tags": [
+          "Learning"
+        ],
+        "summary": "Where each skill stands against the goal and which to focus on; ai.status is pending until /coaching/advice is asked",
+        "operationId": "GetCoaching",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoachingView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/coaching/advice": {
+      "get": {
+        "tags": [
+          "Learning"
+        ],
+        "summary": "The same view with AI advice resolved \u2014 slower, cached per standing",
+        "operationId": "GetCoachingAdvice",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoachingView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/activity": {
+      "get": {
+        "tags": [
+          "Learning"
+        ],
+        "summary": "Active days for the heatmap, and the current streak",
+        "operationId": "GetLearnerActivity",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/exams": {
       "get": {
         "tags": [
@@ -1797,6 +1963,74 @@
   },
   "components": {
     "schemas": {
+      "ActivityDayView": {
+        "required": [
+          "date",
+          "count",
+          "kinds"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kinds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ActivityView": {
+        "required": [
+          "timeZone",
+          "today",
+          "days",
+          "currentStreak",
+          "longestStreak",
+          "activeToday",
+          "flame",
+          "flameThreshold"
+        ],
+        "type": "object",
+        "properties": {
+          "timeZone": {
+            "type": "string"
+          },
+          "today": {
+            "type": "string"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityDayView"
+            }
+          },
+          "currentStreak": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "longestStreak": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeToday": {
+            "type": "boolean"
+          },
+          "flame": {
+            "type": "boolean"
+          },
+          "flameThreshold": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "AssignRoleRequest": {
         "required": [
           "roleId",
@@ -1851,6 +2085,141 @@
           },
           "typed": {
             "type": "string"
+          }
+        }
+      },
+      "CoachingAiView": {
+        "required": [
+          "status",
+          "summary",
+          "tips",
+          "model"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CoachingTip"
+            }
+          },
+          "model": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CoachingSkillView": {
+        "required": [
+          "module",
+          "currentBand",
+          "gap",
+          "state",
+          "sessionId",
+          "measuredAt"
+        ],
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "currentBand": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "gap": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "state": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "measuredAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CoachingTip": {
+        "required": [
+          "module",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "CoachingView": {
+        "required": [
+          "goal",
+          "skills",
+          "focus",
+          "ai"
+        ],
+        "type": "object",
+        "properties": {
+          "goal": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LearnerGoalView"
+              }
+            ]
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CoachingSkillView"
+            }
+          },
+          "focus": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ai": {
+            "$ref": "#/components/schemas/CoachingAiView"
           }
         }
       },
@@ -2107,6 +2476,31 @@
           },
           "checksumSha256": {
             "type": "string"
+          }
+        }
+      },
+      "LearnerGoalView": {
+        "required": [
+          "targetBand",
+          "examDate",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "targetBand": {
+            "type": "number",
+            "format": "double"
+          },
+          "examDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -2894,6 +3288,26 @@
           }
         }
       },
+      "SetGoalRequest": {
+        "required": [
+          "targetBand",
+          "examDate"
+        ],
+        "type": "object",
+        "properties": {
+          "targetBand": {
+            "type": "number",
+            "format": "double"
+          },
+          "examDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
       "SetPasswordRequest": {
         "required": [
           "currentPassword",
@@ -3097,6 +3511,9 @@
     },
     {
       "name": "Auth"
+    },
+    {
+      "name": "Learning"
     },
     {
       "name": "Dictation"
