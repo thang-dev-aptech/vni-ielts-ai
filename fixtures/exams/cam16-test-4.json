@@ -1,0 +1,2675 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 16 — Test 4",
+  "variant": "academic",
+  "description": "Cambridge IELTS 16 Academic Test 4. Reading và Listening chấm theo đáp án in trong sách; không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "Roman tunnels",
+          "body": "Roman tunnels\nThe Romans, who once controlled areas of Europe, North Africa and\nAsia Minor, adopted the construction techniques of other civilizations to\nbuild tunnels in their territories\nThe Persians, who lived in present-day Iran, were one of the first civilizations to build tunnels\nthat provided a reliable supply of water to human settlements in dry areas. In the early first\nmillennium BCE, they introduced the ganat method of tunnel construction, which consisted\nof placing posts over a hill in a straight line, to ensure that the tunnel kept to its route, and then\ndigging vertical shafts down into the ground at regular intervals. Underground, workers removed\nthe earth from between the ends of the shafts, creating a tunnel. The excavated soil was taken up\nto the surface using the shafts, which also provided ventilation during the work. Once the tunnel\nwas completed, it allowed water to flow from the top of a hillside down towards a canal, which\nsupplied water for human use. Remarkably, some ganats built by the Persians 2,700 years ago are\nstill in use today.\n\nThey later passed on their knowledge to the Romans, who also used the ganat method to\nconstruct water-supply tunnels for agriculture. Roman qanat tunnels were constructed with\nvertical shafts dug at intervals of between 30 and 60 meters. The shafts were equipped with\nhandholds and footholds to help those climbing in and out of them and were covered with a\nwooden or stone lid. To ensure that the shafts were vertical, Romans hung a plumb line from a\nrod placed across the top of each shaft and made sure that the weight at the end of it hung in the\ncenter of the shaft. Plumb lines were also used to measure the depth of the shaft and to determine\nthe slope of the tunnel. The 5.6-kilometer-long Claudius tunnel, built in 41 CE to drain the Fucine\nLake in central Italy, had shafts that were up to 122 meters deep, took 11 years to build and\ninvolved approximately 30,000 workers.\n\nBy the 6th century BCE, a second method of tunnel construction appeared called the counter-\nexcavation method, in which the tunnel was constructed from both ends. It was used to cut\nthrough high mountains when the ganat method was not a practical alternative. This method\nrequired greater planning and advanced knowledge of surveying, mathematics and geometry\nas both ends of a tunnel had to meet correctly at the center of the mountain. Adjustments to the\ndirection of the tunnel also had to be made whenever builders encountered geological problems\nor when it deviated from its set path. They constantly checked the tunnel’s advancing direction,\nfor example, by looking back at the light that penetrated through the tunnel mouth, and made\ncorrections whenever necessary. Large deviations could happen, and they could result in one end\nof the tunnel not being usable. An inscription written on the side of a 428-meter tunnel, built by\nthe Romans as part of the Saldae aqueduct system in modern-day Algeria, describes how the two\nteams of builders missed each other in the mountain and how the later construction of a lateral\nlink between both corridors corrected the initial error.\n\nThe Romans dug tunnels for their roads using the counter-excavation method, whenever they\nencountered obstacles such as hills or mountains that were too high for roads to pass over.\nAn example is the 37-meter-long, 6-meter-high, Furlo Pass Tunnel built in Italy in 69-79 CE.\nRemarkably, a modern road still uses this tunnel today. Tunnels were also built for mineral\nextraction. Miners would locate a mineral vein and then pursue it with shafts and tunnels\nunderground. Traces of such tunnels used to mine gold can still be found at the Dolaucothi mines\nin Wales. When the sole purpose of a tunnel was mineral extraction, construction required less\nplanning, as the tunnel route was determined by the mineral vein.\nRoman tunnel projects were carefully planned and carried out. The length of time it took to\nconstruct a tunnel depended on the method being used and the type of rock being excavated. The\nqganat construction method was usually faster than the counter-excavation method as it was more\nstraightforward. This was because the mountain could be excavated not only from the tunnel\nmouths but also from shafts. The type of rock could also influence construction times. When\nthe rock was hard, the Romans employed a technique called fire quenching which consisted of\nheating the rock with fire, and then suddenly cooling it with cold water so that it would crack.\nProgress through hard rock could be very slow, and it was not uncommon for tunnels to take\nyears, if not decades, to be built. Construction marks left on a Roman tunnel in Bologna show that\nthe rate of advance through solid rock was 30 centimeters per day. In contrast, the rate of advance\nof the Claudius tunnel can be calculated at 1.4 meters per day. Most tunnels had inscriptions\nshowing the names of patrons who ordered construction and sometimes the name of the architect.\nFor example, the 1.4-kilometer Cevlik tunnel in Turkey, built to divert the floodwater threatening\nthe harbor of the ancient city of Seleuceia Pieria, had inscriptions on the entrance, still visible\ntoday, that also indicate that the tunnel was started in 69 CE and was completed in 81 CE.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "labelling",
+              "prompt": "1",
+              "group": {
+                "id": "r-labelling-1-6",
+                "title": "The Persian Qanat Method",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Persian Qanat Method\n\n[1] to direct water flows into\nthe tunnel and used by local people\nvertical shafts to remove earth and for [3]\n\nCross-section of a Roman Qanat Shaft\n\nA [4] lid of wood or stone\n\n[5] attached to the plumb line\nhandholds and footholds used for [6]"
+              },
+              "options": [
+                {
+                  "key": "1",
+                  "text": "1"
+                },
+                {
+                  "key": "2",
+                  "text": "2"
+                },
+                {
+                  "key": "3",
+                  "text": "3"
+                },
+                {
+                  "key": "4",
+                  "text": "4"
+                },
+                {
+                  "key": "5",
+                  "text": "5"
+                },
+                {
+                  "key": "6",
+                  "text": "6"
+                }
+              ],
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "posts"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "labelling",
+              "prompt": "2",
+              "group": {
+                "id": "r-labelling-1-6",
+                "title": "The Persian Qanat Method",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Persian Qanat Method\n\n[1] to direct water flows into\nthe tunnel and used by local people\nvertical shafts to remove earth and for [3]\n\nCross-section of a Roman Qanat Shaft\n\nA [4] lid of wood or stone\n\n[5] attached to the plumb line\nhandholds and footholds used for [6]"
+              },
+              "options": [
+                {
+                  "key": "1",
+                  "text": "1"
+                },
+                {
+                  "key": "2",
+                  "text": "2"
+                },
+                {
+                  "key": "3",
+                  "text": "3"
+                },
+                {
+                  "key": "4",
+                  "text": "4"
+                },
+                {
+                  "key": "5",
+                  "text": "5"
+                },
+                {
+                  "key": "6",
+                  "text": "6"
+                }
+              ],
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "canal"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "labelling",
+              "prompt": "3",
+              "group": {
+                "id": "r-labelling-1-6",
+                "title": "The Persian Qanat Method",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Persian Qanat Method\n\n[1] to direct water flows into\nthe tunnel and used by local people\nvertical shafts to remove earth and for [3]\n\nCross-section of a Roman Qanat Shaft\n\nA [4] lid of wood or stone\n\n[5] attached to the plumb line\nhandholds and footholds used for [6]"
+              },
+              "options": [
+                {
+                  "key": "1",
+                  "text": "1"
+                },
+                {
+                  "key": "2",
+                  "text": "2"
+                },
+                {
+                  "key": "3",
+                  "text": "3"
+                },
+                {
+                  "key": "4",
+                  "text": "4"
+                },
+                {
+                  "key": "5",
+                  "text": "5"
+                },
+                {
+                  "key": "6",
+                  "text": "6"
+                }
+              ],
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "ventilation"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "labelling",
+              "prompt": "4",
+              "group": {
+                "id": "r-labelling-1-6",
+                "title": "The Persian Qanat Method",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Persian Qanat Method\n\n[1] to direct water flows into\nthe tunnel and used by local people\nvertical shafts to remove earth and for [3]\n\nCross-section of a Roman Qanat Shaft\n\nA [4] lid of wood or stone\n\n[5] attached to the plumb line\nhandholds and footholds used for [6]"
+              },
+              "options": [
+                {
+                  "key": "1",
+                  "text": "1"
+                },
+                {
+                  "key": "2",
+                  "text": "2"
+                },
+                {
+                  "key": "3",
+                  "text": "3"
+                },
+                {
+                  "key": "4",
+                  "text": "4"
+                },
+                {
+                  "key": "5",
+                  "text": "5"
+                },
+                {
+                  "key": "6",
+                  "text": "6"
+                }
+              ],
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "lid"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "labelling",
+              "prompt": "5",
+              "group": {
+                "id": "r-labelling-1-6",
+                "title": "The Persian Qanat Method",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Persian Qanat Method\n\n[1] to direct water flows into\nthe tunnel and used by local people\nvertical shafts to remove earth and for [3]\n\nCross-section of a Roman Qanat Shaft\n\nA [4] lid of wood or stone\n\n[5] attached to the plumb line\nhandholds and footholds used for [6]"
+              },
+              "options": [
+                {
+                  "key": "1",
+                  "text": "1"
+                },
+                {
+                  "key": "2",
+                  "text": "2"
+                },
+                {
+                  "key": "3",
+                  "text": "3"
+                },
+                {
+                  "key": "4",
+                  "text": "4"
+                },
+                {
+                  "key": "5",
+                  "text": "5"
+                },
+                {
+                  "key": "6",
+                  "text": "6"
+                }
+              ],
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "weight"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "labelling",
+              "prompt": "6",
+              "group": {
+                "id": "r-labelling-1-6",
+                "title": "The Persian Qanat Method",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Persian Qanat Method\n\n[1] to direct water flows into\nthe tunnel and used by local people\nvertical shafts to remove earth and for [3]\n\nCross-section of a Roman Qanat Shaft\n\nA [4] lid of wood or stone\n\n[5] attached to the plumb line\nhandholds and footholds used for [6]"
+              },
+              "options": [
+                {
+                  "key": "1",
+                  "text": "1"
+                },
+                {
+                  "key": "2",
+                  "text": "2"
+                },
+                {
+                  "key": "3",
+                  "text": "3"
+                },
+                {
+                  "key": "4",
+                  "text": "4"
+                },
+                {
+                  "key": "5",
+                  "text": "5"
+                },
+                {
+                  "key": "6",
+                  "text": "6"
+                }
+              ],
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "climbing"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "true-false-notgiven",
+              "prompt": "The counter-excavation method completely replaced the qanat method in the 6th century BCE.",
+              "group": {
+                "id": "r-tfng-7-10",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 7-10 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "true-false-notgiven",
+              "prompt": "Only experienced builders were employed to construct a tunnel using the counter-excavation method.",
+              "group": {
+                "id": "r-tfng-7-10",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 7-10 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "true-false-notgiven",
+              "prompt": "The information about a problem that occurred during the construction of the Saldae aqueduct system was found in an ancient book.",
+              "group": {
+                "id": "r-tfng-7-10",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 7-10 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "true-false-notgiven",
+              "prompt": "The mistake made by the builders of the Saldae aqueduct system was that the two parts of the tunnel failed to meet.",
+              "group": {
+                "id": "r-tfng-7-10",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 7-10 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "short-answer",
+              "prompt": "What type of mineral were the Dolaucothi mines in Wales built to extract?",
+              "group": {
+                "id": "r-sa-11-13",
+                "instruction": "Answer the questions below.\nChoose NO MORE THAN TWO WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "gold"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "short-answer",
+              "prompt": "In addition to the patron, whose name might be carved onto a tunnel?",
+              "group": {
+                "id": "r-sa-11-13",
+                "instruction": "Answer the questions below.\nChoose NO MORE THAN TWO WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "(the) architect('s) (name)"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "short-answer",
+              "prompt": "What part of Seleuceia Pieria was the Cevlik tunnel built to protect?",
+              "group": {
+                "id": "r-sa-11-13",
+                "instruction": "Answer the questions below.\nChoose NO MORE THAN TWO WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "(the) harbour",
+                  "harbor"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Changes in reading habits",
+          "body": "Changes in reading habits\nWhat are the implications of the way we read today?\nLook around on your next plane trip. The iPad is the new pacifier for babies and toddlers. Younger\nschool-aged children read stories on smartphones; older kids don’t read at all, but hunch over\nvideo games. Parents and other passengers read on tablets or skim a flotilla of email and news\nfeeds. Unbeknown to most of us, an invisible, game-changing transformation links everyone\nin this picture: the neuronal circuit that underlies the brain’s ability to read is subtly, rapidly\nchanging and this has implications for everyone from the pre-reading toddler to the expert adult.\nAs work in neurosciences indicates, the acquisition of literacy necessitated a new circuit in our\nspecies’ brain more than 6,000 years ago. That circuit evolved from a very simple mechanism\nfor decoding basic information, like the number of goats in one’s herd, to the present, highly\nelaborated reading brain. My research depicts how the present reading brain enables the\ndevelopment of some of our most important intellectual and affective processes: internalized\nknowledge, analogical reasoning, and inference; perspective-taking and empathy; critical analysis\nand the generation of insight. Research surfacing in many parts of the world now cautions that\neach of these essential ‘deep reading’ processes may be under threat as we move into digital-\nbased modes of reading.\nThis is not a simple, binary issue of print versus digital reading and technological innovation. As\nMIT scholar Sherry Turkle has written, we do not err as a society when we innovate but when\nwe ignore what we disrupt or diminish while innovating. In this hinge moment between print and\ndigital cultures, society needs to confront what is diminishing in the expert reading circuit, what\nour children and older students are not developing, and what we can do about it.\nWe know from research that the reading circuit is not given to human beings through a genetic\nblueprint like vision or language; it needs an environment to develop. Further, it will adapt to that\nenvironment’s requirements — from different writing systems to the characteristics of whatever\nmedium is used. If the dominant medium advantages processes that are fast, multi-task oriented\nand well-suited for large volumes of information, like the current digital medium, so will the\nreading circuit. As UCLA psychologist Patricia Greenfield writes, the result is that less attention\nand time will be allocated to slower, time-demanding deep reading processes.\nIncreasing reports from educators and from researchers in psychology and the humanities bear\nthis out. English literature scholar and teacher Mark Edmundson describes how many college\nstudents actively avoid the classic literature of the 19th and 20th centuries in favour of something\nsimpler as they no longer have the patience to read longer, denser, more difficult texts. We should\nbe less concerned with students’ ‘cognitive impatience’, however, than by what may underlie\nit: the potential inability of large numbers of students to read with a level of critical analysis\nsufficient to comprehend the complexity of thought and argument found in more demanding texts.\nMultiple studies show that digital screen use may be causing a variety of troubling downstream\neffects on reading comprehension in older high school and college students. In Stavanger,\nNorway, psychologist Anne Mangen and her colleagues studied how high school students\ncomprehend the same material in different mediums. Mangen’s group asked subjects questions\nabout a short story whose plot had universal student appeal; half of the students read the story\non a tablet, the other half in paperback. Results indicated that students who read on print were\nsuperior in their comprehension to screen-reading peers, particularly in their ability to sequence\ndetail and reconstruct the plot in chronological order.\nZiming Liu from San Jose State University has conducted a series of studies which indicate that\nthe ‘new norm’ in reading is skimming, involving word-spotting and browsing through the text.\nMany readers now use a pattern when reading in which they sample the first line and then word-\nspot through the rest of the text. When the reading brain skims like this, it reduces time allocated\nto deep reading processes. In other words, we don’t have time to grasp complexity, to understand\nanother’s feelings, to perceive beauty, and to create thoughts of the reader’s own.\nThe possibility that critical analysis, empathy and other deep reading processes could become\nthe unintended ‘collateral damage’ of our digital culture is not a straightforward binary issue\nabout print versus digital reading. It is about how we all have begun to read on various mediums\nand how that changes not only what we read, but also the purposes for which we read. Nor is it\nonly about the young. The subtle atrophy of critical analysis and empathy affects us all equally. It\naffects our ability to navigate a constant bombardment of information. It incentivizes a retreat to\nthe most familiar stores of unchecked information, which require and receive no analysis, leaving\nus susceptible to false information and irrational ideas.\nThere’s an old rule in neuroscience that does not alter with age: use it or lose it. It is a very\nhopeful principle when applied to critical thought in the reading brain because it implies choice.\nThe story of the changing reading brain is hardly finished. We possess both the science and the\ntechnology to identify and redress the changes in how we read before they become entrenched. If\nwe work to understand exactly what we will lose, alongside the extraordinary new capacities that\nthe digital world has brought us, there is as much reason for excitement as caution.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "What is the writer’s main point in the first paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Our use of technology is having a hidden effect on us."
+                },
+                {
+                  "key": "B",
+                  "text": "Technology can be used to help youngsters to read."
+                },
+                {
+                  "key": "C",
+                  "text": "Travellers should be encouraged to use technology on planes."
+                },
+                {
+                  "key": "D",
+                  "text": "Playing games is a more popular use of technology than reading."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "What main point does Sherry Turkle make about innovation?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Technological innovation has led to a reduction in print reading."
+                },
+                {
+                  "key": "B",
+                  "text": "We should pay attention to what might be lost when innovation occurs."
+                },
+                {
+                  "key": "C",
+                  "text": "We should encourage more young people to become involved in innovation."
+                },
+                {
+                  "key": "D",
+                  "text": "There is a difference between developing products and developing ideas."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "multiple-choice",
+              "prompt": "What point is the writer making in the fourth paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Humans have an inborn ability to read and write."
+                },
+                {
+                  "key": "B",
+                  "text": "Reading can be done using many different mediums."
+                },
+                {
+                  "key": "C",
+                  "text": "Writing systems make unexpected demands on the brain."
+                },
+                {
+                  "key": "D",
+                  "text": "Some brain circuits adjust to whatever is required of them."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "multiple-choice",
+              "prompt": "According to Mark Edmundson, the attitude of college students",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "has changed the way he teaches."
+                },
+                {
+                  "key": "B",
+                  "text": "has influenced what they select to read."
+                },
+                {
+                  "key": "C",
+                  "text": "does not worry him as much as it does others."
+                },
+                {
+                  "key": "D",
+                  "text": "does not match the views of the general public."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "There have been many studies on digital screen use, showing some [18] trends.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "fast"
+                },
+                {
+                  "key": "B",
+                  "text": "isolated"
+                },
+                {
+                  "key": "C",
+                  "text": "emotional"
+                },
+                {
+                  "key": "D",
+                  "text": "worrying"
+                },
+                {
+                  "key": "E",
+                  "text": "many"
+                },
+                {
+                  "key": "F",
+                  "text": "hard"
+                },
+                {
+                  "key": "G",
+                  "text": "combined"
+                },
+                {
+                  "key": "H",
+                  "text": "thorough"
+                }
+              ],
+              "group": {
+                "id": "r-matching-18-22",
+                "instruction": "Complete the summary using the list of words, A—H, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Her team then used a question-and-answer technique to find out how [19] each group’s understanding of the plot was.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "fast"
+                },
+                {
+                  "key": "B",
+                  "text": "isolated"
+                },
+                {
+                  "key": "C",
+                  "text": "emotional"
+                },
+                {
+                  "key": "D",
+                  "text": "worrying"
+                },
+                {
+                  "key": "E",
+                  "text": "many"
+                },
+                {
+                  "key": "F",
+                  "text": "hard"
+                },
+                {
+                  "key": "G",
+                  "text": "combined"
+                },
+                {
+                  "key": "H",
+                  "text": "thorough"
+                }
+              ],
+              "group": {
+                "id": "r-matching-18-22",
+                "instruction": "Complete the summary using the list of words, A—H, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "The findings showed a clear pattern in the responses, with those who read screens finding the order of information [20] to recall.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "fast"
+                },
+                {
+                  "key": "B",
+                  "text": "isolated"
+                },
+                {
+                  "key": "C",
+                  "text": "emotional"
+                },
+                {
+                  "key": "D",
+                  "text": "worrying"
+                },
+                {
+                  "key": "E",
+                  "text": "many"
+                },
+                {
+                  "key": "F",
+                  "text": "hard"
+                },
+                {
+                  "key": "G",
+                  "text": "combined"
+                },
+                {
+                  "key": "H",
+                  "text": "thorough"
+                }
+              ],
+              "group": {
+                "id": "r-matching-18-22",
+                "instruction": "Complete the summary using the list of words, A—H, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "matching",
+              "prompt": "Studies by Ziming Liu show that students are tending to read [21] words and phrases in a text to save time.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "fast"
+                },
+                {
+                  "key": "B",
+                  "text": "isolated"
+                },
+                {
+                  "key": "C",
+                  "text": "emotional"
+                },
+                {
+                  "key": "D",
+                  "text": "worrying"
+                },
+                {
+                  "key": "E",
+                  "text": "many"
+                },
+                {
+                  "key": "F",
+                  "text": "hard"
+                },
+                {
+                  "key": "G",
+                  "text": "combined"
+                },
+                {
+                  "key": "H",
+                  "text": "thorough"
+                }
+              ],
+              "group": {
+                "id": "r-matching-18-22",
+                "instruction": "Complete the summary using the list of words, A—H, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "matching",
+              "prompt": "This approach, she says, gives the reader a superficial understanding of the [22] content of material, leaving no time for thought.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "fast"
+                },
+                {
+                  "key": "B",
+                  "text": "isolated"
+                },
+                {
+                  "key": "C",
+                  "text": "emotional"
+                },
+                {
+                  "key": "D",
+                  "text": "worrying"
+                },
+                {
+                  "key": "E",
+                  "text": "many"
+                },
+                {
+                  "key": "F",
+                  "text": "hard"
+                },
+                {
+                  "key": "G",
+                  "text": "combined"
+                },
+                {
+                  "key": "H",
+                  "text": "thorough"
+                }
+              ],
+              "group": {
+                "id": "r-matching-18-22",
+                "instruction": "Complete the summary using the list of words, A—H, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "yes-no-notgiven",
+              "prompt": "The medium we use to read can affect our choice of reading content.",
+              "group": {
+                "id": "r-ynng-23-26",
+                "instruction": "Do the following statements agree with the views of the writer in Reading Passage 2?\n\nIn boxes 23-26 on your answer sheet, write\nYES if the statement agrees with the views of the writer\nNO if the statement contradicts the views of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "yes-no-notgiven",
+              "prompt": "Some age groups are more likely to lose their complex reading skills than others.",
+              "group": {
+                "id": "r-ynng-23-26",
+                "instruction": "Do the following statements agree with the views of the writer in Reading Passage 2?\n\nIn boxes 23-26 on your answer sheet, write\nYES if the statement agrees with the views of the writer\nNO if the statement contradicts the views of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "yes-no-notgiven",
+              "prompt": "False information has become more widespread in today’s digital era.",
+              "group": {
+                "id": "r-ynng-23-26",
+                "instruction": "Do the following statements agree with the views of the writer in Reading Passage 2?\n\nIn boxes 23-26 on your answer sheet, write\nYES if the statement agrees with the views of the writer\nNO if the statement contradicts the views of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "yes-no-notgiven",
+              "prompt": "We still have opportunities to rectify the problems that technology is presenting.",
+              "group": {
+                "id": "r-ynng-23-26",
+                "instruction": "Do the following statements agree with the views of the writer in Reading Passage 2?\n\nIn boxes 23-26 on your answer sheet, write\nYES if the statement agrees with the views of the writer\nNO if the statement contradicts the views of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Attitudes towards Artificial Intelligence",
+          "body": "Attitudes towards Artificial Intelligence\n\nA Artificial intelligence (AI) can already predict the future. Police forces are using it\nto map when and where crime is likely to occur. Doctors can use it to predict when a\npatient is most likely to have a heart attack or stroke. Researchers are even trying to\ngive AI imagination so it can plan for unexpected consequences.\n\nMany decisions in our lives require a good forecast, and AI is almost always better\nat forecasting than we are. Yet for all these technological advances, we still seem to\ndeeply lack confidence in AI predictions. Recent cases show that people don’t like\nrelying on AI and prefer to trust human experts, even if these experts are wrong.\n\nIf we want AI to really benefit people, we need to find a way to get people to trust\nit. To do that, we need to understand why people are so reluctant to trust AI in the\nfirst place.\n\nB_ Take the case of Watson for Oncology, one of technology giant IBM’s\nsupercomputer programs. Their attempt to promote this program to cancer doctors\nwas a PR disaster. The AI promised to deliver top-quality recommendations on\nthe treatment of 12 cancers that accounted for 80% of the world’s cases. But when\ndoctors first interacted with Watson, they found themselves in a rather difficult\nsituation. On the one hand, if Watson provided guidance about a treatment that\ncoincided with their own opinions, physicians did not see much point in Watson’s\nrecommendations. The supercomputer was simply telling them what they already\nknew, and these recommendations did not change the actual treatment.\n\nOn the other hand, if Watson generated a recommendation that contradicted the\nexperts’ opinion, doctors would typically conclude that Watson wasn’t competent.\nAnd the machine wouldn’t be able to explain why its treatment was plausible\nbecause its machine-learning algorithms were simply too complex to be fully\nunderstood by humans. Consequently, this has caused even more suspicion\nand disbelief, leading many doctors to ignore the seemingly outlandish AI\nrecommendations and stick to their own expertise.\n\nC This is just one example of people’s lack of confidence in AI and their reluctance to\naccept what AI has to offer. Trust in other people is often based on our understanding\nof how others think and having experience of their reliability. This helps create\na psychological feeling of safety. AI, on the other hand, is still fairly new and\nunfamiliar to most people. Even if it can be technically explained (and that’s not\nalways the case), AI’s decision-making process is usually too difficult for most\npeople to comprehend. And interacting with something we don’t understand can\ncause anxiety and give us a sense that we’re losing control.\n\nMany people are also simply not familiar with many instances of AI actually\nworking, because it often happens in the background. Instead, they are acutely\naware of instances where AI goes wrong. Embarrassing AI failures receive a\ndisproportionate amount of media attention, emphasising the message that we\ncannot rely on technology. Machine learning is not foolproof, in part because the\nhumans who design it aren’t.\n\nD Feelings about AI run deep. In a recent experiment, people from a range of\nbackgrounds were given various sci-fi films about AI to watch and then asked\nquestions about automation in everyday life. It was found that, regardless of whether\nthe film they watched depicted AI in a positive or negative light, simply watching\na cinematic vision of our technological future polarised the participants’ attitudes.\nOptimists became more extreme in their enthusiasm for AI and sceptics became\neven more guarded.\n\nThis suggests people use relevant evidence about AI in a biased manner to support\ntheir existing attitudes, a deep-rooted human tendency known as “confirmation\nbias”. As AI is represented more and more in media and entertainment, it could lead\nto a society split between those who benefit from AI and those who reject it. More\npertinently, refusing to accept the advantages offered by AI could place a large group\nof people at a serious disadvantage.\n\nE Fortunately, we already have some ideas about how to improve trust in AI. Simply\nhaving previous experience with AI can significantly improve people’s opinions\nabout the technology, as was found in the study mentioned above. Evidence also\nsuggests the more you use other technologies such as the internet, the more you\ntrust them.\n\nAnother solution may be to reveal more about the algorithms which AI uses and\nthe purposes they serve. Several high-profile social media companies and online\nmarketplaces already release transparency reports about government requests and\nsurveillance disclosures. A similar practice for AI could help people have a better\nunderstanding of the way algorithmic decisions are made.\n\nF Research suggests that allowing people some control over AI decision-making could\nalso improve trust and enable AI to learn from human experience. For example,\none study showed that when people were allowed the freedom to slightly modify an\nalgorithm, they felt more satisfied with its decisions, more likely to believe it was\nsuperior and more likely to use it in the future.\n\nWe don’t need to understand the intricate inner workings of AI systems, but if\npeople are given a degree of responsibility for how they are implemented, they will\nbe more willing to accept AI into their lives.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Section A",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "An increasing divergence of attitudes towards AI"
+                },
+                {
+                  "key": "ii",
+                  "text": "Reasons why we have more faith in human judgement than in AI"
+                },
+                {
+                  "key": "iii",
+                  "text": "The superiority of AI projections over those made by humans"
+                },
+                {
+                  "key": "iv",
+                  "text": "The process by which AI can help us make good decisions"
+                },
+                {
+                  "key": "v",
+                  "text": "The advantages of involving users in AI processes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Widespread distrust of an AI innovation"
+                },
+                {
+                  "key": "vii",
+                  "text": "Encouraging openness about how AI functions"
+                },
+                {
+                  "key": "viii",
+                  "text": "A surprisingly successful AI application"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-32",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nChoose the correct heading for each section from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "iii"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Section B",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "An increasing divergence of attitudes towards AI"
+                },
+                {
+                  "key": "ii",
+                  "text": "Reasons why we have more faith in human judgement than in AI"
+                },
+                {
+                  "key": "iii",
+                  "text": "The superiority of AI projections over those made by humans"
+                },
+                {
+                  "key": "iv",
+                  "text": "The process by which AI can help us make good decisions"
+                },
+                {
+                  "key": "v",
+                  "text": "The advantages of involving users in AI processes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Widespread distrust of an AI innovation"
+                },
+                {
+                  "key": "vii",
+                  "text": "Encouraging openness about how AI functions"
+                },
+                {
+                  "key": "viii",
+                  "text": "A surprisingly successful AI application"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-32",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nChoose the correct heading for each section from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "vi"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Section C",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "An increasing divergence of attitudes towards AI"
+                },
+                {
+                  "key": "ii",
+                  "text": "Reasons why we have more faith in human judgement than in AI"
+                },
+                {
+                  "key": "iii",
+                  "text": "The superiority of AI projections over those made by humans"
+                },
+                {
+                  "key": "iv",
+                  "text": "The process by which AI can help us make good decisions"
+                },
+                {
+                  "key": "v",
+                  "text": "The advantages of involving users in AI processes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Widespread distrust of an AI innovation"
+                },
+                {
+                  "key": "vii",
+                  "text": "Encouraging openness about how AI functions"
+                },
+                {
+                  "key": "viii",
+                  "text": "A surprisingly successful AI application"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-32",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nChoose the correct heading for each section from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "ii"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Section D",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "An increasing divergence of attitudes towards AI"
+                },
+                {
+                  "key": "ii",
+                  "text": "Reasons why we have more faith in human judgement than in AI"
+                },
+                {
+                  "key": "iii",
+                  "text": "The superiority of AI projections over those made by humans"
+                },
+                {
+                  "key": "iv",
+                  "text": "The process by which AI can help us make good decisions"
+                },
+                {
+                  "key": "v",
+                  "text": "The advantages of involving users in AI processes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Widespread distrust of an AI innovation"
+                },
+                {
+                  "key": "vii",
+                  "text": "Encouraging openness about how AI functions"
+                },
+                {
+                  "key": "viii",
+                  "text": "A surprisingly successful AI application"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-32",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nChoose the correct heading for each section from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "i"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "Section E",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "An increasing divergence of attitudes towards AI"
+                },
+                {
+                  "key": "ii",
+                  "text": "Reasons why we have more faith in human judgement than in AI"
+                },
+                {
+                  "key": "iii",
+                  "text": "The superiority of AI projections over those made by humans"
+                },
+                {
+                  "key": "iv",
+                  "text": "The process by which AI can help us make good decisions"
+                },
+                {
+                  "key": "v",
+                  "text": "The advantages of involving users in AI processes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Widespread distrust of an AI innovation"
+                },
+                {
+                  "key": "vii",
+                  "text": "Encouraging openness about how AI functions"
+                },
+                {
+                  "key": "viii",
+                  "text": "A surprisingly successful AI application"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-32",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nChoose the correct heading for each section from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "vii"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "matching",
+              "prompt": "Section F",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "An increasing divergence of attitudes towards AI"
+                },
+                {
+                  "key": "ii",
+                  "text": "Reasons why we have more faith in human judgement than in AI"
+                },
+                {
+                  "key": "iii",
+                  "text": "The superiority of AI projections over those made by humans"
+                },
+                {
+                  "key": "iv",
+                  "text": "The process by which AI can help us make good decisions"
+                },
+                {
+                  "key": "v",
+                  "text": "The advantages of involving users in AI processes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Widespread distrust of an AI innovation"
+                },
+                {
+                  "key": "vii",
+                  "text": "Encouraging openness about how AI functions"
+                },
+                {
+                  "key": "viii",
+                  "text": "A surprisingly successful AI application"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-32",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nChoose the correct heading for each section from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "v"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "multiple-choice",
+              "prompt": "What is the writer doing in Section A?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "providing a solution to a concern"
+                },
+                {
+                  "key": "B",
+                  "text": "justifying an opinion about an issue"
+                },
+                {
+                  "key": "C",
+                  "text": "highlighting the existence of a problem"
+                },
+                {
+                  "key": "D",
+                  "text": "explaining the reasons for a phenomenon"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "multiple-choice",
+              "prompt": "According to Section C, why might some people be reluctant to accept AI?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They are afraid it will replace humans in decision-making jobs."
+                },
+                {
+                  "key": "B",
+                  "text": "Its complexity makes them feel that they are at a disadvantage."
+                },
+                {
+                  "key": "C",
+                  "text": "They would rather wait for the technology to be tested over a period of time."
+                },
+                {
+                  "key": "D",
+                  "text": "Misunderstandings about how it works make it seem more challenging than it is."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "multiple-choice",
+              "prompt": "What does the writer say about the media in Section C of the text?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It leads the public to be mistrustful of AI."
+                },
+                {
+                  "key": "B",
+                  "text": "It devotes an excessive amount of attention to AI."
+                },
+                {
+                  "key": "C",
+                  "text": "Its reports of incidents involving AI are often inaccurate."
+                },
+                {
+                  "key": "D",
+                  "text": "It gives the impression that AI failures are due to designer error."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "yes-no-notgiven",
+              "prompt": "Subjective depictions of AI in sci-fi films make people change their opinions about automation.",
+              "group": {
+                "id": "r-ynng-36-40",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\n\nIn boxes 36-40 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "yes-no-notgiven",
+              "prompt": "Portrayals of AI in media and entertainment are likely to become more positive.",
+              "group": {
+                "id": "r-ynng-36-40",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\n\nIn boxes 36-40 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "yes-no-notgiven",
+              "prompt": "Rejection of the possibilities of AI may have a negative effect on many people’s lives.",
+              "group": {
+                "id": "r-ynng-36-40",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\n\nIn boxes 36-40 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "yes-no-notgiven",
+              "prompt": "Familiarity with AI has very little impact on people’s attitudes to the technology.",
+              "group": {
+                "id": "r-ynng-36-40",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\n\nIn boxes 36-40 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "yes-no-notgiven",
+              "prompt": "AI applications which users are able to modify are more likely to gain consumer approval.",
+              "group": {
+                "id": "r-ynng-36-40",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\n\nIn boxes 36-40 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Holiday rental",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Holiday rental",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Owners’ names: Jack Fitzgerald and Shirley Fitzgerald\nGranary Cottage\n• available for week beginning [1] May\n• cost for the week: [2] £\n• [3] courts\n• cost for the week: £480\n• building was originally a [4]\n• walk through doors from living room into a [5]\n• [6] spaces at the front\n• bathroom has a shower\n• central heating and stove that burns [7]\n• views of old [8] from living room\n• view of hilltop [9] from the bedroom\nPayment\n• deposit: £144\n• deadline for final payment: end of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "28th"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Holiday rental",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Owners’ names: Jack Fitzgerald and Shirley Fitzgerald\nGranary Cottage\n• available for week beginning [1] May\n• cost for the week: [2] £\n• [3] courts\n• cost for the week: £480\n• building was originally a [4]\n• walk through doors from living room into a [5]\n• [6] spaces at the front\n• bathroom has a shower\n• central heating and stove that burns [7]\n• views of old [8] from living room\n• view of hilltop [9] from the bedroom\nPayment\n• deposit: £144\n• deadline for final payment: end of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "550"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Holiday rental",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Owners’ names: Jack Fitzgerald and Shirley Fitzgerald\nGranary Cottage\n• available for week beginning [1] May\n• cost for the week: [2] £\n• [3] courts\n• cost for the week: £480\n• building was originally a [4]\n• walk through doors from living room into a [5]\n• [6] spaces at the front\n• bathroom has a shower\n• central heating and stove that burns [7]\n• views of old [8] from living room\n• view of hilltop [9] from the bedroom\nPayment\n• deposit: £144\n• deadline for final payment: end of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Chervil"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Holiday rental",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Owners’ names: Jack Fitzgerald and Shirley Fitzgerald\nGranary Cottage\n• available for week beginning [1] May\n• cost for the week: [2] £\n• [3] courts\n• cost for the week: £480\n• building was originally a [4]\n• walk through doors from living room into a [5]\n• [6] spaces at the front\n• bathroom has a shower\n• central heating and stove that burns [7]\n• views of old [8] from living room\n• view of hilltop [9] from the bedroom\nPayment\n• deposit: £144\n• deadline for final payment: end of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "garage"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Holiday rental",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Owners’ names: Jack Fitzgerald and Shirley Fitzgerald\nGranary Cottage\n• available for week beginning [1] May\n• cost for the week: [2] £\n• [3] courts\n• cost for the week: £480\n• building was originally a [4]\n• walk through doors from living room into a [5]\n• [6] spaces at the front\n• bathroom has a shower\n• central heating and stove that burns [7]\n• views of old [8] from living room\n• view of hilltop [9] from the bedroom\nPayment\n• deposit: £144\n• deadline for final payment: end of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "garden"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Holiday rental",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Owners’ names: Jack Fitzgerald and Shirley Fitzgerald\nGranary Cottage\n• available for week beginning [1] May\n• cost for the week: [2] £\n• [3] courts\n• cost for the week: £480\n• building was originally a [4]\n• walk through doors from living room into a [5]\n• [6] spaces at the front\n• bathroom has a shower\n• central heating and stove that burns [7]\n• views of old [8] from living room\n• view of hilltop [9] from the bedroom\nPayment\n• deposit: £144\n• deadline for final payment: end of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "parking"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Holiday rental",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Owners’ names: Jack Fitzgerald and Shirley Fitzgerald\nGranary Cottage\n• available for week beginning [1] May\n• cost for the week: [2] £\n• [3] courts\n• cost for the week: £480\n• building was originally a [4]\n• walk through doors from living room into a [5]\n• [6] spaces at the front\n• bathroom has a shower\n• central heating and stove that burns [7]\n• views of old [8] from living room\n• view of hilltop [9] from the bedroom\nPayment\n• deposit: £144\n• deadline for final payment: end of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "wood"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Holiday rental",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Owners’ names: Jack Fitzgerald and Shirley Fitzgerald\nGranary Cottage\n• available for week beginning [1] May\n• cost for the week: [2] £\n• [3] courts\n• cost for the week: £480\n• building was originally a [4]\n• walk through doors from living room into a [5]\n• [6] spaces at the front\n• bathroom has a shower\n• central heating and stove that burns [7]\n• views of old [8] from living room\n• view of hilltop [9] from the bedroom\nPayment\n• deposit: £144\n• deadline for final payment: end of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "bridge"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Holiday rental",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Owners’ names: Jack Fitzgerald and Shirley Fitzgerald\nGranary Cottage\n• available for week beginning [1] May\n• cost for the week: [2] £\n• [3] courts\n• cost for the week: £480\n• building was originally a [4]\n• walk through doors from living room into a [5]\n• [6] spaces at the front\n• bathroom has a shower\n• central heating and stove that burns [7]\n• views of old [8] from living room\n• view of hilltop [9] from the bedroom\nPayment\n• deposit: £144\n• deadline for final payment: end of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "monument"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Holiday rental",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Owners’ names: Jack Fitzgerald and Shirley Fitzgerald\nGranary Cottage\n• available for week beginning [1] May\n• cost for the week: [2] £\n• [3] courts\n• cost for the week: £480\n• building was originally a [4]\n• walk through doors from living room into a [5]\n• [6] spaces at the front\n• bathroom has a shower\n• central heating and stove that burns [7]\n• views of old [8] from living room\n• view of hilltop [9] from the bedroom\nPayment\n• deposit: £144\n• deadline for final payment: end of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "March"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-4-listening-part1.mp3"
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Local council report on traffic and highways",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "A survey found people’s main concern about traffic in the area was",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "cuts to public transport."
+                },
+                {
+                  "key": "B",
+                  "text": "poor maintenance of roads."
+                },
+                {
+                  "key": "C",
+                  "text": "changes in the type of traffic."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "Which change will shortly be made to the cycle path next to the river?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It will be widened."
+                },
+                {
+                  "key": "B",
+                  "text": "It will be extended."
+                },
+                {
+                  "key": "C",
+                  "text": "It will be resurfaced."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "Plans for a pedestrian crossing have been postponed because",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the Post Office has moved."
+                },
+                {
+                  "key": "B",
+                  "text": "the proposed location is unsafe."
+                },
+                {
+                  "key": "C",
+                  "text": "funding is not available at present."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "On Station Road, notices have been erected",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "telling cyclists not to leave their bikes outside the station ticket office."
+                },
+                {
+                  "key": "B",
+                  "text": "asking motorists to switch off engines when waiting at the level crossing."
+                },
+                {
+                  "key": "C",
+                  "text": "warning pedestrians to leave enough time when crossing the railway line."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "labelling",
+              "prompt": "New car park",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Recreation ground after proposed changes",
+                "instruction": "Label the map below. Write the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "¢"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "labelling",
+              "prompt": "New cricket pitch",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Recreation ground after proposed changes",
+                "instruction": "Label the map below. Write the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "labelling",
+              "prompt": "Children’s playground",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Recreation ground after proposed changes",
+                "instruction": "Label the map below. Write the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "labelling",
+              "prompt": "Skateboard ramp",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Recreation ground after proposed changes",
+                "instruction": "Label the map below. Write the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "|"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "labelling",
+              "prompt": "Pavilion",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Recreation ground after proposed changes",
+                "instruction": "Label the map below. Write the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "labelling",
+              "prompt": "Notice board",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Recreation ground after proposed changes",
+                "instruction": "Label the map below. Write the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-4-listening-part2.mp3"
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "City bike-sharing schemes",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-select",
+              "prompt": "Which TWO benefits of city bike-sharing schemes do the students agree are the most important?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "reducing noise pollution"
+                },
+                {
+                  "key": "B",
+                  "text": "reducing traffic congestion"
+                },
+                {
+                  "key": "C",
+                  "text": "improving air quality"
+                },
+                {
+                  "key": "D",
+                  "text": "encouraging health and fitness"
+                },
+                {
+                  "key": "E",
+                  "text": "making cycling affordable"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-select",
+              "prompt": "Which TWO things do the students think are necessary for successful bike-sharing schemes?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Bikes should have a GPS system."
+                },
+                {
+                  "key": "B",
+                  "text": "The app should be easy to use."
+                },
+                {
+                  "key": "C",
+                  "text": "Public awareness should be raised."
+                },
+                {
+                  "key": "D",
+                  "text": "Only one scheme should be available."
+                },
+                {
+                  "key": "E",
+                  "text": "There should be a large network of cycle lanes."
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "C"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "Amsterdam",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They agree it has been disappointing."
+                },
+                {
+                  "key": "B",
+                  "text": "They think it should be cheaper."
+                },
+                {
+                  "key": "C",
+                  "text": "They are surprised it has been so successful."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree that more investment is required."
+                },
+                {
+                  "key": "E",
+                  "text": "They think the system has been well designed."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about the reasons for its success."
+                },
+                {
+                  "key": "G",
+                  "text": "They think it has expanded too quickly."
+                }
+              ],
+              "group": {
+                "id": "l-cities-25-30",
+                "instruction": "What is the speakers’ opinion of the bike-sharing schemes in each of the following cities? Choose SIX answers from the box and write the correct letter, A-G, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "Dublin",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They agree it has been disappointing."
+                },
+                {
+                  "key": "B",
+                  "text": "They think it should be cheaper."
+                },
+                {
+                  "key": "C",
+                  "text": "They are surprised it has been so successful."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree that more investment is required."
+                },
+                {
+                  "key": "E",
+                  "text": "They think the system has been well designed."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about the reasons for its success."
+                },
+                {
+                  "key": "G",
+                  "text": "They think it has expanded too quickly."
+                }
+              ],
+              "group": {
+                "id": "l-cities-25-30",
+                "instruction": "What is the speakers’ opinion of the bike-sharing schemes in each of the following cities? Choose SIX answers from the box and write the correct letter, A-G, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "London",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They agree it has been disappointing."
+                },
+                {
+                  "key": "B",
+                  "text": "They think it should be cheaper."
+                },
+                {
+                  "key": "C",
+                  "text": "They are surprised it has been so successful."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree that more investment is required."
+                },
+                {
+                  "key": "E",
+                  "text": "They think the system has been well designed."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about the reasons for its success."
+                },
+                {
+                  "key": "G",
+                  "text": "They think it has expanded too quickly."
+                }
+              ],
+              "group": {
+                "id": "l-cities-25-30",
+                "instruction": "What is the speakers’ opinion of the bike-sharing schemes in each of the following cities? Choose SIX answers from the box and write the correct letter, A-G, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Buenos Aires",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They agree it has been disappointing."
+                },
+                {
+                  "key": "B",
+                  "text": "They think it should be cheaper."
+                },
+                {
+                  "key": "C",
+                  "text": "They are surprised it has been so successful."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree that more investment is required."
+                },
+                {
+                  "key": "E",
+                  "text": "They think the system has been well designed."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about the reasons for its success."
+                },
+                {
+                  "key": "G",
+                  "text": "They think it has expanded too quickly."
+                }
+              ],
+              "group": {
+                "id": "l-cities-25-30",
+                "instruction": "What is the speakers’ opinion of the bike-sharing schemes in each of the following cities? Choose SIX answers from the box and write the correct letter, A-G, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "New York",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They agree it has been disappointing."
+                },
+                {
+                  "key": "B",
+                  "text": "They think it should be cheaper."
+                },
+                {
+                  "key": "C",
+                  "text": "They are surprised it has been so successful."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree that more investment is required."
+                },
+                {
+                  "key": "E",
+                  "text": "They think the system has been well designed."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about the reasons for its success."
+                },
+                {
+                  "key": "G",
+                  "text": "They think it has expanded too quickly."
+                }
+              ],
+              "group": {
+                "id": "l-cities-25-30",
+                "instruction": "What is the speakers’ opinion of the bike-sharing schemes in each of the following cities? Choose SIX answers from the box and write the correct letter, A-G, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Sydney",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They agree it has been disappointing."
+                },
+                {
+                  "key": "B",
+                  "text": "They think it should be cheaper."
+                },
+                {
+                  "key": "C",
+                  "text": "They are surprised it has been so successful."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree that more investment is required."
+                },
+                {
+                  "key": "E",
+                  "text": "They think the system has been well designed."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about the reasons for its success."
+                },
+                {
+                  "key": "G",
+                  "text": "They think it has expanded too quickly."
+                }
+              ],
+              "group": {
+                "id": "l-cities-25-30",
+                "instruction": "What is the speakers’ opinion of the bike-sharing schemes in each of the following cities? Choose SIX answers from the box and write the correct letter, A-G, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-4-listening-part3.mp3"
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "The extinction of the dodo bird",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "THE EXTINCTION OF THE DODO BIRD",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The dodo was a large flightless bird which used to inhabit the island of Mauritius.\nHistory\n• 1507 — Portuguese ships transporting [31] stopped at the island to collect food and water.\n• 1638 — The Dutch established a [32] on the island.\n• They killed the dodo birds for their meat.\n• The last one was killed in 1681.\nDescription\n• The only record we have is written descriptions and pictures (possibly unreliable).\n• A Dutch painting suggests the dodo was very [33].\n• The only remaining soft tissue is a dried [34].\n• Recent studies of a dodo skeleton suggest the birds were capable of rapid [35].\n• It's thought they were able to use their small wings to maintain [36].\n• Their [37] was of average size.\n• Their sense of [38] enabled them to find food.\nReasons for extinction\n• Hunting was probably not the main cause.\n• Sailors brought dogs and monkeys.\n• [39] also escaped onto the island and ate the birds’ eggs.\n• The arrival of farming meant the [40] was destroyed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "spice(s)"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "THE EXTINCTION OF THE DODO BIRD",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The dodo was a large flightless bird which used to inhabit the island of Mauritius.\nHistory\n• 1507 — Portuguese ships transporting [31] stopped at the island to collect food and water.\n• 1638 — The Dutch established a [32] on the island.\n• They killed the dodo birds for their meat.\n• The last one was killed in 1681.\nDescription\n• The only record we have is written descriptions and pictures (possibly unreliable).\n• A Dutch painting suggests the dodo was very [33].\n• The only remaining soft tissue is a dried [34].\n• Recent studies of a dodo skeleton suggest the birds were capable of rapid [35].\n• It's thought they were able to use their small wings to maintain [36].\n• Their [37] was of average size.\n• Their sense of [38] enabled them to find food.\nReasons for extinction\n• Hunting was probably not the main cause.\n• Sailors brought dogs and monkeys.\n• [39] also escaped onto the island and ate the birds’ eggs.\n• The arrival of farming meant the [40] was destroyed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "colony",
+                  "settlement"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "THE EXTINCTION OF THE DODO BIRD",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The dodo was a large flightless bird which used to inhabit the island of Mauritius.\nHistory\n• 1507 — Portuguese ships transporting [31] stopped at the island to collect food and water.\n• 1638 — The Dutch established a [32] on the island.\n• They killed the dodo birds for their meat.\n• The last one was killed in 1681.\nDescription\n• The only record we have is written descriptions and pictures (possibly unreliable).\n• A Dutch painting suggests the dodo was very [33].\n• The only remaining soft tissue is a dried [34].\n• Recent studies of a dodo skeleton suggest the birds were capable of rapid [35].\n• It's thought they were able to use their small wings to maintain [36].\n• Their [37] was of average size.\n• Their sense of [38] enabled them to find food.\nReasons for extinction\n• Hunting was probably not the main cause.\n• Sailors brought dogs and monkeys.\n• [39] also escaped onto the island and ate the birds’ eggs.\n• The arrival of farming meant the [40] was destroyed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fat"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "THE EXTINCTION OF THE DODO BIRD",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The dodo was a large flightless bird which used to inhabit the island of Mauritius.\nHistory\n• 1507 — Portuguese ships transporting [31] stopped at the island to collect food and water.\n• 1638 — The Dutch established a [32] on the island.\n• They killed the dodo birds for their meat.\n• The last one was killed in 1681.\nDescription\n• The only record we have is written descriptions and pictures (possibly unreliable).\n• A Dutch painting suggests the dodo was very [33].\n• The only remaining soft tissue is a dried [34].\n• Recent studies of a dodo skeleton suggest the birds were capable of rapid [35].\n• It's thought they were able to use their small wings to maintain [36].\n• Their [37] was of average size.\n• Their sense of [38] enabled them to find food.\nReasons for extinction\n• Hunting was probably not the main cause.\n• Sailors brought dogs and monkeys.\n• [39] also escaped onto the island and ate the birds’ eggs.\n• The arrival of farming meant the [40] was destroyed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "head"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "THE EXTINCTION OF THE DODO BIRD",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The dodo was a large flightless bird which used to inhabit the island of Mauritius.\nHistory\n• 1507 — Portuguese ships transporting [31] stopped at the island to collect food and water.\n• 1638 — The Dutch established a [32] on the island.\n• They killed the dodo birds for their meat.\n• The last one was killed in 1681.\nDescription\n• The only record we have is written descriptions and pictures (possibly unreliable).\n• A Dutch painting suggests the dodo was very [33].\n• The only remaining soft tissue is a dried [34].\n• Recent studies of a dodo skeleton suggest the birds were capable of rapid [35].\n• It's thought they were able to use their small wings to maintain [36].\n• Their [37] was of average size.\n• Their sense of [38] enabled them to find food.\nReasons for extinction\n• Hunting was probably not the main cause.\n• Sailors brought dogs and monkeys.\n• [39] also escaped onto the island and ate the birds’ eggs.\n• The arrival of farming meant the [40] was destroyed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "movement"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "THE EXTINCTION OF THE DODO BIRD",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The dodo was a large flightless bird which used to inhabit the island of Mauritius.\nHistory\n• 1507 — Portuguese ships transporting [31] stopped at the island to collect food and water.\n• 1638 — The Dutch established a [32] on the island.\n• They killed the dodo birds for their meat.\n• The last one was killed in 1681.\nDescription\n• The only record we have is written descriptions and pictures (possibly unreliable).\n• A Dutch painting suggests the dodo was very [33].\n• The only remaining soft tissue is a dried [34].\n• Recent studies of a dodo skeleton suggest the birds were capable of rapid [35].\n• It's thought they were able to use their small wings to maintain [36].\n• Their [37] was of average size.\n• Their sense of [38] enabled them to find food.\nReasons for extinction\n• Hunting was probably not the main cause.\n• Sailors brought dogs and monkeys.\n• [39] also escaped onto the island and ate the birds’ eggs.\n• The arrival of farming meant the [40] was destroyed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "balance",
+                  "balancing"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "THE EXTINCTION OF THE DODO BIRD",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The dodo was a large flightless bird which used to inhabit the island of Mauritius.\nHistory\n• 1507 — Portuguese ships transporting [31] stopped at the island to collect food and water.\n• 1638 — The Dutch established a [32] on the island.\n• They killed the dodo birds for their meat.\n• The last one was killed in 1681.\nDescription\n• The only record we have is written descriptions and pictures (possibly unreliable).\n• A Dutch painting suggests the dodo was very [33].\n• The only remaining soft tissue is a dried [34].\n• Recent studies of a dodo skeleton suggest the birds were capable of rapid [35].\n• It's thought they were able to use their small wings to maintain [36].\n• Their [37] was of average size.\n• Their sense of [38] enabled them to find food.\nReasons for extinction\n• Hunting was probably not the main cause.\n• Sailors brought dogs and monkeys.\n• [39] also escaped onto the island and ate the birds’ eggs.\n• The arrival of farming meant the [40] was destroyed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "brain"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "THE EXTINCTION OF THE DODO BIRD",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The dodo was a large flightless bird which used to inhabit the island of Mauritius.\nHistory\n• 1507 — Portuguese ships transporting [31] stopped at the island to collect food and water.\n• 1638 — The Dutch established a [32] on the island.\n• They killed the dodo birds for their meat.\n• The last one was killed in 1681.\nDescription\n• The only record we have is written descriptions and pictures (possibly unreliable).\n• A Dutch painting suggests the dodo was very [33].\n• The only remaining soft tissue is a dried [34].\n• Recent studies of a dodo skeleton suggest the birds were capable of rapid [35].\n• It's thought they were able to use their small wings to maintain [36].\n• Their [37] was of average size.\n• Their sense of [38] enabled them to find food.\nReasons for extinction\n• Hunting was probably not the main cause.\n• Sailors brought dogs and monkeys.\n• [39] also escaped onto the island and ate the birds’ eggs.\n• The arrival of farming meant the [40] was destroyed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "smell"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "THE EXTINCTION OF THE DODO BIRD",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The dodo was a large flightless bird which used to inhabit the island of Mauritius.\nHistory\n• 1507 — Portuguese ships transporting [31] stopped at the island to collect food and water.\n• 1638 — The Dutch established a [32] on the island.\n• They killed the dodo birds for their meat.\n• The last one was killed in 1681.\nDescription\n• The only record we have is written descriptions and pictures (possibly unreliable).\n• A Dutch painting suggests the dodo was very [33].\n• The only remaining soft tissue is a dried [34].\n• Recent studies of a dodo skeleton suggest the birds were capable of rapid [35].\n• It's thought they were able to use their small wings to maintain [36].\n• Their [37] was of average size.\n• Their sense of [38] enabled them to find food.\nReasons for extinction\n• Hunting was probably not the main cause.\n• Sailors brought dogs and monkeys.\n• [39] also escaped onto the island and ate the birds’ eggs.\n• The arrival of farming meant the [40] was destroyed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "rats"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "THE EXTINCTION OF THE DODO BIRD",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The dodo was a large flightless bird which used to inhabit the island of Mauritius.\nHistory\n• 1507 — Portuguese ships transporting [31] stopped at the island to collect food and water.\n• 1638 — The Dutch established a [32] on the island.\n• They killed the dodo birds for their meat.\n• The last one was killed in 1681.\nDescription\n• The only record we have is written descriptions and pictures (possibly unreliable).\n• A Dutch painting suggests the dodo was very [33].\n• The only remaining soft tissue is a dried [34].\n• Recent studies of a dodo skeleton suggest the birds were capable of rapid [35].\n• It's thought they were able to use their small wings to maintain [36].\n• Their [37] was of average size.\n• Their sense of [38] enabled them to find food.\nReasons for extinction\n• Hunting was probably not the main cause.\n• Sailors brought dogs and monkeys.\n• [39] also escaped onto the island and ate the birds’ eggs.\n• The arrival of farming meant the [40] was destroyed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "forest"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-4-listening-part4.mp3"
+        }
+      ]
+    }
+  ]
+}

@@ -124,6 +124,20 @@ public sealed class DevelopmentExamSeeder(
             var draft = result.Version;
 
 
+            /*
+             * <b>Every field the reader produced, not the subset this call
+             * happened to list.</b> The three optional arguments were omitted
+             * until 2026-09-03, so a seeded paper silently lost its listening
+             * playback policy — falling back to `Conservative` regardless of
+             * what the package declared — and its declared module sequence, and
+             * (once the field existed) its description.
+             *
+             * The shape of the mistake is what makes it worth a comment: each
+             * one is an optional parameter with a sensible default, so dropping
+             * it compiles, boots, and produces a paper that is subtly not the
+             * one on disk. Anything added to `Rehydrate` after this needs
+             * adding here too.
+             */
             var published = ExamVersion.Rehydrate(
                 versionId,
                 draft.DefinitionId,
@@ -134,7 +148,10 @@ public sealed class DevelopmentExamSeeder(
                 clock.UtcNow,
                 draft.Scoring,
                 draft.Timing,
-                draft.Sections);
+                draft.Sections,
+                draft.ListeningPlayback,
+                draft.ModuleSequence,
+                draft.Description);
 
             /*
              * <b>An identical, already-published version is a no-op — not an

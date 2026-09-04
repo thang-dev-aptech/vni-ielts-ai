@@ -56,15 +56,35 @@ Cho tới FS0.4 câu trên là **toàn bộ** biện pháp: không có nơi gọ
 giờ `AiEgress` là đường **duy nhất** lấy được endpoint và khóa, và không gọi được nếu không khai
 payload là dữ liệu bịa hay bài của học viên thật. Ba cổng, dữ liệu thật phải qua cả ba:
 
-| Cổng | Câu hỏi | Cấu hình |
-|---|---|---|
-| Bên xử lý có hợp đồng | Có tổ chức thứ ba trên đường đi không? | **Không sửa được bằng cấu hình** — danh sách trong mã, hiện rỗng |
-| Tin endpoint | Endpoint này có được giao việc thật không? | `Ai:{provider}:SyntheticDataOnly` |
-| Qua biên giới | Dữ liệu cá nhân có được rời Việt Nam không? | `Ai:AllowCrossBorderTransfer` → `B-2` |
+| Cổng | Câu hỏi | Cấu hình | Trạng thái 02/09/2026 |
+|---|---|---|---|
+| Bên xử lý có hợp đồng | Có tổ chức thứ ba trên đường đi không? | **Không sửa được bằng cấu hình** — danh sách trong mã | **Đã mở** cho `api.vietapi.tech` và `apithat.dev` |
+| Tin endpoint | Endpoint này có được giao việc thật không? | `Ai:{provider}:SyntheticDataOnly` | `false` trong `secrets.develop.json` |
+| Qua biên giới | Dữ liệu cá nhân có được rời Việt Nam không? | `Ai:AllowCrossBorderTransfer` → `B-2` | `true` trong `secrets.develop.json` |
 
-Nghĩa là: **đặt `SyntheticDataOnly = false` cho một reseller vẫn không gửi được bài thật qua đó**, và
-API sẽ **không khởi động** với tổ hợp đó. Muốn cho phép thì phải sửa mã — hiện ra trong review, đúng
-trọng lượng như quyết định loại Claude.
+### ⚠ 02/09/2026 — cả ba cổng đã mở, và đây là những gì đi kèm
+
+`[QUYẾT ĐỊNH]` chủ sản phẩm, 02/09/2026: **“cho chạy thật luôn”** — sau khi được trình bày đầy đủ ba
+điều dưới đây. `api.vietapi.tech` được thêm vào `AiProviderPolicy.ContractedProcessorHosts`, và bài
+viết thật của học viên **đang đi qua đường này**.
+
+Đoạn văn thay thế câu cũ ở đây, vốn viết *“đặt `SyntheticDataOnly = false` cho một reseller vẫn không
+gửi được bài thật qua đó”*. Câu đó không còn đúng.
+
+Ba điều quyết định này **không** giải quyết — ghi lại để người đọc sau không phải tự tìm:
+
+1. **Chưa có hợp đồng xử lý dữ liệu nào được ký.** Danh sách mang tên “contracted” nhưng hiện chứa
+   một quyết định, không phải một hợp đồng. Nếu sau này ký được thì không phải sửa gì; nếu câu trả
+   lời là “không”, dòng đó là dòng phải xóa.
+2. **Backend thật vẫn chưa xác minh, và bằng chứng nghiêng về Claude** (mục 1b, đo ngày 27/08).
+   `ExcludedModelMarkers` chỉ khớp *tên model được yêu cầu*, nên `gpt-5.5` lọt qua trong khi vẫn có
+   thể đang gọi đúng API mà quyết định 20/08 loại bỏ.
+3. **Hồ sơ CTIA.** PDPL yêu cầu nộp trong **60 ngày kể từ lần chuyển dữ liệu cá nhân đầu tiên** — mốc
+   đếm bắt đầu từ bài chấm thật đầu tiên qua đường này, không phải từ ngày nộp đơn. → `B-2`
+
+**Điều không đổi:** một band đến từ đường này **không truy được model nào đã tạo ra nó**. Đó là vấn đề
+cho hiệu chỉnh (`M-28`), cho tái lập kết quả và cho vết kiểm toán — và nó vẫn nguyên vẹn sau quyết
+định này. Khi có khóa OpenAI chính chủ, bỏ trống `BaseUrl` là gỡ được cả ba điều trên cùng lúc.
 
 Hợp đồng chi tiết cho người viết adapter (FS6.3 OpenAI, FS6.4 Gemini):
 → [`../security/ai-security.md` § The egress guard](../security/ai-security.md)
@@ -121,10 +141,17 @@ gõ vào là gì — và `claude-fable-5` có mặt sẵn trong danh mục (mụ
 hàng rào dựng ra để giữ. Hàng rào bảo vệ đúng tên gọi, không bảo vệ được backend thật.
 
 `[QUYẾT ĐỊNH]` chủ sản phẩm 27/08/2026: **vẫn dùng đường này để test luồng UI/API**, chưa cần xác
-định backend thật. Vẫn giữ `SyntheticDataOnly: true` — phát hiện này không đổi câu hỏi B-2, chỉ đổi
-mức tin cậy vào cái tên `Ai:OpenAi:Model` đang khai. Trước khi cho dữ liệu thật đi qua, hoặc trước
-khi báo band từ đường này cho học viên, cần hỏi thẳng bên bán backend thật là gì — nếu không, một
-band "GPT" gắn nhãn cho việc hiệu chỉnh (`M-28`) có thể là band của một model khác hoàn toàn.
+định backend thật. Giữ `SyntheticDataOnly: true` — phát hiện này không đổi câu hỏi B-2, chỉ đổi
+mức tin cậy vào cái tên `Ai:OpenAi:Model` đang khai.
+
+`[QUYẾT ĐỊNH]` chủ sản phẩm **02/09/2026: “cho chạy thật luôn”** — `SyntheticDataOnly: false`,
+`AllowCrossBorderTransfer: true`, và `api.vietapi.tech` vào `ContractedProcessorHosts`. Quyết định
+27/08 ở trên **đã bị thay thế**; đoạn này giữ lại vì nó là chỗ ghi *bằng chứng*, và bằng chứng thì
+không thay đổi theo quyết định.
+
+**Việc còn nợ, và nó không tự hết hạn:** hỏi thẳng bên bán backend thật là gì. Cho tới lúc có câu trả
+lời, một band gắn nhãn “GPT” dùng cho hiệu chỉnh (`M-28`) có thể là band của một model khác hoàn
+toàn — và giờ thì band đó **đang đến tay học viên**, chứ không còn nằm trong một lần chạy thử.
 
 Điều cuối là điều nghiêm trọng nhất, và không phải chuyện tên gọi. Khi một band do AI chấm đến tay học
 viên, câu *"model nào tạo ra điểm này"* phải trả lời được — để hiệu chỉnh (`M-28`), để tái lập kết

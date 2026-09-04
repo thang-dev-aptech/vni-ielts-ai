@@ -1,8 +1,8 @@
 {
   "formatVersion": "1.0",
-  "title": "VOL 9 Test 1",
+  "title": "VOL 9 — Test 1 (Reading + Listening)",
   "variant": "academic",
-  "description": "VOL 9 REAL IELTS Test 1 — Reading and Listening only. Audio is one concatenated file per test; all four listening parts reference the same recording.",
+  "description": "Đề lẻ, chỉ có Reading và Listening — không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm. Cả hai đều chấm ngay theo đáp án và ra band luôn. Phần Listening dùng một file ghi âm liền cho cả bốn phần.",
   "timingProfile": {
     "sections": {
       "reading": {

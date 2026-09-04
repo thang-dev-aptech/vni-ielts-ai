@@ -103,7 +103,15 @@ public static class ContentRightsSeed
                 $"Cambridge IELTS {number}",
                 CambridgePublisher,
                 $"{CamRoot}/{pdf[..pdf.IndexOf('/')]}",
-                [new ContentFileRef($"{CamRoot}/{pdf}", null, null)]));
+                [new ContentFileRef($"{CamRoot}/{pdf}", null, null)],
+                examDefinitionIds: number == 17
+                    ? [
+                        new ExamDefinitionId("seed-cam17-test-1"),
+                        new ExamDefinitionId("seed-cam17-test-2"),
+                        new ExamDefinitionId("seed-cam17-test-3"),
+                        new ExamDefinitionId("seed-cam17-test-4"),
+                    ]
+                    : []));
         }
 
         // ── VOL 9 "REAL IELTS" — eight Reading/Listening tests ───────────

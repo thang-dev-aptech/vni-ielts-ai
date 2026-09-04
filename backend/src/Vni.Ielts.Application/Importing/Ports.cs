@@ -43,6 +43,13 @@ public sealed record SourceExtractionLimits(
 {
     public static SourceExtractionLimits Default { get; } =
         new(25 * 1024 * 1024, 250, 100, 20 * 1024 * 1024, TimeSpan.FromSeconds(30));
+
+    /// <summary>
+    /// Operator CLI limits for Cambridge books. Cam 20 alone is ~250 MB on
+    /// disk; the HTTP import path keeps the tighter <see cref="Default"/>.
+    /// </summary>
+    public static SourceExtractionLimits Operator { get; } =
+        new(300 * 1024 * 1024, 300, 100, 20 * 1024 * 1024, TimeSpan.FromMinutes(2));
 }
 
 public sealed record PrivateImportAsset(

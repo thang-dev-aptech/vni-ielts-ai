@@ -128,6 +128,7 @@ internal static class ExamMappers
         DefinitionId = version.DefinitionId.Value,
         VersionNumber = version.VersionNumber,
         Title = version.Title,
+        Description = version.Description,
         Variant = version.Variant.ToString(),
         Status = version.Status.ToString(),
         PublishedAt = version.PublishedAt is { } at ? Utc(at) : null,
@@ -322,7 +323,8 @@ internal static class ExamMappers
                         doc.ListeningPlayback.Mock.AllowSeek)),
             doc.ModuleSequence is { Count: > 0 } stored
                 ? [.. stored.Select(m => Enum.Parse<ExamModule>(m, ignoreCase: true))]
-                : null);
+                : null,
+            doc.Description);
     }
 
     private static AnswerMatchingRules ToDomain(this MatchingRulesDocument doc) =>

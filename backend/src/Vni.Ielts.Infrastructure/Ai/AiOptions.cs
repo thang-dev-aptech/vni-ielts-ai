@@ -208,30 +208,102 @@ public static class AiProviderPolicy
     };
 
     /// <summary>
-    /// Third-party processors that VNI has a signed data-processing agreement
-    /// with. <b>Empty, and that is the current legal position, not an
-    /// oversight.</b>
+    /// Third-party processors permitted to carry a learner's work.
     ///
     /// <para>
-    /// The reseller currently used for testing is a company nobody has a
-    /// contract with. Until one exists, no third-party host may carry a
-    /// learner's essay or voice — and that fact is expressed by this array
-    /// being empty rather than by a warning somewhere.
+    /// <b><c>api.vietapi.tech</c> — <c>[QUYẾT ĐỊNH]</c> chủ sản phẩm,
+    /// 2026-09-02: <i>"cho chạy thật luôn"</i>.</b> The owner was shown what
+    /// this entry costs and chose it anyway, which is the decision this list
+    /// exists to record. Until that commit the array was empty and every
+    /// learner essay stopped here with
+    /// <see cref="AiEgressRefusal.UncontractedProcessor"/>.
     /// </para>
     ///
     /// <para>
-    /// <b>Adding a host here is a code change, on purpose.</b> It is the same
-    /// weight as reversing the Claude exclusion: it appears in review, it is
-    /// dated by a commit, and it cannot happen by editing a deployment
-    /// variable at three in the morning. → <c>G-11</c>: the seam exists, the
-    /// implementation is null until somebody decides.
+    /// <b><c>apithat.dev</c> — <c>[QUYẾT ĐỊNH]</c> chủ sản phẩm,
+    /// 2026-09-03: switch the live OpenAI-compatible route to this host and
+    /// call the configured OpenAI-compatible model (currently
+    /// <c>deepseek-v4-pro</c> in operator secrets).</b> Without this line, boot
+    /// refuses <c>SyntheticDataOnly = false</c> against that BaseUrl, and so
+    /// does every learner-essay call. Probes on 2026-09-03 returned
+    /// <c>deepseek-ai/deepseek-v4-flash-0731</c> then
+    /// <c>deepseek-ai/deepseek-v4-pro-0813</c> with no Anthropic usage
+    /// fields — unlike the 2026-08-27 vietapi measurements.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Three things this entry does not settle</b>, written down because
+    /// whoever reads this next will need them:
+    /// </para>
+    /// <list type="number">
+    /// <item><b>No data-processing agreement is on file.</b> This list is named
+    /// for one and today carries a decision instead. If a DPA is signed later,
+    /// nothing here changes; if the answer comes back "no", this is the line to
+    /// delete.</item>
+    /// <item><b>The real backend is unverified, and the evidence points at
+    /// Claude.</b> On 2026-08-27 five model names from five different families
+    /// all returned <c>claude_cache_creation_*</c> in <c>usage</c> — a field
+    /// only Anthropic emits. <see cref="ExcludedModelMarkers"/> matches the
+    /// <i>requested</i> model name, so <c>gpt-5.5</c> passes it while possibly
+    /// reaching the API the 2026-08-20 decision excluded.
+    /// → <c>docs/development/ai-provider-setup.md</c></item>
+    /// <item><b>A band from this route cannot name the model that produced
+    /// it</b> — which calibration (<c>M-28</c>), reproduction and an audit
+    /// trail all need.</item>
+    /// </list>
+    ///
+    /// <para>
+    /// The border question stays separate and stays open: this list decides
+    /// only whether a <b>third organisation</b> is in the path.
+    /// <see cref="AiOptions.AllowCrossBorderTransfer"/> decides whether
+    /// personal data may leave Vietnam, and <c>B-2</c> is unanswered.
     /// </para>
     /// </summary>
-    public static readonly string[] ContractedProcessorHosts = [];
+    public static readonly string[] ContractedProcessorHosts =
+        ["api.vietapi.tech", "apithat.dev"];
+
+    /// <summary>
+    /// Whether this endpoint is the chosen vendor's own. Nothing about
+    /// contracts.
+    ///
+    /// <para>
+    /// <b>Split out of <see cref="IsThirdPartyEndpoint"/> on the day
+    /// <see cref="ContractedProcessorHosts"/> stopped being empty.</b> While it
+    /// was empty the two questions had the same answer, so one method served
+    /// both and the conflation was invisible. They are different questions:
+    /// "is a third organisation in the path" is about a data-processing
+    /// agreement; "does this endpoint speak the vendor's newest API" is about
+    /// wire format. Contracting with a reseller does not teach it the OpenAI
+    /// Responses API.
+    /// </para>
+    ///
+    /// <para>
+    /// Getting this wrong is not subtle. <c>OpenAiWritingEvaluationClient</c>
+    /// picks its request shape from this answer, so the conflated version would
+    /// have posted a Responses-API body to a reseller that only speaks
+    /// <c>chat/completions</c> — and every Writing evaluation would have broken
+    /// at the moment the host was contracted, which is also the moment learner
+    /// essays started flowing.
+    /// </para>
+    /// </summary>
+    public static bool IsVendorEndpoint(string section, string? baseUrl)
+    {
+        if (string.IsNullOrWhiteSpace(baseUrl)) return true;
+
+        if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var parsed)) return false;
+
+        foreach (var vendor in VendorHosts(section))
+        {
+            if (string.Equals(parsed.Host, vendor, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Whether this endpoint puts an organisation other than the chosen vendor
-    /// in the path. An unset <paramref name="baseUrl"/> means the vendor's own.
+    /// — or a contracted processor — in the path. An unset
+    /// <paramref name="baseUrl"/> means the vendor's own.
     /// </summary>
     /// <remarks>
     /// A base URL that cannot be parsed counts as third-party. The alternative

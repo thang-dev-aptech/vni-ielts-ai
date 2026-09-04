@@ -1,0 +1,2646 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 16 — Test 1",
+  "variant": "academic",
+  "description": "Cambridge IELTS 16 Academic Test 1. Reading và Listening chấm theo đáp án in trong sách; không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "Why we need to protect polar bears",
+          "body": "Why we need to protect polar bears\nPolar bears are being increasingly threatened by the effects of climate change, but their disappearance\ncould have far-reaching consequences. They are uniquely adapted to the extreme conditions of\nthe Arctic Circle, where temperatures can reach —40°C. One reason for this is that they have up to\n11 centimetres of fat underneath their skin. Humans with comparative levels of adipose tissue would\nbe considered obese and would be likely to suffer from diabetes and heart disease. Yet the polar bear\nexperiences no such consequences.\nA 2014 study by Shi Ping Liu and colleagues sheds light on this mystery. They compared the genetic\nstructure of polar bears with that of their closest relatives from a warmer climate, the brown bears.\nThis allowed them to determine the genes that have allowed polar bears to survive in one of the\ntoughest environments on Earth. Liu and his colleagues found the polar bears had a gene known as\nAPOoB, which reduces levels of low-density lipoproteins (LDLs) — a form of ‘bad’ cholesterol. In\nhumans, mutations of this gene are associated with increased risk of heart disease. Polar bears may\ntherefore be an important study model to understand heart disease in humans.\nThe genome of the polar bear may also provide the solution for another condition, one that particularly\naffects our older generation: osteoporosis. This is a disease where bones show reduced density, usually\ncaused by insufficient exercise, reduced calcium intake or food starvation. Bone tissue is constantly\nbeing remodelled, meaning that bone is added or removed, depending on nutrient availability and the\nstress that the bone is under. Female polar bears, however, undergo extreme conditions during every\npregnancy. Once autumn comes around, these females will dig maternity dens in the snow and will\nremain there throughout the winter, both before and after the birth of their cubs. This process results\nin about six months of fasting, where the female bears have to keep themselves and their cubs alive,\ndepleting their own calcium and calorie reserves. Despite this, their bones remain strong and dense.\nPhysiologists Alanda Lennox and Allen Goodship found an explanation for this paradox in 2008.\nThey discovered that pregnant bears were able to increase the density of their bones before they\nstarted to build their dens. In addition, six months later, when they finally emerged from the den with\ntheir cubs, there was no evidence of significant loss of bone density. Hibernating brown bears do not\nhave this capacity and must therefore resort to major bone reformation in the following spring. If the\nmechanism of bone remodelling in polar bears can be understood, many bedridden humans, and even\nastronauts, could potentially benefit.\nThe medical benefits of the polar bear for humanity certainly have their importance in our\nconservation efforts, but these should not be the only factors taken into consideration. We tend to\nwant to protect animals we think are intelligent and possess emotions, such as elephants and primates.\nBears, on the other hand, seem to be perceived as stupid and in many cases violent. And yet anecdotal\nevidence from the field challenges those assumptions, suggesting for example that polar bears have\ngood problem-solving abilities. A male bear called GoGo in Tennoji Zoo, Osaka, has even been\nobserved making use of a tool to manipulate his environment. The bear used a tree branch on multiple\noccasions to dislodge a piece of meat hung out of his reach. Problem-solving ability has also been\nwitnessed in wild polar bears, although not as obviously as with GoGo. A calculated move by a male\nbear involved running and jumping onto barrels in an attempt to get to a photographer standing on a\nplatform four metres high.\nIn other studies, such as one by Alison Ames in 2008, polar bears showed deliberate and focussed\nmanipulation. For example, Ames observed bears putting objects in piles and then knocking them over\nin what appeared to be a game. The study demonstrates that bears are capable of agile and thought-out\nbehaviours. These examples suggest bears have greater creativity and problem-solving abilities than\npreviously thought.\nAs for emotions, while the evidence is once again anecdotal, many bears have been seen to hit out\nat ice and snow — seemingly out of frustration — when they have just missed out on a kill. Moreover,\npolar bears can form unusual relationships with other species, including playing with the dogs used\nto pull sleds in the Arctic. Remarkably, one hand-raised polar bear called Agee has formed a close\nrelationship with her owner Mark Dumas to the point where they even swim together. This is even\nmore astonishing since polar bears are known to actively hunt humans in the wild.\nIf climate change were to lead to their extinction, this would mean not only the loss of potential\nbreakthroughs in human medicine, but more importantly, the disappearance of an intelligent,\nmajestic animal.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "true-false-notgiven",
+              "prompt": "‘Polar bears suffer from various health problems due to the build-up of fat under\ntheir skin.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "true-false-notgiven",
+              "prompt": "The study done by Liu and his colleagues compared different groups of polar bears.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "true-false-notgiven",
+              "prompt": "Liu and colleagues were the first researchers to compare polar bears and brown\nbears genetically.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "true-false-notgiven",
+              "prompt": "Polar bears are able to control their levels of ‘bad’ cholesterol by genetic means.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "true-false-notgiven",
+              "prompt": "Female polar bears are able to survive for about six months without food.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "true-false-notgiven",
+              "prompt": "It was found that the bones of female polar bears were very weak when they came\nout of their dens in spring.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "true-false-notgiven",
+              "prompt": "The polar bear’s mechanism for increasing bone density could also be used by\npeople one day.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "8",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "title": "Reasons why polar bears should be protected",
+                "text": "People think of bears as unintelligent ANd [8] occccccsssssusssssssenneee\nHowever, this may not be correct. For example:\ne In Tennoji Zoo, a bear has been seen USINg a DrANCH AS AY [9] eoaceecscsossssssstsesntseietnes\nThis allowed him to KNOCK GOWN SOME [10] Q.ncccecsossssssseieeneneees\ne — Awild polar bear worked out a method of reaching a platform where a\n[11] oeeeccesnseentintmsteee Was located.\ne Polar bears have displayed behaviour such as conscious manipulation of\nObjects and activity SIMI Ar tO [12] oe eceeccseesssesneesneeneees\nBears may also display emotions. For example:\ne They may make movements SuggeStiNg [13] ......eeseneenenen if disappointed\nwhen hunting.\ne They may form relationships with other species."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "violent"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "9",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "title": "Reasons why polar bears should be protected",
+                "text": "People think of bears as unintelligent ANd [8] occccccsssssusssssssenneee\nHowever, this may not be correct. For example:\ne In Tennoji Zoo, a bear has been seen USINg a DrANCH AS AY [9] eoaceecscsossssssstsesntseietnes\nThis allowed him to KNOCK GOWN SOME [10] Q.ncccecsossssssseieeneneees\ne — Awild polar bear worked out a method of reaching a platform where a\n[11] oeeeccesnseentintmsteee Was located.\ne Polar bears have displayed behaviour such as conscious manipulation of\nObjects and activity SIMI Ar tO [12] oe eceeccseesssesneesneeneees\nBears may also display emotions. For example:\ne They may make movements SuggeStiNg [13] ......eeseneenenen if disappointed\nwhen hunting.\ne They may form relationships with other species."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tool"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "10",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "title": "Reasons why polar bears should be protected",
+                "text": "People think of bears as unintelligent ANd [8] occccccsssssusssssssenneee\nHowever, this may not be correct. For example:\ne In Tennoji Zoo, a bear has been seen USINg a DrANCH AS AY [9] eoaceecscsossssssstsesntseietnes\nThis allowed him to KNOCK GOWN SOME [10] Q.ncccecsossssssseieeneneees\ne — Awild polar bear worked out a method of reaching a platform where a\n[11] oeeeccesnseentintmsteee Was located.\ne Polar bears have displayed behaviour such as conscious manipulation of\nObjects and activity SIMI Ar tO [12] oe eceeccseesssesneesneeneees\nBears may also display emotions. For example:\ne They may make movements SuggeStiNg [13] ......eeseneenenen if disappointed\nwhen hunting.\ne They may form relationships with other species."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "meat"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "completion",
+              "prompt": "11",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "title": "Reasons why polar bears should be protected",
+                "text": "People think of bears as unintelligent ANd [8] occccccsssssusssssssenneee\nHowever, this may not be correct. For example:\ne In Tennoji Zoo, a bear has been seen USINg a DrANCH AS AY [9] eoaceecscsossssssstsesntseietnes\nThis allowed him to KNOCK GOWN SOME [10] Q.ncccecsossssssseieeneneees\ne — Awild polar bear worked out a method of reaching a platform where a\n[11] oeeeccesnseentintmsteee Was located.\ne Polar bears have displayed behaviour such as conscious manipulation of\nObjects and activity SIMI Ar tO [12] oe eceeccseesssesneesneeneees\nBears may also display emotions. For example:\ne They may make movements SuggeStiNg [13] ......eeseneenenen if disappointed\nwhen hunting.\ne They may form relationships with other species."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "photographer"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "completion",
+              "prompt": "12",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "title": "Reasons why polar bears should be protected",
+                "text": "People think of bears as unintelligent ANd [8] occccccsssssusssssssenneee\nHowever, this may not be correct. For example:\ne In Tennoji Zoo, a bear has been seen USINg a DrANCH AS AY [9] eoaceecscsossssssstsesntseietnes\nThis allowed him to KNOCK GOWN SOME [10] Q.ncccecsossssssseieeneneees\ne — Awild polar bear worked out a method of reaching a platform where a\n[11] oeeeccesnseentintmsteee Was located.\ne Polar bears have displayed behaviour such as conscious manipulation of\nObjects and activity SIMI Ar tO [12] oe eceeccseesssesneesneeneees\nBears may also display emotions. For example:\ne They may make movements SuggeStiNg [13] ......eeseneenenen if disappointed\nwhen hunting.\ne They may form relationships with other species."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "game"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "completion",
+              "prompt": "13",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "title": "Reasons why polar bears should be protected",
+                "text": "People think of bears as unintelligent ANd [8] occccccsssssusssssssenneee\nHowever, this may not be correct. For example:\ne In Tennoji Zoo, a bear has been seen USINg a DrANCH AS AY [9] eoaceecscsossssssstsesntseietnes\nThis allowed him to KNOCK GOWN SOME [10] Q.ncccecsossssssseieeneneees\ne — Awild polar bear worked out a method of reaching a platform where a\n[11] oeeeccesnseentintmsteee Was located.\ne Polar bears have displayed behaviour such as conscious manipulation of\nObjects and activity SIMI Ar tO [12] oe eceeccseesssesneesneeneees\nBears may also display emotions. For example:\ne They may make movements SuggeStiNg [13] ......eeseneenenen if disappointed\nwhen hunting.\ne They may form relationships with other species."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "frustration"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "The Step Pyramid of Djoser",
+          "body": "The Step Pyramid of Djoser\n\nA __ The pyramids are the most famous monuments of ancient Egypt and still hold\nenormous interest for people in the present day. These grand, impressive tributes to\nthe memory of the Egyptian kings have become linked with the country even though\nother cultures, such as the Chinese and Mayan, also built pyramids. The evolution of\nthe pyramid form has been written and argued about for centuries. However, there\nis no question that, as far as Egypt is concerned, it began with one monument to one\nking designed by one brilliant architect: the Step Pyramid of Djoser at Saqqara.\n\nB_ Djoser was the first king of the Third Dynasty of Egypt and the first to build in\nstone. Prior to Djoser’s reign, tombs were rectangular monuments made of dried clay\nbrick, which covered underground passages where the deceased person was buried.\nFor reasons which remain unclear, Djoser’s main official, whose name was Imhotep,\nconceived of building a taller, more impressive tomb for his king by stacking stone\nslabs on top of one another, progressively making them smaller, to form the shape\nnow known as the Step Pyramid. Djoser is thought to have reigned for 19 years, but\nsome historians and scholars attribute a much longer time for his rule, owing to the\nnumber and size of the monuments he built.\n\nC_ The Step Pyramid has been thoroughly examined and investigated over the\nlast century, and it is now known that the building process went through many\ndifferent stages. Historian Marc Van de Mieroop comments on this, writing ‘Much\nexperimentation was involved, which is especially clear in the construction of the\npyramid in the center of the complex. It had several plans ... before it became the\nfirst Step Pyramid in history, piling six levels on top of one another ... The weight\nof the enormous mass was a challenge for the builders, who placed the stones at an\ninward incline in order to prevent the monument breaking up.’\n\nD~ When finally completed, the Step Pyramid rose 62 meters high and was the tallest\nstructure of its time. The complex in which it was built was the size of a city in\nancient Egypt and included a temple, courtyards, shrines, and living quarters for the\npriests. It covered a region of 16 hectares and was surrounded by a wall 10.5 meters\nhigh. The wall had 13 false doors cut into it with only one true entrance cut into the\nsouth-east corner; the entire wall was then ringed by a trench 750 meters long and\n40 meters wide. The false doors and the trench were incorporated into the complex\nto discourage unwanted visitors. If someone wished to enter, he or she would have\nneeded to know in advance how to find the location of the true opening in the wall.\nDjoser was so proud of his accomplishment that he broke the tradition of having\nonly his own name on the monument and had Imhotep’s name carved on it as well.\n\nE The burial chamber of the tomb, where the king’s body was laid to rest, was dug\nbeneath the base of the pyramid, surrounded by a vast maze of long tunnels that\nhad rooms off them to discourage robbers. One of the most mysterious discoveries\nfound inside the pyramid was a large number of stone vessels. Over 40,000 of\nthese vessels, of various forms and shapes, were discovered in storerooms off the\npyramid’s underground passages. They are inscribed with the names of rulers from\nthe First and Second Dynasties of Egypt and made from different kinds of stone.\nThere is no agreement among scholars and archaeologists on why the vessels\nwere placed in the tomb of Djoser or what they were supposed to represent. The\narchaeologist Jean-Philippe Lauer, who excavated most of the pyramid and complex,\nbelieves they were originally stored and then given a ‘proper burial’ by Djoser in his\npyramid to honor his predecessors. There are other historians, however, who claim\nthe vessels were dumped into the shafts as yet another attempt to prevent grave\nrobbers from getting to the king’s burial chamber.\n\nF Unfortunately, all of the precautions and intricate design of the underground network\ndid not prevent ancient robbers from finding a way in. Djoser’s grave goods, and\neven his body, were stolen at some point in the past and all archaeologists found\nwere a small number of his valuables overlooked by the thieves. There was enough\nleft throughout the pyramid and its complex, however, to astonish and amaze the\narchaeologists who excavated it.\n\nG__Egyptologist Miroslav Verner writes, ‘Few monuments hold a place in human\nhistory as significant as that of the Step Pyramid in Saqqara ... It can be said\nwithout exaggeration that this pyramid complex constitutes a milestone in the\nevolution of monumental stone architecture in Egypt and in the world as a whole.’\nThe Step Pyramid was a revolutionary advance in architecture and became the\narchetype which all the other great pyramid builders of Egypt would follow.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "Paragraph A",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The areas and artefacts within the pyramid itself"
+                },
+                {
+                  "key": "ii",
+                  "text": "Adifficult task for those involved"
+                },
+                {
+                  "key": "iii",
+                  "text": "Aking who saved his people"
+                },
+                {
+                  "key": "iv",
+                  "text": "Asingle certainty among other less definite facts"
+                },
+                {
+                  "key": "v",
+                  "text": "An overview of the external buildings and areas"
+                },
+                {
+                  "key": "vi",
+                  "text": "Apyramid design that others copied"
+                },
+                {
+                  "key": "vii",
+                  "text": "An idea for changing the design of burial structures"
+                },
+                {
+                  "key": "viii",
+                  "text": "An incredible experience despite the few remains"
+                },
+                {
+                  "key": "ix",
+                  "text": "The answers to some unexpected questions"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nChoose the correct heading for each paragraph from the list of headings below.\nWrite the correct number, i-ix, in boxes 14—20 on your answer sheet.\nList of Headings"
+              },
+              "answerKey": {
+                "accepted": [
+                  "iv"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "Paragraph B",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The areas and artefacts within the pyramid itself"
+                },
+                {
+                  "key": "ii",
+                  "text": "Adifficult task for those involved"
+                },
+                {
+                  "key": "iii",
+                  "text": "Aking who saved his people"
+                },
+                {
+                  "key": "iv",
+                  "text": "Asingle certainty among other less definite facts"
+                },
+                {
+                  "key": "v",
+                  "text": "An overview of the external buildings and areas"
+                },
+                {
+                  "key": "vi",
+                  "text": "Apyramid design that others copied"
+                },
+                {
+                  "key": "vii",
+                  "text": "An idea for changing the design of burial structures"
+                },
+                {
+                  "key": "viii",
+                  "text": "An incredible experience despite the few remains"
+                },
+                {
+                  "key": "ix",
+                  "text": "The answers to some unexpected questions"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nChoose the correct heading for each paragraph from the list of headings below.\nWrite the correct number, i-ix, in boxes 14—20 on your answer sheet.\nList of Headings"
+              },
+              "answerKey": {
+                "accepted": [
+                  "vii"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Paragraph C",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The areas and artefacts within the pyramid itself"
+                },
+                {
+                  "key": "ii",
+                  "text": "Adifficult task for those involved"
+                },
+                {
+                  "key": "iii",
+                  "text": "Aking who saved his people"
+                },
+                {
+                  "key": "iv",
+                  "text": "Asingle certainty among other less definite facts"
+                },
+                {
+                  "key": "v",
+                  "text": "An overview of the external buildings and areas"
+                },
+                {
+                  "key": "vi",
+                  "text": "Apyramid design that others copied"
+                },
+                {
+                  "key": "vii",
+                  "text": "An idea for changing the design of burial structures"
+                },
+                {
+                  "key": "viii",
+                  "text": "An incredible experience despite the few remains"
+                },
+                {
+                  "key": "ix",
+                  "text": "The answers to some unexpected questions"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nChoose the correct heading for each paragraph from the list of headings below.\nWrite the correct number, i-ix, in boxes 14—20 on your answer sheet.\nList of Headings"
+              },
+              "answerKey": {
+                "accepted": [
+                  "ii"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Paragraph D",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The areas and artefacts within the pyramid itself"
+                },
+                {
+                  "key": "ii",
+                  "text": "Adifficult task for those involved"
+                },
+                {
+                  "key": "iii",
+                  "text": "Aking who saved his people"
+                },
+                {
+                  "key": "iv",
+                  "text": "Asingle certainty among other less definite facts"
+                },
+                {
+                  "key": "v",
+                  "text": "An overview of the external buildings and areas"
+                },
+                {
+                  "key": "vi",
+                  "text": "Apyramid design that others copied"
+                },
+                {
+                  "key": "vii",
+                  "text": "An idea for changing the design of burial structures"
+                },
+                {
+                  "key": "viii",
+                  "text": "An incredible experience despite the few remains"
+                },
+                {
+                  "key": "ix",
+                  "text": "The answers to some unexpected questions"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nChoose the correct heading for each paragraph from the list of headings below.\nWrite the correct number, i-ix, in boxes 14—20 on your answer sheet.\nList of Headings"
+              },
+              "answerKey": {
+                "accepted": [
+                  "v"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Paragraph E",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The areas and artefacts within the pyramid itself"
+                },
+                {
+                  "key": "ii",
+                  "text": "Adifficult task for those involved"
+                },
+                {
+                  "key": "iii",
+                  "text": "Aking who saved his people"
+                },
+                {
+                  "key": "iv",
+                  "text": "Asingle certainty among other less definite facts"
+                },
+                {
+                  "key": "v",
+                  "text": "An overview of the external buildings and areas"
+                },
+                {
+                  "key": "vi",
+                  "text": "Apyramid design that others copied"
+                },
+                {
+                  "key": "vii",
+                  "text": "An idea for changing the design of burial structures"
+                },
+                {
+                  "key": "viii",
+                  "text": "An incredible experience despite the few remains"
+                },
+                {
+                  "key": "ix",
+                  "text": "The answers to some unexpected questions"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nChoose the correct heading for each paragraph from the list of headings below.\nWrite the correct number, i-ix, in boxes 14—20 on your answer sheet.\nList of Headings"
+              },
+              "answerKey": {
+                "accepted": [
+                  "i"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Paragraph F",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The areas and artefacts within the pyramid itself"
+                },
+                {
+                  "key": "ii",
+                  "text": "Adifficult task for those involved"
+                },
+                {
+                  "key": "iii",
+                  "text": "Aking who saved his people"
+                },
+                {
+                  "key": "iv",
+                  "text": "Asingle certainty among other less definite facts"
+                },
+                {
+                  "key": "v",
+                  "text": "An overview of the external buildings and areas"
+                },
+                {
+                  "key": "vi",
+                  "text": "Apyramid design that others copied"
+                },
+                {
+                  "key": "vii",
+                  "text": "An idea for changing the design of burial structures"
+                },
+                {
+                  "key": "viii",
+                  "text": "An incredible experience despite the few remains"
+                },
+                {
+                  "key": "ix",
+                  "text": "The answers to some unexpected questions"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nChoose the correct heading for each paragraph from the list of headings below.\nWrite the correct number, i-ix, in boxes 14—20 on your answer sheet.\nList of Headings"
+              },
+              "answerKey": {
+                "accepted": [
+                  "viii"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "Paragraph G",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The areas and artefacts within the pyramid itself"
+                },
+                {
+                  "key": "ii",
+                  "text": "Adifficult task for those involved"
+                },
+                {
+                  "key": "iii",
+                  "text": "Aking who saved his people"
+                },
+                {
+                  "key": "iv",
+                  "text": "Asingle certainty among other less definite facts"
+                },
+                {
+                  "key": "v",
+                  "text": "An overview of the external buildings and areas"
+                },
+                {
+                  "key": "vi",
+                  "text": "Apyramid design that others copied"
+                },
+                {
+                  "key": "vii",
+                  "text": "An idea for changing the design of burial structures"
+                },
+                {
+                  "key": "viii",
+                  "text": "An incredible experience despite the few remains"
+                },
+                {
+                  "key": "ix",
+                  "text": "The answers to some unexpected questions"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nChoose the correct heading for each paragraph from the list of headings below.\nWrite the correct number, i-ix, in boxes 14—20 on your answer sheet.\nList of Headings"
+              },
+              "answerKey": {
+                "accepted": [
+                  "vi"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "21",
+              "group": {
+                "id": "r-notes-21-24",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 21—24 on your answer sheet.",
+                "title": "The Step Pyramid of Djoser",
+                "text": "The complex that includes the Step Pyramid and its surroundings is considered to be\nas big as an Egyptian [21] ou. ssussnenee OF the past. The area outside the pyramid\nincluded accommodation that was Occupied DY [22] oes » along with\nmany other buildings and features.\nA wall ran around the outside of the complex and a number of false entrances were\nbuilt into this. In addition, a IONG [23] oes ENCircled the wall. As a result,\nany visitors who had not been invited were cleverly prevented from entering the\npyramid grounds unless they knew the [24] occ OF the real entrance."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "city"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "22",
+              "group": {
+                "id": "r-notes-21-24",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 21—24 on your answer sheet.",
+                "title": "The Step Pyramid of Djoser",
+                "text": "The complex that includes the Step Pyramid and its surroundings is considered to be\nas big as an Egyptian [21] ou. ssussnenee OF the past. The area outside the pyramid\nincluded accommodation that was Occupied DY [22] oes » along with\nmany other buildings and features.\nA wall ran around the outside of the complex and a number of false entrances were\nbuilt into this. In addition, a IONG [23] oes ENCircled the wall. As a result,\nany visitors who had not been invited were cleverly prevented from entering the\npyramid grounds unless they knew the [24] occ OF the real entrance."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "priests"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "completion",
+              "prompt": "23",
+              "group": {
+                "id": "r-notes-21-24",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 21—24 on your answer sheet.",
+                "title": "The Step Pyramid of Djoser",
+                "text": "The complex that includes the Step Pyramid and its surroundings is considered to be\nas big as an Egyptian [21] ou. ssussnenee OF the past. The area outside the pyramid\nincluded accommodation that was Occupied DY [22] oes » along with\nmany other buildings and features.\nA wall ran around the outside of the complex and a number of false entrances were\nbuilt into this. In addition, a IONG [23] oes ENCircled the wall. As a result,\nany visitors who had not been invited were cleverly prevented from entering the\npyramid grounds unless they knew the [24] occ OF the real entrance."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "trench"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "24",
+              "group": {
+                "id": "r-notes-21-24",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 21—24 on your answer sheet.",
+                "title": "The Step Pyramid of Djoser",
+                "text": "The complex that includes the Step Pyramid and its surroundings is considered to be\nas big as an Egyptian [21] ou. ssussnenee OF the past. The area outside the pyramid\nincluded accommodation that was Occupied DY [22] oes » along with\nmany other buildings and features.\nA wall ran around the outside of the complex and a number of false entrances were\nbuilt into this. In addition, a IONG [23] oes ENCircled the wall. As a result,\nany visitors who had not been invited were cleverly prevented from entering the\npyramid grounds unless they knew the [24] occ OF the real entrance."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "location"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "multiple-select",
+              "prompt": "Which TWO of the following points does the writer make about King Djoser?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Initially he had to be persuaded to build in stone rather than clay."
+                },
+                {
+                  "key": "B",
+                  "text": "There is disagreement concerning the length of his reign."
+                },
+                {
+                  "key": "C",
+                  "text": "He failed to appreciate Imhotep’s part in the design of the Step Pyramid."
+                },
+                {
+                  "key": "D",
+                  "text": "A few of his possessions were still in his tomb when archaeologists found it."
+                },
+                {
+                  "key": "E",
+                  "text": "He criticised the design and construction of other pyramids in Egypt."
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "D"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "The future of work",
+          "body": "The future of work\nAccording to a leading business consultancy, 3—14% of the global workforce will need to switch\nto a different occupation within the next 10-15 years, and all workers will need to adapt as\ntheir occupations evolve alongside increasingly capable machines. Automation — or ‘embodied\nartificial intelligence’ (AI) — is one aspect of the disruptive effects of technology on the labour\nmarket. ‘Disembodied AI’, like the algorithms running in our smartphones, is another.\nDr Stella Pachidi from Cambridge Judge Business School believes that some of the most\nfundamental changes are happening as a result of the ‘algorithmication’ of jobs that are dependent\non data rather than on production — the so-called knowledge economy. Algorithms are capable of\nlearning from data to undertake tasks that previously needed human judgement, such as reading\nlegal contracts, analysing medical scans and gathering market intelligence.\n‘In many cases, they can outperform humans,’ says Pachidi. ‘Organisations are attracted to\nusing algorithms because they want to make choices based on what they consider is “perfect\ninformation”, as well as to reduce costs and enhance productivity.’\n‘But these enhancements are not without consequences,’ says Pachidi. ‘If routine cognitive tasks\nare taken over by AI, how do professions develop their future experts?’ she asks. “One way of\nlearning about a job is “legitimate peripheral participation” — a novice stands next to experts and\nlearns by observation. If this isn’t happening, then you need to find new ways to learn.’\nAnother issue is the extent to which the technology influences or even controls the workforce.\nFor over two years, Pachidi monitored a telecommunications company. ‘The way telecoms\nsalespeople work is through personal and frequent contact with clients, using the benefit of\nexperience to assess a situation and reach a decision. However, the company had started using\na[n] ... algorithm that defined when account managers should contact certain customers about\nwhich kinds of campaigns and what to offer them.’\nThe algorithm — usually built by external designers — often becomes the keeper of knowledge,\nshe explains. In cases like this, Pachidi believes, a short-sighted view begins to creep into\nworking practices whereby workers learn through the ‘algorithm’s eyes’ and become dependent\non its instructions. Alternative explorations — where experimentation and human instinct lead to\nprogress and new ideas — are effectively discouraged.\nPachidi and colleagues even observed people developing strategies to make the algorithm work\nto their own advantage. ‘We are seeing cases where workers feed the algorithm with false data to\nreach their targets,’ she reports.\nIt’s scenarios like these that many researchers are working to avoid. Their objective is to make Al\ntechnologies more trustworthy and transparent, so that organisations and individuals understand\nhow AI decisions are made. In the meantime, says Pachidi, ‘We need to make sure we fully\nunderstand the dilemmas that this new world raises regarding expertise, occupational boundaries\nand control.’\nEconomist Professor Hamish Low believes that the future of work will involve major transitions\nacross the whole life course for everyone: ‘The traditional trajectory of full-time education\nfollowed by full-time work followed by a pensioned retirement is a thing of the past,’ says Low.\nInstead, he envisages a multistage employment life: one where retraining happens across the life\ncourse, and where multiple jobs and no job happen by choice at different stages.\nOn the subject of job losses, Low believes the predictions are founded on a fallacy: “It assumes\nthat the number of jobs is fixed. If in 30 years, half of 100 jobs are being carried out by robots,\nthat doesn’t mean we are left with just 50 jobs for humans. The number of jobs will increase: we\nwould expect there to be 150 jobs.’\nDr Ewan McGaughey, at Cambridge’s Centre for Business Research and King’s College London,\nagrees that ‘apocalyptic’ views about the future of work are misguided. ‘It’s the laws that\nrestrict the supply of capital to the job market, not the advent of new technologies that causes\nunemployment.’\nHis recently published research answers the question of whether automation, AI and robotics will\nmean a ‘jobless future’ by looking at the causes of unemployment. ‘History is clear that change\ncan mean redundancies. But social policies can tackle this through retraining and redeployment.’\nHe adds: ‘If there is going to be change to jobs as a result of AI and robotics then I’d like to see\ngovernments seizing the opportunity to improve policy to enforce good job security. We can\n“reprogramme” the law to prepare for a fairer future of work and leisure.’ McGaughey’s findings\nare a call to arms to leaders of organisations, governments and banks to pre-empt the coming\nchanges with bold new policies that guarantee full employment, fair incomes and a thriving\neconomic democracy.\n‘The promises of these new technologies are astounding. They deliver humankind the capacity\nto live in a way that nobody could have once imagined,’ he adds. ‘Just as the industrial revolution\nbrought people past subsistence agriculture, and the corporate revolution enabled mass\nproduction, a third revolution has been pronounced. But it will not only be one of technology. The\nnext revolution will be social.’",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "multiple-choice",
+              "prompt": "‘The first paragraph tells us about",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the kinds of jobs that will be most affected by the growth of Al."
+                },
+                {
+                  "key": "B",
+                  "text": "the extent to which Al will alter the nature of the work that people do."
+                },
+                {
+                  "key": "C",
+                  "text": "the proportion of the world’s labour force who will have jobs in Al in the future."
+                },
+                {
+                  "key": "D",
+                  "text": "the difference between ways that embodied and disembodied Al will impact\non workers."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "multiple-choice",
+              "prompt": "According to the second paragraph, what is Stella Pachidi’s view of the ‘knowledge\neconomy’?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Itis having an influence on the number of jobs available."
+                },
+                {
+                  "key": "B",
+                  "text": "It is changing people’s attitudes towards their occupations."
+                },
+                {
+                  "key": "C",
+                  "text": "Itis the main reason why the production sector is declining."
+                },
+                {
+                  "key": "D",
+                  "text": "itis a key factor driving current developments in the workplace."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "What did Pachidi observe at the telecommunications company?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "staff disagreeing with the recommendations of Al"
+                },
+                {
+                  "key": "B",
+                  "text": "staff feeling resentful about the intrusion of Al in their work"
+                },
+                {
+                  "key": "C",
+                  "text": "staff making sure that Al produces the results that they want"
+                },
+                {
+                  "key": "D",
+                  "text": "staff allowing Al to carry out tasks they ought to do themselves"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "In his recently published research, Ewan McGaughey",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "challenges the idea that redundancy is a negative thing."
+                },
+                {
+                  "key": "B",
+                  "text": "shows the profound effect of mass unemployment on society."
+                },
+                {
+                  "key": "C",
+                  "text": "highlights some differences between past and future job losses."
+                },
+                {
+                  "key": "D",
+                  "text": "illustrates how changes in the job market can be successfully handled."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "31",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "pressure"
+                },
+                {
+                  "key": "B",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "C",
+                  "text": "intuition"
+                },
+                {
+                  "key": "D",
+                  "text": "promotion"
+                },
+                {
+                  "key": "E",
+                  "text": "reliance"
+                },
+                {
+                  "key": "F",
+                  "text": "confidence"
+                },
+                {
+                  "key": "G",
+                  "text": "information"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-34",
+                "instruction": "Complete the summary using the list of words, A—G, below.\nWrite the correct letter, A—G, in boxes 31-34 on your answer sheet.",
+                "title": "The ‘algorithmication’ of jobs",
+                "text": "Stella Pachidi of Cambridge Judge Business School has been focusing on the\n‘algorithmication’ of jobs which rely not ON Production DUt ON [31] wees +\nWhile monitoring a telecommunications company, Pachidi observed a growing\nBD eceessesesssntseinsstnseineenee ON the recommendations made by Al, as workers begin to learn\nthrough the ‘algorithm’s eyes’. Meanwhile, staff are deterred from experimenting and using\ntheir OWN [33] ose» aNd are therefore prevented from achieving innovation.\nTo avoid the kind of situations which Pachidi observed, researchers are trying to\nmake Al’s decision-making process easier to comprehend, and to increase users’\n[34] ote With regard to the technology."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "matching",
+              "prompt": "32",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "pressure"
+                },
+                {
+                  "key": "B",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "C",
+                  "text": "intuition"
+                },
+                {
+                  "key": "D",
+                  "text": "promotion"
+                },
+                {
+                  "key": "E",
+                  "text": "reliance"
+                },
+                {
+                  "key": "F",
+                  "text": "confidence"
+                },
+                {
+                  "key": "G",
+                  "text": "information"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-34",
+                "instruction": "Complete the summary using the list of words, A—G, below.\nWrite the correct letter, A—G, in boxes 31-34 on your answer sheet.",
+                "title": "The ‘algorithmication’ of jobs",
+                "text": "Stella Pachidi of Cambridge Judge Business School has been focusing on the\n‘algorithmication’ of jobs which rely not ON Production DUt ON [31] wees +\nWhile monitoring a telecommunications company, Pachidi observed a growing\nBD eceessesesssntseinsstnseineenee ON the recommendations made by Al, as workers begin to learn\nthrough the ‘algorithm’s eyes’. Meanwhile, staff are deterred from experimenting and using\ntheir OWN [33] ose» aNd are therefore prevented from achieving innovation.\nTo avoid the kind of situations which Pachidi observed, researchers are trying to\nmake Al’s decision-making process easier to comprehend, and to increase users’\n[34] ote With regard to the technology."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "matching",
+              "prompt": "33",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "pressure"
+                },
+                {
+                  "key": "B",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "C",
+                  "text": "intuition"
+                },
+                {
+                  "key": "D",
+                  "text": "promotion"
+                },
+                {
+                  "key": "E",
+                  "text": "reliance"
+                },
+                {
+                  "key": "F",
+                  "text": "confidence"
+                },
+                {
+                  "key": "G",
+                  "text": "information"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-34",
+                "instruction": "Complete the summary using the list of words, A—G, below.\nWrite the correct letter, A—G, in boxes 31-34 on your answer sheet.",
+                "title": "The ‘algorithmication’ of jobs",
+                "text": "Stella Pachidi of Cambridge Judge Business School has been focusing on the\n‘algorithmication’ of jobs which rely not ON Production DUt ON [31] wees +\nWhile monitoring a telecommunications company, Pachidi observed a growing\nBD eceessesesssntseinsstnseineenee ON the recommendations made by Al, as workers begin to learn\nthrough the ‘algorithm’s eyes’. Meanwhile, staff are deterred from experimenting and using\ntheir OWN [33] ose» aNd are therefore prevented from achieving innovation.\nTo avoid the kind of situations which Pachidi observed, researchers are trying to\nmake Al’s decision-making process easier to comprehend, and to increase users’\n[34] ote With regard to the technology."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "matching",
+              "prompt": "34",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "pressure"
+                },
+                {
+                  "key": "B",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "C",
+                  "text": "intuition"
+                },
+                {
+                  "key": "D",
+                  "text": "promotion"
+                },
+                {
+                  "key": "E",
+                  "text": "reliance"
+                },
+                {
+                  "key": "F",
+                  "text": "confidence"
+                },
+                {
+                  "key": "G",
+                  "text": "information"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-34",
+                "instruction": "Complete the summary using the list of words, A—G, below.\nWrite the correct letter, A—G, in boxes 31-34 on your answer sheet.",
+                "title": "The ‘algorithmication’ of jobs",
+                "text": "Stella Pachidi of Cambridge Judge Business School has been focusing on the\n‘algorithmication’ of jobs which rely not ON Production DUt ON [31] wees +\nWhile monitoring a telecommunications company, Pachidi observed a growing\nBD eceessesesssntseinsstnseineenee ON the recommendations made by Al, as workers begin to learn\nthrough the ‘algorithm’s eyes’. Meanwhile, staff are deterred from experimenting and using\ntheir OWN [33] ose» aNd are therefore prevented from achieving innovation.\nTo avoid the kind of situations which Pachidi observed, researchers are trying to\nmake Al’s decision-making process easier to comprehend, and to increase users’\n[34] ote With regard to the technology."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "matching",
+              "prompt": "Greater levels of automation will not result in lower employment.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Stella Pachidi"
+                },
+                {
+                  "key": "B",
+                  "text": "Hamish Low"
+                },
+                {
+                  "key": "C",
+                  "text": "Ewan McGaughey"
+                }
+              ],
+              "group": {
+                "id": "r-people-35-40",
+                "instruction": "Look at the following statements (Questions 35-40) and the list of people below.\nMatch each statement with the correct person, A, B or C.\nWrite the correct letter, A, B or C, in boxes 35-40 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "matching",
+              "prompt": "There are several reasons why Al is appealing to businesses.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Stella Pachidi"
+                },
+                {
+                  "key": "B",
+                  "text": "Hamish Low"
+                },
+                {
+                  "key": "C",
+                  "text": "Ewan McGaughey"
+                }
+              ],
+              "group": {
+                "id": "r-people-35-40",
+                "instruction": "Look at the following statements (Questions 35-40) and the list of people below.\nMatch each statement with the correct person, A, B or C.\nWrite the correct letter, A, B or C, in boxes 35-40 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "matching",
+              "prompt": "Al's potential to transform people’s lives has parallels with major cultural shifts\nwhich occurred in previous eras.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Stella Pachidi"
+                },
+                {
+                  "key": "B",
+                  "text": "Hamish Low"
+                },
+                {
+                  "key": "C",
+                  "text": "Ewan McGaughey"
+                }
+              ],
+              "group": {
+                "id": "r-people-35-40",
+                "instruction": "Look at the following statements (Questions 35-40) and the list of people below.\nMatch each statement with the correct person, A, B or C.\nWrite the correct letter, A, B or C, in boxes 35-40 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "matching",
+              "prompt": "It is important to be aware of the range of problems that Al causes.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Stella Pachidi"
+                },
+                {
+                  "key": "B",
+                  "text": "Hamish Low"
+                },
+                {
+                  "key": "C",
+                  "text": "Ewan McGaughey"
+                }
+              ],
+              "group": {
+                "id": "r-people-35-40",
+                "instruction": "Look at the following statements (Questions 35-40) and the list of people below.\nMatch each statement with the correct person, A, B or C.\nWrite the correct letter, A, B or C, in boxes 35-40 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "matching",
+              "prompt": "People are going to follow a less conventional career path than in the past.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Stella Pachidi"
+                },
+                {
+                  "key": "B",
+                  "text": "Hamish Low"
+                },
+                {
+                  "key": "C",
+                  "text": "Ewan McGaughey"
+                }
+              ],
+              "group": {
+                "id": "r-people-35-40",
+                "instruction": "Look at the following statements (Questions 35-40) and the list of people below.\nMatch each statement with the correct person, A, B or C.\nWrite the correct letter, A, B or C, in boxes 35-40 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "matching",
+              "prompt": "Authorities should take measures to ensure that there will be adequately paid work\nfor everyone.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Stella Pachidi"
+                },
+                {
+                  "key": "B",
+                  "text": "Hamish Low"
+                },
+                {
+                  "key": "C",
+                  "text": "Ewan McGaughey"
+                }
+              ],
+              "group": {
+                "id": "r-people-35-40",
+                "instruction": "Look at the following statements (Questions 35-40) and the list of people below.\nMatch each statement with the correct person, A, B or C.\nWrite the correct letter, A, B or C, in boxes 35-40 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Children’s Engineering Workshops",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Children’s Engineering Workshops",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tiny Engineers (ages 4—5)\nActivities\n• Create a [1] so they can drop it from a height without breaking it.\n• Take part in a competition to build the tallest [2].\n• Make a [3] powered by a balloon.\nJunior Engineers (ages 6-8)\nActivities:\n• Build model cars, trucks and [4] and learn how to program them so they can move.\n• Take part in a competition to build the longest [5] using card and wood.\n• Create a [6] with special software.\n• Build, [7] and program a humanoid robot.\nCost for a five-week block: £50\nHeld on [8] from 10am to 11am\nLocation\nBuilding 10A, [9] Industrial Estate, Grasford\nPlenty of [10] is available."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "egg"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Children’s Engineering Workshops",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tiny Engineers (ages 4—5)\nActivities\n• Create a [1] so they can drop it from a height without breaking it.\n• Take part in a competition to build the tallest [2].\n• Make a [3] powered by a balloon.\nJunior Engineers (ages 6-8)\nActivities:\n• Build model cars, trucks and [4] and learn how to program them so they can move.\n• Take part in a competition to build the longest [5] using card and wood.\n• Create a [6] with special software.\n• Build, [7] and program a humanoid robot.\nCost for a five-week block: £50\nHeld on [8] from 10am to 11am\nLocation\nBuilding 10A, [9] Industrial Estate, Grasford\nPlenty of [10] is available."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tower"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Children’s Engineering Workshops",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tiny Engineers (ages 4—5)\nActivities\n• Create a [1] so they can drop it from a height without breaking it.\n• Take part in a competition to build the tallest [2].\n• Make a [3] powered by a balloon.\nJunior Engineers (ages 6-8)\nActivities:\n• Build model cars, trucks and [4] and learn how to program them so they can move.\n• Take part in a competition to build the longest [5] using card and wood.\n• Create a [6] with special software.\n• Build, [7] and program a humanoid robot.\nCost for a five-week block: £50\nHeld on [8] from 10am to 11am\nLocation\nBuilding 10A, [9] Industrial Estate, Grasford\nPlenty of [10] is available."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "car"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Children’s Engineering Workshops",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tiny Engineers (ages 4—5)\nActivities\n• Create a [1] so they can drop it from a height without breaking it.\n• Take part in a competition to build the tallest [2].\n• Make a [3] powered by a balloon.\nJunior Engineers (ages 6-8)\nActivities:\n• Build model cars, trucks and [4] and learn how to program them so they can move.\n• Take part in a competition to build the longest [5] using card and wood.\n• Create a [6] with special software.\n• Build, [7] and program a humanoid robot.\nCost for a five-week block: £50\nHeld on [8] from 10am to 11am\nLocation\nBuilding 10A, [9] Industrial Estate, Grasford\nPlenty of [10] is available."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "animals"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Children’s Engineering Workshops",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tiny Engineers (ages 4—5)\nActivities\n• Create a [1] so they can drop it from a height without breaking it.\n• Take part in a competition to build the tallest [2].\n• Make a [3] powered by a balloon.\nJunior Engineers (ages 6-8)\nActivities:\n• Build model cars, trucks and [4] and learn how to program them so they can move.\n• Take part in a competition to build the longest [5] using card and wood.\n• Create a [6] with special software.\n• Build, [7] and program a humanoid robot.\nCost for a five-week block: £50\nHeld on [8] from 10am to 11am\nLocation\nBuilding 10A, [9] Industrial Estate, Grasford\nPlenty of [10] is available."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "bridge"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Children’s Engineering Workshops",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tiny Engineers (ages 4—5)\nActivities\n• Create a [1] so they can drop it from a height without breaking it.\n• Take part in a competition to build the tallest [2].\n• Make a [3] powered by a balloon.\nJunior Engineers (ages 6-8)\nActivities:\n• Build model cars, trucks and [4] and learn how to program them so they can move.\n• Take part in a competition to build the longest [5] using card and wood.\n• Create a [6] with special software.\n• Build, [7] and program a humanoid robot.\nCost for a five-week block: £50\nHeld on [8] from 10am to 11am\nLocation\nBuilding 10A, [9] Industrial Estate, Grasford\nPlenty of [10] is available."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "movie",
+                  "film"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Children’s Engineering Workshops",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tiny Engineers (ages 4—5)\nActivities\n• Create a [1] so they can drop it from a height without breaking it.\n• Take part in a competition to build the tallest [2].\n• Make a [3] powered by a balloon.\nJunior Engineers (ages 6-8)\nActivities:\n• Build model cars, trucks and [4] and learn how to program them so they can move.\n• Take part in a competition to build the longest [5] using card and wood.\n• Create a [6] with special software.\n• Build, [7] and program a humanoid robot.\nCost for a five-week block: £50\nHeld on [8] from 10am to 11am\nLocation\nBuilding 10A, [9] Industrial Estate, Grasford\nPlenty of [10] is available."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "decorate"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Children’s Engineering Workshops",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tiny Engineers (ages 4—5)\nActivities\n• Create a [1] so they can drop it from a height without breaking it.\n• Take part in a competition to build the tallest [2].\n• Make a [3] powered by a balloon.\nJunior Engineers (ages 6-8)\nActivities:\n• Build model cars, trucks and [4] and learn how to program them so they can move.\n• Take part in a competition to build the longest [5] using card and wood.\n• Create a [6] with special software.\n• Build, [7] and program a humanoid robot.\nCost for a five-week block: £50\nHeld on [8] from 10am to 11am\nLocation\nBuilding 10A, [9] Industrial Estate, Grasford\nPlenty of [10] is available."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Wednesdays"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Children’s Engineering Workshops",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tiny Engineers (ages 4—5)\nActivities\n• Create a [1] so they can drop it from a height without breaking it.\n• Take part in a competition to build the tallest [2].\n• Make a [3] powered by a balloon.\nJunior Engineers (ages 6-8)\nActivities:\n• Build model cars, trucks and [4] and learn how to program them so they can move.\n• Take part in a competition to build the longest [5] using card and wood.\n• Create a [6] with special software.\n• Build, [7] and program a humanoid robot.\nCost for a five-week block: £50\nHeld on [8] from 10am to 11am\nLocation\nBuilding 10A, [9] Industrial Estate, Grasford\nPlenty of [10] is available."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Fradstone"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Children’s Engineering Workshops",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tiny Engineers (ages 4—5)\nActivities\n• Create a [1] so they can drop it from a height without breaking it.\n• Take part in a competition to build the tallest [2].\n• Make a [3] powered by a balloon.\nJunior Engineers (ages 6-8)\nActivities:\n• Build model cars, trucks and [4] and learn how to program them so they can move.\n• Take part in a competition to build the longest [5] using card and wood.\n• Create a [6] with special software.\n• Build, [7] and program a humanoid robot.\nCost for a five-week block: £50\nHeld on [8] from 10am to 11am\nLocation\nBuilding 10A, [9] Industrial Estate, Grasford\nPlenty of [10] is available."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "parking"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-1-listening-part1.mp3"
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Stevenson’s",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "Stevenson’s was founded in",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "1923."
+                },
+                {
+                  "key": "B",
+                  "text": "1924."
+                },
+                {
+                  "key": "C",
+                  "text": "1926."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "Originally, Stevenson’s manufactured goods for",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the healthcare industry."
+                },
+                {
+                  "key": "B",
+                  "text": "the automotive industry."
+                },
+                {
+                  "key": "C",
+                  "text": "the machine tools industry."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "What does the speaker say about the company premises?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The company has recently moved."
+                },
+                {
+                  "key": "B",
+                  "text": "The company has no plans to move."
+                },
+                {
+                  "key": "C",
+                  "text": "The company is going to move shortly."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "The programme for the work experience group includes",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "time to do research."
+                },
+                {
+                  "key": "B",
+                  "text": "meetings with a teacher."
+                },
+                {
+                  "key": "C",
+                  "text": "talks by staff."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "labelling",
+              "prompt": "coffee room",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Stevenson’s site",
+                "instruction": "Write the correct letter, A-J, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "labelling",
+              "prompt": "warehouse",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Stevenson’s site",
+                "instruction": "Write the correct letter, A-J, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "labelling",
+              "prompt": "staff canteen",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Stevenson’s site",
+                "instruction": "Write the correct letter, A-J, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "labelling",
+              "prompt": "meeting room",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Stevenson’s site",
+                "instruction": "Write the correct letter, A-J, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "labelling",
+              "prompt": "human resources",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Stevenson’s site",
+                "instruction": "Write the correct letter, A-J, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "|"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "labelling",
+              "prompt": "boardroom",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Stevenson’s site",
+                "instruction": "Write the correct letter, A-J, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-1-listening-part2.mp3"
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Art projects",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-select",
+              "prompt": "Which TWO parts of the introductory stage to their art projects do Jess and Tom agree were useful?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the Bird Park visit"
+                },
+                {
+                  "key": "B",
+                  "text": "the workshop sessions"
+                },
+                {
+                  "key": "C",
+                  "text": "the Natural History Museum visit"
+                },
+                {
+                  "key": "D",
+                  "text": "the projects done in previous years"
+                },
+                {
+                  "key": "E",
+                  "text": "the handouts with research sources"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "C",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-select",
+              "prompt": "In which TWO ways do both Jess and Tom decide to change their proposals?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "by giving a rationale for their action plans"
+                },
+                {
+                  "key": "B",
+                  "text": "by being less specific about the outcome"
+                },
+                {
+                  "key": "C",
+                  "text": "by adding a video diary presentation"
+                },
+                {
+                  "key": "D",
+                  "text": "by providing a timeline and a mind map"
+                },
+                {
+                  "key": "E",
+                  "text": "by making their notes more evaluative"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "Falcon (Landseer)",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a childhood memory"
+                },
+                {
+                  "key": "B",
+                  "text": "hope for the future"
+                },
+                {
+                  "key": "C",
+                  "text": "fast movement"
+                },
+                {
+                  "key": "D",
+                  "text": "a potential threat"
+                },
+                {
+                  "key": "E",
+                  "text": "the power of colour"
+                },
+                {
+                  "key": "F",
+                  "text": "the continuity of life"
+                },
+                {
+                  "key": "G",
+                  "text": "protection of nature"
+                },
+                {
+                  "key": "H",
+                  "text": "a confused attitude to nature"
+                }
+              ],
+              "group": {
+                "id": "l-matching-25-30",
+                "instruction": "Choose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "Fish hawk (Audubon)",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a childhood memory"
+                },
+                {
+                  "key": "B",
+                  "text": "hope for the future"
+                },
+                {
+                  "key": "C",
+                  "text": "fast movement"
+                },
+                {
+                  "key": "D",
+                  "text": "a potential threat"
+                },
+                {
+                  "key": "E",
+                  "text": "the power of colour"
+                },
+                {
+                  "key": "F",
+                  "text": "the continuity of life"
+                },
+                {
+                  "key": "G",
+                  "text": "protection of nature"
+                },
+                {
+                  "key": "H",
+                  "text": "a confused attitude to nature"
+                }
+              ],
+              "group": {
+                "id": "l-matching-25-30",
+                "instruction": "Choose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Kingfisher (van Gogh)",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a childhood memory"
+                },
+                {
+                  "key": "B",
+                  "text": "hope for the future"
+                },
+                {
+                  "key": "C",
+                  "text": "fast movement"
+                },
+                {
+                  "key": "D",
+                  "text": "a potential threat"
+                },
+                {
+                  "key": "E",
+                  "text": "the power of colour"
+                },
+                {
+                  "key": "F",
+                  "text": "the continuity of life"
+                },
+                {
+                  "key": "G",
+                  "text": "protection of nature"
+                },
+                {
+                  "key": "H",
+                  "text": "a confused attitude to nature"
+                }
+              ],
+              "group": {
+                "id": "l-matching-25-30",
+                "instruction": "Choose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Portrait of William Wells",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a childhood memory"
+                },
+                {
+                  "key": "B",
+                  "text": "hope for the future"
+                },
+                {
+                  "key": "C",
+                  "text": "fast movement"
+                },
+                {
+                  "key": "D",
+                  "text": "a potential threat"
+                },
+                {
+                  "key": "E",
+                  "text": "the power of colour"
+                },
+                {
+                  "key": "F",
+                  "text": "the continuity of life"
+                },
+                {
+                  "key": "G",
+                  "text": "protection of nature"
+                },
+                {
+                  "key": "H",
+                  "text": "a confused attitude to nature"
+                }
+              ],
+              "group": {
+                "id": "l-matching-25-30",
+                "instruction": "Choose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Vairumati (Gauguin)",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a childhood memory"
+                },
+                {
+                  "key": "B",
+                  "text": "hope for the future"
+                },
+                {
+                  "key": "C",
+                  "text": "fast movement"
+                },
+                {
+                  "key": "D",
+                  "text": "a potential threat"
+                },
+                {
+                  "key": "E",
+                  "text": "the power of colour"
+                },
+                {
+                  "key": "F",
+                  "text": "the continuity of life"
+                },
+                {
+                  "key": "G",
+                  "text": "protection of nature"
+                },
+                {
+                  "key": "H",
+                  "text": "a confused attitude to nature"
+                }
+              ],
+              "group": {
+                "id": "l-matching-25-30",
+                "instruction": "Choose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Portrait of Giovanni de Medici",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a childhood memory"
+                },
+                {
+                  "key": "B",
+                  "text": "hope for the future"
+                },
+                {
+                  "key": "C",
+                  "text": "fast movement"
+                },
+                {
+                  "key": "D",
+                  "text": "a potential threat"
+                },
+                {
+                  "key": "E",
+                  "text": "the power of colour"
+                },
+                {
+                  "key": "F",
+                  "text": "the continuity of life"
+                },
+                {
+                  "key": "G",
+                  "text": "protection of nature"
+                },
+                {
+                  "key": "H",
+                  "text": "a confused attitude to nature"
+                }
+              ],
+              "group": {
+                "id": "l-matching-25-30",
+                "instruction": "Choose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-1-listening-part3.mp3"
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Stoicism",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Stoicism",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Stoicism is still relevant today because of its [31] appeal.\nAncient Stoics\n• Stoicism was founded over 2,000 years ago in Greece.\n• The Stoics’ ideas are surprisingly well known, despite not being intended for [32].\nStoic principles\n• Happiness could be achieved by leading a virtuous life.\n• Controlling emotions was essential.\n• Epictetus said that external events cannot be controlled but the [33] people make in response can be controlled.\n• A Stoic is someone who has a different view on experiences which others would consider as [34].\nThe influence of Stoicism\n• George Washington organised a [35] about Cato to motivate his men.\n• The French artist Delacroix was a Stoic.\n• Adam Smith’s ideas on [36] were influenced by Stoicism.\n• Some of today’s political leaders are inspired by the Stoics.\n• Cognitive Behaviour Therapy (CBT)\n— the treatment for [37] is based on ideas from Stoicism\n— people learn to base their thinking on [38].\n• In business, people benefit from Stoicism by identifying obstacles as [39].\nRelevance of Stoicism\n• It requires a lot of [40] but Stoicism can help people to lead a good life.\n• It teaches people that having a strong character is more important than anything else."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "practical"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Stoicism",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Stoicism is still relevant today because of its [31] appeal.\nAncient Stoics\n• Stoicism was founded over 2,000 years ago in Greece.\n• The Stoics’ ideas are surprisingly well known, despite not being intended for [32].\nStoic principles\n• Happiness could be achieved by leading a virtuous life.\n• Controlling emotions was essential.\n• Epictetus said that external events cannot be controlled but the [33] people make in response can be controlled.\n• A Stoic is someone who has a different view on experiences which others would consider as [34].\nThe influence of Stoicism\n• George Washington organised a [35] about Cato to motivate his men.\n• The French artist Delacroix was a Stoic.\n• Adam Smith’s ideas on [36] were influenced by Stoicism.\n• Some of today’s political leaders are inspired by the Stoics.\n• Cognitive Behaviour Therapy (CBT)\n— the treatment for [37] is based on ideas from Stoicism\n— people learn to base their thinking on [38].\n• In business, people benefit from Stoicism by identifying obstacles as [39].\nRelevance of Stoicism\n• It requires a lot of [40] but Stoicism can help people to lead a good life.\n• It teaches people that having a strong character is more important than anything else."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "publication"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Stoicism",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Stoicism is still relevant today because of its [31] appeal.\nAncient Stoics\n• Stoicism was founded over 2,000 years ago in Greece.\n• The Stoics’ ideas are surprisingly well known, despite not being intended for [32].\nStoic principles\n• Happiness could be achieved by leading a virtuous life.\n• Controlling emotions was essential.\n• Epictetus said that external events cannot be controlled but the [33] people make in response can be controlled.\n• A Stoic is someone who has a different view on experiences which others would consider as [34].\nThe influence of Stoicism\n• George Washington organised a [35] about Cato to motivate his men.\n• The French artist Delacroix was a Stoic.\n• Adam Smith’s ideas on [36] were influenced by Stoicism.\n• Some of today’s political leaders are inspired by the Stoics.\n• Cognitive Behaviour Therapy (CBT)\n— the treatment for [37] is based on ideas from Stoicism\n— people learn to base their thinking on [38].\n• In business, people benefit from Stoicism by identifying obstacles as [39].\nRelevance of Stoicism\n• It requires a lot of [40] but Stoicism can help people to lead a good life.\n• It teaches people that having a strong character is more important than anything else."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "choices"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Stoicism",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Stoicism is still relevant today because of its [31] appeal.\nAncient Stoics\n• Stoicism was founded over 2,000 years ago in Greece.\n• The Stoics’ ideas are surprisingly well known, despite not being intended for [32].\nStoic principles\n• Happiness could be achieved by leading a virtuous life.\n• Controlling emotions was essential.\n• Epictetus said that external events cannot be controlled but the [33] people make in response can be controlled.\n• A Stoic is someone who has a different view on experiences which others would consider as [34].\nThe influence of Stoicism\n• George Washington organised a [35] about Cato to motivate his men.\n• The French artist Delacroix was a Stoic.\n• Adam Smith’s ideas on [36] were influenced by Stoicism.\n• Some of today’s political leaders are inspired by the Stoics.\n• Cognitive Behaviour Therapy (CBT)\n— the treatment for [37] is based on ideas from Stoicism\n— people learn to base their thinking on [38].\n• In business, people benefit from Stoicism by identifying obstacles as [39].\nRelevance of Stoicism\n• It requires a lot of [40] but Stoicism can help people to lead a good life.\n• It teaches people that having a strong character is more important than anything else."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "negative"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Stoicism",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Stoicism is still relevant today because of its [31] appeal.\nAncient Stoics\n• Stoicism was founded over 2,000 years ago in Greece.\n• The Stoics’ ideas are surprisingly well known, despite not being intended for [32].\nStoic principles\n• Happiness could be achieved by leading a virtuous life.\n• Controlling emotions was essential.\n• Epictetus said that external events cannot be controlled but the [33] people make in response can be controlled.\n• A Stoic is someone who has a different view on experiences which others would consider as [34].\nThe influence of Stoicism\n• George Washington organised a [35] about Cato to motivate his men.\n• The French artist Delacroix was a Stoic.\n• Adam Smith’s ideas on [36] were influenced by Stoicism.\n• Some of today’s political leaders are inspired by the Stoics.\n• Cognitive Behaviour Therapy (CBT)\n— the treatment for [37] is based on ideas from Stoicism\n— people learn to base their thinking on [38].\n• In business, people benefit from Stoicism by identifying obstacles as [39].\nRelevance of Stoicism\n• It requires a lot of [40] but Stoicism can help people to lead a good life.\n• It teaches people that having a strong character is more important than anything else."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "play"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Stoicism",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Stoicism is still relevant today because of its [31] appeal.\nAncient Stoics\n• Stoicism was founded over 2,000 years ago in Greece.\n• The Stoics’ ideas are surprisingly well known, despite not being intended for [32].\nStoic principles\n• Happiness could be achieved by leading a virtuous life.\n• Controlling emotions was essential.\n• Epictetus said that external events cannot be controlled but the [33] people make in response can be controlled.\n• A Stoic is someone who has a different view on experiences which others would consider as [34].\nThe influence of Stoicism\n• George Washington organised a [35] about Cato to motivate his men.\n• The French artist Delacroix was a Stoic.\n• Adam Smith’s ideas on [36] were influenced by Stoicism.\n• Some of today’s political leaders are inspired by the Stoics.\n• Cognitive Behaviour Therapy (CBT)\n— the treatment for [37] is based on ideas from Stoicism\n— people learn to base their thinking on [38].\n• In business, people benefit from Stoicism by identifying obstacles as [39].\nRelevance of Stoicism\n• It requires a lot of [40] but Stoicism can help people to lead a good life.\n• It teaches people that having a strong character is more important than anything else."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "capitalism"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Stoicism",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Stoicism is still relevant today because of its [31] appeal.\nAncient Stoics\n• Stoicism was founded over 2,000 years ago in Greece.\n• The Stoics’ ideas are surprisingly well known, despite not being intended for [32].\nStoic principles\n• Happiness could be achieved by leading a virtuous life.\n• Controlling emotions was essential.\n• Epictetus said that external events cannot be controlled but the [33] people make in response can be controlled.\n• A Stoic is someone who has a different view on experiences which others would consider as [34].\nThe influence of Stoicism\n• George Washington organised a [35] about Cato to motivate his men.\n• The French artist Delacroix was a Stoic.\n• Adam Smith’s ideas on [36] were influenced by Stoicism.\n• Some of today’s political leaders are inspired by the Stoics.\n• Cognitive Behaviour Therapy (CBT)\n— the treatment for [37] is based on ideas from Stoicism\n— people learn to base their thinking on [38].\n• In business, people benefit from Stoicism by identifying obstacles as [39].\nRelevance of Stoicism\n• It requires a lot of [40] but Stoicism can help people to lead a good life.\n• It teaches people that having a strong character is more important than anything else."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "depression"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Stoicism",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Stoicism is still relevant today because of its [31] appeal.\nAncient Stoics\n• Stoicism was founded over 2,000 years ago in Greece.\n• The Stoics’ ideas are surprisingly well known, despite not being intended for [32].\nStoic principles\n• Happiness could be achieved by leading a virtuous life.\n• Controlling emotions was essential.\n• Epictetus said that external events cannot be controlled but the [33] people make in response can be controlled.\n• A Stoic is someone who has a different view on experiences which others would consider as [34].\nThe influence of Stoicism\n• George Washington organised a [35] about Cato to motivate his men.\n• The French artist Delacroix was a Stoic.\n• Adam Smith’s ideas on [36] were influenced by Stoicism.\n• Some of today’s political leaders are inspired by the Stoics.\n• Cognitive Behaviour Therapy (CBT)\n— the treatment for [37] is based on ideas from Stoicism\n— people learn to base their thinking on [38].\n• In business, people benefit from Stoicism by identifying obstacles as [39].\nRelevance of Stoicism\n• It requires a lot of [40] but Stoicism can help people to lead a good life.\n• It teaches people that having a strong character is more important than anything else."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "logic"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Stoicism",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Stoicism is still relevant today because of its [31] appeal.\nAncient Stoics\n• Stoicism was founded over 2,000 years ago in Greece.\n• The Stoics’ ideas are surprisingly well known, despite not being intended for [32].\nStoic principles\n• Happiness could be achieved by leading a virtuous life.\n• Controlling emotions was essential.\n• Epictetus said that external events cannot be controlled but the [33] people make in response can be controlled.\n• A Stoic is someone who has a different view on experiences which others would consider as [34].\nThe influence of Stoicism\n• George Washington organised a [35] about Cato to motivate his men.\n• The French artist Delacroix was a Stoic.\n• Adam Smith’s ideas on [36] were influenced by Stoicism.\n• Some of today’s political leaders are inspired by the Stoics.\n• Cognitive Behaviour Therapy (CBT)\n— the treatment for [37] is based on ideas from Stoicism\n— people learn to base their thinking on [38].\n• In business, people benefit from Stoicism by identifying obstacles as [39].\nRelevance of Stoicism\n• It requires a lot of [40] but Stoicism can help people to lead a good life.\n• It teaches people that having a strong character is more important than anything else."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "opportunity"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Stoicism",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Stoicism is still relevant today because of its [31] appeal.\nAncient Stoics\n• Stoicism was founded over 2,000 years ago in Greece.\n• The Stoics’ ideas are surprisingly well known, despite not being intended for [32].\nStoic principles\n• Happiness could be achieved by leading a virtuous life.\n• Controlling emotions was essential.\n• Epictetus said that external events cannot be controlled but the [33] people make in response can be controlled.\n• A Stoic is someone who has a different view on experiences which others would consider as [34].\nThe influence of Stoicism\n• George Washington organised a [35] about Cato to motivate his men.\n• The French artist Delacroix was a Stoic.\n• Adam Smith’s ideas on [36] were influenced by Stoicism.\n• Some of today’s political leaders are inspired by the Stoics.\n• Cognitive Behaviour Therapy (CBT)\n— the treatment for [37] is based on ideas from Stoicism\n— people learn to base their thinking on [38].\n• In business, people benefit from Stoicism by identifying obstacles as [39].\nRelevance of Stoicism\n• It requires a lot of [40] but Stoicism can help people to lead a good life.\n• It teaches people that having a strong character is more important than anything else."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "practice",
+                  "practise"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-1-listening-part4.mp3"
+        }
+      ]
+    }
+  ]
+}

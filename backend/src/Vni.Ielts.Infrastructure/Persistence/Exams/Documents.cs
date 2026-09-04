@@ -24,6 +24,15 @@ internal sealed class ExamVersionDocument
     [BsonElement("title")]
     public string Title { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Nullable, and stored rather than derived. Every version written before
+    /// 2026-09-03 has no such field, and BSON deserialises a missing element to
+    /// null — so old documents read back as "no description", which is exactly
+    /// what they are. No migration is needed and none should be written.
+    /// </summary>
+    [BsonElement("description")]
+    public string? Description { get; set; }
+
     [BsonElement("variant")]
     public string Variant { get; set; } = "Academic";
 

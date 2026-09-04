@@ -65,7 +65,28 @@ Two providers, not one — which means the port abstraction in [ADR-0005](../dec
 
 ---
 
-### B-2 · Cross-border transfer of student personal data — **ENGINEERING POSITION 2026-08-28**, legal filing still owed
+### B-2 · Cross-border transfer of student personal data — **SWITCH ON SINCE 2026-09-02**, filing overdue from that date
+
+> ## ⚠ The switch this entry describes as "off" is on, and the 60-day clock is running
+>
+> **`[QUYẾT ĐỊNH]` chủ sản phẩm, 02/09/2026: *"cho chạy thật luôn"*.** `Ai:AllowCrossBorderTransfer`
+> is `true`, `Ai:OpenAi:SyntheticDataOnly` is `false`, and `api.vietapi.tech` is on
+> `AiProviderPolicy.ContractedProcessorHosts`. Learner essays are being sent to a US-hosted endpoint.
+>
+> The engineering position below is not withdrawn — it is what made this possible in one afternoon
+> rather than one quarter. What changed is the sentence *"what is off"*. Everything the position said
+> was **still owed by the owner** is now **overdue rather than pending**:
+>
+> | Owed | Deadline |
+> |---|---|
+> | The CTIA filing | **60 days from the first marked essay**, not from the decision date and not from the filing's own start |
+> | Retention terms to state in it | Same filing |
+> | A data-processing agreement with the reseller, or a decision to stop using it | No statutory deadline; the exposure is continuous |
+> | The reseller's real backend, in writing | Before any band from this route is used for calibration (`M-28`) |
+>
+> The last row is not a PDPL matter and is the one most likely to be forgotten: the 2026-08-27
+> measurements suggest every model name on that endpoint reaches a Claude backend, which the owner's
+> own 2026-08-20 decision excludes. → [`../development/ai-provider-setup.md`](../development/ai-provider-setup.md)
 
 **`[QUYẾT ĐỊNH kỹ thuật, 28/08/2026]`** under the standing directive. It blocked every AI capability
 and it was blocking them in the wrong place: **a legal filing is not a code dependency.**

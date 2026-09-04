@@ -1,0 +1,2208 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 16 — Test 2",
+  "variant": "academic",
+  "description": "Cambridge IELTS 16 Academic Test 2. Reading và Listening chấm theo đáp án in trong sách; không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "The White Horse of Uffington",
+          "body": "The White Horse of Uffington\nThe cutting of huge figures or ‘geoglyphs’ into the earth of English hillsides has taken\nplace for more than 3,000 years. There are 56 hill figures scattered around England, with\nthe vast majority on the chalk downlands of the country’s southern counties. The figures\ninclude giants, horses, crosses and regimental badges. Although the majority of these\ngeoglyphs date within the last 300 years or so, there are one or two that are much older.\nThe most famous of these figures is perhaps also the most mysterious — the Uffington\nWhite Horse in Oxfordshire. The White Horse has recently been re-dated and shown\nto be even older than its previously assigned ancient pre-Roman Iron Age” date. More\ncontroversial is the date of the enigmatic Long Man of Wilmington in Sussex. While many\nhistorians are convinced the figure is prehistoric, others believe that it was the work of an\nartistic monk from a nearby priory and was created between the 11th and 15th centuries.\nThe method of cutting these huge figures was simply to remove the overlying grass\nto reveal the gleaming white chalk below. However, the grass would soon grow over\nthe geoglyph again unless it was regularly cleaned or scoured by a fairly large team\nof people. One reason that the vast majority of hill figures have disappeared is that\nwhen the traditions associated with the figures faded, people no longer bothered or\nremembered to clear away the grass to expose the chalk outline. Furthermore, over\nhundreds of years the outlines would sometimes change due to people not always\ncutting in exactly the same place, thus creating a different shape to the original\ngeoglyph. The fact that any ancient hill figures survive at all in England today is\ntestament to the strength and continuity of local customs and beliefs which, in one case\nat least, must stretch back over millennia.\n*Iron Age: a period (in Britain 800 BCE — 43 CE) that is characterised by the use of iron tools\nThe Uffington White Horse is a unique, stylised representation of a horse consisting of\na long, sleek back, thin disjointed legs, a streaming tail, and a bird-like beaked head.\nThe elegant creature almost melts into the landscape. The horse is situated 2.5 km from\nUffington village on a steep slope close to the Late Bronze Age* (c. 7th century BCE)\nhillfort of Uffington Castle and below the Ridgeway, a long-distance Neolithic** track.\nThe Uffington Horse is also surrounded by Bronze Age burial mounds. It is not far from\nthe Bronze Age cemetery of Lambourn Seven Barrows, which consists of more than 30\nwell-preserved burial mounds. The carving has been placed in such a way as to make it\nextremely difficult to see from close quarters, and like many geoglyphs is best appreciated\nfrom the air. Nevertheless, there are certain areas of the Vale of the White Horse, the valley\ncontaining and named after the enigmatic creature, from which an adequate impression\nmay be gained. Indeed on a clear day the carving can be seen from up to 30 km away.\nThe earliest evidence of a horse at Uffington is from the 1070s CE when ‘White Horse\nHill’ is mentioned in documents from the nearby Abbey of Abingdon, and the first\nreference to the horse itself is soon after, in 1190 CE. However, the carving is believed\nto date back much further than that. Due to the similarity of the Uffington White Horse to\nthe stylised depictions of horses on 1st century BCE coins, it had been thought that the\ncreature must also date to that period.\nHowever, in 1995 Optically Stimulated Luminescence (OSL) testing was carried out by\nthe Oxford Archaeological Unit on soil from two of the lower layers of the horse’s body,\nand from another cut near the base. The result was a date for the horse’s construction\nsomewhere between 1400 and 600 BCE — in other words, it had a Late Bronze Age or\nEarly Iron Age origin.\nThe latter end of this date range would tie the carving of the horse in with occupation of the\nnearby Uffington hillfort, indicating that it may represent a tribal emblem marking the land of\nthe inhabitants of the hillfort. Alternatively, the carving may have been carried out during a\nBronze or Iron Age ritual. Some researchers see the horse as representing the Celtic*** horse\ngoddess Epona, who was worshipped as a protector of horses, and for her associations with\nfertility. However, the cult of Epona was not imported from Gaul (France) until around the first\ncentury CE. This date is at least six centuries after the Uffington Horse was probably carved.\nNevertheless, the horse had great ritual and economic significance during the Bronze and\nIron Ages, as attested by its depictions on jewellery and other metal objects. It is possible that\nthe carving represents a goddess in native mythology, such as Rhiannon, described in later\nWelsh mythology as a beautiful woman dressed in gold and riding a white horse.\nThe fact that geoglyphs can disappear easily, along with their associated rituals and meaning,\nindicates that they were never intended to be anything more than temporary gestures. But\nthis does not lessen their importance. These giant carvings are a fascinating glimpse into the\nminds of their creators and how they viewed the landscape in which they lived.\n*Bronze Age: a period (in Britain c. 2,500 BCE — 800 BCE) that is characterised by the development of bronze tools\n**Neolithic: a period (in Britain c. 4,000 BCE — c. 2,500 BCE) that is significant for the spread of agricultural practices, and the use of\nstone tools\n***Celtic: an ancient people who migrated from Europe to Britain before the Romans",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "true-false-notgiven",
+              "prompt": "Most geoglyphs in England are located in a particular area of the country.",
+              "group": {
+                "id": "r-tfng-1-8",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—8 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "true-false-notgiven",
+              "prompt": "There are more geoglyphs in the shape of a horse than any other creature.",
+              "group": {
+                "id": "r-tfng-1-8",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—8 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "true-false-notgiven",
+              "prompt": "A recent dating of the Uffington White Horse indicates that people were mistaken\nabout its age.",
+              "group": {
+                "id": "r-tfng-1-8",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—8 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "true-false-notgiven",
+              "prompt": "Historians have come to an agreement about the origins of the Long Man of\nWilmington.",
+              "group": {
+                "id": "r-tfng-1-8",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—8 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "true-false-notgiven",
+              "prompt": "Geoglyphs were created by people placing white chalk on the hillside.",
+              "group": {
+                "id": "r-tfng-1-8",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—8 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "true-false-notgiven",
+              "prompt": "Many geoglyphs in England are no longer visible.",
+              "group": {
+                "id": "r-tfng-1-8",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—8 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "true-false-notgiven",
+              "prompt": "The shape of some geoglyphs has been altered over time.",
+              "group": {
+                "id": "r-tfng-1-8",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—8 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "true-false-notgiven",
+              "prompt": "The fame of the Uffington White Horse is due to its size.",
+              "group": {
+                "id": "r-tfng-1-8",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 1—8 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "near an ancient road known as the",
+              "group": {
+                "id": "r-notes-9-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 9-13 on your answer sheet.",
+                "title": "The Uffington White Horse",
+                "text": "The Uffington White Horse\n\nThe location of the Uffington White Horse:\n• a distance of 2.5 km from Uffington village\n• near an ancient road known as the [9]\n• close to an ancient cemetery that has a number of burial mounds\n\nDating the Uffington White Horse:\n• first reference to White Horse Hill appears in [10] the 1070s\n• horses shown on coins from the period 100 BCE — 1 BCE are similar in appearance\n• according to analysis of the surrounding [11], the Horse is Late Bronze Age / Early Iron Age\n\nPossible reasons for creation of the Uffington White Horse:\n• an emblem to indicate land ownership\n• formed part of an ancient ritual\n• was a representation of goddess Epona — associated with protection of horses and [12]\n• was a representation of a Welsh goddess called [13]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Ridgeway"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "first reference to White Horse Hill appears in",
+              "group": {
+                "id": "r-notes-9-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 9-13 on your answer sheet.",
+                "title": "The Uffington White Horse",
+                "text": "The Uffington White Horse\n\nThe location of the Uffington White Horse:\n• a distance of 2.5 km from Uffington village\n• near an ancient road known as the [9]\n• close to an ancient cemetery that has a number of burial mounds\n\nDating the Uffington White Horse:\n• first reference to White Horse Hill appears in [10] the 1070s\n• horses shown on coins from the period 100 BCE — 1 BCE are similar in appearance\n• according to analysis of the surrounding [11], the Horse is Late Bronze Age / Early Iron Age\n\nPossible reasons for creation of the Uffington White Horse:\n• an emblem to indicate land ownership\n• formed part of an ancient ritual\n• was a representation of goddess Epona — associated with protection of horses and [12]\n• was a representation of a Welsh goddess called [13]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "documents"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "completion",
+              "prompt": "according to analysis of the surrounding",
+              "group": {
+                "id": "r-notes-9-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 9-13 on your answer sheet.",
+                "title": "The Uffington White Horse",
+                "text": "The Uffington White Horse\n\nThe location of the Uffington White Horse:\n• a distance of 2.5 km from Uffington village\n• near an ancient road known as the [9]\n• close to an ancient cemetery that has a number of burial mounds\n\nDating the Uffington White Horse:\n• first reference to White Horse Hill appears in [10] the 1070s\n• horses shown on coins from the period 100 BCE — 1 BCE are similar in appearance\n• according to analysis of the surrounding [11], the Horse is Late Bronze Age / Early Iron Age\n\nPossible reasons for creation of the Uffington White Horse:\n• an emblem to indicate land ownership\n• formed part of an ancient ritual\n• was a representation of goddess Epona — associated with protection of horses and [12]\n• was a representation of a Welsh goddess called [13]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "soil"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "completion",
+              "prompt": "was a representation of goddess Epona — associated with protection of horses and",
+              "group": {
+                "id": "r-notes-9-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 9-13 on your answer sheet.",
+                "title": "The Uffington White Horse",
+                "text": "The Uffington White Horse\n\nThe location of the Uffington White Horse:\n• a distance of 2.5 km from Uffington village\n• near an ancient road known as the [9]\n• close to an ancient cemetery that has a number of burial mounds\n\nDating the Uffington White Horse:\n• first reference to White Horse Hill appears in [10] the 1070s\n• horses shown on coins from the period 100 BCE — 1 BCE are similar in appearance\n• according to analysis of the surrounding [11], the Horse is Late Bronze Age / Early Iron Age\n\nPossible reasons for creation of the Uffington White Horse:\n• an emblem to indicate land ownership\n• formed part of an ancient ritual\n• was a representation of goddess Epona — associated with protection of horses and [12]\n• was a representation of a Welsh goddess called [13]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fertility"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "completion",
+              "prompt": "was a representation of a Welsh goddess called",
+              "group": {
+                "id": "r-notes-9-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 9-13 on your answer sheet.",
+                "title": "The Uffington White Horse",
+                "text": "The Uffington White Horse\n\nThe location of the Uffington White Horse:\n• a distance of 2.5 km from Uffington village\n• near an ancient road known as the [9]\n• close to an ancient cemetery that has a number of burial mounds\n\nDating the Uffington White Horse:\n• first reference to White Horse Hill appears in [10] the 1070s\n• horses shown on coins from the period 100 BCE — 1 BCE are similar in appearance\n• according to analysis of the surrounding [11], the Horse is Late Bronze Age / Early Iron Age\n\nPossible reasons for creation of the Uffington White Horse:\n• an emblem to indicate land ownership\n• formed part of an ancient ritual\n• was a representation of goddess Epona — associated with protection of horses and [12]\n• was a representation of a Welsh goddess called [13]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Rhiannon"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "I contain multitudes",
+          "body": "I contain multitudes\nWendy Moore reviews Ed Yong’s book about microbes\n\nMicrobes, most of them bacteria, have populated this planet since long before animal life\ndeveloped and they will outlive us. Invisible to the naked eye, they are ubiquitous. They inhabit\nthe soil, air, rocks and water and are present within every form of life, from seaweed and coral to\ndogs and humans. And, as Yong explains in his utterly absorbing and hugely important book, we\nmess with them at our peril.\n\nEvery species has its own colony of microbes, called a ‘microbiome’, and these microbes\nvary not only between species but also between individuals and within different parts of each\nindividual. What is amazing is that while the number of human cells in the average person is\nabout 30 trillion, the number of microbial ones is higher — about 39 trillion. At best, Yong informs\nus, we are only 50 per cent human. Indeed, some scientists even suggest we should think of each\nspecies and its microbes as a single unit, dubbed a ‘holobiont’.\n\nIn each human there are microbes that live only in the stomach, the mouth or the armpit and by\nand large they do so peacefully. So ‘bad’ microbes are just microbes out of context. Microbes\nthat sit contentedly in the human gut (where there are more microbes than there are stars in\nthe galaxy) can become deadly if they find their way into the bloodstream. These communities\nare constantly changing too. The right hand shares just one sixth of its microbes with the left\nhand. And, of course, we are surrounded by microbes. Every time we eat, we swallow a million\nmicrobes in each gram of food; we are continually swapping microbes with other humans, pets\nand the world at large.\n\nIt’s a fascinating topic and Yong, a young British science journalist, is an extraordinarily adept\nguide. Writing with lightness and panache, he has a knack of explaining complex science in terms\nthat are both easy to understand and totally enthralling. Yong is on a mission. Leading us gently\nby the hand, he takes us into the world of microbes — a bizarre, alien planet — in a bid to persuade\nus to love them as much as he does. By the end, we do.\nFor most of human history we had no idea that microbes existed. The first man to see these\nextraordinarily potent creatures was a Dutch lens-maker called Antony van Leeuwenhoek in the\n1670s. Using microscopes of his own design that could magnify up to 270 times, he examined a\ndrop of water from a nearby lake and found it teeming with tiny creatures he called ‘animalcules’.\nIt wasn’t until nearly two hundred years later that the research of French biologist Louis Pasteur\nindicated that some microbes caused disease. It was Pasteur’s ‘germ theory’ that gave bacteria the\npoor image that endures today.\n\nYong’s book is in many ways a plea for microbial tolerance, pointing out that while fewer\nthan one hundred species of bacteria bring disease, many thousands more play a vital role in\nmaintaining our health. The book also acknowledges that our attitude towards bacteria is not\na simple one. We tend to see the dangers posed by bacteria, yet at the same time we are sold\nyoghurts and drinks that supposedly nurture ‘friendly’ bacteria. In reality, says Yong, bacteria\nshould not be viewed as either friends or foes, villains or heroes. Instead we should realise we\nhave a symbiotic relationship, that can be mutually beneficial or mutually destructive.\nWhat then do these millions of organisms do? The answer is pretty much everything. New\nresearch is now unravelling the ways in which bacteria aid digestion, regulate our immune\nsystems, eliminate toxins, produce vitamins, affect our behaviour and even combat obesity.\n‘They actually help us become who we are,’ says Yong. But we are facing a growing problem.\nOur obsession with hygiene, our overuse of antibiotics and our unhealthy, low-fibre diets are\ndisrupting the bacterial balance and may be responsible for soaring rates of allergies and immune\nproblems, such as inflammatory bowel disease (IBD).\nThe most recent research actually turns accepted norms upside down. For example, there are\nstudies indicating that the excessive use of household detergents and antibacterial products\nactually destroys the microbes that normally keep the more dangerous germs at bay. Other studies\nshow that keeping a dog as a pet gives children early exposure to a diverse range of bacteria,\nwhich may help protect them against allergies later.\nThe readers of Yong’s book must be prepared for a decidedly unglamorous world. Among the less\nappealing case studies is one about a fungus that is wiping out entire populations of frogs and\nthat can be halted by a rare microbial bacterium. Another is about squid that carry luminescent\nbacteria that protect them against predators. However, if you can overcome your distaste for some\nof the investigations, the reasons for Yong’s enthusiasm become clear. The microbial world is a\nplace of wonder. Already, in an attempt to stop mosquitoes spreading dengue fever — a disease\nthat infects 400 million people a year — mosquitoes are being loaded with a bacterium to block\nthe disease. In the future, our ability to manipulate microbes means we could construct buildings\nwith useful microbes built into their walls to fight off infections. Just imagine a neonatal hospital\nward coated in a specially mixed cocktail of microbes so that babies get the best start in life.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "What point does the writer make about microbes in the first paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They adapt quickly to their environment."
+                },
+                {
+                  "key": "B",
+                  "text": "The risk they pose has been exaggerated."
+                },
+                {
+                  "key": "C",
+                  "text": "They are more plentiful in animal life than plant life."
+                },
+                {
+                  "key": "D",
+                  "text": "They will continue to exist for longer than the human race."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "In the second paragraph, the writer is impressed by the fact that",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "each species tends to have vastly different microbes."
+                },
+                {
+                  "key": "B",
+                  "text": "some parts of the body contain relatively few microbes."
+                },
+                {
+                  "key": "C",
+                  "text": "the average individual has more microbial cells than human ones."
+                },
+                {
+                  "key": "D",
+                  "text": "scientists have limited understanding of how microbial cells behave."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "multiple-choice",
+              "prompt": "What is the writer doing in the fifth paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "explaining how a discovery was made"
+                },
+                {
+                  "key": "B",
+                  "text": "comparing scientists’ theories about microbes"
+                },
+                {
+                  "key": "C",
+                  "text": "describing confusion among scientists"
+                },
+                {
+                  "key": "D",
+                  "text": "giving details of how microbes cause disease"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Many have a beneficial effect, and only a relatively small number lead to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "solution"
+                },
+                {
+                  "key": "B",
+                  "text": "partnership"
+                },
+                {
+                  "key": "C",
+                  "text": "destruction"
+                },
+                {
+                  "key": "D",
+                  "text": "exaggeration"
+                },
+                {
+                  "key": "E",
+                  "text": "cleanliness"
+                },
+                {
+                  "key": "F",
+                  "text": "regulations"
+                },
+                {
+                  "key": "G",
+                  "text": "illness"
+                },
+                {
+                  "key": "H",
+                  "text": "nutrition"
+                }
+              ],
+              "group": {
+                "id": "r-summary-17-20",
+                "instruction": "Complete the summary using the list of words, A—H, below.\nWrite the correct letter, A-H, in boxes 17-20 on your answer sheet.",
+                "title": "We should be more tolerant of microbes",
+                "text": "We should be more tolerant of microbes\n\nYong’s book argues that we should be more tolerant of microbes. Many have a\nbeneficial effect, and only a relatively small number lead to [17]. Although it is misleading to think of microbes as ‘friendly’, we should also stop thinking of\nthem as the enemy. In fact, we should accept that our relationship with microbes is one\nbased on [18].\nNew research shows that microbes have numerous benefits for humans. Amongst other\nthings, they aid digestion, remove poisons, produce vitamins and may even help reduce\nobesity. However, there is a growing problem. Our poor [19], our\noveruse of antibiotics, and our excessive focus on [20] are upsetting the\nbacterial balance and may be contributing to the huge increase in allergies and immune\nsystem problems."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "In fact, we should accept that our relationship with microbes is one based on",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "solution"
+                },
+                {
+                  "key": "B",
+                  "text": "partnership"
+                },
+                {
+                  "key": "C",
+                  "text": "destruction"
+                },
+                {
+                  "key": "D",
+                  "text": "exaggeration"
+                },
+                {
+                  "key": "E",
+                  "text": "cleanliness"
+                },
+                {
+                  "key": "F",
+                  "text": "regulations"
+                },
+                {
+                  "key": "G",
+                  "text": "illness"
+                },
+                {
+                  "key": "H",
+                  "text": "nutrition"
+                }
+              ],
+              "group": {
+                "id": "r-summary-17-20",
+                "instruction": "Complete the summary using the list of words, A—H, below.\nWrite the correct letter, A-H, in boxes 17-20 on your answer sheet.",
+                "title": "We should be more tolerant of microbes",
+                "text": "We should be more tolerant of microbes\n\nYong’s book argues that we should be more tolerant of microbes. Many have a\nbeneficial effect, and only a relatively small number lead to [17]. Although it is misleading to think of microbes as ‘friendly’, we should also stop thinking of\nthem as the enemy. In fact, we should accept that our relationship with microbes is one\nbased on [18].\nNew research shows that microbes have numerous benefits for humans. Amongst other\nthings, they aid digestion, remove poisons, produce vitamins and may even help reduce\nobesity. However, there is a growing problem. Our poor [19], our\noveruse of antibiotics, and our excessive focus on [20] are upsetting the\nbacterial balance and may be contributing to the huge increase in allergies and immune\nsystem problems."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Our poor",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "solution"
+                },
+                {
+                  "key": "B",
+                  "text": "partnership"
+                },
+                {
+                  "key": "C",
+                  "text": "destruction"
+                },
+                {
+                  "key": "D",
+                  "text": "exaggeration"
+                },
+                {
+                  "key": "E",
+                  "text": "cleanliness"
+                },
+                {
+                  "key": "F",
+                  "text": "regulations"
+                },
+                {
+                  "key": "G",
+                  "text": "illness"
+                },
+                {
+                  "key": "H",
+                  "text": "nutrition"
+                }
+              ],
+              "group": {
+                "id": "r-summary-17-20",
+                "instruction": "Complete the summary using the list of words, A—H, below.\nWrite the correct letter, A-H, in boxes 17-20 on your answer sheet.",
+                "title": "We should be more tolerant of microbes",
+                "text": "We should be more tolerant of microbes\n\nYong’s book argues that we should be more tolerant of microbes. Many have a\nbeneficial effect, and only a relatively small number lead to [17]. Although it is misleading to think of microbes as ‘friendly’, we should also stop thinking of\nthem as the enemy. In fact, we should accept that our relationship with microbes is one\nbased on [18].\nNew research shows that microbes have numerous benefits for humans. Amongst other\nthings, they aid digestion, remove poisons, produce vitamins and may even help reduce\nobesity. However, there is a growing problem. Our poor [19], our\noveruse of antibiotics, and our excessive focus on [20] are upsetting the\nbacterial balance and may be contributing to the huge increase in allergies and immune\nsystem problems."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "our excessive focus on",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "solution"
+                },
+                {
+                  "key": "B",
+                  "text": "partnership"
+                },
+                {
+                  "key": "C",
+                  "text": "destruction"
+                },
+                {
+                  "key": "D",
+                  "text": "exaggeration"
+                },
+                {
+                  "key": "E",
+                  "text": "cleanliness"
+                },
+                {
+                  "key": "F",
+                  "text": "regulations"
+                },
+                {
+                  "key": "G",
+                  "text": "illness"
+                },
+                {
+                  "key": "H",
+                  "text": "nutrition"
+                }
+              ],
+              "group": {
+                "id": "r-summary-17-20",
+                "instruction": "Complete the summary using the list of words, A—H, below.\nWrite the correct letter, A-H, in boxes 17-20 on your answer sheet.",
+                "title": "We should be more tolerant of microbes",
+                "text": "We should be more tolerant of microbes\n\nYong’s book argues that we should be more tolerant of microbes. Many have a\nbeneficial effect, and only a relatively small number lead to [17]. Although it is misleading to think of microbes as ‘friendly’, we should also stop thinking of\nthem as the enemy. In fact, we should accept that our relationship with microbes is one\nbased on [18].\nNew research shows that microbes have numerous benefits for humans. Amongst other\nthings, they aid digestion, remove poisons, produce vitamins and may even help reduce\nobesity. However, there is a growing problem. Our poor [19], our\noveruse of antibiotics, and our excessive focus on [20] are upsetting the\nbacterial balance and may be contributing to the huge increase in allergies and immune\nsystem problems."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "yes-no-notgiven",
+              "prompt": "It is possible that using antibacterial products in the home fails to have the desired\neffect.",
+              "group": {
+                "id": "r-yng-21-26",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 21-26 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "yes-no-notgiven",
+              "prompt": "It is a good idea to ensure that children come into contact with as few bacteria as\npossible.",
+              "group": {
+                "id": "r-yng-21-26",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 21-26 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "yes-no-notgiven",
+              "prompt": "Yong’s book contains more case studies than are necessary.",
+              "group": {
+                "id": "r-yng-21-26",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 21-26 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "yes-no-notgiven",
+              "prompt": "The case study about bacteria that prevent squid from being attacked may have\nlimited appeal.",
+              "group": {
+                "id": "r-yng-21-26",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 21-26 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "yes-no-notgiven",
+              "prompt": "Efforts to control dengue fever have been surprisingly successful.",
+              "group": {
+                "id": "r-yng-21-26",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 21-26 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "yes-no-notgiven",
+              "prompt": "Microbes that reduce the risk of infection have already been put inside the walls of\nsome hospital wards.",
+              "group": {
+                "id": "r-yng-21-26",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 21-26 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "How to make wise decisions",
+          "body": "How to make wise decisions\nAcross cultures, wisdom has been considered one of the most revered human qualities. Although\nthe truly wise may seem few and far between, empirical research examining wisdom suggests\nthat it isn’t an exceptional trait possessed by a small handful of bearded philosophers after all — in\nfact, the latest studies suggest that most of us have the ability to make wise decisions, given the\nright context.\n‘It appears that experiential, situational, and cultural factors are even more powerful in shaping\nwisdom than previously imagined, says Associate Professor Igor Grossmann of the University\nof Waterloo in Ontario, Canada. ‘Recent empirical findings from cognitive, developmental,\nsocial, and personality psychology cumulatively suggest that people’s ability to reason wisely\nvaries dramatically across experiential and situational contexts. Understanding the role of such\ncontextual factors offers unique insights into understanding wisdom in daily life, as well as how it\ncan be enhanced and taught.’\nIt seems that it’s not so much that some people simply possess wisdom and others lack it, but\nthat our ability to reason wisely depends on a variety of external factors. ‘It is impossible to\ncharacterize thought processes attributed to wisdom without considering the role of contextual\nfactors,’ explains Grossmann. ‘In other words, wisdom is not solely an “inner quality” but rather\nunfolds as a function of situations people happen to be in. Some situations are more likely to\npromote wisdom than others.”\nComing up with a definition of wisdom is challenging, but Grossmann and his colleagues have\nidentified four key characteristics as part of a framework of wise reasoning. One is intellectual\nhumility or recognition of the limits of our own knowledge, and another is appreciation of\nperspectives wider than the issue at hand. Sensitivity to the possibility of change in social\nrelations is also key, along with compromise or integration of different attitudes and beliefs.\nGrossmann and his colleagues have also found that one of the most reliable ways to support\nwisdom in our own day-to-day decisions is to look at scenarios from a third-party perspective, as\nthough giving advice to a friend. Research suggests that when adopting a first-person viewpoint\nwe focus on ‘the focal features of the environment’ and when we adopt a third-person, ‘observer’\nviewpoint we reason more broadly and focus more on interpersonal and moral ideals such as\njustice and impartiality. Looking at problems from this more expansive viewpoint appears to\nfoster cognitive processes related to wise decisions.\n\nWhat are we to do, then, when confronted with situations like a disagreement with a spouse or\nnegotiating a contract at work, that require us to take a personal stake? Grossmann argues that\neven when we aren’t able to change the situation, we can still evaluate these experiences from\ndifferent perspectives.\n\nFor example, in one experiment that took place during the peak of a recent economic recession,\ngraduating college seniors were asked to reflect on their job prospects. The students were\ninstructed to imagine their career either ‘as if you were a distant observer’ or ‘before your own\neyes as if you were right there’. Participants in the group assigned to the ‘distant observer’ role\ndisplayed more wisdom-related reasoning (intellectual humility and recognition of change) than\ndid participants in the control group.\n\nIn another study, couples in long-term romantic relationships were instructed to visualize\nan unresolved relationship conflict either through the eyes of an outsider or from their own\nperspective. Participants then discussed the incident with their partner for 10 minutes, after which\nthey wrote down their thoughts about it. Couples in the ‘other’s eyes’ condition were significantly\nmore likely to rely on wise reasoning — recognizing others’ perspectives and searching for a\ncompromise — compared to the couples in the egocentric condition.\n\n‘Ego-decentering promotes greater focus on others and enables a bigger picture, conceptual view\nof the experience, affording recognition of intellectual humility and change, says Grossmann.\n\nWe might associate wisdom with intelligence or particular personality traits, but research shows\nonly a small positive relationship between wise thinking and crystallized intelligence and the\npersonality traits of openness and agreeableness. ‘It is remarkable how much people can vary in\ntheir wisdom from one situation to the next, and how much stronger such contextual effects are\nfor understanding the relationship between wise judgment and its social and affective outcomes as\ncompared to the generalized “traits”,’ Grossmann explains. ‘That is, knowing how wisely a person\nbehaves in a given situation is more informative for understanding their emotions or likelihood to\nforgive [or] retaliate as compared to knowing whether the person may be wise “in general”.’",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "multiple-choice",
+              "prompt": "What point does the writer make in the first paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Wisdom appears to be unique to the human race."
+                },
+                {
+                  "key": "B",
+                  "text": "A basic assumption about wisdom may be wrong."
+                },
+                {
+                  "key": "C",
+                  "text": "Concepts of wisdom may depend on the society we belong to."
+                },
+                {
+                  "key": "D",
+                  "text": "There is still much to be discovered about the nature of wisdom."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "multiple-choice",
+              "prompt": "What does Igor Grossmann suggest about the ability to make wise decisions?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It can vary greatly from one person to another."
+                },
+                {
+                  "key": "B",
+                  "text": "Earlier research into it was based on unreliable data."
+                },
+                {
+                  "key": "C",
+                  "text": "The importance of certain influences on it was underestimated."
+                },
+                {
+                  "key": "D",
+                  "text": "Various branches of psychology define it according to their own criteria."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "According to the third paragraph, Grossmann claims that the level of wisdom an\nindividual shows",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "can be greater than they think it is."
+                },
+                {
+                  "key": "B",
+                  "text": "will be different in different circumstances."
+                },
+                {
+                  "key": "C",
+                  "text": "may be determined by particular aspects of their personality."
+                },
+                {
+                  "key": "D",
+                  "text": "should develop over time as a result of their life experiences."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "What is described in the fifth paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a difficulty encountered when attempting to reason wisely"
+                },
+                {
+                  "key": "B",
+                  "text": "an example of the type of person who is likely to reason wisely"
+                },
+                {
+                  "key": "C",
+                  "text": "a controversial view about the benefits of reasoning wisely"
+                },
+                {
+                  "key": "D",
+                  "text": "a recommended strategy that can help people to reason wisely"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "It is important to have a certain degree of",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "opinions"
+                },
+                {
+                  "key": "B",
+                  "text": "confidence"
+                },
+                {
+                  "key": "C",
+                  "text": "view"
+                },
+                {
+                  "key": "D",
+                  "text": "modesty"
+                },
+                {
+                  "key": "E",
+                  "text": "problems"
+                },
+                {
+                  "key": "F",
+                  "text": "objectivity"
+                },
+                {
+                  "key": "G",
+                  "text": "fairness"
+                },
+                {
+                  "key": "H",
+                  "text": "experiences"
+                },
+                {
+                  "key": "I",
+                  "text": "range"
+                },
+                {
+                  "key": "J",
+                  "text": "reasons"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-35",
+                "instruction": "Complete the summary using the list of words, A—J, below.\nWrite the correct letter, A—J, in boxes 31-35 on your answer sheet.",
+                "title": "The characteristics of wise reasoning",
+                "text": "The characteristics of wise reasoning\n\nIgor Grossmann and colleagues have established four characteristics which enable us\nto make wise decisions. It is important to have a certain degree of [31]\nregarding the extent of our knowledge, and to take into account [32]\nwhich may not be the same as our own. We should also be able to take a broad\n[33] of any situation. Another key characteristic is being aware of the\nlikelihood of alterations in the way that people relate to each other.\nGrossmann also believes that it is better to regard scenarios with [34].\nBy avoiding the first-person perspective, we focus more on [35] and on\nother moral ideals, which in turn leads to wiser decision-making."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "matching",
+              "prompt": "and to take into account",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "opinions"
+                },
+                {
+                  "key": "B",
+                  "text": "confidence"
+                },
+                {
+                  "key": "C",
+                  "text": "view"
+                },
+                {
+                  "key": "D",
+                  "text": "modesty"
+                },
+                {
+                  "key": "E",
+                  "text": "problems"
+                },
+                {
+                  "key": "F",
+                  "text": "objectivity"
+                },
+                {
+                  "key": "G",
+                  "text": "fairness"
+                },
+                {
+                  "key": "H",
+                  "text": "experiences"
+                },
+                {
+                  "key": "I",
+                  "text": "range"
+                },
+                {
+                  "key": "J",
+                  "text": "reasons"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-35",
+                "instruction": "Complete the summary using the list of words, A—J, below.\nWrite the correct letter, A—J, in boxes 31-35 on your answer sheet.",
+                "title": "The characteristics of wise reasoning",
+                "text": "The characteristics of wise reasoning\n\nIgor Grossmann and colleagues have established four characteristics which enable us\nto make wise decisions. It is important to have a certain degree of [31]\nregarding the extent of our knowledge, and to take into account [32]\nwhich may not be the same as our own. We should also be able to take a broad\n[33] of any situation. Another key characteristic is being aware of the\nlikelihood of alterations in the way that people relate to each other.\nGrossmann also believes that it is better to regard scenarios with [34].\nBy avoiding the first-person perspective, we focus more on [35] and on\nother moral ideals, which in turn leads to wiser decision-making."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "matching",
+              "prompt": "We should also be able to take a broad",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "opinions"
+                },
+                {
+                  "key": "B",
+                  "text": "confidence"
+                },
+                {
+                  "key": "C",
+                  "text": "view"
+                },
+                {
+                  "key": "D",
+                  "text": "modesty"
+                },
+                {
+                  "key": "E",
+                  "text": "problems"
+                },
+                {
+                  "key": "F",
+                  "text": "objectivity"
+                },
+                {
+                  "key": "G",
+                  "text": "fairness"
+                },
+                {
+                  "key": "H",
+                  "text": "experiences"
+                },
+                {
+                  "key": "I",
+                  "text": "range"
+                },
+                {
+                  "key": "J",
+                  "text": "reasons"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-35",
+                "instruction": "Complete the summary using the list of words, A—J, below.\nWrite the correct letter, A—J, in boxes 31-35 on your answer sheet.",
+                "title": "The characteristics of wise reasoning",
+                "text": "The characteristics of wise reasoning\n\nIgor Grossmann and colleagues have established four characteristics which enable us\nto make wise decisions. It is important to have a certain degree of [31]\nregarding the extent of our knowledge, and to take into account [32]\nwhich may not be the same as our own. We should also be able to take a broad\n[33] of any situation. Another key characteristic is being aware of the\nlikelihood of alterations in the way that people relate to each other.\nGrossmann also believes that it is better to regard scenarios with [34].\nBy avoiding the first-person perspective, we focus more on [35] and on\nother moral ideals, which in turn leads to wiser decision-making."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "matching",
+              "prompt": "Grossmann also believes that it is better to regard scenarios with",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "opinions"
+                },
+                {
+                  "key": "B",
+                  "text": "confidence"
+                },
+                {
+                  "key": "C",
+                  "text": "view"
+                },
+                {
+                  "key": "D",
+                  "text": "modesty"
+                },
+                {
+                  "key": "E",
+                  "text": "problems"
+                },
+                {
+                  "key": "F",
+                  "text": "objectivity"
+                },
+                {
+                  "key": "G",
+                  "text": "fairness"
+                },
+                {
+                  "key": "H",
+                  "text": "experiences"
+                },
+                {
+                  "key": "I",
+                  "text": "range"
+                },
+                {
+                  "key": "J",
+                  "text": "reasons"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-35",
+                "instruction": "Complete the summary using the list of words, A—J, below.\nWrite the correct letter, A—J, in boxes 31-35 on your answer sheet.",
+                "title": "The characteristics of wise reasoning",
+                "text": "The characteristics of wise reasoning\n\nIgor Grossmann and colleagues have established four characteristics which enable us\nto make wise decisions. It is important to have a certain degree of [31]\nregarding the extent of our knowledge, and to take into account [32]\nwhich may not be the same as our own. We should also be able to take a broad\n[33] of any situation. Another key characteristic is being aware of the\nlikelihood of alterations in the way that people relate to each other.\nGrossmann also believes that it is better to regard scenarios with [34].\nBy avoiding the first-person perspective, we focus more on [35] and on\nother moral ideals, which in turn leads to wiser decision-making."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "matching",
+              "prompt": "By avoiding the first-person perspective, we focus more on",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "opinions"
+                },
+                {
+                  "key": "B",
+                  "text": "confidence"
+                },
+                {
+                  "key": "C",
+                  "text": "view"
+                },
+                {
+                  "key": "D",
+                  "text": "modesty"
+                },
+                {
+                  "key": "E",
+                  "text": "problems"
+                },
+                {
+                  "key": "F",
+                  "text": "objectivity"
+                },
+                {
+                  "key": "G",
+                  "text": "fairness"
+                },
+                {
+                  "key": "H",
+                  "text": "experiences"
+                },
+                {
+                  "key": "I",
+                  "text": "range"
+                },
+                {
+                  "key": "J",
+                  "text": "reasons"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-35",
+                "instruction": "Complete the summary using the list of words, A—J, below.\nWrite the correct letter, A—J, in boxes 31-35 on your answer sheet.",
+                "title": "The characteristics of wise reasoning",
+                "text": "The characteristics of wise reasoning\n\nIgor Grossmann and colleagues have established four characteristics which enable us\nto make wise decisions. It is important to have a certain degree of [31]\nregarding the extent of our knowledge, and to take into account [32]\nwhich may not be the same as our own. We should also be able to take a broad\n[33] of any situation. Another key characteristic is being aware of the\nlikelihood of alterations in the way that people relate to each other.\nGrossmann also believes that it is better to regard scenarios with [34].\nBy avoiding the first-person perspective, we focus more on [35] and on\nother moral ideals, which in turn leads to wiser decision-making."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "true-false-notgiven",
+              "prompt": "Students participating in the job prospects experiment could choose one of two\nperspectives to take.",
+              "group": {
+                "id": "r-tfng-36-40",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 36—40 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "true-false-notgiven",
+              "prompt": "Participants in the couples experiment were aware that they were taking part in a\nstudy about wise reasoning.",
+              "group": {
+                "id": "r-tfng-36-40",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 36—40 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "true-false-notgiven",
+              "prompt": "In the couples experiments, the length of the couples’ relationships had an impact\non the results.",
+              "group": {
+                "id": "r-tfng-36-40",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 36—40 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "true-false-notgiven",
+              "prompt": "In both experiments, the participants who looked at the situation from a more\ndetached viewpoint tended to make wiser decisions.",
+              "group": {
+                "id": "r-tfng-36-40",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 36—40 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "true-false-notgiven",
+              "prompt": "Grossmann believes that a person’s wisdom is determined by their intelligence to\nonly a very limited extent.",
+              "group": {
+                "id": "r-tfng-36-40",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 36—40 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Copying photos to digital format",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Copying photos to digital format",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Name of company: Picturerep\n\nRequirements\n\n• Maximum size of photos is 30 cm, minimum size 4 cm.\n• Photos must not be in [1] of an album.\n\nCost\n\n• The cost for 360 photos is [2] (including one disk).\n• Before the completed order is sent, [3] is required.\n\nServices included in the price\n\n• Photos can be placed in a folder, e.g. with the name [4]\n• The [5] and contrast can be improved if necessary.\n• Photos which are very fragile will be scanned by [6]\n\nSpecial restore service (costs extra)\n\n• It may be possible to remove an object from a photo, or change the [7]\n• A photo which is not correctly [8] cannot be fixed.\n\nOther information\n\n• Orders are completed within [9]\n• Send the photos in a box (not [10])"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "frame"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Copying photos to digital format",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Name of company: Picturerep\n\nRequirements\n\n• Maximum size of photos is 30 cm, minimum size 4 cm.\n• Photos must not be in [1] of an album.\n\nCost\n\n• The cost for 360 photos is [2] (including one disk).\n• Before the completed order is sent, [3] is required.\n\nServices included in the price\n\n• Photos can be placed in a folder, e.g. with the name [4]\n• The [5] and contrast can be improved if necessary.\n• Photos which are very fragile will be scanned by [6]\n\nSpecial restore service (costs extra)\n\n• It may be possible to remove an object from a photo, or change the [7]\n• A photo which is not correctly [8] cannot be fixed.\n\nOther information\n\n• Orders are completed within [9]\n• Send the photos in a box (not [10])"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "195"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Copying photos to digital format",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Name of company: Picturerep\n\nRequirements\n\n• Maximum size of photos is 30 cm, minimum size 4 cm.\n• Photos must not be in [1] of an album.\n\nCost\n\n• The cost for 360 photos is [2] (including one disk).\n• Before the completed order is sent, [3] is required.\n\nServices included in the price\n\n• Photos can be placed in a folder, e.g. with the name [4]\n• The [5] and contrast can be improved if necessary.\n• Photos which are very fragile will be scanned by [6]\n\nSpecial restore service (costs extra)\n\n• It may be possible to remove an object from a photo, or change the [7]\n• A photo which is not correctly [8] cannot be fixed.\n\nOther information\n\n• Orders are completed within [9]\n• Send the photos in a box (not [10])"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "payment"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Copying photos to digital format",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Name of company: Picturerep\n\nRequirements\n\n• Maximum size of photos is 30 cm, minimum size 4 cm.\n• Photos must not be in [1] of an album.\n\nCost\n\n• The cost for 360 photos is [2] (including one disk).\n• Before the completed order is sent, [3] is required.\n\nServices included in the price\n\n• Photos can be placed in a folder, e.g. with the name [4]\n• The [5] and contrast can be improved if necessary.\n• Photos which are very fragile will be scanned by [6]\n\nSpecial restore service (costs extra)\n\n• It may be possible to remove an object from a photo, or change the [7]\n• A photo which is not correctly [8] cannot be fixed.\n\nOther information\n\n• Orders are completed within [9]\n• Send the photos in a box (not [10])"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Grandparents"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Copying photos to digital format",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Name of company: Picturerep\n\nRequirements\n\n• Maximum size of photos is 30 cm, minimum size 4 cm.\n• Photos must not be in [1] of an album.\n\nCost\n\n• The cost for 360 photos is [2] (including one disk).\n• Before the completed order is sent, [3] is required.\n\nServices included in the price\n\n• Photos can be placed in a folder, e.g. with the name [4]\n• The [5] and contrast can be improved if necessary.\n• Photos which are very fragile will be scanned by [6]\n\nSpecial restore service (costs extra)\n\n• It may be possible to remove an object from a photo, or change the [7]\n• A photo which is not correctly [8] cannot be fixed.\n\nOther information\n\n• Orders are completed within [9]\n• Send the photos in a box (not [10])"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "colour",
+                  "color"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Copying photos to digital format",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Name of company: Picturerep\n\nRequirements\n\n• Maximum size of photos is 30 cm, minimum size 4 cm.\n• Photos must not be in [1] of an album.\n\nCost\n\n• The cost for 360 photos is [2] (including one disk).\n• Before the completed order is sent, [3] is required.\n\nServices included in the price\n\n• Photos can be placed in a folder, e.g. with the name [4]\n• The [5] and contrast can be improved if necessary.\n• Photos which are very fragile will be scanned by [6]\n\nSpecial restore service (costs extra)\n\n• It may be possible to remove an object from a photo, or change the [7]\n• A photo which is not correctly [8] cannot be fixed.\n\nOther information\n\n• Orders are completed within [9]\n• Send the photos in a box (not [10])"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "hand"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Copying photos to digital format",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Name of company: Picturerep\n\nRequirements\n\n• Maximum size of photos is 30 cm, minimum size 4 cm.\n• Photos must not be in [1] of an album.\n\nCost\n\n• The cost for 360 photos is [2] (including one disk).\n• Before the completed order is sent, [3] is required.\n\nServices included in the price\n\n• Photos can be placed in a folder, e.g. with the name [4]\n• The [5] and contrast can be improved if necessary.\n• Photos which are very fragile will be scanned by [6]\n\nSpecial restore service (costs extra)\n\n• It may be possible to remove an object from a photo, or change the [7]\n• A photo which is not correctly [8] cannot be fixed.\n\nOther information\n\n• Orders are completed within [9]\n• Send the photos in a box (not [10])"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "background"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Copying photos to digital format",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Name of company: Picturerep\n\nRequirements\n\n• Maximum size of photos is 30 cm, minimum size 4 cm.\n• Photos must not be in [1] of an album.\n\nCost\n\n• The cost for 360 photos is [2] (including one disk).\n• Before the completed order is sent, [3] is required.\n\nServices included in the price\n\n• Photos can be placed in a folder, e.g. with the name [4]\n• The [5] and contrast can be improved if necessary.\n• Photos which are very fragile will be scanned by [6]\n\nSpecial restore service (costs extra)\n\n• It may be possible to remove an object from a photo, or change the [7]\n• A photo which is not correctly [8] cannot be fixed.\n\nOther information\n\n• Orders are completed within [9]\n• Send the photos in a box (not [10])"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "focus"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Copying photos to digital format",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Name of company: Picturerep\n\nRequirements\n\n• Maximum size of photos is 30 cm, minimum size 4 cm.\n• Photos must not be in [1] of an album.\n\nCost\n\n• The cost for 360 photos is [2] (including one disk).\n• Before the completed order is sent, [3] is required.\n\nServices included in the price\n\n• Photos can be placed in a folder, e.g. with the name [4]\n• The [5] and contrast can be improved if necessary.\n• Photos which are very fragile will be scanned by [6]\n\nSpecial restore service (costs extra)\n\n• It may be possible to remove an object from a photo, or change the [7]\n• A photo which is not correctly [8] cannot be fixed.\n\nOther information\n\n• Orders are completed within [9]\n• Send the photos in a box (not [10])"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "ten",
+                  "10 days"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Copying photos to digital format",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Name of company: Picturerep\n\nRequirements\n\n• Maximum size of photos is 30 cm, minimum size 4 cm.\n• Photos must not be in [1] of an album.\n\nCost\n\n• The cost for 360 photos is [2] (including one disk).\n• Before the completed order is sent, [3] is required.\n\nServices included in the price\n\n• Photos can be placed in a folder, e.g. with the name [4]\n• The [5] and contrast can be improved if necessary.\n• Photos which are very fragile will be scanned by [6]\n\nSpecial restore service (costs extra)\n\n• It may be possible to remove an object from a photo, or change the [7]\n• A photo which is not correctly [8] cannot be fixed.\n\nOther information\n\n• Orders are completed within [9]\n• Send the photos in a box (not [10])"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "plastic"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-2-listening-part1.mp3"
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Dartfield House school",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "Dartfield House school used to be",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a tourist information centre."
+                },
+                {
+                  "key": "B",
+                  "text": "a private home."
+                },
+                {
+                  "key": "C",
+                  "text": "a local council building."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "What is planned with regard to the lower school?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "All buildings on the main site will be improved."
+                },
+                {
+                  "key": "B",
+                  "text": "The lower school site will be used for new homes."
+                },
+                {
+                  "key": "C",
+                  "text": "Additional school buildings will be constructed on the lower school site."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "The catering has been changed because of",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "long queuing times."
+                },
+                {
+                  "key": "B",
+                  "text": "changes to the school timetable."
+                },
+                {
+                  "key": "C",
+                  "text": "dissatisfaction with the menus."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "Parents are asked to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "help their children to decide in advance which serving point to use."
+                },
+                {
+                  "key": "B",
+                  "text": "make sure their children have enough money for food."
+                },
+                {
+                  "key": "C",
+                  "text": "advise their children on healthy food to eat."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "What does the speaker say about the existing canteen?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Food will still be served there."
+                },
+                {
+                  "key": "B",
+                  "text": "Only staff will have access to it."
+                },
+                {
+                  "key": "C",
+                  "text": "Pupils can take their food into it."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "World Adventures",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "pupils help to plan menus"
+                },
+                {
+                  "key": "B",
+                  "text": "only vegetarian food"
+                },
+                {
+                  "key": "C",
+                  "text": "different food every week"
+                },
+                {
+                  "key": "D",
+                  "text": "daily change in menu"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-18",
+                "instruction": "What comment does the speaker make about each of the following serving points in the Food Hall?\nChoose THREE answers from the box and write the correct letter, A-D, next to Questions 16-18."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Street Life",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "pupils help to plan menus"
+                },
+                {
+                  "key": "B",
+                  "text": "only vegetarian food"
+                },
+                {
+                  "key": "C",
+                  "text": "different food every week"
+                },
+                {
+                  "key": "D",
+                  "text": "daily change in menu"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-18",
+                "instruction": "What comment does the speaker make about each of the following serving points in the Food Hall?\nChoose THREE answers from the box and write the correct letter, A-D, next to Questions 16-18."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Speedy Italian",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "pupils help to plan menus"
+                },
+                {
+                  "key": "B",
+                  "text": "only vegetarian food"
+                },
+                {
+                  "key": "C",
+                  "text": "different food every week"
+                },
+                {
+                  "key": "D",
+                  "text": "daily change in menu"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-18",
+                "instruction": "What comment does the speaker make about each of the following serving points in the Food Hall?\nChoose THREE answers from the box and write the correct letter, A-D, next to Questions 16-18."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "multiple-select",
+              "prompt": "Which TWO optional after-school lessons are new?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "swimming"
+                },
+                {
+                  "key": "B",
+                  "text": "piano"
+                },
+                {
+                  "key": "C",
+                  "text": "acting"
+                },
+                {
+                  "key": "D",
+                  "text": "cycling"
+                },
+                {
+                  "key": "E",
+                  "text": "theatre sound and lighting"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "C"
+                  ]
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-2-listening-part2.mp3"
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Assignment on sleep and dreams",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "Luke read that one reason why we often forget dreams is that",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "our memories cannot cope with too much information."
+                },
+                {
+                  "key": "B",
+                  "text": "we might otherwise be confused about what is real."
+                },
+                {
+                  "key": "C",
+                  "text": "we do not think they are important."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "What do Luke and Susie agree about dreams predicting the future?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It may just be due to chance."
+                },
+                {
+                  "key": "B",
+                  "text": "It only happens with certain types of event."
+                },
+                {
+                  "key": "C",
+                  "text": "It happens more often than some people think."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "Susie says that a study on pre-school children having a short nap in the day",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "had controversial results."
+                },
+                {
+                  "key": "B",
+                  "text": "used faulty research methodology."
+                },
+                {
+                  "key": "C",
+                  "text": "failed to reach any clear conclusions."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "In their last assignment, both students had problems with",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "statistical analysis."
+                },
+                {
+                  "key": "B",
+                  "text": "making an action plan."
+                },
+                {
+                  "key": "C",
+                  "text": "self-assessment."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "completion",
+              "prompt": "Question 25",
+              "group": {
+                "id": "l-s3-25-30",
+                "title": "Assignment plan",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Decide on research question:\nIs there a relationship between hours of sleep and number of dreams?\n\nDecide on sample:\nTwelve students from the [25] department\n\nDecide on methodology:\nSelf-reporting\n\nDecide on procedure:\nAnswers on [26]\nCheck ethical guidelines for working with [27]\nEnsure that risk is assessed and [28] is kept to a minimum\n\nAnalyse the results\nCalculate the correlation and make a [29]\n[30] the research"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "history"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "completion",
+              "prompt": "Question 26",
+              "group": {
+                "id": "l-s3-25-30",
+                "title": "Assignment plan",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Decide on research question:\nIs there a relationship between hours of sleep and number of dreams?\n\nDecide on sample:\nTwelve students from the [25] department\n\nDecide on methodology:\nSelf-reporting\n\nDecide on procedure:\nAnswers on [26]\nCheck ethical guidelines for working with [27]\nEnsure that risk is assessed and [28] is kept to a minimum\n\nAnalyse the results\nCalculate the correlation and make a [29]\n[30] the research"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "paper"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "completion",
+              "prompt": "Question 27",
+              "group": {
+                "id": "l-s3-25-30",
+                "title": "Assignment plan",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Decide on research question:\nIs there a relationship between hours of sleep and number of dreams?\n\nDecide on sample:\nTwelve students from the [25] department\n\nDecide on methodology:\nSelf-reporting\n\nDecide on procedure:\nAnswers on [26]\nCheck ethical guidelines for working with [27]\nEnsure that risk is assessed and [28] is kept to a minimum\n\nAnalyse the results\nCalculate the correlation and make a [29]\n[30] the research"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "humans",
+                  "people"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "completion",
+              "prompt": "Question 28",
+              "group": {
+                "id": "l-s3-25-30",
+                "title": "Assignment plan",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Decide on research question:\nIs there a relationship between hours of sleep and number of dreams?\n\nDecide on sample:\nTwelve students from the [25] department\n\nDecide on methodology:\nSelf-reporting\n\nDecide on procedure:\nAnswers on [26]\nCheck ethical guidelines for working with [27]\nEnsure that risk is assessed and [28] is kept to a minimum\n\nAnalyse the results\nCalculate the correlation and make a [29]\n[30] the research"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "stress"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "completion",
+              "prompt": "Question 29",
+              "group": {
+                "id": "l-s3-25-30",
+                "title": "Assignment plan",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Decide on research question:\nIs there a relationship between hours of sleep and number of dreams?\n\nDecide on sample:\nTwelve students from the [25] department\n\nDecide on methodology:\nSelf-reporting\n\nDecide on procedure:\nAnswers on [26]\nCheck ethical guidelines for working with [27]\nEnsure that risk is assessed and [28] is kept to a minimum\n\nAnalyse the results\nCalculate the correlation and make a [29]\n[30] the research"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "graph"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "completion",
+              "prompt": "Question 30",
+              "group": {
+                "id": "l-s3-25-30",
+                "title": "Assignment plan",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Decide on research question:\nIs there a relationship between hours of sleep and number of dreams?\n\nDecide on sample:\nTwelve students from the [25] department\n\nDecide on methodology:\nSelf-reporting\n\nDecide on procedure:\nAnswers on [26]\nCheck ethical guidelines for working with [27]\nEnsure that risk is assessed and [28] is kept to a minimum\n\nAnalyse the results\nCalculate the correlation and make a [29]\n[30] the research"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "evaluate"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-2-listening-part3.mp3"
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Health benefits of dance",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Health benefits of dance",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Recent findings:\n• All forms of dance produce various hormones associated with feelings of happiness.\n• Dancing with others has a more positive impact than dancing alone.\n• An experiment on university students suggested that dance increases [31]\n• For those with mental illness, dance could be used as a form of [32]\n\nBenefits of dance for older people:\n• accessible for people with low levels of [33]\n• reduces the risk of heart disease\n• better [34] reduces the risk of accidents\n• improves [35] function by making it work faster\n• improves participants’ general well-being\n• gives people more [36] to take exercise\n• can lessen the feeling of [37], very common in older people\n\nBenefits of Zumba:\n• A study at The University of Wisconsin showed that doing Zumba for 40 minutes uses up as many [38] as other quite intense forms of exercise.\n• The American Journal of Health Behavior study showed that:\n— women suffering from [39] benefited from doing Zumba.\n— Zumba became a [40] for the participants."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "creativity"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Health benefits of dance",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Recent findings:\n• All forms of dance produce various hormones associated with feelings of happiness.\n• Dancing with others has a more positive impact than dancing alone.\n• An experiment on university students suggested that dance increases [31]\n• For those with mental illness, dance could be used as a form of [32]\n\nBenefits of dance for older people:\n• accessible for people with low levels of [33]\n• reduces the risk of heart disease\n• better [34] reduces the risk of accidents\n• improves [35] function by making it work faster\n• improves participants’ general well-being\n• gives people more [36] to take exercise\n• can lessen the feeling of [37], very common in older people\n\nBenefits of Zumba:\n• A study at The University of Wisconsin showed that doing Zumba for 40 minutes uses up as many [38] as other quite intense forms of exercise.\n• The American Journal of Health Behavior study showed that:\n— women suffering from [39] benefited from doing Zumba.\n— Zumba became a [40] for the participants."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "‘therapy"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Health benefits of dance",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Recent findings:\n• All forms of dance produce various hormones associated with feelings of happiness.\n• Dancing with others has a more positive impact than dancing alone.\n• An experiment on university students suggested that dance increases [31]\n• For those with mental illness, dance could be used as a form of [32]\n\nBenefits of dance for older people:\n• accessible for people with low levels of [33]\n• reduces the risk of heart disease\n• better [34] reduces the risk of accidents\n• improves [35] function by making it work faster\n• improves participants’ general well-being\n• gives people more [36] to take exercise\n• can lessen the feeling of [37], very common in older people\n\nBenefits of Zumba:\n• A study at The University of Wisconsin showed that doing Zumba for 40 minutes uses up as many [38] as other quite intense forms of exercise.\n• The American Journal of Health Behavior study showed that:\n— women suffering from [39] benefited from doing Zumba.\n— Zumba became a [40] for the participants."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fitness"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Health benefits of dance",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Recent findings:\n• All forms of dance produce various hormones associated with feelings of happiness.\n• Dancing with others has a more positive impact than dancing alone.\n• An experiment on university students suggested that dance increases [31]\n• For those with mental illness, dance could be used as a form of [32]\n\nBenefits of dance for older people:\n• accessible for people with low levels of [33]\n• reduces the risk of heart disease\n• better [34] reduces the risk of accidents\n• improves [35] function by making it work faster\n• improves participants’ general well-being\n• gives people more [36] to take exercise\n• can lessen the feeling of [37], very common in older people\n\nBenefits of Zumba:\n• A study at The University of Wisconsin showed that doing Zumba for 40 minutes uses up as many [38] as other quite intense forms of exercise.\n• The American Journal of Health Behavior study showed that:\n— women suffering from [39] benefited from doing Zumba.\n— Zumba became a [40] for the participants."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "balance"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Health benefits of dance",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Recent findings:\n• All forms of dance produce various hormones associated with feelings of happiness.\n• Dancing with others has a more positive impact than dancing alone.\n• An experiment on university students suggested that dance increases [31]\n• For those with mental illness, dance could be used as a form of [32]\n\nBenefits of dance for older people:\n• accessible for people with low levels of [33]\n• reduces the risk of heart disease\n• better [34] reduces the risk of accidents\n• improves [35] function by making it work faster\n• improves participants’ general well-being\n• gives people more [36] to take exercise\n• can lessen the feeling of [37], very common in older people\n\nBenefits of Zumba:\n• A study at The University of Wisconsin showed that doing Zumba for 40 minutes uses up as many [38] as other quite intense forms of exercise.\n• The American Journal of Health Behavior study showed that:\n— women suffering from [39] benefited from doing Zumba.\n— Zumba became a [40] for the participants."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "brain"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Health benefits of dance",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Recent findings:\n• All forms of dance produce various hormones associated with feelings of happiness.\n• Dancing with others has a more positive impact than dancing alone.\n• An experiment on university students suggested that dance increases [31]\n• For those with mental illness, dance could be used as a form of [32]\n\nBenefits of dance for older people:\n• accessible for people with low levels of [33]\n• reduces the risk of heart disease\n• better [34] reduces the risk of accidents\n• improves [35] function by making it work faster\n• improves participants’ general well-being\n• gives people more [36] to take exercise\n• can lessen the feeling of [37], very common in older people\n\nBenefits of Zumba:\n• A study at The University of Wisconsin showed that doing Zumba for 40 minutes uses up as many [38] as other quite intense forms of exercise.\n• The American Journal of Health Behavior study showed that:\n— women suffering from [39] benefited from doing Zumba.\n— Zumba became a [40] for the participants."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "motivation"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Health benefits of dance",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Recent findings:\n• All forms of dance produce various hormones associated with feelings of happiness.\n• Dancing with others has a more positive impact than dancing alone.\n• An experiment on university students suggested that dance increases [31]\n• For those with mental illness, dance could be used as a form of [32]\n\nBenefits of dance for older people:\n• accessible for people with low levels of [33]\n• reduces the risk of heart disease\n• better [34] reduces the risk of accidents\n• improves [35] function by making it work faster\n• improves participants’ general well-being\n• gives people more [36] to take exercise\n• can lessen the feeling of [37], very common in older people\n\nBenefits of Zumba:\n• A study at The University of Wisconsin showed that doing Zumba for 40 minutes uses up as many [38] as other quite intense forms of exercise.\n• The American Journal of Health Behavior study showed that:\n— women suffering from [39] benefited from doing Zumba.\n— Zumba became a [40] for the participants."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "_ isolation"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Health benefits of dance",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Recent findings:\n• All forms of dance produce various hormones associated with feelings of happiness.\n• Dancing with others has a more positive impact than dancing alone.\n• An experiment on university students suggested that dance increases [31]\n• For those with mental illness, dance could be used as a form of [32]\n\nBenefits of dance for older people:\n• accessible for people with low levels of [33]\n• reduces the risk of heart disease\n• better [34] reduces the risk of accidents\n• improves [35] function by making it work faster\n• improves participants’ general well-being\n• gives people more [36] to take exercise\n• can lessen the feeling of [37], very common in older people\n\nBenefits of Zumba:\n• A study at The University of Wisconsin showed that doing Zumba for 40 minutes uses up as many [38] as other quite intense forms of exercise.\n• The American Journal of Health Behavior study showed that:\n— women suffering from [39] benefited from doing Zumba.\n— Zumba became a [40] for the participants."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "calories"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Health benefits of dance",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Recent findings:\n• All forms of dance produce various hormones associated with feelings of happiness.\n• Dancing with others has a more positive impact than dancing alone.\n• An experiment on university students suggested that dance increases [31]\n• For those with mental illness, dance could be used as a form of [32]\n\nBenefits of dance for older people:\n• accessible for people with low levels of [33]\n• reduces the risk of heart disease\n• better [34] reduces the risk of accidents\n• improves [35] function by making it work faster\n• improves participants’ general well-being\n• gives people more [36] to take exercise\n• can lessen the feeling of [37], very common in older people\n\nBenefits of Zumba:\n• A study at The University of Wisconsin showed that doing Zumba for 40 minutes uses up as many [38] as other quite intense forms of exercise.\n• The American Journal of Health Behavior study showed that:\n— women suffering from [39] benefited from doing Zumba.\n— Zumba became a [40] for the participants."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "obesity"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Health benefits of dance",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Recent findings:\n• All forms of dance produce various hormones associated with feelings of happiness.\n• Dancing with others has a more positive impact than dancing alone.\n• An experiment on university students suggested that dance increases [31]\n• For those with mental illness, dance could be used as a form of [32]\n\nBenefits of dance for older people:\n• accessible for people with low levels of [33]\n• reduces the risk of heart disease\n• better [34] reduces the risk of accidents\n• improves [35] function by making it work faster\n• improves participants’ general well-being\n• gives people more [36] to take exercise\n• can lessen the feeling of [37], very common in older people\n\nBenefits of Zumba:\n• A study at The University of Wisconsin showed that doing Zumba for 40 minutes uses up as many [38] as other quite intense forms of exercise.\n• The American Journal of Health Behavior study showed that:\n— women suffering from [39] benefited from doing Zumba.\n— Zumba became a [40] for the participants."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "habit"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam16-test-2-listening-part4.mp3"
+        }
+      ]
+    }
+  ]
+}

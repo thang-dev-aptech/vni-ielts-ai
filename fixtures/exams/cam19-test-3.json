@@ -1,0 +1,1117 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 19 — Test 3",
+  "variant": "academic",
+  "description": "Cambridge IELTS 19 Academic Test 3. Chỉ có Reading, chấm theo đáp án in trong sách; phần Listening của đề này chưa sẵn sàng nên không thi được Listening, Writing và Speaking.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "Archaeologists discover evidence of prehistoric island settlers",
+          "body": "Archaeologists discover evidence of\n\nprehistoric island settlers\n\nIn early April 2019, Dr Ceri Shipton and his colleagues from Australian National\nUniversity became the first archaeologists to explore Obi, one of many tropical islands\nin Indonesia’s Maluku Utara province. The research team’s discoveries suggest that\nthe prehistoric people who lived on Obi were adept on both land and sea, hunting\nin the dense rainforest, foraging on the seashore, and possibly even voyaging\nbetween islands.\nThe excavations were part of a project to learn more about how people first dispersed\nfrom mainland Asia, through the Indonesian archipelago and into the prehistoric\ncontinent that once connected Australia and New Guinea. The team’s earlier research\nsuggested that the northernmost islands in the group, known as the Wallacean islands,\nincluding Obi, would have offered the easiest migration route. It also seemed likely that\nthese islands were crucial ‘stepping stones’ on humans’ island-hopping voyages through\nthis region millennia ago. But to support this idea, they needed archaeological evidence\nfor humans living in this remote area in the ancient past. So, they travelled to Obi to look\nfor sites that might reveal evidence of early occupation.\nJust inland from the village of Kelo on Obi’s northern coast, Shipton and his colleagues\nfound two caves containing prehistoric rock shelters that were suitable for excavation.\nWith the permission and help of the local people of Kelo, they dug a small test\nexcavation in each shelter. There they found numerous artefacts, including fragments\nof axes, some dating to about 14,000 years ago. The earliest axes at Kelo were made\nusing clam shells. Axes made from clam shells from roughly the same time had also\npreviously been found elsewhere in this region, including on the nearby island of\nGebe to the northeast. As on Gebe, it is highly likely that Obi’s axes were used in the\nconstruction of canoes, thus allowing these early peoples to maintain connections\nbetween communities on neighbouring islands.\nThe oldest cultural layers from the Kelo site provided the team with the earliest record\nfor human occupation on Obi, dating back around 18,000 years. At this time the climate\nwas drier and colder than today, and the island’s dense rainforests would likely have\nbeen much less impenetrable than they are now. Sea levels were about 120 metres\nlower, meaning Obi was a much larger island, encompassing what is today the separate\nisland of Bisa, as well as several other small islands nearby.\n\nReading\nRoughly 11,700 years ago, as the most recent ice age ended, the climate became\nsignificantly warmer and wetter, no doubt making Obi’s jungle much thicker. According\nto the researchers, it is no coincidence that around this time the first axes crafted from\nstone rather than sea shells appear, likely in response to their heavy-duty use for\nclearing and modification of the increasingly dense rainforest. While stone takes about\ntwice as long to grind into an axe compared to shell, the harder material keeps its sharp\nedge for longer.\nJudging by the bones which the researchers unearthed in the Kelo caves, people living\nthere mainly hunted the Rothschild’s cuscus, a possum-like creature that still lives on\nObi today. As the forest grew more dense, people probably used axes to clear patches\nof forest and make hunting easier.\nShipton’s team’s excavation of the shelters at the Kelo site unearthed a volcanic glass\nsubstance called obsidian, which must have been brought over from another island, as\nthere is no known source on Obi. It also revealed particular types of beads, similar to\nthose previously found on islands in southern Wallacea. These finds again support the\nidea that Obi islanders routinely travelled to other islands.\nThe excavations suggest people successfully lived in the two Kelo shelters for about\n10,000 years. But then, about 8,000 years ago, both were abandoned. Did the residents\nleave Obi completely, or move elsewhere on the island? Perhaps the jungle had grown\nso thick that axes were no longer a match for the dense undergrowth. Perhaps people\nsimply moved to the coast and turned to fishing rather than hunting as a means\nof survival.\nWhatever the reason for the departure, there is no evidence for use of the Kelo shelters\nafter this time, until about 1,000 years ago, when they were re-occupied by people who\nowned pottery as well as items made out of gold and silver. It seems likely, in view of\nObi’s location, that this final phase of occupation also saw the Kelo shelters used by\npeople involved in the historic trade in spices between the Maluku islands and the rest of\nthe world.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "true-false-notgiven",
+              "prompt": "Archaeological research had taken place on the island of Obi before the arrival of Ceri Shipton and his colleagues.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "true-false-notgiven",
+              "prompt": "Atthe Kelo sites, the researchers found the first clam shell axes ever to be discovered in the region.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "true-false-notgiven",
+              "prompt": "The size of Obi today is less than it was 18,000 years ago.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "true-false-notgiven",
+              "prompt": "Achange in the climate around 11,700 years ago had a greater impact on Obi than on the surrounding islands.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "true-false-notgiven",
+              "prompt": "The researchers believe there is a connection between warmer, wetter weather and a change in the material used to make axes.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "true-false-notgiven",
+              "prompt": "Shipton’s team were surprised to find evidence of the Obi islanders’ hunting practices.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "true-false-notgiven",
+              "prompt": "Itis thought that the Kelo shelters were occupied continuously until about 1,000 years ago.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1—7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "8",
+              "group": {
+                "id": "r-comp-8-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "text": "Archaeological findings on Obi\nExcavations of rock shelters inside [8] ........c0nsnenen Near the village of\nKelo revealed:\ne —_ axes from around 14,000 years ago, probably used to make canoes\n© — AXES MAE OU OF Y wveecccosstsmstsneee » dating from around 11,700 years ago\n© 1D voices Of aN animal: evidence of what ancient islanders ate\ne —_ evidence of travel between islands:\n— obsidian: a material that is not found naturally on Obi\nA vccessssssneustsieueneene Which resembled ones found on other islands.\nIt is thought that from 8,000 years ago, Obi islanders:\ne —_may have switched from hunting to fishing\n© NAD 12. wrecssssssenennnne AS Well as items made out of metal\ne —_ probably took part in the production and sale Of 13 wesc 4"
+              },
+              "answerKey": {
+                "accepted": [
+                  "caves"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "9",
+              "group": {
+                "id": "r-comp-8-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "text": "Archaeological findings on Obi\nExcavations of rock shelters inside [8] ........c0nsnenen Near the village of\nKelo revealed:\ne —_ axes from around 14,000 years ago, probably used to make canoes\n© — AXES MAE OU OF Y wveecccosstsmstsneee » dating from around 11,700 years ago\n© 1D voices Of aN animal: evidence of what ancient islanders ate\ne —_ evidence of travel between islands:\n— obsidian: a material that is not found naturally on Obi\nA vccessssssneustsieueneene Which resembled ones found on other islands.\nIt is thought that from 8,000 years ago, Obi islanders:\ne —_may have switched from hunting to fishing\n© NAD 12. wrecssssssenennnne AS Well as items made out of metal\ne —_ probably took part in the production and sale Of 13 wesc 4"
+              },
+              "answerKey": {
+                "accepted": [
+                  "stone"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "10",
+              "group": {
+                "id": "r-comp-8-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "text": "Archaeological findings on Obi\nExcavations of rock shelters inside [8] ........c0nsnenen Near the village of\nKelo revealed:\ne —_ axes from around 14,000 years ago, probably used to make canoes\n© — AXES MAE OU OF Y wveecccosstsmstsneee » dating from around 11,700 years ago\n© 1D voices Of aN animal: evidence of what ancient islanders ate\ne —_ evidence of travel between islands:\n— obsidian: a material that is not found naturally on Obi\nA vccessssssneustsieueneene Which resembled ones found on other islands.\nIt is thought that from 8,000 years ago, Obi islanders:\ne —_may have switched from hunting to fishing\n© NAD 12. wrecssssssenennnne AS Well as items made out of metal\ne —_ probably took part in the production and sale Of 13 wesc 4"
+              },
+              "answerKey": {
+                "accepted": [
+                  "bones"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "completion",
+              "prompt": "11",
+              "group": {
+                "id": "r-comp-8-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "text": "Archaeological findings on Obi\nExcavations of rock shelters inside [8] ........c0nsnenen Near the village of\nKelo revealed:\ne —_ axes from around 14,000 years ago, probably used to make canoes\n© — AXES MAE OU OF Y wveecccosstsmstsneee » dating from around 11,700 years ago\n© 1D voices Of aN animal: evidence of what ancient islanders ate\ne —_ evidence of travel between islands:\n— obsidian: a material that is not found naturally on Obi\nA vccessssssneustsieueneene Which resembled ones found on other islands.\nIt is thought that from 8,000 years ago, Obi islanders:\ne —_may have switched from hunting to fishing\n© NAD 12. wrecssssssenennnne AS Well as items made out of metal\ne —_ probably took part in the production and sale Of 13 wesc 4"
+              },
+              "answerKey": {
+                "accepted": [
+                  "beads"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "completion",
+              "prompt": "12",
+              "group": {
+                "id": "r-comp-8-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "text": "Archaeological findings on Obi\nExcavations of rock shelters inside [8] ........c0nsnenen Near the village of\nKelo revealed:\ne —_ axes from around 14,000 years ago, probably used to make canoes\n© — AXES MAE OU OF Y wveecccosstsmstsneee » dating from around 11,700 years ago\n© 1D voices Of aN animal: evidence of what ancient islanders ate\ne —_ evidence of travel between islands:\n— obsidian: a material that is not found naturally on Obi\nA vccessssssneustsieueneene Which resembled ones found on other islands.\nIt is thought that from 8,000 years ago, Obi islanders:\ne —_may have switched from hunting to fishing\n© NAD 12. wrecssssssenennnne AS Well as items made out of metal\ne —_ probably took part in the production and sale Of 13 wesc 4"
+              },
+              "answerKey": {
+                "accepted": [
+                  "pottery"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "completion",
+              "prompt": "13",
+              "group": {
+                "id": "r-comp-8-13",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.",
+                "text": "Archaeological findings on Obi\nExcavations of rock shelters inside [8] ........c0nsnenen Near the village of\nKelo revealed:\ne —_ axes from around 14,000 years ago, probably used to make canoes\n© — AXES MAE OU OF Y wveecccosstsmstsneee » dating from around 11,700 years ago\n© 1D voices Of aN animal: evidence of what ancient islanders ate\ne —_ evidence of travel between islands:\n— obsidian: a material that is not found naturally on Obi\nA vccessssssneustsieueneene Which resembled ones found on other islands.\nIt is thought that from 8,000 years ago, Obi islanders:\ne —_may have switched from hunting to fishing\n© NAD 12. wrecssssssenennnne AS Well as items made out of metal\ne —_ probably took part in the production and sale Of 13 wesc 4"
+              },
+              "answerKey": {
+                "accepted": [
+                  "spices"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "The global importance of wetlands",
+          "body": "The global importance of wetlands\n\nA __ Wetlands are areas where water covers the soil, or is present either at or near the surface\nof the soil, for all or part of the year. These are complex ecosystems, rich in unique plant\nand animal life. But according to the World Wide Fund for Nature (WWEN), half of the\nworld’s wetlands have disappeared since 1990 — converted or destroyed for commercial\ndevelopment, drainage schemes and the extraction of minerals and peat’. Many of those that\nremain have been damaged by agricultural pesticides and fertilisers, industrial pollutants,\nand construction works.\n\nB Throughout history, humans have gathered around wetlands, and their fertile ecosystems\nhave played an important part in human development. Consequently, they are of\nconsiderable religious, historical and archaeological value to many communities around\nthe world. ‘Wetlands directly support the livelihoods and well-being of millions of people,’\nsays Dr Matthew McCartney, principal researcher and hydrologist at the International Water\nManagement Institute (IWMI). ‘In many developing countries, large numbers of people are\ndependent on wetland agriculture for their livelihoods.’\n\nC They also serve a crucial environmental purpose. ‘Wetlands are one of the key tools\nin mitigating climate change across the planet,’ says Pieter van Eijk, head of Climate\nAdaptation at Wetlands International (WJ), pointing to their use as buffers that protect\ncoastal areas from sea-level rise and extreme weather events such as hurricanes and\nflooding. Wetland coastal forests provide food and water, as well as shelter from storms,\nand WI and other agencies are working to restore those forests which have been lost. ‘It can\nbe as simple as planting a few trees per hectare to create shade and substantially change a\nmicroclimate,’ he says. ‘Implementing climate change projects isn’t so much about money.’\n\nD The world’s wetlands are, unfortunately, rich sources for in-demand commodities, such as\npalm oil and pulpwood. Peatlands — wetlands with a waterlogged organic soil layer — are\nparticularly targeted. When peatlands are drained for cultivation, they become net carbon\nemitters instead of active carbon stores, and, according to Marcel Silvius, head of Climate-\nsmart Land-use at WI, this practice causes six per cent of all global carbon emissions. The\nclearance of peatlands for planting also increases the risk of forest fires, which release huge\namounts of CO. ‘We’re seeing huge peatland forests with extremely high biodiversity\nvalue being lost for a few decades of oil palm revenues,’ says Silvius.\n\n* peat: a brown deposit formed by the partial decomposition of vegetation in wet acidic conditions, often cut out and dried for use as fuel\n\nReading\n\nE The damage starts when logging companies arrive to clear the trees. They dig ditches to\nenter the peat swamps by boat and then float the logs out the same way. These are then used\nto drain water out of the peatlands to allow for the planting of corn, oil palms or pulpwood\ntrees. Once the water has drained away, bacteria and fungi then break down the carbon in\nthe peat and turn it into CO) and methane. Meanwhile, the remainder of the solid matter\nin the peat starts to move downwards, in a process known as subsidence*’. Peat comprises\n90 per cent water, so this is one of the most alarming consequences of peatland clearances.\n‘In the tropics, peat subsides at about four centimetres a year, so within half a century, very\nlarge landscapes on Sumatra and Borneo will become flooded as the peat drops below water\nlevel,’ says Silvius. ‘It’s a huge catastrophe that’s in preparation. Some provinces will lose\n40 per cent of their landmass.’\n\nF And while these industries affect wetlands in ways that can easily be documented,\n\nDr Dave Tickner of the WWEN believes that more subtle impacts can be even more\ndevastating. ‘Sediment run-off and fertilisers can be pretty invisible,’ says Tickner.\n‘Over-extraction of water is equally invisible. You do get shock stories about rivers running\nred, or even catching fire, but there’s seldom one big impact that really hurts a wetland.’\nTickner does not blame anyone for deliberate damage, however. ‘I’ve worked on wetland\nissues for 20 years and have never met anybody who wanted to damage a wetland,’ he says.\n‘It isn’t something that people generally set out to do. Quite often, the effects simply come\nfrom people trying to make a living.’\n\nG _ Silvius also acknowledges the importance of income generation. ‘It’s not that we just want\nto restore the biodiversity of wetlands — which we do — but we recognise there’s a need\nto provide an income for local people.’ This approach is supported by IWMI. ‘The idea is\nthat people in a developing country will only protect wetlands if they value and profit from\nthem,’ says McCartney. ‘For sustainability, it’s essential that local people are involved in\nwetland planning and decision making and have clear rights to use wetlands.’\n\nH The fortunes of wetlands would be improved, Silvius suggests, if more governments\nrecognised their long-term value. ‘Different governments have different attitudes,’ he says,\nand goes on to explain that some countries place a high priority on restoring wetlands,\nwhile others still deny the issue. McCartney is cautiously optimistic, however. ‘Awareness\nof the importance of wetlands is growing,’ he says. ‘It’s true that wetland degradation still\ncontinues at a rapid pace, but my impression is that things are slowly changing.’\n\n** subsidence: the sinking of the Earth's surface, most often caused by the removal of resources from the ground",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "reference to the need to ensure that inhabitants of wetland regions continue to benefit from them",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthew McCartney"
+                },
+                {
+                  "key": "B",
+                  "text": "Pieter van Eijk"
+                },
+                {
+                  "key": "C",
+                  "text": "Marcel Silvius"
+                },
+                {
+                  "key": "D",
+                  "text": "Dave Tickner"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-match-14-17-14",
+                "instruction": "Which paragraph contains the following information?\n\nWrite the correct letter, A-H, in boxes 14—17 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "the proportion of wetlands which have already been lost",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthew McCartney"
+                },
+                {
+                  "key": "B",
+                  "text": "Pieter van Eijk"
+                },
+                {
+                  "key": "C",
+                  "text": "Marcel Silvius"
+                },
+                {
+                  "key": "D",
+                  "text": "Dave Tickner"
+                }
+              ],
+              "group": {
+                "id": "r-match-14-17-15",
+                "instruction": "Which paragraph contains the following information?\n\nWrite the correct letter, A-H, in boxes 14—17 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "reference to the idea that people are beginning to appreciate the value of wetlands",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthew McCartney"
+                },
+                {
+                  "key": "B",
+                  "text": "Pieter van Eijk"
+                },
+                {
+                  "key": "C",
+                  "text": "Marcel Silvius"
+                },
+                {
+                  "key": "D",
+                  "text": "Dave Tickner"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-match-14-17-16",
+                "instruction": "Which paragraph contains the following information?\n\nWrite the correct letter, A-H, in boxes 14—17 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "mention of the cultural significance of wetlands",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthew McCartney"
+                },
+                {
+                  "key": "B",
+                  "text": "Pieter van Eijk"
+                },
+                {
+                  "key": "C",
+                  "text": "Marcel Silvius"
+                },
+                {
+                  "key": "D",
+                  "text": "Dave Tickner"
+                }
+              ],
+              "group": {
+                "id": "r-match-14-17-17",
+                "instruction": "Which paragraph contains the following information?\n\nWrite the correct letter, A-H, in boxes 14—17 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "completion",
+              "prompt": "18",
+              "group": {
+                "id": "r-comp-18-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 18-22 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "carbon"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "completion",
+              "prompt": "19",
+              "group": {
+                "id": "r-comp-18-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 18-22 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "fires"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "completion",
+              "prompt": "20",
+              "group": {
+                "id": "r-comp-18-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 18-22 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "_ biodiversity"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "21",
+              "group": {
+                "id": "r-comp-18-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 18-22 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "ditches"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "22",
+              "group": {
+                "id": "r-comp-18-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 18-22 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "subsidence"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "matching",
+              "prompt": "Communities living in wetland regions must be included in discussions about the future of these areas.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthew McCartney"
+                },
+                {
+                  "key": "B",
+                  "text": "Pieter van Eijk"
+                },
+                {
+                  "key": "C",
+                  "text": "Marcel Silvius"
+                },
+                {
+                  "key": "D",
+                  "text": "Dave Tickner"
+                }
+              ],
+              "group": {
+                "id": "r-experts-23-26",
+                "instruction": "Look at the following statements (Questions 23-26) and the list of experts below.\nMatch each statement with the correct expert, A-D.\nWrite the correct letter, A-D, in boxes 23-26 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "matching",
+              "prompt": "Official policies towards wetlands vary from one nation to the next.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthew McCartney"
+                },
+                {
+                  "key": "B",
+                  "text": "Pieter van Eijk"
+                },
+                {
+                  "key": "C",
+                  "text": "Marcel Silvius"
+                },
+                {
+                  "key": "D",
+                  "text": "Dave Tickner"
+                }
+              ],
+              "group": {
+                "id": "r-experts-23-26",
+                "instruction": "Look at the following statements (Questions 23-26) and the list of experts below.\nMatch each statement with the correct expert, A-D.\nWrite the correct letter, A-D, in boxes 23-26 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "People cause harm to wetlands without having any intention to do so.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthew McCartney"
+                },
+                {
+                  "key": "B",
+                  "text": "Pieter van Eijk"
+                },
+                {
+                  "key": "C",
+                  "text": "Marcel Silvius"
+                },
+                {
+                  "key": "D",
+                  "text": "Dave Tickner"
+                }
+              ],
+              "group": {
+                "id": "r-experts-23-26",
+                "instruction": "Look at the following statements (Questions 23-26) and the list of experts below.\nMatch each statement with the correct expert, A-D.\nWrite the correct letter, A-D, in boxes 23-26 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "Initiatives to reverse environmental damage need not be complex.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthew McCartney"
+                },
+                {
+                  "key": "B",
+                  "text": "Pieter van Eijk"
+                },
+                {
+                  "key": "C",
+                  "text": "Marcel Silvius"
+                },
+                {
+                  "key": "D",
+                  "text": "Dave Tickner"
+                }
+              ],
+              "group": {
+                "id": "r-experts-23-26",
+                "instruction": "Look at the following statements (Questions 23-26) and the list of experts below.\nMatch each statement with the correct expert, A-D.\nWrite the correct letter, A-D, in boxes 23-26 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Is the era of artificial speech translation upon us?",
+          "body": "Is the era of artificial speech translation upon us?\nOnce the stuff of science fiction, technology that enables people to talk using\ndifferent languages is now here. But how effective is it?\nNoise, Alex Waibel tells me, is one of the major challenges that artificial speech translation\nhas to meet. A device may be able to recognise speech in a laboratory, or a meeting room, but\nwill struggle to cope with the kind of background noise | can hear in my office surrounding\nProfessor Waibel as he speaks to me from Kyoto station in Japan. I’m struggling to follow him\nin English, on a scratchy line that reminds me we are nearly 10,000 kilometres apart — and that\ndistance is still an obstacle to communication even if you’re speaking the same language, as we\nare. We haven’t reached the future yet. If we had, Waibel would have been able to speak more\ncomfortably in his native German and I would have been able to hear his words in English.\nAt Karlsruhe Institute of Technology, where he is a professor of computer science, Waibel and\nhis colleagues already give lectures in German that their students can follow in English via an\nelectronic translator. The system generates text that students can read on their laptops or phones,\nso the process is somewhat similar to subtitling. It helps that lecturers speak clearly, don’t have to\ncompete with background chatter, and say much the same thing each year.\nThe idea of artificial speech translation has been around for a long time. Douglas Adams’ science\nfiction novel, The Hitchhiker s Guide to the Galaxy, published in 1979, featured a life form called\nthe ‘Babel fish’ which, when placed in the ear, enabled a listener to understand any language in\nthe universe. It came to represent one of those devices that technology enthusiasts dream of long\nbefore they become practically realisable, like TVs flat enough to hang on walls: objects that\nwe once could only dream of having but that are now commonplace. Now devices that look like\nprototype Babel fish have started to appear, riding a wave of advances in artificial translation and\nvoice recognition.\nAt this stage, however, they seem to be regarded as eye-catching novelties rather than steps\ntowards what Waibel calls ‘making a language-transparent society’. They tend to be domestic\ndevices or applications suitable for hotel check-ins, for example, providing a practical alternative\nto speaking traveller’s English. The efficiency of the translator is less important than the social\nfunction. However, ‘Professionals are less inclined to be patient in a conversation,’ founder and\nCEO at Waverly Labs, Andrew Ochoa, observes. To redress this, Waverly is now preparing a\nnew model for professional applications, which entails performance improvements in speech\nrecognition, translation accuracy and the time it takes to deliver the translated speech,\n\nReading\nFor a conversation, both speakers need to have devices called Pilots (translator earpieces) in\ntheir ears. ‘We find that there’s a barrier with sharing one of the earphones with a stranger,’\nsays Ochoa. That can’t have been totally unexpected. The problem would be solved if earpiece\ntranslators became sufficiently prevalent that strangers would be likely to already have their own\nin their ears. Whether that happens, and how quickly, will probably depend not so much on the\nearpieces themselves, but on the prevalence of voice-controlled devices and artificial translation\nin general.\nWaibel highlights the significance of certain Asian nations, noting that voice translation has\nreally taken off in countries such as Japan with a range of systems. There is still a long way to go,\nthough. A translation system needs to be simultaneous, like the translator’s voice speaking over the\nforeign politician being interviewed on the TY, rather than in sections that oblige speakers to pause\nafter every few remarks and wait for the translation to be delivered. It needs to work offline, for\nsituations where internet access isn’t possible, and to address apprehensions about the amount of\nprivate speech data accumulating in the cloud, having been sent to servers for processing.\nSystems not only need to cope with physical challenges such as noise, they will also need to be\nsocially aware by addressing people in the right way. Some cultural traditions demand solemn\nrespect for academic status, for example, and it is only polite to respect this. Etiquette-sensitive\nartificial translators could relieve people of the need to know these differing cultural norms. At\nthe same time, they might help to preserve local customs, slowing the spread of habits associated\nwith international English, such as its readiness to get on first-name terms.\nProfessors and other professionals will not outsource language awareness to software, though.\nIf the technology matures into seamless, ubiquitous artificial speech translation, it will actually add\nvalue to language skills. Whether it will help people conduct their family lives or relationships\nis open to question — though one noteworthy possibility is that it could overcome the language\nbarriers that often arise between generations after migration, leaving children and their\ngrandparents without a shared language.\nWhatever uses it is put to, though, it will never be as good as the real thing. Even if voice-\nmorphing technology simulates the speaker’s voice, their lip movements won’t match, and\nthey will look like they are in a dubbed movie. The contrast will underline the value of shared\nlanguages, and the value of learning them. Sharing a language can promote a sense of belonging\nand community, as with the international scientists who use English as a lingua franca, where\ntheir predecessors used Latin. Though the practical need for a common language will diminish,\nthe social value of sharing one will persist. And software will never be a substitute for the subtle\nbut vital understanding that comes with knowledge of a language.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "multiple-choice",
+              "prompt": "What does the reader learn about the conversation in the first paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The speakers are communicating in different languages."
+                },
+                {
+                  "key": "B",
+                  "text": "Neither of the speakers is familiar with their environment."
+                },
+                {
+                  "key": "C",
+                  "text": "The topic of the conversation is difficult for both speakers."
+                },
+                {
+                  "key": "D",
+                  "text": "Aspects of the conversation are challenging for both speakers."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "multiple-choice",
+              "prompt": "What assists the electronic translator during lectures at Karlsruhe Institute of Technology?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the repeated content of lectures"
+                },
+                {
+                  "key": "B",
+                  "text": "the students’ reading skills"
+                },
+                {
+                  "key": "C",
+                  "text": "the languages used"
+                },
+                {
+                  "key": "D",
+                  "text": "the lecturers’ technical ability"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "When referring to The Hitchhiker’s Guide to the Galaxy, the writer suggests that",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the Babel fish was considered undesirable at the time."
+                },
+                {
+                  "key": "B",
+                  "text": "this book was not seriously intending to predict the future."
+                },
+                {
+                  "key": "C",
+                  "text": "artificial speech translation was not a surprising development."
+                },
+                {
+                  "key": "D",
+                  "text": "some speech translation techniques are better than others."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "What does the writer say about sharing earpieces?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Itis something people will get used to doing."
+                },
+                {
+                  "key": "B",
+                  "text": "The reluctance to do this is understandable."
+                },
+                {
+                  "key": "C",
+                  "text": "The equipment will be unnecessary in the future."
+                },
+                {
+                  "key": "D",
+                  "text": "Itis something few people need to worry about."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "Speech translation methods are developing fast in Japan",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "but there are concerns about this."
+                },
+                {
+                  "key": "B",
+                  "text": "bystems do not need to conform to standard practices."
+                },
+                {
+                  "key": "C",
+                  "text": "but they are far from perfect."
+                },
+                {
+                  "key": "D",
+                  "text": "despite the noise issues."
+                },
+                {
+                  "key": "E",
+                  "text": "because translation is immediate."
+                },
+                {
+                  "key": "F",
+                  "text": "and have an awareness of good manners."
+                }
+              ],
+              "group": {
+                "id": "r-endings-31-34",
+                "instruction": "Complete each sentence with the correct ending, A—-F, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "matching",
+              "prompt": "TV interviews that use translation voiceover methods are successful",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "but there are concerns about this."
+                },
+                {
+                  "key": "B",
+                  "text": "bystems do not need to conform to standard practices."
+                },
+                {
+                  "key": "C",
+                  "text": "but they are far from perfect."
+                },
+                {
+                  "key": "D",
+                  "text": "despite the noise issues."
+                },
+                {
+                  "key": "E",
+                  "text": "because translation is immediate."
+                },
+                {
+                  "key": "F",
+                  "text": "and have an awareness of good manners."
+                }
+              ],
+              "group": {
+                "id": "r-endings-31-34",
+                "instruction": "Complete each sentence with the correct ending, A—-F, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "matching",
+              "prompt": "Future translation systems should address people appropriately",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "but there are concerns about this."
+                },
+                {
+                  "key": "B",
+                  "text": "bystems do not need to conform to standard practices."
+                },
+                {
+                  "key": "C",
+                  "text": "but they are far from perfect."
+                },
+                {
+                  "key": "D",
+                  "text": "despite the noise issues."
+                },
+                {
+                  "key": "E",
+                  "text": "because translation is immediate."
+                },
+                {
+                  "key": "F",
+                  "text": "and have an awareness of good manners."
+                }
+              ],
+              "group": {
+                "id": "r-endings-31-34",
+                "instruction": "Complete each sentence with the correct ending, A—-F, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "matching",
+              "prompt": "Users may be able to maintain their local customs",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "but there are concerns about this."
+                },
+                {
+                  "key": "B",
+                  "text": "bystems do not need to conform to standard practices."
+                },
+                {
+                  "key": "C",
+                  "text": "but they are far from perfect."
+                },
+                {
+                  "key": "D",
+                  "text": "despite the noise issues."
+                },
+                {
+                  "key": "E",
+                  "text": "because translation is immediate."
+                },
+                {
+                  "key": "F",
+                  "text": "and have an awareness of good manners."
+                }
+              ],
+              "group": {
+                "id": "r-endings-31-34",
+                "instruction": "Complete each sentence with the correct ending, A—-F, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "yes-no-notgiven",
+              "prompt": "Language translation systems will be seen as very useful throughout the academic and professional worlds.",
+              "group": {
+                "id": "r-tfng-35-40",
+                "instruction": "Do the following statements agree with the views of the writer in Reading Passage 3?\n\nIn boxes 35-40 on your answer sheet, write\nYES if the statement agrees with the views of the writer\nNO if the statement contradicts the views of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "yes-no-notgiven",
+              "prompt": "The overall value of automated translation to family life is yet to be shown.",
+              "group": {
+                "id": "r-tfng-35-40",
+                "instruction": "Do the following statements agree with the views of the writer in Reading Passage 3?\n\nIn boxes 35-40 on your answer sheet, write\nYES if the statement agrees with the views of the writer\nNO if the statement contradicts the views of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "yes-no-notgiven",
+              "prompt": "Automated translation could make life more difficult for immigrant families.",
+              "group": {
+                "id": "r-tfng-35-40",
+                "instruction": "Do the following statements agree with the views of the writer in Reading Passage 3?\n\nIn boxes 35-40 on your answer sheet, write\nYES if the statement agrees with the views of the writer\nNO if the statement contradicts the views of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "yes-no-notgiven",
+              "prompt": "Visual aspects of language translation are being considered by scientists.",
+              "group": {
+                "id": "r-tfng-35-40",
+                "instruction": "Do the following statements agree with the views of the writer in Reading Passage 3?\n\nIn boxes 35-40 on your answer sheet, write\nYES if the statement agrees with the views of the writer\nNO if the statement contradicts the views of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "yes-no-notgiven",
+              "prompt": "International scientists have found English easier to translate into other languages than Latin.",
+              "group": {
+                "id": "r-tfng-35-40",
+                "instruction": "Do the following statements agree with the views of the writer in Reading Passage 3?\n\nIn boxes 35-40 on your answer sheet, write\nYES if the statement agrees with the views of the writer\nNO if the statement contradicts the views of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "yes-no-notgiven",
+              "prompt": "As far as language is concerned, there is a difference between people's social and practical needs.",
+              "group": {
+                "id": "r-tfng-35-40",
+                "instruction": "Do the following statements agree with the views of the writer in Reading Passage 3?\n\nIn boxes 35-40 on your answer sheet, write\nYES if the statement agrees with the views of the writer\nNO if the statement contradicts the views of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

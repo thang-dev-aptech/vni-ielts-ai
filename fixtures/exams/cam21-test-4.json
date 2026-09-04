@@ -1,0 +1,1455 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 21 — Test 4",
+  "variant": "academic",
+  "description": "Cambridge IELTS 21 Academic Test 4. Chỉ có Reading, chấm theo đáp án in trong sách; bộ audio Listening của sách này chưa có nên không thi được Listening, Writing và Speaking.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "The problems and benefits created by the spread of the water hyacinth in Kenya",
+          "body": "The problems and benefits created by the spread\n          of the water hyacinth in Kenya\nWater hyacinth (Eichhornia crassipes), an aquatic plant native to South America, first\nappeared in countries in Africa in the early 1900s. Scientists there called it the 'world's\nworst aquatic weed', after it spread from the southernmost tip of Africa in the early\n1900s and started obstructing major dams and rivers.\n\nIn east Africa the plant arrived with Belgian colonists in Rwanda, who liked the look of\nits glossy leaves and delicate purple flowers floating in their ponds. But by the 1980s, it\nhad 'escaped' out of the country via the Kagera river and made its way downstream to\nLake Victoria. There, with no natural predators and perfect temperature conditions, the\nplant began spreading in the open water, blocking fishing routes and providing a new\nhabitat for disease-carrying mosquitoes.\n\nFor the women who smoke fish from the lake to sell it has meant declining income,\nas the boats that once brought the fish to shore by the hundreds struggle to navigate\nthrough the mass of plants. But water hyacinth isn't their only headache. In order to\nsmoke the fish that they buy, they must gather huge quantities of firewood, sometimes\nwalking as far as 10km each way to collect enough to complete their work. And each\nday as they cook, they breathe in the thick, grey smoke. About three out of four\nfamilies in Kenya depend on wood or charcoal to cook their daily meals, and the rate\nis even higher in rural areas, Kenya's latest demographic and health survey shows.\nUsing solid fuels like these for cooking increases indoor pollution. The World Health\nOrganization estimates that about 14,300 Kenyans die annually as a result of indoor air\npollution - most of which is caused by cooking and heating sources.\n\nSome years ago, on the shores of Lake Victoria, huge piles of water hyacinth that\nvillagers had taken out of the water in an attempt to clear it were a common sight.\nBut buried in those decaying waxy leaves was a renewable energy gold mine. It turns\nout the floating plant isn't just good at spreading - its foliage also contains a high\nratio of carbon to nitrogen. It's a magic combination that has captivated researchers'\nimaginations since as early as the 1980s when, across the world, they began to explore\nits potential as a biofuel. Just about 4kg of the dried plant would be enough to cater\nfor a large family's daily energy needs, early research predicted.\n\nIn 2014, Nigerian academics announced they had got better yields of biofuel gas\nwhen they mixed the plant with chicken manure. A few years later, Kenyan scientists\nconfirmed what their Nigerian peers and others had already found: manure worked to\nimprove the process of converting the weed into gas.\n\nIn 2018, the technology came to a village on the shore of Lake Victoria, called Dunga.\nThe project promised a two-for-one solution to the dual menaces of the water hyacinth\nand dependence on firewood. The community received a pair of donated biogas\ndigesters - machines that would transform a mix of water hyacinth and cow dung into\nbiogas for cooking.\n\nThe digesters work a bit like a stomach. The mixture goes in one end - think of it as\na mouth - and over the next 20 to 30 days, it goes through a fermentation process\nand breaks down, giving off gas that comes out the other end. From there, the clean-\nburning gas is passed through pipes to the point of use, just like traditional domestic\ngas. In Dunga, the machines produce enough gas to serve about 60% of the village's\npopulation. It is used in domestic stoves and for other household tasks such as\npurifying water and incubating chicks.\n\nThe project is testing whether biogas can provide an effective alternative to firewood\nand charcoal in rural Kenyan communities. Results indicate that the programme seems\nto be working. The women who smoke the lake fish are already getting sick less often.\nBesides, they don't have to devote a lot of time every day to gathering firewood,\nwhich is a great relief. As a result, they're able to make more money for their families\nfrom other enterprises.\n\nKanyiva Muindi is an epidemiologist and air pollution research fellow at the African\nPopulation and Health Research Centre in Nairobi. She says families who switch to the\nsmokeless cooking method could expect fewer respiratory diseases. Women, young\ngirls and children are particularly vulnerable because they are the ones who cook in the\nkitchen or outside over fires.\n\nHow much better the biogas stoves will be for the community's health still needs more\nresearch, says Dominic Kahumbu Wanjihia, Biogas lnternational's chief executive. But\nunless the price of the machines drops, it's pretty clear that most communities will\nnever be able to afford any, since they sell for about $750.\n\nKanyiva says affordability is a challenge worth addressing, given the huge health and\nenvironmental dangers posed by 'dirty' fuels such as wood, charcoal and kerosene. If\nbiogas could become affordable on a large scale, she says it 'would be life-changing\nfor millions on the African continent and beyond'.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "true-false-notgiven",
+              "prompt": "Water hyacinth was introduced as a decorative plant in east Africa.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1-7 on your answer sheet, write\n\n       TRUE            if the statement agrees with the information\n       FALSE           if the statement contradicts the information\n       NOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "true-false-notgiven",
+              "prompt": "Fishermen took some water hyacinth plants to Lake Victoria.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1-7 on your answer sheet, write\n\n       TRUE            if the statement agrees with the information\n       FALSE           if the statement contradicts the information\n       NOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "true-false-notgiven",
+              "prompt": "It is now difficult to force boats through the thick water hyacinth on Lake Victoria.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1-7 on your answer sheet, write\n\n       TRUE            if the statement agrees with the information\n       FALSE           if the statement contradicts the information\n       NOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "true-false-notgiven",
+              "prompt": "Chemicals produced by the water hyacinth plants are affecting the numbers of fish\n    in Lake Victoria.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1-7 on your answer sheet, write\n\n       TRUE            if the statement agrees with the information\n       FALSE           if the statement contradicts the information\n       NOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "true-false-notgiven",
+              "prompt": "Cooking with charcoal has been proved to be even worse for people's health than\n    cooking with wood.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1-7 on your answer sheet, write\n\n       TRUE            if the statement agrees with the information\n       FALSE           if the statement contradicts the information\n       NOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "true-false-notgiven",
+              "prompt": "People found it impossible to remove much water hyacinth from Lake Victoria.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1-7 on your answer sheet, write\n\n       TRUE            if the statement agrees with the information\n       FALSE           if the statement contradicts the information\n       NOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "true-false-notgiven",
+              "prompt": "Scientists started investigating the possibility of using water hyacinth to generate\n    biogas in the last century.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1-7 on your answer sheet, write\n\n       TRUE            if the statement agrees with the information\n       FALSE           if the statement contradicts the information\n       NOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "r-flow-8-10",
+                "instruction": "Complete the flow-chart below.\n\nChoose NO MORE THAN TWO WORDS from the passage for each answer.\n\nWrite your answers in boxes 8-10 on your answer sheet.",
+                "title": "Generating biogas for domestic use in Dunga",
+                "text": "Generating biogas for domestic use in Dunga\n\nFirst, place water hyacinth together with some\n[8]\ninto a digester\n\nLeave the mixture until the [9]\nis completed\n\nCapture the gas emitted by the digester and\nuse [10]\nto transport it to individual homes\n\nThen use the gas for cooking as well as making water fit for\nhuman consumption"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "cow dung"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "r-flow-8-10",
+                "instruction": "Complete the flow-chart below.\n\nChoose NO MORE THAN TWO WORDS from the passage for each answer.\n\nWrite your answers in boxes 8-10 on your answer sheet.",
+                "title": "Generating biogas for domestic use in Dunga",
+                "text": "Generating biogas for domestic use in Dunga\n\nFirst, place water hyacinth together with some\n[8]\ninto a digester\n\nLeave the mixture until the [9]\nis completed\n\nCapture the gas emitted by the digester and\nuse [10]\nto transport it to individual homes\n\nThen use the gas for cooking as well as making water fit for\nhuman consumption"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "fermentation (process)"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "r-flow-8-10",
+                "instruction": "Complete the flow-chart below.\n\nChoose NO MORE THAN TWO WORDS from the passage for each answer.\n\nWrite your answers in boxes 8-10 on your answer sheet.",
+                "title": "Generating biogas for domestic use in Dunga",
+                "text": "Generating biogas for domestic use in Dunga\n\nFirst, place water hyacinth together with some\n[8]\ninto a digester\n\nLeave the mixture until the [9]\nis completed\n\nCapture the gas emitted by the digester and\nuse [10]\nto transport it to individual homes\n\nThen use the gas for cooking as well as making water fit for\nhuman consumption"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "pipes"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "completion",
+              "prompt": "Question 11",
+              "group": {
+                "id": "r-notes-11-13",
+                "instruction": "Complete the notes below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 11-13 on your answer sheet.",
+                "title": "Cooking with biogas in Dunga",
+                "text": "Cooking with biogas in Dunga\nBenefits for the women in the village of cooking with biogas\n•    no need for them to spend so much [11]\n                                                                       collecting fuel\n\n•    they can focus on different tasks that bring in [12]\n\n•    they are less likely to experience certain diseases connected to burning wood\n\nDrawbacks of changing to biogas\n•    the [13]\n                                         of the digesters is beyond the reach of most villages"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "time"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "completion",
+              "prompt": "Question 12",
+              "group": {
+                "id": "r-notes-11-13",
+                "instruction": "Complete the notes below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 11-13 on your answer sheet.",
+                "title": "Cooking with biogas in Dunga",
+                "text": "Cooking with biogas in Dunga\nBenefits for the women in the village of cooking with biogas\n•    no need for them to spend so much [11]\n                                                                       collecting fuel\n\n•    they can focus on different tasks that bring in [12]\n\n•    they are less likely to experience certain diseases connected to burning wood\n\nDrawbacks of changing to biogas\n•    the [13]\n                                         of the digesters is beyond the reach of most villages"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "money"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "completion",
+              "prompt": "Question 13",
+              "group": {
+                "id": "r-notes-11-13",
+                "instruction": "Complete the notes below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 11-13 on your answer sheet.",
+                "title": "Cooking with biogas in Dunga",
+                "text": "Cooking with biogas in Dunga\nBenefits for the women in the village of cooking with biogas\n•    no need for them to spend so much [11]\n                                                                       collecting fuel\n\n•    they can focus on different tasks that bring in [12]\n\n•    they are less likely to experience certain diseases connected to burning wood\n\nDrawbacks of changing to biogas\n•    the [13]\n                                         of the digesters is beyond the reach of most villages"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "price"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "How could multilingualism benefit India's poorest schoolchildren?",
+          "body": "How could multilingualism benefit India's poorest\n                    schoolchildren?\nThe crowded and bustling streets of Delhi teem with life. Stop to listen and, above the din\nof rickshaws and buses, you'll hear a multitude of languages, as more than 20 million people\ngo about their daily lives. Many were born and raised here, and many millions more have\nrecently made India's capital their home, having moved from surrounding neighbourhoods,\ncities and states or across the country, often in the hope of gaining better jobs and a better\nlife. Some arrive speaking fluent Hindi, the dominant language in Delhi (and the official\nlanguage of government), but many arrive speaking any number of India's 22 officially\nrecognised languages, let alone the hundreds of regional languages in a country of more\nthan 1.3 billion people.\n\nA team of researchers led by Professor Ianthi Tsimpli of Cambridge University is currently\nworking on a project collecting data on 1,000 primary-age children in Delhi and the cities of\nHyderabad and Bihar. The overriding aim of the four-year project, called 'Multilingualism\nand Multiliteracy', is to find out why in a country where multilingualism is so common\n(more than 255 million people in India speak at least two languages, and nearly 90 million\nspeak three or more languages), the many benefits of speaking more than one language,\nobserved in schools in Europe for instance, do not apply to many of India's schoolchildren.\n\n'Each year across India, 600,000 children are tested, and year after year over 50% of children\nin Standard 5 [ten-year-olds] cannot read a Standard 2 [seven-year-olds] task fluently, and\njust under 50% of them cannot solve a Standard 2 subtraction task,' says Tsimpli. She\nexplains that low educational achievement can lead to many of these students dropping out\nof school - a problem disproportionately affecting female students.\n\nTsimpli and her colleagues are investigating whether these low learning outcomes could\nbe caused by an Indian school system where the language that children are taught in often\ndiffers from the language used at home. The research project, which focuses on 8 to 11-year-\nold schoolchildren in rural and urban areas, collects data on whether the schoolchildren live\nin slum* or non-slum areas. Many of the children have moved from remote, rural areas to\nurban areas. They are so poor they have to live in slums and, as a result of migration, they\nmay speak languages that are different from the regional language.\n\nHaving already tested 1,000 children, the researchers will now embark on retesting them.\nThey intend to look not only at test results, but also at variables such as the standard of\nschooling, the environment and the teaching practices themselves. It's possible that one\nof the causes of low performance is the lack of pupil-centred teaching methods; in many\nIndian primary schools the teacher dominates and there is little room for independent\nlearning.\n\nAlthough the findings are at a preliminary stage, Tsimpli and her team have found that the\nmedium of instruction used in schools, especially English, may hold back those children who\nhave little familiarity with, or exposure to, the language before starting school and outside\nof school life. According to Tsimpli, most of the evidence from this and other projects shows\nthat English instruction for children from low socio-economic areas might not be the best\nway for them to learn, at least in the first three years of primary education.\n\n'What we would recommend for everyone, not just low socio-economic status children,\nwould be to start learning in the language they feel comfortable learning in ... English can\nstill be used, but perhaps not as the medium of instruction in primary schools. It could,\nfor example, be one of the subjects that are being taught alongside other subjects. We are\nnot suggesting that English be withdrawn - that ship has sailed - but we perhaps have to\nthink more about learner needs. There is perhaps too much uniformity in teaching and less\ntailoring to the children's language abilities and needs,' says Tsimpli.\n\nWhile the preliminary results show there is no difference in general intelligence among boys\nand girls from slum areas versus those from urban poor backgrounds, an unanticipated\nfinding has been that children from slum backgrounds do not seem to lag behind children\nfrom other urban poor backgrounds - and in some cases outperform them (e.g. in numeracy\nand literacy tasks). According to the researchers, this unexpected finding may be down to\nthe life experiences of children growing up in slums. They are likely to mature faster and\ncome into closer contact with the numeracy skills essential for day-to-day survival.\n\nThe project has already caught the attention of government ministers, who are keen to\nuse the findings of the study to inform and adjust school policy in Delhi and the wider\nstate. 'They are as keen as us to understand how the challenging context of deprivation\ncan be attenuated when focusing on the languages children learn and use while at school.\nOur findings don't mean you're doomed if you're poor. It may be that these low learning\noutcomes are because of the way education is provided in India, with a huge focus on Hindi\nand English as the mediums of instruction, to the potential detriment of children unfamiliar\nwith those languages,' explains Tsimpli.\n\n'Language is central to the way knowledge is transferred - so the medium of instruction\nis obviously hugely influential. We hope to ... show that problem solving, numeracy and\nliteracy can and do improve in children who are educated in a language of instruction they\nknow. The trick may be to bridge school skills with life skills and make use of the richness of\na child's life experience to help them learn in the most effective ways possible,' says Tsimpli.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "The city of Delhi has a [14] and as you walk through its streets you\nhear people speaking a variety of languages.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "basic outlook"
+                },
+                {
+                  "key": "B",
+                  "text": "employment opportunities"
+                },
+                {
+                  "key": "C",
+                  "text": "wealthy visitors"
+                },
+                {
+                  "key": "D",
+                  "text": "distant country"
+                },
+                {
+                  "key": "E",
+                  "text": "primary objective"
+                },
+                {
+                  "key": "F",
+                  "text": "similar advantages"
+                },
+                {
+                  "key": "G",
+                  "text": "thriving economy"
+                },
+                {
+                  "key": "H",
+                  "text": "nearby district"
+                },
+                {
+                  "key": "I",
+                  "text": "dense population"
+                },
+                {
+                  "key": "J",
+                  "text": "new immigrants"
+                }
+              ],
+              "group": {
+                "id": "r-summary-14-19",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 14-19 on your answer sheet.",
+                "title": "Multilingualism in Delhi",
+                "text": "Multilingualism in Delhi\nThe city of Delhi has a [14]\nand as you walk through its streets you\nhear people speaking a variety of languages. Some of them have spent their entire life\nin Delhi, while others are [15]\nWhether they have come from a\n[16]\nor have travelled from the other side of India, they have all come\nin search of things such as improved [17]\n\nA team of researchers led by Professor lanthi Tsimpli of Cambridge University is\ncollecting data on primary-age schoolchildren in Delhi and other Indian cities.\nThe [18]\nof the research is to discover why multilingual Indian\nschoolchildren do not experience [19]\nto those that multilingual\nschoolchildren in Europe experience."
+              },
+              "answerKey": {
+                "accepted": [
+                  "I"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "Some of them have spent their entire life\nin Delhi, while others are [15]",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "basic outlook"
+                },
+                {
+                  "key": "B",
+                  "text": "employment opportunities"
+                },
+                {
+                  "key": "C",
+                  "text": "wealthy visitors"
+                },
+                {
+                  "key": "D",
+                  "text": "distant country"
+                },
+                {
+                  "key": "E",
+                  "text": "primary objective"
+                },
+                {
+                  "key": "F",
+                  "text": "similar advantages"
+                },
+                {
+                  "key": "G",
+                  "text": "thriving economy"
+                },
+                {
+                  "key": "H",
+                  "text": "nearby district"
+                },
+                {
+                  "key": "I",
+                  "text": "dense population"
+                },
+                {
+                  "key": "J",
+                  "text": "new immigrants"
+                }
+              ],
+              "group": {
+                "id": "r-summary-14-19",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 14-19 on your answer sheet.",
+                "title": "Multilingualism in Delhi",
+                "text": "Multilingualism in Delhi\nThe city of Delhi has a [14]\nand as you walk through its streets you\nhear people speaking a variety of languages. Some of them have spent their entire life\nin Delhi, while others are [15]\nWhether they have come from a\n[16]\nor have travelled from the other side of India, they have all come\nin search of things such as improved [17]\n\nA team of researchers led by Professor lanthi Tsimpli of Cambridge University is\ncollecting data on primary-age schoolchildren in Delhi and other Indian cities.\nThe [18]\nof the research is to discover why multilingual Indian\nschoolchildren do not experience [19]\nto those that multilingual\nschoolchildren in Europe experience."
+              },
+              "answerKey": {
+                "accepted": [
+                  "J"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Whether they have come from a\n[16]\nor have travelled from the other side of India, they have all come",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "basic outlook"
+                },
+                {
+                  "key": "B",
+                  "text": "employment opportunities"
+                },
+                {
+                  "key": "C",
+                  "text": "wealthy visitors"
+                },
+                {
+                  "key": "D",
+                  "text": "distant country"
+                },
+                {
+                  "key": "E",
+                  "text": "primary objective"
+                },
+                {
+                  "key": "F",
+                  "text": "similar advantages"
+                },
+                {
+                  "key": "G",
+                  "text": "thriving economy"
+                },
+                {
+                  "key": "H",
+                  "text": "nearby district"
+                },
+                {
+                  "key": "I",
+                  "text": "dense population"
+                },
+                {
+                  "key": "J",
+                  "text": "new immigrants"
+                }
+              ],
+              "group": {
+                "id": "r-summary-14-19",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 14-19 on your answer sheet.",
+                "title": "Multilingualism in Delhi",
+                "text": "Multilingualism in Delhi\nThe city of Delhi has a [14]\nand as you walk through its streets you\nhear people speaking a variety of languages. Some of them have spent their entire life\nin Delhi, while others are [15]\nWhether they have come from a\n[16]\nor have travelled from the other side of India, they have all come\nin search of things such as improved [17]\n\nA team of researchers led by Professor lanthi Tsimpli of Cambridge University is\ncollecting data on primary-age schoolchildren in Delhi and other Indian cities.\nThe [18]\nof the research is to discover why multilingual Indian\nschoolchildren do not experience [19]\nto those that multilingual\nschoolchildren in Europe experience."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "in search of things such as improved [17]",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "basic outlook"
+                },
+                {
+                  "key": "B",
+                  "text": "employment opportunities"
+                },
+                {
+                  "key": "C",
+                  "text": "wealthy visitors"
+                },
+                {
+                  "key": "D",
+                  "text": "distant country"
+                },
+                {
+                  "key": "E",
+                  "text": "primary objective"
+                },
+                {
+                  "key": "F",
+                  "text": "similar advantages"
+                },
+                {
+                  "key": "G",
+                  "text": "thriving economy"
+                },
+                {
+                  "key": "H",
+                  "text": "nearby district"
+                },
+                {
+                  "key": "I",
+                  "text": "dense population"
+                },
+                {
+                  "key": "J",
+                  "text": "new immigrants"
+                }
+              ],
+              "group": {
+                "id": "r-summary-14-19",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 14-19 on your answer sheet.",
+                "title": "Multilingualism in Delhi",
+                "text": "Multilingualism in Delhi\nThe city of Delhi has a [14]\nand as you walk through its streets you\nhear people speaking a variety of languages. Some of them have spent their entire life\nin Delhi, while others are [15]\nWhether they have come from a\n[16]\nor have travelled from the other side of India, they have all come\nin search of things such as improved [17]\n\nA team of researchers led by Professor lanthi Tsimpli of Cambridge University is\ncollecting data on primary-age schoolchildren in Delhi and other Indian cities.\nThe [18]\nof the research is to discover why multilingual Indian\nschoolchildren do not experience [19]\nto those that multilingual\nschoolchildren in Europe experience."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "The [18]\nof the research is to discover why multilingual Indian\nschoolchildren do not experience",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "basic outlook"
+                },
+                {
+                  "key": "B",
+                  "text": "employment opportunities"
+                },
+                {
+                  "key": "C",
+                  "text": "wealthy visitors"
+                },
+                {
+                  "key": "D",
+                  "text": "distant country"
+                },
+                {
+                  "key": "E",
+                  "text": "primary objective"
+                },
+                {
+                  "key": "F",
+                  "text": "similar advantages"
+                },
+                {
+                  "key": "G",
+                  "text": "thriving economy"
+                },
+                {
+                  "key": "H",
+                  "text": "nearby district"
+                },
+                {
+                  "key": "I",
+                  "text": "dense population"
+                },
+                {
+                  "key": "J",
+                  "text": "new immigrants"
+                }
+              ],
+              "group": {
+                "id": "r-summary-14-19",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 14-19 on your answer sheet.",
+                "title": "Multilingualism in Delhi",
+                "text": "Multilingualism in Delhi\nThe city of Delhi has a [14]\nand as you walk through its streets you\nhear people speaking a variety of languages. Some of them have spent their entire life\nin Delhi, while others are [15]\nWhether they have come from a\n[16]\nor have travelled from the other side of India, they have all come\nin search of things such as improved [17]\n\nA team of researchers led by Professor lanthi Tsimpli of Cambridge University is\ncollecting data on primary-age schoolchildren in Delhi and other Indian cities.\nThe [18]\nof the research is to discover why multilingual Indian\nschoolchildren do not experience [19]\nto those that multilingual\nschoolchildren in Europe experience."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "schoolchildren do not experience [19]\nto those that multilingual\nschoolchildren in Europe experience.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "basic outlook"
+                },
+                {
+                  "key": "B",
+                  "text": "employment opportunities"
+                },
+                {
+                  "key": "C",
+                  "text": "wealthy visitors"
+                },
+                {
+                  "key": "D",
+                  "text": "distant country"
+                },
+                {
+                  "key": "E",
+                  "text": "primary objective"
+                },
+                {
+                  "key": "F",
+                  "text": "similar advantages"
+                },
+                {
+                  "key": "G",
+                  "text": "thriving economy"
+                },
+                {
+                  "key": "H",
+                  "text": "nearby district"
+                },
+                {
+                  "key": "I",
+                  "text": "dense population"
+                },
+                {
+                  "key": "J",
+                  "text": "new immigrants"
+                }
+              ],
+              "group": {
+                "id": "r-summary-14-19",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 14-19 on your answer sheet.",
+                "title": "Multilingualism in Delhi",
+                "text": "Multilingualism in Delhi\nThe city of Delhi has a [14]\nand as you walk through its streets you\nhear people speaking a variety of languages. Some of them have spent their entire life\nin Delhi, while others are [15]\nWhether they have come from a\n[16]\nor have travelled from the other side of India, they have all come\nin search of things such as improved [17]\n\nA team of researchers led by Professor lanthi Tsimpli of Cambridge University is\ncollecting data on primary-age schoolchildren in Delhi and other Indian cities.\nThe [18]\nof the research is to discover why multilingual Indian\nschoolchildren do not experience [19]\nto those that multilingual\nschoolchildren in Europe experience."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "yes-no-notgiven",
+              "prompt": "Ten-year-old Indian schoolchildren tend to perform better in literacy tests than in\n         numeracy tests.",
+              "group": {
+                "id": "r-ynng-20-23",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 20-23 on your answer sheet, write\n           YES             if the statement agrees with the claims of the writer\n           NO              if the statement contradicts the claims of the writer\n           NOT GIVEN       if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "yes-no-notgiven",
+              "prompt": "Tsimpli had problems convincing some female students to take part in the study.",
+              "group": {
+                "id": "r-ynng-20-23",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 20-23 on your answer sheet, write\n           YES             if the statement agrees with the claims of the writer\n           NO              if the statement contradicts the claims of the writer\n           NOT GIVEN       if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "yes-no-notgiven",
+              "prompt": "Tsimpli and her team wanted to know if there is a connection between poor\n         academic performance and being taught in an unfamiliar language.",
+              "group": {
+                "id": "r-ynng-20-23",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 20-23 on your answer sheet, write\n           YES             if the statement agrees with the claims of the writer\n           NO              if the statement contradicts the claims of the writer\n           NOT GIVEN       if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "yes-no-notgiven",
+              "prompt": "The researchers have decided against investigating the impact teaching\n         methodology may have on learning outcomes.",
+              "group": {
+                "id": "r-ynng-20-23",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 20-23 on your answer sheet, write\n           YES             if the statement agrees with the claims of the writer\n           NO              if the statement contradicts the claims of the writer\n           NOT GIVEN       if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "What point does the writer make about primary schools in India in the sixth\n     paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Exposure to English outside of school is of limited benefit."
+                },
+                {
+                  "key": "B",
+                  "text": "Children learn English more easily when they are well motivated."
+                },
+                {
+                  "key": "C",
+                  "text": "Poor children may be disadvantaged further by being instructed in English."
+                },
+                {
+                  "key": "D",
+                  "text": "There is little consistency across schools with regard to instruction in English."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "multiple-choice",
+              "prompt": "What is Tsimpli suggesting when she uses the phrase 'that ship has sailed'?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The findings of the report may be of little help to some Indian schoolchildren."
+                },
+                {
+                  "key": "B",
+                  "text": "Instruction in English could be better adapted to the needs of schoolchildren."
+                },
+                {
+                  "key": "C",
+                  "text": "Schools have had limited success in teaching English as a separate subject."
+                },
+                {
+                  "key": "D",
+                  "text": "It is too late to remove English completely as a language of instruction in\n           schools."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "multiple-choice",
+              "prompt": "In the eighth paragraph, what do we learn has surprised researchers?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Boys and girls from low socio-economic groups have similar general\n           intelligence levels."
+                },
+                {
+                  "key": "B",
+                  "text": "The age at which children move into a slum does not affect their academic\n           performance."
+                },
+                {
+                  "key": "C",
+                  "text": "Slum children and children from other urban poor backgrounds have similar\n           life experiences."
+                },
+                {
+                  "key": "D",
+                  "text": "The literacy and numeracy skills of slum children are not lower than those of\n           children from other urban poor backgrounds."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "The Globemakers: The Curious Story of an Ancient Craft",
+          "body": "The Globemakers: The Curious Story of\n                          an Ancient Craft\n                             A review of Peter Belferby's book The Globemakers\n\nIn 2008, Peter Bellerby, who lived in London, wanted to give his father a model globe\nfor his eightieth birthday. What seemed simple enough to start with triggered an\nalmost obsessive, decade-long journey, marked by a series of obstacles that would\nhave deterred anyone less determined. It ended with his establishing the world's only\nbespoke globemaking company.\n\nThe first surprise in The Globemakers, Bellerby's account of this impulsive enterprise,\nis that obtaining such a globe was not simply a matter of a quick online order and a\nrepressed sigh at the shipping costs. After all, contrary to stubbornly held popular\nviews of our ancestors' geographical ignorance, we have known that the world is\nspherical since at least the 6th century BCE. The ancient Greek philosopher Plato in\nhis work Phaedo likened it to a leather ball, while the accolade of producing the first\nrecorded globe goes to the ancient Greek philosopher Crates of Mallus, who is said\nto have made one in around 150 BCE. Surely, Bellerby reasoned, a good-quality globe\nwouldn't be difficult to find.\n\nNearly two millennia later, however, it seemed that the art of globemaking had been\nlargely forgotten. Bellerby came across shoddy commercial versions designed for\nschool classrooms and genuine antiques in auction houses that would have bust his\nbudget. Even his trips to Morocco and India, where surely the knowledge of artisan\ncartographers* had been preserved, drew a blank.\n\n Not one to be easily thwarted, Bellerby decided to make his own good-quality globe.\n In the process, almost everything that could possibly go wrong did so. Even the shape\nof the Earth posed a problem, as it is not quite a perfect sphere, but oblate (slightly\nflattened at the poles). Having decided to compromise and opt for two half-spherical\npieces that could be fitted together, he was unable to discover anyone capable of casting\nmoulds with sufficient accuracy to ensure that he would not be left with two half-spheres\nthat were not quite the same circumference. Even after he eventually resolved this issue,\nextracting these from the moulds resulted in piles of cracked plaster of Paris** and clouds\nof choking dust in the workshop he had set up at the rear of his house.\n\nThis series of abortive experiments taught Bellerby a lot about the challenges of\nmaking globes, which he communicates here to the reader. Finding just the right way\nto prise the globes from the mould - a high-end air compressor finally did the trick -\nand locating the right paper and inks with which to make the gores (the sections of\nflat sheet mapping that are pasted onto the spherical globe) without the ink seeping\nout to create a mushy, unreadable mess took months and an alarming chunk out of his\nbank balance. Bellerby's frustration at the painstaking process of attaching the gores to\nthe globe surface - after having found a glue with precisely the right adhesive qualities\n- is palpable. Right at the end of the process, he learnt that the paper had stretched\nslightly and so the final one overlapped the first by a centimetre (which may not seem a\ngreat deal, but when that represents 2 per cent of the Earth's diameter, it's equivalent\nto obliterating the Himalayas or wiping out Chile).\n\nBellerby's account of the technical challenges of globe production is interspersed with\na series of interludes on great globemakers of the past and cartographic history in\ngeneral. Purists might wish for more map-making details, but Bellerby clearly found\na kindred spirit in Martin Behaim. He was the Nuremberg entrepreneur who in 1492\ncreated the Erdapfel, the world's oldest surviving globe, beautifully finished by a\nworkshop of painters and other craftsmen, only to find that the explorer Christopher\nColumbus had stumbled upon the Americas the very same year, rendering his\nmasterpiece instantly out of date. Something of Bellerby's unflinching ambition is\nreflected in the even more heroic efforts of the Italian cartographer Vincenzo Coronel Ii,\nwho, in the seventeenth century, created two globes for Louis XIV of France. It took\nhim twenty years to complete the monstrous pair, whose vast bulk - each with a\ndiameter of around four metres - can still be admired in the National Library of France\nin Paris.\n\nAlthough a celebration of the revival of an ancient craft, Bellerby's book is also a\nlament for the fading away of centuries-old traditions. When he embarked on his\nglobemaking odyssey, he struggled to find artisans with the skills to make the right\nmoulds for the globes or foundries that could shape the meridians (the metal frames\nwhich girdle globes) in just the right way. Although he finally located the right\ncraftsmen, some simply dropping in, serendipitously, to his workshop (by now in more\nsuitable premises than his back room), many of these have now retired or passed away.\n\nBellerby's father finally did receive his eightieth birthday present, albeit two years late.\nBellerby went on to found a company which now turns out over six hundred globes\na year for customers who can have their own tiny village marked or more unusual\nrequests fulfilled. His book, beautifully illustrated with photographs of the various\nstages of his venture and a few illustrations of historic globes and maps, is hardly a\nblueprint for commercial success. But it is more than enough to stir up admiration for\nthe craftsmanship of the great mapmakers of the past and the obsessive determination\nof a modern successor who revived their almost moribund art.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Peter Bellerby's plan to give his father a globe for his birthday was an unexpectedly\n27 [27]\n                                for which he had to overcome 28 [28]",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "educational use"
+                },
+                {
+                  "key": "B",
+                  "text": "rare materials"
+                },
+                {
+                  "key": "C",
+                  "text": "inferior makes"
+                },
+                {
+                  "key": "D",
+                  "text": "product exchange"
+                },
+                {
+                  "key": "E",
+                  "text": "necessary skills"
+                },
+                {
+                  "key": "F",
+                  "text": "international markets"
+                },
+                {
+                  "key": "G",
+                  "text": "challenging task"
+                },
+                {
+                  "key": "H",
+                  "text": "memorable object"
+                },
+                {
+                  "key": "I",
+                  "text": "internet purchase"
+                },
+                {
+                  "key": "J",
+                  "text": "numerous problems"
+                }
+              ],
+              "group": {
+                "id": "r-summary-27-32",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 27-32 on your answer sheet.",
+                "title": "A birthday gift",
+                "text": "A birthday gift\nPeter Bellerby's plan to give his father a globe for his birthday was an unexpectedly\n[27]\nfor which he had to overcome [28]\n\nHe soon learnt that a straightforward [29]\nwould not be possible.\nSome [30]\nthat had been intended for [31]\nwere\navailable, as were some expensive antique globes, but these were beyond his budget.\nHe even travelled to places where people might still have the [32]\n,\nbut Bellerby could not find what he wanted."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "for which he had to overcome 28 [28]",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "educational use"
+                },
+                {
+                  "key": "B",
+                  "text": "rare materials"
+                },
+                {
+                  "key": "C",
+                  "text": "inferior makes"
+                },
+                {
+                  "key": "D",
+                  "text": "product exchange"
+                },
+                {
+                  "key": "E",
+                  "text": "necessary skills"
+                },
+                {
+                  "key": "F",
+                  "text": "international markets"
+                },
+                {
+                  "key": "G",
+                  "text": "challenging task"
+                },
+                {
+                  "key": "H",
+                  "text": "memorable object"
+                },
+                {
+                  "key": "I",
+                  "text": "internet purchase"
+                },
+                {
+                  "key": "J",
+                  "text": "numerous problems"
+                }
+              ],
+              "group": {
+                "id": "r-summary-27-32",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 27-32 on your answer sheet.",
+                "title": "A birthday gift",
+                "text": "A birthday gift\nPeter Bellerby's plan to give his father a globe for his birthday was an unexpectedly\n[27]\nfor which he had to overcome [28]\n\nHe soon learnt that a straightforward [29]\nwould not be possible.\nSome [30]\nthat had been intended for [31]\nwere\navailable, as were some expensive antique globes, but these were beyond his budget.\nHe even travelled to places where people might still have the [32]\n,\nbut Bellerby could not find what he wanted."
+              },
+              "answerKey": {
+                "accepted": [
+                  "J"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "He soon learnt that a straightforward [29]\nwould not be possible.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "educational use"
+                },
+                {
+                  "key": "B",
+                  "text": "rare materials"
+                },
+                {
+                  "key": "C",
+                  "text": "inferior makes"
+                },
+                {
+                  "key": "D",
+                  "text": "product exchange"
+                },
+                {
+                  "key": "E",
+                  "text": "necessary skills"
+                },
+                {
+                  "key": "F",
+                  "text": "international markets"
+                },
+                {
+                  "key": "G",
+                  "text": "challenging task"
+                },
+                {
+                  "key": "H",
+                  "text": "memorable object"
+                },
+                {
+                  "key": "I",
+                  "text": "internet purchase"
+                },
+                {
+                  "key": "J",
+                  "text": "numerous problems"
+                }
+              ],
+              "group": {
+                "id": "r-summary-27-32",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 27-32 on your answer sheet.",
+                "title": "A birthday gift",
+                "text": "A birthday gift\nPeter Bellerby's plan to give his father a globe for his birthday was an unexpectedly\n[27]\nfor which he had to overcome [28]\n\nHe soon learnt that a straightforward [29]\nwould not be possible.\nSome [30]\nthat had been intended for [31]\nwere\navailable, as were some expensive antique globes, but these were beyond his budget.\nHe even travelled to places where people might still have the [32]\n,\nbut Bellerby could not find what he wanted."
+              },
+              "answerKey": {
+                "accepted": [
+                  "I"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Some [30]\nthat had been intended for [31]\nwere",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "educational use"
+                },
+                {
+                  "key": "B",
+                  "text": "rare materials"
+                },
+                {
+                  "key": "C",
+                  "text": "inferior makes"
+                },
+                {
+                  "key": "D",
+                  "text": "product exchange"
+                },
+                {
+                  "key": "E",
+                  "text": "necessary skills"
+                },
+                {
+                  "key": "F",
+                  "text": "international markets"
+                },
+                {
+                  "key": "G",
+                  "text": "challenging task"
+                },
+                {
+                  "key": "H",
+                  "text": "memorable object"
+                },
+                {
+                  "key": "I",
+                  "text": "internet purchase"
+                },
+                {
+                  "key": "J",
+                  "text": "numerous problems"
+                }
+              ],
+              "group": {
+                "id": "r-summary-27-32",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 27-32 on your answer sheet.",
+                "title": "A birthday gift",
+                "text": "A birthday gift\nPeter Bellerby's plan to give his father a globe for his birthday was an unexpectedly\n[27]\nfor which he had to overcome [28]\n\nHe soon learnt that a straightforward [29]\nwould not be possible.\nSome [30]\nthat had been intended for [31]\nwere\navailable, as were some expensive antique globes, but these were beyond his budget.\nHe even travelled to places where people might still have the [32]\n,\nbut Bellerby could not find what he wanted."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "that had been intended for [31]\nwere\navailable, as were some expensive antique globes, but these were beyond his budget.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "educational use"
+                },
+                {
+                  "key": "B",
+                  "text": "rare materials"
+                },
+                {
+                  "key": "C",
+                  "text": "inferior makes"
+                },
+                {
+                  "key": "D",
+                  "text": "product exchange"
+                },
+                {
+                  "key": "E",
+                  "text": "necessary skills"
+                },
+                {
+                  "key": "F",
+                  "text": "international markets"
+                },
+                {
+                  "key": "G",
+                  "text": "challenging task"
+                },
+                {
+                  "key": "H",
+                  "text": "memorable object"
+                },
+                {
+                  "key": "I",
+                  "text": "internet purchase"
+                },
+                {
+                  "key": "J",
+                  "text": "numerous problems"
+                }
+              ],
+              "group": {
+                "id": "r-summary-27-32",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 27-32 on your answer sheet.",
+                "title": "A birthday gift",
+                "text": "A birthday gift\nPeter Bellerby's plan to give his father a globe for his birthday was an unexpectedly\n[27]\nfor which he had to overcome [28]\n\nHe soon learnt that a straightforward [29]\nwould not be possible.\nSome [30]\nthat had been intended for [31]\nwere\navailable, as were some expensive antique globes, but these were beyond his budget.\nHe even travelled to places where people might still have the [32]\n,\nbut Bellerby could not find what he wanted."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "matching",
+              "prompt": "He even travelled to places where people might still have the [32]\n,\nbut Bellerby could not find what he wanted.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "educational use"
+                },
+                {
+                  "key": "B",
+                  "text": "rare materials"
+                },
+                {
+                  "key": "C",
+                  "text": "inferior makes"
+                },
+                {
+                  "key": "D",
+                  "text": "product exchange"
+                },
+                {
+                  "key": "E",
+                  "text": "necessary skills"
+                },
+                {
+                  "key": "F",
+                  "text": "international markets"
+                },
+                {
+                  "key": "G",
+                  "text": "challenging task"
+                },
+                {
+                  "key": "H",
+                  "text": "memorable object"
+                },
+                {
+                  "key": "I",
+                  "text": "internet purchase"
+                },
+                {
+                  "key": "J",
+                  "text": "numerous problems"
+                }
+              ],
+              "group": {
+                "id": "r-summary-27-32",
+                "instruction": "Complete the summary using the list of words, A-J, below.\n\nWrite the correct letter, A-J, in boxes 27-32 on your answer sheet.",
+                "title": "A birthday gift",
+                "text": "A birthday gift\nPeter Bellerby's plan to give his father a globe for his birthday was an unexpectedly\n[27]\nfor which he had to overcome [28]\n\nHe soon learnt that a straightforward [29]\nwould not be possible.\nSome [30]\nthat had been intended for [31]\nwere\navailable, as were some expensive antique globes, but these were beyond his budget.\nHe even travelled to places where people might still have the [32]\n,\nbut Bellerby could not find what he wanted."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "yes-no-notgiven",
+              "prompt": "The assumption today that people in the past knew very little about geography\n     is correct.",
+              "group": {
+                "id": "r-ynng-33-36",
+                "instruction": "Do the following   statements agree with the claims of the writer in Reading Passage 3?\n\nIn boxes 33-36 on your answer sheet, write\n\n        YES             if the statement agrees with the claims of the writer\n        NO              if the statement contradicts the claims of the writer\n        NOT GIVEN       if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "yes-no-notgiven",
+              "prompt": "Plato was criticised for saying the world was shaped like a leather ball.",
+              "group": {
+                "id": "r-ynng-33-36",
+                "instruction": "Do the following   statements agree with the claims of the writer in Reading Passage 3?\n\nIn boxes 33-36 on your answer sheet, write\n\n        YES             if the statement agrees with the claims of the writer\n        NO              if the statement contradicts the claims of the writer\n        NOT GIVEN       if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "yes-no-notgiven",
+              "prompt": "The globe made by Crates of Mall us was an accurate representation       of the\n     known world.",
+              "group": {
+                "id": "r-ynng-33-36",
+                "instruction": "Do the following   statements agree with the claims of the writer in Reading Passage 3?\n\nIn boxes 33-36 on your answer sheet, write\n\n        YES             if the statement agrees with the claims of the writer\n        NO              if the statement contradicts the claims of the writer\n        NOT GIVEN       if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "yes-no-notgiven",
+              "prompt": "Bellerby assumed he would have few problems locating a well-made globe.",
+              "group": {
+                "id": "r-ynng-33-36",
+                "instruction": "Do the following   statements agree with the claims of the writer in Reading Passage 3?\n\nIn boxes 33-36 on your answer sheet, write\n\n        YES             if the statement agrees with the claims of the writer\n        NO              if the statement contradicts the claims of the writer\n        NOT GIVEN       if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "multiple-choice",
+              "prompt": "When Bellerby had to attach the gores to the globe surface,",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "he decided it was best to work quickly."
+                },
+                {
+                  "key": "B",
+                  "text": "he became aware of an unexpected issue."
+                },
+                {
+                  "key": "C",
+                  "text": "he was worried about the quality of his materials."
+                },
+                {
+                  "key": "D",
+                  "text": "he nearly gave up the whole project."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "multiple-choice",
+              "prompt": "The reviewer mentions other globe makers of the past because",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Bellerby was particularly inspired by them."
+                },
+                {
+                  "key": "B",
+                  "text": "their achievements are not widely known."
+                },
+                {
+                  "key": "C",
+                  "text": "Bellerby had something in common with each of them."
+                },
+                {
+                  "key": "D",
+                  "text": "their difficulties could have been avoided."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "multiple-choice",
+              "prompt": "What point is made about Bellerby in the seventh paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "He had long working relationships with numerous craftsmen."
+                },
+                {
+                  "key": "B",
+                  "text": "He understands the lack of interest in traditional crafts."
+                },
+                {
+                  "key": "C",
+                  "text": "He appreciates the importance of careful planning."
+                },
+                {
+                  "key": "D",
+                  "text": "He regrets the loss of many globe-making skills."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "multiple-choice",
+              "prompt": "What does the reviewer say about Bellerby's book in the final paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It does not tell you how to create a profitable business."
+                },
+                {
+                  "key": "B",
+                  "text": "It overlooks some important mapmakers."
+                },
+                {
+                  "key": "C",
+                  "text": "It fails to discuss the future of globe-making."
+                },
+                {
+                  "key": "D",
+                  "text": "It does not give enough details about individual customers."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

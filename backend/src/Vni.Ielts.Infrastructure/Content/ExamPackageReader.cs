@@ -351,8 +351,23 @@ public sealed class ExamPackageReader(JsonSchema schema)
             ConvertTiming(root["timingProfile"]!.AsObject()),
             sections,
             ConvertListeningPlayback(root["policyProfile"]?["listeningPlayback"] as JsonObject),
-            declaredSequence);
+            declaredSequence,
+            /*
+             * `description` has been in the schema and in every fixture since
+             * the format was written, and until 2026-09-03 the reader dropped
+             * it on the floor — so the sentence an author wrote to distinguish
+             * one paper from another never left the JSON file.
+             *
+             * Whitespace-only counts as absent. A package carrying `" "` should
+             * render as no description rather than as a blank line under the
+             * title, and normalising it here means no consumer has to remember.
+             */
+            Blank(root["description"]?.GetValue<string>()));
     }
+
+    /// <summary>Null for absent, empty or whitespace-only text.</summary>
+    private static string? Blank(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static ListeningPlaybackProfile ConvertListeningPlayback(JsonObject? policy)
     {

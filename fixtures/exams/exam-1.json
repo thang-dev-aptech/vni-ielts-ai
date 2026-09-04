@@ -1,8 +1,8 @@
 {
   "formatVersion": "1.0",
-  "title": "Exam 1",
+  "title": "Đề 1 — Full 4 kỹ năng",
   "variant": "academic",
-  "description": "Full four-module IELTS Academic practice test. Reading, Listening and Writing extracted from the supplied HTML; Speaking newly authored on 2026-08-26.",
+  "description": "Đề đầy đủ bốn kỹ năng: Reading, Listening, Writing, Speaking. Thi thử full sẽ đi hết bốn kỹ năng trong một phiên theo đúng thứ tự phòng thi; hoặc chọn lẻ từng kỹ năng nếu bạn chỉ có 20–60 phút. Reading và Listening chấm ngay theo đáp án, Writing do AI chấm theo bốn tiêu chí IELTS.",
   "timingProfile": {
     "sections": {
       "listening": {

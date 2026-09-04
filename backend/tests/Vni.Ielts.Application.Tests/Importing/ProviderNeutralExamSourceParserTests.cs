@@ -39,16 +39,49 @@ public sealed class ProviderNeutralExamSourceParserTests
         Assert.Equal([1, 2], client.Requests.Select(r => r.Attempt));
     }
 
+    /// <summary>
+    /// <b>A restricted source never reaches a reseller, and the refusal happens
+    /// before the call rather than after it.</b> After it would mean the
+    /// document had already been sent, which is the entire event being
+    /// prevented — hence the assertion on <c>Requests</c> as well as on the
+    /// exception.
+    /// </summary>
     [Fact]
-    public async Task Reseller_is_refused_real_or_restricted_source_before_egress()
+    public async Task Reseller_is_refused_a_restricted_source_before_the_call()
     {
         var client = new RecordedClient("reseller", failures: 0, isReseller: true);
         var parser = new ProviderNeutralExamSourceParser([client], new Metric(), new("reseller", "p1"));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            parser.ParseAsync(Source(ImportDataClassification.RightsCleared), default));
+            parser.ParseAsync(Source(ImportDataClassification.Restricted), default));
 
         Assert.Empty(client.Requests);
+    }
+
+    /// <summary>
+    /// <b>Rights-cleared material does reach a reseller, and that changed on
+    /// 2026-09-02.</b> This test asserted the opposite until then, because until
+    /// then only synthetic sources passed — which meant no real paper could be
+    /// imported at all.
+    ///
+    /// The property being kept is that the classification is what decides, and
+    /// that <see cref="ImportDataClassification.Restricted"/> — what
+    /// <c>SafeSourceDocumentExtractor</c> stamps on every upload — still does
+    /// not pass. Clearing a source stays a deliberate act by whoever holds the
+    /// rights.
+    /// </summary>
+    [Theory]
+    [InlineData(ImportDataClassification.Synthetic)]
+    [InlineData(ImportDataClassification.RightsCleared)]
+    public async Task Reseller_accepts_synthetic_and_rights_cleared_sources(
+        ImportDataClassification classification)
+    {
+        var client = new RecordedClient("reseller", failures: 0, isReseller: true);
+        var parser = new ProviderNeutralExamSourceParser([client], new Metric(), new("reseller", "p1"));
+
+        await parser.ParseAsync(Source(classification), default);
+
+        Assert.Single(client.Requests);
     }
 
     private static ExtractedImportSource Source(ImportDataClassification classification) =>

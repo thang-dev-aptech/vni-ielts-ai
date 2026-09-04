@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
@@ -8,8 +9,15 @@ using Vni.Ielts.Application.Importing;
 namespace Vni.Ielts.Infrastructure.Content;
 
 /// <summary>
-/// Bounded DOCX/PDF extraction. The caller supplies only a path relative to a configured
+/// Bounded DOCX/PDF/TXT extraction. The caller supplies only a path relative to a configured
 /// sandbox; archive entries are read in-memory and never expanded onto the filesystem.
+///
+/// <b>PDF text comes from <c>pdftotext</c> when it is on PATH.</b> The previous path scanned
+/// raw PDF bytes for <c>(… ) Tj</c> operators and silently returned empty or garbled text for
+/// every Flate-compressed Cambridge book — Cam 17 has ~300 kB of readable text via
+/// <c>pdftotext</c> and almost none via the regex. The regex remains as a fallback so the
+/// page-cap unit test, which builds a minimal uncompressed PDF, keeps working without a
+/// Poppler install.
 /// </summary>
 public sealed partial class SafeSourceDocumentExtractor(IPrivateImportAssetStore assets)
     : ISourceDocumentExtractor
@@ -44,8 +52,9 @@ public sealed partial class SafeSourceDocumentExtractor(IPrivateImportAssetStore
             return Path.GetExtension(path).ToLowerInvariant() switch
             {
                 ".docx" => await ExtractDocxAsync(info.Name, bytes, sourceHash, limits, token),
-                ".pdf" => ExtractPdf(info.Name, bytes, sourceHash, limits, token),
-                _ => Rejected("SOURCE_TYPE_UNSUPPORTED", "/source", "Only PDF and DOCX sources are accepted."),
+                ".pdf" => ExtractPdf(info.Name, path, bytes, sourceHash, limits, token),
+                ".txt" => ExtractPlainText(info.Name, bytes, sourceHash),
+                _ => Rejected("SOURCE_TYPE_UNSUPPORTED", "/source", "Only PDF, DOCX and TXT sources are accepted."),
             };
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
@@ -95,18 +104,101 @@ public sealed partial class SafeSourceDocumentExtractor(IPrivateImportAssetStore
         return Accepted(name, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", text, sourceHash, uploaded);
     }
 
+    private static SourceExtractionResult ExtractPlainText(string name, byte[] bytes, string sourceHash)
+    {
+        var text = Encoding.UTF8.GetString(bytes).Trim('\uFEFF');
+        return Accepted(name, "text/plain", text, sourceHash, []);
+    }
+
     private static SourceExtractionResult ExtractPdf(
-        string name, byte[] bytes, string sourceHash, SourceExtractionLimits limits, CancellationToken ct)
+        string name, string absolutePath, byte[] bytes, string sourceHash, SourceExtractionLimits limits, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
         if (bytes.Length < 5 || !bytes.AsSpan(0, 5).SequenceEqual("%PDF-"u8))
             return Rejected("PDF_SIGNATURE_INVALID", "/source", "PDF signature is missing.");
+
+        if (TryPdftotext(absolutePath, out var text, out var pages))
+        {
+            if (pages > limits.MaxPages)
+                return Rejected("SOURCE_PAGE_LIMIT", "/source/pages", "PDF exceeds the configured page limit.");
+            return Accepted(name, "application/pdf", text, sourceHash, []);
+        }
+
+        // Fallback: uncompressed literal strings only. Enough for the page-cap
+        // unit fixture; useless on a real Cambridge book (Flate streams).
         var raw = Encoding.Latin1.GetString(bytes);
-        var pages = PdfPageRegex().Matches(raw).Count;
+        pages = PdfPageRegex().Matches(raw).Count;
         if (pages > limits.MaxPages)
             return Rejected("SOURCE_PAGE_LIMIT", "/source/pages", "PDF exceeds the configured page limit.");
-        var text = string.Join("\n", PdfTextRegex().Matches(raw).Select(m => UnescapePdf(m.Groups[1].Value)));
+        text = string.Join("\n", PdfTextRegex().Matches(raw).Select(m => UnescapePdf(m.Groups[1].Value)));
         return Accepted(name, "application/pdf", text, sourceHash, []);
+    }
+
+    /// <summary>
+    /// Shells out to Poppler's <c>pdftotext</c>. Returns false when the binary
+    /// is missing or the process fails — the caller then falls back to the
+    /// regex path so CI machines without Poppler still exercise the page cap.
+    /// </summary>
+    private static bool TryPdftotext(string absolutePath, out string text, out int pages)
+    {
+        text = "";
+        pages = 0;
+        try
+        {
+            using var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = "pdftotext",
+                ArgumentList = { "-layout", absolutePath, "-" },
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                StandardOutputEncoding = Encoding.UTF8,
+            });
+            if (process is null) return false;
+
+            var stdout = process.StandardOutput.ReadToEnd();
+            process.WaitForExit(60_000);
+            if (process.ExitCode != 0) return false;
+
+            text = stdout;
+            // Form-feed is how pdftotext marks page breaks under -layout.
+            pages = Math.Max(1, stdout.Count(c => c == '\f') + (stdout.Length > 0 ? 1 : 0));
+            // Empty extract on a real file usually means a scanned PDF — still
+            // a successful run; the caller sees zero characters and can OCR.
+            if (stdout.Length == 0) pages = CountPagesByPdfInfo(absolutePath) ?? pages;
+            return true;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            return false;
+        }
+    }
+
+    private static int? CountPagesByPdfInfo(string absolutePath)
+    {
+        try
+        {
+            using var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = "pdfinfo",
+                ArgumentList = { absolutePath },
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            });
+            if (process is null) return null;
+            var stdout = process.StandardOutput.ReadToEnd();
+            process.WaitForExit(15_000);
+            if (process.ExitCode != 0) return null;
+            var match = Regex.Match(stdout, @"^Pages:\s*(\d+)\s*$", RegexOptions.Multiline);
+            return match.Success ? int.Parse(match.Groups[1].Value) : null;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            return null;
+        }
     }
 
     private static async Task<string> ReadDocumentTextAsync(ZipArchiveEntry entry, CancellationToken ct)

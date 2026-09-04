@@ -1,0 +1,2311 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 19 — Test 2",
+  "variant": "academic",
+  "description": "Cambridge IELTS 19 Academic Test 2. Reading và Listening chấm theo đáp án in trong sách; không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "The Industrial Revolution in Britain",
+          "body": "The Industrial Revolution in Britain\nThe Industrial Revolution began in Britain in the mid-1700s and by the 1830s and 1840s\nhad spread to many other parts of the world, including the United States. In Britain, it was a\nperiod when a largely rural, agrarian* society was transformed into an industrialised, urban\none. Goods that had once been crafted by hand started to be produced in mass quantities\nby machines in factories, thanks to the invention of steam power and the introduction of\nnew machines and manufacturing techniques in textiles, iron-making and other industries.\nThe foundations of the Industrial Revolution date back to the early 1700s, when the\nEnglish inventor Thomas Newcomen designed the first modern steam engine. Called the\n‘atmospheric steam engine’, Newcomen’s invention was originally used to power machines\nthat pumped water out of mines. In the 1760s, the Scottish engineer James Watt\nstarted to adapt one of Newcomen’s models, and succeeded in making it far more\nefficient. Watt later worked with the English manufacturer Matthew Boulton to invent a\nnew steam engine driven by both the forward and backward strokes of the piston, while\nthe gear mechanism it was connected to produced rotary motion. It was a key innovation\nthat would allow steam power to spread across British industries.\nThe demand for coal, which was a relatively cheap energy source, grew rapidly during\nthe Industrial Revolution, as it was needed to run not only the factories used to produce\nmanufactured goods, but also steam-powered transportation. In the early 1800s, the\nEnglish engineer Richard Trevithick built a steam-powered locomotive, and by 1830\ngoods and passengers were being transported between the industrial centres of\nManchester and Liverpool. In addition, steam-powered boats and ships were widely\nused to carry goods along Britain’s canals as well as across the Atlantic.\nBritain had produced textiles like wool, linen and cotton, for hundreds of years, but prior\nto the Industrial Revolution, the British textile business was a true ‘cottage industry’, with\nthe work performed in small workshops or even homes by individual spinners, weavers\nand dyers. Starting in the mid-1700s, innovations like the spinning jenny and the power\nloom made weaving cloth and spinning yarn and thread much easier. With these\nmachines, relatively little labour was required to produce cloth, and the new, mechanised\ntextile factories that opened around the country were quickly able to meet customer\ndemand for cloth both at home and abroad.\n* agrarian: relating to the land, especially the use of land for farming\nThe British iron industry also underwent major change as it adopted new innovations.\nChief among the new techniques was the smelting of iron ore with coke (a material\nmade by heating coal) instead of the traditional charcoal. This method was cheaper\nand produced metals that were of a higher quality, enabling Britain’s iron and steel\nproduction to expand in response to demand created by the Napoleonic Wars (1803-15)\nand the expansion of the railways from the 1830s.\nThe latter part of the Industrial Revolution also saw key advances in communication\nmethods, as people increasingly saw the need to communicate efficiently over long\ndistances. In 1837, British inventors William Cooke and Charles Wheatstone patented\nthe first commercial telegraphy system. In the 1830s and 1840s, Samuel Morse\nand other inventors worked on their own versions in the United States. Cooke and\nWheatstone’s system was soon used for railway signalling in the UK. As the speed of\nthe new locomotives increased, it was essential to have a fast and effective means of\navoiding collisions.\nThe impact of the Industrial Revolution on people’s lives was immense. Although\nmany people in Britain had begun moving to the cities from rural areas before the\nIndustrial Revolution, this accelerated dramatically with industrialisation, as the rise\nof large factories turned smaller towns into major cities in just a few decades. This\nrapid urbanisation brought significant challenges, as overcrowded cities suffered from\npollution and inadequate sanitation.\nAlthough industrialisation increased the country’s economic output overall and improved\nthe standard of living for the middle and upper classes, many poor people continued to\nstruggle. Factory workers had to work long hours in dangerous conditions for extremely\nlow wages. These conditions along with the rapid pace of change fuelled opposition\nto industrialisation. A group of British workers who became known as ‘Luddites’ were\nBritish weavers and textile workers who objected to the increased use of mechanised\nlooms and knitting frames. Many had spent years learning their craft, and they feared\nthat unskilled machine operators were robbing them of their livelihood. A few desperate\nweavers began breaking into factories and smashing textile machines. They called\nthemselves Luddites after Ned Ludd, a young apprentice who was rumoured to have\nwrecked a textile machine in 1779.\nThe first major instances of machine breaking took place in 1811 in the city of\nNottingham, and the practice soon spread across the country. Machine-breaking\nLuddites attacked and burned factories, and in some cases they even exchanged\ngunfire with company guards and soldiers. The workers wanted employers to stop\ninstalling new machinery, but the British government responded to the uprisings by\nmaking machine-breaking punishable by death. The unrest finally reached its peak in\nApril 1812, when a few Luddites were shot during an attack on a mill near Huddersfield.\nIn the days that followed, other Luddites were arrested, and dozens were hanged or\ntransported to Australia. By 1813, the Luddite resistance had all but vanished.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "1",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain’s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain’s Industrial Revolution\n\nSteam power\n\ne | Newcomen’s steam engine was used in mines to remove water.\ne —_In Watt and Boulton’s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne — Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn «\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne — Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee «"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "piston"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "2",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain’s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain’s Industrial Revolution\n\nSteam power\n\ne | Newcomen’s steam engine was used in mines to remove water.\ne —_In Watt and Boulton’s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne — Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn «\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne — Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee «"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "coal"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "3",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain’s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain’s Industrial Revolution\n\nSteam power\n\ne | Newcomen’s steam engine was used in mines to remove water.\ne —_In Watt and Boulton’s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne — Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn «\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne — Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee «"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "workshops"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "4",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain’s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain’s Industrial Revolution\n\nSteam power\n\ne | Newcomen’s steam engine was used in mines to remove water.\ne —_In Watt and Boulton’s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne — Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn «\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne — Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee «"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "labour",
+                  "labor"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "5",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain’s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain’s Industrial Revolution\n\nSteam power\n\ne | Newcomen’s steam engine was used in mines to remove water.\ne —_In Watt and Boulton’s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne — Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn «\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne — Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee «"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "quality"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "6",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain’s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain’s Industrial Revolution\n\nSteam power\n\ne | Newcomen’s steam engine was used in mines to remove water.\ne —_In Watt and Boulton’s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne — Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn «\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne — Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee «"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "railway(s)"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "7",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain’s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain’s Industrial Revolution\n\nSteam power\n\ne | Newcomen’s steam engine was used in mines to remove water.\ne —_In Watt and Boulton’s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne — Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn «\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne — Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee «"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "sanitation"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "true-false-notgiven",
+              "prompt": "Britain’s canal network grew rapidly so that more goods could be transported around the country.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "true-false-notgiven",
+              "prompt": "Costs in the iron industry rose when the technique of smelting iron ore with coke was introduced.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "true-false-notgiven",
+              "prompt": "Samuel Morse’s communication system was more reliable than that developed by William Cooke and Charles Wheatstone.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "true-false-notgiven",
+              "prompt": "The economic benefits of industrialisation were limited to certain sectors of society.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "true-false-notgiven",
+              "prompt": "Some skilled weavers believed that the introduction of the new textile machines would lead to job losses.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "true-false-notgiven",
+              "prompt": "There was some sympathy among local people for the Luddites who were arrested near Huddersfield.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Athletes and stress",
+          "body": "Athletes and stress\n\nA _Itisn’t easy being a professional athlete. Not only are the physical demands greater\nthan most people could handle, athletes also face intense psychological pressure\nduring competition. This is something that British tennis player Emma Raducanu\nwrote about on social media following her withdrawal from the 2021 Wimbledon\ntournament. Though the young player had been doing well in the tournament, she\nbegan having difficulty regulating her breathing and heart rate during a match,\nwhich she later attributed to ‘the accumulation of the excitement and the buzz’.\n\nB_ For athletes, some level of performance stress is almost unavoidable. But there are\nmany different factors that dictate just how people’s minds and bodies respond to\nstressful events. Typically, stress is the result of an exchange between two factors:\ndemands and resources. An athlete may feel stressed about an event if they feel\nthe demands on them are greater than they can handle. These demands include\nthe high level of physical and mental effort required to succeed, and also the\nathlete’s concerns about the difficulty of the event, their chance of succeeding, and\nany potential dangers such as injury. Resources, on the other hand, are a person's\nability to cope with these demands. These include factors such as the competitor's\ndegree of confidence, how much they believe they can control the situation’s\noutcome, and whether they’re looking forward to the event or not.\n\nC Each new demand or change in circumstances affects whether a person responds\npositively or negatively to stress. Typically, the more resources a person feels they\nhave in handling the situation, the more positive their stress response. This positive\nstress response is called a challenge state. But should the person feel there are too\nmany demands placed on them, the more likely they are to experience a negative\nstress response — known as a threat state. Research shows that the challenge\nstates lead to good performance, while threat states lead to poorer performance.\nSo, in Emma Raducanu’s case, a much larger audience, higher expectations and\nfacing a more skilful opponent, may all have led her to feel there were greater\ndemands being placed on her at Wimbledon — but she didn’t have the resources to\ntackle them. This led to her experiencing a threat response.\n\nD Our challenge and threat responses essentially influence how our body responds\nto stressful situations, as both affect the production of adrenaline and cortisol —\nalso known as ‘stress hormones’. During a challenge state, adrenaline increases\nthe amount of blood pumped from the heart and expands the blood vessels, which\nallows more energy to be delivered to the muscles and brain. This increase of\nblood and decrease of pressure in the blood vessels has been consistently related\nto superior sport performance in everything from cricket batting, to golf putting and\nfootball penalty taking. But during a threat state, cortisol inhibits the positive effect\nof adrenaline, resulting in tighter blood vessels, higher blood pressure, slower\npsychological responses, and a faster heart rate. In short, a threat state makes\npeople more anxious — they make worse decisions and perform more poorly. In\ntennis players, cortisol has been associated with more unsuccessful serves and\ngreater anxiety.\n\nE That said, anxiety is also a common experience for athletes when they're under\npressure. Anxiety can increase heart rate and perspiration, cause heart palpitations,\nmuscle tremors and shortness of breath, as well as headaches, nausea, stomach\npain, weakness and a desire to escape in more extreme cases. Anxiety can also\nreduce concentration and self-control and cause overthinking. The intensity with\nwhich a person experiences anxiety depends on the demands and resources they\nhave. Anxiety may also manifest itself in the form of excitement or nervousness\ndepending on the stress response. Negative stress responses can be damaging to\nboth physical and mental health — and repeated episodes of anxiety coupled with\nnegative responses can increase risk of heart disease and depression.\n\nF But there are many ways athletes can ensure they respond positively under\npressure. Positive stress responses can be promoted through the language that\nthey and others — such as coaches or parents — use. Psychologists can also help\nathletes change how they see their physiological responses — such as helping them\nsee a higher heart rate as excitement, rather than nerves. Developing psychological\nskills, such as visualisation, can also help decrease physiological responses to\nthreat. Visualisation may involve the athlete recreating a mental picture of a time\nwhen they performed well, or picturing themselves doing well in the future. This\ncan help create a feeling of control over the stressful event. Recreating competitive\npressure during training can also help athletes learn how to deal with stress. An\nexample of this might be scoring athletes against their peers to create a sense of\ncompetition. This would increase the demands which players experience compared\nto a normal training session, while still allowing them to practise coping with stress.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "reference to two chemical compounds which impact on performance",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has six paragraphs, A-F.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-F, in boxes 14—18 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "examples of strategies for minimising the effects of stress",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has six paragraphs, A-F.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-F, in boxes 14—18 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "how a sportsperson accounted for their own experience of stress",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has six paragraphs, A-F.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-F, in boxes 14—18 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "study results indicating links between stress responses and performance",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has six paragraphs, A-F.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-F, in boxes 14—18 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "mention of people who can influence how athletes perceive their stress responses",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has six paragraphs, A-F.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-F, in boxes 14—18 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "completion",
+              "prompt": "19",
+              "group": {
+                "id": "r-p2-19-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "19 Performance stress involves many demands on the athlete, for example, coping\nwith the possible risk Of [19] wns «\n\n20 Cortisol can cause tennis players to produce feWer GOO o....cccsssssssssssssinssneene «\n\n21 Psychologists can help athletes to view their physiological responses as the effect\nOf a POSitive feelING SUCH AS [21] cesses »\n\n22 vcs IS aN example of a psychological technique which can reduce an\nathlete’s stress responses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "injury"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "completion",
+              "prompt": "20",
+              "group": {
+                "id": "r-p2-19-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "19 Performance stress involves many demands on the athlete, for example, coping\nwith the possible risk Of [19] wns «\n\n20 Cortisol can cause tennis players to produce feWer GOO o....cccsssssssssssssinssneene «\n\n21 Psychologists can help athletes to view their physiological responses as the effect\nOf a POSitive feelING SUCH AS [21] cesses »\n\n22 vcs IS aN example of a psychological technique which can reduce an\nathlete’s stress responses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "serves"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "21",
+              "group": {
+                "id": "r-p2-19-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "19 Performance stress involves many demands on the athlete, for example, coping\nwith the possible risk Of [19] wns «\n\n20 Cortisol can cause tennis players to produce feWer GOO o....cccsssssssssssssinssneene «\n\n21 Psychologists can help athletes to view their physiological responses as the effect\nOf a POSitive feelING SUCH AS [21] cesses »\n\n22 vcs IS aN example of a psychological technique which can reduce an\nathlete’s stress responses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "excitement"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "22",
+              "group": {
+                "id": "r-p2-19-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "19 Performance stress involves many demands on the athlete, for example, coping\nwith the possible risk Of [19] wns «\n\n20 Cortisol can cause tennis players to produce feWer GOO o....cccsssssssssssssinssneene «\n\n21 Psychologists can help athletes to view their physiological responses as the effect\nOf a POSitive feelING SUCH AS [21] cesses »\n\n22 vcs IS aN example of a psychological technique which can reduce an\nathlete’s stress responses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Visualisation",
+                  "Visualization"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "multiple-select",
+              "prompt": "Which TWO facts about Emma Raducanu’s withdrawal from the Wimbledon tournament are mentioned in the text?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the stage at which she dropped out of the tournament"
+                },
+                {
+                  "key": "B",
+                  "text": "symptoms of her performance stress at the tournament"
+                },
+                {
+                  "key": "C",
+                  "text": "measures which she had taken to manage her stress levels"
+                },
+                {
+                  "key": "D",
+                  "text": "aspects of the Wimbledon tournament which increased her stress levels"
+                },
+                {
+                  "key": "E",
+                  "text": "reactions to her social media posts about her experience at Wimbledon"
+                }
+              ],
+              "marks": 2,
+              "group": {
+                "id": "r-ms-23-24",
+                "instruction": "Choose TWO letters, A-E."
+              },
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "D"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "multiple-select",
+              "prompt": "Which TWO facts about anxiety are mentioned in Paragraph E of the text?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the factors which determine how severe it may be"
+                },
+                {
+                  "key": "B",
+                  "text": "howlong it takes for its effects to become apparent"
+                },
+                {
+                  "key": "C",
+                  "text": "which of its symptoms is most frequently encountered"
+                },
+                {
+                  "key": "D",
+                  "text": "the types of athletes who are most likely to suffer from it"
+                },
+                {
+                  "key": "E",
+                  "text": "the harm that can result if athletes experience it too often"
+                }
+              ],
+              "marks": 2,
+              "group": {
+                "id": "r-ms-25-26",
+                "instruction": "Choose TWO letters, A-E."
+              },
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "E"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "An inquiry into the existence of the\ngifted child",
+          "body": "An inquiry into the existence of the\ngifted child\nLet us start by looking at a modern ‘genius’, in childhood. Einstein was slow to talk as a\nMaryam Mirzakhani, who died at the early baby. He failed the general part of the entry test\nage of 40. She was the only woman to win the — to Zurich Polytechnic — though they let him in\nFields Medal — the mathematical equivalent because of high physics and maths scores.\nof a Nobel prize. It would be easy to assume He struggled at work initially, but he kept\nthat someone as special as Mirzakhani must plugging away and eventually rewrote the\nhave been one of those ‘gifted’ children, laws of Newtonian mechanics with his theory\nthose who have an extraordinary ability in a of relativity.\nspecific sphere of activity or knowledge. But\nlook closer and a different story emerges. There has been a considerable amount of\nMirzakhani was born in Tehran, Iran. She research on high performance over the last\nwent to a highly selective girls’ school but century that suggests it goes way beyond tested\nmaths wasn’t her interest — reading was. She intelligence. On top of that, research is clear\nloved novels and would read anything she that brains are flexible, new neural pathways\ncould lay her hands on. As for maths, she did can be created, and IQ isn’t fixed. For example,\nrather poorly at it for the first couple of years just because you can read stories with hundreds\nin her middle school, but became interested of pages at the age of five doesn’t mean you\nwhen her elder brother told her about what will still be ahead of your contemporaries in\nhe’d learned. He shared a famous maths your teens.\nproblem from a magazine that fascinated\nher — and she was hooked. While the jury is out on giftedness being\ninnate and other factors potentially making\nIn adult life it is clear that she was curious, the difference, what is certain is that the\nexcited by what she did and also resolute in behaviours associated with high levels of\nthe face of setbacks. One of her comments performance are replicable and most can be\nsums it up. ‘Of course, the most rewarding taught — even traits such as curiosity.\npart is the “Aha” moment, the excitement of\ndiscovery and enjoyment of understanding According to my colleague Prof Deborah\nsomething new .. . But most of the time, doing — Eyre, with whom I’ve collaborated on the\nmathematics for me is like being ona long hike — book Great Minds and How to Grow Them,\nwith no trail and no end in sight.’ That trail the latest neuroscience and psychological\ntook her to the heights of original research research suggests most individuals can reach\ninto mathematics. levels of performance associated in school with\nthe gifted and talented. However, they must\nIs her background unusual? Apparently not. be taught the right attitudes and approaches\nMost Nobel prize winners were unexceptional _ to their learning and develop the attributes of\nhigh performers — curiosity, persistence and they enjoyed themselves. Bloom’s outstanding\nhard work, for example — an approach Eyre people had worked very hard and consistently\ncalls ‘high performance learning’. Critically, at something they had become hooked on when\nthey need the right support in developing those at a young age, and their parents all emerged as\napproaches at home as well as at school. having strong work ethics themselves.\n\nProf Anders Ericsson, an eminent education Eyre says we know how high performers\npsychologist at Florida State University, US, learn. From that she has developed a high\nis the co-author of Peak: Secrets from the New performing learning approach. She is working\nScience of Expertise. After research going on this with a group of schools, both in Britain\nback to 1980 into diverse achievements, from and abroad. Some spin-off research, which\nmusic to memory to sport, he doesn’t think looked in detail at 24 of the 3,000 children\nunique and innate talents are at the heart of being studied who were succeeding despite\nperformance. Deliberate practice, that stretches difficult circumstances, found something\nyou every step of the way, and around 10,000 remarkable. Half were getting free school\nhours of it, is what produces the goods. It’s meals because of poverty, more than half were\nnot a magic number — the highest performers living with a single parent, and four in five\nmove on to doing a whole lot more, of course. _ were living in disadvantaged areas. Interviews\nEricsson’s memory research is particularly uncovered strong evidence of an adult or adults\ninteresting because random students, trained in the child’s life who valued and supported\nin memory techniques for the study, went on education, either in the immediate or extended\nto outperform others thought to have innately family or in the child’s wider community.\nsuperior memories — those who you might Children talked about the need to work hard at\ncall gifted. school, to listen in class and keep trying.\nBut it is perhaps the work of Benjamin Bloom, — Let us end with Einstein, the epitome of a\nanother distinguished American educationist genius. He clearly had curiosity, character and\nworking in the 1980s, that gives the most determination. He struggled against rejection\npause for thought. Bloom’s team looked at a in early life but was undeterred. Did he think\ngroup of extraordinarily high achieving people he was a genius or even gifted? He once wrote:\nin disciplines as varied as ballet, swimming, ‘It’s not that I’m so smart, it’s just that I stay\npiano, tennis, maths, sculpture and neurology. with problems longer. Most people say it is the\nHe found a pattern of parents encouraging intellect which makes a great scientist. They\nand supporting their children, often in areas are wrong: it is character.’",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Maryam Mirzakhani is regarded AS [27] once IN the field of mathematics because she was the only female holder of the prestigious Fields Medal — a record that she retained at the time of her death.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal —\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "However, maths held little [28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below average UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her siblings showed her.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal —\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "However, maths held little [28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below average UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her siblings showed her.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal —\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Later, as a professional mathematician, she had an inquiring mind and proved herself to bE [30] woos WhEN things did not go smoothly.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal —\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "She said she got the greatest [31] ooo from Making ground-breaking discoveries",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal —\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "J"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "matching",
+              "prompt": "and in fact she was responsible for Some EXxtrEMEly [32] unseen mathematical studies.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal —\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "I"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "yes-no-notgiven",
+              "prompt": "Many people who ended up winning prestigious intellectual prizes only reached an average standard when young.",
+              "group": {
+                "id": "r-yng-33-37",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 33-37 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN_ if itis impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "yes-no-notgiven",
+              "prompt": "Einstein's failures as a young man were due to his lack of confidence.",
+              "group": {
+                "id": "r-yng-33-37",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 33-37 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN_ if itis impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "yes-no-notgiven",
+              "prompt": "It is difficult to reach agreement on whether some children are actually born gifted.",
+              "group": {
+                "id": "r-yng-33-37",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 33-37 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN_ if itis impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "yes-no-notgiven",
+              "prompt": "Einstein was upset by the public’s view of his life’s work.",
+              "group": {
+                "id": "r-yng-33-37",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 33-37 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN_ if itis impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "yes-no-notgiven",
+              "prompt": "Einstein put his success down to the speed at which he dealt with scientific questions.",
+              "group": {
+                "id": "r-yng-33-37",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 33-37 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN_ if itis impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "multiple-choice",
+              "prompt": "What does Eyre believe is needed for children to equal ‘gifted’ standards?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "strict discipline from the teaching staff"
+                },
+                {
+                  "key": "B",
+                  "text": "assistance from their peers in the classroom"
+                },
+                {
+                  "key": "C",
+                  "text": "the development of a spirit of inquiry towards their studies"
+                },
+                {
+                  "key": "D",
+                  "text": "the determination to surpass everyone else’s achievements"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "multiple-choice",
+              "prompt": "What is the result of Ericsson's research?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Very gifted students do not need to work on improving memory skills."
+                },
+                {
+                  "key": "B",
+                  "text": "Being born with a special gift is not the key factor in becoming expert."
+                },
+                {
+                  "key": "C",
+                  "text": "Including time for physical exercise is crucial in raising performance."
+                },
+                {
+                  "key": "D",
+                  "text": "10,000 hours of relevant and demanding work will create a genius."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "multiple-choice",
+              "prompt": "Inthe penultimate paragraph, it is stated the key to some deprived children’s success is",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "aregular and nourishing diet at home."
+                },
+                {
+                  "key": "B",
+                  "text": "the loving support of more than one parent."
+                },
+                {
+                  "key": "C",
+                  "text": "— acommunity which has well-funded facilities for learning."
+                },
+                {
+                  "key": "D",
+                  "text": "the guidance of someone who recognises the benefits of learning."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Guitar Group",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: “The Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "Mathieson"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: “The Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "beginners"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: “The Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "college"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: “The Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "New"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: “The Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "11",
+                  "eleven (am)"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: “The Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "_ instrument"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-7-10",
+                "title": "A typical 45-minute guitar lesson",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "A typical 45-minute guitar lesson\n| Time | Activity | Notes\nusing an app or b\n7 : \" ,\n. . . keeping time while the teacher\n10 minutes strumming chords using our thumbs is 8\n. . often listening to a\n15 minutes playing songs\nD  crniasmnmsamnscnmmgay OL a SONG\nlaying together, then\nplaying single notes and simple tunes ng OS"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "ear"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-7-10",
+                "title": "A typical 45-minute guitar lesson",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "A typical 45-minute guitar lesson\n| Time | Activity | Notes\nusing an app or b\n7 : \" ,\n. . . keeping time while the teacher\n10 minutes strumming chords using our thumbs is 8\n. . often listening to a\n15 minutes playing songs\nD  crniasmnmsamnscnmmgay OL a SONG\nlaying together, then\nplaying single notes and simple tunes ng OS"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "clapping"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-7-10",
+                "title": "A typical 45-minute guitar lesson",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "A typical 45-minute guitar lesson\n| Time | Activity | Notes\nusing an app or b\n7 : \" ,\n. . . keeping time while the teacher\n10 minutes strumming chords using our thumbs is 8\n. . often listening to a\n15 minutes playing songs\nD  crniasmnmsamnscnmmgay OL a SONG\nlaying together, then\nplaying single notes and simple tunes ng OS"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "recording"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-7-10",
+                "title": "A typical 45-minute guitar lesson",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "A typical 45-minute guitar lesson\n| Time | Activity | Notes\nusing an app or b\n7 : \" ,\n. . . keeping time while the teacher\n10 minutes strumming chords using our thumbs is 8\n. . often listening to a\n15 minutes playing songs\nD  crniasmnmsamnscnmmgay OL a SONG\nlaying together, then\nplaying single notes and simple tunes ng OS"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "alone"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam19-test-2-listening-part1.mp3"
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Working as a lifeboat volunteer",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "11. What made David leave London and move to Northsea?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "He was eager to develop a hobby."
+                },
+                {
+                  "key": "B",
+                  "text": "He wanted to work shorter hours."
+                },
+                {
+                  "key": "C",
+                  "text": "He found his job in website design unsatisfying."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "12. The Lifeboat Institution in Northsea was built with money provided by",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a local organisation."
+                },
+                {
+                  "key": "B",
+                  "text": "a local resident."
+                },
+                {
+                  "key": "C",
+                  "text": "the local council."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "13 In his health assessment, the doctor was concerned about the fact that David",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "might be colour blind."
+                },
+                {
+                  "key": "B",
+                  "text": "was rather short-sighted."
+                },
+                {
+                  "key": "C",
+                  "text": "had undergone eye surgery."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "14 After arriving at the lifeboat station, they aim to launch the boat within",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "five minutes."
+                },
+                {
+                  "key": "B",
+                  "text": "six to eight minutes."
+                },
+                {
+                  "key": "C",
+                  "text": "eight and a half minutes."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "15 Asa ‘helmsman’, David has the responsibility of deciding",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "whowill be the members of his crew."
+                },
+                {
+                  "key": "B",
+                  "text": "what equipment it will be necessary to take."
+                },
+                {
+                  "key": "C",
+                  "text": "if the lifeboat should be launched."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "multiple-choice",
+              "prompt": "16 As well as going out on the lifeboat, David",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "gives talks on safety at sea."
+                },
+                {
+                  "key": "B",
+                  "text": "helps with fundraising."
+                },
+                {
+                  "key": "C",
+                  "text": "recruits new volunteers."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "multiple-select",
+              "prompt": "Which TWO things does David say about the lifeboat volunteer training?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The residential course developed his leadership skills."
+                },
+                {
+                  "key": "B",
+                  "text": "The training in use of ropes and knots was quite brief."
+                },
+                {
+                  "key": "C",
+                  "text": "The training exercises have built up his mental strength."
+                },
+                {
+                  "key": "D",
+                  "text": "The casualty care activities were particularly challenging for him."
+                },
+                {
+                  "key": "E",
+                  "text": "The wave tank activities provided practice in survival techniques."
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "C",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "multiple-select",
+              "prompt": "Which TWO things does David find most motivating about the work he does?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "working as part of a team"
+                },
+                {
+                  "key": "B",
+                  "text": "experiences when working in winter"
+                },
+                {
+                  "key": "C",
+                  "text": "being thanked by those he has helped"
+                },
+                {
+                  "key": "D",
+                  "text": "the fact that it keeps him fit"
+                },
+                {
+                  "key": "E",
+                  "text": "the chance to develop new equipment"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "B"
+                  ]
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam19-test-2-listening-part2.mp3"
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Recycling footwear",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "21 At first, Don thought the topic of recycling footwear might be too",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "limited in scope."
+                },
+                {
+                  "key": "B",
+                  "text": "hard to research."
+                },
+                {
+                  "key": "C",
+                  "text": "boring for listeners."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "22 When discussing trainers, Bella and Don disagree about",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "how popular they are among young people."
+                },
+                {
+                  "key": "B",
+                  "text": "how suitable they are for school."
+                },
+                {
+                  "key": "C",
+                  "text": "how quickly they wear out."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "23 Bella says that she sometimes recycles shoes because",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "they no longer fit."
+                },
+                {
+                  "key": "B",
+                  "text": "she no longer likes them."
+                },
+                {
+                  "key": "C",
+                  "text": "they are no longer in fashion."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "24 What did the article say that confused Don?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Public consumption of footwear has risen."
+                },
+                {
+                  "key": "B",
+                  "text": "Less footwear is recycled now than in the past."
+                },
+                {
+                  "key": "C",
+                  "text": "People dispose of more footwear than they used to."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "the high-heeled shoes",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "one shoe was missing"
+                },
+                {
+                  "key": "B",
+                  "text": "the colour of one shoe had faded"
+                },
+                {
+                  "key": "C",
+                  "text": "one shoe had a hole in it"
+                },
+                {
+                  "key": "D",
+                  "text": "the shoes were brand new"
+                },
+                {
+                  "key": "E",
+                  "text": "the shoes were too dirty"
+                },
+                {
+                  "key": "F",
+                  "text": "the stitching on the shoes was broken"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-28",
+                "instruction": "What reasons did the recycling manager give for rejecting footwear, according to the students?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 25-28."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "the ankle boots",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "one shoe was missing"
+                },
+                {
+                  "key": "B",
+                  "text": "the colour of one shoe had faded"
+                },
+                {
+                  "key": "C",
+                  "text": "one shoe had a hole in it"
+                },
+                {
+                  "key": "D",
+                  "text": "the shoes were brand new"
+                },
+                {
+                  "key": "E",
+                  "text": "the shoes were too dirty"
+                },
+                {
+                  "key": "F",
+                  "text": "the stitching on the shoes was broken"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-28",
+                "instruction": "What reasons did the recycling manager give for rejecting footwear, according to the students?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 25-28."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "the baby shoes",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "one shoe was missing"
+                },
+                {
+                  "key": "B",
+                  "text": "the colour of one shoe had faded"
+                },
+                {
+                  "key": "C",
+                  "text": "one shoe had a hole in it"
+                },
+                {
+                  "key": "D",
+                  "text": "the shoes were brand new"
+                },
+                {
+                  "key": "E",
+                  "text": "the shoes were too dirty"
+                },
+                {
+                  "key": "F",
+                  "text": "the stitching on the shoes was broken"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-28",
+                "instruction": "What reasons did the recycling manager give for rejecting footwear, according to the students?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 25-28."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "the trainers",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "one shoe was missing"
+                },
+                {
+                  "key": "B",
+                  "text": "the colour of one shoe had faded"
+                },
+                {
+                  "key": "C",
+                  "text": "one shoe had a hole in it"
+                },
+                {
+                  "key": "D",
+                  "text": "the shoes were brand new"
+                },
+                {
+                  "key": "E",
+                  "text": "the shoes were too dirty"
+                },
+                {
+                  "key": "F",
+                  "text": "the stitching on the shoes was broken"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-28",
+                "instruction": "What reasons did the recycling manager give for rejecting footwear, according to the students?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 25-28."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "29 Why did the project to make ‘new’ shoes out of old shoes fail?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "People believed the ‘new’ pairs of shoes were unhygienic."
+                },
+                {
+                  "key": "B",
+                  "text": "There were not enough good parts to use in the old shoes."
+                },
+                {
+                  "key": "C",
+                  "text": "The shoes in the ‘new’ pairs were not completely alike."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "30 Bella and Don agree that they can present their topic",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "from anew angle."
+                },
+                {
+                  "key": "B",
+                  "text": "with relevant images."
+                },
+                {
+                  "key": "C",
+                  "text": "ina straightforward way."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam19-test-2-listening-part3.mp3"
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Tardigrades",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05—1.2 millimetres long\ne also known as water ‘bears’ (due to How they [31]) AN\n‘moss piglets’\n\nPhysical appearance\n\n© BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n© C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne — often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne —_Indry conditions, they roll into a ball called a ‘tun’.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, €.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese +"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "move"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05—1.2 millimetres long\ne also known as water ‘bears’ (due to How they [31]) AN\n‘moss piglets’\n\nPhysical appearance\n\n© BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n© C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne — often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne —_Indry conditions, they roll into a ball called a ‘tun’.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, €.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese +"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "short"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05—1.2 millimetres long\ne also known as water ‘bears’ (due to How they [31]) AN\n‘moss piglets’\n\nPhysical appearance\n\n© BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n© C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne — often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne —_Indry conditions, they roll into a ball called a ‘tun’.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, €.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese +"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "discs"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05—1.2 millimetres long\ne also known as water ‘bears’ (due to How they [31]) AN\n‘moss piglets’\n\nPhysical appearance\n\n© BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n© C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne — often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne —_Indry conditions, they roll into a ball called a ‘tun’.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, €.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese +"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "oxygen"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05—1.2 millimetres long\ne also known as water ‘bears’ (due to How they [31]) AN\n‘moss piglets’\n\nPhysical appearance\n\n© BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n© C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne — often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne —_Indry conditions, they roll into a ball called a ‘tun’.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, €.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese +"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tube"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05—1.2 millimetres long\ne also known as water ‘bears’ (due to How they [31]) AN\n‘moss piglets’\n\nPhysical appearance\n\n© BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n© C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne — often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne —_Indry conditions, they roll into a ball called a ‘tun’.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, €.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese +"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "temperatures"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05—1.2 millimetres long\ne also known as water ‘bears’ (due to How they [31]) AN\n‘moss piglets’\n\nPhysical appearance\n\n© BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n© C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne — often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne —_Indry conditions, they roll into a ball called a ‘tun’.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, €.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese +"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "protein"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05—1.2 millimetres long\ne also known as water ‘bears’ (due to How they [31]) AN\n‘moss piglets’\n\nPhysical appearance\n\n© BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n© C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne — often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne —_Indry conditions, they roll into a ball called a ‘tun’.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, €.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese +"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "space"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05—1.2 millimetres long\ne also known as water ‘bears’ (due to How they [31]) AN\n‘moss piglets’\n\nPhysical appearance\n\n© BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n© C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne — often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne —_Indry conditions, they roll into a ball called a ‘tun’.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, €.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese +"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "seaweed"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05—1.2 millimetres long\ne also known as water ‘bears’ (due to How they [31]) AN\n‘moss piglets’\n\nPhysical appearance\n\n© BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n© C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne — often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne —_Indry conditions, they roll into a ball called a ‘tun’.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, €.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese +"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "endangered"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam19-test-2-listening-part4.mp3"
+        }
+      ]
+    }
+  ]
+}

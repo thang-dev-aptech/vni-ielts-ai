@@ -17,6 +17,15 @@ public sealed class AiEgressTests
 {
     private const string Key = "FAKE-NOT-A-REAL-KEY-for-tests-only-0000";
     private const string Reseller = "https://reseller.example/v1";
+
+    /// <summary>
+    /// Hosts on <see cref="AiProviderPolicy.ContractedProcessorHosts"/>.
+    /// Kept distinct from <see cref="Reseller"/> so every test above says
+    /// which side of that decision it is testing.
+    /// </summary>
+    private const string ContractedReseller = "https://api.vietapi.tech/v1";
+    private const string ContractedApithat = "https://apithat.dev/v1";
+
     private const string VendorOpenAi = "https://api.openai.com/v1";
 
     private static AiProviderOptions Provider(
@@ -58,7 +67,87 @@ public sealed class AiEgressTests
             AiDataClassification.LearnerPersonal));
 
         Assert.Equal(AiEgressRefusal.UncontractedProcessor, refused.Refusal);
-        Assert.Empty(AiProviderPolicy.ContractedProcessorHosts);
+
+        /*
+         * This assertion used to read `Assert.Empty(ContractedProcessorHosts)`
+         * — a tripwire for the day the list stopped being empty. That day was
+         * 2026-09-02, when the owner put `api.vietapi.tech` on it, and
+         * 2026-09-03 added `apithat.dev` the same way.
+         *
+         * Deleting the assertion would have thrown away the property it was
+         * guarding, which is not "the list is empty" but "the list is an
+         * allowlist and an arbitrary host is not on it". So it now names what
+         * is permitted. A further entry appearing here without a decision
+         * beside it fails this test, which is the point.
+         */
+        Assert.Equal(
+            ["api.vietapi.tech", "apithat.dev"],
+            AiProviderPolicy.ContractedProcessorHosts);
+        Assert.DoesNotContain("reseller.example", AiProviderPolicy.ContractedProcessorHosts);
+    }
+
+    /// <summary>
+    /// <b>The 2026-09-02 decision, asserted as behaviour rather than trusted as
+    /// a doc comment.</b> A contracted host carries learner work only when the
+    /// operator has also said this endpoint is trusted with real data and that
+    /// the border may be crossed. Being on the list is one gate of three.
+    /// </summary>
+    [Theory]
+    [InlineData(ContractedReseller)]
+    [InlineData(ContractedApithat)]
+    public void Learner_data_is_permitted_on_the_contracted_reseller_with_both_switches_set(
+        string baseUrl)
+    {
+        var ticket = AiEgress.Authorise(
+            "OpenAi",
+            Provider(baseUrl: baseUrl, syntheticOnly: false),
+            allowCrossBorderTransfer: true,
+            AiDataClassification.LearnerPersonal);
+
+        Assert.Equal(AiDataClassification.LearnerPersonal, ticket.Classification);
+        Assert.Equal(baseUrl, ticket.BaseUrl);
+    }
+
+    /// <summary>
+    /// <b>And each remaining gate still refuses on its own.</b> Contracting
+    /// with a processor answers the processor question and nothing else — the
+    /// PDPL border position (<c>B-2</c>) and the operator's own
+    /// trusted-with-real-work switch are untouched by it.
+    /// </summary>
+    [Theory]
+    [InlineData(true, false, AiEgressRefusal.SyntheticDataOnly)]
+    [InlineData(true, true, AiEgressRefusal.SyntheticDataOnly)]
+    [InlineData(false, false, AiEgressRefusal.CrossBorderTransferNotPermitted)]
+    public void Contracting_a_processor_lifts_only_the_processor_gate(
+        bool syntheticOnly, bool allowCrossBorder, AiEgressRefusal expected)
+    {
+        var refused = Assert.Throws<AiEgressRefusedException>(() => AiEgress.Authorise(
+            "OpenAi",
+            Provider(baseUrl: ContractedReseller, syntheticOnly: syntheticOnly),
+            allowCrossBorderTransfer: allowCrossBorder,
+            AiDataClassification.LearnerPersonal));
+
+        Assert.Equal(expected, refused.Refusal);
+    }
+
+    /// <summary>
+    /// <b>A contracted host is not the vendor, and the wire format follows the
+    /// vendor question.</b> Conflating the two would post an OpenAI
+    /// Responses-API body to a reseller that speaks only
+    /// <c>chat/completions</c>, breaking every Writing evaluation on the same
+    /// commit that let learner essays through.
+    /// → <c>OpenAiWritingEvaluationClient.UsesResponsesApi</c>
+    /// </summary>
+    [Fact]
+    public void A_contracted_processor_is_still_not_the_vendors_own_endpoint()
+    {
+        Assert.False(AiProviderPolicy.IsThirdPartyEndpoint("OpenAi", ContractedReseller));
+        Assert.False(AiProviderPolicy.IsVendorEndpoint("OpenAi", ContractedReseller));
+        Assert.False(AiProviderPolicy.IsThirdPartyEndpoint("OpenAi", ContractedApithat));
+        Assert.False(AiProviderPolicy.IsVendorEndpoint("OpenAi", ContractedApithat));
+
+        Assert.True(AiProviderPolicy.IsVendorEndpoint("OpenAi", VendorOpenAi));
+        Assert.True(AiProviderPolicy.IsVendorEndpoint("OpenAi", baseUrl: null));
     }
 
     /// <summary>

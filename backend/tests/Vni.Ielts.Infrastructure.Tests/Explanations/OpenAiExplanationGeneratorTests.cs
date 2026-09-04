@@ -82,8 +82,17 @@ public sealed class OpenAiExplanationGeneratorTests
         Assert.Equal("Bearer", captured?.Headers.Authorization?.Scheme);
     }
 
+    /// <summary>
+    /// <b>An <i>uncontracted</i> reseller, which is what this test has always
+    /// been about.</b> It used to name <c>api.vietapi.tech</c>, because on the
+    /// day it was written that host was uncontracted and so the two facts were
+    /// indistinguishable. The 2026-09-02 decision put that host on
+    /// <see cref="AiProviderPolicy.ContractedProcessorHosts"/> and separated
+    /// them, so the test now names a host that is genuinely on no list —
+    /// otherwise it would have quietly become a test of the opposite property.
+    /// </summary>
     [Fact]
-    public async Task Refuses_learner_personal_data_on_reseller_when_synthetic_only_is_false()
+    public async Task Refuses_learner_personal_data_on_an_uncontracted_reseller()
     {
         var options = Options.Create(new AiOptions
         {
@@ -91,7 +100,7 @@ public sealed class OpenAiExplanationGeneratorTests
             OpenAi = new AiProviderOptions
             {
                 ApiKey = "secret",
-                BaseUrl = "https://api.vietapi.tech/v1",
+                BaseUrl = "https://reseller.example/v1",
                 Model = "gpt-test",
                 SyntheticDataOnly = false,
             },
@@ -117,6 +126,14 @@ public sealed class OpenAiExplanationGeneratorTests
         Assert.Equal("EXPLANATION_EGRESS_UNCONTRACTEDPROCESSOR", result.RefusalCode);
     }
 
+    /// <summary>
+    /// <b>The contracted host still refuses while it is marked synthetic-only.</b>
+    /// Contracting answers the processor question and nothing else; the
+    /// operator's own switch is a separate gate, and this is the test that says
+    /// so for the explanation path. The expected code changed from
+    /// <c>UNCONTRACTEDPROCESSOR</c> to <c>SYNTHETICDATAONLY</c> on 2026-09-02
+    /// for exactly that reason — a different gate now catches it first.
+    /// </summary>
     [Fact]
     public async Task Refuses_personalized_learner_answer_on_synthetic_only_reseller()
     {
@@ -149,7 +166,7 @@ public sealed class OpenAiExplanationGeneratorTests
             default);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("EXPLANATION_EGRESS_UNCONTRACTEDPROCESSOR", result.RefusalCode);
+        Assert.Equal("EXPLANATION_EGRESS_SYNTHETICDATAONLY", result.RefusalCode);
     }
 
     private sealed class StubHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler

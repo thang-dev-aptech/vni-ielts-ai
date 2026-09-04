@@ -55,10 +55,11 @@ public sealed class ExamVersion
         string title, ExamVariant variant, ExamVersionStatus status,
         DateTimeOffset? publishedAt, ScoringProfile scoring, TimingProfile timing,
         IReadOnlyList<Section> sections, IReadOnlyList<ExamModule> moduleSequence,
-        ListeningPlaybackProfile? listeningPlayback)
+        ListeningPlaybackProfile? listeningPlayback, string? description)
     {
         Id = id; DefinitionId = definitionId; VersionNumber = versionNumber;
-        Title = title; Variant = variant; Status = status; PublishedAt = publishedAt;
+        Title = title; Description = description;
+        Variant = variant; Status = status; PublishedAt = publishedAt;
         Scoring = scoring; Timing = timing; Sections = sections;
         ModuleSequence = moduleSequence;
         ListeningPlayback = listeningPlayback ?? ListeningPlaybackProfile.Conservative;
@@ -68,6 +69,24 @@ public sealed class ExamVersion
     public ExamDefinitionId DefinitionId { get; }
     public int VersionNumber { get; }
     public string Title { get; }
+
+    /// <summary>
+    /// What this paper is, in the learner's words. Null when the package did
+    /// not supply one.
+    ///
+    /// <b>Carried on the version rather than the definition, because it
+    /// describes the content and the content is what is frozen.</b> A published
+    /// version is immutable; if the description belonged to the definition it
+    /// could be edited after a sitting, and a result would then reference a
+    /// paper described differently from the one that was actually sat.
+    ///
+    /// <b>Null is a supported state and must render as nothing.</b> Not "Chưa
+    /// có mô tả", not an em dash — a card with no description simply has one
+    /// less line. An invented placeholder is a sentence the academic team did
+    /// not write appearing under a paper they did. → `G-11`
+    /// </summary>
+    public string? Description { get; }
+
     public ExamVariant Variant { get; }
     public ExamVersionStatus Status { get; private set; }
     public DateTimeOffset? PublishedAt { get; private set; }
@@ -89,12 +108,14 @@ public sealed class ExamVersion
         ExamDefinitionId definitionId, int versionNumber, string title, ExamVariant variant,
         ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections,
         ListeningPlaybackProfile? listeningPlayback = null,
-        IReadOnlyList<ExamModule>? declaredSequence = null)
+        IReadOnlyList<ExamModule>? declaredSequence = null,
+        string? description = null)
     {
         var present = sections.Select(s => s.Module).ToHashSet();
         var sequence = SequenceProfile.Resolve(declaredSequence, present);
         return new(ExamVersionId.New(), definitionId, versionNumber, title, variant,
-            ExamVersionStatus.Draft, null, scoring, timing, sections, sequence, listeningPlayback);
+            ExamVersionStatus.Draft, null, scoring, timing, sections, sequence,
+            listeningPlayback, description);
     }
 
     public static ExamVersion Rehydrate(
@@ -102,12 +123,13 @@ public sealed class ExamVersion
         ExamVariant variant, ExamVersionStatus status, DateTimeOffset? publishedAt,
         ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections,
         ListeningPlaybackProfile? listeningPlayback = null,
-        IReadOnlyList<ExamModule>? moduleSequence = null)
+        IReadOnlyList<ExamModule>? moduleSequence = null,
+        string? description = null)
     {
         var present = sections.Select(s => s.Module).ToHashSet();
         var sequence = moduleSequence ?? SequenceProfile.Resolve(null, present);
         return new(id, definitionId, versionNumber, title, variant, status, publishedAt,
-            scoring, timing, sections, sequence, listeningPlayback);
+            scoring, timing, sections, sequence, listeningPlayback, description);
     }
 
     public void Publish(DateTimeOffset now)
