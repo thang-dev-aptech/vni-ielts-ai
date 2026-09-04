@@ -73,6 +73,34 @@ public sealed class ObjectStorageOptions
     public string DictationBucket { get; set; } = "vni-audio-90d";
 
     /// <summary>
+    /// The key prefix — the "folder" — each class of content lives under, so
+    /// that several classes can share one bucket. Empty means the bucket root,
+    /// which is what every deployment before 2026-09-04 had and what the
+    /// compose stack still provisions.
+    ///
+    /// <b>[QUYẾT ĐỊNH] chủ sản phẩm 04/09/2026:</b> one bucket per environment
+    /// (<c>vni-ielts-ai-dev</c>), one prefix per class — <c>examassets/</c>,
+    /// <c>dictation/</c>, <c>speakingrecord/</c> — because one bucket is easier
+    /// to manage. The one-bucket-per-retention-class layout stays the default;
+    /// this is the seam that lets a deployment choose the other layout without
+    /// a code change. → ADR-0016
+    ///
+    /// <b>What a prefix cannot carry.</b> Versioning and lifecycle rules are
+    /// bucket-level facts. A bucket that holds learner voice must therefore
+    /// not be versioned — the readiness probe asks the real bucket — and a
+    /// retention rule has to be written on the prefix in the provider's
+    /// console rather than on the bucket. The startup gate refuses two classes
+    /// in one bucket whose prefixes do not keep their keys apart.
+    /// </summary>
+    public string ExamAssetsPrefix { get; set; } = string.Empty;
+
+    /// <inheritdoc cref="ExamAssetsPrefix"/>
+    public string DictationPrefix { get; set; } = string.Empty;
+
+    /// <inheritdoc cref="ExamAssetsPrefix"/>
+    public string SpeakingRecordingsPrefix { get; set; } = string.Empty;
+
+    /// <summary>
     /// Where a learner's Speaking recording is written. <b>No default, and the
     /// absence is the point.</b>
     ///
@@ -148,6 +176,29 @@ public sealed class ObjectStorageOptions
     /// A description safe to print — see the same override on
     /// <c>AiProviderOptions</c> for why the type owns its own rendering.
     /// </summary>
+    /// <summary>
+    /// <c>prefix</c> in the one shape a key is built from: <c>a/b/</c>, or the
+    /// empty string. No leading slash, no empty or dot segment — a prefix is
+    /// configuration, and configuration that could escape its own folder is
+    /// the traversal the key validators below were written to refuse.
+    /// </summary>
+    public static string NormalisePrefix(string? prefix)
+    {
+        var trimmed = (prefix ?? string.Empty).Trim().Trim('/');
+        if (trimmed.Length == 0) return string.Empty;
+
+        if (trimmed.Split('/').Any(segment => segment is "" or "." or ".."))
+        {
+            throw new ArgumentException(
+                $"Object key prefix '{prefix}' contains an empty or dot segment.", nameof(prefix));
+        }
+
+        return trimmed + "/";
+    }
+
+    /// <summary>The object key for an already-validated <paramref name="key"/> under <paramref name="prefix"/>.</summary>
+    public static string Under(string? prefix, string key) => NormalisePrefix(prefix) + key;
+
     public override string ToString() =>
         $"ServiceUrl={SecretRedaction.Url(ServiceUrl)}, "
         + $"AccessKey={SecretRedaction.Identifier(AccessKey)}, "
@@ -195,10 +246,17 @@ internal sealed class S3ObjectStore(IAmazonS3 client, ILogger<S3ObjectStore> log
         return relative;
     }
 
+    public Task<(Stream Content, string ContentType, long? Length, string? ETag)?> OpenAsync(
+        string bucket, string reference, CancellationToken ct) =>
+        OpenAsync(bucket, string.Empty, reference, ct);
+
+    /// <param name="prefix">The class's folder inside <paramref name="bucket"/>; empty for the root. → <see cref="ObjectStorageOptions.ExamAssetsPrefix"/></param>
     public async Task<(Stream Content, string ContentType, long? Length, string? ETag)?> OpenAsync(
-        string bucket, string reference, CancellationToken ct)
+        string bucket, string prefix, string reference, CancellationToken ct)
     {
-        if (KeyFor(reference) is not { } key) return null;
+        if (KeyFor(reference) is not { } relative) return null;
+
+        var key = ObjectStorageOptions.Under(prefix, relative);
 
         /*
          * <b>F4.1 — object storage is a network dependency and gets a span.</b>
@@ -282,20 +340,64 @@ internal sealed class S3ObjectStore(IAmazonS3 client, ILogger<S3ObjectStore> log
 /// distinct, typed exception for "no such bucket" versus "not authorized"
 /// versus a network or DNS failure that never reached S3 at all.
 /// </summary>
-internal sealed class S3ObjectStorageHealthCheck(IAmazonS3 client, ObjectStorageOptions options)
+internal sealed class S3ObjectStorageHealthCheck(
+    IAmazonS3 client, ObjectStorageOptions options, ILogger<S3ObjectStorageHealthCheck>? logger = null)
     : IObjectStorageHealthCheck
 {
+    private readonly ILogger _logger =
+        logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<S3ObjectStorageHealthCheck>.Instance;
+
     public async Task CheckAsync(CancellationToken ct)
     {
-        await client.HeadBucketAsync(
-            new HeadBucketRequest { BucketName = options.ExamAssetsBucket }, ct);
-        await client.HeadBucketAsync(
-            new HeadBucketRequest { BucketName = options.DictationBucket }, ct);
+        // Each distinct bucket once: since 2026-09-04 the three classes may
+        // share one bucket under three prefixes (ADR-0016).
+        var buckets = new[] { options.ExamAssetsBucket, options.DictationBucket, options.SpeakingRecordingsBucket }
+            .Where(bucket => !string.IsNullOrWhiteSpace(bucket))
+            .Distinct(StringComparer.Ordinal);
+
+        foreach (var bucket in buckets)
+            await client.HeadBucketAsync(new HeadBucketRequest { BucketName = bucket }, ct);
 
         if (!string.IsNullOrWhiteSpace(options.SpeakingRecordingsBucket))
+            await RefuseVersionedRecordingsBucketAsync(ct);
+    }
+
+    /*
+     * <b>Learner voice must not gain a version history</b> — under PDPL a
+     * deleted recording has to actually be gone, and a version outlives the
+     * deletion it was supposed to honour. Until 2026-09-04 that was kept by
+     * refusing to let recordings share the (versioned) exam-asset bucket. Now
+     * that the classes may share a bucket, the invariant is asked of the real
+     * bucket instead of assumed from its name.
+     *
+     * Only an explicit "Enabled" fails readiness. A provider that will not
+     * answer — Cloudflare R2 returns 403 AccessDenied to GetBucketVersioning
+     * from a bucket-scoped token, and has no bucket versioning to enable —
+     * cannot be keeping a history, so the probe logs and moves on.
+     */
+    private async Task RefuseVersionedRecordingsBucketAsync(CancellationToken ct)
+    {
+        GetBucketVersioningResponse versioning;
+
+        try
         {
-            await client.HeadBucketAsync(
-                new HeadBucketRequest { BucketName = options.SpeakingRecordingsBucket }, ct);
+            versioning = await client.GetBucketVersioningAsync(
+                new GetBucketVersioningRequest { BucketName = options.SpeakingRecordingsBucket }, ct);
+        }
+        catch (AmazonS3Exception e)
+        {
+            _logger.LogInformation(
+                "Could not read versioning on {Bucket} ({Code}); the provider is not keeping a history.",
+                options.SpeakingRecordingsBucket, e.ErrorCode ?? e.StatusCode.ToString());
+            return;
+        }
+
+        if (versioning.VersioningConfig?.Status == VersionStatus.Enabled)
+        {
+            throw new InvalidOperationException(
+                $"ObjectStorage:SpeakingRecordingsBucket '{options.SpeakingRecordingsBucket}' is versioned. "
+                + "A version history of a learner's voice survives the deletion PDPL requires to be "
+                + "final. Suspend versioning on that bucket, or give recordings an unversioned one.");
         }
     }
 }
@@ -304,7 +406,7 @@ internal sealed class S3ExamAssetStore(S3ObjectStore store, ObjectStorageOptions
     : IExamAssetStore
 {
     public async Task<ExamAsset?> OpenAsync(string reference, CancellationToken ct) =>
-        await store.OpenAsync(options.ExamAssetsBucket, reference, ct) is { } found
+        await store.OpenAsync(options.ExamAssetsBucket, options.ExamAssetsPrefix, reference, ct) is { } found
             ? new ExamAsset(found.Content, found.ContentType, found.Length, found.ETag)
             : null;
 }
@@ -313,7 +415,7 @@ internal sealed class S3DictationAssetStore(S3ObjectStore store, ObjectStorageOp
     : IDictationAssetStore
 {
     public async Task<DictationAsset?> OpenAsync(string reference, CancellationToken ct) =>
-        await store.OpenAsync(options.DictationBucket, reference, ct) is { } found
+        await store.OpenAsync(options.DictationBucket, options.DictationPrefix, reference, ct) is { } found
             ? new DictationAsset(found.Content, found.ContentType, found.Length, found.ETag)
             : null;
 }
@@ -335,11 +437,12 @@ internal sealed class S3PrivateImportAssetStore(IAmazonS3 client, ObjectStorageO
         var request = new PutObjectRequest
         {
             BucketName = options.ExamAssetsBucket,
-            Key = key,
+            Key = ObjectStorageOptions.Under(options.ExamAssetsPrefix, key),
             InputStream = content,
             ContentType = contentType,
             CannedACL = S3CannedACL.Private,
             AutoCloseStream = false,
+            UseChunkEncoding = false, // R2: no aws-chunked bodies — see AddObjectStorage
         };
         request.Metadata["sha256"] = sha256;
         await client.PutObjectAsync(request, ct);
@@ -384,6 +487,19 @@ internal static class ObjectStorageRegistration
                 AuthenticationRegion = options.Region,
                 UseHttp = Uri.TryCreate(options.ServiceUrl, UriKind.Absolute, out var endpoint)
                     && endpoint.Scheme == Uri.UriSchemeHttp,
+
+                /*
+                 * <b>Checksums only when an operation requires one.</b> AWS SDK
+                 * v4 otherwise signs every upload as aws-chunked with a trailing
+                 * CRC, and Cloudflare R2 refuses that body outright:
+                 * "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER not implemented"
+                 * (seen 2026-09-04 on the first push of exam audio). WHEN_REQUIRED
+                 * is the plain SigV4 body that R2, MinIO and AWS all accept; the
+                 * sha256 this product cares about travels as object metadata and
+                 * is verified by the reader, not by the transport.
+                 */
+                RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
+                ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
             }));
 
         services.AddSingleton<S3ObjectStore>();

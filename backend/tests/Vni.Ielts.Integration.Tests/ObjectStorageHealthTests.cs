@@ -276,6 +276,24 @@ public sealed class ObjectStorageAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("ObjectStorage:SecretKey", SecretKey);
         builder.UseSetting("ObjectStorage:ExamAssetsBucket", ExamAssetsBucket);
         builder.UseSetting("ObjectStorage:DictationBucket", DictationBucket);
+
+        /*
+         * <b>Every other key of the section, pinned — because Development also
+         * loads the developer's `secrets.develop.json`.</b> On 2026-09-04 that
+         * file pointed SpeakingRecordingsBucket and three prefixes at a
+         * Cloudflare R2 bucket with Region "auto"; this host kept MinIO's URL
+         * and credentials from above but inherited the rest, asked MinIO for a
+         * bucket that only exists on R2, and readiness failed for a reason that
+         * had nothing to do with the test. A test that states half of a
+         * section is testing the other half of somebody's laptop.
+         */
+        builder.UseSetting("ObjectStorage:SpeakingRecordingsBucket", string.Empty);
+        builder.UseSetting("ObjectStorage:SpeakingRecordingRetentionDays", string.Empty);
+        builder.UseSetting("ObjectStorage:ExamAssetsPrefix", string.Empty);
+        builder.UseSetting("ObjectStorage:DictationPrefix", string.Empty);
+        builder.UseSetting("ObjectStorage:SpeakingRecordingsPrefix", string.Empty);
+        builder.UseSetting("ObjectStorage:Region", "us-east-1");
+        builder.UseSetting("ObjectStorage:ForcePathStyle", "true");
     }
 
     public override async ValueTask DisposeAsync()

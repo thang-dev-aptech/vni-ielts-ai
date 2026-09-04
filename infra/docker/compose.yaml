@@ -132,6 +132,11 @@ services:
   # version history is a copy that outlives the deletion it was supposed to
   # honour. Under PDPL a deleted recording has to actually be gone.
   # → docs/security/privacy-vietnam-pdpl.md, I6.6
+  #
+  # 2026-09-04: this per-class layout is the DEFAULT, not the only one. The
+  # owner's R2 deployment uses one bucket with a folder per class
+  # (ObjectStorage:*Prefix); the guards that protected the split moved into
+  # the startup gate and the readiness probe. → docs/decisions/0016
   minio-init:
     image: minio/mc:latest
     depends_on:

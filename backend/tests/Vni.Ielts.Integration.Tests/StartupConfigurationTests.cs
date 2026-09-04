@@ -141,6 +141,85 @@ public sealed class StartupConfigurationTests
         Assert.DoesNotContain(objectStorageSecret, ex.Message);
     }
 
+    // ── One bucket, one prefix per class (ADR-0016) ──────────────────────
+
+    /// <summary>
+    /// `[QUYẾT ĐỊNH]` chủ sản phẩm 04/09/2026: the three classes may share one
+    /// bucket when each has its own folder. Before that day this configuration
+    /// was refused outright.
+    /// </summary>
+    [Fact]
+    public void Three_classes_in_one_bucket_under_three_prefixes_boot()
+    {
+        var config = ValidProductionConfig();
+        config["ObjectStorage:ExamAssetsBucket"] = "vni-ielts-ai-dev";
+        config["ObjectStorage:ExamAssetsPrefix"] = "examassets/";
+        config["ObjectStorage:DictationBucket"] = "vni-ielts-ai-dev";
+        config["ObjectStorage:DictationPrefix"] = "dictation/";
+        config["ObjectStorage:SpeakingRecordingsBucket"] = "vni-ielts-ai-dev";
+        config["ObjectStorage:SpeakingRecordingsPrefix"] = "speakingrecord/";
+        config["ObjectStorage:SpeakingRecordingRetentionDays"] = "90";
+
+        Assert.Null(Record.Exception(() => StartupConfiguration.ValidateOrThrow(ProductionBuilder(config))));
+    }
+
+    /// <summary>
+    /// The thing a shared bucket must never do: put two classes in one key
+    /// space. No prefix on either side is the default, and the default is
+    /// exactly the configuration that used to be refused for a different reason.
+    /// </summary>
+    [Fact]
+    public void Two_classes_in_one_bucket_with_no_prefix_are_refused()
+    {
+        var config = ValidProductionConfig();
+        config["ObjectStorage:ExamAssetsBucket"] = "vni-ielts-ai-dev";
+        config["ObjectStorage:SpeakingRecordingsBucket"] = "vni-ielts-ai-dev";
+        config["ObjectStorage:SpeakingRecordingRetentionDays"] = "90";
+
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => StartupConfiguration.ValidateOrThrow(ProductionBuilder(config)));
+
+        Assert.Contains("SpeakingRecordingsPrefix", refusal.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Nested_prefixes_in_one_bucket_are_refused()
+    {
+        var config = ValidProductionConfig();
+        config["ObjectStorage:ExamAssetsBucket"] = "vni-ielts-ai-dev";
+        config["ObjectStorage:ExamAssetsPrefix"] = "media/";
+        config["ObjectStorage:DictationBucket"] = "vni-ielts-ai-dev";
+        config["ObjectStorage:DictationPrefix"] = "media/dictation/";
+
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => StartupConfiguration.ValidateOrThrow(ProductionBuilder(config)));
+
+        Assert.Contains("do not keep their keys apart", refusal.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_prefix_with_a_dot_segment_is_refused_even_in_its_own_bucket()
+    {
+        var config = ValidProductionConfig();
+        config["ObjectStorage:ExamAssetsPrefix"] = "../examassets/";
+
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => StartupConfiguration.ValidateOrThrow(ProductionBuilder(config)));
+
+        Assert.Contains("ObjectStorage:ExamAssetsPrefix", refusal.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>Separate buckets, no prefixes — the layout every deployment had before, still fine.</summary>
+    [Fact]
+    public void The_one_bucket_per_class_layout_still_boots_without_prefixes()
+    {
+        var config = ValidProductionConfig();
+        config["ObjectStorage:SpeakingRecordingsBucket"] = "vni-speaking-recordings";
+        config["ObjectStorage:SpeakingRecordingRetentionDays"] = "90";
+
+        Assert.Null(Record.Exception(() => StartupConfiguration.ValidateOrThrow(ProductionBuilder(config))));
+    }
+
     private static Dictionary<string, string?> ValidProductionConfig() => new()
     {
         ["Mongo:ConnectionString"] = "mongodb://localhost:27018/?replicaSet=rs0",

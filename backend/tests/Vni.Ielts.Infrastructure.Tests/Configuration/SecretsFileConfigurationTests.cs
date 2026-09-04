@@ -39,6 +39,31 @@ public sealed class SecretsFileConfigurationTests : IDisposable
         Assert.Equal("from-develop-file", Resolve(Environments.Development));
     }
 
+    /// <summary>
+    /// The test-host switch. Integration test hosts run as Development and
+    /// would otherwise read the developer's own file — see
+    /// <c>TestHostIsolation</c> in the Integration suite for the three days
+    /// that cost.
+    /// </summary>
+    [Fact]
+    public void Nothing_is_read_when_VNI_SECRETS_FILE_is_off()
+    {
+        WriteAppSettings("from-appsettings");
+        Write(SecretsFileConfigurationExtensions.DevelopFileName, "from-develop-file");
+
+        var previous = Environment.GetEnvironmentVariable(SecretsFileConfigurationExtensions.SkipVariable);
+        Environment.SetEnvironmentVariable(SecretsFileConfigurationExtensions.SkipVariable, "off");
+
+        try
+        {
+            Assert.Equal("from-appsettings", Resolve(Environments.Development));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(SecretsFileConfigurationExtensions.SkipVariable, previous);
+        }
+    }
+
     [Fact]
     public void The_production_file_overrides_appsettings_in_Production()
     {

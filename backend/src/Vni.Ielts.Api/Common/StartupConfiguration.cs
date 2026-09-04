@@ -323,23 +323,80 @@ public static class StartupConfiguration
         }
 
         /*
-         * <b>Learner voice may not share a bucket with authored content, and
-         * this is the check that keeps the retention layout honest.</b> The
-         * exam-asset and package buckets are versioned on purpose, because an
-         * operator overwriting a good package is how authored content is lost.
-         * A version history is the opposite of what a recording needs: under
-         * PDPL a deleted recording has to actually be gone, and a version
-         * outlives the deletion it was supposed to honour.
+         * <b>Sharing a bucket is allowed since 2026-09-04; sharing a key space
+         * is not.</b> `[QUYẾT ĐỊNH]` chủ sản phẩm 04/09/2026: one bucket, one
+         * prefix per class (`examassets/`, `dictation/`, `speakingrecord/`).
+         * Two classes in one bucket under the same prefix — or under no prefix
+         * — would let an exam clip and a dictation clip both called
+         * `part-1.mp3` overwrite each other, and a nested prefix would let one
+         * class read the other's objects. → ADR-0016
+         *
+         * What a prefix cannot carry is the reason the default layout was one
+         * bucket per retention class: versioning and lifecycle rules are set
+         * per bucket. Learner voice must never gain a version history (PDPL:
+         * a deleted recording has to be gone), so a bucket that holds
+         * recordings must not be versioned — asked of the real bucket by the
+         * readiness probe rather than assumed here from a name.
          * → `infra/docker/compose.yaml`, `privacy-vietnam-pdpl.md`
          */
-        if (!string.IsNullOrWhiteSpace(storage.SpeakingRecordingsBucket)
-            && (storage.SpeakingRecordingsBucket == storage.ExamAssetsBucket))
+        var storageClasses = new (string Name, string Bucket, string Prefix)[]
         {
-            problems.Add(
-                "ObjectStorage:SpeakingRecordingsBucket is the same bucket as "
-                + "ExamAssetsBucket. That bucket is versioned, because authored content is "
-                + "recovered by rolling back — and a version history of a learner's voice "
-                + "survives the deletion that PDPL requires to be final.");
+            ("ExamAssets", storage.ExamAssetsBucket, storage.ExamAssetsPrefix),
+            ("Dictation", storage.DictationBucket, storage.DictationPrefix),
+            ("SpeakingRecordings", storage.SpeakingRecordingsBucket, storage.SpeakingRecordingsPrefix),
+        };
+
+        string NormalisedPrefix(string name, string prefix)
+        {
+            try
+            {
+                return ObjectStorageOptions.NormalisePrefix(prefix);
+            }
+            catch (ArgumentException e)
+            {
+                problems.Add($"ObjectStorage:{name}Prefix: {e.Message}");
+                return string.Empty;
+            }
+        }
+
+        var normalisedPrefixes = storageClasses.ToDictionary(
+            c => c.Name, c => NormalisedPrefix(c.Name, c.Prefix), StringComparer.Ordinal);
+
+        var configuredClasses = storageClasses
+            .Where(c => !string.IsNullOrWhiteSpace(c.Bucket))
+            .ToArray();
+
+        for (var i = 0; i < configuredClasses.Length; i++)
+        for (var j = i + 1; j < configuredClasses.Length; j++)
+        {
+            var (first, second) = (configuredClasses[i], configuredClasses[j]);
+            if (!string.Equals(first.Bucket, second.Bucket, StringComparison.Ordinal)) continue;
+
+            var (a, b) = (normalisedPrefixes[first.Name], normalisedPrefixes[second.Name]);
+
+            if (a.Length == 0 || b.Length == 0
+                || a.StartsWith(b, StringComparison.Ordinal)
+                || b.StartsWith(a, StringComparison.Ordinal))
+            {
+                problems.Add(
+                    $"ObjectStorage:{first.Name}Bucket and ObjectStorage:{second.Name}Bucket are the same "
+                    + $"bucket ('{first.Bucket}') but ObjectStorage:{first.Name}Prefix ('{first.Prefix}') and "
+                    + $"ObjectStorage:{second.Name}Prefix ('{second.Prefix}') do not keep their keys apart. "
+                    + "Sharing a bucket needs a distinct, non-nested, non-empty prefix for each class "
+                    + "(for example examassets/, dictation/, speakingrecord/).");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(storage.SpeakingRecordingsBucket)
+            && configuredClasses.Any(c =>
+                c.Name != "SpeakingRecordings"
+                && string.Equals(c.Bucket, storage.SpeakingRecordingsBucket, StringComparison.Ordinal)))
+        {
+            warnings.Add(
+                "ObjectStorage:SpeakingRecordingsBucket shares its bucket with authored content. That "
+                + "bucket must not be versioned — a version history of a learner's voice survives the "
+                + "deletion PDPL requires to be final — and its retention rule has to be written on "
+                + "the prefix, not the bucket. The readiness probe refuses a versioned bucket.");
         }
 
         /*
@@ -505,6 +562,10 @@ public static class StartupConfiguration
     /// production unremarked — and every one of them fails first at the moment
     /// a learner submits an essay.
     /// </summary>
+    /// <summary>The folder a class lives under, for the startup log; nothing when it is the bucket root.</summary>
+    private static string PrefixNote(string prefix) =>
+        string.IsNullOrWhiteSpace(prefix) ? string.Empty : $"  (prefix {prefix.Trim()})";
+
     private static void ValidateAi(
         WebApplicationBuilder builder,
         bool development,
@@ -714,12 +775,14 @@ public static class StartupConfiguration
             $"ObjectStorage:SecretKey = {SecretRedaction.Describe(storage.SecretKey)}",
             $"ObjectStorage:Region = {storage.Region}",
             $"ObjectStorage:ForcePathStyle = {storage.ForcePathStyle}",
-            $"ObjectStorage:ExamAssetsBucket = {storage.ExamAssetsBucket}",
-            $"ObjectStorage:DictationBucket = {storage.DictationBucket}",
+            $"ObjectStorage:ExamAssetsBucket = {storage.ExamAssetsBucket}"
+                + PrefixNote(storage.ExamAssetsPrefix),
+            $"ObjectStorage:DictationBucket = {storage.DictationBucket}"
+                + PrefixNote(storage.DictationPrefix),
             "ObjectStorage:SpeakingRecordingsBucket = "
                 + (string.IsNullOrWhiteSpace(storage.SpeakingRecordingsBucket)
                     ? "not set"
-                    : storage.SpeakingRecordingsBucket),
+                    : storage.SpeakingRecordingsBucket + PrefixNote(storage.SpeakingRecordingsPrefix)),
             "ObjectStorage:SpeakingRecordingRetentionDays = "
                 + (storage.SpeakingRecordingRetentionDays?.ToString()
                     ?? "not set — unanswered business decision, G-11"),

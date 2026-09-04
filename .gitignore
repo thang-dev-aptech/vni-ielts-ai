@@ -146,3 +146,11 @@ _artifacts/
 
 # Playwright MCP session artefacts (screenshots, snapshots)
 .playwright-mcp/
+
+# Exam media (Listening audio, images) lives in object storage since 2026-09-04
+# — `[QUYẾT ĐỊNH]` chủ sản phẩm, ADR-0016 — not in git. The seven files
+# committed before that date stay tracked; anything new is pushed with
+# `dotnet run --project backend/tools/Vni.Ielts.AssetSync -- push` and pulled
+# on a fresh clone with `-- pull`. The package JSON stays in git.
+fixtures/exams/assets/*
+!fixtures/exams/assets/.gitkeep

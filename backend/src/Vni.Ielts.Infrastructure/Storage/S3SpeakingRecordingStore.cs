@@ -26,7 +26,7 @@ internal sealed class S3SpeakingRecordingBlobStore(IAmazonS3 client, ObjectStora
         var request = new GetPreSignedUrlRequest
         {
             BucketName = options.SpeakingRecordingsBucket,
-            Key = objectKey,
+            Key = ObjectStorageOptions.Under(options.SpeakingRecordingsPrefix, objectKey),
             Verb = HttpVerb.PUT,
             Expires = DateTime.UtcNow.Add(ttl),
             ContentType = contentType,
@@ -55,7 +55,7 @@ internal sealed class S3SpeakingRecordingBlobStore(IAmazonS3 client, ObjectStora
                 new GetObjectMetadataRequest
                 {
                     BucketName = options.SpeakingRecordingsBucket,
-                    Key = objectKey,
+                    Key = ObjectStorageOptions.Under(options.SpeakingRecordingsPrefix, objectKey),
                 }, ct);
 
             var checksum = response.Metadata.Keys.Contains("x-amz-meta-sha256")
@@ -85,11 +85,12 @@ internal sealed class S3SpeakingRecordingBlobStore(IAmazonS3 client, ObjectStora
         var request = new PutObjectRequest
         {
             BucketName = options.SpeakingRecordingsBucket,
-            Key = objectKey,
+            Key = ObjectStorageOptions.Under(options.SpeakingRecordingsPrefix, objectKey),
             InputStream = content,
             ContentType = contentType,
             CannedACL = S3CannedACL.Private,
             AutoCloseStream = false,
+            UseChunkEncoding = false, // R2: no aws-chunked bodies — see AddObjectStorage
         };
         request.Metadata["sha256"] = checksumSha256;
         await client.PutObjectAsync(request, ct);
@@ -102,7 +103,8 @@ internal sealed class S3SpeakingRecordingBlobStore(IAmazonS3 client, ObjectStora
         try
         {
             await client.DeleteObjectAsync(
-                options.SpeakingRecordingsBucket, objectKey, ct);
+                options.SpeakingRecordingsBucket,
+                ObjectStorageOptions.Under(options.SpeakingRecordingsPrefix, objectKey), ct);
         }
         catch (AmazonS3Exception e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
         {

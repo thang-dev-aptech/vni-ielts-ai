@@ -44,8 +44,26 @@ public static class SecretsFileConfigurationExtensions
     /// the environment, so local secrets override committed defaults and nothing else.
     /// Production: the same for <see cref="ProductionFileName"/>.
     /// </summary>
+    /// <summary>
+    /// Environment variable that, when set to <c>off</c>, stops both files from
+    /// being read. <b>For test hosts, which run as Development and would
+    /// otherwise inherit whatever the developer's <c>secrets.develop.json</c>
+    /// says.</b> Three suites learned this on 2026-09-04 alone: a real Google
+    /// client id disabled the SSO stub, a real Writing rubric made a journey
+    /// test call the provider, and an R2 recordings bucket sent a test's
+    /// Speaking upload to Cloudflare. Pinning each key in each factory is the
+    /// wrong layer; a test host says once that it wants no developer file.
+    /// → <c>Vni.Ielts.Integration.Tests.TestHostIsolation</c>
+    /// </summary>
+    public const string SkipVariable = "VNI_SECRETS_FILE";
+
+    public static bool IsSkipped =>
+        string.Equals(Environment.GetEnvironmentVariable(SkipVariable), "off", StringComparison.OrdinalIgnoreCase);
+
     public static IHostApplicationBuilder AddVniSecretsFile(this IHostApplicationBuilder builder)
     {
+        if (IsSkipped) return builder;
+
         if (builder.Environment.IsDevelopment())
         {
             /*
