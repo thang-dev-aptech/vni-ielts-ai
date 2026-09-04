@@ -57,7 +57,9 @@ services:
 | Môi trường | Thứ tự (thấp → cao) |
 |---|---|
 | Development | `appsettings*.json` → … → **`secrets.develop.json`** |
-| Production | **`secrets.production.json`** (nếu có) → `appsettings*.json` → **env vars** |
+| Production | `appsettings*.json` → **`secrets.production.json`** (nếu có) → **env vars** |
+
+File production nằm **trên** `appsettings*.json` (một secret mount vào mà thua giá trị mặc định đã commit thì điền xong không có tác dụng) và **dưới** biến môi trường (xoay key phải ăn ngay). → `SecretsFileConfigurationTests`
 
 ## An toàn
 

@@ -302,6 +302,64 @@ public sealed class SectionMarkingRunnerTests
 
     // ── And the case where it works ───────────────────────────────────────
 
+    /// <summary>
+    /// The shape production actually has: every question carries a synthesised
+    /// response slot (<c>ExamPackageReader</c> gives one to each question the
+    /// paper did not declare slots for), and the sheet is keyed by that slot.
+    /// </summary>
+    private static ExamVersion SlottedVersion()
+    {
+        var writing = new Section(ExamModule.Writing, 1,
+        [
+            SlottedTask(1, "Describe the chart in at least 150 words."),
+            SlottedTask(2, "Discuss both views and give your own opinion."),
+        ]);
+
+        var version = ExamVersion.CreateDraft(
+            ExamDefinitionId.New(), 1, "Test", ExamVariant.Academic,
+            new ScoringProfile(
+                new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(), AnswerMatchingRules.Default, null, null),
+            new TimingProfile(new Dictionary<ExamModule, int> { [ExamModule.Writing] = 3600 }, null, []),
+            [writing]);
+
+        version.Publish(T0.AddDays(-1));
+        return version;
+    }
+
+    private static SectionPart SlottedTask(int number, string prompt) =>
+        new(number, "writing-task", $"Task {number}", prompt, null, null, null, number, null, null, 150,
+        [
+            new Question($"w-task-{number}", number, QuestionType.EssayTask, prompt, [], null, null,
+                Slots: [new ResponseSlot($"w-task-{number}-slot-1", number, null)]),
+        ]);
+
+    [Fact]
+    public async Task An_essay_stored_under_its_response_slot_is_marked_not_reported_as_unanswered()
+    {
+        // Regression for the defect that made every Writing marking in the
+        // product a silent no-op. Autosave writes the essay under the slot id
+        // (`w-task-1-slot-1`); the runner looked it up under the question id,
+        // found nothing, and reported `NothingSubmitted` — so the job
+        // completed, no provider was called, and the learner saw a blank
+        // results screen with no reason on it. Measured on the dev database
+        // on 2026-09-03: `section_markings` empty across every Writing job.
+        var evaluator = new StubEvaluator(ExamModule.Writing, _ => new(FourClaims(), null));
+        var store = new FakeMarkingStore();
+        var slotKeyed = new FakeAnswerSheetStore(new Dictionary<ExamModule, Dictionary<string, string?>>
+        {
+            [ExamModule.Writing] = new() { ["w-task-1-slot-1"] = Essay, ["w-task-2-slot-1"] = Essay },
+        });
+
+        var outcomes = await Runner(new FakeRubricSource(WritingRubric), store, [evaluator])
+            .RunAsync(SlottedVersion(), ExamModule.Writing, Session, slotKeyed, default);
+
+        Assert.Equal(2, outcomes.Count);
+        Assert.All(outcomes, o => Assert.Equal(MarkingAvailability.Marked, o.Availability));
+        Assert.Equal(2, evaluator.Requests.Count);
+        Assert.All(evaluator.Requests, r => Assert.Equal(Essay, r.LearnerSubmission));
+        Assert.Equal([1, 2], store.Saved.Select(m => m.TaskNumber));
+    }
+
     [Fact]
     public async Task Writing_produces_one_marking_per_task_because_that_is_how_IELTS_marks_it()
     {

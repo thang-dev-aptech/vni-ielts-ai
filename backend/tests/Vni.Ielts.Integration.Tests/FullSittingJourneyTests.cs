@@ -110,7 +110,14 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
     /// and is deliberately not under version control, so it can never be the
     /// thing a test asserts against.
     /// </summary>
-    private const string SeededExamTitle = "Exam 1";
+    // Matched by seeded id, not by title: the paper is `seed-exam-1-{fingerprint}`
+    // however its title is worded (it was "Exam 1", then "Đề 1 — Full 4 kỹ năng"
+    // on 2026-09-03, and a title is copy a content owner may change again).
+    internal const string SeededExamIdPrefix = "seed-exam-1-";
+
+    internal static bool IsSeededFullExam(JsonElement exam) =>
+        (exam.GetProperty("examVersionId").GetString() ?? string.Empty)
+            .StartsWith(SeededExamIdPrefix, StringComparison.Ordinal);
 
     private async Task<string> FullExamIdAsync(HttpClient client, string access)
     {
@@ -118,11 +125,11 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
         response.EnsureSuccessStatusCode();
 
         var full = (await BodyOf(response)).GetProperty("exams").EnumerateArray()
-            .FirstOrDefault(e => e.GetProperty("title").GetString() == SeededExamTitle);
+            .FirstOrDefault(e => IsSeededFullExam(e));
 
         Assert.True(
             full.ValueKind == JsonValueKind.Object,
-            $"'{SeededExamTitle}' is not in the catalogue. It is seeded from "
+            $"No '{SeededExamIdPrefix}*' paper is in the catalogue. It is seeded from "
             + "fixtures/exams/exam-1.json on Development boot.");
 
         Assert.Equal(4, full.GetProperty("modules").EnumerateArray().Count());
@@ -242,6 +249,52 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
             .Select(q => q.GetProperty("id").GetString()!)
             .ToArray();
 
+    // ── The paper's own key ──────────────────────────────────────────────
+
+    private sealed record KeyedQuestion(string Id, int Marks, string Answer);
+
+    private static readonly Lazy<JsonDocument> Paper = new(() =>
+        JsonDocument.Parse(File.ReadAllText(SeededFixturePath())));
+
+    /// <summary>
+    /// The same file the Development seeder reads, found the same way the
+    /// seeder finds it: by walking up from the binary to the repository root.
+    /// </summary>
+    private static string SeededFixturePath()
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+        {
+            var candidate = Path.Combine(dir.FullName, "fixtures", "exams", "exam-1.json");
+            if (File.Exists(candidate)) return candidate;
+        }
+
+        throw new FileNotFoundException("fixtures/exams/exam-1.json was not found above the test binary.");
+    }
+
+    private static IReadOnlyList<KeyedQuestion> KeyOf(string module) =>
+        Paper.Value.RootElement.GetProperty("sections").EnumerateArray()
+            .Single(s => s.GetProperty("module").GetString() == module)
+            .GetProperty("parts").EnumerateArray()
+            .SelectMany(p => p.GetProperty("questions").EnumerateArray())
+            .Select(q => new KeyedQuestion(
+                q.GetProperty("id").GetString()!,
+                q.TryGetProperty("marks", out var marks) ? marks.GetInt32() : 1,
+                FirstAccepted(q.GetProperty("answerKey").GetProperty("accepted")[0])))
+            .ToList();
+
+    // A multi-pick key is an array of letters; the client sends the picks as
+    // one `|`-joined answer, which is what the marker splits on.
+    private static string FirstAccepted(JsonElement accepted) =>
+        accepted.ValueKind == JsonValueKind.Array
+            ? string.Join('|', accepted.EnumerateArray().Select(v => v.GetString()))
+            : accepted.GetString()!;
+
+    private static decimal BandFor(string module, int raw) =>
+        Paper.Value.RootElement.GetProperty("scoringProfile").GetProperty("rawToBand")
+            .GetProperty(module).EnumerateArray()
+            .Where(row => row.GetProperty("minRaw").GetInt32() <= raw)
+            .Max(row => row.GetProperty("band").GetDecimal());
+
     private static JsonElement SectionNamed(JsonElement results, string module) =>
         results.GetProperty("sections").EnumerateArray()
             .Single(s => s.GetProperty("module").GetString() == module);
@@ -259,10 +312,15 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
     /// than eight would give; what it buys is that the failure happens at all.
     ///
     /// <b>The answers are chosen so the marker has to discriminate.</b> Reading
-    /// is answered fully correctly and Listening deliberately is not: 4/4 → band
-    /// 9, and 3/4 → band 6 from this paper's own equated table. A marker that
-    /// awarded a constant, or read the wrong section's key, passes an
-    /// all-correct sitting and fails here.
+    /// is answered fully correctly and Listening deliberately is not: every
+    /// mark but three, which this paper's own equated table puts a band below
+    /// full marks. A marker that awarded a constant, or read the wrong
+    /// section's key, passes an all-correct sitting and fails here.
+    ///
+    /// <b>Answers and expected bands come from the fixture, not from this
+    /// file.</b> Until 2026-09-03 the seeded paper was a four-question synthetic
+    /// one and the test carried its key inline; the day the real Exam 1 replaced
+    /// it, the inline key was silently a test of a paper nobody could sit.
     /// </summary>
     [SkippableFact]
     public async Task A_learner_registers_sits_all_four_modules_and_reads_their_bands()
@@ -279,9 +337,9 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
         var sessionId = view.GetProperty("sessionId").GetString()!;
 
         Assert.Equal("reading", ModuleOf(view));
-        Assert.Equal(
-            ["syn-r-1", "syn-r-2", "syn-r-3", "syn-r-4"],
-            QuestionIds(view));
+
+        var readingKey = KeyOf("reading");
+        Assert.Equal(readingKey.Select(q => q.Id), QuestionIds(view));
 
         // Typed one at a time, as a learner types — each save carrying the
         // revision the last one returned. A server that ignored `baseRevision`
@@ -289,16 +347,18 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
         var revision = RevisionOf(view);
         revision = await SaveAsync(
             client, access, sessionId, "reading",
-            new() { ["syn-r-1"] = "river depth" }, revision);
-        revision = await SaveAsync(
-            client, access, sessionId, "reading",
-            new() { ["syn-r-2"] = "TRUE", ["syn-r-3"] = "A" }, revision);
+            new() { [readingKey[0].Id] = readingKey[0].Answer }, revision);
 
-        // Changed their mind, which is the ordinary case and the one that has to
-        // overwrite rather than accumulate.
+        // A first, wrong, attempt at the second question ...
         revision = await SaveAsync(
             client, access, sessionId, "reading",
-            new() { ["syn-r-2"] = "FALSE", ["syn-r-4"] = "B" }, revision);
+            new() { [readingKey[1].Id] = "not the answer" }, revision);
+
+        // ... changed their mind, which is the ordinary case and the one that
+        // has to overwrite rather than accumulate.
+        revision = await SaveAsync(
+            client, access, sessionId, "reading",
+            readingKey.Skip(1).ToDictionary(q => q.Id, q => (string?)q.Answer), revision);
 
         Assert.True(revision >= 3, "Each accepted save must move the revision forward.");
 
@@ -325,19 +385,23 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
         var remaining = view.GetProperty("current").GetProperty("remainingSeconds").GetInt32();
         Assert.InRange(remaining, 2_300, 2_400);
 
+        var listeningKey = KeyOf("listening");
+
+        // Wrong on purpose: the last three single-mark questions. Single-mark,
+        // so the raw score is exactly three short of full marks and the band
+        // below is the table's answer, not this test's arithmetic.
+        var missed = listeningKey.Where(q => q.Marks == 1).TakeLast(3).Select(q => q.Id).ToHashSet();
+        Assert.Equal(3, missed.Count);
+
+        // Multi-pick questions send their picks in one answer, joined by `|`.
+        // `A17` was this exact value spelled one way by the client and read
+        // another by the marker.
         revision = RevisionOf(view);
         revision = await SaveAsync(
             client, access, sessionId, "listening",
-            new()
-            {
-                ["syn-l-1"] = "9:30",
-                ["syn-l-2"] = "three",
-                // Two picks in one answer. `A17` was this exact value spelled
-                // one way by the client and read another by the marker.
-                ["syn-l-3"] = "A|C",
-                // Wrong on purpose. The key accepts "registrar".
-                ["syn-l-4"] = "the porter",
-            },
+            listeningKey.ToDictionary(
+                q => q.Id,
+                q => (string?)(missed.Contains(q.Id) ? "the porter" : q.Answer)),
             revision);
 
         /*
@@ -370,16 +434,19 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
         view = await AdvanceAsync(client, access, sessionId);
         Assert.Equal("writing", ModuleOf(view));
 
+        var tasks = QuestionIds(view);
+        Assert.Equal(2, tasks.Length);
+
         revision = RevisionOf(view);
         await SaveAsync(
             client, access, sessionId, "writing",
             new()
             {
-                ["syn-w-task-1"] =
+                [tasks[0]] =
                     "The chart shows the number of visitors to three coastal towns between "
                     + "2019 and 2024. Overall, arrivals rose in every town, though the rise "
                     + "was steepest in the smallest of the three.",
-                ["syn-w-task-2"] =
+                [tasks[1]] =
                     "Some argue that public transport should be free at the point of use. "
                     + "In my view the case is strong in dense cities and weak elsewhere, and "
                     + "this essay explains why the distinction matters more than the principle.",
@@ -425,37 +492,54 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
 
         // ── The bands ───────────────────────────────────────────────────
 
-        // 4 of 4. This paper's table puts that at 9.
+        // Full marks, at whatever band this paper's table puts full marks.
+        var readingMax = readingKey.Sum(q => q.Marks);
+        var readingBand = BandFor("reading", readingMax);
+
         var reading = SectionNamed(results, "reading");
-        Assert.Equal(4, reading.GetProperty("rawScore").GetInt32());
-        Assert.Equal(4, reading.GetProperty("maxScore").GetInt32());
-        Assert.Equal(9m, reading.GetProperty("band").GetDecimal());
+        Assert.Equal(readingMax, reading.GetProperty("rawScore").GetInt32());
+        Assert.Equal(readingMax, reading.GetProperty("maxScore").GetInt32());
+        Assert.Equal(readingBand, reading.GetProperty("band").GetDecimal());
 
         /*
-         * <b>4 of 5, from four questions — and the mismatch is the point.</b>
+         * <b>Scored out of its marks, not out of its question objects — and the
+         * mismatch is the point.</b>
          *
-         * `syn-l-3` is a "choose TWO" question carrying two marks, so the
-         * section is scored out of 5 rather than out of 4. Counting question
+         * "Choose TWO" and "choose THREE" questions carry two and three marks,
+         * so this Listening has more marks than questions. Counting question
          * objects instead of marks is what once scored a 40-mark Listening
          * section out of 36 and put the top of its own equated table out of
-         * reach. `syn-l-4` was answered wrongly on purpose; 4 marks is band 7.5
-         * on this paper.
+         * reach. Three single-mark questions were answered wrongly on purpose.
          *
          * <b>This is the first test in the project to read `maxScore` at all</b>,
          * which is how the difference between the two counts became visible.
          */
+        var listeningMax = listeningKey.Sum(q => q.Marks);
+        var listeningRaw = listeningMax - 3;
+        var listeningBand = BandFor("listening", listeningRaw);
+
+        Assert.True(
+            listeningMax > listeningKey.Count,
+            "This paper's Listening must carry multi-mark questions for the marks-vs-objects check to mean anything.");
+        Assert.NotEqual(readingBand, listeningBand);
+
         var listening = SectionNamed(results, "listening");
-        Assert.Equal(4, listening.GetProperty("rawScore").GetInt32());
-        Assert.Equal(5, listening.GetProperty("maxScore").GetInt32());
-        Assert.Equal(7.5m, listening.GetProperty("band").GetDecimal());
+        Assert.Equal(listeningRaw, listening.GetProperty("rawScore").GetInt32());
+        Assert.Equal(listeningMax, listening.GetProperty("maxScore").GetInt32());
+        Assert.Equal(listeningBand, listening.GetProperty("band").GetDecimal());
 
-        // And the one wrong answer is reported as wrong, with what they typed —
+        // And each wrong answer is reported as wrong, with what they typed —
         // a results screen that could not show this could not explain a band.
-        var missed = listening.GetProperty("questions").EnumerateArray()
-            .Single(q => q.GetProperty("questionId").GetString() == "syn-l-4");
+        var reported = listening.GetProperty("questions").EnumerateArray()
+            .Where(q => missed.Contains(q.GetProperty("questionId").GetString()!))
+            .ToList();
 
-        Assert.False(missed.GetProperty("isCorrect").GetBoolean());
-        Assert.Equal("the porter", missed.GetProperty("submitted").GetString());
+        Assert.Equal(3, reported.Count);
+        Assert.All(reported, q =>
+        {
+            Assert.False(q.GetProperty("isCorrect").GetBoolean());
+            Assert.Equal("the porter", q.GetProperty("submitted").GetString());
+        });
 
         // Both sections are here, together. A results view that reported only
         // the section closed last would pass every one-step test in the suite.
@@ -529,8 +613,8 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
         var persisted = await BodyOf(later);
 
         Assert.Equal("submitted", persisted.GetProperty("status").GetString());
-        Assert.Equal(9m, SectionNamed(persisted, "reading").GetProperty("band").GetDecimal());
-        Assert.Equal(7.5m, SectionNamed(persisted, "listening").GetProperty("band").GetDecimal());
+        Assert.Equal(readingBand, SectionNamed(persisted, "reading").GetProperty("band").GetDecimal());
+        Assert.Equal(listeningBand, SectionNamed(persisted, "listening").GetProperty("band").GetDecimal());
     }
 
     // ── 2 · The sitting belongs to the learner who started it ───────────
@@ -646,7 +730,7 @@ public sealed class MarkingQueuedOnSubmitTests(RubricConfiguredAppFactory app)
         catalogue.EnsureSuccessStatusCode();
 
         var examId = (await BodyOf(catalogue)).GetProperty("exams").EnumerateArray()
-            .First(e => e.GetProperty("title").GetString() == "Exam 1")
+            .First(FullSittingJourneyTests.IsSeededFullExam)
             .GetProperty("examVersionId").GetString()!;
 
         var start = Authed(HttpMethod.Post, "/api/v1/sessions", access);

@@ -75,15 +75,60 @@ public static class WritingRubricLoader
             descriptors);
     }
 
+    /// <summary>
+    /// Turns the configured artifact path into a file on disk.
+    ///
+    /// ── Why a relative path gets more than one chance ─────────────────────
+    ///
+    /// <b>It used to get exactly one: <c>Path.GetFullPath(path)</c>, which
+    /// resolves against the current working directory.</b> That made
+    /// <c>"fixtures/assessment/writing-rubric-v1.json"</c> — the value shipped
+    /// in <c>secrets.example.json</c>, so the value everybody copies — work
+    /// only when the process happened to be started from the repository root,
+    /// and throw everywhere else: from a test binary, from
+    /// <c>dotnet run --project</c>, from a container.
+    ///
+    /// The failure is loud but badly placed. It comes out of
+    /// <see cref="WritingSectionEvaluator"/>'s constructor, which DI resolves
+    /// the first time a job is marked, so a worker that started cleanly dies on
+    /// the first learner essay with a stack trace about a missing file — long
+    /// after the configuration that caused it was accepted.
+    ///
+    /// So a relative path is now tried against the working directory, then the
+    /// binary's own folder, then the repository's <c>fixtures/</c> root. An
+    /// absolute path is still taken literally: someone who wrote one meant it.
+    ///
+    /// <b>What this does not fix, and it matters:</b> <c>backend/Dockerfile</c>
+    /// builds from <c>backend/</c> and copies only <c>src/</c>, so
+    /// <c>fixtures/</c> is not in the image at all. None of these three
+    /// candidates exists in a container, and a production deployment that
+    /// configures <c>Assessment</c> will fail here. The rubric has to ship with
+    /// the image or be mounted beside the secrets before that configuration is
+    /// used in production.
+    /// </summary>
     private static string ResolvePath(string? path)
     {
         if (!string.IsNullOrWhiteSpace(path))
         {
-            var full = Path.GetFullPath(path);
-            if (!File.Exists(full))
-                throw new FileNotFoundException($"Rubric artifact not found at '{full}'.");
+            if (Path.IsPathRooted(path))
+            {
+                if (!File.Exists(path))
+                    throw new FileNotFoundException($"Rubric artifact not found at '{path}'.");
 
-            return full;
+                return path;
+            }
+
+            foreach (var candidate in RelativeCandidates(path))
+            {
+                if (File.Exists(candidate)) return candidate;
+            }
+
+            throw new FileNotFoundException(
+                $"Rubric artifact '{path}' was not found relative to the working directory "
+                + $"({Directory.GetCurrentDirectory()}), the application directory "
+                + $"({AppContext.BaseDirectory}), or any fixtures root above either. Configure "
+                + "an absolute Assessment:WritingMarking:RubricArtifactPath, or leave it unset to "
+                + "use the bundled rubric.");
         }
 
         var root = FindFixturesRoot()
@@ -95,6 +140,32 @@ public static class WritingRubricLoader
             throw new FileNotFoundException($"Default rubric artifact not found at '{fallback}'.");
 
         return fallback;
+    }
+
+    /// <summary>
+    /// Where a relative artifact path might live, most explicit first.
+    ///
+    /// The repository candidate is derived from <see cref="FindFixturesRoot"/>,
+    /// which already knows how to walk up to <c>fixtures/assessment</c> — so
+    /// <c>"fixtures/assessment/writing-rubric-v1.json"</c> and
+    /// <c>"assessment/writing-rubric-v1.json"</c> both land, and neither
+    /// depends on where the process was launched from.
+    /// </summary>
+    private static IEnumerable<string> RelativeCandidates(string path)
+    {
+        yield return Path.GetFullPath(path);
+        yield return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, path));
+
+        if (FindFixturesRoot() is not { } fixturesRoot) yield break;
+
+        // fixtures/assessment → fixtures → the directory holding it.
+        var fixtures = Directory.GetParent(fixturesRoot)?.FullName;
+        if (fixtures is null) yield break;
+
+        yield return Path.GetFullPath(Path.Combine(fixtures, path));
+
+        if (Directory.GetParent(fixtures)?.FullName is { } repositoryRoot)
+            yield return Path.GetFullPath(Path.Combine(repositoryRoot, path));
     }
 
     private static void VerifyHash(byte[] bytes, string? expectedHash)

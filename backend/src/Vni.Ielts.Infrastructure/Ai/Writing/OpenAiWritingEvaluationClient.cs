@@ -84,8 +84,22 @@ public sealed class OpenAiWritingEvaluationClient(
 
     internal static readonly AsyncLocal<AiEgressTicket?> CurrentTicket = new();
 
+    /// <summary>
+    /// The Responses API is OpenAI's own, so only OpenAI's own endpoint gets
+    /// it; everything else gets <c>chat/completions</c>, which is what an
+    /// OpenAI-compatible reseller implements.
+    ///
+    /// <b>This asks <see cref="AiProviderPolicy.IsVendorEndpoint"/>, not
+    /// <c>IsThirdPartyEndpoint</c>, and the difference is load-bearing.</b> The
+    /// third-party check answers "is a company with no DPA in the path", and a
+    /// host added to <see cref="AiProviderPolicy.ContractedProcessorHosts"/>
+    /// stops being third-party the moment somebody signs — or decides. It does
+    /// not simultaneously learn a new wire protocol. Reading the contract
+    /// answer here would have switched this client to a Responses-API body
+    /// against a reseller on that same commit.
+    /// </summary>
     private static bool UsesResponsesApi(AiEgressTicket ticket) =>
-        !AiProviderPolicy.IsThirdPartyEndpoint(ticket.ProviderSection, ticket.BaseUrl);
+        AiProviderPolicy.IsVendorEndpoint(ticket.ProviderSection, ticket.BaseUrl);
 
     private static HttpRequestMessage BuildResponsesMessage(
         string baseUrl,

@@ -110,7 +110,23 @@ public sealed class SectionMarkingRunner(
         var rubric = rubrics.For(module);
         var evaluator = evaluators.FirstOrDefault(e => e.Module == module);
 
-        var sheet = await answers.LoadAsync(sessionId, module, ct);
+        /*
+         * <b>Projected onto question ids, because the sheet is not keyed by
+         * them.</b> Persistence addresses every answer by response-slot id —
+         * `w-task-1-slot-1`, not `w-task-1` — since the package reader gives
+         * each question a slot whether the paper declared one or not. This
+         * runner read the raw sheet by question id, found nothing, and
+         * reported every essay ever submitted as `NothingSubmitted`: the job
+         * completed, no provider was called, no marking was stored and no
+         * reason reached the learner. Measured on the dev database on
+         * 2026-09-03: `section_markings` empty across every Writing job.
+         *
+         * The unit tests did not catch it because their fixture questions
+         * carried no slots and their sheets were question-keyed — the one
+         * shape production never has. The regression test now uses both.
+         */
+        var sheet = ResponseSlotAnswers.ToQuestionAnswers(
+            await answers.LoadAsync(sessionId, module, ct), section);
 
         // <b>What is already marked is not marked again, and the check is a
         // read rather than a hope.</b> The store refuses a duplicate insert, so

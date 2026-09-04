@@ -99,7 +99,8 @@ public sealed class KestrelTransportTests(KestrelExamAppFactory app)
         catalogue.EnsureSuccessStatusCode();
 
         var examId = (await BodyOf(catalogue)).GetProperty("exams").EnumerateArray()
-            .First(e => e.GetProperty("title").GetString() == "Exam 1")
+            // By seeded id, not title — see FullSittingJourneyTests.SeededExamIdPrefix.
+            .First(FullSittingJourneyTests.IsSeededFullExam)
             .GetProperty("examVersionId").GetString()!;
 
         var start = Authed(HttpMethod.Post, "/api/v1/sessions", access);

@@ -761,3 +761,142 @@ Owner decision: current infrastructure is sufficiently healthy to begin feature 
 - Negative proof: foreign results/explanations → SessionNotFound; pre-submit explanation refused; oversized/non-audio/bad-checksum init refused; audit detail rejects uploadUrl with X-Amz-Signature; Writing UserPrompt strips embedded learner delimiter even if caller forgot Sanitize.
 - Residual risks (documented non-pass): GitGuardian R18; security-fixture CI; plausible Writing band injection remains bounded not blocked; live R/L explanation adapters still recorded-only.
 - Git state: no commit or push performed.
+
+## Writing marking and results-screen re-audit (2026-09-03 → 04)
+
+- **Correction to FS6 / to CLAUDE.md "Live since 2026-09-02".** Measured against the dev
+  database on 2026-09-03: `section_markings` held **zero** rows; every Writing job was
+  `Completed`, `attempts: 1`, in ~1.5 s — no provider was ever called. Two defects, both
+  outside the FS6 test fixtures' reach:
+  1. `SectionMarkingRunner` read the answer sheet by question id (`w-task-1`); the sheet is
+     stored by response-slot id (`w-task-1-slot-1`) because `ExamPackageReader` synthesises a
+     slot for every question, essays included. Every essay read as `NothingSubmitted`, which the
+     worker treats as success. Fix: project the sheet through
+     `ResponseSlotAnswers.ToQuestionAnswers` (`SectionMarkingRunner.RunAsync`).
+  2. `Vni.Ielts.Worker` had no Mongo section in `appsettings.Development.json`; it used the code
+     default `localhost:27017/?replicaSet=rs0` (the dev stack is `27018`) and died 30 s after
+     boot. Fix: the section is now in the file.
+- **Negative proof:** `An_essay_stored_under_its_response_slot_is_marked_not_reported_as_unanswered`
+  (slotted questions + slot-keyed sheet, the production shape) — red with the fix stashed
+  (`Failed: 1`), green with it (`SectionMarkingRunnerTests` 14/14).
+- **Live proof:** single-skill Writing sitting on `seed-exam-1`, two essays autosaved
+  (revision 1), submitted → worker `Writing evaluation completed via OpenAi model deepseek-v4-pro`
+  → `section_markings` 2 rows (Task 1 band 6.0, Task 2 band 6.0, four criteria each, evidence
+  quoted) → `/practice/results/<id>` renders "AI đã chấm 2 bài · 6.0 · 6.0" and the criterion
+  feedback. One transient socket error on Task 2 was retried by the queue as designed.
+- **Results-screen honesty:** a completed job with no marking (a genuinely blank section) now
+  carries `code: NothingSubmitted` and a learner sentence instead of `reason: null`
+  (`ExamHandlers.ToStatusView(job, markings)`; test
+  `Results_view_names_nothing_submitted_when_a_completed_job_stored_no_marking`). Live: empty
+  Writing sitting → `"Không có bài làm nào được nộp cho phần này nên không có điểm."`. The Writing
+  row subtitle no longer says "Chưa chấm" beside two task bands (`exam.aiMarkedTasks`).
+- **Reading/Listening AI explanation:** live on Cam 17 T1 Reading Q1 —
+  `POST …/questions/r-1/explanation` → `state: ready` with `correctAnswer` and `shortReason`.
+- **Suites:** Domain 198/198 · Application 278/278 · Architecture 10/10 · Worker 13/13 ·
+  Infrastructure 195/198 + 2 skipped after `[SkippableTheory]` fix · web `pnpm --filter @vni/web
+  test` exit 0 · `pnpm typecheck` clean · `node scripts/check-docs.mjs` clean.
+- **Not fixed, pre-existing, out of today's scope:** Integration `SessionsTests` (11) and other
+  SSO-stub tests fail on this machine because `secrets.develop.json` (real Google client id) is
+  appended *after* the test host's `UseSetting("Sso:Google:ClientId", "")`, so the stub provider
+  never engages (`SecretsFileConfigurationExtensions.AddVniSecretsFile`, Development branch). Needs
+  a test-host switch to skip the secrets file, or a load order that keeps `UseSetting` last.
+- Git state: no commit or push performed.
+
+## Cambridge import batch (2026-09-04)
+
+- `scripts/run-cambridge-batch.sh` (resumable, `.ok` markers), `scripts/assemble-cambridge-fixture.py`
+  generalised over Cam 16/17/18/19/21 audio layouts and Reading-only books,
+  `scripts/survey-cambridge-prep.py` preflight, `prepare-cambridge-sources.py --resplit` /
+  `--keys-only`.
+- Prep defects found by the preflight and fixed before more paid parses: `split_paper_modules`
+  took the *last* "READING PASSAGE n" line as the Reading start (18/20 Reading papers began at
+  passage 3); `split_listening_reading` handed the whole key to Listening when the page opened on
+  the previous test's Reading tail (Cam 16 T1–T3 Reading keys empty); Cam 16 key page ranges
+  widened to three pages.
+- Model: `deepseek-v4-flash` stalls on Reading (3 × 18-min deadline, Cam 17 T3); Reading now
+  parses with `gpt-5.4` via `READING_MODEL`. `gpt-5.4` first returned 400 on every paper — the
+  reseller requires the word "json" in the *user* turn under `response_format: json_object`;
+  `ExamSourceParsePrompt.User` says so now (`exam-parse-prompt-v6`) and the 400 body is logged.
+- `AnswerKeyInjection`: YES/NO on a `true-false-notgiven` question retypes it (and its group) to
+  `yes-no-notgiven` with `ANSWER_KEY_TYPE_RETYPED` warnings instead of refusing — Cam 17 T3
+  Q32–35. A completion word on a verdict question still refuses (`AnswerKeyTests` 42/42).
+- Shipped this session: `fixtures/exams/cam17-test-3.json` (Reading 39 q/40 marks, Listening
+  39 q/40 marks, audio wired) — seeded as `seed-cam17-test-3-97d208b2`. Remaining books run in the
+  batch; progress in `_workspace/cambridge/batch/batch.out`.
+- **Later the same night — what the key gate caught, and what each fix was.** Every item below
+  was a paid parse that the gate refused *after* the provider call; each fix is offline
+  (`--package --key` re-applies a key to the draft on disk, no second call):
+  - Cam 16 key pages were the **wrong test**: the "empirical" window 123–124 was Test 1's Reading
+    tail + Test 2's Listening; read off the rendered page, PDF = printed folio + 1, two pages per
+    test (Listening, Reading) → 122–123 / 124–125 / 126–127 / 128–129. A count-based check would
+    have passed it. `prepare-cambridge-sources.py --keys-only` re-extracts key pages alone.
+  - The two-column OCR crop cut at 50 % ran through the right column's question numbers (they sit
+    at ~48 %); now 45 %.
+  - `pdftotext -layout` emits `NOTGIVEN`; OCR emits `3. NOT GIVEN`, `31: G`, `. 4 pesticides`,
+    `Cc`/`8B`/`OD`/`=F` for C/B/D/F. `CambridgeAnswerKeyNormalizer` strips leading glyphs and
+    accepts `.`/`:` after the number; `AnswerKeyInjection` maps `NOTGIVEN`→`NOT GIVEN` and resolves
+    a ≤3-char token to the one printed key it contains (two different keys stay refused).
+  - A model wrote group ids like `"r-y nng-37-40"` (schema id pattern fails the whole file);
+    `QuestionGroupRepair` folds them consistently. It also filed Cam 21 T3's Writing tasks as
+    Reading parts 4–5 numbered 1–2; `SectionPartRepair.DropForeignParts` removes non-passage
+    parts from Reading/Listening before the key is written.
+  - Two Cam 16 T1 Reading letters were unreadable in OCR (`£`, `6`); read from the rendered key
+    page as E and C and corrected in `key-reading.txt` by hand.
+  - `AnswerKeyTests` 53/53, `ExamCatalogueDescriptionTests` covers Cam 16/17/18/19/21 (skips
+    when a fixture has not landed).
+- **Shelf at 03:00, 2026-09-04 (25 fixtures in `fixtures/exams`, all seeded and visible on
+  `/practice`):** Đề 1 (4 skills) · VOL 9 T1, T2, T4, T6 (R+L), T7, T8 (Reading only) ·
+  Cam 16 T1, T2, T4 (R+L) · Cam 17 T1–T4 (R+L) · Cam 18 T1, T3, T4 (R+L), T2 (Reading only) ·
+  Cam 19 T1, T2 (R+L), T3 (Reading only), T4 (in flight on `gpt-5.5`) · Cam 21 T1–T4 (Reading
+  only; no audio on disk). Every Listening fixture carries the book's own audio.
+- **Still owed, with the reason:** VOL 9 T3 R (key document has 39 answers), VOL 9 T5 R (source
+  prints headings i–viii, key says ix), VOL 9 T7/T8 L (model returns a truncated paper for the
+  inline-gap notes shape), Cam 16 T3 (paper OCR lost Q9, Q23–26), Cam 18 T2 L and Cam 19 T3 L
+  (model drops two questions on each parse), Cam 20 (no audio, no OCR yet). None of these is a
+  key-alignment risk: the gate refused them, nothing wrong shipped.
+- **Model routing that held:** `gpt-5.4` for both modules (2–4 min a paper); the reseller's
+  `deepseek-v4-pro` opened streams and went silent on Listening as well as Reading. The reseller's
+  `gpt-5.4` channel itself dropped out once ("分组 auto 下模型 gpt-5.4 的可用渠道不存在") — the 5xx
+  body is now in the log so that is visible next time.
+- **Hand edits to OCR key text, each read from the rendered page:** cam16 t1 R Q32 E, Q37 C ·
+  cam16 t2 L Q23 C · cam18 t1 L Q11 C · cam18 t3 R Q3 C, Q31 H, Q33 F, Q34 E · cam18 t3 L Q21&22
+  A/E · cam18 t4 R Q20 E, Q31 I · cam18 t4 L Q17 E, Q21&22 B/D · cam19 t1 R Q35 E · cam19 t2 R
+  Q17 C, Q31 J, Q32 I · cam19 t2 L Q25 E · cam19 t3 R Q32 E. The edited files are under
+  `_workspace/cambridge/prepared/*/key-*.txt`; the fixtures are what ships.
+
+## Goal coaching, study streak and one chrome (2026-09-04)
+
+`[QUYẾT ĐỊNH]` chủ sản phẩm 04/09/2026: (1) redesign every learner page to match the student page;
+(2) AI advice against the learner's own target band; (3) a GitHub-style daily activity grid with a
+TikTok-style flame from three days in a row.
+
+- **Goal + coaching.** `LearnerGoal` (4.0–9.0, half-band steps, optional exam date) in
+  `learner_goals`; `GET/PUT /api/v1/me/goal`. `GET /api/v1/me/coaching` returns, per skill, the
+  current band (latest sitting that produced one — the same list the dashboard shows), the gap,
+  a state (`none` · `met` · `close` · `behind`, a whole band being the threshold) and `focus`,
+  weakest first (`GoalGap`). Writing/Speaking carry their per-task bands as `detail` when no module
+  band exists — `H-8b` is still not answered, so no average is invented. `GET /me/coaching/advice`
+  adds the model's phrasing: numbers only in the prompt (`AiDataClassification.LearnerPersonal`,
+  same egress gate as Writing marking), reply validated (`CoachingAdviceValidator`: ≤600-char
+  summary, ≤5 tips on the four skills, no links or markup), cached seven days per *standing*, not
+  per learner. Facts first, advice second: the dashboard never waits on the model.
+- **Streak.** `learner_activity_days` upserted from sign-in, refresh, sitting start and submit
+  (`LearnerPresence`, never failing the request); `GET /api/v1/me/activity` merges historical
+  sittings so the first grid is honest, computes current/longest streak in `Learning:TimeZone`
+  (default Asia/Ho_Chi_Minh, a configured seam) with the "breakfast rule" — today does not break
+  the streak until it is over; `flame` from three days (`StreakCalculator`).
+- **Chrome.** `AppShell` renders the student chrome (sidebar, top bar) for a signed-in learner on
+  practice, dictation, documents, articles; results and profile moved under it; visitors keep the
+  landing chrome on the same routes. The rail now lists the four modules and the profile. Module
+  pages render a dashboard-style `PageHead` and hide their marketing hero/FAQ/CTA when signed in.
+  `AppShell` waits for the session to resolve — choosing a chrome early and switching remounted
+  the page under a click (seen in `exam-flow`). Supersedes the 21/08/2026 notes that kept results
+  and profile out of the dashboard shell.
+- **Tests:** `LearningTests` 27 (gap states, the owner's 6.5 / R 4.0 example → Reading first,
+  breakfast rule, longest run, advice refusals, cache key by standing); Application 324;
+  web 308/308 with the dashboard, profile-layout, account-menu and exam-flow specs updated to the
+  new chrome and endpoints. Live: goal 204 → PUT 200 → 400 on 6.3 → coaching → activity
+  (streak 1, `activeToday`).
+- **Fix 1 from the morning list:** `AddVniSecretsFile` now splices `secrets.develop.json` below the
+  environment sources in Development (as Production already did), so a test host's `UseSetting`
+  outranks a developer's real Google client id. `SessionsTests` + `SsoFlowTests` 16/16.

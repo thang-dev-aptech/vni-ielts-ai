@@ -608,10 +608,10 @@ public static class StartupConfiguration
             {
                 problems.Add(
                     $"Ai:{section}:SyntheticDataOnly is false while Ai:{section}:BaseUrl points "
-                    + "at neither the vendor's own endpoint nor any contracted processor "
-                    + "(AiProviderPolicy.ContractedProcessorHosts is empty). That combination "
-                    + "asserts a learner's essay may pass through a company with no "
-                    + "data-processing agreement. → CLAUDE.md rule 6");
+                    + "at neither the vendor's own endpoint nor any contracted processor. "
+                    + "That combination asserts a learner's essay may pass through a company "
+                    + "with no data-processing agreement. Adding a host is a code change to "
+                    + "AiProviderPolicy.ContractedProcessorHosts. → CLAUDE.md rule 6");
             }
         }
 

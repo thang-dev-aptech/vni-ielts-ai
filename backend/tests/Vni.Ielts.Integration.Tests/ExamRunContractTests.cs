@@ -1856,9 +1856,28 @@ public class ExamAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("Jwt:SigningKey", new string('k', 48));
         builder.UseSetting("Sso:EnableStubProvider", "true");
 
-        // The synthetic four-module paper, which is the only exam a clean
-        // checkout has. Off by default so it never reaches a learner's
-        // catalogue. Exam 1 is seeded from fixtures/exams/exam-1.json.
+        // The four-module paper is seeded from fixtures/exams/exam-1.json;
+        // FullSittingJourneyTests.SeededExamIdPrefix is how tests find it.
+
+        /*
+         * <b>No rubric, no evaluator, no provider — pinned, not assumed.</b>
+         *
+         * Development is also the environment that loads the developer's
+         * `secrets.develop.json`, and since 2026-09-02 that file configures a
+         * Writing rubric, switches Writing marking on and carries a real
+         * reseller key. Left alone, this host inherited all three: advancing
+         * out of Writing marked the essay inline, the request reached the
+         * provider from inside a test, and the journey test hung on the
+         * client's 100 s timeout (2026-09-04). A test suite must not spend the
+         * developer's quota, and its premise — "no rubric is configured" — has
+         * to be something it states rather than something it hopes.
+         * RubricConfiguredAppFactory sets its own versions after this.
+         */
+        builder.UseSetting("Assessment:Writing:Version", string.Empty);
+        builder.UseSetting("Assessment:Writing:DescriptorSource", string.Empty);
+        builder.UseSetting("Assessment:Speaking:Version", string.Empty);
+        builder.UseSetting("Assessment:Speaking:DescriptorSource", string.Empty);
+        builder.UseSetting("Assessment:WritingMarking:Enabled", "false");
 
         // Blanked deliberately: a developer with real Google credentials in user
         // secrets would otherwise have this suite reach Google from a test.

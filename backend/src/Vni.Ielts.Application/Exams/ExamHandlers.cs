@@ -1508,9 +1508,32 @@ internal static class SessionProjection
             session.SubmittedAt,
             [.. scores.OrderBy(s => s.Module).Select(s => s.ToView(capability, version))],
             [.. markings.OrderBy(m => m.Module).ThenBy(m => m.TaskNumber).Select(m => m.ToView())],
-            [.. (jobs ?? []).OrderBy(j => j.Module).Select(ToStatusView)],
+            [.. (jobs ?? []).OrderBy(j => j.Module).Select(j => ToStatusView(j, markings))],
             PersonalizedExplanationService.ProjectStatuses(version, explanationJobs ?? []),
             overall);
+    }
+
+    /// <summary>
+    /// A completed job that stored nothing is a completed job for a section the
+    /// learner left blank — the worker completes on <c>NothingSubmitted</c>
+    /// because retrying cannot change it. That is a true state, and it was the
+    /// one state the results screen said nothing about: no band, no marking,
+    /// and <c>reason: null</c>, which reads as a screen that failed to load.
+    /// It was also the exact symptom of the slot-id defect fixed on
+    /// 2026-09-03, which is why it needs a sentence rather than a dash.
+    /// </summary>
+    private static MarkingStatusView ToStatusView(MarkingJob job, IReadOnlyList<SectionMarking> markings)
+    {
+        var view = ToStatusView(job);
+
+        if (job.State != MarkingJobState.Completed || markings.Any(m => m.Module == job.Module))
+            return view;
+
+        return view with
+        {
+            Reason = "Không có bài làm nào được nộp cho phần này nên không có điểm.",
+            Code = nameof(MarkingAvailability.NothingSubmitted),
+        };
     }
 
     /// <summary>

@@ -24,7 +24,21 @@ public sealed record ExamCatalogueItem(
     string Title,
     string Variant,
     IReadOnlyList<ModuleSummary> Modules,
-    IReadOnlyList<string> ModuleSequence);
+    IReadOnlyList<string> ModuleSequence,
+    /// <summary>
+    /// One or two sentences telling a learner what this paper is, or null.
+    ///
+    /// <b>The catalogue could not say this until 2026-09-03.</b> A card could
+    /// print a title, a variant and per-module counts — enough to tell two
+    /// papers apart only if their titles already did it. With sixteen VOL 9 and
+    /// Cambridge papers arriving, "VOL 9 Test 3" beside "VOL 9 Test 4" is not a
+    /// choice anybody can make.
+    ///
+    /// <b>Null renders as nothing.</b> Never a placeholder: a card with no
+    /// description has one less line, and an invented sentence is worse than a
+    /// missing one because it reads as editorial. → `G-11`
+    /// </summary>
+    string? Description);
 
 public sealed record ModuleSummary(string Module, int QuestionCount, int DurationSeconds);
 
@@ -434,7 +448,8 @@ internal static class ExamViewMapping
                     s.Module.ToString().ToLowerInvariant(),
                     s.Questions.Count(),
                     (int)version.Timing.DurationFor(s.Module).TotalSeconds))],
-            SequenceProfile.ToWire(version.ModuleSequence));
+            SequenceProfile.ToWire(version.ModuleSequence),
+            version.Description);
 
     public static QuestionView ToView(this Question question) =>
         new(

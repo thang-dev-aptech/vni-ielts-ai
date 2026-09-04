@@ -192,6 +192,33 @@ public sealed class SpeakingRecordingRemainderTests
     }
 
     [Fact]
+    public void Results_view_names_nothing_submitted_when_a_completed_job_stored_no_marking()
+    {
+        // The worker completes on `NothingSubmitted` and records no error, so
+        // the only evidence the section was blank is the absence of a marking
+        // beside a completed job. Left unmapped, that pair rendered as a blank
+        // results screen — which was also the visible symptom of the slot-id
+        // defect that silently skipped every essay. The two must not look alike.
+        var version = SpeakingVersion();
+        var session = ExamSession.Rehydrate(
+            Sitting, Owner, version.Id, SessionMode.Single, SessionStatus.Submitted,
+            T0, T0.AddHours(1),
+            [SectionAttempt.Rehydrate(ExamModule.Speaking, T0, null, T0)],
+            SessionTiming.OpenEnded);
+
+        var job = new MarkingJob(
+            "op-1", Sitting, ExamModule.Speaking, "ielts-speaking-2023.1",
+            MarkingJobState.Completed, 1, T0, null, null, null, null, T0);
+
+        var results = session.ToResults(version, [], [], [job]);
+
+        var status = Assert.Single(results.MarkingStatuses);
+        Assert.Equal("completed", status.State);
+        Assert.Equal(nameof(MarkingAvailability.NothingSubmitted), status.Code);
+        Assert.NotNull(status.Reason);
+    }
+
+    [Fact]
     public void Results_view_names_awaiting_voice_provider_and_keeps_overall_null()
     {
         var version = SpeakingVersion();
