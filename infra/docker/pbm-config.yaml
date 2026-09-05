@@ -1,0 +1,58 @@
+# Percona Backup for MongoDB — storage, retention and PITR.
+#
+# F3.3. Applied by `scripts/pbm-setup.sh`; not read automatically by the agent.
+#
+# ── Local values, and why that is safe here ─────────────────────────────────
+#
+# The credentials below are the local MinIO development pair that already
+# appears throughout infra/docker/. They are not a secret and they reach
+# nothing outside a laptop. A real deployment supplies its own through the
+# same keys — see `scripts/pbm-setup.sh`, which substitutes from the
+# environment when VNI_PBM_* is set, so no production credential ever has to
+# live in a committed file. → CLAUDE.md rule 6
+
+storage:
+  type: s3
+  s3:
+    endpointUrl: http://vni-minio:9000
+    bucket: vni-backups
+    prefix: pbm
+    region: us-east-1
+    # MinIO and most self-hosted S3-compatible stores address buckets by path
+    # rather than by DNS subdomain. Provider-neutral by construction: nothing
+    # here names a cloud.
+    forcePathStyle: true
+    credentials:
+      access-key-id: vni-local
+      secret-access-key: vni-local-dev-only
+
+    # <b>Encryption at rest is the STORE's job, and it is off here because the
+    # local store cannot do it.</b> Setting `serverSideEncryption.sseAlgorithm:
+    # AES256` is accepted by PBM and then refused by MinIO at the first write:
+    #
+    #   StatusCode: 501 NotImplemented — "Server side encryption specified but
+    #   KMS is not configured"
+    #
+    # — observed, not assumed. So this stays a configured seam rather than an
+    # invented default (`G-11`): a deployment whose bucket has a KMS turns it
+    # on here, and `scripts/pbm-setup.sh` does so when VNI_PBM_SSE=AES256.
+    # Until then the honest statement is "encrypted in transit, encrypted at
+    # rest only if the bucket is", not "encrypted backups".
+
+pitr:
+  # Continuous oplog capture. This, not the daily full backup, is what makes
+  # the recovery point minutes instead of a day.
+  enabled: true
+
+  # <b>One minute.</b> `[QUYẾT ĐỊNH kỹ thuật]` — the requirement is a gap of at
+  # most five minutes, and PBM's own default is ten. One is chosen rather than
+  # five so the requirement holds with margin instead of exactly: the failure
+  # mode is losing up to a whole span of writes, and a span of writes here is
+  # somebody's exam answers. The cost of the smaller span is one more object
+  # per minute in the bucket — at this product's write volume (answers in
+  # kilobytes) that is negligible, which is why the margin is affordable.
+  oplogSpanMin: 1
+
+backup:
+  # Keep the oplog covering the retained snapshots, not longer.
+  oplogSpanMin: 1

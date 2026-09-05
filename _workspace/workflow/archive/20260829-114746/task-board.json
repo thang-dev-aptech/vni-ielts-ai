@@ -1,0 +1,93 @@
+{
+  "workflow": "dynamic-project-plan",
+  "version": 3,
+  "runId": "foundation-close-20260829",
+  "plan": "Close build gate, remediate CodeQL alerts, add CodeQL fixture drill; address GitGuardian R18 outside the phase gate",
+  "status": "review",
+  "baselineCommit": "5f6865de1bb078ad8bb48dd148bfbaeceaf26ec9",
+  "currentPhase": "F4.4",
+  "certificationTarget": "Foundation Ready",
+  "carriedBlockers": [
+    {
+      "id": "HOSTED-PROOF",
+      "summary": "Hosted run 33232359676 exposed a missing CodeQL CLI path and backend run 33232359678 exposed the Content-owned clean-checkout skip. Both fixes are local and need one follow-up commit/push."
+    }
+  ],
+  "openBusinessDecisions": [
+    {
+      "id": "gitguardian-r18",
+      "summary": "GitHub secret scanning and push protection are enabled and report zero alerts. GitGuardian remains an external dashboard disagreement outside the phase gate."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "BUILD-GATE",
+      "title": "Put require-results on the result-producing leg and exempt the legitimate skip",
+      "owner": "devops-engineer",
+      "phase": "F4.4/F5",
+      "status": "review",
+      "dependsOn": [],
+      "startedAt": "2026-08-29T09:57:44+07:00",
+      "lastHeartbeatAt": "2026-08-29T10:05:00+07:00",
+      "completedAt": null,
+      "files": [".github/workflows/verify.yml", "ci/test-skip-allowlist.json"],
+      "tests": [
+        "25/25 skip-gate tests; static gate; Prettier; git diff --check",
+        "Replayed backend artifact from run 33232359678: 6 files, 689 tests, 1 allowed Content skip, 0 unauthorized"
+      ],
+      "negativeProof": "Empty results fail with --require-results; the allowed skip fails after its exemption expires.",
+      "artifacts": ["_workspace/workflow/agents/build-gate.md"],
+      "blocker": "Follow-up commit/push must verify the Content-owned exemption in Backend and Foundation workflows.",
+      "nextDependency": "F5 hosted verification"
+    },
+    {
+      "id": "SECURITY-ALERTS",
+      "title": "Remediate 12 CodeQL alerts across F4.2 logging/PII and admin/content",
+      "owner": "security-engineer",
+      "phase": "F4.2/F4.4",
+      "status": "review",
+      "dependsOn": [],
+      "startedAt": "2026-08-29T09:57:44+07:00",
+      "lastHeartbeatAt": "2026-08-29T10:13:00+07:00",
+      "completedAt": null,
+      "files": [
+        "apps/admin/src/",
+        "backend/src/",
+        "scripts/content-inventory.mjs",
+        "scripts/lib/spawn-portable.mjs"
+      ],
+      "tests": [
+        "Admin 61/61; integration security/idempotency 14/14; infrastructure logging 1/1; Node 34/34"
+      ],
+      "negativeProof": "Four focused reversions failed the new logging, URL-admission and quoting tests, then passed after restoration.",
+      "artifacts": ["_workspace/workflow/agents/security-alerts.md"],
+      "blocker": "Hosted CodeQL must reanalyse a pushed commit before the 12 GitHub alerts can be observed closed.",
+      "nextDependency": "Hosted CodeQL reanalysis"
+    },
+    {
+      "id": "CODEQL-DRILL",
+      "title": "Extend the security fixture drill with an intentional CodeQL finding",
+      "owner": "qa-engineer",
+      "phase": "F4.4",
+      "status": "review",
+      "dependsOn": [],
+      "startedAt": "2026-08-29T09:57:44+07:00",
+      "lastHeartbeatAt": "2026-08-29T10:14:00+07:00",
+      "completedAt": null,
+      "files": [
+        "scripts/failure-drills.mjs",
+        "scripts/security-fixture-drill.mjs",
+        "fixtures/security/",
+        ".github/workflows/security.yml"
+      ],
+      "tests": [
+        "11/11 drill contract/workflow/tuple tests; local dependency fixture produced high findings"
+      ],
+      "negativeProof": "A missing CodeQL finding makes the runner exit 1; an unavailable CLI is BLOCKED rather than passed.",
+      "artifacts": ["_workspace/workflow/agents/codeql-drill.md"],
+      "blocker": "Hosted run 33232903331 compiled and ran the query, then supplied the exact missing selected-element column; corrected expected tuple needs one follow-up run.",
+      "nextDependency": "F4.4 hosted fixture proof"
+    }
+  ],
+  "notes": "The previous feature board is archived at _workspace/workflow/archive/20260829-095744/."
+}

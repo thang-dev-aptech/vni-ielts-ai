@@ -80,6 +80,16 @@ The test: **does this value vary across exam versions, or across products VNI mi
 | Speaking part timings and prep time | | ✅ | Delivery model not yet decided |
 | Transfer time allowance | | ✅ | May not apply to a digital product at all |
 | Academic vs General Training | | ✅ | Affects Reading and Writing Task 1 |
+| **Module order for a sitting** | | ✅ **Per exam version** | Two constants in the code already disagreed about it. One resolver, one place |
+| What a part-scope score may be called | | ✅ | A band table is equated against forty marks; thirteen questions are not forty |
+| Part-marking a multi-mark question | | ✅ | `H-12` is open, so the field exists and has exactly one legal value |
+| Whether an explanation may be AI-generated | | ✅ | Turns on the content's licence, not on the deployment |
+| Whether results may feed a band trend | | ✅ | A trend built on tables nobody equated is still read as progress |
+| Writing Task 1 : Task 2 weighting | | ✅ **and it has no default** | `H-8b` is open. A version without it produces two task bands and no Writing band |
+
+The six rows above are specified in [`versioned-policy-profiles.md`](versioned-policy-profiles.md),
+which also records where each refusal happens — in the schema, at import, or at the moment a number
+would be reported.
 
 ### Why the band table must be data
 
@@ -99,8 +109,11 @@ The conversion table attaches to an **exam version** as versioned configuration.
 ```
 ExamDefinition
  └── ExamVersion  (immutable once published)
-      ├── ScoringProfile          ← raw→band tables per section
+      ├── ScoringProfile          ← raw→band tables per section, their provenance,
+      │                                part-score and partial-credit policy
       ├── TimingProfile           ← durations, prep times, transfer time
+      ├── SequenceProfile         ← module order for a sitting
+      ├── PolicyProfile           ← explanation and practice-history policy
       └── Section[]  (module, order)
            └── SectionPart[]      ← passage / recording / task / speaking part
                 └── Question[]

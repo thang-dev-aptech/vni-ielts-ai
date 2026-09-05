@@ -34,6 +34,10 @@ Consequences:
 
 `[OPEN QUESTION]` H-4 — the source of VNI's tables (licensed, internally calibrated, or approximated) is undecided. Official per-version tables are not published.
 
+Because that is undecided, a version now declares **where its tables came from** — `synthetic`, `provisional`, or `equated` — and only an `equated` table may feed a learner's band trend. The gate then holds closed on its own rather than on someone remembering to hold it. → [`versioned-policy-profiles.md`](versioned-policy-profiles.md)
+
+A score smaller than a whole module gets the same treatment for the same reason. A band table is equated against forty marks, so a thirteen-question part reports raw and accuracy and **no band**, unless the version carries its own per-part calibration.
+
 ### Answer matching
 
 Answer-key comparison is less trivial than it looks and is a common source of unfair marking. The `ScoringProfile` should carry matching rules per question type:
@@ -64,9 +68,18 @@ Both are assessed against four equally-weighted criteria, each scored on the 0�
 | Lexical Resource | Vocabulary range and accuracy |
 | Grammatical Range and Accuracy | Structure variety and correctness |
 
-Task 2 is weighted more heavily than Task 1 in the official Writing band. `[NEEDS VALIDATION]` — the exact official weighting should be confirmed before implementation. `[ASSUMPTION]` Task 2 carries roughly twice the weight of Task 1; the weighting lives in the `ScoringProfile`, not in code.
+Task 2 is weighted more heavily than Task 1 in the official Writing band. `[OPEN QUESTION]` `H-8b` — the exact ratio is not published the way the overall-band rule is.
+
+**It has no default, and that is deliberate.** The 1:2 assumption used to be a default value in three places — the `ScoringProfile` record, the Mongo document, and the package reader's `?? 2m`. The effect was that every exam version without an explicit weighting was marked on a guess, and nothing said so. `ScoringProfile.RequireWritingTaskWeights()` now throws instead, in the same way `BandFor` refuses a raw score its table does not cover. → `G-11`
+
+The package format matches that refusal. `criterionWeights.writing` is optional, but declaring it means declaring **both** halves, both strictly positive. A half-stated ratio used to be legal, and it failed at marking time in front of a learner rather than at import time in front of the author who could fix it. → [`versioned-policy-profiles.md`](versioned-policy-profiles.md)
 
 ### Speaking criteria
+
+> Speaking AI scoring itself is `UNCONFIRMED` (`A-14` → `M-26` in
+> [`../requirements/assumptions-and-open-questions.md`](../requirements/assumptions-and-open-questions.md)).
+> This section records the official criteria so the model is ready **if** the owner keeps Speaking —
+> it is not evidence that Speaking evaluation is in scope.
 
 | Criterion | Assesses |
 |---|---|
@@ -79,7 +92,9 @@ Fluency and Coherence is the criterion a bare transcript represents *worst* — 
 
 ### From criteria to a section band
 
-`[ASSUMPTION]` The four criterion bands are averaged and rounded to the nearest half band, with `.25` rounding up to the next half band and `.75` up to the next whole band — mirroring the official overall-band rule. The exact official criterion-aggregation rule is not published in the same detail. This is configuration in the `ScoringProfile`, not code.
+`[ASSUMPTION]` The four criterion bands are averaged and rounded to the nearest half band, with `.25` rounding up to the next half band and `.75` up to the next whole band — mirroring the official overall-band rule. The exact official criterion-aggregation rule is not published in the same detail.
+
+Implemented in `CriterionMarking.Aggregate`, which delegates to `BandScore.Overall` so the asymmetric rounding has exactly one implementation and one table-driven test. Mirroring the published rule is a defensible choice where inventing a different one would not be — but it remains an assumption, and it is distinct from `H-8b`, which is a genuine unknown rather than a mirrored rule.
 
 ---
 
@@ -104,7 +119,20 @@ This rule *is* officially specified and stable, so it belongs in code:
 | 7.5 | 8.0 | 8.0 | 8.0 | 7.875 | **8.0** | `.875` → nearest is 8.0 |
 | 6.0 | 6.5 | 7.0 | 7.5 | 6.75 | **7.0** | `.75` → up to whole band |
 
-> **Do not implement this with a generic "round half up" helper.** The `.25` and `.75` cases are asymmetric special rules — naive rounding to the nearest 0.5 gets the `.75` row wrong (it would yield 6.5, not 7.0). This rule needs its own function and its own unit tests covering exactly the rows above.
+> **Do not reach for `Math.Round`.** This rule needs its own function and its own table-driven test
+> covering exactly the rows above.
+>
+> **`[CORRECTED 2026-08-20]`** An earlier version of this note said naive rounding gets the `.75` row
+> wrong. That is true only of *truncation*. Measured against both cases:
+>
+> | Strategy | `.25` → want 6.5 | `.75` → want 7.0 |
+> |---|---|---|
+> | `MidpointRounding.ToEven` — **the .NET default for `Math.Round`** | **6.0 ✗** | 7.0 ✓ |
+> | `MidpointRounding.AwayFromZero` on the half-band grid | 6.5 ✓ | 7.0 ✓ |
+> | Truncation, `Math.Floor(mean * 2) / 2` | **6.0 ✗** | **6.5 ✗** |
+>
+> The dangerous one is `ToEven`, because it is what `Math.Round` does when no mode is named — and it
+> fails on **`.25`**, not `.75`. A test covering only the `.75` row would pass against it. Cover both.
 
 ---
 

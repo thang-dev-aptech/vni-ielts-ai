@@ -1,24 +1,73 @@
 # DESIGN.md — ngôn ngữ thiết kế web VNI IELTS AI
 
-> Rút từ token đã duyệt (artboard `3x`, chốt Q1 ngày 19/08/2026) và `styles.css` đang sống
-> trong prototype `/Users/metacom/Documents/VNI/VNI IELTS AI Web design`.
+> ## ⚠️ `[SUPERSEDED 2026-08-21]` — hướng thiết kế đã đổi, tài liệu này chưa cập nhật
+>
+> Chủ sản phẩm chốt một bộ thiết kế mới và chỉ đạo dựng thẳng vào sản phẩm. Nguồn:
+> `../VNI IELTS AI Web design/redesign/` — `login.html` và `vni-ielts-home-redesign.html`.
+> Đã port sang `apps/web/src/styles/`.
+>
+> **Chủ sản phẩm sẽ viết lại tài liệu này để khớp bộ mới.** Cho tới lúc đó, chỗ nào file này và
+> `apps/web/src/styles/` mâu thuẫn thì **CSS trong sản phẩm là ý định đúng**, file này là bản cũ.
+>
+> ### Bốn thứ đã đổi
+>
+> | | Bản cũ, hướng C | Bản mới |
+> |---|---|---|
+> | Font | Archivo | **Nunito** — kiểm Google Fonts CSS API 21/08/2026, **có** subset `vietnamese`, không lặp lỗi Outfit |
+> | Shadow | Bỏ hẳn, thay bằng ba lớp nền | **Dùng lại**, gồm cả nút dày `0 4px 0` |
+> | Bo góc | 18px | 20–22px |
+> | Màu chính | `--acc #2867ac` xanh dương | `--green #10b050` xanh lá |
+>
+> ### Số đo cần dùng khi bạn viết lại
+>
+> Đo bằng công thức WCAG, không đoán:
+>
+> | Cặp | Tỉ lệ | Ngưỡng 4.5 |
+> |---|---|---|
+> | ink `#252525` trên trắng | 15.33 | ✓ |
+> | muted `#6e6e6e` trên `--surface` | 4.82 | ✓ |
+> | blue `#2070b0` trên trắng | 5.24 | ✓ |
+> | **chữ trắng trên `#10b050`** — nút chính trang landing | **2.86** | **✗** |
+> | **chữ trắng trên `#18a957`** — nút chính trang auth | **3.06** | **✗** |
+> | yellow `#f0a24a` trên trắng | 2.11 | ✗ |
+>
+> **Nút hành động chính chưa đạt chuẩn tương phản.** Hai cách sửa giữ nguyên diện mạo: đổi chữ nút
+> sang gần-đen (`#162219` trên `#10b050` đạt **7.9**), hoặc hạ tối nền xuống khoảng `#357a00`
+> (đạt 5.34) nếu muốn giữ chữ trắng. Hiện **để nguyên theo thiết kế** đúng chỉ đạo.
+>
+> Vàng và cam nên làm **mảng nền có chữ đen**, không làm màu chữ trên nền trắng — trùng đúng kết
+> luận repo đã ghi cho màu logo VNI.
+>
+> Một chi tiết đã kiểm: file `redesign/vni-ielts-home-redesign.css` **không được HTML tham chiếu**
+> và mang bảng màu khác (`#58cc02`). Đó là bản cũ; bản thật nằm trong `<style>` inline.
+
+---
+
+> Rút từ token đã duyệt (artboard `3x`, chốt Q1 ngày 19/08/2026) và `styles.css` của prototype
+> tại `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — prototype **đã đóng băng 20/08/2026**.
 > Prototype nằm **ngoài** repo này. File này là bản sao có thẩm quyền của hệ thiết kế,
 > để lần sinh màn sau không trôi lệch như nhánh Inter + gradient tím.
 
 ## Trạng thái từng phần
 
-File này **không đồng nhất một trạng thái**. Phần ràng buộc đã chốt; phần thẩm mỹ thì chưa.
+File này **không đồng nhất một trạng thái**. Hướng thẩm mỹ đã được chủ sản phẩm chốt; các ràng buộc kỹ thuật có hiệu lực với mọi bản build nhưng giữ `PROPOSED` chờ xác nhận gộp tại requirement freeze — xem ghi chú dưới bảng.
 
 | Phần | Status | Căn cứ |
 |---|---|---|
-| Bảng token màu + tỉ lệ tương phản đã đo | **CONFIRMED** | Token đã duyệt, artboard `3x`, chốt Q1 19/08/2026 |
-| Font Archivo + JetBrains Mono | **CONFIRMED** | Đã kiểm subset `vietnamese` trên Google Fonts CSS API |
-| Thang cỡ chữ đóng + sàn 14px + `line-height` ≥ 1.5 | **CONFIRMED** | Ràng buộc kỹ thuật cho tiếng Việt, đã tái phát ba lần khi để tự quyết |
-| Bốn luật sản phẩm → quy tắc thiết kế | **CONFIRMED** | Dẫn xuất từ ADR-0007 và các quyết định nghiệp vụ |
+| Bảng token màu + tỉ lệ tương phản đã đo | **PROPOSED** | Duyệt tại phiên làm việc 19/08/2026 (chốt Q1, artboard `3x`) — biên bản chưa ghi danh người duyệt, chưa đủ chuẩn nguồn cho `CONFIRMED` |
+| Font Archivo + JetBrains Mono | **PROPOSED** | Ràng buộc kỹ thuật đã kiểm chứng — subset `vietnamese` trên Google Fonts CSS API. Không phải phát biểu của chủ sản phẩm |
+| Thang cỡ chữ đóng + sàn 14px + `line-height` ≥ 1.5 | **PROPOSED** | Ràng buộc kỹ thuật cho tiếng Việt, đã tái phát ba lần khi để tự quyết. Không phải phát biểu của chủ sản phẩm |
+| Bốn luật sản phẩm → quy tắc thiết kế | **PROPOSED** | Dẫn xuất từ [ADR-0007](../decisions/0007-server-authoritative-exam-timer.md) — Accepted — và các quyết định nghiệp vụ đã ghi. Quyết định gốc là `EXISTING`; phần diễn dịch thành quy tắc thiết kế là đặc tả |
 | **Hướng thiết kế: C · Thẻ mềm** | **CONFIRMED** | Chủ sản phẩm chọn **20/08/2026**, sau khi khảo sát 4 design system. → [§ Hướng đã chốt](#hướng-đã-chốt--c--thẻ-mềm) |
-| Thang spacing 4px | **CONFIRMED** | Đi kèm quyết định trên |
+| Thang spacing 4px | **PROPOSED** | Một phần của hướng C; nội dung đi kèm quyết định 20/08 nhưng chưa có phát biểu riêng của chủ sản phẩm cho thang này |
 
 **T1 đã đóng 20/08/2026.** File này giờ khóa cả ràng buộc lẫn hướng.
+
+> **Vì sao nhiều dòng là `PROPOSED` dù đã nghiệm thu qua T1:** quy tắc nguồn trong
+> [`../README.md` § Sourcing rule](../README.md) yêu cầu `CONFIRMED` phải trích được phát biểu
+> nguyên văn của chủ sản phẩm — các dòng trên không có. `PROPOSED` ở đây đo **độ truy vết của nguồn**,
+> không đo độ bắt buộc: những ràng buộc này **vẫn có hiệu lực với mọi bản build**. Nâng lên `CONFIRMED`
+> bằng một lần xác nhận gộp của chủ sản phẩm tại requirement freeze (dùng `/req`).
 
 ### File này áp cho đâu
 
@@ -178,6 +227,16 @@ Phân biệt được khi chuyển ảnh sang xám.
 
 ## Chrome trong / ngoài phiên thi
 
+> **Cập nhật 04/09/2026 — một khung cho người đã đăng nhập.** `[QUYẾT ĐỊNH]` chủ sản phẩm:
+> *"redesign lại giao diện tất cả các trang … cho đồng bộ"* với trang học sinh. Sau đăng nhập, mọi
+> trang ngoài phiên thi — Luyện tập, Nghe chép, Tài liệu, Bài viết, Hồ sơ, Kết quả — dùng chung
+> khung của trang học sinh (thanh bên trái, thanh trên, thẻ trắng viền mảnh, một màu nhấn). Khách
+> chưa đăng nhập vẫn thấy trang đầy đủ với header landing trên cùng các địa chỉ đó (`AppShell`).
+> Trang module khi ở trong khung bỏ hero/FAQ/CTA tiếp thị và mở bằng `PageHead` kiểu dashboard.
+> Điều này **thay thế** hai ghi chú 21/08/2026 giữ Kết quả và Hồ sơ ngoài khung dashboard.
+> Quy tắc *trong phiên thi không có chrome* dưới đây không đổi.
+
+
 | | Ngoài phiên thi | Trong phiên thi |
 |---|---|---|
 | Header | 72px, logo, nav, tài khoản | Chỉ chip lưu · tên phần · đồng hồ |
@@ -211,7 +270,7 @@ Writing: đếm từ trực tiếp; dưới ngưỡng dùng `--warn` (thông tin
 16. Thiết kế màn gói / nạp tiền trước khi B-3 và B-4 được chốt. *(Màn token thì được — `T-1` đã CONFIRMED — nhưng **không được hiện số token cụ thể** cho tới khi `B-5b` có câu trả lời.)*
 17. Module ngoài tài liệu: Vocabulary, Grammar, vai giáo viên, thanh toán (MVP).
 18. **Animation khi chuyển đáp án.** Hiện lại phần chữ đang lưu bằng hoạt ảnh làm mất tập trung giữa lúc đọc. Trạng thái lưu phải đổi tại chỗ, không diễn hoạt. *(Khớp L1; đề xuất từ bản nhận xét 20/08.)*
-19. **Nhầm "token đã chốt" thành "hướng thiết kế đã chốt".** Bảng màu và thang cỡ chữ là CONFIRMED; gu tổng thể vẫn UNCONFIRMED.
+19. **Trích DESIGN.md như thể mọi phần đều là quyết định của chủ sản phẩm.** Chỉ hướng **C · Thẻ mềm** là `CONFIRMED`; các ràng buộc kỹ thuật là `PROPOSED` có hiệu lực — xem bảng trạng thái đầu file, đừng nâng cấp chúng khi trích dẫn.
 20. **Khoảng cách ngoài thang 4px.** Bảy giá trị `6 10 11 14 18 22 28px` bị cấm — chúng chiếm 47 lần dùng trong `styles.css` và là nguồn gốc của việc mỗi màn tự chế một cỡ.
 21. **Đổ bóng để tạo độ sâu.** Dùng lớp nền `--page` / `--card` / `--sunk`. Cả bốn design system đã khảo sát đều bỏ shadow; ta đang dùng 31 chỗ.
 22. **Hai hệ thiết kế cho học viên và CMS.** Một ngôn ngữ, hai chế độ mật độ — `comfortable` và `compact`. `admin/` đã dùng chung `client/styles.css`, giữ nguyên như vậy.
@@ -223,7 +282,7 @@ Writing: đếm từ trực tiếp; dưới ngưỡng dùng `--warn` (thông tin
 
 ## Hướng thiết kế — nghiên cứu 20/08/2026
 
-`PROPOSED`. Chủ sản phẩm chọn một hướng ở cuối mục này thì hướng đó thành `CONFIRMED` và **T1 đóng**.
+Chủ sản phẩm đã chọn hướng **C · Thẻ mềm** ngày 20/08/2026 — hướng đó là `CONFIRMED` và **T1 đã đóng**. Mục này giữ lại làm hồ sơ khảo sát: chọn reference theo tiêu chí nào, và vì sao loại từng ứng viên.
 
 ### Cách chọn reference: theo *bài toán*, không theo *ngành*
 
@@ -292,7 +351,7 @@ hệ này đều thay bằng **lớp nền**. Ta đã có sẵn ba lớp `--page
 
 ---
 
-## Thang spacing — `PROPOSED`, phần thiếu quan trọng nhất
+## Thang spacing — đơn vị gốc 4px
 
 Đơn vị gốc **4px**, theo Mercury · Ventriloc · Duolingo. Thang đóng, **cấm giá trị ngoài thang**:
 
@@ -464,8 +523,9 @@ Mọi màu hoặc font mượn từ bất kỳ nguồn nào phải qua **hai c�
 2. **Kiểm subset `vietnamese`** — trên Google Fonts CSS API hoặc bảng glyph. `Outfit` từng trượt đúng
    bài kiểm này và làm rơi dấu giữa chừng một từ.
 
-> **Claude không tự chọn hướng.** Ba hướng trên là `PROPOSED`. Hướng chủ sản phẩm chọn mới là
-> `CONFIRMED`, và đó là điều kiện đóng T1.
+> **Claude không tự chọn hướng.** Ba hướng được trình dưới dạng `PROPOSED` tại thời điểm khảo sát;
+> chủ sản phẩm chọn **C · Thẻ mềm** ngày 20/08/2026 — điều kiện đóng T1 đã hoàn thành. Giữ nguyên
+> quy trình này cho mọi quyết định thẩm mỹ sau: Claude trình ứng viên có bằng chứng, chủ sản phẩm chọn.
 
 ---
 
@@ -523,8 +583,112 @@ Phần "pause được, và timer vẫn chạy khi pause" thì `UNCONFIRMED` →
 
 ---
 
+## Duolingo, lần thứ hai — `[QUYẾT ĐỊNH]` chủ sản phẩm 03/09/2026
+
+Chủ sản phẩm đưa lại bản trích style của Duolingo và yêu cầu **làm đẹp giao diện theo hướng đó**, ghi
+lại phần nào sửa thành của mình. Mục này là bản ghi đó.
+
+**Nó đảo một phần kết luận ở [§ Duolingo — reference "đúng ngành" nhưng sai sản phẩm](#duolingo--reference-đúng-ngành-nhưng-sai-sản-phẩm) bên trên.** Mục cũ giữ nguyên,
+không xóa: nó là nơi ghi *bằng chứng*, và bằng chứng không đổi theo quyết định. Cái đổi là kết luận —
+từ *"giữ lại đúng một điều"* thành *"lấy toàn bộ hình học và kỷ luật bề mặt"*.
+
+### Cái không đảo được, vì nó là sự thật về tiếng Việt chứ không phải khẩu vị
+
+Hai ràng buộc làm Duolingo bị bác lần đầu **vẫn giữ nguyên**. Chúng không phải lựa chọn thẩm mỹ để
+chủ sản phẩm chọn lại — chúng là tính chất của chữ Việt:
+
+| Duolingo | Ta làm gì | Vì sao không thương lượng |
+|---|---|---|
+| Nhãn nav **viết hoa** 15px/700, tracking 0.053em | **Không dùng.** Nhãn nav giữ chữ thường, weight 700 làm việc nhấn | `text-transform: uppercase` làm mất dấu tiếng Việt |
+| Body 17px **`line-height: 1.18`** | **Giữ `--lh-body: 1.5`** | Dấu chồng hai tầng (`ế ộ ằ`) ở 1.18 đâm vào dòng trên |
+| Display face `feather`, thay bằng `Nunito` | **Nhận `Nunito`** cho cỡ ≥ 32px | Đã kiểm cửa 2: `Nunito` **có** subset `vietnamese`. `Fredoka` — ứng viên "bo tròn vui" hay được chọn — **trượt**, nên đừng dùng |
+
+### Palette — đo, và kết quả là không lấy một màu nào của họ
+
+Luật [§ Ràng buộc với mọi nguồn tham khảo](#ràng-buộc-với-mọi-nguồn-tham-khảo) vẫn áp: **không lấy
+palette từ bất kỳ đâu**, mọi cặp chữ/nền ≥ 4.5. Đo trên nền trắng, 03/09/2026:
+
+| Token Duolingo | Tỉ lệ trên `#fff` | Phán quyết |
+|---|---|---|
+| Eager Green `#58cc02` | **2.09** | Trượt cả ngưỡng chữ lớn 3.0. **Chữ trắng trên nền này cũng 2.09** — chính CTA chính của họ |
+| Spark Blue `#1cb0f6` | **2.44** | Trượt cho link. Ta giữ `--acc #2867ac` = **5.79** |
+| Pencil Gray `#777777` | **4.48** | Trượt AA **0.02**. Ta giữ `--muted #6b6a71` = **5.35** |
+| Faded Gray `#afafaf` viền | **2.19** | Trượt cả ngưỡng 3.0 cho thành phần giao diện |
+| Charcoal `#4b4b4b` | 8.72 | Đạt — nhưng ta đã có `--ink-2 #4a4950`, gần như trùng. Không cần thêm token |
+
+**Không màu nào của Duolingo vào hệ.** Điều lấy được không phải giá trị màu mà là **cách dùng màu**.
+
+### Điều thực sự lấy — và nó hóa ra khớp với thứ ta đã tự kết luận
+
+**Mảng màu đặc, chữ đen lên trên.** Duolingo dán màu như dán sticker: nền đặc, viền dày, không đổ
+bóng. Chỗ họ sai là để chữ *trắng* lên xanh (2.09). Đo màu xanh của **ta**:
+
+| | Trên `#fff` | Chữ trắng trên nền đó | **Chữ đen trên nền đó** |
+|---|---|---|---|
+| `--brand-green #16ad54` | 2.94 | 2.94 ✗ | **7.14 ✓** |
+| Duolingo `#58cc02` | 2.09 | 2.09 ✗ | 10.05 ✓ |
+
+Đây đúng là kết luận [`assets/brand/README.md`](../../assets/brand/README.md) đã tự rút ra độc lập:
+*"nếu một bề mặt được tô bằng cam hoặc xanh lá, chữ trên đó **phải là màu đen**"*. Duolingo cho ta
+*hình thức* của mảng màu; phép đo của ta cho *quy tắc* dùng nó.
+
+> **Luật mới:** `--brand-green` và `--brand-orange` được dùng làm **nền đặc**, và chữ trên nền đó
+> **luôn là `--ink`**. Không bao giờ dùng chúng làm màu chữ, ở bất kỳ cỡ nào.
+
+### Bảng thích ứng — token đổi gì
+
+### Hướng này **đã bắt đầu từ 21/08** — xem banner đầu file
+
+Banner `[SUPERSEDED 2026-08-21]` ở đầu tài liệu này đã ghi sẵn bốn thứ đã đổi (Nunito · shadow dùng
+lại · bo góc 20–22px · xanh lá làm màu chính) **và** cả bảng đo tương phản kèm hai cách sửa. Khảo sát
+code ngày 03/09 xác nhận `apps/web/src/styles/landing.css` đã cài đặt đúng như vậy, và đã đi xa hơn
+banner một bước: `--green-btn #0a8438` đo **4.80** và `.btn-primary` dùng `#06803a` đo **5.05** — tức
+lỗi *"nút chính chưa đạt chuẩn tương phản"* mà banner ghi thì **landing đã sửa xong**, banner chưa
+cập nhật.
+
+Nghĩa là bản trích Duolingo chủ sản phẩm đưa hôm nay **không phải một hướng mới** — nó mô tả gần đúng
+thứ `landing.css` đang làm. Điều đó đổi bản chất công việc:
+
+> **Việc thật không phải "áp Duolingo vào sản phẩm" mà là "kéo các màn còn lại về ngang
+> `landing.css`".** Màn kết quả lệch xa nhất: viền 1px, bo góc viết thẳng `20px`/`14px`, không mảng
+> màu, không chữ display, số điểm đặt bằng font mono.
+
+**Một lỗi thật tìm được khi kiểm:** `tokens.css` khai `--font: 'Archivo'` trong khi `index.html` chỉ
+nạp Nunito từ 21/08 — nên **mọi chỗ đọc `var(--font)` đều rơi về `system-ui`**. Trên macOS nó ra một
+font sans dễ nhìn nên không ai để ý; trên Windows và Android thì không. Đã sửa 03/09.
+
+### Bảng thích ứng — token đổi gì
+
+| Duolingo | Ta | Token |
+|---|---|---|
+| Bo góc 12px cho **mọi** nút, pill, thẻ | Nhận. Bỏ mọi giá trị bo góc viết thẳng (`20px`, `14px` trong `exam.css`) | `--r-md: 12px` |
+| Viền **2px** đặc, "viền là công dân hạng nhất" | Nhận **có phân biệt**: 2px cho bề mặt tương tác và bề mặt mang điểm; 1px giữ cho đường kẻ phân cách | `--bw-2: 2px` **(mới)** |
+| Không shadow | **Không nhận.** Ta đã đi đường khác từ 21/08: đổ bóng cứng `0 4px 0` không mờ, dùng như *độ dày vật lý* chứ không như *độ cao*. Đây là chỗ ta cố ý lệch cả Duolingo lẫn hướng C cũ | — |
+| Nền trang trắng tinh | **Không nhận.** Giữ `--page #f6f5f3` + `--card #fff`: độ sâu của ta đến từ chênh lệch nền | — |
+| Một accent bão hòa duy nhất, dùng tiết kiệm | Đã có `--acc`. Duolingo củng cố kỷ luật *một hành động chính mỗi khung nhìn* | — |
+| Body xám vừa để màu dẫn dắt | Nhận **nguyên tắc**, không nhận giá trị: `--muted` lùi lại, điểm số và mảng màu dẫn | — |
+| Display face bo tròn 48–64px | Nhận, **chỉ cho ≥ 32px**: điểm band và tiêu đề màn. Cùng một họ Nunito, phân biệt bằng weight 800 | `--font-display` · `--w-display-heavy` **(mới)** |
+| Nhãn nav viết hoa | **Bác** — tiếng Việt | — |
+| `line-height 1.18` | **Bác** — tiếng Việt | — |
+
+### Register — chỗ mục cũ vẫn đúng và phải giữ
+
+Mục cũ bác Duolingo một phần vì *register*: linh vật và sticker hợp học vui 5 phút, không hợp phòng
+thi có tính giờ. **Điều đó vẫn đúng, và nó chia đôi sản phẩm:**
+
+| Vùng | Ngôn ngữ |
+|---|---|
+| **Trong phiên thi** (`ExamRunnerPage`, đồng hồ chạy) | Giữ nguyên tiết chế. Không mảng màu, không chữ display, không sticker. Luật L1 — giao diện phải bình tĩnh |
+| **Ngoài phiên thi** (kết quả, trang chủ, thư viện, tài liệu) | Đây là nơi ngôn ngữ Duolingo được áp: mảng màu đặc, viền 2px, chữ display cho điểm |
+
+Màn kết quả là chỗ đáng áp nhất: nó là lúc học viên **đã nộp bài xong**, và là màn duy nhất trong sản
+phẩm có một con số đáng ăn mừng.
+
+---
+
 ## Nguồn
 
+- Bản trích style Duolingo: chủ sản phẩm cung cấp 03/09/2026 — đã đo lại toàn bộ, không nhận màu nào
 - Token: artboard `3x` trong `VNI IELTS AI v3 - luong thi.dc.html`
 - CSS sống: `styles.css` (Token Version: Q1 Approved 19/08/2026)
 - Màu logo: [`assets/brand/README.md`](../../assets/brand/README.md)

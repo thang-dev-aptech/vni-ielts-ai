@@ -1,0 +1,2883 @@
+{
+  "formatVersion": "1.0",
+  "title": "VOL 9 — Test 6 (Reading + Listening)",
+  "variant": "academic",
+  "description": "Đề lẻ, chỉ có Reading và Listening — không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm. Cả hai đều chấm ngay theo đáp án và ra band luôn. Phần Listening dùng một file ghi âm liền cho cả bốn phần.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "HEALTH IN THE WILD",
+          "body": "HEALTH IN THE WILD\nMany animals seem able to treat their illnesses themselves. Humans may have a thing or two to learn from them.\nFor the past decade, Dr Cindy Engel, a lecturer in Environmental Sciences at Britain’s Open University, has been collating examples of self-medicating behaviour in wild animals. In a recent talk, she explained that the idea that animals can treat themselves has been generally regarded with some skepticism by other animal behaviourists. But a growing number of them now think that wild animals can and do deal with their own medical needs.\nDr William Karesh of the Wildlife Conservation Society in New York, for example, has studied the health of a wide range of wild animals, including anaconda snakes, macaws, penguins, impala and buffalo. The animals were mostly in good physical condition, which is not surprising since the weak quickly die in the wild. But blood tests showed that many had encountered unpleasant viral and bacterial diseases in the past - including diseases that are often fatal in captive animals, even when treated by vets. Moreover, if healthy wild animals are brought into captivity, their health often deteriorates unless great care is taken over their living conditions. Such observations suggest that wild animals can do something to keep themselves healthy that captive animals cannot.\nOne example of self-medicaction was discovered in 1987. Dr Michael Huffman and Mohamedi Seifu, working in the Mahale Mountains National Park in Tanzania, noticed that local chimpanzees suffering from intestinal worms would dose themselves with the pith (the white substance between the skin and the flesh) of a plant called Veronia. This plant produces poisonous chemicals called terpenes. Its pith contains a strong enough concentration to kill gut parasites, but not so strong as to kill chimps (nor people for that matter; locals use the pith for the same purpose).\nSince the Veronia-eating chimps were discovered, more evidence has emerged suggesting that animals often eat things for medical rather than nutritional reasons. Many species, for example, consume dirt - a behaviour known as geophagy. Historically, the preferred explanation was that soil supplies minerals such as salt. But geophagy occurs in areas where the earth is not a useful source of minerals, and also in places where minerals can be more easily obtained from certain plants that are known to be rich in them. Clearly, the animals must be getting something else out of eating the earth.\nThe current belief is that soil - and particularly the clay in it - helps to detoxify the defensive poisons that some plants produce in an attempt to prevent themselves from being eaten. Evidence for the detoxifying nature of clay came in 1999 from an experiment carried out on macaws by Dr James Gilardi and his colleagues at the University of California, Davis. Macaws eat seeds containing alkaloids, a group of chemicals that has some notoriously toxic members, such as strychnine. In the wild, the birds are frequently seen perched on eroding riverbanks eating clay. Dr Gilardi fed one group of macaws a mixture of harmless alkaloid and clay, and a second group just the alkaloid. Several hours later, the macaws that had eaten the clay had 60% less alkaloid in their bloodstreams than those that had not, suggesting that the current hypothesis is correct.\nA third instance of animals’ self-medication is the use of mechanical scours to get rid of gut parasites. In 1972, Dr Richard Wrangham, a researcher at the Gombe Stream Reserve in Tanzania, noticed that chimpanzees were eating the leaves of a tree called Aspilia. The chimps chose the leaves carefully by testing them in their mouths. Having chosen a leaf, a chimp would fold it into a fan and swallow it. Some of the chimps were noticed wrinkling their noses as they swallowed these leaves, suggesting the experience was unpleasant. Later, undigested leaves were found on the forest floor.\nDr Wrangham rightly guessed that the leaves had a medicinal purpose - this was, indeed, one of the earliest interpretations of a behaviour pattern known as self- medication. However, he guessed wrong about what the mechanism was. His (and everybody else’s) assumption was that Aspilia released a drug, and this sparked more than two decades of photochemical research to try to find out what chemical the chimps were after. But by the 1990s, chimps across Africa had been seen swallowing the leaves of 19 different Aspilia species that seemed to have few suitable chemicals in common. The drug hypothesis was looking more and more dubious.\nIt was Dr Huffman who got to the root of problem. He did so by watching what came out of the chimps, rather than concentrating on what went in. he found that the egested leaves were full of intestinal worms. The factor common to all 19 species of leaves were full of intestinal worms. The factor common to all 19 species of leaves swallowed by the chimps was that they were covered with microscopic hooks. These caught the worms and dragged them from their lodgings.\nDr Engel is now particularly excited about how knowledge of the way that animals look after themselves could be used to improve the health of livestock. People might also be able to learn a thing or two - and may, indeed, already have done so. Geophagy, for example, is a common behaviour in many parts of the world. The medical stalls in African markets frequently sell tablets made of different sorts of clays, appropriate to different medical conditions.\nAfricans brought to the Americas as slaves continued this tradition, which gave their owners one more excuse to affect to despise them. Yet, as Dr Engel points out, Rwandan mountain gorillas eat a type of clay rather similar to kaolinite — the main ingredient of many patent medicines sold over the counter in the West for digestive complaints. Dirt can sometimes be good for you, and to be “as sick as a parrot” may, after all, be a state to be desired.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "true-false-notgiven",
+              "prompt": "Dr Engel has spent ten years gathering evidence for the notion that animals treat their own illnesses.",
+              "group": {
+                "id": "r-tfng-1-4",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "true-false-notgiven",
+              "prompt": "Animal behaviourists have always believed that animals know how to heal themselves.",
+              "group": {
+                "id": "r-tfng-1-4",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "true-false-notgiven",
+              "prompt": "Dr Karesh enlisted the help of a medical team during his research.",
+              "group": {
+                "id": "r-tfng-1-4",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "true-false-notgiven",
+              "prompt": "Wild animals taken into captivity tend to experience a decline in health.",
+              "group": {
+                "id": "r-tfng-1-4",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "5",
+              "group": {
+                "id": "r-table-5-9",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "text": "Researchers\nSubjects\nSelf-treatment\nFindings\nOther observations\nMicheal Huffman & Mohamedi Seifu 1987\nChimps with worms\nEat [5] of Veronia plant\nPlant contains toxins known as [6]  that kill parasites.\nRemedy also used by people\nJames Gilardi 1999\nMacaws that consume poison-bearing seeds\nEat clay\nClay leads to reduction in level of [7] in blood\n\nRichard Wrangham\nChimps with gut parasites\nEat Aspilia leaves\nUndigested leaves wrongly believed to contain a [8]\nChimps indicate leaves have an [9] taste"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "pith"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "6",
+              "group": {
+                "id": "r-table-5-9",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "text": "Researchers\nSubjects\nSelf-treatment\nFindings\nOther observations\nMicheal Huffman & Mohamedi Seifu 1987\nChimps with worms\nEat [5] of Veronia plant\nPlant contains toxins known as [6]  that kill parasites.\nRemedy also used by people\nJames Gilardi 1999\nMacaws that consume poison-bearing seeds\nEat clay\nClay leads to reduction in level of [7] in blood\n\nRichard Wrangham\nChimps with gut parasites\nEat Aspilia leaves\nUndigested leaves wrongly believed to contain a [8]\nChimps indicate leaves have an [9] taste"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "terpenes"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "7",
+              "group": {
+                "id": "r-table-5-9",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "text": "Researchers\nSubjects\nSelf-treatment\nFindings\nOther observations\nMicheal Huffman & Mohamedi Seifu 1987\nChimps with worms\nEat [5] of Veronia plant\nPlant contains toxins known as [6]  that kill parasites.\nRemedy also used by people\nJames Gilardi 1999\nMacaws that consume poison-bearing seeds\nEat clay\nClay leads to reduction in level of [7] in blood\n\nRichard Wrangham\nChimps with gut parasites\nEat Aspilia leaves\nUndigested leaves wrongly believed to contain a [8]\nChimps indicate leaves have an [9] taste"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "poisons"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "8",
+              "group": {
+                "id": "r-table-5-9",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "text": "Researchers\nSubjects\nSelf-treatment\nFindings\nOther observations\nMicheal Huffman & Mohamedi Seifu 1987\nChimps with worms\nEat [5] of Veronia plant\nPlant contains toxins known as [6]  that kill parasites.\nRemedy also used by people\nJames Gilardi 1999\nMacaws that consume poison-bearing seeds\nEat clay\nClay leads to reduction in level of [7] in blood\n\nRichard Wrangham\nChimps with gut parasites\nEat Aspilia leaves\nUndigested leaves wrongly believed to contain a [8]\nChimps indicate leaves have an [9] taste"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "drug"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "9",
+              "group": {
+                "id": "r-table-5-9",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "text": "Researchers\nSubjects\nSelf-treatment\nFindings\nOther observations\nMicheal Huffman & Mohamedi Seifu 1987\nChimps with worms\nEat [5] of Veronia plant\nPlant contains toxins known as [6]  that kill parasites.\nRemedy also used by people\nJames Gilardi 1999\nMacaws that consume poison-bearing seeds\nEat clay\nClay leads to reduction in level of [7] in blood\n\nRichard Wrangham\nChimps with gut parasites\nEat Aspilia leaves\nUndigested leaves wrongly believed to contain a [8]\nChimps indicate leaves have an [9] taste"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "unpleasant"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "10",
+              "group": {
+                "id": "r-summary-10-13",
+                "instruction": "Complete the summary below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Soil as medication",
+                "text": "Soil as medication\nThe consumption of soil for medicinal reasons iscalled[10] .Initially, people believed that animals ate dirt to get [11] and other minerals.They then realised that the soil eaten in some areas did not contain a lot of minerals, and that in other areas plants were a better mineral source.Many people believe that the clay in soil can [12] poisons. Indeed, clay- based [13] are sold in African markets to treat a range of illnesses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "geophagy"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "completion",
+              "prompt": "11",
+              "group": {
+                "id": "r-summary-10-13",
+                "instruction": "Complete the summary below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Soil as medication",
+                "text": "Soil as medication\nThe consumption of soil for medicinal reasons iscalled[10] .Initially, people believed that animals ate dirt to get [11] and other minerals.They then realised that the soil eaten in some areas did not contain a lot of minerals, and that in other areas plants were a better mineral source.Many people believe that the clay in soil can [12] poisons. Indeed, clay- based [13] are sold in African markets to treat a range of illnesses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "salt"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "completion",
+              "prompt": "12",
+              "group": {
+                "id": "r-summary-10-13",
+                "instruction": "Complete the summary below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Soil as medication",
+                "text": "Soil as medication\nThe consumption of soil for medicinal reasons iscalled[10] .Initially, people believed that animals ate dirt to get [11] and other minerals.They then realised that the soil eaten in some areas did not contain a lot of minerals, and that in other areas plants were a better mineral source.Many people believe that the clay in soil can [12] poisons. Indeed, clay- based [13] are sold in African markets to treat a range of illnesses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "detoxify"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "completion",
+              "prompt": "13",
+              "group": {
+                "id": "r-summary-10-13",
+                "instruction": "Complete the summary below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Soil as medication",
+                "text": "Soil as medication\nThe consumption of soil for medicinal reasons iscalled[10] .Initially, people believed that animals ate dirt to get [11] and other minerals.They then realised that the soil eaten in some areas did not contain a lot of minerals, and that in other areas plants were a better mineral source.Many people believe that the clay in soil can [12] poisons. Indeed, clay- based [13] are sold in African markets to treat a range of illnesses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tablets"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "SPEAKING OF NOTHING",
+          "body": "SPEAKING OF NOTHING\nWhy we talk about the weather and other trivial\n14____________\nSome workers are happier in their jobs than others, but it's not only to do with the work itself. For example, security guards, truck drivers and salespeople: year after year, these jobs appear on lists of the unhappiest careers. It's true that many factors can make a job cheerless, including unusual hours, low pay and a lack of chances for advancement. However, these three types of work stand out for another reason: they're characterised by a lack of conversation or by meaningless small talk, which unfortunately represents an obligatory part of the job. Examples of such small talk include comments about the weather, holiday destinations and food. Psychologists have long said that connecting with others through meaningful exchanges is central to well-being, but just how much conversation we require is under investigation.\n15____________\nMatthias R. Mehl and Simine Vazire of the University of Arizona in the United States wanted to investigate the types of conversations people have. The team used a device to periodically record short verbal exchanges while participants went about their daily tasks. In the study, the researchers eavesdropped on undergraduates for four days, then catalogued each overheard conversation as either \"small talk\" (\"What do you have there? Popcorn? That looks good!\") or \"substantive\" (\"So did their proposal get funding?\" \"How did you feel?\"). They found that people who had more substantive conversations were more likely to say they were feeling happy and fulfilled overall. In fact, the happiest students had roughly twice as many substantive talks as the unhappiest ones. Small talk, meanwhile, made up only 10 per cent of their conversation, versus almost 30 per cent of conversation among the least content students.\n16____________\nHowever, small talk still has a role to play. Rather than convey information, scientists believe that it can promote bonding. Ipek Kulahci and her team of researchers at University College Cork in Ireland tested the relationship between vocal exchanges and grooming in lemurs. The researchers reported that the animals reserve their call-and-response conversations, equivalent to human chitchat, for the animals they groom the most-suggesting that small talk maintains closeness with loved ones, and isn't merely for awkward exchanges with strangers. It appears that, even among animals, vocal exchanges indicate strong social bonds between the group members.\n  \n\n17____________\nConnecting with others seems to increase happiness, but strangers in close proximity routinely ignore each other. To examine the experience of connecting to strangers, psychologists Nicholas Epley and Juliana Schroeder from the University of Chicago in the United States gave volunteers varying directions about whether to talk with other commuters who usually took the same train to work every day - something they typically avoided. Those told to chat with others reported a more pleasant journey than those told to 'enjoy your solitude' or do whatever they normally would. All of the volunteers in the study who initiated conversations reported a positive reaction from the people they spoke to. Participants had predicted precisely the opposite outcome. They expected that the others on the train would have preferred to be left alone.\n18____________\nWhen we buy a cup of coffee at a café, we sometimes chat with the service staff, but on other occasions we say as little as possible so as not to waste time. Every day we have opportunities to transform potentially impersonal exchanges into genuine social interactions; in other words, treating a service provider like we would an acquaintance might make us happier. In a study by Gillian Sandstrom and Elizabeth Dunn, people who had a social interaction with a server in a coffee shop felt better emotionally than people who were in a rush to get everything done. As well as feeling happier, the first group had a stronger sense of belonging. These results suggest that, although people are often reluctant to have a genuine social interaction with a stranger, they are happier when they do. In similar studies, when volunteers broke the silence at a gallery to chat with other visitors, the visitors felt happier and more connected to the paintings than those who were not approached. The pleasure of connection seems contagious; in a laboratory waiting room, participants who were talked to had equally positive experiences as those instructed to talk to them.\n19____________\nOf course, some of us are better than others at small talk. In a study by Todd Kashdan and his team from George Mason University in the United States, people who were rated by the researchers as 'less curious about all aspects of life' had trouble getting a conversation going on their own. However, they had greater luck building closeness with others when they were supplied with topics that encouraged people to open up about themselves and their lives. But people who were deemed 'curious' needed no help transforming conversations about ordinary things like favourite holidays into other areas of conversation that allowed for intimate exchanges. The study showed that curious people expect to generate closeness during intimate conversations but not during small talk; less curious people anticipated poor outcomes in both situations. In an experiment by William Fleeson at Wake Forest University in the United States, participants were divided into two groups - those who were naturally outgoing, and those who were more reserved in social situations. They were then instructed to behave in the opposite manner to their usual nature. Participants reported more positive feelings when instructed to act extroverted than when instructed to act introverted. The overall conclusion, therefore, is that everyone can benefit from more conversation; the more meaningful, the better.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "Paragraph 1",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "How sounds and physical contact strengthen social connections"
+                },
+                {
+                  "key": "ii",
+                  "text": "A cross-cultural study of superficial interaction"
+                },
+                {
+                  "key": "iii",
+                  "text": "An experiment that led to surprising results"
+                },
+                {
+                  "key": "iv",
+                  "text": "A study that categorised types of spoken exchanges"
+                },
+                {
+                  "key": "v",
+                  "text": "The personality types that find small talk more difficult"
+                },
+                {
+                  "key": "vi",
+                  "text": "The effect of social media on conversation skills"
+                },
+                {
+                  "key": "vii",
+                  "text": "Some occupations involve little or no interesting conversation"
+                },
+                {
+                  "key": "viii",
+                  "text": "A campaign to improve interaction in the workplace"
+                },
+                {
+                  "key": "ix",
+                  "text": "A range of common situations that were enhanced by small talk"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Choose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "vii"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "Paragraph 2",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "How sounds and physical contact strengthen social connections"
+                },
+                {
+                  "key": "ii",
+                  "text": "A cross-cultural study of superficial interaction"
+                },
+                {
+                  "key": "iii",
+                  "text": "An experiment that led to surprising results"
+                },
+                {
+                  "key": "iv",
+                  "text": "A study that categorised types of spoken exchanges"
+                },
+                {
+                  "key": "v",
+                  "text": "The personality types that find small talk more difficult"
+                },
+                {
+                  "key": "vi",
+                  "text": "The effect of social media on conversation skills"
+                },
+                {
+                  "key": "vii",
+                  "text": "Some occupations involve little or no interesting conversation"
+                },
+                {
+                  "key": "viii",
+                  "text": "A campaign to improve interaction in the workplace"
+                },
+                {
+                  "key": "ix",
+                  "text": "A range of common situations that were enhanced by small talk"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Choose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "iv"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Paragraph 3",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "How sounds and physical contact strengthen social connections"
+                },
+                {
+                  "key": "ii",
+                  "text": "A cross-cultural study of superficial interaction"
+                },
+                {
+                  "key": "iii",
+                  "text": "An experiment that led to surprising results"
+                },
+                {
+                  "key": "iv",
+                  "text": "A study that categorised types of spoken exchanges"
+                },
+                {
+                  "key": "v",
+                  "text": "The personality types that find small talk more difficult"
+                },
+                {
+                  "key": "vi",
+                  "text": "The effect of social media on conversation skills"
+                },
+                {
+                  "key": "vii",
+                  "text": "Some occupations involve little or no interesting conversation"
+                },
+                {
+                  "key": "viii",
+                  "text": "A campaign to improve interaction in the workplace"
+                },
+                {
+                  "key": "ix",
+                  "text": "A range of common situations that were enhanced by small talk"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Choose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "i"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Paragraph 4",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "How sounds and physical contact strengthen social connections"
+                },
+                {
+                  "key": "ii",
+                  "text": "A cross-cultural study of superficial interaction"
+                },
+                {
+                  "key": "iii",
+                  "text": "An experiment that led to surprising results"
+                },
+                {
+                  "key": "iv",
+                  "text": "A study that categorised types of spoken exchanges"
+                },
+                {
+                  "key": "v",
+                  "text": "The personality types that find small talk more difficult"
+                },
+                {
+                  "key": "vi",
+                  "text": "The effect of social media on conversation skills"
+                },
+                {
+                  "key": "vii",
+                  "text": "Some occupations involve little or no interesting conversation"
+                },
+                {
+                  "key": "viii",
+                  "text": "A campaign to improve interaction in the workplace"
+                },
+                {
+                  "key": "ix",
+                  "text": "A range of common situations that were enhanced by small talk"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Choose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "iii"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Paragraph 5",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "How sounds and physical contact strengthen social connections"
+                },
+                {
+                  "key": "ii",
+                  "text": "A cross-cultural study of superficial interaction"
+                },
+                {
+                  "key": "iii",
+                  "text": "An experiment that led to surprising results"
+                },
+                {
+                  "key": "iv",
+                  "text": "A study that categorised types of spoken exchanges"
+                },
+                {
+                  "key": "v",
+                  "text": "The personality types that find small talk more difficult"
+                },
+                {
+                  "key": "vi",
+                  "text": "The effect of social media on conversation skills"
+                },
+                {
+                  "key": "vii",
+                  "text": "Some occupations involve little or no interesting conversation"
+                },
+                {
+                  "key": "viii",
+                  "text": "A campaign to improve interaction in the workplace"
+                },
+                {
+                  "key": "ix",
+                  "text": "A range of common situations that were enhanced by small talk"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Choose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "ix"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Paragraph 6",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "How sounds and physical contact strengthen social connections"
+                },
+                {
+                  "key": "ii",
+                  "text": "A cross-cultural study of superficial interaction"
+                },
+                {
+                  "key": "iii",
+                  "text": "An experiment that led to surprising results"
+                },
+                {
+                  "key": "iv",
+                  "text": "A study that categorised types of spoken exchanges"
+                },
+                {
+                  "key": "v",
+                  "text": "The personality types that find small talk more difficult"
+                },
+                {
+                  "key": "vi",
+                  "text": "The effect of social media on conversation skills"
+                },
+                {
+                  "key": "vii",
+                  "text": "Some occupations involve little or no interesting conversation"
+                },
+                {
+                  "key": "viii",
+                  "text": "A campaign to improve interaction in the workplace"
+                },
+                {
+                  "key": "ix",
+                  "text": "A range of common situations that were enhanced by small talk"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Choose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "v"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "Interacting socially is preferable to hurrying through a transaction.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthias R. Mehl and Simine Vazire"
+                },
+                {
+                  "key": "B",
+                  "text": "Ipek Kulahci"
+                },
+                {
+                  "key": "C",
+                  "text": "Nicholas Epley and Juliana Schroeder"
+                },
+                {
+                  "key": "D",
+                  "text": "Gillian Sandstrom and Elizabeth Dunn"
+                },
+                {
+                  "key": "E",
+                  "text": "Todd Kashdan"
+                }
+              ],
+              "group": {
+                "id": "r-people-20-23",
+                "instruction": "Look at the following statements (Questions 20-23) and the list of people below.\nMatch each statement with the correct person, A-E.\nChoose the correct letter, A-E, in boxes 20-23.\nNB: You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "matching",
+              "prompt": "People whose conversations are mainly of a personal and meaningful nature are more satisfied with their lives.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthias R. Mehl and Simine Vazire"
+                },
+                {
+                  "key": "B",
+                  "text": "Ipek Kulahci"
+                },
+                {
+                  "key": "C",
+                  "text": "Nicholas Epley and Juliana Schroeder"
+                },
+                {
+                  "key": "D",
+                  "text": "Gillian Sandstrom and Elizabeth Dunn"
+                },
+                {
+                  "key": "E",
+                  "text": "Todd Kashdan"
+                }
+              ],
+              "group": {
+                "id": "r-people-20-23",
+                "instruction": "Look at the following statements (Questions 20-23) and the list of people below.\nMatch each statement with the correct person, A-E.\nChoose the correct letter, A-E, in boxes 20-23.\nNB: You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "matching",
+              "prompt": "There is more than one species whose members communicate for social reasons.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthias R. Mehl and Simine Vazire"
+                },
+                {
+                  "key": "B",
+                  "text": "Ipek Kulahci"
+                },
+                {
+                  "key": "C",
+                  "text": "Nicholas Epley and Juliana Schroeder"
+                },
+                {
+                  "key": "D",
+                  "text": "Gillian Sandstrom and Elizabeth Dunn"
+                },
+                {
+                  "key": "E",
+                  "text": "Todd Kashdan"
+                }
+              ],
+              "group": {
+                "id": "r-people-20-23",
+                "instruction": "Look at the following statements (Questions 20-23) and the list of people below.\nMatch each statement with the correct person, A-E.\nChoose the correct letter, A-E, in boxes 20-23.\nNB: You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "matching",
+              "prompt": "Some people find it easier than others to change the subject of a conversation.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Matthias R. Mehl and Simine Vazire"
+                },
+                {
+                  "key": "B",
+                  "text": "Ipek Kulahci"
+                },
+                {
+                  "key": "C",
+                  "text": "Nicholas Epley and Juliana Schroeder"
+                },
+                {
+                  "key": "D",
+                  "text": "Gillian Sandstrom and Elizabeth Dunn"
+                },
+                {
+                  "key": "E",
+                  "text": "Todd Kashdan"
+                }
+              ],
+              "group": {
+                "id": "r-people-20-23",
+                "instruction": "Look at the following statements (Questions 20-23) and the list of people below.\nMatch each statement with the correct person, A-E.\nChoose the correct letter, A-E, in boxes 20-23.\nNB: You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "24",
+              "group": {
+                "id": "r-sentences-24-26",
+                "instruction": "Complete the sentences below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "text": "In a study that took place on a train, volunteers approached people who were regular [24]. In an experiment in an art gallery, people related more to the [25] when they were drawn into a conversation. Introverted people found it helpful to be given [26]which could use to start a conversation."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "commuters"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "completion",
+              "prompt": "25",
+              "group": {
+                "id": "r-sentences-24-26",
+                "instruction": "Complete the sentences below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "text": "In a study that took place on a train, volunteers approached people who were regular [24]. In an experiment in an art gallery, people related more to the [25] when they were drawn into a conversation. Introverted people found it helpful to be given [26]which could use to start a conversation."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "paintings"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "completion",
+              "prompt": "26",
+              "group": {
+                "id": "r-sentences-24-26",
+                "instruction": "Complete the sentences below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "text": "In a study that took place on a train, volunteers approached people who were regular [24]. In an experiment in an art gallery, people related more to the [25] when they were drawn into a conversation. Introverted people found it helpful to be given [26]which could use to start a conversation."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "topics"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "CHANGES TO THE SOVIET UNION’S WORKING WEEK",
+          "body": "CHANGES TO THE SOVIET UNION’S WORKING WEEK\n27____________\nThe Soviet Union's first Five Year Plan was intended to turn the weak and undeveloped country into a powerful, modern, industrial nation. Following its introduction in 1928, production of coal, iron and steel increased at a fantastic rate, and new industrial cities sprang up. Everyone's life was affected, as collectivised farming drove millions from the land to swell the industrial proletariat. Private enterprise disappeared in city and country, leaving the state supreme under the leadership of Stalin. Unlimited enthusiasm was the mood of the day, with the Communists believing that iron will and hard-working manpower alone would bring about a new world.\n28___________\nNot even time itself was immune to efforts to make the state a huge, efficient machine, where not a moment would be wasted, especially in the workplace. Stalin's predecessor Lenin had already been intrigued by the ideas of Taylor, the American management expert whose time and motion studies had discovered ways of streamlining effort so that every worker could produce the maximum. The Communists were also great admirers of Ford's assembly line mass production and of his tractors that were imported in their thousands. Emulating and surpassing such capitalist models formed part of the training of the new Soviet Man.\niii  An attempt to create better working conditions?\nThe goals of Communism had always included improving the lives of the proletariat. One major step in that direction was the announcement in 1927 that reduced the working day from eight to seven hours, in January 1929, all industries were ordered to adopt the shorter day by the end of the Plan. However, the state took away more than it gave, for this was part of a scheme to increase production by establishing a three-shift system, for six days a week. That meant that the factories were open day and night, and many people had to work at highly undesirable hours.\n29____________\nHardly had that policy been announced, though, than the economist Larin came up with an idea for even greater efficiency. Workers were free and plants were closed on Sundays. Why not abolish that wasted day by instituting a continuous working week so that the machines could operate to their full capacity every day of the week? Stalin approved, and the continuous working week was introduced in August 1929 with immediate effect. This was during the height of enthusiasm for the Plan, whose goals the new schedule seemed guaranteed to forward.\n \n\n30____________\nThe idea turned out to be very complicated in practice. Obviously, the workers couldn't be made to work seven days a week, nor should their total work hours be increased. The solution was ingenious: a new five-day week would have the workers on the job for four days, with the fifth day free. Staggering the rest days between groups of workers meant that each worker would spend the same number of hours on the job, but the factories would be working a full 360 days a year instead of 300. Workers in each establishment were divided into five groups, each assigned a colour which appeared on the new calendars distributed all over the country. This colour- coding was a valuable device, since without it workers might have trouble remembering what their day off was going to be, as it would change every week.\n31____________\nOfficial propaganda stressed the material and cultural benefits of the new scheme. Workers would get more rest; production and employment would increase (more workers would be needed to keep the factories running continuously); the standard of living would improve. Shopping and leisure activities would no longer have to be crammed into a weekend, so facilities would be far less crowded. The only objection concerned the family, where normally more than one member was working: the government insisted that the narrow family was far less important than the vast common good and, besides, arrangements could be made for husband and wife to share a common schedule.\n32____________\nThe continuous working week spread fast, reaching its peak in October 1930, when it affected nearly three quarters of workers. In fact, many managers simply claimed that their factories had gone over to the new week, without actually applying it. By then, though, problems were becoming obvious. The workers hated it. Coordination of family schedules was virtually impossible, so husbands and wives only saw each other before or after work. Confusion reigned: the new plan was implemented haphazardly, with some factories operating five-, six- and seven-day weeks at the same time, and the workers often not getting their rest days at all.\n33____________\nFurthermore, the new week was far from having the vaunted effect on production. With the complicated rotation system, the work teams found themselves doing different kinds of work in successive weeks. Machines, no longer consistently in the hands of people who knew how to tend them, were often poorly maintained. Workers lost a sense of responsibility for the tasks they had normally performed. As a result, the new week started to lose ground.\n34____________\nIn November 1931, the government ordered the widespread adoption of a new six-day week, including one day off, which had its own calendar. By July 1935, only a quarter of workers still followed the continuous schedule, and the six-day week too was soon on its way out. Both were finally abandoned in 1940, as part of the general reversion to more traditional methods, and Sunday returned as the universal day of rest. The experiment had failed.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Paragraph 1",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "a decision for factories to operate seven days a week"
+                },
+                {
+                  "key": "ii",
+                  "text": "the end of two short-lived schemes"
+                },
+                {
+                  "key": "iii",
+                  "text": "an attempt to create better working conditions?"
+                },
+                {
+                  "key": "iv",
+                  "text": "not consistently introduced everywhere"
+                },
+                {
+                  "key": "v",
+                  "text": "success in replacing foreign goods"
+                },
+                {
+                  "key": "vi",
+                  "text": "how the continuous working week was organised"
+                },
+                {
+                  "key": "vii",
+                  "text": "inspiration from abroad"
+                },
+                {
+                  "key": "viii",
+                  "text": "a proposal by factory workers"
+                },
+                {
+                  "key": "ix",
+                  "text": "optimism about transforming the country"
+                },
+                {
+                  "key": "x",
+                  "text": "the failure of factories to achieve expected improvements"
+                },
+                {
+                  "key": "xi",
+                  "text": "Pros and cons of the continuous working week"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-34",
+                "instruction": "Reading Passage 3 has nine paragraph, A – I\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i-xi, in boxes 27-34."
+              },
+              "answerKey": {
+                "accepted": [
+                  "ix"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Paragraph 2",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "a decision for factories to operate seven days a week"
+                },
+                {
+                  "key": "ii",
+                  "text": "the end of two short-lived schemes"
+                },
+                {
+                  "key": "iii",
+                  "text": "an attempt to create better working conditions?"
+                },
+                {
+                  "key": "iv",
+                  "text": "not consistently introduced everywhere"
+                },
+                {
+                  "key": "v",
+                  "text": "success in replacing foreign goods"
+                },
+                {
+                  "key": "vi",
+                  "text": "how the continuous working week was organised"
+                },
+                {
+                  "key": "vii",
+                  "text": "inspiration from abroad"
+                },
+                {
+                  "key": "viii",
+                  "text": "a proposal by factory workers"
+                },
+                {
+                  "key": "ix",
+                  "text": "optimism about transforming the country"
+                },
+                {
+                  "key": "x",
+                  "text": "the failure of factories to achieve expected improvements"
+                },
+                {
+                  "key": "xi",
+                  "text": "Pros and cons of the continuous working week"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-34",
+                "instruction": "Reading Passage 3 has nine paragraph, A – I\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i-xi, in boxes 27-34."
+              },
+              "answerKey": {
+                "accepted": [
+                  "vii"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Paragraph 4",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "a decision for factories to operate seven days a week"
+                },
+                {
+                  "key": "ii",
+                  "text": "the end of two short-lived schemes"
+                },
+                {
+                  "key": "iii",
+                  "text": "an attempt to create better working conditions?"
+                },
+                {
+                  "key": "iv",
+                  "text": "not consistently introduced everywhere"
+                },
+                {
+                  "key": "v",
+                  "text": "success in replacing foreign goods"
+                },
+                {
+                  "key": "vi",
+                  "text": "how the continuous working week was organised"
+                },
+                {
+                  "key": "vii",
+                  "text": "inspiration from abroad"
+                },
+                {
+                  "key": "viii",
+                  "text": "a proposal by factory workers"
+                },
+                {
+                  "key": "ix",
+                  "text": "optimism about transforming the country"
+                },
+                {
+                  "key": "x",
+                  "text": "the failure of factories to achieve expected improvements"
+                },
+                {
+                  "key": "xi",
+                  "text": "Pros and cons of the continuous working week"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-34",
+                "instruction": "Reading Passage 3 has nine paragraph, A – I\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i-xi, in boxes 27-34."
+              },
+              "answerKey": {
+                "accepted": [
+                  "i"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Paragraph 5",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "a decision for factories to operate seven days a week"
+                },
+                {
+                  "key": "ii",
+                  "text": "the end of two short-lived schemes"
+                },
+                {
+                  "key": "iii",
+                  "text": "an attempt to create better working conditions?"
+                },
+                {
+                  "key": "iv",
+                  "text": "not consistently introduced everywhere"
+                },
+                {
+                  "key": "v",
+                  "text": "success in replacing foreign goods"
+                },
+                {
+                  "key": "vi",
+                  "text": "how the continuous working week was organised"
+                },
+                {
+                  "key": "vii",
+                  "text": "inspiration from abroad"
+                },
+                {
+                  "key": "viii",
+                  "text": "a proposal by factory workers"
+                },
+                {
+                  "key": "ix",
+                  "text": "optimism about transforming the country"
+                },
+                {
+                  "key": "x",
+                  "text": "the failure of factories to achieve expected improvements"
+                },
+                {
+                  "key": "xi",
+                  "text": "Pros and cons of the continuous working week"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-34",
+                "instruction": "Reading Passage 3 has nine paragraph, A – I\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i-xi, in boxes 27-34."
+              },
+              "answerKey": {
+                "accepted": [
+                  "vi"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "Paragraph 6",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "a decision for factories to operate seven days a week"
+                },
+                {
+                  "key": "ii",
+                  "text": "the end of two short-lived schemes"
+                },
+                {
+                  "key": "iii",
+                  "text": "an attempt to create better working conditions?"
+                },
+                {
+                  "key": "iv",
+                  "text": "not consistently introduced everywhere"
+                },
+                {
+                  "key": "v",
+                  "text": "success in replacing foreign goods"
+                },
+                {
+                  "key": "vi",
+                  "text": "how the continuous working week was organised"
+                },
+                {
+                  "key": "vii",
+                  "text": "inspiration from abroad"
+                },
+                {
+                  "key": "viii",
+                  "text": "a proposal by factory workers"
+                },
+                {
+                  "key": "ix",
+                  "text": "optimism about transforming the country"
+                },
+                {
+                  "key": "x",
+                  "text": "the failure of factories to achieve expected improvements"
+                },
+                {
+                  "key": "xi",
+                  "text": "Pros and cons of the continuous working week"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-34",
+                "instruction": "Reading Passage 3 has nine paragraph, A – I\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i-xi, in boxes 27-34."
+              },
+              "answerKey": {
+                "accepted": [
+                  "ix"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "matching",
+              "prompt": "Paragraph 7",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "a decision for factories to operate seven days a week"
+                },
+                {
+                  "key": "ii",
+                  "text": "the end of two short-lived schemes"
+                },
+                {
+                  "key": "iii",
+                  "text": "an attempt to create better working conditions?"
+                },
+                {
+                  "key": "iv",
+                  "text": "not consistently introduced everywhere"
+                },
+                {
+                  "key": "v",
+                  "text": "success in replacing foreign goods"
+                },
+                {
+                  "key": "vi",
+                  "text": "how the continuous working week was organised"
+                },
+                {
+                  "key": "vii",
+                  "text": "inspiration from abroad"
+                },
+                {
+                  "key": "viii",
+                  "text": "a proposal by factory workers"
+                },
+                {
+                  "key": "ix",
+                  "text": "optimism about transforming the country"
+                },
+                {
+                  "key": "x",
+                  "text": "the failure of factories to achieve expected improvements"
+                },
+                {
+                  "key": "xi",
+                  "text": "Pros and cons of the continuous working week"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-34",
+                "instruction": "Reading Passage 3 has nine paragraph, A – I\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i-xi, in boxes 27-34."
+              },
+              "answerKey": {
+                "accepted": [
+                  "iv"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "matching",
+              "prompt": "Paragraph 8",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "a decision for factories to operate seven days a week"
+                },
+                {
+                  "key": "ii",
+                  "text": "the end of two short-lived schemes"
+                },
+                {
+                  "key": "iii",
+                  "text": "an attempt to create better working conditions?"
+                },
+                {
+                  "key": "iv",
+                  "text": "not consistently introduced everywhere"
+                },
+                {
+                  "key": "v",
+                  "text": "success in replacing foreign goods"
+                },
+                {
+                  "key": "vi",
+                  "text": "how the continuous working week was organised"
+                },
+                {
+                  "key": "vii",
+                  "text": "inspiration from abroad"
+                },
+                {
+                  "key": "viii",
+                  "text": "a proposal by factory workers"
+                },
+                {
+                  "key": "ix",
+                  "text": "optimism about transforming the country"
+                },
+                {
+                  "key": "x",
+                  "text": "the failure of factories to achieve expected improvements"
+                },
+                {
+                  "key": "xi",
+                  "text": "Pros and cons of the continuous working week"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-34",
+                "instruction": "Reading Passage 3 has nine paragraph, A – I\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i-xi, in boxes 27-34."
+              },
+              "answerKey": {
+                "accepted": [
+                  "x"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "matching",
+              "prompt": "Paragraph 9",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "a decision for factories to operate seven days a week"
+                },
+                {
+                  "key": "ii",
+                  "text": "the end of two short-lived schemes"
+                },
+                {
+                  "key": "iii",
+                  "text": "an attempt to create better working conditions?"
+                },
+                {
+                  "key": "iv",
+                  "text": "not consistently introduced everywhere"
+                },
+                {
+                  "key": "v",
+                  "text": "success in replacing foreign goods"
+                },
+                {
+                  "key": "vi",
+                  "text": "how the continuous working week was organised"
+                },
+                {
+                  "key": "vii",
+                  "text": "inspiration from abroad"
+                },
+                {
+                  "key": "viii",
+                  "text": "a proposal by factory workers"
+                },
+                {
+                  "key": "ix",
+                  "text": "optimism about transforming the country"
+                },
+                {
+                  "key": "x",
+                  "text": "the failure of factories to achieve expected improvements"
+                },
+                {
+                  "key": "xi",
+                  "text": "Pros and cons of the continuous working week"
+                }
+              ],
+              "group": {
+                "id": "r-headings-27-34",
+                "instruction": "Reading Passage 3 has nine paragraph, A – I\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i-xi, in boxes 27-34."
+              },
+              "answerKey": {
+                "accepted": [
+                  "ii"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "multiple-choice",
+              "prompt": "Which aspect of American business was admired?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the high level of employment"
+                },
+                {
+                  "key": "B",
+                  "text": "the variety of products available"
+                },
+                {
+                  "key": "C",
+                  "text": "the methods of increasing productivity"
+                },
+                {
+                  "key": "D",
+                  "text": "the quality of the goods that were produced"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "multiple-choice",
+              "prompt": "The continuous working week was intended to ensure that",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "each worker's productivity increased."
+                },
+                {
+                  "key": "B",
+                  "text": "machinery was in continuous use."
+                },
+                {
+                  "key": "C",
+                  "text": "workers had more days off."
+                },
+                {
+                  "key": "D",
+                  "text": "factories could afford to buy efficient machines."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "multiple-choice",
+              "prompt": "Which of the following was thought unlikely to improve as a result of the continuous working week?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "family life"
+                },
+                {
+                  "key": "B",
+                  "text": "leisure facilities"
+                },
+                {
+                  "key": "C",
+                  "text": "employment levels"
+                },
+                {
+                  "key": "D",
+                  "text": "shopping opportunities"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "short-answer",
+              "prompt": "What was the name of the person whose theories inspired efforts to increase efficiency?",
+              "group": {
+                "id": "r-short-38-40",
+                "instruction": "Answer the questions below.\nWrite NO MORE THAN THREE WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "Ford"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "short-answer",
+              "prompt": "What was the name of the person with proposed the continuous working week?",
+              "group": {
+                "id": "r-short-38-40",
+                "instruction": "Answer the questions below.\nWrite NO MORE THAN THREE WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "Larin"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "short-answer",
+              "prompt": "In calendars of the continuous working week, what system was used to identify different groups of workers?",
+              "group": {
+                "id": "r-short-38-40",
+                "instruction": "Answer the questions below.\nWrite NO MORE THAN THREE WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "color coding, color coding system"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Kiwi Air Customer Complaint Form",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Kiwi Air Customer Complaint Form\nCustomer has been trying to make a booking using the internet\nBooking details\nName: Janet [1]\nTicket details:  one adult and three children\n (Wellington to Christchurch) – four [2] tickets\nFlight details:  November 10th – 15th\nTime: departing at [3] a.m.\nDetails of the problem\n• the website changes the rate for one child\n• the website keep giving the customer [4] messages\nCustomer informed that Kiwi Air policy:\n• allows no more than [5] child fares per adult\n(this applies to domestic flights only)\nCustomer’s reasons for complaint\n• none of her children are [6] years old or older\n• child passengers require less [7]\n• the rule is unfair for large families and [8] groups\nCustomer invited to send written complaint\n• letter to go to the  [9]\n• reply predicted within a week\n• reference number: [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Quigley"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Kiwi Air Customer Complaint Form",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Kiwi Air Customer Complaint Form\nCustomer has been trying to make a booking using the internet\nBooking details\nName: Janet [1]\nTicket details:  one adult and three children\n (Wellington to Christchurch) – four [2] tickets\nFlight details:  November 10th – 15th\nTime: departing at [3] a.m.\nDetails of the problem\n• the website changes the rate for one child\n• the website keep giving the customer [4] messages\nCustomer informed that Kiwi Air policy:\n• allows no more than [5] child fares per adult\n(this applies to domestic flights only)\nCustomer’s reasons for complaint\n• none of her children are [6] years old or older\n• child passengers require less [7]\n• the rule is unfair for large families and [8] groups\nCustomer invited to send written complaint\n• letter to go to the  [9]\n• reply predicted within a week\n• reference number: [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "return"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Kiwi Air Customer Complaint Form",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Kiwi Air Customer Complaint Form\nCustomer has been trying to make a booking using the internet\nBooking details\nName: Janet [1]\nTicket details:  one adult and three children\n (Wellington to Christchurch) – four [2] tickets\nFlight details:  November 10th – 15th\nTime: departing at [3] a.m.\nDetails of the problem\n• the website changes the rate for one child\n• the website keep giving the customer [4] messages\nCustomer informed that Kiwi Air policy:\n• allows no more than [5] child fares per adult\n(this applies to domestic flights only)\nCustomer’s reasons for complaint\n• none of her children are [6] years old or older\n• child passengers require less [7]\n• the rule is unfair for large families and [8] groups\nCustomer invited to send written complaint\n• letter to go to the  [9]\n• reply predicted within a week\n• reference number: [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "11.45"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Kiwi Air Customer Complaint Form",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Kiwi Air Customer Complaint Form\nCustomer has been trying to make a booking using the internet\nBooking details\nName: Janet [1]\nTicket details:  one adult and three children\n (Wellington to Christchurch) – four [2] tickets\nFlight details:  November 10th – 15th\nTime: departing at [3] a.m.\nDetails of the problem\n• the website changes the rate for one child\n• the website keep giving the customer [4] messages\nCustomer informed that Kiwi Air policy:\n• allows no more than [5] child fares per adult\n(this applies to domestic flights only)\nCustomer’s reasons for complaint\n• none of her children are [6] years old or older\n• child passengers require less [7]\n• the rule is unfair for large families and [8] groups\nCustomer invited to send written complaint\n• letter to go to the  [9]\n• reply predicted within a week\n• reference number: [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "error"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Kiwi Air Customer Complaint Form",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Kiwi Air Customer Complaint Form\nCustomer has been trying to make a booking using the internet\nBooking details\nName: Janet [1]\nTicket details:  one adult and three children\n (Wellington to Christchurch) – four [2] tickets\nFlight details:  November 10th – 15th\nTime: departing at [3] a.m.\nDetails of the problem\n• the website changes the rate for one child\n• the website keep giving the customer [4] messages\nCustomer informed that Kiwi Air policy:\n• allows no more than [5] child fares per adult\n(this applies to domestic flights only)\nCustomer’s reasons for complaint\n• none of her children are [6] years old or older\n• child passengers require less [7]\n• the rule is unfair for large families and [8] groups\nCustomer invited to send written complaint\n• letter to go to the  [9]\n• reply predicted within a week\n• reference number: [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "two"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Kiwi Air Customer Complaint Form",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Kiwi Air Customer Complaint Form\nCustomer has been trying to make a booking using the internet\nBooking details\nName: Janet [1]\nTicket details:  one adult and three children\n (Wellington to Christchurch) – four [2] tickets\nFlight details:  November 10th – 15th\nTime: departing at [3] a.m.\nDetails of the problem\n• the website changes the rate for one child\n• the website keep giving the customer [4] messages\nCustomer informed that Kiwi Air policy:\n• allows no more than [5] child fares per adult\n(this applies to domestic flights only)\nCustomer’s reasons for complaint\n• none of her children are [6] years old or older\n• child passengers require less [7]\n• the rule is unfair for large families and [8] groups\nCustomer invited to send written complaint\n• letter to go to the  [9]\n• reply predicted within a week\n• reference number: [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "12"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Kiwi Air Customer Complaint Form",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Kiwi Air Customer Complaint Form\nCustomer has been trying to make a booking using the internet\nBooking details\nName: Janet [1]\nTicket details:  one adult and three children\n (Wellington to Christchurch) – four [2] tickets\nFlight details:  November 10th – 15th\nTime: departing at [3] a.m.\nDetails of the problem\n• the website changes the rate for one child\n• the website keep giving the customer [4] messages\nCustomer informed that Kiwi Air policy:\n• allows no more than [5] child fares per adult\n(this applies to domestic flights only)\nCustomer’s reasons for complaint\n• none of her children are [6] years old or older\n• child passengers require less [7]\n• the rule is unfair for large families and [8] groups\nCustomer invited to send written complaint\n• letter to go to the  [9]\n• reply predicted within a week\n• reference number: [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "food"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Kiwi Air Customer Complaint Form",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Kiwi Air Customer Complaint Form\nCustomer has been trying to make a booking using the internet\nBooking details\nName: Janet [1]\nTicket details:  one adult and three children\n (Wellington to Christchurch) – four [2] tickets\nFlight details:  November 10th – 15th\nTime: departing at [3] a.m.\nDetails of the problem\n• the website changes the rate for one child\n• the website keep giving the customer [4] messages\nCustomer informed that Kiwi Air policy:\n• allows no more than [5] child fares per adult\n(this applies to domestic flights only)\nCustomer’s reasons for complaint\n• none of her children are [6] years old or older\n• child passengers require less [7]\n• the rule is unfair for large families and [8] groups\nCustomer invited to send written complaint\n• letter to go to the  [9]\n• reply predicted within a week\n• reference number: [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "school"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Kiwi Air Customer Complaint Form",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Kiwi Air Customer Complaint Form\nCustomer has been trying to make a booking using the internet\nBooking details\nName: Janet [1]\nTicket details:  one adult and three children\n (Wellington to Christchurch) – four [2] tickets\nFlight details:  November 10th – 15th\nTime: departing at [3] a.m.\nDetails of the problem\n• the website changes the rate for one child\n• the website keep giving the customer [4] messages\nCustomer informed that Kiwi Air policy:\n• allows no more than [5] child fares per adult\n(this applies to domestic flights only)\nCustomer’s reasons for complaint\n• none of her children are [6] years old or older\n• child passengers require less [7]\n• the rule is unfair for large families and [8] groups\nCustomer invited to send written complaint\n• letter to go to the  [9]\n• reply predicted within a week\n• reference number: [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "manager"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Kiwi Air Customer Complaint Form",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Kiwi Air Customer Complaint Form\nCustomer has been trying to make a booking using the internet\nBooking details\nName: Janet [1]\nTicket details:  one adult and three children\n (Wellington to Christchurch) – four [2] tickets\nFlight details:  November 10th – 15th\nTime: departing at [3] a.m.\nDetails of the problem\n• the website changes the rate for one child\n• the website keep giving the customer [4] messages\nCustomer informed that Kiwi Air policy:\n• allows no more than [5] child fares per adult\n(this applies to domestic flights only)\nCustomer’s reasons for complaint\n• none of her children are [6] years old or older\n• child passengers require less [7]\n• the rule is unfair for large families and [8] groups\nCustomer invited to send written complaint\n• letter to go to the  [9]\n• reply predicted within a week\n• reference number: [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "GBK8422"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-6-listening-full.mp4"
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Linwood Apartment Complex",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "When was the first apartment complex completed?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "1 year ago"
+                },
+                {
+                  "key": "B",
+                  "text": "3 years ago"
+                },
+                {
+                  "key": "C",
+                  "text": "5 years ago"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "What does the manager say he enjoys most about the job?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "resolving problems between residents"
+                },
+                {
+                  "key": "B",
+                  "text": "dealing with financial matters"
+                },
+                {
+                  "key": "C",
+                  "text": "organizing building maintenance"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "Regarding restrictions in the complex, the manager says",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "only some types of flowers can be planted"
+                },
+                {
+                  "key": "B",
+                  "text": "only the interiors of apartments can be painted"
+                },
+                {
+                  "key": "C",
+                  "text": "only certain colors can be used on the walls"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "What does the manager ask residents to do for the welcome party?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bring food"
+                },
+                {
+                  "key": "B",
+                  "text": "prepare name tags"
+                },
+                {
+                  "key": "C",
+                  "text": "decorate the hall"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "labelling",
+              "prompt": "Shop",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                },
+                {
+                  "key": "K",
+                  "text": "K"
+                }
+              ],
+              "group": {
+                "id": "l-s2-map-15-20",
+                "instruction": "Choose the correct letter, A - K, next to questions 15 - 20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "labelling",
+              "prompt": "Barbecue area",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                },
+                {
+                  "key": "K",
+                  "text": "K"
+                }
+              ],
+              "group": {
+                "id": "l-s2-map-15-20",
+                "instruction": "Choose the correct letter, A - K, next to questions 15 - 20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "labelling",
+              "prompt": "Childcare center",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                },
+                {
+                  "key": "K",
+                  "text": "K"
+                }
+              ],
+              "group": {
+                "id": "l-s2-map-15-20",
+                "instruction": "Choose the correct letter, A - K, next to questions 15 - 20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "labelling",
+              "prompt": "Laundry",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                },
+                {
+                  "key": "K",
+                  "text": "K"
+                }
+              ],
+              "group": {
+                "id": "l-s2-map-15-20",
+                "instruction": "Choose the correct letter, A - K, next to questions 15 - 20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "labelling",
+              "prompt": "Recreation room",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                },
+                {
+                  "key": "K",
+                  "text": "K"
+                }
+              ],
+              "group": {
+                "id": "l-s2-map-15-20",
+                "instruction": "Choose the correct letter, A - K, next to questions 15 - 20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "labelling",
+              "prompt": "Hall",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                },
+                {
+                  "key": "K",
+                  "text": "K"
+                }
+              ],
+              "group": {
+                "id": "l-s2-map-15-20",
+                "instruction": "Choose the correct letter, A - K, next to questions 15 - 20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-6-listening-full.mp4"
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "The history and development of bicycle",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "Izzy believes the ‘safety bicycle’ is significant because it was",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "specifically made for children to use."
+                },
+                {
+                  "key": "B",
+                  "text": "the first bicycle to be similar to modern bicycles."
+                },
+                {
+                  "key": "C",
+                  "text": "designed to travel at higher speeds than previous models."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "What effect of bicycles on the 19th-century working classes does Max want to highlight?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "how people spent their free time"
+                },
+                {
+                  "key": "B",
+                  "text": "where people were employed"
+                },
+                {
+                  "key": "C",
+                  "text": "the way people found romantic partners"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "What will Max and Izzy stress about attitudes to bicycles in the 20th century?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The popularity of cars reduced the status of bicycles in the 1950s."
+                },
+                {
+                  "key": "B",
+                  "text": "New designs led to an increase in sales of bicycles in the 1960s."
+                },
+                {
+                  "key": "C",
+                  "text": "An interest in fitness promoted demand for bicycles in the 1980s."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "What does Max say about a scheme to provide free bikes to school pupils?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "He wants to see more evidence of its benefits."
+                },
+                {
+                  "key": "B",
+                  "text": "He thinks it could cost the government a lot of money."
+                },
+                {
+                  "key": "C",
+                  "text": "He questions whether all parents would support it."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "David",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Cycling is a convenient way to travel."
+                },
+                {
+                  "key": "B",
+                  "text": "Bikes are environmentally friendly."
+                },
+                {
+                  "key": "C",
+                  "text": "Riding a bike can be a social activity."
+                },
+                {
+                  "key": "D",
+                  "text": "Bikes are a cheap form of transport."
+                },
+                {
+                  "key": "E",
+                  "text": "Cycling is a way to spend time outdoors."
+                },
+                {
+                  "key": "F",
+                  "text": "Riding a bike is good for mental health."
+                },
+                {
+                  "key": "G",
+                  "text": "Riding a bike is good exercise."
+                },
+                {
+                  "key": "H",
+                  "text": "Cycling can be done by all ages."
+                }
+              ],
+              "group": {
+                "id": "l-s3-match-25-30",
+                "instruction": "Which reason did each of the following people give for using a bike?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "Marlene",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Cycling is a convenient way to travel."
+                },
+                {
+                  "key": "B",
+                  "text": "Bikes are environmentally friendly."
+                },
+                {
+                  "key": "C",
+                  "text": "Riding a bike can be a social activity."
+                },
+                {
+                  "key": "D",
+                  "text": "Bikes are a cheap form of transport."
+                },
+                {
+                  "key": "E",
+                  "text": "Cycling is a way to spend time outdoors."
+                },
+                {
+                  "key": "F",
+                  "text": "Riding a bike is good for mental health."
+                },
+                {
+                  "key": "G",
+                  "text": "Riding a bike is good exercise."
+                },
+                {
+                  "key": "H",
+                  "text": "Cycling can be done by all ages."
+                }
+              ],
+              "group": {
+                "id": "l-s3-match-25-30",
+                "instruction": "Which reason did each of the following people give for using a bike?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Annabelle",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Cycling is a convenient way to travel."
+                },
+                {
+                  "key": "B",
+                  "text": "Bikes are environmentally friendly."
+                },
+                {
+                  "key": "C",
+                  "text": "Riding a bike can be a social activity."
+                },
+                {
+                  "key": "D",
+                  "text": "Bikes are a cheap form of transport."
+                },
+                {
+                  "key": "E",
+                  "text": "Cycling is a way to spend time outdoors."
+                },
+                {
+                  "key": "F",
+                  "text": "Riding a bike is good for mental health."
+                },
+                {
+                  "key": "G",
+                  "text": "Riding a bike is good exercise."
+                },
+                {
+                  "key": "H",
+                  "text": "Cycling can be done by all ages."
+                }
+              ],
+              "group": {
+                "id": "l-s3-match-25-30",
+                "instruction": "Which reason did each of the following people give for using a bike?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Rashid",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Cycling is a convenient way to travel."
+                },
+                {
+                  "key": "B",
+                  "text": "Bikes are environmentally friendly."
+                },
+                {
+                  "key": "C",
+                  "text": "Riding a bike can be a social activity."
+                },
+                {
+                  "key": "D",
+                  "text": "Bikes are a cheap form of transport."
+                },
+                {
+                  "key": "E",
+                  "text": "Cycling is a way to spend time outdoors."
+                },
+                {
+                  "key": "F",
+                  "text": "Riding a bike is good for mental health."
+                },
+                {
+                  "key": "G",
+                  "text": "Riding a bike is good exercise."
+                },
+                {
+                  "key": "H",
+                  "text": "Cycling can be done by all ages."
+                }
+              ],
+              "group": {
+                "id": "l-s3-match-25-30",
+                "instruction": "Which reason did each of the following people give for using a bike?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Saira",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Cycling is a convenient way to travel."
+                },
+                {
+                  "key": "B",
+                  "text": "Bikes are environmentally friendly."
+                },
+                {
+                  "key": "C",
+                  "text": "Riding a bike can be a social activity."
+                },
+                {
+                  "key": "D",
+                  "text": "Bikes are a cheap form of transport."
+                },
+                {
+                  "key": "E",
+                  "text": "Cycling is a way to spend time outdoors."
+                },
+                {
+                  "key": "F",
+                  "text": "Riding a bike is good for mental health."
+                },
+                {
+                  "key": "G",
+                  "text": "Riding a bike is good exercise."
+                },
+                {
+                  "key": "H",
+                  "text": "Cycling can be done by all ages."
+                }
+              ],
+              "group": {
+                "id": "l-s3-match-25-30",
+                "instruction": "Which reason did each of the following people give for using a bike?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Giovanni",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Cycling is a convenient way to travel."
+                },
+                {
+                  "key": "B",
+                  "text": "Bikes are environmentally friendly."
+                },
+                {
+                  "key": "C",
+                  "text": "Riding a bike can be a social activity."
+                },
+                {
+                  "key": "D",
+                  "text": "Bikes are a cheap form of transport."
+                },
+                {
+                  "key": "E",
+                  "text": "Cycling is a way to spend time outdoors."
+                },
+                {
+                  "key": "F",
+                  "text": "Riding a bike is good for mental health."
+                },
+                {
+                  "key": "G",
+                  "text": "Riding a bike is good exercise."
+                },
+                {
+                  "key": "H",
+                  "text": "Cycling can be done by all ages."
+                }
+              ],
+              "group": {
+                "id": "l-s3-match-25-30",
+                "instruction": "Which reason did each of the following people give for using a bike?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-6-listening-full.mp4"
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "The Patagon People of South America",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The Patagon People of South America",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The Patagon People of South America\nClothing\n•    One type of coat is culturally important.\n•    Young guanaco were used to make the coats because of their [31] skin.\n•    Men hunted the guanaco.\n•    Women sewed the skins together into coats.\n•    Scrapers made from [32] are today displayed in museums.\n•    Colours from natural [33] were used.\nThe arrival of the Spanish\n•    More guanaco were caught because of the use of the [34] for hunting.\n•    Coats played a [35] role rather than just being for personal use.\n•    New materials such as [36] improved the scraping process.\nConclusions\n•    Coat designs date from pre-historic times – similar designs are found inside [37]\n•    Coat designs may have been a link with people's [38]\n•    Large Patagon settlements were not built on the [39].\n•    Shepherds still make [40] using similar techniques."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "soft"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The Patagon People of South America",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The Patagon People of South America\nClothing\n•    One type of coat is culturally important.\n•    Young guanaco were used to make the coats because of their [31] skin.\n•    Men hunted the guanaco.\n•    Women sewed the skins together into coats.\n•    Scrapers made from [32] are today displayed in museums.\n•    Colours from natural [33] were used.\nThe arrival of the Spanish\n•    More guanaco were caught because of the use of the [34] for hunting.\n•    Coats played a [35] role rather than just being for personal use.\n•    New materials such as [36] improved the scraping process.\nConclusions\n•    Coat designs date from pre-historic times – similar designs are found inside [37]\n•    Coat designs may have been a link with people's [38]\n•    Large Patagon settlements were not built on the [39].\n•    Shepherds still make [40] using similar techniques."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "stone"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The Patagon People of South America",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The Patagon People of South America\nClothing\n•    One type of coat is culturally important.\n•    Young guanaco were used to make the coats because of their [31] skin.\n•    Men hunted the guanaco.\n•    Women sewed the skins together into coats.\n•    Scrapers made from [32] are today displayed in museums.\n•    Colours from natural [33] were used.\nThe arrival of the Spanish\n•    More guanaco were caught because of the use of the [34] for hunting.\n•    Coats played a [35] role rather than just being for personal use.\n•    New materials such as [36] improved the scraping process.\nConclusions\n•    Coat designs date from pre-historic times – similar designs are found inside [37]\n•    Coat designs may have been a link with people's [38]\n•    Large Patagon settlements were not built on the [39].\n•    Shepherds still make [40] using similar techniques."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "minerals"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The Patagon People of South America",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The Patagon People of South America\nClothing\n•    One type of coat is culturally important.\n•    Young guanaco were used to make the coats because of their [31] skin.\n•    Men hunted the guanaco.\n•    Women sewed the skins together into coats.\n•    Scrapers made from [32] are today displayed in museums.\n•    Colours from natural [33] were used.\nThe arrival of the Spanish\n•    More guanaco were caught because of the use of the [34] for hunting.\n•    Coats played a [35] role rather than just being for personal use.\n•    New materials such as [36] improved the scraping process.\nConclusions\n•    Coat designs date from pre-historic times – similar designs are found inside [37]\n•    Coat designs may have been a link with people's [38]\n•    Large Patagon settlements were not built on the [39].\n•    Shepherds still make [40] using similar techniques."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "horse"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The Patagon People of South America",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The Patagon People of South America\nClothing\n•    One type of coat is culturally important.\n•    Young guanaco were used to make the coats because of their [31] skin.\n•    Men hunted the guanaco.\n•    Women sewed the skins together into coats.\n•    Scrapers made from [32] are today displayed in museums.\n•    Colours from natural [33] were used.\nThe arrival of the Spanish\n•    More guanaco were caught because of the use of the [34] for hunting.\n•    Coats played a [35] role rather than just being for personal use.\n•    New materials such as [36] improved the scraping process.\nConclusions\n•    Coat designs date from pre-historic times – similar designs are found inside [37]\n•    Coat designs may have been a link with people's [38]\n•    Large Patagon settlements were not built on the [39].\n•    Shepherds still make [40] using similar techniques."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "commercial"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The Patagon People of South America",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The Patagon People of South America\nClothing\n•    One type of coat is culturally important.\n•    Young guanaco were used to make the coats because of their [31] skin.\n•    Men hunted the guanaco.\n•    Women sewed the skins together into coats.\n•    Scrapers made from [32] are today displayed in museums.\n•    Colours from natural [33] were used.\nThe arrival of the Spanish\n•    More guanaco were caught because of the use of the [34] for hunting.\n•    Coats played a [35] role rather than just being for personal use.\n•    New materials such as [36] improved the scraping process.\nConclusions\n•    Coat designs date from pre-historic times – similar designs are found inside [37]\n•    Coat designs may have been a link with people's [38]\n•    Large Patagon settlements were not built on the [39].\n•    Shepherds still make [40] using similar techniques."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "glass"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The Patagon People of South America",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The Patagon People of South America\nClothing\n•    One type of coat is culturally important.\n•    Young guanaco were used to make the coats because of their [31] skin.\n•    Men hunted the guanaco.\n•    Women sewed the skins together into coats.\n•    Scrapers made from [32] are today displayed in museums.\n•    Colours from natural [33] were used.\nThe arrival of the Spanish\n•    More guanaco were caught because of the use of the [34] for hunting.\n•    Coats played a [35] role rather than just being for personal use.\n•    New materials such as [36] improved the scraping process.\nConclusions\n•    Coat designs date from pre-historic times – similar designs are found inside [37]\n•    Coat designs may have been a link with people's [38]\n•    Large Patagon settlements were not built on the [39].\n•    Shepherds still make [40] using similar techniques."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "caves"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The Patagon People of South America",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The Patagon People of South America\nClothing\n•    One type of coat is culturally important.\n•    Young guanaco were used to make the coats because of their [31] skin.\n•    Men hunted the guanaco.\n•    Women sewed the skins together into coats.\n•    Scrapers made from [32] are today displayed in museums.\n•    Colours from natural [33] were used.\nThe arrival of the Spanish\n•    More guanaco were caught because of the use of the [34] for hunting.\n•    Coats played a [35] role rather than just being for personal use.\n•    New materials such as [36] improved the scraping process.\nConclusions\n•    Coat designs date from pre-historic times – similar designs are found inside [37]\n•    Coat designs may have been a link with people's [38]\n•    Large Patagon settlements were not built on the [39].\n•    Shepherds still make [40] using similar techniques."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "ancestors"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The Patagon People of South America",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The Patagon People of South America\nClothing\n•    One type of coat is culturally important.\n•    Young guanaco were used to make the coats because of their [31] skin.\n•    Men hunted the guanaco.\n•    Women sewed the skins together into coats.\n•    Scrapers made from [32] are today displayed in museums.\n•    Colours from natural [33] were used.\nThe arrival of the Spanish\n•    More guanaco were caught because of the use of the [34] for hunting.\n•    Coats played a [35] role rather than just being for personal use.\n•    New materials such as [36] improved the scraping process.\nConclusions\n•    Coat designs date from pre-historic times – similar designs are found inside [37]\n•    Coat designs may have been a link with people's [38]\n•    Large Patagon settlements were not built on the [39].\n•    Shepherds still make [40] using similar techniques."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "coast"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The Patagon People of South America",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "The Patagon People of South America\nClothing\n•    One type of coat is culturally important.\n•    Young guanaco were used to make the coats because of their [31] skin.\n•    Men hunted the guanaco.\n•    Women sewed the skins together into coats.\n•    Scrapers made from [32] are today displayed in museums.\n•    Colours from natural [33] were used.\nThe arrival of the Spanish\n•    More guanaco were caught because of the use of the [34] for hunting.\n•    Coats played a [35] role rather than just being for personal use.\n•    New materials such as [36] improved the scraping process.\nConclusions\n•    Coat designs date from pre-historic times – similar designs are found inside [37]\n•    Coat designs may have been a link with people's [38]\n•    Large Patagon settlements were not built on the [39].\n•    Shepherds still make [40] using similar techniques."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "blankets"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-6-listening-full.mp4"
+        }
+      ]
+    }
+  ]
+}

@@ -11,31 +11,88 @@ Targets: End-user Web · Android · iOS · Admin CMS · central Backend API.
 
 ## Current phase
 
-**Phase 1 — UI/UX.** Phase 0 (research and foundation) is complete. The application is **not** being built yet.
+**Phase 4 — implementation, foundation stage.** The **requirement freeze happened on 2026-08-20** (`F-1`…`F-5` in [`docs/requirements/confirmed.md`](docs/requirements/confirmed.md)), which lifted the no-application-code rule.
 
-The sequence is: UI/UX prototype → product review → **requirement freeze** → technical specification → implementation.
+**The freeze was partial, and the distinction governs what may be built.** It settled *scope* — Speaking AI scoring, AI Chat, AI-assisted parsing, live token spending, and in-place CMS authoring are all in the first release. It did **not** settle the rules inside them: token amounts (`B-5a`/`B-5b`), chat scope (`B-6a`), parse accuracy (`B-7b`), Speaking depth (`H-3`) are all still open.
 
-Until requirements are frozen, do not write application code, schemas, or migrations. Produce research, decisions, and specifications instead. See [`docs/development/roadmap.md`](docs/development/roadmap.md).
+> **An unresolved policy becomes a configured seam with a null implementation — never an invented default** (`G-11`). Build the ledger without prices. Build the entitlement check without a charging rule. Bind the Writing criterion set from configuration rather than hard-coding the four `H-8` confirmed, and leave the Task 1 : Task 2 weighting `H-8b` never settled as a value a caller must supply.
+
+### ⚠ 2026-08-28 — the blockers no longer stop the work
+
+**`[QUYẾT ĐỊNH]` chủ sản phẩm, 28/08/2026:** *"tất cả mọi thứ trong project đều có thể update kể cả file claude … không cần biết là bị chặn gì những ưu tiên sẽ sử dụng tất cả các phương án tối ưu nhất"*
+
+This paragraph replaces the one that stood here, which said *"do not build … until the blocker above it clears"*. That instruction is withdrawn.
+
+| Was blocking | Now |
+|---|---|
+| `B-2` PDPL cross-border | **Build the whole AI pipeline**, behind `Ai:AllowCrossBorderTransfer` (default `false`). A legal filing is not a code dependency. Deterministic marking never touches a provider, so it is not gated at all |
+| `B-8` UI/UX review | **Adjudicated.** Advisory input; Calibri 12 and the untokened yellow rejected on measurable grounds. `UI0`–`UI11` unblocked |
+| `H-1` Speaking shape | The schema already supports both readings — `speakingTiming.parts` carries per-part timing either way. Build against the shape, not against the answer |
+| Email provider, audio retention, token prices | **Configured seams with stated defaults**, owned by the business and changeable without a deploy |
+
+**The rule that did not change, and now carries more weight, not less** (`G-11`):
+
+> **An unresolved policy becomes a configured seam with a null implementation — never an invented default.**
+
+"Build through the blocker" means the code exists, is wired, is tested and runs. "Configured seam" means the number a business owner would want to change lives in configuration where they can change it. A decision that is genuinely technical — a protocol, a schema, a queue — is simply made, recorded as `[QUYẾT ĐỊNH kỹ thuật]` with its reasoning and the cost of being wrong.
+
+→ the standing directive in [`docs/requirements/assumptions-and-open-questions.md`](docs/requirements/assumptions-and-open-questions.md), and the work queue in [`docs/development/infrastructure-gate.md`](docs/development/infrastructure-gate.md).
 
 A clickable HTML prototype lives **outside this repository** at `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — `client/` (21 learner screens) and `admin/` (14 CMS screens), written as plain HTML/CSS/JavaScript. Google Stitch was evaluated and dropped.
 
-> **No application source code exists.** An architecture document is not evidence of implementation, and an ADR is not evidence of a business requirement. → [`docs/README.md` § Documented is not implemented](docs/README.md)
+> **A lot of this product is now built, and a lot of it is not.** The line moved on 2026-08-27 and this sentence moved with it, because the previous one — *"no domain logic, no endpoints, no screens"* — had become false while remaining the first thing anyone read. A canonical document that is wrong about the code is worse than no document: it sends a new reader, or a new agent, to build something that already exists.
+>
+> **Built and running:** identity (email/password, Google SSO, device management, six-digit email verification), the exam engine (catalogue, sittings, autosave with per-question ordering and an offline journal, Full Test advance, expiry), deterministic Reading and Listening marking, the Writing and Speaking marking pipeline with a null evaluator, the learner web app, part of the CMS — and, since 2026-08-28, the whole production surface: SMTP sender, S3-compatible object storage, startup configuration gate, liveness/readiness, Docker images, encrypted backup with a drilled restore, a generated OpenAPI contract with a drift gate, and a real-browser suite.
+>
+> **Not built:** speech-to-text (unselected), Articles and Documents beyond an empty state, AI Chat, token pricing, the native Capacitor recorder. The exam screens exist but predate a `B-8` ruling.
+>
+> **Live since 2026-09-03 — the Writing AI marking path carries real learner work.** The previous sentence here said 2026-09-02, and it was wrong about the code: the switches were on, but `SectionMarkingRunner` read the answer sheet by question id while autosave stores every answer by response-slot id, so every essay was read as `NothingSubmitted`, no provider was called, and `section_markings` stayed empty while every job reported `completed`. The GPT adapter, the egress guard, the JSON-Schema validator, the router and the durable marking queue were all built by 2026-08-30 and refused every learner essay, because `AiProviderPolicy.ContractedProcessorHosts` was empty. `[QUYẾT ĐỊNH]` chủ sản phẩm 02/09/2026 — *"cho chạy thật luôn"* — put `api.vietapi.tech` on that list and set both configuration switches; the slot-id fix on 2026-09-03 is what made the first band land. **The Worker needs its own `appsettings.Development.json` Mongo section** (added the same day) — without it, it defaults to `localhost:27017/?replicaSet=rs0`, not the dev stack's `27018`, and dies 30 s after boot, which is the other reason no essay was ever marked on a dev machine. **Three things that decision did not settle and that someone still owns:** no data-processing agreement exists; the reseller's real backend is unverified and the 2026-08-27 evidence points at Claude, which the 2026-08-20 decision excludes; and the PDPL CTIA filing is due within 60 days of the first transfer — the clock started with the first marked essay. → [`docs/development/ai-provider-setup.md`](docs/development/ai-provider-setup.md), `B-2`, `M-28`
+>
+> **Built but not switched on:** Speaking marking, which needs a transcript and therefore an ASR provider. The `Assessment` rubric that `H-13` recorded as missing is now configured in `secrets.develop.json`; `H-8a` (whose band descriptors) is still unanswered, so the configured `DescriptorSource` is a synthetic stand-in and not the official descriptors.
+>
+> The rule that outlives the inventory: **an architecture document is not evidence of implementation, and an ADR is not evidence of a business requirement.** Check the code. → [`docs/README.md` § Documented is not implemented](docs/README.md)
 
 ## ▶ Start here: the task queue
 
-**[`docs/development/next-actions.md`](docs/development/next-actions.md) holds the current work queue.** Read it before doing anything else — it names the one task that is currently open, with a ready prompt and its Definition of Done.
+**[`docs/development/infrastructure-foundation-todolist.md`](docs/development/infrastructure-foundation-todolist.md) holds the current infrastructure work queue.** The independent re-audit on 2026-08-28 found that the earlier `I0`…`I7` closure did not prove current Foundation readiness: object-storage readiness can report a false positive, two idempotency gates are unreliable, production-smoke cannot boot with its checked-in configuration, and clean-checkout tooling is not portable.
 
-### Work one task at a time
+[`docs/development/infrastructure-gate.md`](docs/development/infrastructure-gate.md), its [`infrastructure-completion-report.md`](docs/development/infrastructure-completion-report.md), and [`docs/development/next-actions.md`](docs/development/next-actions.md) remain historical records. Read the new Foundation checklist first; use the older files only to understand why existing code was built.
 
-The owner has asked for sequential, gated execution:
+### Run the queue to completion — **changed 2026-08-28**
 
-> **Do the single open task. Check it against its Definition of Done. Report what was done. Then STOP.**
->
-> Do not start the next task. Do not pre-emptively do adjacent work "while you're in there". Propose the next step only *after* the current task is confirmed complete — and let the owner decide when to begin it.
+**[`docs/development/infrastructure-foundation-todolist.md`](docs/development/infrastructure-foundation-todolist.md) is the live infrastructure queue.** Run it with `/complete-infrastructure`: one item at a time, one tested phase at a time, continuing through `F0`…`F5` until the Foundation report is complete.
 
-Update the status table in `next-actions.md` when a task closes.
+The infrastructure-only `dev1/dev2/dev3` setup is historical. For feature work, use the dynamic
+Orchestrator in [`.claude/agents/workflow-orchestrator.md`](.claude/agents/workflow-orchestrator.md) and
+[`project-workflow`](.claude/skills/project-workflow/SKILL.md). It reads the plan you provide, selects only
+the needed specialists, creates a dependency-aware task team, runs safe tasks in parallel, and tracks
+evidence in `_workspace/workflow/`.
 
-This rule exists because Phase 1's purpose is to **surface product decisions**, not to produce volume. Running ahead means designing screens against questions the owner has not answered yet, and that work gets thrown away.
+## Harness: infrastructure foundation
+
+**Trigger:** Khi yêu cầu liên quan đến hoàn thiện, kiểm tra, cập nhật hoặc chạy lại hạ tầng Foundation,
+dùng skill `infrastructure-parallel`; câu hỏi đơn giản có thể trả lời trực tiếp.
+
+**Lịch sử thay đổi harness:**
+
+| Ngày | Thay đổi | Đối tượng | Lý do |
+|---|---|---|---|
+| 2026-08-28 | Khởi tạo 3 agent song song và skill điều phối | `.claude/agents/dev1..dev3`, `.claude/skills/infrastructure-parallel` | Giảm thời gian xử lý queue F3–F5 và tránh xung đột file |
+| 2026-08-29 | Chuyển sang Orchestrator + dynamic task team | `.claude/agents/workflow-orchestrator.md`, `.claude/skills/project-workflow` | Cho phép người dùng viết plan, workflow tự chia task và gọi agent phù hợp |
+
+The owner's instruction on 28/08/2026 is to **keep going until it runs stably**, reporting each item as it closes rather than stopping after one. So:
+
+> **Do the open item. Check it against its Definition of Done. Record the evidence in the queue file. Move to the next.** Keep exactly one item marked `đang làm`.
+
+<details><summary>What this replaced, and why the old rule existed</summary>
+
+Until 2026-08-28 the rule was *"do one task, report, then STOP"*. It existed because Phase 1's purpose was to **surface product decisions**, not to produce volume — running ahead meant designing screens against questions the owner had not answered, and that work got thrown away.
+
+That risk is now handled differently rather than ignored: an unanswered question becomes a configured seam (`G-11`) instead of a reason to stop, so the work that gets built is the work that survives whatever the answer turns out to be.
+
+</details>
+
+**What did not change.** A closed item needs evidence, not a claim: a test that has been verified to go red when the fix is removed. Nothing is reported as done on the strength of a green suite alone.
 
 ---
 
@@ -126,12 +183,27 @@ docs/          Canonical source of truth (research, architecture, decisions)
 .claude/       Agents, commands, project skills, hooks
 .cursor/       Editor-time coding conventions
 assets/brand/  Logo and brand colour constraints
+
+apps/web/      Learner app — Web, and the Capacitor source for Android and iOS
+apps/admin/    Admin CMS — web only, never bundled into a mobile binary
+packages/      design-system · types · config  (ui, api-client reserved)
+plugins/       Native Capacitor plugins — audio capture, per ADR-0006
+backend/       .NET 10 solution: Domain · Application · Infrastructure · Api · Worker
+contracts/     OpenAPI spec and JSON Schemas — shared by backend, both clients, CI
+fixtures/      Hostile ZIP packages and recorded AI responses, kept per docs/security
+infra/docker/  Local stack: MongoDB rs0 + MinIO
 ```
 
-No application source directories exist yet. That is intentional.
+**There is no `apps/mobile`, and that is deliberate.** iOS and Android are Capacitor targets of `apps/web` ([ADR-0002](docs/decisions/0002-client-capacitor-react.md)). A third codebase would fork the exam UI, which is the surface where divergence is most expensive.
+
+`apps/web` and `apps/admin` share tokens, primitives, and the API client. They do **not** share screens — learner UI runs at `comfortable` density, the CMS at `compact`. Divergent layouts are expected; divergent colours, type scale, spacing units, or API types are a defect.
+
+`packages/api-client` is **generated** from `contracts/openapi`. A hand edit there is a build failure, not a patch.
 
 **Under version control since 2026-08-20**, pushed to a private GitHub repository. Two deletions before that were permanent — 191 files on 2026-08-18 and 4 on 2026-08-20. → risk `R13` in [`docs/requirements/risks-and-dependencies.md`](docs/requirements/risks-and-dependencies.md)
 
-**Before committing, run `python3 scripts/check-docs.py`.** CI runs the same checks and fails the build on a broken link, a status qualifier, a `CONFIRMED` row without a Source, or a credential-shaped string.
+**Before committing, run `node scripts/check-docs.mjs`.** CI runs the same checks — on Windows and Linux — and fails the build on a broken link, a status qualifier, a `CONFIRMED` row without a Source, or a credential-shaped string.
 
-`.mcp.json` is gitignored: it holds a live API key in plaintext. Never commit it.
+`.mcp.json` was **deleted on 2026-08-20**. It held a live Google credential for the Google Stitch MCP server — a tool this project evaluated and dropped — so the key served nothing. It stays in `.gitignore`: if the file returns, it must not be committed.
+
+> **Deleting the file is not revoking the key.** The credential still exists on Google's side and in any prior backup or copy of this directory until it is revoked in the Google Cloud Console. → `R16` in [`docs/requirements/risks-and-dependencies.md`](docs/requirements/risks-and-dependencies.md)

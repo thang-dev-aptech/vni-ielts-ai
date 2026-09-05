@@ -1,0 +1,493 @@
+/* The review flow: queues, the detail screen, and the preview scaffolding.
+ *
+ * A separate file from `admin.css` on purpose. This is the surface Phase 1
+ * adds, and keeping it apart means the part that will be deleted when the
+ * preview store goes away — the notice and the "xem như" strip — is visible as
+ * a block rather than threaded through a thousand lines.
+ *
+ * Every colour here is a token from `palette.css`. Nothing in this file
+ * introduces a hex.
+ */
+
+/* ── Preview scaffolding ────────────────────────────────────────────────── */
+
+/* Loud enough to be read, quiet enough not to compete with the screen it sits
+   on. It is information about the data, not a warning about a failure — so it
+   is not red. */
+.cms-preview-notice {
+  margin: 0 0 var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--hold-line);
+  border-radius: var(--r-md);
+  background: var(--hold-soft);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-preview-notice strong {
+  color: var(--hold);
+  font-weight: var(--w-emph);
+}
+
+.cms-viewas {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-left: auto;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-viewas select {
+  padding: var(--s-1) var(--s-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  font: inherit;
+  font-size: var(--t-14);
+  color: var(--ink);
+}
+
+.cms-viewas-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  padding: var(--s-2) var(--s-5);
+  border-bottom: 1px solid var(--hold-line);
+  background: var(--hold-soft);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* ── Sidebar entries with no screen yet ─────────────────────────────────── */
+
+/* Not a link and not focusable: a keyboard user tabbing the sidebar should not
+   land on something that cannot be activated. */
+.cms-nav-item.is-inert {
+  color: var(--muted);
+  cursor: default;
+}
+
+.cms-nav-item.is-inert:hover {
+  background: transparent;
+}
+
+/* ── Status filters ─────────────────────────────────────────────────────── */
+
+.cms-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.cms-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.cms-chip:hover {
+  background: var(--sunk);
+}
+
+.cms-chip.is-active {
+  border-color: var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc);
+  font-weight: var(--w-emph);
+}
+
+.cms-chip b {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--w-body);
+  color: var(--muted);
+}
+
+.cms-chip.is-active b {
+  color: var(--acc);
+}
+
+/* ── Badge tones ────────────────────────────────────────────────────────── */
+
+/* Six states, six tints, and none of them red.
+ *
+ * Red belongs to something that has actually broken — DESIGN.md law L1. The
+ * state that tempts is `Trả lại`: it demands the author's attention, which is
+ * what amber is for, and it is not a failure. `hold` is blue because waiting
+ * for review carries no verdict either way.
+ *
+ * `ready` and `live` are both green and deliberately different weights:
+ * approved is an outline, published is filled. The difference an operator has
+ * to see at a glance is "signed off" versus "learners can sit it right now". */
+.cms-badge.is-neutral {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--ink-2);
+}
+
+.cms-badge.is-hold {
+  border-color: var(--hold-line);
+  background: var(--hold-soft);
+  color: var(--hold);
+}
+
+.cms-badge.is-attention {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.cms-badge.is-ready {
+  border-color: var(--acc);
+  background: var(--card);
+  color: var(--acc);
+}
+
+.cms-badge.is-live {
+  border-color: var(--acc-line);
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.cms-badge.is-muted {
+  border-style: dashed;
+  border-color: var(--line);
+  background: var(--sunk);
+  color: var(--muted);
+}
+
+/* A state the client does not know is a real event — the server grew one — so
+   it reads as raw text rather than borrowing a friendly tint. */
+.cms-badge.is-unknown {
+  font-family: var(--mono);
+  font-size: var(--t-13);
+}
+
+/* ── Actions and confirmation ───────────────────────────────────────────── */
+
+.cms-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-bottom: var(--s-5);
+}
+
+.cms-consequences {
+  margin: 0 0 var(--s-4);
+  padding-left: var(--s-5);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-consequences li + li {
+  margin-top: var(--s-2);
+}
+
+.cms-field {
+  display: block;
+  margin-bottom: var(--s-4);
+}
+
+.cms-field > span {
+  display: block;
+  margin-bottom: var(--s-2);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.cms-field textarea {
+  width: 100%;
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink);
+  resize: vertical;
+}
+
+/* The audit line is a promise the dialog makes: this action has your name on
+   it. Small, monospaced for the action key, never hidden behind a disclosure. */
+.cms-audit-line {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-audit-line code {
+  font-family: var(--mono);
+  font-size: var(--t-13);
+  color: var(--ink-2);
+}
+
+/* ── Detail screen ──────────────────────────────────────────────────────── */
+
+.cms-state-hint {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.cms-fact dt {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.cms-fact dd {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.cms-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cms-steps li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* A step that has not happened is stated, not hidden — the gap is the
+   information an operator came for. It recedes rather than disappearing. */
+.cms-steps li.is-pending {
+  background: transparent;
+  border-style: dashed;
+}
+
+.cms-step-label {
+  font-weight: var(--w-emph);
+  color: var(--ink);
+}
+
+.cms-steps li.is-pending .cms-step-label {
+  color: var(--ink-2);
+  font-weight: var(--w-body);
+}
+
+.cms-step-when .num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.cms-review-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cms-review-notes li {
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+}
+
+.cms-review-notes p {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.cms-note-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* Which question the note is pinned to. Monospaced because it is a locator,
+   and a locator that reflows into the prose stops being scannable. */
+.cms-anchor {
+  padding: 0 var(--s-2);
+  border: 1px solid var(--acc-line);
+  border-radius: var(--r-pill);
+  background: var(--acc-soft);
+  font-family: var(--mono);
+  font-size: var(--t-13);
+  color: var(--acc);
+}
+
+.cms-wait {
+  font-weight: var(--w-emph);
+  color: var(--ink-2);
+}
+
+/* A button that lives inside a sentence. Underlined, because colour alone does
+   not mark a control.
+ *
+ * `--acc-700`, not `--acc`, and it was measured rather than chosen: this
+ * control appears inside the tinted preview strip, where `--acc` lands on
+ * `--hold-soft` at 4.46 — under the floor by a hair, and only there. The
+ * darker step is 6.91 on that tint and 7.83 on white, so one colour covers
+ * both surfaces. */
+.cms-link-inline {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--acc-700);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cms-link-inline:hover {
+  color: var(--acc);
+}
+
+/* ── Media ──────────────────────────────────────────────────────────────── */
+
+/* Codes, checksums and asset references. ASCII, so 13px is inside the scale —
+   and monospaced because these are strings you compare character by character,
+   not read. */
+.cms-code {
+  font-family: var(--mono);
+  font-size: var(--t-13);
+  color: var(--ink-2);
+}
+
+.cms-usedby {
+  margin: 0;
+  padding-left: var(--s-4);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.cms-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.cms-table audio,
+.cms-assets audio {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin-top: var(--s-2);
+  height: 32px;
+}
+
+.cms-assets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cms-assets li {
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* A missing file is a real failure — the exam cannot be sat as it stands — so
+   this is one of the few places in the CMS that earns the red. */
+.cms-assets li.is-missing {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+}
+
+/* The tint costs contrast: `--muted` reads 4.36 on `--bad-soft`, under the
+   floor. Secondary text on this card steps up to `--ink-2` — 5.60 — rather
+   than the card losing its tint. */
+.cms-assets li.is-missing .cms-muted,
+.cms-assets li.is-missing .cms-code {
+  color: var(--ink-2);
+}
+
+.cms-assets p {
+  margin: var(--s-2) 0 0;
+  color: var(--ink);
+}
+
+.cms-asset-bad {
+  color: var(--bad);
+  font-weight: var(--w-emph);
+}
+
+.cms-asset-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+
+/* ── A held-shut action, and why ────────────────────────────────────────── */
+
+.cms-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.cms-blocked {
+  max-width: 40ch;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--warn);
+}

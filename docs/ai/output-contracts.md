@@ -51,11 +51,15 @@ graph LR
     "criterion": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["band", "feedback"],
+      "required": ["band", "feedback", "evidence"],
       "properties": {
         "band":     { "$ref": "#/$defs/band" },
-        "feedback": { "type": "string" },
-        "evidence": { "type": "array", "items": { "type": "string" } }
+        "feedback": { "type": "string", "minLength": 1 },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
       }
     }
   }
@@ -121,7 +125,7 @@ Two consequences worth stating plainly:
 
 `[BUSINESS DECISION]` **B-10** — the prohibition list (`A-12a`) and the exact feedback field set (`A-12b`) are both `PROPOSED`, not confirmed. Until `B-10` is answered, treat the field names above as a sketch of the shape rather than a settled contract.
 
-`[OPEN QUESTION]` **H-8** — whether Writing is scored against the four IELTS criteria (`A-13b`) is unconfirmed. The Writing schema below assumes it, because `A-3` asserted it; if `H-8` resolves differently, that schema changes.
+**`H-8` is answered.** The product owner confirmed on 2026-08-21 that marking follows the IELTS criteria and that every band must carry a stated basis — *"chấm theo cách chấm của IELTS ... phải có cơ sở"*. `A-13b` moves to CONFIRMED and the four-criterion schema below is the criterion set, not an assumption about it. What the statement does **not** settle: the wording of the descriptors, their licensing, and the Task 1 : Task 2 weighting.
 
 ---
 
@@ -139,6 +143,19 @@ Runs on every response, before anything is persisted.
 | 6 | Feedback non-empty, within length bounds | Retry |
 | 7 | Feedback contains no injected instruction patterns | Flag for review |
 | 8 | No PII echoed beyond what was submitted | Flag for review |
+| 9 | **Every cited span occurs in the learner's own submission** | Flag for review |
+
+### Check 9 — a citation the learner can look up
+
+Added 2026-08-21, on the owner's instruction that a band must have a basis rather than be asserted.
+
+`evidence` was optional and is now **required, minimum one span per criterion**. That change alone is not worth much: a model asked to quote will happily paraphrase, and a paraphrase presented as a quotation is *worse* than no quotation, because it reads as verifiable and is not.
+
+So the span is checked against the learner's submitted text. The comparison normalises only the differences a quotation cannot control — collapsed whitespace, typographic quotes and dashes folded to ASCII, case — and nothing else. **No stemming, and no word-overlap matching:** "cleaner air means fewer cars" shares every content word with "fewer cars means cleaner air" and is not the same sentence. Distinguishing those two is the entire value of the check.
+
+An empty or whitespace-only span is not grounded. A naive `Contains("")` is true of every text, which would let a blank string satisfy the requirement.
+
+This is a **flag, not a rejection**. The bands are still usable and the criterion feedback may still be right; what is in doubt is the citation. Screen 5.1 of the CMS filters on it.
 
 ### Check 4 — never clamp
 
@@ -160,7 +177,8 @@ Whether a human reviews an evaluation before a band is published is a separate, 
 
 | Mechanism | Status |
 |---|---|
-| Schema validation + range checks (this page) | `PROPOSED` — specified here, not implemented |
+| Checks 3, 4, 5 and 9 | `EXISTING` — implemented in `Vni.Ielts.Domain.Assessment.CriterionMarking`, with tests. No provider involved: the rules take the criterion keys, the claimed decimals, the cited strings and the learner's text as primitives |
+| Checks 1, 2, 6, 7, 8 | `PROPOSED` — specified here, not implemented. They belong to the adapter, which does not exist |
 | Human review before publication | `UNCONFIRMED` → `M-28`, interacting with `H-5` (appeals) and `M-19` (admin access to learner content) |
 
 [`../domain/domain-model.md`](../domain/domain-model.md) says `Result` is computed "from validated evaluations". Read that as *schema-validated* until `M-28` is answered — do not read it as naming an existing review process.

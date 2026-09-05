@@ -1,0 +1,30 @@
+/*
+ * Shared by both audio players.
+ *
+ * `.audio-failed` lived in `exam.css` and is rendered by `SentenceAudio` on
+ * the dictation set page, which never imports it — so the one message that
+ * appears when audio will not load was the one at risk of appearing unstyled.
+ * Error states are exactly the surfaces that must not degrade quietly.
+ */
+.audio-failed {
+  margin: 0 0 var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-radius: 14px;
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.audio-failed p {
+  margin: 0;
+}
+
+.audio-failed button {
+  margin-top: var(--s-3);
+}
+
+.audio-seek {
+  width: 100%;
+  accent-color: var(--accent);
+}

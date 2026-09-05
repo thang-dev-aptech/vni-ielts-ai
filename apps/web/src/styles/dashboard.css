@@ -1,0 +1,1343 @@
+/* Student dashboard — the hub a signed-in learner works from.
+ *
+ * <b>No side rail, and nothing from the profile.</b> `[QUYẾT ĐỊNH]` chủ sản
+ * phẩm, 21/08/2026. The first pass borrowed the reference's collapsible rail;
+ * two of its five entries linked into `/profile`, which put account navigation
+ * on a page about the next piece of work and gave the learner a second
+ * navigation competing with the product header directly above it. The rest
+ * were in-page anchors on a page short enough to see whole. The whole rail is
+ * gone, and the page is a grid of cards from edge to edge.
+ *
+ * <b>Which design language this follows.</b> The same hybrid the profile page
+ * settled on: measurements from the design tokens (4px spacing scale, closed
+ * type scale, measured colour pairs) and shape from the confirmed redesign
+ * (Nunito, 20px corners, soft green as the one accent). Where the two
+ * disagree, the tokens win on anything measurable and the redesign wins on
+ * anything that is taste.
+ *
+ * <b>One accent, and it means something.</b> The only saturated surface is the
+ * Full Test card's icon, because that is the primary action. Cards are white
+ * with a hairline; they are told apart by icon and name, so the layout
+ * survives the greyscale test rather than leaning on four tints.
+ *
+ * <b>The two score tags are drawn to product law L4.</b> "Chấm theo đáp án" is
+ * a filled grey chip with a solid border; "AI · tham khảo" is a dashed outline
+ * with no fill. Different border STYLE, not different colour, so the two stay
+ * distinguishable in greyscale and the AI one never reads as equal in weight.
+ *
+ * Every text/background pair below is a measured token pair:
+ *   --ink   #17161a  16.7 on --page
+ *   --ink-2 #4a4950   8.6 on white
+ *   --muted #6b6a71   5.36 on white · 4.93 on --page · ~5.2 on --sunk
+ *   --acc   #2867ac   5.5 on white · 5.3 on --acc-soft
+ *   --ok    #1e7a3c   4.7 on --ok-soft
+ * Nothing here puts white text on #10b050 — that pair measures 2.86, and this
+ * page had no reason to repeat it.
+ */
+
+/*
+ * Content only. `DashboardShell` owns the page: its background, its sidebar,
+ * and the bar that replaced the header. This file stops at the column.
+ */
+.dash {
+  /* The redesign's corner radius. Larger than --r-lg (18px) on purpose: the
+     ported landing and auth surfaces use 20–22px and a dashboard sitting
+     between them at 18px reads as a different product. */
+  --dash-r: 20px;
+  --dash-r-sm: 14px;
+
+  flex: 1;
+  padding: var(--s-6) var(--s-5) var(--s-8);
+  color: var(--ink);
+}
+
+/*
+ * Capped rather than full-bleed. On a wide monitor the sidebar already eats
+ * 248px, and a 1600px measure would put the greeting and the account menu at
+ * opposite ends of the desk.
+ */
+.dash-main {
+  width: 100%;
+  max-width: 1080px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  min-width: 0;
+}
+
+/* ── Page header ────────────────────────────────────────────────────────── */
+
+.dash-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.dash-eyebrow {
+  margin: 0;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  letter-spacing: 0.04em;
+  line-height: var(--lh-body);
+  color: var(--ok);
+}
+
+.dash-greeting {
+  margin: 0;
+  font-size: var(--t-32);
+  font-weight: var(--w-display);
+  /* The one place a tighter line-height is allowed: 32px and above. */
+  line-height: var(--lh-display);
+  letter-spacing: -0.01em;
+}
+
+.dash-lead {
+  margin: 0;
+  max-width: var(--measure);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.dash-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid #f0d7b4;
+  border-radius: var(--r-md);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.dash-alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-alert-close {
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  color: var(--warn);
+  cursor: pointer;
+  padding: var(--s-1);
+  border-radius: var(--r-sm);
+  flex-shrink: 0;
+  transition: background var(--dur, 180ms) ease;
+}
+
+.dash-alert-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Said once, at the top. The cards carry a two-word chip instead of five
+   copies of this sentence. */
+/*
+ * The state of the catalogue, said once.
+ *
+ * It was a bordered card sitting between the in-progress panel and the
+ * catalogue heading, which gave a sentence about stock levels the same weight
+ * as the thing the learner came to do. It belongs to the section below it, so
+ * it reads as that section's note: a rule down the side, no box.
+ */
+.dash-notice {
+  margin: 0;
+  padding-left: var(--s-4);
+  border-left: 3px solid var(--line-2);
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* ── Sections and the two-up rows ───────────────────────────────────────── */
+
+.dash-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-width: 0;
+  scroll-margin-top: calc(74px + var(--s-4));
+}
+
+.dash-block-head {
+  /* Grid, not flex. `flex-basis: 100%` does not force a wrap once `max-width`
+     has clamped the item's hypothetical size — the lead sat beside its heading
+     instead of under it. A named second row cannot be talked out of wrapping. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-4);
+}
+
+.dash-block-head h2 {
+  margin: 0;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  letter-spacing: -0.01em;
+}
+
+.dash-block-head p {
+  grid-column: 1 / -1;
+  margin: 0;
+  max-width: var(--measure);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* ── Cards ──────────────────────────────────────────────────────────────── */
+
+.dash-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--dash-r);
+  background: var(--card);
+}
+
+.dash-card-icon {
+  width: var(--s-7);
+  height: var(--s-7);
+  display: grid;
+  place-items: center;
+  border-radius: var(--dash-r-sm);
+  background: var(--acc-soft);
+  color: var(--acc);
+}
+
+/* The one saturated surface on the page, on the one primary action. */
+.dash-card-icon.is-green {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.dash-card h3 {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.dash-card p {
+  margin: 0;
+  flex: 1;
+  max-width: var(--measure);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* ── Full test ──────────────────────────────────────────────────────────── */
+
+/*
+ * Horizontal, because it now spans the full column. Stacked, its icon and its
+ * status chip ended up at opposite ends of a 1080px card with nothing between
+ * them; side by side the chip sits where it belongs, beside the title it is
+ * about.
+ */
+.dash-full {
+  flex-direction: row;
+  gap: var(--s-4);
+  border-color: #c4e6d2;
+  background: var(--ok-soft);
+}
+
+/* Dark ink on the green tint, not white. White on this family is where the
+   2.86 measurement came from. */
+.dash-full .dash-card-icon.is-green {
+  flex: none;
+  background: var(--card);
+}
+
+.dash-full-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.dash-full-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.dash-full-top h3 {
+  margin: 0;
+}
+
+.dash-order {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.dash-order li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid #c4e6d2;
+  border-radius: var(--r-pill);
+  background: var(--card);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.dash-order li::before {
+  counter-increment: step;
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: var(--s-4);
+  height: var(--s-4);
+  border-radius: var(--r-pill);
+  background: var(--ok-soft);
+  color: var(--ok);
+  /* 13px is reserved for ASCII, and a step number is exactly that. */
+  font-family: var(--mono);
+  font-size: var(--t-13);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Single skills ──────────────────────────────────────────────────────── */
+
+.dash-subhead {
+  /* --s-2 on top of the parent's --s-4 gap totals 24px = --s-5. --s-3 would
+     have totalled 28px, one of the seven off-scale values banned by name. */
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-18);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.dash-subnote {
+  margin: 0;
+  max-width: var(--measure);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/*
+ * <b>Two by two, because there are exactly four and there always will be.</b>
+ *
+ * Four fixed columns inside the left column gave each card about 185px, which
+ * wrapped every description to three lines. `auto-fit` was the first fix and
+ * the wrong one: at that width it resolved to three columns and left Speaking
+ * alone on a second row — a 3+1 arrangement of a set everyone reads as a
+ * matched four. `auto-fit` is for lists whose length nobody knows; this list
+ * is IELTS and its length is settled.
+ *
+ * One column below 560px, where two would be 150px each.
+ */
+.dash-skill-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
+.dash-skill {
+  gap: var(--s-2);
+  padding: var(--s-4);
+}
+
+.dash-skill h4 {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-18);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.dash-skill p {
+  font-size: var(--t-14);
+}
+
+.dash-skill-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+
+/* ── Tags and chips ─────────────────────────────────────────────────────── */
+
+/* L4, answer key: filled, solid border. */
+.dash-tag {
+  display: inline-flex;
+  align-items: center;
+  /* One line. Split across two, "AI chấm · tham khảo" reads as two separate
+     claims and makes its card taller than the answer-key card beside it. */
+  white-space: nowrap;
+  padding: var(--s-1) var(--s-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--sunk);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* L4, AI: dashed outline, no fill. Not red, not a warning — advisory. */
+/* A live entry, where a chip used to say there was nothing behind it. */
+/*
+ * The minimum height is the point of this rule.
+ *
+ * Measured at 31px, which is a comfortable mouse target and a poor thumb one —
+ * and this app ships to Android and iOS through Capacitor, where every one of
+ * these is a thumb target. Raised rather than redesigned: the padding and the
+ * pill shape are unchanged, so nothing about the look moves.
+ */
+/* 40px measured, against a 44 floor. Six of these on the overview. */
+.dash-go {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid var(--acc-line);
+  border-radius: var(--r-pill);
+  background: var(--acc-soft);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--acc-700);
+  white-space: nowrap;
+}
+
+.dash-go:hover {
+  background: #e3edf8;
+}
+
+.dash-tag-ai {
+  border-style: dashed;
+  border-color: #b9b7b2;
+  background: transparent;
+}
+
+/* An absence, not a fault: neutral, never --bad. */
+.dash-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--sunk);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── Empty states ───────────────────────────────────────────────────────── */
+
+/* Solid hairline on a sunk ground, NOT a dashed outline. Dashed is L4's
+   marker for an AI band being advisory; spending it on empty containers would
+   leave the one place it carries meaning looking like decoration. */
+.dash-empty {
+  flex: 1;
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: var(--dash-r);
+  background: var(--sunk);
+  text-align: center;
+}
+
+.dash-empty h3 {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-18);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.dash-empty p {
+  margin: 0 auto;
+  max-width: var(--measure);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* ── Coming next ────────────────────────────────────────────────────────── */
+
+.dash-more {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dash-more-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--dash-r-sm);
+  background: var(--card);
+}
+
+.dash-more-icon {
+  flex-shrink: 0;
+  width: var(--s-6);
+  height: var(--s-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--sunk);
+  color: var(--ink-2);
+}
+
+.dash-more-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-more-text strong {
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.dash-more-text span {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+/* ── AI panel ───────────────────────────────────────────────────────────── */
+
+.dash-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(20 30 24 / 0.34);
+}
+
+.dash-ai-panel {
+  position: fixed;
+  z-index: 41;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--line);
+  background: var(--card);
+  animation: dash-slide-in var(--dur) var(--ease);
+}
+
+@keyframes dash-slide-in {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+}
+
+.dash-ai-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.dash-ai-mark {
+  flex-shrink: 0;
+  width: var(--s-6);
+  height: var(--s-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--acc-soft);
+  color: var(--acc);
+}
+
+.dash-ai-head > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-ai-title {
+  margin: 0;
+  font-size: var(--t-18);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.dash-ai-sub {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.dash-ai-close {
+  flex-shrink: 0;
+  width: var(--s-6);
+  height: var(--s-6);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.dash-ai-close:hover {
+  background: var(--sunk);
+}
+
+.dash-ai-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--s-4);
+}
+
+.dash-ai-composer {
+  padding: var(--s-4);
+  border-top: 1px solid var(--line);
+  background: var(--sunk);
+}
+
+.dash-ai-input {
+  width: 100%;
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--dash-r-sm);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  resize: none;
+}
+
+.dash-ai-input:disabled {
+  background: var(--card);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.dash-ai-note {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+/* ── Focus ──────────────────────────────────────────────────────────────── */
+
+.dash a:focus-visible,
+.dash button:focus-visible,
+.dash-ai-panel button:focus-visible,
+.dash-ai-panel textarea:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/* ── Narrow screens ─────────────────────────────────────────────────────── */
+
+@media (max-width: 1040px) {
+  .dash-skill-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* One column rather than two half-width ones: below this, a two-up row gives
+   each card less than a comfortable measure and the order pills start
+   wrapping three deep. */
+@media (max-width: 880px) {
+}
+
+@media (max-width: 560px) {
+  .dash {
+    padding-inline: var(--s-4);
+  }
+
+  .dash-skill-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dash-card {
+    padding: var(--s-4);
+  }
+
+  .dash-full {
+    flex-direction: column;
+  }
+}
+
+/* ── Trạng thái: đang làm dở ────────────────────────────────────────────── */
+
+/*
+ * The one block on the page that is about the learner rather than about the
+ * product. It sits first and it is the only thing here that is allowed to be
+ * this prominent — everything below is a launcher, and a launcher does not
+ * outrank the work already in progress.
+ */
+.dash-now {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  /* No bottom margin: it is a flex child of the column now, and the column
+     owns the rhythm. Two sources of spacing is how a gap becomes 40px. */
+  margin-bottom: 0;
+  padding: var(--s-5);
+  border: 1px solid #cfe3d4;
+  border-radius: var(--r-lg);
+  background: var(--ok-soft);
+}
+
+/*
+ * Nothing in progress is not a failure state, so it does not get the green.
+ * It reads as a quiet note rather than as an alert about an absence.
+ */
+/*
+ * <b>The idle panel stacks; the in-progress one does not.</b>
+ *
+ * `.dash-now` is a row with `space-between`, which is right when the content
+ * is "what you were doing" on the left and "carry on" on the right. The idle
+ * variant has no side — it is a heading, a sentence and two buttons — so as
+ * flex items those became three columns, and the sentence explaining the
+ * heading sat four hundred pixels away from it.
+ */
+.dash-now.is-idle {
+  flex-direction: column;
+  align-items: flex-start;
+  border-color: var(--line);
+  background: var(--sunk);
+}
+
+.dash-now.is-idle > p {
+  margin-top: 0;
+}
+
+/*
+ * Time is up.
+ *
+ * Amber, not green and not red. Green said the opposite of what the eyebrow
+ * above it says; red would say something broke, and nothing did — a clock ran
+ * out, which is the exam working. This is the one state on the page where the
+ * learner has to act before they lose what they wrote, so it is the one that
+ * gets a colour of its own.
+ */
+.dash-now.is-over {
+  /* The amber that carries the state is the fill and the eyebrow, both
+     measured. The border is a seam, not a signal — nothing here is conveyed by
+     it alone, which is what WCAG 1.4.11's 3:1 is about. It is darkened from
+     the first attempt anyway, because a card the reader has to act on should
+     read as an object rather than as a tinted patch of page. */
+  border-color: #c9964a;
+  background: var(--warn-soft);
+}
+
+.dash-now.is-over .dash-now-eyebrow {
+  color: var(--warn);
+}
+
+.dash-now-eyebrow {
+  margin: 0 0 var(--s-1);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ok);
+}
+
+/*
+ * 1.5, not the display leading.
+ *
+ * The rule is size-based for a reason: below 32px, stacked Vietnamese
+ * diacritics (ế ộ ằ) collide with the line above. An exam title is exactly the
+ * long Vietnamese string that wraps to two lines here, so this is the case the
+ * rule was written for — the first draft used --lh-display and measured 1.20.
+ */
+.dash-now h2 {
+  margin: 0;
+  font-size: var(--t-24);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.dash-now.is-idle h2 {
+  font-size: var(--t-18);
+  line-height: var(--lh-body);
+}
+
+.dash-now p {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.dash-now-where {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+/* The skill tint is confined to this chip, as everywhere else it appears. */
+.dash-now-skill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 4px var(--s-3);
+  border-radius: var(--r-pill);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.dash-now-side {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+
+/*
+ * Stated, not counted down.
+ *
+ * No red, no blinking, no animation — this is a dashboard, not the exam
+ * screen, and pressure here serves nothing. → product law L1
+ */
+.dash-now-clock {
+  display: flex;
+  flex-direction: column;
+  margin: 0 !important;
+  text-align: right;
+}
+
+.dash-now-clock span {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.dash-now-clock strong {
+  font-size: var(--t-24);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-now-go {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border-radius: var(--r-md);
+  background: var(--ok);
+  color: #fff;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dash-now-go:hover {
+  background: #17632f;
+  color: #fff;
+}
+
+/* ── Trạng thái: ba con số ──────────────────────────────────────────────── */
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--s-3);
+  margin-bottom: var(--s-5);
+}
+
+.dash-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+}
+
+.dash-stat-value {
+  font-size: var(--t-32);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-display);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-stat-label {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* The label under a dash. "Chưa có", never a zero wearing a caption. */
+.dash-stat-note {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+/*
+ * <b>One card, three rows — not three cards.</b>
+ *
+ * Three bordered boxes across a 1080px column gave each number 350px of white
+ * to sit in, and made "0.0" the loudest thing on a page whose job is to get
+ * someone practising. They are three readings of the same thing — how far
+ * along you are — so they read as one block, and the value sits beside its
+ * label rather than towering over it.
+ */
+.dash-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 0;
+  padding: var(--s-2) var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--dash-r, var(--r-lg));
+  background: var(--card);
+}
+
+.dash-stat {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-4) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  flex-wrap: wrap;
+}
+
+.dash-stat + .dash-stat {
+  border-top: 1px solid var(--line);
+}
+
+.dash-stat-value {
+  font-size: var(--t-24);
+}
+
+.dash-stat-label {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--w-emph);
+  color: var(--ink);
+}
+
+/* The label under a dash. "Chưa có", never a zero wearing a caption. */
+.dash-stat-note {
+  flex-basis: 100%;
+  order: 3;
+  margin-top: -2px;
+}
+
+/* ── Trạng thái: buổi gần đây ───────────────────────────────────────────── */
+
+.dash-recent {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * <b>Two rows of a grid, not four things wrapping.</b>
+ *
+ * As a wrapping flex row this fell apart in the side column: whether the
+ * action landed beside the bands or on a line of its own depended on how wide
+ * that particular action's label happened to be, so "Xem chi tiết" wrapped and
+ * "Đang làm" did not — five sittings in three different shapes.
+ *
+ * The grid states the arrangement instead of letting label widths decide it:
+ * what it was and when on the first line, what it scored and what to do on the
+ * second. Every row is the same height whatever the labels say.
+ */
+.dash-recent-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  padding: var(--s-4) 0;
+  border-top: 1px solid var(--line);
+}
+
+.dash-recent-row:first-child {
+  border-top: 0;
+}
+
+.dash-recent-what {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+
+/* The bands sit under the title, the action opposite them. */
+.dash-recent-bands {
+  grid-column: 1;
+}
+
+.dash-recent-row > .dash-go,
+.dash-recent-row > .dash-chip {
+  grid-column: 2;
+  justify-self: end;
+}
+
+.dash-recent-what strong {
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.dash-recent-when {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.dash-recent-bands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Initial plus band, in the skill's own tint.
+ *
+ * The initial is redundant with the colour on purpose — the set has to survive
+ * greyscale, and a row of four coloured pills with only numbers in them does
+ * not. The full skill name is on the element for a screen reader and in the
+ * title for a mouse.
+ */
+.dash-band-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-1);
+  min-width: 56px;
+  justify-content: center;
+  padding: 4px var(--s-2);
+  border-radius: var(--r-md);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.dash-band-value {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .dash-now {
+    align-items: flex-start;
+  }
+
+  .dash-now-side {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .dash-recent-row {
+    align-items: flex-start;
+  }
+}
+
+/* Retry, on the two dashboard-shaped screens that can fail to load. */
+.dash-retry {
+  min-height: 44px;
+  margin-top: var(--s-4);
+  padding-inline: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: var(--w-emph);
+  cursor: pointer;
+}
+
+.dash-retry:hover {
+  background: var(--sunk);
+}
+
+.dash-now-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+}
+
+/* The second of two actions is the alternative, not a peer. */
+.dash-go.is-quiet {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.dash-empty .dash-go {
+  margin-top: var(--s-4);
+}
+
+/*
+ * Three classes that were rendered with no rule behind them.
+ *
+ * Not a regression — they never had one. `.dash-link` is the only way off the
+ * results page and was rendering as a browser-default anchor: blue, underlined
+ * and 19px tall on a screen where every other control is 44. The two
+ * `.dash-now-*` classes structure the in-progress panel, which is why it looked
+ * acceptable without them and slightly wrong with a long exam title.
+ */
+.dash-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  color: var(--acc);
+  font-weight: var(--w-emph);
+  text-decoration: none;
+}
+
+.dash-link:hover {
+  text-decoration: underline;
+}
+
+.dash-now-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.dash-now-note {
+  margin: var(--s-2) 0 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Two columns.
+
+   The page was a single 1080px stack: a card holding an exam title and a
+   button ran the full width with most of it empty, and the whole thing came
+   to 2400px for "one sitting in progress, five results, four skills, three
+   modules". Checking whether last night's paper had been marked meant
+   scrolling past the entire catalogue.
+
+   Split by what each half is for. The left is what you can start — browsed,
+   so it wants width. The right is what you have done — checked, so it wants
+   to stay in view while you browse.
+   ──────────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   D-4: Desktop 8/4 grid, Mobile 1-column strictly ordered:
+   1. InProgressPanel
+   2. Bước tiếp theo
+   3. GoalCoachingPanel compact
+   4. StatStrip + StreakPanel
+   5. RecentSittings
+   6. Tài nguyên
+   ──────────────────────────────────────────────────────────────── */
+.dash-columns {
+  display: grid;
+  gap: var(--s-6);
+  min-width: 0;
+}
+
+.dash-col-main,
+.dash-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .dash-main {
+    max-width: 1180px;
+  }
+
+  .dash-columns {
+    grid-template-columns: minmax(0, 8fr) minmax(320px, 4fr);
+    gap: var(--s-6);
+    align-items: start;
+  }
+
+  .dash-col-side {
+    position: sticky;
+    top: calc(74px + var(--s-4));
+  }
+}
+
+@media (max-width: 1023px) {
+  .dash-columns {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-5);
+  }
+
+  .dash-col-main,
+  .dash-col-side {
+    display: contents;
+  }
+
+  /* Mobile strict order per D-4 */
+  .dash-now { order: 1; }
+  .dash-next-step { order: 2; }
+  .dash-block-goal { order: 3; }
+  .dash-block-activity { order: 4; }
+  .dash-recent-block { order: 5; }
+  .dash-resources-block { order: 6; }
+}
+
+/* ── D-4 Block 2: Bước tiếp theo ────────────────────────────────────────── */
+
+.dash-next-step {
+  padding: var(--s-5);
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  box-shadow: var(--shadow-elevation, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+.dash-next-step-header {
+  display: flex;
+  align-items: center;
+}
+
+.dash-next-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 3px 10px;
+  background: var(--acc-soft);
+  color: var(--acc);
+  border-radius: var(--r-pill);
+  font-size: var(--t-13, 13px);
+  font-weight: var(--w-emph);
+  border: 1px dashed var(--acc);
+}
+
+.dash-next-step-title {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  color: var(--ink);
+}
+
+.dash-next-step-body {
+  margin: 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.dash-next-step-action {
+  margin-top: var(--s-2);
+}
+
+.dash-next-step-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 10px 22px;
+  background: var(--primary, #06803a);
+  color: #fff;
+  border-radius: var(--r-md);
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  text-decoration: none;
+  border: 2px solid var(--primary-dark, #045a28);
+  box-shadow: var(--shadow-press, 0 4px 0 var(--primary-dark, #045a28));
+  transition: transform var(--dur, 180ms) ease, box-shadow var(--dur, 180ms) ease;
+}
+
+.dash-next-step-btn:hover {
+  transform: translateY(-1px);
+}
+
+.dash-next-step-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--primary-dark, #045a28);
+}
+
+/* ── D-4 Block 5: Kết quả gần đây view-all link ─────────────────────────── */
+
+.dash-see-all {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--acc);
+  text-decoration: none;
+}
+
+.dash-see-all:hover {
+  text-decoration: underline;
+}
+
+/* ── D-4 Block 6: Tài nguyên (compact row of 3 text links) ───────────────── */
+
+.dash-resources-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+  padding: var(--s-4);
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-size: var(--t-14);
+}
+
+.dash-resources-label {
+  font-weight: var(--w-emph);
+  color: var(--ink-2);
+}
+
+.dash-resource-link {
+  color: var(--acc);
+  text-decoration: none;
+  font-weight: var(--w-body);
+}
+
+.dash-resource-link:hover {
+  text-decoration: underline;
+}
+
+.dash-resource-sep {
+  color: var(--muted);
+  user-select: none;
+}

@@ -1,0 +1,2523 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 17 — Test 3",
+  "variant": "academic",
+  "description": "Cambridge IELTS 17 Academic Test 3. Reading và Listening chấm theo đáp án in trong sách; không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "The thylacine",
+          "body": "The thylacine\nThe extinct thylacine, also known as the Tasmanian tiger, was a marsupial* that bore a superficial resemblance to a dog. Its most distinguishing feature was the 13–19 dark brown stripes over its back, beginning at the rear of the body and extending onto the tail. The thylacine’s average nose-to-tail length for adult males was 162.6 cm, compared to 153.7 cm for females.\n\nThe thylacine appeared to occupy most types of terrain except dense rainforest, with open eucalyptus forest thought to be its prime habitat. In terms of feeding, it was exclusively carnivorous, and its stomach was muscular with an ability to distend so that it could eat large amounts of food at one time, probably an adaptation to compensate for long periods when hunting was unsuccessful and food scarce. The thylacine was not a fast runner and probably caught its prey by exhausting it during a long pursuit. During long-distance chases, thylacines were likely to have relied more on scent than any other sense. They emerged to hunt during the evening, night and early morning and tended to retreat to the hills and forest for shelter during the day. Despite the common name ‘tiger’, the thylacine had a shy, nervous temperament. Although mainly nocturnal, it was sighted moving during the day and some individuals were even recorded basking in the sun.\n\nThe thylacine had an extended breeding season from winter to spring, with indications that some breeding took place throughout the year. The thylacine, like all marsupials, was tiny and hairless when born. Newborns crawled into the pouch on the belly of their mother, and attached themselves to one of the four teats, remaining there for up to three months. When old enough to leave the pouch, the young stayed in a lair such as a deep rocky cave, well-hidden nest or hollow log, whilst the mother hunted.\n\nApproximately 4,000 years ago, the thylacine was widespread throughout New Guinea and most of mainland Australia, as well as the island of Tasmania. The most recent, well-dated occurrence of a thylacine on the mainland is a carbon-dated fossil from Murray Cave in Western Australia, which is around 3,100 years old. Its extinction coincided closely with the arrival of wild dogs called dingoes in Australia and a similar predator in New Guinea. Dingoes never reached Tasmania, and most scientists see this as the main reason for the thylacine’s survival there.\n\n* marsupial: a mammal, such as a kangaroo, whose young are born incompletely developed and are typically carried and suckled in a pouch on the mother’s belly",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "1",
+              "group": {
+                "id": "r-1-5",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "carnivorous"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "2",
+              "group": {
+                "id": "r-1-5",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "scent"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "3",
+              "group": {
+                "id": "r-1-5",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "pouch"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "4",
+              "group": {
+                "id": "r-1-5",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fossil"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "5",
+              "group": {
+                "id": "r-1-5",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "habitat"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "true-false-notgiven",
+              "prompt": "Significant numbers of thylacines were killed by humans from the 1830s onwards.",
+              "group": {
+                "id": "r-6-13",
+                "instruction": "TRUE FALSE NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "true-false-notgiven",
+              "prompt": "Several thylacines were born in zoos during the late 1800s.",
+              "group": {
+                "id": "r-6-13",
+                "instruction": "TRUE FALSE NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "true-false-notgiven",
+              "prompt": "John Gould’s prediction about the thylacine surprised some biologists.",
+              "group": {
+                "id": "r-6-13",
+                "instruction": "TRUE FALSE NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "true-false-notgiven",
+              "prompt": "In the early 1900s, many scientists became worried about the possible extinction of the thylacine.",
+              "group": {
+                "id": "r-6-13",
+                "instruction": "TRUE FALSE NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "true-false-notgiven",
+              "prompt": "T. T. Flynn’s proposal to rehome captive thylacines on an island proved to be impractical.",
+              "group": {
+                "id": "r-6-13",
+                "instruction": "TRUE FALSE NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "true-false-notgiven",
+              "prompt": "There were still reasonable numbers of thylacines in existence when a piece of legislation protecting the species during their breeding season was passed.",
+              "group": {
+                "id": "r-6-13",
+                "instruction": "TRUE FALSE NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "true-false-notgiven",
+              "prompt": "From 1930 to 1936, the only known living thylacines were all in captivity.",
+              "group": {
+                "id": "r-6-13",
+                "instruction": "TRUE FALSE NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "true-false-notgiven",
+              "prompt": "Attempts to find living thylacines are now rarely made.",
+              "group": {
+                "id": "r-6-13",
+                "instruction": "TRUE FALSE NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Palm oil",
+          "body": "Palm oil\nA   Palm oil is an edible oil derived from the fruit of the African oil palm tree, and is currently the most consumed vegetable oil in the world. It’s almost certainly in the soap we wash with in the morning, the sandwich we have for lunch, and the biscuits we snack on during the day. Why is palm oil so attractive for manufacturers? Primarily because its unique properties – such as remaining solid at room temperature – make it an ideal ingredient for long-term preservation, allowing many packaged foods on supermarket shelves to have ‘best before’ dates of months, even years, into the future.\n\nB   Many farmers have seized the opportunity to maximise the planting of oil palm trees. Between 1990 and 2012, the global land area devoted to growing oil palm trees grew from 6 to 17 million hectares, now accounting for around ten percent of total cropland in the entire world. From a mere two million tonnes of palm oil being produced annually globally 50 years ago, there are now around 60 million tonnes produced every single year, a figure looking likely to double or even triple by the middle of the century.\n\nC   However, there are multiple reasons why conservationists cite the rapid spread of oil palm plantations as a major concern. There are countless news stories of deforestation, habitat destruction and dwindling species populations, all as a direct result of land clearing to establish oil palm tree monoculture on an industrial scale, particularly in Malaysia and Indonesia. Endangered species – most famously the Sumatran orangutan, but also rhinos, elephants, tigers, and numerous other fauna – have suffered from the unstoppable spread of oil palm plantations.\n\nD   ‘Palm oil is surely one of the greatest threats to global biodiversity,’ declares Dr Farnon Ellwood of the University of the West of England, Bristol. ‘Palm oil is replacing rainforest, and rainforest is where all the species are. That’s a problem.’ This has led to some radical questions among environmentalists, such as whether consumers should try to boycott palm oil entirely.\nMeanwhile Bhavani Shankar, Professor at London’s School of Oriental and African Studies, argues, ‘It’s easy to say that palm oil is the enemy and we should be against it. It makes for a more dramatic story, and it’s very intuitive. But given the complexity of the argument, I think a much more nuanced story is closer to the truth.’\n\nE   One response to the boycott movement has been the argument for the vital role palm oil plays in lifting many millions of people in the developing world out of poverty. Is it desirable to have palm oil boycotted, replaced, eliminated from the global supply chain, given how many low-income people in developing countries depend on it for their livelihoods? How best to strike a utilitarian balance between these competing factors has become a serious bone of contention.\n\nF   Even the deforestation argument isn’t as straightforward as it seems. Oil palm plantations produce at least four and potentially up to ten times more oil per hectare than soybean, rapeseed, sunflower or other competing oils. That immensely high yield – which is predominantly what makes it so profitable – is potentially also an ecological benefit. If ten times more palm oil can be produced from a patch of land than any competing oil, then ten times more land would need to be cleared in order to produce the same volume of oil from that competitor.\nAs for the question of carbon emissions, the issue really depends on what oil palm trees are replacing. Crops vary in the degree to which they sequester carbon – in other words, the amount of carbon they capture from the atmosphere and store within the plant. The more carbon a plant sequesters, the more it reduces the effect of climate change. As Shankar explains: ‘[Palm oil production] actually sequesters more carbon in some ways than other alternatives. […] Of course, if you’re cutting down virgin forest it’s terrible – that’s what’s happening in Indonesia and Malaysia, it’s been allowed to get out of hand. But if it’s replacing rice, for example, it might actually sequester more carbon.’\n\nG   The industry is now regulated by a group called the Roundtable on Sustainable Palm Oil (RSPO), consisting of palm growers, retailers, product manufacturers, and other interested parties. Over the past decade or so, an agreement has gradually been reached regarding standards that producers of palm oil have to meet in order for their product to be regarded as officially ‘sustainable’. The RSPO insists upon no virgin forest clearing, transparency and regular assessment of carbon stocks, among other criteria. Only once these requirements are fully satisfied is the oil allowed to be sold as certified sustainable palm oil (CSPO). Recent figures show that the RSPO now certifies around 12 million tonnes of palm oil annually, equivalent to roughly 21 percent of the world’s total palm oil production.\n\nH   There is even hope that oil palm plantations might not need to be such sterile monocultures, or ‘green deserts’, as Ellwood describes them. New research at Ellwood’s lab hints at one plant which might make all the difference. The bird’s nest fern (Asplenium nidus) grows on trees in an epiphytic fashion (meaning it’s dependent on the tree only for support, not for nutrients), and is native to many tropical regions, where as a keystone species it performs a vital ecological role. Ellwood believes that reintroducing the bird’s nest fern into oil palm plantations could potentially allow these areas to recover their biodiversity, providing a home for all manner of species, from fungi and bacteria, to invertebrates such as insects, amphibians, reptiles and even mammals.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "14",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-14-20",
+                "instruction": "Which section contains the following information?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "15",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-14-20",
+                "instruction": "Which section contains the following information?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "16",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-14-20",
+                "instruction": "Which section contains the following information?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "17",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-14-20",
+                "instruction": "Which section contains the following information?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "18",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-14-20",
+                "instruction": "Which section contains the following information?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "19",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-14-20",
+                "instruction": "Which section contains the following information?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "20",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-14-20",
+                "instruction": "Which section contains the following information?"
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "multiple-select",
+              "prompt": "Which TWO statements are made about the Roundtable on Sustainable Palm Oil (RSPO)?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Its membership has grown steadily over the course of the last decade."
+                },
+                {
+                  "key": "B",
+                  "text": "It demands that certified producers be open and honest about their practices."
+                },
+                {
+                  "key": "C",
+                  "text": "It took several years to establish its set of criteria for sustainable palm oil certification."
+                },
+                {
+                  "key": "D",
+                  "text": "Its regulations regarding sustainability are stricter than those governing other industries."
+                },
+                {
+                  "key": "E",
+                  "text": "It was formed at the request of environmentalists concerned about the loss of virgin forests."
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "C"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "completion",
+              "prompt": "23",
+              "group": {
+                "id": "r-23-26",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "solid"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "24",
+              "group": {
+                "id": "r-23-26",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "(Sumatran) orangutan",
+                  "orang-utan"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "completion",
+              "prompt": "25",
+              "group": {
+                "id": "r-23-26",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "carbon stocks"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "completion",
+              "prompt": "26",
+              "group": {
+                "id": "r-23-26",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "biodiversity"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Building the Skyline: The Birth and Growth of Manhattan’s Skyscrapers",
+          "body": "Building the Skyline: The Birth and Growth of Manhattan’s Skyscrapers\nKatharine L. Shester reviews a book by Jason Barr about the development of New York City\nIn Building the Skyline, Jason Barr takes the reader through a detailed history of New York City. The book combines geology, history, economics, and a lot of data to explain why business clusters developed where they did and how the early decisions of workers and firms shaped the skyline we see today. Building the Skyline is organized into two distinct parts. The first is primarily historical and addresses New York’s settlement and growth from 1609 to 1900; the second deals primarily with the 20th century and is a compilation of chapters commenting on different aspects of New York’s urban development. The tone and organization of the book changes somewhat between the first and second parts, as the latter chapters incorporate aspects of Barr’s related research papers.\n\nBarr begins chapter one by taking the reader on a ‘helicopter time-machine’ ride – giving a fascinating account of how the New York landscape in 1609 might have looked from the sky. He then moves on to a subterranean walking tour of the city, indicating the location of rock and water below the subsoil, before taking the reader back to the surface. His love of the city comes through as he describes various fun facts about the location of the New York residence of early 19th-century vice-president Aaron Burr as well as a number of legends about the city.\n\nChapters two and three take the reader up to the Civil War (1861–1865), with chapter two focusing on the early development of land and the implementation of a grid system in 1811. Chapter three focuses on land use before the Civil War. Both chapters are informative and well researched and set the stage for the economic analysis that comes later in the book. I would have liked Barr to expand upon his claim that existing tenements* prevented skyscrapers in certain neighborhoods because ‘likely no skyscraper developer was interested in performing the necessary “slum clearance”’. Later in the book, Barr makes the claim that the depth of bedrock** was not a limiting factor for developers, as foundation costs were a small fraction of the cost of development. At first glance, it is not obvious why slum clearance would be limiting, while more expensive foundations would not.\n\nChapter four focuses on immigration and the location of neighborhoods and tenements in the late 19th century. Barr identifies four primary immigrant enclaves and analyzes their locations in terms of the amenities available in the area. Most of these enclaves were located on the least valuable land, between the industries located on the waterfront and the wealthy neighborhoods bordering Central Park.\n\nPart two of the book begins with a discussion of the economics of skyscraper height. In chapter five, Barr distinguishes between engineering height, economic height, and developer height — where engineering height is the tallest building that can be safely made at a given time, economic height is the height that is most efficient from society’s point of view, and developer height is the actual height chosen by the developer, who is attempting to maximize return on investment.\n\nChapter five also has an interesting discussion of the technological advances that led to the construction of skyscrapers. For example, the introduction of iron and steel skeletal frames made thick, load-bearing walls unnecessary, expanding the usable square footage of buildings and increasing the use of windows and availability of natural light. Chapter six then presents data on building height throughout the 20th century and uses regression analysis to ‘predict’ building construction. While less technical than the research paper on which the chapter is based, it is probably more technical than would be preferred by a general audience.\n\nChapter seven tackles the ‘bedrock myth’, the assumption that the absence of bedrock close to the surface between Downtown and Midtown New York is the reason for skyscrapers not being built between the two urban centers. Rather, Barr argues that while deeper bedrock does increase foundation costs, these costs were neither prohibitively high nor were they large compared to the overall cost of building a skyscraper. What I enjoyed the most about this chapter was Barr’s discussion of how foundations are actually built. He describes the use of caissons, which enable workers to dig down for considerable distances, often below the water table, until they reach bedrock. Barr’s thorough technological history discusses not only how caissons work, but also the dangers involved. While this chapter references empirical research papers, it is a relatively easy read.\n\nChapters eight and nine focus on the birth of Midtown and the building boom of the 1920s. Chapter eight contains lengthy discussions of urban economic theory that may serve as a distraction to readers primarily interested in New York. However, they would be well-suited for undergraduates learning about the economics of cities. In the next chapter, Barr considers two of the primary explanations for the building boom of the 1920s — the first being exuberance, and the second being financing. He uses data to assess the viability of these two explanations and finds that supply and demand factors explain much of the development of the 1920s; though it enabled the boom, cheap credit was not, he argues, the primary cause.\n\nIn the final chapter (chapter 10), Barr discusses another of his empirical papers that estimates Manhattan land values from the mid-19th century to the present day. The data work that went into these estimations is particularly impressive. Toward the end of the chapter, Barr assesses ‘whether skyscrapers are a cause or an effect of high land values’. He finds that changes in land values predict future building height, but the reverse is not true. The book ends with an epilogue, in which Barr discusses the impact of climate change on the city and makes policy suggestions for New York going forward.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "multiple-choice",
+              "prompt": "What point does Shester make about Barr’s book in the first paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It gives a highly original explanation for urban development."
+                },
+                {
+                  "key": "B",
+                  "text": "Elements of Barr’s research papers are incorporated throughout the book."
+                },
+                {
+                  "key": "C",
+                  "text": "Other books that are available on the subject have taken a different approach."
+                },
+                {
+                  "key": "D",
+                  "text": "It covers a range of factors that affected the development of New York."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "multiple-choice",
+              "prompt": "How does Shester respond to the information in the book about tenements?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "She describes the reasons for Barr’s interest."
+                },
+                {
+                  "key": "B",
+                  "text": "She indicates a potential problem with Barr’s analysis."
+                },
+                {
+                  "key": "C",
+                  "text": "She compares Barr’s conclusion with that of other writers."
+                },
+                {
+                  "key": "D",
+                  "text": "She provides details about the sources Barr used for his research."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "What does Shester say about chapter six of the book?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It contains conflicting data."
+                },
+                {
+                  "key": "B",
+                  "text": "It focuses too much on possible trends."
+                },
+                {
+                  "key": "C",
+                  "text": "It is too specialised for most readers."
+                },
+                {
+                  "key": "D",
+                  "text": "It draws on research that is out of date."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "What does Shester suggest about the chapters focusing on the 1920s building boom?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The information should have been organised differently."
+                },
+                {
+                  "key": "B",
+                  "text": "More facts are needed about the way construction was financed."
+                },
+                {
+                  "key": "C",
+                  "text": "The explanation that is given for the building boom is unlikely."
+                },
+                {
+                  "key": "D",
+                  "text": "Some parts will have limited appeal to certain people."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "multiple-choice",
+              "prompt": "What impresses Shester the most about the chapter on land values?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the broad time period that is covered"
+                },
+                {
+                  "key": "B",
+                  "text": "the interesting questions that Barr asks"
+                },
+                {
+                  "key": "C",
+                  "text": "the nature of the research into the topic"
+                },
+                {
+                  "key": "D",
+                  "text": "the recommendations Barr makes for the future"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "yes-no-notgiven",
+              "prompt": "The description in the first chapter of how New York probably looked from the air in the early 1600s lacks interest.",
+              "group": {
+                "id": "r-32-35",
+                "instruction": "YES NO NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "yes-no-notgiven",
+              "prompt": "Chapters two and three prepare the reader well for material yet to come.",
+              "group": {
+                "id": "r-32-35",
+                "instruction": "YES NO NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "yes-no-notgiven",
+              "prompt": "The biggest problem for many nineteenth-century New York immigrant neighbourhoods was a lack of amenities.",
+              "group": {
+                "id": "r-32-35",
+                "instruction": "YES NO NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "yes-no-notgiven",
+              "prompt": "In the nineteenth century, New York’s immigrant neighbourhoods tended to concentrate around the harbour.",
+              "group": {
+                "id": "r-32-35",
+                "instruction": "YES NO NOT GIVEN"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "matching",
+              "prompt": "36",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "development plans"
+                },
+                {
+                  "key": "B",
+                  "text": "deep excavations"
+                },
+                {
+                  "key": "C",
+                  "text": "great distance"
+                },
+                {
+                  "key": "D",
+                  "text": "excessive expense"
+                },
+                {
+                  "key": "E",
+                  "text": "impossible tasks"
+                },
+                {
+                  "key": "F",
+                  "text": "associated risks"
+                },
+                {
+                  "key": "G",
+                  "text": "water level"
+                },
+                {
+                  "key": "H",
+                  "text": "specific areas"
+                },
+                {
+                  "key": "I",
+                  "text": "total expenditure"
+                },
+                {
+                  "key": "J",
+                  "text": "construction guidelines"
+                }
+              ],
+              "group": {
+                "id": "r-36-40",
+                "instruction": "Complete the summary using the list of phrases, A–J, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "matching",
+              "prompt": "37",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "development plans"
+                },
+                {
+                  "key": "B",
+                  "text": "deep excavations"
+                },
+                {
+                  "key": "C",
+                  "text": "great distance"
+                },
+                {
+                  "key": "D",
+                  "text": "excessive expense"
+                },
+                {
+                  "key": "E",
+                  "text": "impossible tasks"
+                },
+                {
+                  "key": "F",
+                  "text": "associated risks"
+                },
+                {
+                  "key": "G",
+                  "text": "water level"
+                },
+                {
+                  "key": "H",
+                  "text": "specific areas"
+                },
+                {
+                  "key": "I",
+                  "text": "total expenditure"
+                },
+                {
+                  "key": "J",
+                  "text": "construction guidelines"
+                }
+              ],
+              "group": {
+                "id": "r-36-40",
+                "instruction": "Complete the summary using the list of phrases, A–J, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "matching",
+              "prompt": "38",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "development plans"
+                },
+                {
+                  "key": "B",
+                  "text": "deep excavations"
+                },
+                {
+                  "key": "C",
+                  "text": "great distance"
+                },
+                {
+                  "key": "D",
+                  "text": "excessive expense"
+                },
+                {
+                  "key": "E",
+                  "text": "impossible tasks"
+                },
+                {
+                  "key": "F",
+                  "text": "associated risks"
+                },
+                {
+                  "key": "G",
+                  "text": "water level"
+                },
+                {
+                  "key": "H",
+                  "text": "specific areas"
+                },
+                {
+                  "key": "I",
+                  "text": "total expenditure"
+                },
+                {
+                  "key": "J",
+                  "text": "construction guidelines"
+                }
+              ],
+              "group": {
+                "id": "r-36-40",
+                "instruction": "Complete the summary using the list of phrases, A–J, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "I"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "matching",
+              "prompt": "39",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "development plans"
+                },
+                {
+                  "key": "B",
+                  "text": "deep excavations"
+                },
+                {
+                  "key": "C",
+                  "text": "great distance"
+                },
+                {
+                  "key": "D",
+                  "text": "excessive expense"
+                },
+                {
+                  "key": "E",
+                  "text": "impossible tasks"
+                },
+                {
+                  "key": "F",
+                  "text": "associated risks"
+                },
+                {
+                  "key": "G",
+                  "text": "water level"
+                },
+                {
+                  "key": "H",
+                  "text": "specific areas"
+                },
+                {
+                  "key": "I",
+                  "text": "total expenditure"
+                },
+                {
+                  "key": "J",
+                  "text": "construction guidelines"
+                }
+              ],
+              "group": {
+                "id": "r-36-40",
+                "instruction": "Complete the summary using the list of phrases, A–J, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "matching",
+              "prompt": "40",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "development plans"
+                },
+                {
+                  "key": "B",
+                  "text": "deep excavations"
+                },
+                {
+                  "key": "C",
+                  "text": "great distance"
+                },
+                {
+                  "key": "D",
+                  "text": "excessive expense"
+                },
+                {
+                  "key": "E",
+                  "text": "impossible tasks"
+                },
+                {
+                  "key": "F",
+                  "text": "associated risks"
+                },
+                {
+                  "key": "G",
+                  "text": "water level"
+                },
+                {
+                  "key": "H",
+                  "text": "specific areas"
+                },
+                {
+                  "key": "I",
+                  "text": "total expenditure"
+                },
+                {
+                  "key": "J",
+                  "text": "construction guidelines"
+                }
+              ],
+              "group": {
+                "id": "r-36-40",
+                "instruction": "Complete the summary using the list of phrases, A–J, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Advice on surfing holidays",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Advice on surfing holidays",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Jack’s advice\n• Recommends surfing for [1] holidays in the summer\n• Need to be quite [2]\n\nIrish surfing locations\n• County Clare\n  – Lahinch has some good quality [3] and surf schools\n  – There are famous cliffs nearby\n• County Mayo\n  – Good surf school at [4] beach\n  – Surf camp lasts for one [5]\n  – Can also explore the local [6] by kayak\n\nWeather\n• Best month to go: [7]\n• Average temperature in summer: approx. [8] degrees\n\nCosts\n• Equipment\n  – Wetsuit and surfboard: [9] euros per day\n  – Also advisable to hire [10] for warmth"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "family"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Advice on surfing holidays",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Jack’s advice\n• Recommends surfing for [1] holidays in the summer\n• Need to be quite [2]\n\nIrish surfing locations\n• County Clare\n  – Lahinch has some good quality [3] and surf schools\n  – There are famous cliffs nearby\n• County Mayo\n  – Good surf school at [4] beach\n  – Surf camp lasts for one [5]\n  – Can also explore the local [6] by kayak\n\nWeather\n• Best month to go: [7]\n• Average temperature in summer: approx. [8] degrees\n\nCosts\n• Equipment\n  – Wetsuit and surfboard: [9] euros per day\n  – Also advisable to hire [10] for warmth"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fit"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Advice on surfing holidays",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Jack’s advice\n• Recommends surfing for [1] holidays in the summer\n• Need to be quite [2]\n\nIrish surfing locations\n• County Clare\n  – Lahinch has some good quality [3] and surf schools\n  – There are famous cliffs nearby\n• County Mayo\n  – Good surf school at [4] beach\n  – Surf camp lasts for one [5]\n  – Can also explore the local [6] by kayak\n\nWeather\n• Best month to go: [7]\n• Average temperature in summer: approx. [8] degrees\n\nCosts\n• Equipment\n  – Wetsuit and surfboard: [9] euros per day\n  – Also advisable to hire [10] for warmth"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "hotels"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Advice on surfing holidays",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Jack’s advice\n• Recommends surfing for [1] holidays in the summer\n• Need to be quite [2]\n\nIrish surfing locations\n• County Clare\n  – Lahinch has some good quality [3] and surf schools\n  – There are famous cliffs nearby\n• County Mayo\n  – Good surf school at [4] beach\n  – Surf camp lasts for one [5]\n  – Can also explore the local [6] by kayak\n\nWeather\n• Best month to go: [7]\n• Average temperature in summer: approx. [8] degrees\n\nCosts\n• Equipment\n  – Wetsuit and surfboard: [9] euros per day\n  – Also advisable to hire [10] for warmth"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Carrowniskey"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Advice on surfing holidays",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Jack’s advice\n• Recommends surfing for [1] holidays in the summer\n• Need to be quite [2]\n\nIrish surfing locations\n• County Clare\n  – Lahinch has some good quality [3] and surf schools\n  – There are famous cliffs nearby\n• County Mayo\n  – Good surf school at [4] beach\n  – Surf camp lasts for one [5]\n  – Can also explore the local [6] by kayak\n\nWeather\n• Best month to go: [7]\n• Average temperature in summer: approx. [8] degrees\n\nCosts\n• Equipment\n  – Wetsuit and surfboard: [9] euros per day\n  – Also advisable to hire [10] for warmth"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "week"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Advice on surfing holidays",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Jack’s advice\n• Recommends surfing for [1] holidays in the summer\n• Need to be quite [2]\n\nIrish surfing locations\n• County Clare\n  – Lahinch has some good quality [3] and surf schools\n  – There are famous cliffs nearby\n• County Mayo\n  – Good surf school at [4] beach\n  – Surf camp lasts for one [5]\n  – Can also explore the local [6] by kayak\n\nWeather\n• Best month to go: [7]\n• Average temperature in summer: approx. [8] degrees\n\nCosts\n• Equipment\n  – Wetsuit and surfboard: [9] euros per day\n  – Also advisable to hire [10] for warmth"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "bay"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Advice on surfing holidays",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Jack’s advice\n• Recommends surfing for [1] holidays in the summer\n• Need to be quite [2]\n\nIrish surfing locations\n• County Clare\n  – Lahinch has some good quality [3] and surf schools\n  – There are famous cliffs nearby\n• County Mayo\n  – Good surf school at [4] beach\n  – Surf camp lasts for one [5]\n  – Can also explore the local [6] by kayak\n\nWeather\n• Best month to go: [7]\n• Average temperature in summer: approx. [8] degrees\n\nCosts\n• Equipment\n  – Wetsuit and surfboard: [9] euros per day\n  – Also advisable to hire [10] for warmth"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "September"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Advice on surfing holidays",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Jack’s advice\n• Recommends surfing for [1] holidays in the summer\n• Need to be quite [2]\n\nIrish surfing locations\n• County Clare\n  – Lahinch has some good quality [3] and surf schools\n  – There are famous cliffs nearby\n• County Mayo\n  – Good surf school at [4] beach\n  – Surf camp lasts for one [5]\n  – Can also explore the local [6] by kayak\n\nWeather\n• Best month to go: [7]\n• Average temperature in summer: approx. [8] degrees\n\nCosts\n• Equipment\n  – Wetsuit and surfboard: [9] euros per day\n  – Also advisable to hire [10] for warmth"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "19",
+                  "nineteen"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Advice on surfing holidays",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Jack’s advice\n• Recommends surfing for [1] holidays in the summer\n• Need to be quite [2]\n\nIrish surfing locations\n• County Clare\n  – Lahinch has some good quality [3] and surf schools\n  – There are famous cliffs nearby\n• County Mayo\n  – Good surf school at [4] beach\n  – Surf camp lasts for one [5]\n  – Can also explore the local [6] by kayak\n\nWeather\n• Best month to go: [7]\n• Average temperature in summer: approx. [8] degrees\n\nCosts\n• Equipment\n  – Wetsuit and surfboard: [9] euros per day\n  – Also advisable to hire [10] for warmth"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "30",
+                  "thirty"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Advice on surfing holidays",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Jack’s advice\n• Recommends surfing for [1] holidays in the summer\n• Need to be quite [2]\n\nIrish surfing locations\n• County Clare\n  – Lahinch has some good quality [3] and surf schools\n  – There are famous cliffs nearby\n• County Mayo\n  – Good surf school at [4] beach\n  – Surf camp lasts for one [5]\n  – Can also explore the local [6] by kayak\n\nWeather\n• Best month to go: [7]\n• Average temperature in summer: approx. [8] degrees\n\nCosts\n• Equipment\n  – Wetsuit and surfboard: [9] euros per day\n  – Also advisable to hire [10] for warmth"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "boots"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam17-test-3-listening-part1.mp3"
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Extended hours childcare service",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-select",
+              "prompt": "Which TWO facts are given about the school’s extended hours childcare service?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It started recently."
+                },
+                {
+                  "key": "B",
+                  "text": "More children attend after school than before school."
+                },
+                {
+                  "key": "C",
+                  "text": "An average of 50 children attend in the mornings."
+                },
+                {
+                  "key": "D",
+                  "text": "A child cannot attend both the before and after school sessions."
+                },
+                {
+                  "key": "E",
+                  "text": "The maximum number of children who can attend is 70."
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "How much does childcare cost for a complete afternoon session per child?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "£3.50"
+                },
+                {
+                  "key": "B",
+                  "text": "£5.70"
+                },
+                {
+                  "key": "C",
+                  "text": "£7.20"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "What does the manager say about food?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Children with allergies should bring their own food."
+                },
+                {
+                  "key": "B",
+                  "text": "Children may bring healthy snacks with them."
+                },
+                {
+                  "key": "C",
+                  "text": "Children are given a proper meal at 5 p.m."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "What is different about arrangements in the school holidays?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Children from other schools can attend."
+                },
+                {
+                  "key": "B",
+                  "text": "Older children can attend."
+                },
+                {
+                  "key": "C",
+                  "text": "A greater number of children can attend."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Spanish",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "has limited availability"
+                },
+                {
+                  "key": "B",
+                  "text": "is no longer available"
+                },
+                {
+                  "key": "C",
+                  "text": "is for over 8s only"
+                },
+                {
+                  "key": "D",
+                  "text": "requires help from parents"
+                },
+                {
+                  "key": "E",
+                  "text": "involves an additional fee"
+                },
+                {
+                  "key": "F",
+                  "text": "is a new activity"
+                },
+                {
+                  "key": "G",
+                  "text": "was requested by children"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What information is given about each of the following activities on offer?\nChoose FIVE answers from the box and write the correct letter, A–G, next to Questions 16–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Music",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "has limited availability"
+                },
+                {
+                  "key": "B",
+                  "text": "is no longer available"
+                },
+                {
+                  "key": "C",
+                  "text": "is for over 8s only"
+                },
+                {
+                  "key": "D",
+                  "text": "requires help from parents"
+                },
+                {
+                  "key": "E",
+                  "text": "involves an additional fee"
+                },
+                {
+                  "key": "F",
+                  "text": "is a new activity"
+                },
+                {
+                  "key": "G",
+                  "text": "was requested by children"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What information is given about each of the following activities on offer?\nChoose FIVE answers from the box and write the correct letter, A–G, next to Questions 16–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Painting",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "has limited availability"
+                },
+                {
+                  "key": "B",
+                  "text": "is no longer available"
+                },
+                {
+                  "key": "C",
+                  "text": "is for over 8s only"
+                },
+                {
+                  "key": "D",
+                  "text": "requires help from parents"
+                },
+                {
+                  "key": "E",
+                  "text": "involves an additional fee"
+                },
+                {
+                  "key": "F",
+                  "text": "is a new activity"
+                },
+                {
+                  "key": "G",
+                  "text": "was requested by children"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What information is given about each of the following activities on offer?\nChoose FIVE answers from the box and write the correct letter, A–G, next to Questions 16–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Yoga",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "has limited availability"
+                },
+                {
+                  "key": "B",
+                  "text": "is no longer available"
+                },
+                {
+                  "key": "C",
+                  "text": "is for over 8s only"
+                },
+                {
+                  "key": "D",
+                  "text": "requires help from parents"
+                },
+                {
+                  "key": "E",
+                  "text": "involves an additional fee"
+                },
+                {
+                  "key": "F",
+                  "text": "is a new activity"
+                },
+                {
+                  "key": "G",
+                  "text": "was requested by children"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What information is given about each of the following activities on offer?\nChoose FIVE answers from the box and write the correct letter, A–G, next to Questions 16–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "Cooking",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "has limited availability"
+                },
+                {
+                  "key": "B",
+                  "text": "is no longer available"
+                },
+                {
+                  "key": "C",
+                  "text": "is for over 8s only"
+                },
+                {
+                  "key": "D",
+                  "text": "requires help from parents"
+                },
+                {
+                  "key": "E",
+                  "text": "involves an additional fee"
+                },
+                {
+                  "key": "F",
+                  "text": "is a new activity"
+                },
+                {
+                  "key": "G",
+                  "text": "was requested by children"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What information is given about each of the following activities on offer?\nChoose FIVE answers from the box and write the correct letter, A–G, next to Questions 16–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam17-test-3-listening-part2.mp3"
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Holly’s Work Placement Tutorial",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "Holly has chosen the Orion Stadium placement because",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "it involves children."
+                },
+                {
+                  "key": "B",
+                  "text": "it is outdoors."
+                },
+                {
+                  "key": "C",
+                  "text": "it sounds like fun."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "Which aspect of safety does Dr Green emphasise most?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "ensuring children stay in the stadium"
+                },
+                {
+                  "key": "B",
+                  "text": "checking the equipment children will use"
+                },
+                {
+                  "key": "C",
+                  "text": "removing obstacles in changing rooms"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "What does Dr Green say about the spectators?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They can be hard to manage."
+                },
+                {
+                  "key": "B",
+                  "text": "They make useful volunteers."
+                },
+                {
+                  "key": "C",
+                  "text": "They shouldn’t take photographs."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "What has affected the schedule in the past?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bad weather"
+                },
+                {
+                  "key": "B",
+                  "text": "an injury"
+                },
+                {
+                  "key": "C",
+                  "text": "extra time"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "Communication",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "being flexible"
+                },
+                {
+                  "key": "B",
+                  "text": "focusing on details"
+                },
+                {
+                  "key": "C",
+                  "text": "having a smart appearance"
+                },
+                {
+                  "key": "D",
+                  "text": "hiding your emotions"
+                },
+                {
+                  "key": "E",
+                  "text": "relying on experts"
+                },
+                {
+                  "key": "F",
+                  "text": "trusting your own views"
+                },
+                {
+                  "key": "G",
+                  "text": "doing one thing at a time"
+                },
+                {
+                  "key": "H",
+                  "text": "thinking of the future"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-30",
+                "instruction": "What do Holly and her tutor agree is an important aspect of each of the following events management skills?\nChoose SIX answers from the box and write the correct letter, A–H, next to Questions 25–30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "Organisation",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "being flexible"
+                },
+                {
+                  "key": "B",
+                  "text": "focusing on details"
+                },
+                {
+                  "key": "C",
+                  "text": "having a smart appearance"
+                },
+                {
+                  "key": "D",
+                  "text": "hiding your emotions"
+                },
+                {
+                  "key": "E",
+                  "text": "relying on experts"
+                },
+                {
+                  "key": "F",
+                  "text": "trusting your own views"
+                },
+                {
+                  "key": "G",
+                  "text": "doing one thing at a time"
+                },
+                {
+                  "key": "H",
+                  "text": "thinking of the future"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-30",
+                "instruction": "What do Holly and her tutor agree is an important aspect of each of the following events management skills?\nChoose SIX answers from the box and write the correct letter, A–H, next to Questions 25–30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Time management",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "being flexible"
+                },
+                {
+                  "key": "B",
+                  "text": "focusing on details"
+                },
+                {
+                  "key": "C",
+                  "text": "having a smart appearance"
+                },
+                {
+                  "key": "D",
+                  "text": "hiding your emotions"
+                },
+                {
+                  "key": "E",
+                  "text": "relying on experts"
+                },
+                {
+                  "key": "F",
+                  "text": "trusting your own views"
+                },
+                {
+                  "key": "G",
+                  "text": "doing one thing at a time"
+                },
+                {
+                  "key": "H",
+                  "text": "thinking of the future"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-30",
+                "instruction": "What do Holly and her tutor agree is an important aspect of each of the following events management skills?\nChoose SIX answers from the box and write the correct letter, A–H, next to Questions 25–30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Creativity",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "being flexible"
+                },
+                {
+                  "key": "B",
+                  "text": "focusing on details"
+                },
+                {
+                  "key": "C",
+                  "text": "having a smart appearance"
+                },
+                {
+                  "key": "D",
+                  "text": "hiding your emotions"
+                },
+                {
+                  "key": "E",
+                  "text": "relying on experts"
+                },
+                {
+                  "key": "F",
+                  "text": "trusting your own views"
+                },
+                {
+                  "key": "G",
+                  "text": "doing one thing at a time"
+                },
+                {
+                  "key": "H",
+                  "text": "thinking of the future"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-30",
+                "instruction": "What do Holly and her tutor agree is an important aspect of each of the following events management skills?\nChoose SIX answers from the box and write the correct letter, A–H, next to Questions 25–30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Leadership",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "being flexible"
+                },
+                {
+                  "key": "B",
+                  "text": "focusing on details"
+                },
+                {
+                  "key": "C",
+                  "text": "having a smart appearance"
+                },
+                {
+                  "key": "D",
+                  "text": "hiding your emotions"
+                },
+                {
+                  "key": "E",
+                  "text": "relying on experts"
+                },
+                {
+                  "key": "F",
+                  "text": "trusting your own views"
+                },
+                {
+                  "key": "G",
+                  "text": "doing one thing at a time"
+                },
+                {
+                  "key": "H",
+                  "text": "thinking of the future"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-30",
+                "instruction": "What do Holly and her tutor agree is an important aspect of each of the following events management skills?\nChoose SIX answers from the box and write the correct letter, A–H, next to Questions 25–30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Networking",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "being flexible"
+                },
+                {
+                  "key": "B",
+                  "text": "focusing on details"
+                },
+                {
+                  "key": "C",
+                  "text": "having a smart appearance"
+                },
+                {
+                  "key": "D",
+                  "text": "hiding your emotions"
+                },
+                {
+                  "key": "E",
+                  "text": "relying on experts"
+                },
+                {
+                  "key": "F",
+                  "text": "trusting your own views"
+                },
+                {
+                  "key": "G",
+                  "text": "doing one thing at a time"
+                },
+                {
+                  "key": "H",
+                  "text": "thinking of the future"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-30",
+                "instruction": "What do Holly and her tutor agree is an important aspect of each of the following events management skills?\nChoose SIX answers from the box and write the correct letter, A–H, next to Questions 25–30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam17-test-3-listening-part3.mp3"
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Bird Migration Theory",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Bird Migration Theory",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Most birds are believed to migrate seasonally.\n\nHibernation theory\n• It was believed that birds hibernated underwater or buried themselves in [31].\n• This theory was later disproved by experiments on caged birds.\n\nTransmutation theory\n• Aristotle believed birds changed from one species into another in summer and winter.\n  – In autumn he observed that redstarts experience the loss of [32] and thought they then turned into robins.\n  – Aristotle’s assumptions were logical because the two species of birds had a similar [33].\n\n17th century\n• Charles Morton popularised the idea that birds fly to the [34] in winter.\n\nScientific developments\n• In 1822, a stork was killed in Germany which had an African spear in its [35].\n  – previously there had been no [36] that storks migrate to Africa\n• Little was known about the [37] and journeys of migrating birds until the practice of ringing was established.\n  – It was thought large birds carried small birds on some journeys because they were considered incapable of travelling across huge [38].\n  – Ringing depended on what is called the [39] ‘ ’ of dead birds.\n• In 1931, the first [40] to show the migration of European birds was printed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "mud"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Bird Migration Theory",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Most birds are believed to migrate seasonally.\n\nHibernation theory\n• It was believed that birds hibernated underwater or buried themselves in [31].\n• This theory was later disproved by experiments on caged birds.\n\nTransmutation theory\n• Aristotle believed birds changed from one species into another in summer and winter.\n  – In autumn he observed that redstarts experience the loss of [32] and thought they then turned into robins.\n  – Aristotle’s assumptions were logical because the two species of birds had a similar [33].\n\n17th century\n• Charles Morton popularised the idea that birds fly to the [34] in winter.\n\nScientific developments\n• In 1822, a stork was killed in Germany which had an African spear in its [35].\n  – previously there had been no [36] that storks migrate to Africa\n• Little was known about the [37] and journeys of migrating birds until the practice of ringing was established.\n  – It was thought large birds carried small birds on some journeys because they were considered incapable of travelling across huge [38].\n  – Ringing depended on what is called the [39] ‘ ’ of dead birds.\n• In 1931, the first [40] to show the migration of European birds was printed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "feathers"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Bird Migration Theory",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Most birds are believed to migrate seasonally.\n\nHibernation theory\n• It was believed that birds hibernated underwater or buried themselves in [31].\n• This theory was later disproved by experiments on caged birds.\n\nTransmutation theory\n• Aristotle believed birds changed from one species into another in summer and winter.\n  – In autumn he observed that redstarts experience the loss of [32] and thought they then turned into robins.\n  – Aristotle’s assumptions were logical because the two species of birds had a similar [33].\n\n17th century\n• Charles Morton popularised the idea that birds fly to the [34] in winter.\n\nScientific developments\n• In 1822, a stork was killed in Germany which had an African spear in its [35].\n  – previously there had been no [36] that storks migrate to Africa\n• Little was known about the [37] and journeys of migrating birds until the practice of ringing was established.\n  – It was thought large birds carried small birds on some journeys because they were considered incapable of travelling across huge [38].\n  – Ringing depended on what is called the [39] ‘ ’ of dead birds.\n• In 1931, the first [40] to show the migration of European birds was printed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "shape"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Bird Migration Theory",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Most birds are believed to migrate seasonally.\n\nHibernation theory\n• It was believed that birds hibernated underwater or buried themselves in [31].\n• This theory was later disproved by experiments on caged birds.\n\nTransmutation theory\n• Aristotle believed birds changed from one species into another in summer and winter.\n  – In autumn he observed that redstarts experience the loss of [32] and thought they then turned into robins.\n  – Aristotle’s assumptions were logical because the two species of birds had a similar [33].\n\n17th century\n• Charles Morton popularised the idea that birds fly to the [34] in winter.\n\nScientific developments\n• In 1822, a stork was killed in Germany which had an African spear in its [35].\n  – previously there had been no [36] that storks migrate to Africa\n• Little was known about the [37] and journeys of migrating birds until the practice of ringing was established.\n  – It was thought large birds carried small birds on some journeys because they were considered incapable of travelling across huge [38].\n  – Ringing depended on what is called the [39] ‘ ’ of dead birds.\n• In 1931, the first [40] to show the migration of European birds was printed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "moon"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Bird Migration Theory",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Most birds are believed to migrate seasonally.\n\nHibernation theory\n• It was believed that birds hibernated underwater or buried themselves in [31].\n• This theory was later disproved by experiments on caged birds.\n\nTransmutation theory\n• Aristotle believed birds changed from one species into another in summer and winter.\n  – In autumn he observed that redstarts experience the loss of [32] and thought they then turned into robins.\n  – Aristotle’s assumptions were logical because the two species of birds had a similar [33].\n\n17th century\n• Charles Morton popularised the idea that birds fly to the [34] in winter.\n\nScientific developments\n• In 1822, a stork was killed in Germany which had an African spear in its [35].\n  – previously there had been no [36] that storks migrate to Africa\n• Little was known about the [37] and journeys of migrating birds until the practice of ringing was established.\n  – It was thought large birds carried small birds on some journeys because they were considered incapable of travelling across huge [38].\n  – Ringing depended on what is called the [39] ‘ ’ of dead birds.\n• In 1931, the first [40] to show the migration of European birds was printed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "neck"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Bird Migration Theory",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Most birds are believed to migrate seasonally.\n\nHibernation theory\n• It was believed that birds hibernated underwater or buried themselves in [31].\n• This theory was later disproved by experiments on caged birds.\n\nTransmutation theory\n• Aristotle believed birds changed from one species into another in summer and winter.\n  – In autumn he observed that redstarts experience the loss of [32] and thought they then turned into robins.\n  – Aristotle’s assumptions were logical because the two species of birds had a similar [33].\n\n17th century\n• Charles Morton popularised the idea that birds fly to the [34] in winter.\n\nScientific developments\n• In 1822, a stork was killed in Germany which had an African spear in its [35].\n  – previously there had been no [36] that storks migrate to Africa\n• Little was known about the [37] and journeys of migrating birds until the practice of ringing was established.\n  – It was thought large birds carried small birds on some journeys because they were considered incapable of travelling across huge [38].\n  – Ringing depended on what is called the [39] ‘ ’ of dead birds.\n• In 1931, the first [40] to show the migration of European birds was printed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "evidence"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Bird Migration Theory",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Most birds are believed to migrate seasonally.\n\nHibernation theory\n• It was believed that birds hibernated underwater or buried themselves in [31].\n• This theory was later disproved by experiments on caged birds.\n\nTransmutation theory\n• Aristotle believed birds changed from one species into another in summer and winter.\n  – In autumn he observed that redstarts experience the loss of [32] and thought they then turned into robins.\n  – Aristotle’s assumptions were logical because the two species of birds had a similar [33].\n\n17th century\n• Charles Morton popularised the idea that birds fly to the [34] in winter.\n\nScientific developments\n• In 1822, a stork was killed in Germany which had an African spear in its [35].\n  – previously there had been no [36] that storks migrate to Africa\n• Little was known about the [37] and journeys of migrating birds until the practice of ringing was established.\n  – It was thought large birds carried small birds on some journeys because they were considered incapable of travelling across huge [38].\n  – Ringing depended on what is called the [39] ‘ ’ of dead birds.\n• In 1931, the first [40] to show the migration of European birds was printed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "destinations"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Bird Migration Theory",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Most birds are believed to migrate seasonally.\n\nHibernation theory\n• It was believed that birds hibernated underwater or buried themselves in [31].\n• This theory was later disproved by experiments on caged birds.\n\nTransmutation theory\n• Aristotle believed birds changed from one species into another in summer and winter.\n  – In autumn he observed that redstarts experience the loss of [32] and thought they then turned into robins.\n  – Aristotle’s assumptions were logical because the two species of birds had a similar [33].\n\n17th century\n• Charles Morton popularised the idea that birds fly to the [34] in winter.\n\nScientific developments\n• In 1822, a stork was killed in Germany which had an African spear in its [35].\n  – previously there had been no [36] that storks migrate to Africa\n• Little was known about the [37] and journeys of migrating birds until the practice of ringing was established.\n  – It was thought large birds carried small birds on some journeys because they were considered incapable of travelling across huge [38].\n  – Ringing depended on what is called the [39] ‘ ’ of dead birds.\n• In 1931, the first [40] to show the migration of European birds was printed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "oceans"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Bird Migration Theory",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Most birds are believed to migrate seasonally.\n\nHibernation theory\n• It was believed that birds hibernated underwater or buried themselves in [31].\n• This theory was later disproved by experiments on caged birds.\n\nTransmutation theory\n• Aristotle believed birds changed from one species into another in summer and winter.\n  – In autumn he observed that redstarts experience the loss of [32] and thought they then turned into robins.\n  – Aristotle’s assumptions were logical because the two species of birds had a similar [33].\n\n17th century\n• Charles Morton popularised the idea that birds fly to the [34] in winter.\n\nScientific developments\n• In 1822, a stork was killed in Germany which had an African spear in its [35].\n  – previously there had been no [36] that storks migrate to Africa\n• Little was known about the [37] and journeys of migrating birds until the practice of ringing was established.\n  – It was thought large birds carried small birds on some journeys because they were considered incapable of travelling across huge [38].\n  – Ringing depended on what is called the [39] ‘ ’ of dead birds.\n• In 1931, the first [40] to show the migration of European birds was printed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "recovery"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Bird Migration Theory",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Most birds are believed to migrate seasonally.\n\nHibernation theory\n• It was believed that birds hibernated underwater or buried themselves in [31].\n• This theory was later disproved by experiments on caged birds.\n\nTransmutation theory\n• Aristotle believed birds changed from one species into another in summer and winter.\n  – In autumn he observed that redstarts experience the loss of [32] and thought they then turned into robins.\n  – Aristotle’s assumptions were logical because the two species of birds had a similar [33].\n\n17th century\n• Charles Morton popularised the idea that birds fly to the [34] in winter.\n\nScientific developments\n• In 1822, a stork was killed in Germany which had an African spear in its [35].\n  – previously there had been no [36] that storks migrate to Africa\n• Little was known about the [37] and journeys of migrating birds until the practice of ringing was established.\n  – It was thought large birds carried small birds on some journeys because they were considered incapable of travelling across huge [38].\n  – Ringing depended on what is called the [39] ‘ ’ of dead birds.\n• In 1931, the first [40] to show the migration of European birds was printed."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "atlas"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam17-test-3-listening-part4.mp3"
+        }
+      ]
+    }
+  ]
+}

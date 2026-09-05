@@ -1,0 +1,34 @@
+# F1.4 — one line ending, independent of who checks this out or how their
+# `core.autocrlf` is set.
+#
+# Before this file existed, every blob in the repository was already LF (git
+# normalizes on commit), but a Windows checkout with the ordinary
+# `core.autocrlf=true` silently converted every one of them to CRLF on disk —
+# with nothing recording that this was supposed to happen, or supposed not to.
+# The measurable effect: `prettier --check` (and therefore `pnpm format:check`
+# and `pnpm check`) failed on files nobody had touched, because Prettier's
+# default `endOfLine` is `lf` and the working tree held CRLF. This was
+# reproduced on a real Windows checkout of this repository before this file
+# was added — see docs/development/infrastructure-foundation-report.md, F1.4.
+#
+# `eol=lf` forces LF at checkout regardless of `core.autocrlf`, so
+# `format:check` and `git diff --check` see the same bytes on every platform.
+
+* text=auto eol=lf
+
+# Known binaries — excluded from the text/eol rule above so line-ending
+# normalization never touches them. `text=auto`'s own heuristic usually gets
+# this right on its own; naming them is what makes it not depend on guessing.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.docx binary
+*.pdf binary
+*.zip binary
+*.rar binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

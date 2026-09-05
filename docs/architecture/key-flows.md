@@ -20,26 +20,36 @@ sequenceDiagram
         C->>API: GET /auth/verify?token=…
         API->>DB: set emailVerified=true
     else Social sign-in
-        C->>IDP: OIDC authorization code flow (PKCE)
-        IDP-->>C: authorization code
-        C->>API: POST /auth/social {provider, code}
-        API->>IDP: exchange code, validate ID token
-        IDP-->>API: verified claims
-        API->>DB: find UserIdentity by (provider, providerUserId)
+        C->>API: POST /auth/sso/{provider}/start
+        API->>DB: store state + PKCE verifier + nonce, TTL 10 min
+        API-->>C: authorizationUrl
+        C->>IDP: follow authorizationUrl, user consents
+        IDP-->>API: redirect to /auth/sso/{provider}/callback?code&state
+        API->>IDP: exchange code with secret + code_verifier, fetch JWKS
+        IDP-->>API: ID token — signature, iss, aud, exp, nonce all checked
+        API->>DB: find UserIdentity by (provider, subject)
         alt identity known
             API->>DB: load User
-        else new identity, email matches existing verified User
-            API-->>C: 409 — require explicit link confirmation
-        else new identity, unknown email
+        else email matches a User, provider says verified
+            API->>DB: link identity — and if that User was never verified,<br/>clear its password and revoke its sessions
+        else email matches, provider asserts nothing
+            API-->>C: redirect with error=IDENTITY_LINK_REQUIRED
+        else unknown email
             API->>DB: create User + UserIdentity
         end
+        API-->>C: redirect with a one-time handoff code, TTL 60 s
+        C->>API: POST /auth/sso/complete {handoffCode}
     end
     API-->>C: access token (short-lived) + refresh token (rotating)
 ```
 
-**The `409` branch is deliberate.** Silently linking a social identity to an existing account on matching email is a known account-takeover vector — an attacker who controls a social account with a victim's email address would inherit the victim's account. Linking requires proof of ownership of both sides. `[ASSUMPTION]` M-1.
+**Two decisions govern the social branch.**
 
-PKCE is used because the mobile clients are public clients and cannot hold a client secret.
+**The backend runs the whole OAuth exchange and hands the client a one-time code, not a token.** The client never holds the client secret, the PKCE verifier, the `state` or the `nonce`, and no token ever travels in a URL. → [ADR-0014](../decisions/0014-backend-mediated-oidc-handoff-code.md), threats `T2` and `T3`
+
+**Linking on a matching email is silent — but only on an address the provider vouches for.** `M-1` was resolved on 2026-08-21: one email is one account. The safety condition, and what happens when the existing account never verified its own address, are in [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md) and threat `T1`.
+
+PKCE is used even though the backend holds a secret, because the mobile clients are public clients and run the same server flow.
 
 ---
 
@@ -341,4 +351,4 @@ Four things that must be settled before any of this is built:
 - **Free-form input is the widest injection surface in the product.** Unlike an essay, the learner is *intentionally* addressing the model. → threat `T24` in [`../security/threat-model.md`](../security/threat-model.md)
 - **Rate limiting must be separate from exam endpoints.** `nfr.md` requires generous limits for in-session content reads so a timed exam is never throttled. Chat must not inherit that generosity.
 
-`[PROPOSED]` port `IChatCompletion`, with streaming support. No provider may be selected until `B-1` is resolved, and the Claude API is excluded by owner decision.
+`[PROPOSED]` port `IChatCompletion`, with streaming support. `B-1` selected GPT + Gemini for LLM **evaluation** (2026-08-20); whether chat uses the same providers is its own open decision (`B-6b`). The Claude API is excluded by owner decision.

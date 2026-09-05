@@ -1,0 +1,2283 @@
+{
+  "formatVersion": "1.0",
+  "title": "VOL 9 — Test 2 (Reading + Listening)",
+  "variant": "academic",
+  "description": "Đề lẻ, chỉ có Reading và Listening — không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm. Cả hai đều chấm ngay theo đáp án và ra band luôn. Phần Listening dùng một file ghi âm liền cho cả bốn phần.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "Andrew Carnegie: industrialist and philanthropist",
+          "body": "Andrew Carnegie: industrialist and philanthropist\n\nThe Scottish-born American industrialist and philanthropist Andrew Carnegie, who was the leader of the American steel industry from 1873 to 1901, donated large sums of his fortune to educational, cultural, and scientific institutions. He was born in 1835 in Scotland, the son of William Carnegie, a weaver, and Margaret Morrison Carnegie.\nWith the invention of weaning machines, William Carnegie’s job disappeared, and eventually the family was forced into poverty. In 1848 the family left Scotland and settled in Pittsburgh, Pennsylvania, in the USA. William found a job in a cotton factory, but he soon quit to return to his home handloom, making linens and trying to sell them door-to-door. Andrew Carnegie also worked in the cotton factory, but after his father died in 1855, his strong desire to help take care of the family pushed him to educate himself. He became an avid reader, a theatergoer, and a lover of music. \nAndrew Carnegie became a messenger boy in a telegraph office and later became a telegraph operator. Thomas A. Scott, superintendent of the western division of the Pennsylvania Railroad, made the eighteen-year-old his secretary. Carnegie was soon earning enough to buy a house for his mother. During the Civil War in the United States (1861-65), he helped organize the military telegraph system, but soon returned to Pittsburgh to take Scott’s old job with the railroad. \nBetween 1865 and 1870 Carnegie made money through investments in several small iron mills and factories. He also traveled throughout England, selling the bonds of small United States railroads and bridge companies. Carnegie began to see that steel was eventually going to replace iron for the manufacture of rails, structural shapes, pipe, and wire. In 1873 he organized a steel rail company and continued building by cutting prices, driving out competitors, shaking off weak partners, and putting earnings back into the company. He never went public (sold shares of his company in order to raise money). Instead he obtained capital from profit, and when necessary from banks, and he kept on growing, making heavy steel alone. \nIn the 1880s Carnegie’s purchases included a majority stake in the H C Frick Company in Pennsylvania that had vast coal interests, and also the Homestead mills business. Frick became his partner and eventually chairman of the Carnegie Company. Carnegie had moved to New York City in 1867 to be close to the marketing centers for steel products, while Frick stayed in Pennsylvania as the general manager. They made a good team, Behind the scenes, Carnegie planned new projects and the improvement of existing plants; Frick was the working director who watched over the mass-production programs that helped keep price down.\nCarnegie spent his leisure time traveling. He also wrote several books, including Triumphant Democracy (1886), which pointed out what he thought were the advantages of life in the United States over the unequal societies of Britain and other European countries. To Carnegie, access to education was the key to America’s political stability and industrial accomplishments. In 1889 he published an article, ‘Wealth’, stating his belief that the rich had a duty to use their money to improve the welfare of the community. Carnegie remained a bachelor until his mother died in 1886. A year Inter he married Louise Whitfield and they had one child together. The couple began to spend six months each year in Scotland, though Carnegie kept an eye on business developments and problems. \nCarnegie’s absence from the United States was a factor in the Homestead mills strike of 1892. After acquiring Homestead, Carnegie had invested in new plants and equipment, increased production, and automated many of the mill’s operations, cutting down the number of workers that were needed. Carnegie believed that workers had a right to join unions and to bargain with management through their unions. He also recognized the right to strike, as long as the action was conducted peacefully. He viewed strikes as trials of strength, with peaceful discussion resolving the conflict. In contract talks during 1892, Frick wanted to lower the minimum wage because of the need for fewer workers. The union representing his workers would not accept this and organized a strike. \nFollowing a violent confrontation that resulted in the death of eight workers, soldiers were sent in to restore order and Carnegie was criticized for his lack of action. In the 1890s Carnegie also began to meet with tougher competition from newer, bigger companies who were interested in controlled prices and sharing the market. Companies that he had sold to for years threatened to cut down their purchases unless be agreed to cooperate. These threats made him decide to fight back. He refused to enter into any agreements with other companies. Moreover, he decided to invade their territories by making similar products and by expanding his sales activities into the west of the country. Eventually, though, he decided to sell his company to the newly formed U.S. Steel Corporation in 1901 for almost $500 million. Carnegie’s personal share was $225 million. \nIn retirement, Carnegie began to set up trust funds ‘for the improvement of mankind’. He built some three thousand public libraries all over the English-speaking world and funded galleries, museums and concert halls in the US. He also built a group of technical schools, a research institute, and a foundation providing pensions for university professors. When Carnegie died in 1919, the continuation of his broad interests was put under the general charge of the Carnegie Corporation, with a donation of $125 million.\n\n\n\n\n\n\n\n\n\n\n\n\nQuestions 1–7\nComplete the notes below.\nWrite ONE WORD ONLY from the passage for each answer. \nCarnegie’s Life\n1835-1855  \n•   found employment in the same workplace as his 1_____________\n•   educated himself through books, theatrical performances and 2_____________\n1855-1865 \n•    worked in a telegraph office \n•    became 3_____________ to Thomas A Scott at Pennsylvania Railroad \n1865-1870 \n•   made investments in the US and England \n•   realised that changing engineering needs would require a greater demand for 4_____________\n1873 \n•   managed a rail manufacturing business by: \n+   reducing 5_____________\n+   restructuring \n+   reinvesting profit and sometimes borrowing money from 6_____________\n1880s \n•   Frick and Carnegie became partners \n•   Carnegie’s responsibilities: \n+   arranging future 7_____________ and innovations for factories \n•   Frick's responsibilities: Production\n\n\n\nQuestions 8–13\nChoose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this.\n8 Carnegie believed that the USA offered more opportunities than European countries did.\n9 A smaller workforce was required at the Homestead factory after Carnegie took control.\n10 Carnegie prevented his workers from joining unions.\n11 Carnegie blamed Frick for the violent workers strike in 1892.\n12 In the 1890s Carnegie negotiated with his competitors.\n13 Carriage’s provision of funds for libraries was limited to those in the United States.\n\n\n\n\n\n\n\n\nPASSAGE 2:\nTranslating: a key to international understanding?\nA  The term 'translation' is used for all cases where the meaning of expressions in one language (the 'source' language) is turned into the meaning in another (the target language), whether the medium is spoken, written, or signed. In specific professional contexts, however, a distinction is drawn between work with the spoken or signed language (interpreting), and work with the written language (translating), although certain tasks blur this distinction.\nB It is sometimes said that there is no task more complex than translation a claim that can be readily believed when all the variables involved are taken into account. Translators not only need to know their source language well; they must also have a thorough understanding in the field of knowledge covered by the source text, and of any social, cultural, or emotional connotations that need to be specified in the target language if the intended effect is to be conveyed. The same special awareness needs to be present for the target language, so that points of special phrasing, contemporary fashions in expression, local expectations, and so on, can all be taken into account. On the whole, translators work into their mother tongue (or language of habitual use), to ensure a result that sounds as natural as possible though some translators have argued that, for certain types of text (e.g., scientific material) where translation accuracy is more crucial than naturalness, it makes more sense for the translators to be more fluent in the source language.\nC The aim of translation is to provide semantic equivalence between source and target language. This is what makes translation different from other linguistic activities, such as adapting, precise writing, and abstracting. However, there are many problems hidden within this apparently simple statement, all to do with what standards of 'equivalence' should be expected and accepted.\nD Exact equivalence is of course impossible: no translator could provide a translation that was a perfect parallel to the source text, in such respects as rhythm, puns and cultural allusions. Such a parallel is not even possible when paraphrasing within a single language: there is always some loss of information.\nE On the other hand, there are many kinds of inexact equivalence, any of which can be successful at a certain level of practical functioning. It therefore follows that there is no such thing as a best translation. The success of translation depends on the purpose for which it was made, which in turn reflects the needs of the people for whom it was made. A rough and-ready translation of a letter can suffice to inform a firm of the nature of an enquiry. A translation of a scientific article requires careful attention to meaning but little attention to stylistic features. The provision of a dubbed film script will warrant scrupulous care over the synchronisation of lip movements, often at the expense of content. Literary work requires a sensitive consideration of form as well as content, and may prompt several translations, each of which emphasises a different aspect of the original. It is easy to see what might be 'best' for one set of circumstances may be entirely unsuitable for another.\nF Several different kinds of translation have been proposed to allow for this range of possibilities. A pragmatic translation emphasises accuracy and knowledge of the subject, required for instruction manuals and much scientific research. In an aesthetic translation, important for literary material, the focus is on preserving the emotional as well as the cognitive content of the work, and on maintaining some level of stylistic equivalence. Ethnographic or sociolinguistic translations aim to pay full attention to the cultural backgrounds of the authors and the recipients, and take into account differences between source and target language, and the ways of life in which they are embedded. And there are various kinds of linguistic translation, where the aim is to convey the structural flavour of the original text, often in quite a literal manner, emphasising such features as archaisms, dialecticisms, and levels of formality. Most translations, of course, are mixtures of these theoretical types, reflecting the complex reality of language in use.\nG At another level, in a word-for-word translation each word in the source language is translated by a word in the target language. The result often makes no sense, especially when idiomatic constructions are used. In a literal translation the linguistic structure of the source text is followed, but is normalised according to the rules of the target language. In a free translation the linguistic structure of the source language is ignored, and an equivalent is found based on the meaning it conveys.\nH Translators aim to produce a text that is as faithful to the original as circumstances require or permit, and yet that reads as if it were written originally in the target language. They aim to be \"invisible people\" - transferring content without drawing attention to the considerable artistic and technical skills involved in the process. The complexity of the task is apparent, but its importance is often underestimated, and its practitioners' social status and legal rights undervalued. Some countries view translation as a menial, clerical task, and pay their translators accordingly, while others regard it as a major intellectual discipline in its own right. The question of status is currently much debated, particularly in Europe, where demand for translators is rocketing, especially in relation to the European Union.\nQuestions 14–15\nReading Passage 3 has eight paragraphs, A-H.\nWhich paragraph contains the following information?\nChoose the correct letter, A-H, in boxes 14-15.\n14 the effect that a client's requirements have on the nature of a translation.\n15 contrasting attitudes towards translators.\nQuestions 16–19\nComplete the summary below.\nWrite NO MORE THAN TWO WORDS from paragraphs C, D and E for each answer. \nThe goal of translation\nTranslation is an attempt to create a text in the target language which displays 16_________ with a source text It is inevitable that not all information can be conveyed, however, so translations are best judged according to their 17_________, for example, the translator of a business letter or scientific text does not need to consider its 18_________ aspects while someone dubbing a film may give a relatively low value to 19_________.\n\nQuestions 20–23\nLook at the following features of translating (Questions 21-24) and the types of translation below.\nMatch each feature with the correct type of translation, A-F.\nChoose the correct letter, A-F, in boxes 20-23.\nTypes of Translation\nA       aesthetic\nB       ethnographic\nC       free\nD       literal\nE       pragmatic\nF       word-for-word\n\n20 focuses on reproducing the content accurately.\n21 looks at important cultural aspects of language use.\n22 follows the original grammatical structures as required by the target language.\n23 focuses on meaning without necessarily using the original grammatical structures.\nQuestions 24–26\nChoose THREE correct answers.\n24-26 Which THREE of the following points are mentioned by the writer of the passage?\nThe objectives of translating are always clearly different from those of interpreting.\nA translator may need to consider the culture of the target language.\nTranslation is an activity which requires professional training.\nIt is difficult to specify what constitutes a very good translation.\nThe skill required for translation is increasingly gaining recognition.\nPASSAGE 3:\nThe mystery of Easter Island\nWhat could possibly explain the lack of vegetation on Easter Island?\nThe giant stone statues of Easter Island in the Pacific Ocean have perplexed archaeologists ever since European explorers first witnessed them three centuries ago. Jacob Roggeveen, the Dutch seaman who gave the island its name in 1722, was amazed by the statues, each of which clearly weighed several tonnes. But as there were no forests on the island, he could not comprehend how people devoid of heavy timber could build and erect something that size. It was also remarkable considering the absence of metal objects for carving and cutting, and the reliance on mere human strength as no draught animals could be seen either. Roggeveen was equally amazed as to how the islanders could have come to colonise such a remote place. Their canoes were leaky and frail, not the sort of ocean-going craft that could survive a three-week sea journey. At the time of his visit, it seemed evident the islanders were living in extremely poor conditions and that there was no cultivation of crops.\nWhat was the mystery behind the statues? In the 1970s, the author Erich von Däniken suggested the statues were the work of extraterrestrial beings. It was hard to believe the stones were the work of humans who were more than 2,000 miles from the nearest mainland, so for a short period of time his theory appealed to those fascinated with space travel. But for serious academics, the puzzle of the statues has caused a deep divide. Some archaeologists see Easter Island as an example of what can happen when the lust for material splendour - ever bigger stone carvings in this case is satisfied at the expense of the environment. Others, meanwhile, take a different view. The island, these scholars argue, suffered at the hands of introduced diseases, notably smallpox, and a slave trade that stole a huge proportion of its indigenous population. At the heart of the debate is the issue of the island's deforestation. There is no doubt that the island was once covered in palm trees. There is also no doubt that something happened that caused the island to become completely denuded over a short period of time. But was it the islanders who triggered this environmental degradation or another event beyond their control, such as the introduction of rats? It is an indisputable fact that rats found their way to the island, although exactly how is a matter of debate.\nIn 2005, the anthropologist Jared Diamond claimed the islanders started building ceremonial statues in an atmosphere of rivalry between the many clans. To move the statues from the island's quarry in the south-east, they needed to cut large logs for the construction of long 'canoe ladders' to carry them to the coast. For its transport alone, each statue would have required several trees to be cut down. As a result of the deforestation, Diamond believes food production fell dramatically. Consequently the population collapsed from perhaps as many as 15,000 to the few thousand that were eking out a living by the time Roggeveen arrived. Smallpox and slavery killed off those who remained, but the islanders were on the way to total collapse even without any European contact, says Diamond.\nBut not everyone is convinced. Professor Terry Hunt, an anthropologist at the University of Hawaii, says: 'There is no evidence that a population collapse occurred before European contact.' He is supported by Professor Carl Lipo of California State University. They argue that Easter Island was colonised by the first Polynesian seafarers nowhere near as early as supposed. They say the first people to arrive came around AD1200, about 400 years later than other scientists have suggested from radio-carbon dating. This makes it implausible for the population to have reached the 15,000 figure that would have caused such a fast ecocide. They also believe the deforestation occurred over a longer period as a result of climate change, and rats probably also played a part. The islanders did not go through a population collapse until after the arrival of Europeans, they say.\nHunt has examined new data from the Hawaiian and other Pacific islands that shows that by early historic times the deforestation of Easter Island was already complete, or nearly so. A dense forest of palm trees and shrubs had mostly disappeared and as a result, as many as six land bird species had also become extinct. Crucially, much of the forest damage appears to have been done before evidence of fires on the island. However, almost all of the palm seed shells discovered on the island were found to have been gnawed by rats which would have made them unable to germinate. Evidence from other Pacific islands also confirms how destructive rats can be. However, John Flenley of New Zealand's Massey University, who carried out much of the radio-carbon work on Easter Island, says there is ample evidence for a much earlier arrival of Polynesian settlers. He refutes the arguments of the sceptics: whilst admitting that the Europeans did bring certain disasters, he maintains that Hunt and Lipo are ignoring archaeological, botanical and sedimentological evidence proving the island was transformed from a subtropical rainforest to a treeless landscape. The radio-carbon dating points to an initial colonisation before AD900, Flenley argues. This was ample time for the rapid deforestation, environmental collapse and a population crash, he insists.\nWhy all this is important today is not, of course, lost in the age of globalisation, climate change and a rapidly growing world population in the billions. As Diamond says: 'The parallels between Easter Island and the whole of the modern world are chillingly obvious.'\n\n\n\nQuestions 27–30\nComplete the summary using the list of words and phrases, A-D, below.\nEarly European reaction to the discovery of Easter Island\nWhen Dutchman Jacob Roggeveen sailed to Easter Island in 1722, he was amazed by the stone statues he saw for a number of reasons. Firstly, it was clear that they were immensely heavy, and there was no 27__________ around, which would have helped with their construction. Roggeveen did not think the inhabitants had any metal tools, or animals for heavy labour either. Another mystery was the poor quality of the local inhabitants' 28__________; Roggeveen wondered how the people had managed to survive long trips. At the time of Roggeveen's visit, he observed that the people were living in 29__________ and there was no evidence of successful 30__________ on the island.\nA poverty    B agriculture    C boats     D wood\n\nQuestions 31–35\nChoose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this.\n31 Erich von Däniken's claims were briefly accepted by some sections of society.\n32 Archaeologists removed valuable artefacts from the island.\n33 Smallpox continued to affect Easter Island's inhabitants for centuries.\n34 It remains open to question whether Easter Island was once covered in forest.\n35 The way that rats arrived on Easter Island is still to be established.\n\nQuestions 36–40\nChoose the correct answer.\n36 What does Jared Diamond blame for the lack of vegetation on Easter Island?\nThe construction of stone statues\nClimate change over a long period\nA method of transportation\nThe arrival of Europeans\n37 What do Hunt and Lipo suggest about the population of Easter Island?\nIt collapsed before European contact\nThe first settlers arrived much later than is widely accepted\nIt never exceeded a few thousand inhabitants\nIt declined mainly because of disease\n\n38 What is suggested about rats on Easter Island in the fifth paragraph?\nThey were a likely cause of deforestation\nThey arrived after the forests had disappeared\nThey had no effect on plant regeneration\nThey were introduced by Europeans\n39 Flenley responds to Hunt and Lipo’s theory by\n dismissing it\npartially supporting it\nexpanding on their arguments\navoiding direct criticism\n40 The writer’s purpose in this article is to\nargue in favour of Diamond’s interpretation\nprovide an overview of a series of arguments\nprove that rats were the main cause of deforestation\ncriticise modern archaeological methods",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "1",
+              "group": {
+                "id": "r-q1-7",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "Carnegie’s Life\n1835-1855  \n•   found employment in the same workplace as his 1_____________\n•   educated himself through books, theatrical performances and 2_____________\n1855-1865 \n•    worked in a telegraph office \n•    became 3_____________ to Thomas A Scott at Pennsylvania Railroad \n1865-1870 \n•   made investments in the US and England \n•   realised that changing engineering needs would require a greater demand for 4_____________\n1873 \n•   managed a rail manufacturing business by: \n+   reducing 5_____________\n+   restructuring \n+   reinvesting profit and sometimes borrowing money from 6_____________\n1880s \n•   Frick and Carnegie became partners \n•   Carnegie’s responsibilities: \n+   arranging future 7_____________ and innovations for factories \n•   Frick's responsibilities: Production"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "father"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "2",
+              "group": {
+                "id": "r-q1-7",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "Carnegie’s Life\n1835-1855  \n•   found employment in the same workplace as his 1_____________\n•   educated himself through books, theatrical performances and 2_____________\n1855-1865 \n•    worked in a telegraph office \n•    became 3_____________ to Thomas A Scott at Pennsylvania Railroad \n1865-1870 \n•   made investments in the US and England \n•   realised that changing engineering needs would require a greater demand for 4_____________\n1873 \n•   managed a rail manufacturing business by: \n+   reducing 5_____________\n+   restructuring \n+   reinvesting profit and sometimes borrowing money from 6_____________\n1880s \n•   Frick and Carnegie became partners \n•   Carnegie’s responsibilities: \n+   arranging future 7_____________ and innovations for factories \n•   Frick's responsibilities: Production"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "music"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "3",
+              "group": {
+                "id": "r-q1-7",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "Carnegie’s Life\n1835-1855  \n•   found employment in the same workplace as his 1_____________\n•   educated himself through books, theatrical performances and 2_____________\n1855-1865 \n•    worked in a telegraph office \n•    became 3_____________ to Thomas A Scott at Pennsylvania Railroad \n1865-1870 \n•   made investments in the US and England \n•   realised that changing engineering needs would require a greater demand for 4_____________\n1873 \n•   managed a rail manufacturing business by: \n+   reducing 5_____________\n+   restructuring \n+   reinvesting profit and sometimes borrowing money from 6_____________\n1880s \n•   Frick and Carnegie became partners \n•   Carnegie’s responsibilities: \n+   arranging future 7_____________ and innovations for factories \n•   Frick's responsibilities: Production"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "secretary"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "4",
+              "group": {
+                "id": "r-q1-7",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "Carnegie’s Life\n1835-1855  \n•   found employment in the same workplace as his 1_____________\n•   educated himself through books, theatrical performances and 2_____________\n1855-1865 \n•    worked in a telegraph office \n•    became 3_____________ to Thomas A Scott at Pennsylvania Railroad \n1865-1870 \n•   made investments in the US and England \n•   realised that changing engineering needs would require a greater demand for 4_____________\n1873 \n•   managed a rail manufacturing business by: \n+   reducing 5_____________\n+   restructuring \n+   reinvesting profit and sometimes borrowing money from 6_____________\n1880s \n•   Frick and Carnegie became partners \n•   Carnegie’s responsibilities: \n+   arranging future 7_____________ and innovations for factories \n•   Frick's responsibilities: Production"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "steel"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "5",
+              "group": {
+                "id": "r-q1-7",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "Carnegie’s Life\n1835-1855  \n•   found employment in the same workplace as his 1_____________\n•   educated himself through books, theatrical performances and 2_____________\n1855-1865 \n•    worked in a telegraph office \n•    became 3_____________ to Thomas A Scott at Pennsylvania Railroad \n1865-1870 \n•   made investments in the US and England \n•   realised that changing engineering needs would require a greater demand for 4_____________\n1873 \n•   managed a rail manufacturing business by: \n+   reducing 5_____________\n+   restructuring \n+   reinvesting profit and sometimes borrowing money from 6_____________\n1880s \n•   Frick and Carnegie became partners \n•   Carnegie’s responsibilities: \n+   arranging future 7_____________ and innovations for factories \n•   Frick's responsibilities: Production"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "prices"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "6",
+              "group": {
+                "id": "r-q1-7",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "Carnegie’s Life\n1835-1855  \n•   found employment in the same workplace as his 1_____________\n•   educated himself through books, theatrical performances and 2_____________\n1855-1865 \n•    worked in a telegraph office \n•    became 3_____________ to Thomas A Scott at Pennsylvania Railroad \n1865-1870 \n•   made investments in the US and England \n•   realised that changing engineering needs would require a greater demand for 4_____________\n1873 \n•   managed a rail manufacturing business by: \n+   reducing 5_____________\n+   restructuring \n+   reinvesting profit and sometimes borrowing money from 6_____________\n1880s \n•   Frick and Carnegie became partners \n•   Carnegie’s responsibilities: \n+   arranging future 7_____________ and innovations for factories \n•   Frick's responsibilities: Production"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "banks"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "7",
+              "group": {
+                "id": "r-q1-7",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "Carnegie’s Life\n1835-1855  \n•   found employment in the same workplace as his 1_____________\n•   educated himself through books, theatrical performances and 2_____________\n1855-1865 \n•    worked in a telegraph office \n•    became 3_____________ to Thomas A Scott at Pennsylvania Railroad \n1865-1870 \n•   made investments in the US and England \n•   realised that changing engineering needs would require a greater demand for 4_____________\n1873 \n•   managed a rail manufacturing business by: \n+   reducing 5_____________\n+   restructuring \n+   reinvesting profit and sometimes borrowing money from 6_____________\n1880s \n•   Frick and Carnegie became partners \n•   Carnegie’s responsibilities: \n+   arranging future 7_____________ and innovations for factories \n•   Frick's responsibilities: Production"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "projects"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "true-false-notgiven",
+              "prompt": "Carnegie believed that the USA offered more opportunities than European countries did.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "true-false-notgiven",
+              "prompt": "A smaller workforce was required at the Homestead factory after Carnegie took control.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "true-false-notgiven",
+              "prompt": "Carnegie prevented his workers from joining unions.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "true-false-notgiven",
+              "prompt": "Carnegie blamed Frick for the violent workers strike in 1892.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "true-false-notgiven",
+              "prompt": "In the 1890s Carnegie negotiated with his competitors.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "true-false-notgiven",
+              "prompt": "Carriage’s provision of funds for libraries was limited to those in the United States.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "the effect that a client's requirements have on the nature of a translation.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "aesthetic"
+                },
+                {
+                  "key": "B",
+                  "text": "ethnographic"
+                },
+                {
+                  "key": "C",
+                  "text": "free"
+                },
+                {
+                  "key": "D",
+                  "text": "literal"
+                },
+                {
+                  "key": "E",
+                  "text": "pragmatic"
+                },
+                {
+                  "key": "F",
+                  "text": "word-for-word"
+                }
+              ],
+              "group": {
+                "id": "r-m14-15-14",
+                "instruction": "Choose the correct letter, A-H, in boxes 14-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "contrasting attitudes towards translators.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "aesthetic"
+                },
+                {
+                  "key": "B",
+                  "text": "ethnographic"
+                },
+                {
+                  "key": "C",
+                  "text": "free"
+                },
+                {
+                  "key": "D",
+                  "text": "literal"
+                },
+                {
+                  "key": "E",
+                  "text": "pragmatic"
+                },
+                {
+                  "key": "F",
+                  "text": "word-for-word"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-m14-15-15",
+                "instruction": "Choose the correct letter, A-H, in boxes 14-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "completion",
+              "prompt": "16",
+              "group": {
+                "id": "r-s16-19",
+                "instruction": "Write NO MORE THAN TWO WORDS from paragraphs C, D and E for each answer.",
+                "text": "The goal of translation\nTranslation is an attempt to create a text in the target language which displays 16_________ with a source text It is inevitable that not all information can be conveyed, however, so translations are best judged according to their 17_________, for example, the translator of a business letter or scientific text does not need to consider its 18_________ aspects while someone dubbing a film may give a relatively low value to 19_________."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "semantic equivalence"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "completion",
+              "prompt": "17",
+              "group": {
+                "id": "r-s16-19",
+                "instruction": "Write NO MORE THAN TWO WORDS from paragraphs C, D and E for each answer.",
+                "text": "The goal of translation\nTranslation is an attempt to create a text in the target language which displays 16_________ with a source text It is inevitable that not all information can be conveyed, however, so translations are best judged according to their 17_________, for example, the translator of a business letter or scientific text does not need to consider its 18_________ aspects while someone dubbing a film may give a relatively low value to 19_________."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "purpose"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "completion",
+              "prompt": "18",
+              "group": {
+                "id": "r-s16-19",
+                "instruction": "Write NO MORE THAN TWO WORDS from paragraphs C, D and E for each answer.",
+                "text": "The goal of translation\nTranslation is an attempt to create a text in the target language which displays 16_________ with a source text It is inevitable that not all information can be conveyed, however, so translations are best judged according to their 17_________, for example, the translator of a business letter or scientific text does not need to consider its 18_________ aspects while someone dubbing a film may give a relatively low value to 19_________."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "stylistic features"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "completion",
+              "prompt": "19",
+              "group": {
+                "id": "r-s16-19",
+                "instruction": "Write NO MORE THAN TWO WORDS from paragraphs C, D and E for each answer.",
+                "text": "The goal of translation\nTranslation is an attempt to create a text in the target language which displays 16_________ with a source text It is inevitable that not all information can be conveyed, however, so translations are best judged according to their 17_________, for example, the translator of a business letter or scientific text does not need to consider its 18_________ aspects while someone dubbing a film may give a relatively low value to 19_________."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "content"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "focuses on reproducing the content accurately.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "aesthetic"
+                },
+                {
+                  "key": "B",
+                  "text": "ethnographic"
+                },
+                {
+                  "key": "C",
+                  "text": "free"
+                },
+                {
+                  "key": "D",
+                  "text": "literal"
+                },
+                {
+                  "key": "E",
+                  "text": "pragmatic"
+                },
+                {
+                  "key": "F",
+                  "text": "word-for-word"
+                }
+              ],
+              "group": {
+                "id": "r-t20-23",
+                "instruction": "Choose the correct letter, A-F, in boxes 20-23."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "matching",
+              "prompt": "looks at important cultural aspects of language use.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "aesthetic"
+                },
+                {
+                  "key": "B",
+                  "text": "ethnographic"
+                },
+                {
+                  "key": "C",
+                  "text": "free"
+                },
+                {
+                  "key": "D",
+                  "text": "literal"
+                },
+                {
+                  "key": "E",
+                  "text": "pragmatic"
+                },
+                {
+                  "key": "F",
+                  "text": "word-for-word"
+                }
+              ],
+              "group": {
+                "id": "r-t20-23",
+                "instruction": "Choose the correct letter, A-F, in boxes 20-23."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "matching",
+              "prompt": "follows the original grammatical structures as required by the target language.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "aesthetic"
+                },
+                {
+                  "key": "B",
+                  "text": "ethnographic"
+                },
+                {
+                  "key": "C",
+                  "text": "free"
+                },
+                {
+                  "key": "D",
+                  "text": "literal"
+                },
+                {
+                  "key": "E",
+                  "text": "pragmatic"
+                },
+                {
+                  "key": "F",
+                  "text": "word-for-word"
+                }
+              ],
+              "group": {
+                "id": "r-t20-23",
+                "instruction": "Choose the correct letter, A-F, in boxes 20-23."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "matching",
+              "prompt": "focuses on meaning without necessarily using the original grammatical structures.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "aesthetic"
+                },
+                {
+                  "key": "B",
+                  "text": "ethnographic"
+                },
+                {
+                  "key": "C",
+                  "text": "free"
+                },
+                {
+                  "key": "D",
+                  "text": "literal"
+                },
+                {
+                  "key": "E",
+                  "text": "pragmatic"
+                },
+                {
+                  "key": "F",
+                  "text": "word-for-word"
+                }
+              ],
+              "group": {
+                "id": "r-t20-23",
+                "instruction": "Choose the correct letter, A-F, in boxes 20-23."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "multiple-select",
+              "prompt": "Which THREE of the following points are mentioned by the writer of the passage?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The objectives of translating are always clearly different from those of interpreting."
+                },
+                {
+                  "key": "B",
+                  "text": "A translator may need to consider the culture of the target language."
+                },
+                {
+                  "key": "C",
+                  "text": "Translation is an activity which requires professional training."
+                },
+                {
+                  "key": "D",
+                  "text": "It is difficult to specify what constitutes a very good translation."
+                },
+                {
+                  "key": "E",
+                  "text": "The skill required for translation is increasingly gaining recognition."
+                }
+              ],
+              "marks": 3,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "B",
+                    "D"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "completion",
+              "prompt": "27",
+              "group": {
+                "id": "r-s27-30",
+                "instruction": "Complete the summary using the list of words and phrases, A-D, below.",
+                "text": "Early European reaction to the discovery of Easter Island\nWhen Dutchman Jacob Roggeveen sailed to Easter Island in 1722, he was amazed by the stone statues he saw for a number of reasons. Firstly, it was clear that they were immensely heavy, and there was no 27__________ around, which would have helped with their construction. Roggeveen did not think the inhabitants had any metal tools, or animals for heavy labour either. Another mystery was the poor quality of the local inhabitants' 28__________; Roggeveen wondered how the people had managed to survive long trips. At the time of Roggeveen's visit, he observed that the people were living in 29__________ and there was no evidence of successful 30__________ on the island.\nA poverty    B agriculture    C boats     D wood"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "D",
+                  "wood"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "completion",
+              "prompt": "28",
+              "group": {
+                "id": "r-s27-30",
+                "instruction": "Complete the summary using the list of words and phrases, A-D, below.",
+                "text": "Early European reaction to the discovery of Easter Island\nWhen Dutchman Jacob Roggeveen sailed to Easter Island in 1722, he was amazed by the stone statues he saw for a number of reasons. Firstly, it was clear that they were immensely heavy, and there was no 27__________ around, which would have helped with their construction. Roggeveen did not think the inhabitants had any metal tools, or animals for heavy labour either. Another mystery was the poor quality of the local inhabitants' 28__________; Roggeveen wondered how the people had managed to survive long trips. At the time of Roggeveen's visit, he observed that the people were living in 29__________ and there was no evidence of successful 30__________ on the island.\nA poverty    B agriculture    C boats     D wood"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "C",
+                  "boats"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "completion",
+              "prompt": "29",
+              "group": {
+                "id": "r-s27-30",
+                "instruction": "Complete the summary using the list of words and phrases, A-D, below.",
+                "text": "Early European reaction to the discovery of Easter Island\nWhen Dutchman Jacob Roggeveen sailed to Easter Island in 1722, he was amazed by the stone statues he saw for a number of reasons. Firstly, it was clear that they were immensely heavy, and there was no 27__________ around, which would have helped with their construction. Roggeveen did not think the inhabitants had any metal tools, or animals for heavy labour either. Another mystery was the poor quality of the local inhabitants' 28__________; Roggeveen wondered how the people had managed to survive long trips. At the time of Roggeveen's visit, he observed that the people were living in 29__________ and there was no evidence of successful 30__________ on the island.\nA poverty    B agriculture    C boats     D wood"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "A",
+                  "poverty"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "completion",
+              "prompt": "30",
+              "group": {
+                "id": "r-s27-30",
+                "instruction": "Complete the summary using the list of words and phrases, A-D, below.",
+                "text": "Early European reaction to the discovery of Easter Island\nWhen Dutchman Jacob Roggeveen sailed to Easter Island in 1722, he was amazed by the stone statues he saw for a number of reasons. Firstly, it was clear that they were immensely heavy, and there was no 27__________ around, which would have helped with their construction. Roggeveen did not think the inhabitants had any metal tools, or animals for heavy labour either. Another mystery was the poor quality of the local inhabitants' 28__________; Roggeveen wondered how the people had managed to survive long trips. At the time of Roggeveen's visit, he observed that the people were living in 29__________ and there was no evidence of successful 30__________ on the island.\nA poverty    B agriculture    C boats     D wood"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "B",
+                  "agriculture"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "yes-no-notgiven",
+              "prompt": "Erich von Däniken's claims were briefly accepted by some sections of society.",
+              "group": {
+                "id": "r-tfng-31-35",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "yes-no-notgiven",
+              "prompt": "Archaeologists removed valuable artefacts from the island.",
+              "group": {
+                "id": "r-tfng-31-35",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "yes-no-notgiven",
+              "prompt": "Smallpox continued to affect Easter Island's inhabitants for centuries.",
+              "group": {
+                "id": "r-tfng-31-35",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "yes-no-notgiven",
+              "prompt": "It remains open to question whether Easter Island was once covered in forest.",
+              "group": {
+                "id": "r-tfng-31-35",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "yes-no-notgiven",
+              "prompt": "The way that rats arrived on Easter Island is still to be established.",
+              "group": {
+                "id": "r-tfng-31-35",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "multiple-choice",
+              "prompt": "What does Jared Diamond blame for the lack of vegetation on Easter Island?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The construction of stone statues"
+                },
+                {
+                  "key": "B",
+                  "text": "Climate change over a long period"
+                },
+                {
+                  "key": "C",
+                  "text": "A method of transportation"
+                },
+                {
+                  "key": "D",
+                  "text": "The arrival of Europeans"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "multiple-choice",
+              "prompt": "What do Hunt and Lipo suggest about the population of Easter Island?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It collapsed before European contact"
+                },
+                {
+                  "key": "B",
+                  "text": "The first settlers arrived much later than is widely accepted"
+                },
+                {
+                  "key": "C",
+                  "text": "It never exceeded a few thousand inhabitants"
+                },
+                {
+                  "key": "D",
+                  "text": "It declined mainly because of disease"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "multiple-choice",
+              "prompt": "What is suggested about rats on Easter Island in the fifth paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They were a likely cause of deforestation"
+                },
+                {
+                  "key": "B",
+                  "text": "They arrived after the forests had disappeared"
+                },
+                {
+                  "key": "C",
+                  "text": "They had no effect on plant regeneration"
+                },
+                {
+                  "key": "D",
+                  "text": "They were introduced by Europeans"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "multiple-choice",
+              "prompt": "Flenley responds to Hunt and Lipo’s theory by",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "dismissing it"
+                },
+                {
+                  "key": "B",
+                  "text": "partially supporting it"
+                },
+                {
+                  "key": "C",
+                  "text": "expanding on their arguments"
+                },
+                {
+                  "key": "D",
+                  "text": "avoiding direct criticism"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "multiple-choice",
+              "prompt": "The writer’s purpose in this article is to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "argue in favour of Diamond’s interpretation"
+                },
+                {
+                  "key": "B",
+                  "text": "provide an overview of a series of arguments"
+                },
+                {
+                  "key": "C",
+                  "text": "prove that rats were the main cause of deforestation"
+                },
+                {
+                  "key": "D",
+                  "text": "criticise modern archaeological methods"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Poppy Reserve",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "The poppies will be at their best at the end of the 1 …………..",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve\n• The poppies will be at their best at the end of the 1 …………..   .\n• The poppies on the hills are 2 …………. in colour.\nThe reserve is located to the 3 …………….  of Lakeside.\n• The best time for photography is mid-afternoon.\n• Wear 4 ……….. because of rattlesnakes.\n• The reserve is a 5 …………. park."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "month"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "The poppies on the hills are 2 …………. in colour.",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve\n• The poppies will be at their best at the end of the 1 …………..   .\n• The poppies on the hills are 2 …………. in colour.\nThe reserve is located to the 3 …………….  of Lakeside.\n• The best time for photography is mid-afternoon.\n• Wear 4 ……….. because of rattlesnakes.\n• The reserve is a 5 …………. park."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "orange"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "The reserve is located to the 3 …………….  of Lakeside.",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve\n• The poppies will be at their best at the end of the 1 …………..   .\n• The poppies on the hills are 2 …………. in colour.\nThe reserve is located to the 3 …………….  of Lakeside.\n• The best time for photography is mid-afternoon.\n• Wear 4 ……….. because of rattlesnakes.\n• The reserve is a 5 …………. park."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "east"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Wear 4 ……….. because of rattlesnakes.",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve\n• The poppies will be at their best at the end of the 1 …………..   .\n• The poppies on the hills are 2 …………. in colour.\nThe reserve is located to the 3 …………….  of Lakeside.\n• The best time for photography is mid-afternoon.\n• Wear 4 ……….. because of rattlesnakes.\n• The reserve is a 5 …………. park."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "trousers"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "The reserve is a 5 …………. park.",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve\n• The poppies will be at their best at the end of the 1 …………..   .\n• The poppies on the hills are 2 …………. in colour.\nThe reserve is located to the 3 …………….  of Lakeside.\n• The best time for photography is mid-afternoon.\n• Wear 4 ……….. because of rattlesnakes.\n• The reserve is a 5 …………. park."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "state"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "The 6 …….. tour",
+              "group": {
+                "id": "r-table-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tour\nStart time\nDuration\nHighlights\nPhotography\nThe 6 …….. tour\nEvery hour from 7:30 a.m.\n30 minutes\nViewpoints, film and the  7 ……...\nPanoramic pictures\nThe wildflower tour\nEvery two hours from 8:00 a.m.\n8 ………\nPoppy, cream cup, and stage\nClose- up tips\nThe wildlife tour\n9 ……… a.m. or 7:00 p.m.\n1.5 hours\nCoyote, quail, roadrunners\nBring tripod and a 10 …….. lens"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "general"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Viewpoints, film and the  7 ……...",
+              "group": {
+                "id": "r-table-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tour\nStart time\nDuration\nHighlights\nPhotography\nThe 6 …….. tour\nEvery hour from 7:30 a.m.\n30 minutes\nViewpoints, film and the  7 ……...\nPanoramic pictures\nThe wildflower tour\nEvery two hours from 8:00 a.m.\n8 ………\nPoppy, cream cup, and stage\nClose- up tips\nThe wildlife tour\n9 ……… a.m. or 7:00 p.m.\n1.5 hours\nCoyote, quail, roadrunners\nBring tripod and a 10 …….. lens"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "museum"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "8 ………",
+              "group": {
+                "id": "r-table-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tour\nStart time\nDuration\nHighlights\nPhotography\nThe 6 …….. tour\nEvery hour from 7:30 a.m.\n30 minutes\nViewpoints, film and the  7 ……...\nPanoramic pictures\nThe wildflower tour\nEvery two hours from 8:00 a.m.\n8 ………\nPoppy, cream cup, and stage\nClose- up tips\nThe wildlife tour\n9 ……… a.m. or 7:00 p.m.\n1.5 hours\nCoyote, quail, roadrunners\nBring tripod and a 10 …….. lens"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "one hour,1 hour"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "9 ……… a.m. or 7:00 p.m.",
+              "group": {
+                "id": "r-table-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tour\nStart time\nDuration\nHighlights\nPhotography\nThe 6 …….. tour\nEvery hour from 7:30 a.m.\n30 minutes\nViewpoints, film and the  7 ……...\nPanoramic pictures\nThe wildflower tour\nEvery two hours from 8:00 a.m.\n8 ………\nPoppy, cream cup, and stage\nClose- up tips\nThe wildlife tour\n9 ……… a.m. or 7:00 p.m.\n1.5 hours\nCoyote, quail, roadrunners\nBring tripod and a 10 …….. lens"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "5.30,5:30"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Bring tripod and a 10 …….. lens",
+              "group": {
+                "id": "r-table-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tour\nStart time\nDuration\nHighlights\nPhotography\nThe 6 …….. tour\nEvery hour from 7:30 a.m.\n30 minutes\nViewpoints, film and the  7 ……...\nPanoramic pictures\nThe wildflower tour\nEvery two hours from 8:00 a.m.\n8 ………\nPoppy, cream cup, and stage\nClose- up tips\nThe wildlife tour\n9 ……… a.m. or 7:00 p.m.\n1.5 hours\nCoyote, quail, roadrunners\nBring tripod and a 10 …….. lens"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "zoom"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-2-listening-full.mp4"
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Re-creating life in an Iron Age village",
+          "questions": [
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "Jim says that in the Iron Age village",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "he is sometimes cold at night."
+                },
+                {
+                  "key": "B",
+                  "text": "he always gets up early."
+                },
+                {
+                  "key": "C",
+                  "text": "he has time to himself."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "What does Jim say about the food they eat in the village?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It takes time to prepare."
+                },
+                {
+                  "key": "B",
+                  "text": "It is difficult to get used to."
+                },
+                {
+                  "key": "C",
+                  "text": "It has to be eaten quickly."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "Jim says that at the evening meal",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "they are sometimes too tired to eat."
+                },
+                {
+                  "key": "B",
+                  "text": "they mainly have fruit and berries."
+                },
+                {
+                  "key": "C",
+                  "text": "they talk about what they've done."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "The most important job for the blacksmiths is",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "to mend broken tools and implements."
+                },
+                {
+                  "key": "B",
+                  "text": "to maintain a good source of heat."
+                },
+                {
+                  "key": "C",
+                  "text": "to collect sufficient firewood."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "Jim likes the fact that in the village, people",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "do varied activities."
+                },
+                {
+                  "key": "B",
+                  "text": "share their knowledge."
+                },
+                {
+                  "key": "C",
+                  "text": "get a lot of exercise."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Mark centre of planned house with a 16 …………",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bone"
+                },
+                {
+                  "key": "B",
+                  "text": "different"
+                },
+                {
+                  "key": "C",
+                  "text": "equal"
+                },
+                {
+                  "key": "D",
+                  "text": "elm"
+                },
+                {
+                  "key": "E",
+                  "text": "hazel"
+                },
+                {
+                  "key": "F",
+                  "text": "iron"
+                },
+                {
+                  "key": "G",
+                  "text": "peg"
+                },
+                {
+                  "key": "H",
+                  "text": "roof"
+                },
+                {
+                  "key": "I",
+                  "text": "scaffold"
+                }
+              ],
+              "group": {
+                "id": "r-flowchart-16-20",
+                "instruction": "Choose FIVE correct answers from the box, A-I, next to questions 16-20.",
+                "text": "MAKING AN IRON AGE ROUNDHOUSE\nMark centre of planned house with a 16 …………\n↓\nMark out circle for outer boundary\n↓\nDig ground using tools made from 17 ………..\n↓\nInsert wall posts (Iron Age builders preferred wood from oak trees)\n↓\nSlot more stakes into upright posts\n↓\nInsert centre post and build a wooden 18 …………  around it\n↓\nAdd main supporting beams and ring beams\n↓\nComplete roof framework using 19 …………  wood rods\n↓\nCover roof with reed bundles of 20 ………… lengths\n↓\nDaub with mixture of clay, dung and straw"
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Dig ground using tools made from 17 ………..",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bone"
+                },
+                {
+                  "key": "B",
+                  "text": "different"
+                },
+                {
+                  "key": "C",
+                  "text": "equal"
+                },
+                {
+                  "key": "D",
+                  "text": "elm"
+                },
+                {
+                  "key": "E",
+                  "text": "hazel"
+                },
+                {
+                  "key": "F",
+                  "text": "iron"
+                },
+                {
+                  "key": "G",
+                  "text": "peg"
+                },
+                {
+                  "key": "H",
+                  "text": "roof"
+                },
+                {
+                  "key": "I",
+                  "text": "scaffold"
+                }
+              ],
+              "group": {
+                "id": "r-flowchart-16-20",
+                "instruction": "Choose FIVE correct answers from the box, A-I, next to questions 16-20.",
+                "text": "MAKING AN IRON AGE ROUNDHOUSE\nMark centre of planned house with a 16 …………\n↓\nMark out circle for outer boundary\n↓\nDig ground using tools made from 17 ………..\n↓\nInsert wall posts (Iron Age builders preferred wood from oak trees)\n↓\nSlot more stakes into upright posts\n↓\nInsert centre post and build a wooden 18 …………  around it\n↓\nAdd main supporting beams and ring beams\n↓\nComplete roof framework using 19 …………  wood rods\n↓\nCover roof with reed bundles of 20 ………… lengths\n↓\nDaub with mixture of clay, dung and straw"
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Insert centre post and build a wooden 18 …………  around it",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bone"
+                },
+                {
+                  "key": "B",
+                  "text": "different"
+                },
+                {
+                  "key": "C",
+                  "text": "equal"
+                },
+                {
+                  "key": "D",
+                  "text": "elm"
+                },
+                {
+                  "key": "E",
+                  "text": "hazel"
+                },
+                {
+                  "key": "F",
+                  "text": "iron"
+                },
+                {
+                  "key": "G",
+                  "text": "peg"
+                },
+                {
+                  "key": "H",
+                  "text": "roof"
+                },
+                {
+                  "key": "I",
+                  "text": "scaffold"
+                }
+              ],
+              "group": {
+                "id": "r-flowchart-16-20",
+                "instruction": "Choose FIVE correct answers from the box, A-I, next to questions 16-20.",
+                "text": "MAKING AN IRON AGE ROUNDHOUSE\nMark centre of planned house with a 16 …………\n↓\nMark out circle for outer boundary\n↓\nDig ground using tools made from 17 ………..\n↓\nInsert wall posts (Iron Age builders preferred wood from oak trees)\n↓\nSlot more stakes into upright posts\n↓\nInsert centre post and build a wooden 18 …………  around it\n↓\nAdd main supporting beams and ring beams\n↓\nComplete roof framework using 19 …………  wood rods\n↓\nCover roof with reed bundles of 20 ………… lengths\n↓\nDaub with mixture of clay, dung and straw"
+              },
+              "answerKey": {
+                "accepted": [
+                  "I"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Complete roof framework using 19 …………  wood rods",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bone"
+                },
+                {
+                  "key": "B",
+                  "text": "different"
+                },
+                {
+                  "key": "C",
+                  "text": "equal"
+                },
+                {
+                  "key": "D",
+                  "text": "elm"
+                },
+                {
+                  "key": "E",
+                  "text": "hazel"
+                },
+                {
+                  "key": "F",
+                  "text": "iron"
+                },
+                {
+                  "key": "G",
+                  "text": "peg"
+                },
+                {
+                  "key": "H",
+                  "text": "roof"
+                },
+                {
+                  "key": "I",
+                  "text": "scaffold"
+                }
+              ],
+              "group": {
+                "id": "r-flowchart-16-20",
+                "instruction": "Choose FIVE correct answers from the box, A-I, next to questions 16-20.",
+                "text": "MAKING AN IRON AGE ROUNDHOUSE\nMark centre of planned house with a 16 …………\n↓\nMark out circle for outer boundary\n↓\nDig ground using tools made from 17 ………..\n↓\nInsert wall posts (Iron Age builders preferred wood from oak trees)\n↓\nSlot more stakes into upright posts\n↓\nInsert centre post and build a wooden 18 …………  around it\n↓\nAdd main supporting beams and ring beams\n↓\nComplete roof framework using 19 …………  wood rods\n↓\nCover roof with reed bundles of 20 ………… lengths\n↓\nDaub with mixture of clay, dung and straw"
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "Cover roof with reed bundles of 20 ………… lengths",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bone"
+                },
+                {
+                  "key": "B",
+                  "text": "different"
+                },
+                {
+                  "key": "C",
+                  "text": "equal"
+                },
+                {
+                  "key": "D",
+                  "text": "elm"
+                },
+                {
+                  "key": "E",
+                  "text": "hazel"
+                },
+                {
+                  "key": "F",
+                  "text": "iron"
+                },
+                {
+                  "key": "G",
+                  "text": "peg"
+                },
+                {
+                  "key": "H",
+                  "text": "roof"
+                },
+                {
+                  "key": "I",
+                  "text": "scaffold"
+                }
+              ],
+              "group": {
+                "id": "r-flowchart-16-20",
+                "instruction": "Choose FIVE correct answers from the box, A-I, next to questions 16-20.",
+                "text": "MAKING AN IRON AGE ROUNDHOUSE\nMark centre of planned house with a 16 …………\n↓\nMark out circle for outer boundary\n↓\nDig ground using tools made from 17 ………..\n↓\nInsert wall posts (Iron Age builders preferred wood from oak trees)\n↓\nSlot more stakes into upright posts\n↓\nInsert centre post and build a wooden 18 …………  around it\n↓\nAdd main supporting beams and ring beams\n↓\nComplete roof framework using 19 …………  wood rods\n↓\nCover roof with reed bundles of 20 ………… lengths\n↓\nDaub with mixture of clay, dung and straw"
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-2-listening-full.mp4"
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Presentation on how jobs might change in the future",
+          "questions": [
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "What do the students find surprising about the way that complaints were dealt with at the call centre?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the way that customers responded to it"
+                },
+                {
+                  "key": "B",
+                  "text": "the employees’s lack of enthusiasm for it"
+                },
+                {
+                  "key": "C",
+                  "text": "the kind of questions employees were obliged to ask"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "What does Emma say about the report by Jerry Kaplan?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It shows how machines will respond to human needs."
+                },
+                {
+                  "key": "B",
+                  "text": "It emphasises the variety of roles that machines will have."
+                },
+                {
+                  "key": "C",
+                  "text": "It explains the limitations of machines."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "What is Nick's reaction to the article The Human Cloud?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "He agrees that companies should focus on making savings."
+                },
+                {
+                  "key": "B",
+                  "text": "He supports the concept of greater flexibility for employees."
+                },
+                {
+                  "key": "C",
+                  "text": "He approves of businesses spending more on recruiting experts."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "What do the students agree about the use of technology to collect information about employees?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Cameras are an effective means of maintaining security."
+                },
+                {
+                  "key": "B",
+                  "text": "Sometimes productivity is more important than individual privacy."
+                },
+                {
+                  "key": "C",
+                  "text": "Employees may object to certain types of monitoring."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "Introduction 25 …………..",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 …………..\nResearcher profiles 26 ………….\nSection on automation 27 …………\nSection on workplace structure 28 ………….\nSection on tracking technology 29 …………..\nInterview with company manager 30 …………"
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "Researcher profiles 26 ………….",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 …………..\nResearcher profiles 26 ………….\nSection on automation 27 …………\nSection on workplace structure 28 ………….\nSection on tracking technology 29 …………..\nInterview with company manager 30 …………"
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Section on automation 27 …………",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 …………..\nResearcher profiles 26 ………….\nSection on automation 27 …………\nSection on workplace structure 28 ………….\nSection on tracking technology 29 …………..\nInterview with company manager 30 …………"
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Section on workplace structure 28 ………….",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 …………..\nResearcher profiles 26 ………….\nSection on automation 27 …………\nSection on workplace structure 28 ………….\nSection on tracking technology 29 …………..\nInterview with company manager 30 …………"
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Section on tracking technology 29 …………..",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 …………..\nResearcher profiles 26 ………….\nSection on automation 27 …………\nSection on workplace structure 28 ………….\nSection on tracking technology 29 …………..\nInterview with company manager 30 …………"
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Interview with company manager 30 …………",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 …………..\nResearcher profiles 26 ………….\nSection on automation 27 …………\nSection on workplace structure 28 ………….\nSection on tracking technology 29 …………..\nInterview with company manager 30 …………"
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-2-listening-full.mp4"
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "HEALTH ON THE NIGHT SHIFT",
+          "questions": [
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "in number of night workers because of 31 …………. 24-hour shopping/services",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n•    in number of night workers because of 31 …………. 24-hour shopping/services\n•    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 …………    \n•    regulates daily life\n•    connected to behavioural patterns and cycles of 33 …………   \n•    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n•    impossible to get enough sleep during daytime\nC  34 ………….   \n•    different working/sleeping times, ‘dislocation’\nEffects:\nA    Physical\n•    higher incidence of heart and  35 ………………  problems \n•    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n•    most common: 36 …………….    \n•     37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...   \nC    Social\nNight shift work can lead to:\n•    destruction of  39 …………. and other relationships, e.g. 40 …………..     \n•    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "the number of"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "A  32 …………",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n•    in number of night workers because of 31 …………. 24-hour shopping/services\n•    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 …………    \n•    regulates daily life\n•    connected to behavioural patterns and cycles of 33 …………   \n•    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n•    impossible to get enough sleep during daytime\nC  34 ………….   \n•    different working/sleeping times, ‘dislocation’\nEffects:\nA    Physical\n•    higher incidence of heart and  35 ………………  problems \n•    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n•    most common: 36 …………….    \n•     37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...   \nC    Social\nNight shift work can lead to:\n•    destruction of  39 …………. and other relationships, e.g. 40 …………..     \n•    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "internal clock,the internal clock"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "connected to behavioural patterns and cycles of 33 …………",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n•    in number of night workers because of 31 …………. 24-hour shopping/services\n•    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 …………    \n•    regulates daily life\n•    connected to behavioural patterns and cycles of 33 …………   \n•    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n•    impossible to get enough sleep during daytime\nC  34 ………….   \n•    different working/sleeping times, ‘dislocation’\nEffects:\nA    Physical\n•    higher incidence of heart and  35 ………………  problems \n•    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n•    most common: 36 …………….    \n•     37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...   \nC    Social\nNight shift work can lead to:\n•    destruction of  39 …………. and other relationships, e.g. 40 …………..     \n•    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "light and dark"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "C  34 ………….",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n•    in number of night workers because of 31 …………. 24-hour shopping/services\n•    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 …………    \n•    regulates daily life\n•    connected to behavioural patterns and cycles of 33 …………   \n•    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n•    impossible to get enough sleep during daytime\nC  34 ………….   \n•    different working/sleeping times, ‘dislocation’\nEffects:\nA    Physical\n•    higher incidence of heart and  35 ………………  problems \n•    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n•    most common: 36 …………….    \n•     37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...   \nC    Social\nNight shift work can lead to:\n•    destruction of  39 …………. and other relationships, e.g. 40 …………..     \n•    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "unsocial hours"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "higher incidence of heart and  35 ………………  problems",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n•    in number of night workers because of 31 …………. 24-hour shopping/services\n•    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 …………    \n•    regulates daily life\n•    connected to behavioural patterns and cycles of 33 …………   \n•    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n•    impossible to get enough sleep during daytime\nC  34 ………….   \n•    different working/sleeping times, ‘dislocation’\nEffects:\nA    Physical\n•    higher incidence of heart and  35 ………………  problems \n•    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n•    most common: 36 …………….    \n•     37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...   \nC    Social\nNight shift work can lead to:\n•    destruction of  39 …………. and other relationships, e.g. 40 …………..     \n•    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "stomach"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "most common: 36 …………….",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n•    in number of night workers because of 31 …………. 24-hour shopping/services\n•    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 …………    \n•    regulates daily life\n•    connected to behavioural patterns and cycles of 33 …………   \n•    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n•    impossible to get enough sleep during daytime\nC  34 ………….   \n•    different working/sleeping times, ‘dislocation’\nEffects:\nA    Physical\n•    higher incidence of heart and  35 ………………  problems \n•    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n•    most common: 36 …………….    \n•     37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...   \nC    Social\nNight shift work can lead to:\n•    destruction of  39 …………. and other relationships, e.g. 40 …………..     \n•    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "depression"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n•    in number of night workers because of 31 …………. 24-hour shopping/services\n•    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 …………    \n•    regulates daily life\n•    connected to behavioural patterns and cycles of 33 …………   \n•    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n•    impossible to get enough sleep during daytime\nC  34 ………….   \n•    different working/sleeping times, ‘dislocation’\nEffects:\nA    Physical\n•    higher incidence of heart and  35 ………………  problems \n•    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n•    most common: 36 …………….    \n•     37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...   \nC    Social\nNight shift work can lead to:\n•    destruction of  39 …………. and other relationships, e.g. 40 …………..     \n•    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "mental abilities"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "which regulate our 38 …………...",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n•    in number of night workers because of 31 …………. 24-hour shopping/services\n•    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 …………    \n•    regulates daily life\n•    connected to behavioural patterns and cycles of 33 …………   \n•    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n•    impossible to get enough sleep during daytime\nC  34 ………….   \n•    different working/sleeping times, ‘dislocation’\nEffects:\nA    Physical\n•    higher incidence of heart and  35 ………………  problems \n•    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n•    most common: 36 …………….    \n•     37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...   \nC    Social\nNight shift work can lead to:\n•    destruction of  39 …………. and other relationships, e.g. 40 …………..     \n•    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "performance"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "destruction of  39 …………. and other relationships, e.g. 40 …………..",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n•    in number of night workers because of 31 …………. 24-hour shopping/services\n•    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 …………    \n•    regulates daily life\n•    connected to behavioural patterns and cycles of 33 …………   \n•    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n•    impossible to get enough sleep during daytime\nC  34 ………….   \n•    different working/sleeping times, ‘dislocation’\nEffects:\nA    Physical\n•    higher incidence of heart and  35 ………………  problems \n•    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n•    most common: 36 …………….    \n•     37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...   \nC    Social\nNight shift work can lead to:\n•    destruction of  39 …………. and other relationships, e.g. 40 …………..     \n•    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "family life"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "e.g. 40 …………..",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n•    in number of night workers because of 31 …………. 24-hour shopping/services\n•    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 …………    \n•    regulates daily life\n•    connected to behavioural patterns and cycles of 33 …………   \n•    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n•    impossible to get enough sleep during daytime\nC  34 ………….   \n•    different working/sleeping times, ‘dislocation’\nEffects:\nA    Physical\n•    higher incidence of heart and  35 ………………  problems \n•    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n•    most common: 36 …………….    \n•     37 ……………… affected, e.g. decision-making, planning, which regulate our 38 …………...   \nC    Social\nNight shift work can lead to:\n•    destruction of  39 …………. and other relationships, e.g. 40 …………..     \n•    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "peer group"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-2-listening-full.mp4"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,459 @@
+/* Nghe chép chính tả.
+ *
+ * <b>The one screen where `--bad` is right.</b> DESIGN.md reserves it for
+ * something that has broken, which is why a countdown never uses it — a clock
+ * running is not a fault. A wrong word here IS the fault the exercise exists
+ * to surface, and it arrives only after the learner has committed an answer.
+ *
+ * Colour is still never the only channel: wrong is struck through, missing is
+ * a dashed underline, extra is struck and greyed. The verdict survives
+ * greyscale, and it survives a reader who cannot separate the hues.
+ */
+
+.dict-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--card);
+}
+
+.dict-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.dict-head h2 {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.dict-audio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+}
+
+.dict-play {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  padding-inline: var(--s-4);
+  border: 1px solid var(--acc-line);
+  border-radius: 14px;
+  background: var(--acc-soft);
+  color: var(--acc-700);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.dict-play:disabled {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.dict-speeds {
+  display: inline-flex;
+  gap: var(--s-1);
+  padding: var(--s-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+}
+
+/* 44px. It sits beside the play button on the one screen whose whole
+   interaction is "play it again, slower" — a 36px target on a phone, between
+   two other 36px targets, is the row people miss. */
+.dict-speed {
+  min-height: 44px;
+  padding-inline: var(--s-3);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.dict-speed.is-active {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.dict-plays {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.dict-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.dict-field > span {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.dict-field textarea {
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-18);
+  line-height: var(--lh-body);
+  resize: vertical;
+}
+
+.dict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+
+.dict-check,
+.dict-next {
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.dict-check {
+  border-color: #c4e6d2;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.dict-check:disabled {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.dict-result {
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+}
+
+.dict-score {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-3);
+}
+
+.dict-score .num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.dict-perfect {
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--ok-soft);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ok);
+}
+
+.dict-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-18);
+  line-height: 1.9;
+}
+
+.w {
+  padding-inline: var(--s-1);
+  border-radius: var(--r-sm);
+}
+
+.w-correct {
+  color: var(--ok);
+}
+
+/* Struck AND red: two channels, so the verdict does not depend on the hue. */
+.w-wrong {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.w-wrong s {
+  opacity: 0.75;
+}
+
+/* Dashed underline, so a missed word reads as a gap rather than as a mistake. */
+.w-missing {
+  color: var(--warn);
+  text-decoration: underline dashed;
+  text-underline-offset: 4px;
+}
+
+.w-extra {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.dict-answer {
+  margin: 0;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.dict-answer > span {
+  font-weight: var(--w-emph);
+  color: var(--muted);
+}
+
+@media (max-width: 560px) {
+  .dict-card {
+    padding: var(--s-4);
+  }
+
+  .dict-check,
+  .dict-next {
+    width: 100%;
+  }
+}
+
+/*
+ * ── The module page's own furniture ─────────────────────────────────────
+ *
+ * `/dictation` became a public page on 24/08, so this exercise now renders on
+ * the marketing shell rather than inside the dashboard. Three classes replace
+ * the `dash-*` ones it used to borrow: a sign-in gate, a set header, and the
+ * "nghe lại thoải mái" chip.
+ *
+ * <b>The gate is `.pick-gate` in every measurement.</b> It is written out
+ * rather than shared because the two live in different stylesheets and the
+ * shared version would have to move to a third — but if either changes, both
+ * change. → `module-pages.css`
+ */
+.dict-gate {
+  padding: 30px 26px;
+  border: 2px solid #e7ece5;
+  border-radius: 22px;
+  background: #f7f9f6;
+  text-align: center;
+}
+
+.dict-gate h3 {
+  margin: 0 0 10px;
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  color: #252525;
+}
+
+.dict-gate p {
+  max-width: 560px;
+  margin: 0 auto;
+  color: #5c625c;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+.dict-gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.dict-note {
+  margin: 0;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dict-set-head {
+  margin-bottom: 18px;
+}
+
+/* `h1` since 26/08 — this is the page's own name on `/dictation/:setId`, and
+   the document previously had no level-1 heading at all. Sized as a page title
+   rather than as the panel label it used to be. */
+.dict-set-head h1 {
+  margin: 0;
+  font-size: clamp(24px, 2.6vw, 30px);
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
+  color: #1c211d;
+}
+
+.dict-set-head p {
+  margin: 6px 0 0;
+  max-width: 68ch;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* #1e7a3c on #e4f7eb measures 5.0. */
+.dict-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #e4f7eb;
+  color: #1e7a3c;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+/*
+ * When a check could not reach the server.
+ *
+ * There was no state for this: the catch set the verdict to `null` and said
+ * nothing, so the page returned to exactly how it looked before the press —
+ * and destroyed the previous verdict on the way. The previous verdict is kept
+ * now, and this sits above the buttons with the retry that was missing.
+ */
+.dict-check-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  margin: var(--s-3) 0 0;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid #e7b4b0;
+  border-radius: var(--r-md);
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.dict-retry {
+  min-height: 44px;
+  padding-inline: var(--s-4);
+  border: 1px solid currentColor;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--w-emph);
+  cursor: pointer;
+}
+
+/* Was `.dict-next` on both buttons, so neither could be styled apart from the
+   other. Previous is the quieter of the two. */
+.dict-prev {
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: var(--w-emph);
+  cursor: pointer;
+}
+
+.dict-prev:hover {
+  background: var(--sunk);
+}
+
+/*
+ * The end of a set.
+ *
+ * Reaching the last sentence used to hide the Next button and nothing else, so
+ * finishing and breaking looked identical.
+ */
+.dict-done {
+  margin-top: var(--s-5);
+  padding: var(--s-5);
+  border: 1px solid #bfe3cd;
+  border-radius: var(--r-lg);
+  background: var(--ok-soft);
+  text-align: center;
+}
+
+.dict-done-title {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-18);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-display);
+  color: var(--ink);
+}
+
+.dict-done-body {
+  margin: 0 auto var(--s-4);
+  max-width: 46ch;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.dict-done-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border-radius: var(--r-md);
+  background: #0a8438;
+  color: #fff;
+  font-weight: var(--w-emph);
+  text-decoration: none;
+}
+
+.dict-done-action:hover {
+  background: #097630;
+}

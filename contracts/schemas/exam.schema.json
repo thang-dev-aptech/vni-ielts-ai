@@ -1,0 +1,646 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vni-ielts.example/schemas/exam/1.0.json",
+  "title": "VNI IELTS exam definition, package format v2 (v1 compatible)",
+  "description": "The single definition of a valid exam. Three producers validate against this file and no other: the development seeder, the ZIP importer, and in-place CMS authoring. Two definitions of validity would drift, and the drift surfaces as a learner mid-attempt hitting a question the renderer cannot draw. See ADR-0008 and ADR-0012.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formatVersion", "title", "variant", "timingProfile", "scoringProfile", "sections"],
+
+  "properties": {
+    "formatVersion": {
+      "description": "Minor versions are additive; unknown optional fields are ignored rather than rejected, which is what lets content authored against a newer minor import into an older backend. A major version outside the supported range is rejected explicitly.",
+      "type": "string",
+      "pattern": "^(?:1\\.[0-9]+|2\\.[0-9]+)$"
+    },
+    "formatProfile": {
+      "description": "Named structural profile. vni-practice is package-defined; IELTS profiles carry the standard part-count invariants.",
+      "type": "string",
+      "enum": ["ielts-academic-full", "ielts-general-full", "vni-practice"]
+    },
+    "scoringProfileRef": {
+      "description": "Stable reference to a shared scoring profile. Inline scoringProfile remains supported for migration.",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$"
+    },
+    "contentSourceRef": { "$ref": "#/$defs/contentSourceRef" },
+    "assetManifest": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/manifestAsset" }
+    },
+    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "variant": {
+      "description": "Academic and General Training differ in Reading and Writing Task 1, and their ScoringProfiles differ by variant rather than only by version. H-1 currently assumes Academic only.",
+      "enum": ["academic", "general"]
+    },
+    "description": { "type": "string", "maxLength": 2000 },
+
+    "timingProfile": { "$ref": "#/$defs/timingProfile" },
+    "scoringProfile": { "$ref": "#/$defs/scoringProfile" },
+    "sequenceProfile": { "$ref": "#/$defs/sequenceProfile" },
+    "policyProfile": { "$ref": "#/$defs/policyProfile" },
+
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": { "$ref": "#/$defs/section" }
+    }
+  },
+
+  "allOf": [
+    {
+      "if": { "properties": { "formatVersion": { "pattern": "^2\\." } } },
+      "then": { "required": ["formatProfile", "scoringProfileRef", "contentSourceRef"] }
+    }
+  ],
+
+  "$defs": {
+    "module": { "enum": ["reading", "listening", "writing", "speaking"] },
+
+    "contentSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "sourceHash"],
+      "properties": {
+        "sourceId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+        "sourceHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+
+    "manifestAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/assetRef" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "sizeBytes": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "band": {
+      "description": "Bands are whole and half steps only. Declared as a closed enum rather than a numeric range, both because a range permits 6.3 and 7.77 which are not band scores, and because structured-output implementations commonly honour enum while ignoring minimum/maximum.",
+      "type": "number",
+      "enum": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9]
+    },
+
+    "timingProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sections"],
+      "properties": {
+        "sections": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "reading": { "$ref": "#/$defs/sectionTiming" },
+            "listening": { "$ref": "#/$defs/sectionTiming" },
+            "writing": { "$ref": "#/$defs/sectionTiming" },
+            "speaking": { "$ref": "#/$defs/speakingTiming" }
+          }
+        }
+      }
+    },
+
+    "sectionTiming": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["durationSeconds"],
+      "properties": {
+        "durationSeconds": { "type": "integer", "minimum": 1, "maximum": 21600 },
+        "transferTimeSeconds": {
+          "description": "Listening only. Extra time after the audio ends to copy answers onto the answer sheet.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600
+        }
+      }
+    },
+
+    "speakingTiming": {
+      "description": "Whether Speaking is one continuous session or three separately-submitted parts is H-1, still open. This shape supports both: the parts array carries per-part timing either way, and only the Full Test chaining semantics differ.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parts"],
+      "properties": {
+        "parts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["part", "responseSeconds"],
+            "properties": {
+              "part": { "type": "integer", "minimum": 1, "maximum": 3 },
+              "prepSeconds": { "type": "integer", "minimum": 0, "maximum": 300 },
+              "responseSeconds": { "type": "integer", "minimum": 1, "maximum": 1800 }
+            }
+          }
+        }
+      }
+    },
+
+    "scoringProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rawToBand"],
+      "properties": {
+        "rawToBand": {
+          "description": "Raw score to band, per section. Attached to the exam version rather than to code, because boundaries are equated per test version. H-4 (where VNI's tables come from) is open; the format supports them either way. Coverage of the full raw range is checked in code, not by this schema — an incomplete table silently produces wrong bands inside the gap.",
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "reading": { "$ref": "#/$defs/bandTable" },
+            "listening": { "$ref": "#/$defs/bandTable" }
+          }
+        },
+        "criterionWeights": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "writing": {
+              "description": "The relative weight of Writing Task 1 and Task 2 — H-8b, and still unanswered. IELTS does not publish the ratio the way it publishes the overall-band rule, so there is NO default here and there must not be one: a default turns an open question into a silent answer, and every version without an explicit weighting gets marked on a guess that nothing anywhere records. A version that omits this object produces two task bands and no Writing band, which is a truthful result; a version that declares it declares BOTH halves. One half alone is a half-stated ratio, and the only thing worse than no weighting is an arithmetic that looks complete. Zero is excluded because a task weighted zero is a task the learner was told to write and then not marked on. See ScoringProfile.RequireWritingTaskWeights and docs/domain/versioned-policy-profiles.md.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["task1", "task2"],
+              "properties": {
+                "task1": { "type": "number", "exclusiveMinimum": 0 },
+                "task2": { "type": "number", "exclusiveMinimum": 0 }
+              }
+            }
+          }
+        },
+        "answerMatching": { "$ref": "#/$defs/answerMatching" },
+        "bandTableProvenance": { "$ref": "#/$defs/bandTableProvenance" },
+        "partScore": { "$ref": "#/$defs/partScorePolicy" },
+        "partialCredit": { "$ref": "#/$defs/partialCreditPolicy" }
+      }
+    },
+
+    "bandTable": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["minRaw", "band"],
+        "properties": {
+          "minRaw": { "type": "integer", "minimum": 0, "maximum": 40 },
+          "band": { "$ref": "#/$defs/band" }
+        }
+      }
+    },
+
+    "bandTableProvenance": {
+      "description": "Where this version's raw-to-band tables came from, and therefore what may be done with the bands they produce. H-4 is open: nobody has decided whether VNI's tables are licensed, internally equated, or approximated, and until somebody does, a band read off one of them is not an IELTS band. Recording the provenance is what lets the product be honest about that instead of printing a number and hoping. The field is optional so that v1 packages keep importing, but an ABSENT provenance is read as not-equated - the conservative reading, never the flattering one. A package that wants its results to shape a learner's band trend has to say equated and cite a source.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "description": "synthetic: invented for this repository, never learner-facing. provisional: a real table, but generic - not equated to this paper, which is what exam/Exam1 carries today. equated: equated to this test version, which is the only status that may feed a band trend.",
+          "enum": ["synthetic", "provisional", "equated"]
+        },
+        "source": {
+          "description": "Required when status is equated. Who equated the table and against what - the claim is auditable or it is not a claim.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "note": { "type": "string", "maxLength": 2000 }
+      },
+      "allOf": [
+        {
+          "description": "An equated table without a stated source is an unfalsifiable claim, and it is the claim that unlocks learner-facing bands.",
+          "if": { "required": ["status"], "properties": { "status": { "const": "equated" } } },
+          "then": { "required": ["source"] }
+        }
+      ]
+    },
+
+    "partScorePolicy": {
+      "description": "What a run smaller than a whole module may report. A Reading part is thirteen questions; the band table is equated against forty, so reading a band off a part is reading off the wrong table. The honest output for an uncalibrated part is raw and accuracy - a count and a percentage, no band. Omitting this object resolves to exactly that, which is what the engine does today, so silence changes nothing. Declaring estimated-band is a claim that this version carries its own per-part calibration, and the validator makes the claim expensive: every part of every auto-scored module must be calibrated, and each table must cover that part's whole raw range. Note the enum has no plain band member - a part-level IELTS band is not a thing the scale defines, so the format cannot express one.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reporting"],
+      "properties": {
+        "reporting": { "enum": ["raw-only", "estimated-band"] },
+        "calibration": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["module", "part", "rawToBand"],
+            "properties": {
+              "module": { "$ref": "#/$defs/module" },
+              "part": {
+                "description": "The part's order within its section, matching section.parts[].order.",
+                "type": "integer",
+                "minimum": 1
+              },
+              "rawToBand": { "$ref": "#/$defs/bandTable" }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "description": "estimated-band without calibration is the invented default this whole field exists to prevent.",
+          "if": {
+            "required": ["reporting"],
+            "properties": { "reporting": { "const": "estimated-band" } }
+          },
+          "then": { "required": ["calibration"] }
+        }
+      ]
+    },
+
+    "partialCreditPolicy": {
+      "description": "How a question worth more than one mark is marked when the answer is partly right. H-12 is open, and the engine can only do one thing today: the answer key is a set that must match, so a Choose TWO question with one correct letter scores zero out of two. The enum therefore has exactly one member. That is deliberate - a second member would let a package declare a mode nothing implements, and the failure would be silent wrong marking rather than a refusal. FS1.1 widens this to per-slot once ResponseSlot gives each mark its own answer-sheet number and its own key; until then the seam is declared and empty. Omitting the object resolves to all-or-nothing, which is the current behaviour.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["multiMark"],
+      "properties": {
+        "multiMark": { "enum": ["all-or-nothing"] }
+      }
+    },
+
+    "sequenceProfile": {
+      "description": "The order a Full Test advances through its modules. It is here rather than in code because two places in the code already disagree about it - ExamVersion.FullTestOrder reads Reading, Listening, Writing, Speaking and SittingBand.FourSkills reads Listening, Reading, Writing, Speaking - and the disagreement is only harmless while the second is used as a set. The moment an order is read from data there must be exactly one thing to read, so this field is that thing. Omitting it resolves to the E-12 order (Reading, Listening, Writing, Speaking) through a single resolver, and the reader says so in a warning rather than resolving it quietly. Full Test versus Single Skill is NOT configured here: that a Full Test auto-advances and a Single Skill never does is E-11 to E-13, confirmed product behaviour, not a per-version choice.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modules"],
+      "properties": {
+        "modules": {
+          "description": "Every module this version carries, exactly once each, in sitting order. A module listed here but absent from sections, or present in sections but missing here, is a refusal - a sequence that disagrees with the content is how a learner reaches the end of a sitting having never been shown Writing.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/module" }
+        }
+      }
+    },
+
+    "policyProfile": {
+      "description": "What the product may do with a completed run of this version, as opposed to how the run is scored. Separate from scoringProfile because these answers depend on the content's licence and calibration rather than on its arithmetic: the same marking code, over a package nobody has cleared for AI processing or equated to a band scale, must produce a narrower result.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "explanation": { "$ref": "#/$defs/explanationPolicy" },
+        "practiceHistory": { "$ref": "#/$defs/practiceHistoryPolicy" },
+        "listeningPlayback": { "$ref": "#/$defs/listeningPlaybackPolicy" }
+      }
+    },
+
+    "listeningPlaybackPolicy": {
+      "description": "Versioned Listening playback behaviour. The server selects practice or mock from the server-owned run timing; the browser must not infer it from a route. Omission remains v1-compatible and resolves conservatively to one pass with no seek.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["practice", "mock"],
+      "properties": {
+        "practice": { "$ref": "#/$defs/audioPlaybackRule" },
+        "mock": { "$ref": "#/$defs/audioPlaybackRule" }
+      }
+    },
+
+    "audioPlaybackRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["playOnce", "allowSeek"],
+      "properties": {
+        "playOnce": { "type": "boolean" },
+        "allowSeek": { "type": "boolean" }
+      }
+    },
+
+    "explanationPolicy": {
+      "description": "Whether a learner reviewing this version may be shown why an answer was wrong. Per version rather than per deployment because it turns on the content: sending a passage to a foreign LLM is a cross-border transfer of whatever the package holds, and a source cleared only as a fixture must not be sent at all. Omitting the object resolves to none, which is what happens today. An explanation can never change a band under any value here - that is A-11, and it is code, not configuration.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "description": "none: no explanation is offered. ai-generated: an LLM may be asked for one, subject to the content rights registry and the B-2 cross-border gate. An authored member - explanations written into the package - is deliberately absent until FS1.1 adds the evidence reference it would point at; declaring a mode with nothing behind it produces a blank review screen rather than a refusal.",
+          "enum": ["none", "ai-generated", "authored"]
+        }
+      }
+    },
+
+    "practiceHistoryPolicy": {
+      "description": "Whether results from this version may shape a learner's band trend. A trend built from bands that were never equated is a chart of an artefact, and it is read as progress. So the conservative reading is the default: omit the object and results from this version are recorded but excluded from the trend. full-test-only additionally requires an equated bandTableProvenance, which is the gate H-4 has to open. That practice at part or single-skill scope never enters the trend is FS3.5, a fixed product invariant rather than a per-version choice, so it is not spelled as an option here.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bandTrend"],
+      "properties": {
+        "bandTrend": { "enum": ["excluded", "full-test-only"] }
+      }
+    },
+
+    "answerMatching": {
+      "description": "Answer-key comparison is a common source of unfair marking, so the rules are configuration rather than code. Spelling tolerance defaults to off because IELTS penalises misspelling.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "caseSensitive": { "type": "boolean", "default": false },
+        "trimWhitespace": { "type": "boolean", "default": true },
+        "collapseInnerWhitespace": { "type": "boolean", "default": true },
+        "allowSpellingVariants": { "type": "boolean", "default": false },
+        "numericEquivalence": {
+          "description": "Treats 1,000 and 1000 as the same answer.",
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["module", "order", "parts"],
+      "properties": {
+        "module": { "$ref": "#/$defs/module" },
+        "order": { "type": "integer", "minimum": 1 },
+        "parts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/part" } }
+      }
+    },
+
+    "part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["order", "kind"],
+      "properties": {
+        "order": { "type": "integer", "minimum": 1 },
+        "kind": { "enum": ["passage", "recording", "task", "speaking-part"] },
+        "title": { "type": "string", "maxLength": 300 },
+        "body": {
+          "description": "Passage text or task prompt. Rendered in every client, so it is untrusted content: sanitise on render, never on store, and never through dangerouslySetInnerHTML. Threat T17.",
+          "type": "string"
+        },
+        "audio": { "$ref": "#/$defs/assetRef" },
+        "image": { "$ref": "#/$defs/assetRef" },
+        "transcript": { "type": "string" },
+        "taskNumber": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "partNumber": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "cueCard": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["topic"],
+          "properties": {
+            "topic": { "type": "string", "minLength": 1 },
+            "bullets": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "constraints": { "$ref": "#/$defs/constraints" },
+        "timing": { "$ref": "#/$defs/partTiming" },
+        "rubricRef": { "type": "string" },
+        "questions": { "type": "array", "items": { "$ref": "#/$defs/question" } }
+      }
+    },
+
+    "assetRef": {
+      "description": "A relative path inside the package. Never a URL, and never used as a storage key — object keys are server-generated so a client-supplied filename cannot influence where a file lands.",
+      "type": "string",
+      "pattern": "^assets/[A-Za-z0-9._\\-/]+$",
+      "maxLength": 300
+    },
+
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxWords": {
+          "description": "NO MORE THAN TWO WORDS. An over-length answer is marked wrong, so this is a scoring rule and must be exact.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "minWords": { "type": "integer", "minimum": 1, "maximum": 1000 }
+      }
+    },
+
+    "partTiming": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["durationSeconds"],
+      "properties": {
+        "durationSeconds": { "type": "integer", "minimum": 1, "maximum": 21600 },
+        "prepSeconds": { "type": "integer", "minimum": 0, "maximum": 300 },
+        "responseSeconds": { "type": "integer", "minimum": 1, "maximum": 1800 }
+      }
+    },
+
+    "questionGroup": {
+      "description": "The shared frame a run of questions belongs to — a heading bank, a table, a diagram, a map, a summary paragraph. Without it a matching question is a prompt with no letters to choose from and a map labelling is a prompt with no map: those questions become unanswerable, not merely plainer. On the first real package authored against this schema, 55 of 76 auto-scored questions carry one. Members share an id and render under one instruction, in order; the group is repeated on every member so a question stays self-describing when it travels alone — a review screen, a report.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "description": "Members of one group share this. Unique within a part, which is what the reader checks — not globally unique across an exam version.",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9\\-]{0,63}$"
+        },
+        "title": {
+          "description": "The caption above the shared frame — \"Plan of Community Centre\", \"Tour Booking Enquiry\".",
+          "type": "string",
+          "maxLength": 200
+        },
+        "instruction": {
+          "description": "The rubric, verbatim: \"Write NO MORE THAN THREE WORDS for each answer.\" It is a scoring rule stated to the candidate, so it is copied rather than generated — a paraphrase here marks people wrong for following it.",
+          "type": "string",
+          "maxLength": 1000
+        },
+        "image": {
+          "description": "A map or diagram the whole group refers to.",
+          "$ref": "#/$defs/assetRef"
+        },
+        "text": {
+          "description": "Summary-completion body, carrying \"[n]\" where question n's gap falls. The renderer splits on those markers and puts the input in the gap; met as a numbered list underneath instead, the reader has to hold the sentence in their head while answering it.",
+          "type": "string",
+          "maxLength": 4000
+        },
+        "eachLetterOnce": {
+          "description": "Every option may be chosen at most once across the group — \"NB Use each letter once only\". The candidate is told this, so the interface has to honour it visibly rather than leaving the scorer to reject it afterwards.",
+          "type": "boolean"
+        }
+      }
+    },
+
+    "question": {
+      "type": "object",
+      "required": ["id", "order", "type"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9\\-]{0,63}$" },
+        "order": { "type": "integer", "minimum": 1 },
+        "type": {
+          "description": "The frozen MVP taxonomy. Each type is five surfaces: an authoring editor, a learner renderer, an answer-key shape, a validator, and a scoring rule. Adding one is a minor version bump; changing one after its editor exists is not cheap.",
+          "enum": [
+            "multiple-choice",
+            "multiple-select",
+            "true-false-notgiven",
+            "yes-no-notgiven",
+            "matching",
+            "completion",
+            "short-answer",
+            "labelling",
+            "essay-task",
+            "speaking-response"
+          ]
+        },
+        "prompt": { "type": "string" },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "text"],
+            "properties": {
+              "key": { "type": "string", "minLength": 1, "maxLength": 8 },
+              "text": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "marks": {
+          "description": "How many raw marks this question carries. One unless the paper says otherwise — and IELTS says otherwise for \"Choose TWO letters\", which occupies two numbered lines on the answer sheet and is worth two. Without this the maximum raw score is the number of question objects rather than the number of marks, so a Listening section of 36 objects covering 40 marks is scored out of 36 against a table equated to 40: every candidate is given a band or more too much, and nobody can reach the top of the table. Partial credit within a multi-mark question is NOT decided here — the answer-key shape is all-or-nothing, and inventing a half-mark rule would be inventing policy.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 1
+        },
+        "group": { "$ref": "#/$defs/questionGroup" },
+        "constraints": { "$ref": "#/$defs/constraints" },
+        "answerKey": { "$ref": "#/$defs/answerKey" },
+        "slots": {
+          "description": "Answer-sheet positions occupied by this question. Omitted on v1 and deterministically synthesized during migration.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/responseSlot" }
+        },
+        "explanation": { "$ref": "#/$defs/questionExplanation" }
+      },
+
+      "allOf": [
+        {
+          "description": "Auto-scored types must carry an answer key. Without this a question silently scores zero for everyone, which looks like a hard question rather than a broken import.",
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "multiple-choice",
+                  "multiple-select",
+                  "true-false-notgiven",
+                  "yes-no-notgiven",
+                  "matching",
+                  "completion",
+                  "short-answer",
+                  "labelling"
+                ]
+              }
+            }
+          },
+          "then": {
+            "oneOf": [{ "required": ["answerKey"] }, { "required": ["slots"] }]
+          }
+        },
+        {
+          "description": "AI-evaluated types must NOT carry one. An answer key here would imply a deterministic path that does not exist.",
+          "if": { "properties": { "type": { "enum": ["essay-task", "speaking-response"] } } },
+          "then": { "not": { "required": ["answerKey"] } }
+        },
+        {
+          "description": "A choice question needs options to choose from.",
+          "if": { "properties": { "type": { "enum": ["multiple-choice", "multiple-select"] } } },
+          "then": { "required": ["options"] }
+        },
+        {
+          "description": "Matching and labelling are answered by picking from a shared bank, so each carries that bank. Without options the renderer has nothing to offer and falls back to a free text box — which accepts anything and scores almost nothing.",
+          "if": { "properties": { "type": { "enum": ["matching", "labelling"] } } },
+          "then": { "required": ["options"] }
+        }
+      ]
+    },
+
+    "answerKey": {
+      "description": "Never sent to the client before scoring. If a client can score locally the exam is unscoreable. Threat T7.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["accepted"],
+      "properties": {
+        "accepted": {
+          "description": "Any accepted answer. A string for a single value; an array of strings for multiple-select, where every member must be present; an object for matching pairs.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              { "type": "string", "minLength": 1 },
+              { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["left", "right"],
+                "properties": {
+                  "left": { "type": "string", "minLength": 1 },
+                  "right": { "type": "string", "minLength": 1 }
+                }
+              }
+            ]
+          }
+        },
+        "matchingOverrides": { "$ref": "#/$defs/answerMatching" }
+      }
+    },
+
+    "responseSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "number"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9\\-]{0,127}$"
+        },
+        "number": { "type": "integer", "minimum": 1 },
+        "answerKey": { "$ref": "#/$defs/answerKey" }
+      }
+    },
+
+    "questionExplanation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shortReason", "evidence"],
+      "properties": {
+        "correctAnswer": { "type": "string", "maxLength": 1000 },
+        "shortReason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              { "type": "string", "minLength": 1, "maxLength": 1000 },
+              { "$ref": "#/$defs/evidenceReference" }
+            ]
+          }
+        },
+        "commonMistake": { "type": "string", "maxLength": 1000 }
+      }
+    },
+
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "quote"],
+      "properties": {
+        "source": { "enum": ["passage", "transcript", "prompt"] },
+        "quote": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "start": { "type": "integer", "minimum": 0 },
+        "end": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

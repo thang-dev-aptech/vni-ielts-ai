@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.11" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageReference Include="Xunit.SkippableFact" Version="1.5.23" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!--
+    F2.2 — its own test project rather than folding into Integration.Tests.
+    Both the API and the Worker generate a top-level `partial class Program`
+    in the global namespace; a project referencing both would make
+    `WebApplicationFactory<Program>` ambiguous everywhere Integration.Tests
+    already uses it against the API. Separate assemblies keep each `Program`
+    unambiguous in its own.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Vni.Ielts.Infrastructure\Vni.Ielts.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Vni.Ielts.Worker\Vni.Ielts.Worker.csproj" />
+  </ItemGroup>
+
+</Project>

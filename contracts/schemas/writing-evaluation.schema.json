@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vni.edu.vn/schemas/writing-evaluation.schema.json",
+  "title": "WritingEvaluation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["criteria", "sectionBand", "summary"],
+  "properties": {
+    "criteria": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "taskResponse",
+        "coherenceAndCohesion",
+        "lexicalResource",
+        "grammaticalRangeAndAccuracy"
+      ],
+      "properties": {
+        "taskResponse": { "$ref": "#/$defs/criterion" },
+        "coherenceAndCohesion": { "$ref": "#/$defs/criterion" },
+        "lexicalResource": { "$ref": "#/$defs/criterion" },
+        "grammaticalRangeAndAccuracy": { "$ref": "#/$defs/criterion" }
+      }
+    },
+    "sectionBand": { "$ref": "#/$defs/band" },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 1200 }
+  },
+  "$defs": {
+    "band": {
+      "type": "number",
+      "enum": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9]
+    },
+    "criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["band", "feedback", "evidence"],
+      "properties": {
+        "band": { "$ref": "#/$defs/band" },
+        "feedback": { "type": "string", "minLength": 1, "maxLength": 800 },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,2275 @@
+{
+  "formatVersion": "1.0",
+  "title": "VOL 9 — Test 4 (Reading + Listening)",
+  "variant": "academic",
+  "description": "Đề lẻ, chỉ có Reading và Listening — không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm. Cả hai đều chấm ngay theo đáp án và ra band luôn. Phần Listening dùng một file ghi âm liền cho cả bốn phần.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "Traditional Farming in Zambia's Luapula Province",
+          "body": "Traditional Farming in Zambia's Luapula Province\n\nBy tradition, land in Luapula Province is not owned by individuals but, as in many other parts of Africa, is allocated by the headman or headwoman of a village to people of either sex according to need. Since land is generally prepared by hand, a single family group cannot take on a very large area, so land has not been a limiting resource over large parts of the province. However, that situation has already changed near the main towns, and there has long been a scarcity of land for cultivation in the river valley. In both these areas, registered ownership patterns are becoming prevalent.\nMost of the traditional cropping in Luapula Province is based on citemene, a system whereby crops are grown on the ashes of tree branches. As a rule, entire trees are pollarded (pollarding: removing the tops of tree branches) rather than felled, so that they can regenerate. Branches are cut over an area of land of varying size early in the dry season and then stacked to dry out. The wood is fired before the onset of the rains, and in the first year, the area is planted with the African cereal called finger millet. The grain of this crop is used to brew local drinks such as cipumu, which contributes several vitamins of the B complex to people's diets. Cipumu is also used in cementing reciprocal working relationships (Pottier 1985).\nDuring the second year, and possibly for a few years more, the area is planted with various combinations of annuals such as maize, pumpkins, sweet potatoes, groundnuts, beans, and various leafy vegetables, grown with a certain amount of rotation. The diverse sequence ends with the vegetable cassava, which is often planted next to the last but one crop before this is harvested.\nRichards (1969) observed that the practice of cilemene entails a definite division of labour; men and women perform different tasks. The men stake out plots in an unobtrusive manner, since it is considered provocative towards one's neighbours to mark boundaries in an explicit way. The dangerous work of felling branches is also the men's province: Branches are then stacked by women and fired by men. Women and men cooperate in the planting work, but the harvesting is always done by women.\nAt the beginning of the citemene cycle, little weeding is necessary, since the firing of the branches effectively destroys weeds, but as the cycle progresses, weeds increase, and nutrients eventually become depleted to a point where further effort with annual crops is not worthwhile. At this point, cassava is planted, since it can produce a crop on soil that is almost exhausted. Thereafter, the plot is abandoned, and a new area is pollarded for the next cycle.\nWhen forest is not available, a situation which is increasingly the case nowadays, a series of ridges is built, in which combinations of maize, beans, groundnuts, and sweet potatoes are then planted, usually followed by cassava. These plots are normally tended by women and provide subsistence.\nWhere their roots have year-round access to water, mango, guava, and oil-palm trees are often grown around houses, forming a traditional agro-forestry system, and some of the fruit from these is sold by the roadside or in local markets. In addition, local varieties of rice are sometimes planted in waterlogged ground during the rainy season.\nFishing has always been a far more remunerative activity in Luapula than crop husbandry. It provides a much-needed protein supplement to the diet, as well as being the one substantial source of cash. Mueh fish is dried for sale to areas away from the main waterways. The Mweru and Bangweulu Lake Basins are the main areas of Year-round fishing, but the Luapula River is also exploited during the latter part of the dry season. Several previously abundant and desirable species have all but disappeared from Lake Mweru, apparently due to overfishing (Huckaby 1979).\nRegarding animal husbandry, only small numbers of cattle or oxen are kept in the province owing to the prevalence of the tsetse fly. The resulting absence of animal power for pulling machinery greatly limits people's ability to plough and cultivate land: a married couple can rarely manage to prepare an area of more than half a hectare by hand-hoeing. However, most people keep freely roaming chickens and goats. These act as a reserve for bartering, but may also be occasionally slaughtered for ceremonies or for entertaining important visitors. These animals are not a standard part of most people's diet.\nUntil recently, citemene has been an ingenious system for providing seasonal, high-quality cereals and vegetables in regions of acidic, heavily leached soils. Nutritionally, the most serious deficiency has been that of protein. However, this could be alleviated when fish were available, provided that cultivators lived near the valley or could find a source of dried fish. The citemene/fishing system was well adapted to the ecology of the woodland regions and sustainable for long periods, but only as long as human population densities stayed at low levels.\nAlthough population densities are still much lower today than in many other parts of the world, neither the fisheries nor the woodlands of Luapula are capable, with unmodified traditional practices, of supporting the expanding population in a sustainable manner. For instance, even in a normal season, diets suffer from a lack of energy, protein, vitamins, and minerals. It will therefore be necessary in the future to intensify and diversify productive systems.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "1_____________",
+              "group": {
+                "id": "r-p1-1-5",
+                "instruction": "Write NO MORE THAN THREE WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "need"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "2_____________",
+              "group": {
+                "id": "r-p1-1-5",
+                "instruction": "Write NO MORE THAN THREE WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "ashes"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "3_____________",
+              "group": {
+                "id": "r-p1-1-5",
+                "instruction": "Write NO MORE THAN THREE WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "cassava"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "4_____________",
+              "group": {
+                "id": "r-p1-1-5",
+                "instruction": "Write NO MORE THAN THREE WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "ridges"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "5_____________",
+              "group": {
+                "id": "r-p1-1-5",
+                "instruction": "Write NO MORE THAN THREE WORDS from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "houses"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "matching",
+              "prompt": "6",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "fish"
+                },
+                {
+                  "key": "B",
+                  "text": "goats"
+                },
+                {
+                  "key": "C",
+                  "text": "oxen"
+                }
+              ],
+              "group": {
+                "id": "r-p1-6-9",
+                "instruction": "Match each statement with the correct animal, A, B or C.\nChoose the correct letter, A, B or C, in boxes 6-9.\nNB   You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "matching",
+              "prompt": "7",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "fish"
+                },
+                {
+                  "key": "B",
+                  "text": "goats"
+                },
+                {
+                  "key": "C",
+                  "text": "oxen"
+                }
+              ],
+              "group": {
+                "id": "r-p1-6-9",
+                "instruction": "Match each statement with the correct animal, A, B or C.\nChoose the correct letter, A, B or C, in boxes 6-9.\nNB   You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "matching",
+              "prompt": "8",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "fish"
+                },
+                {
+                  "key": "B",
+                  "text": "goats"
+                },
+                {
+                  "key": "C",
+                  "text": "oxen"
+                }
+              ],
+              "group": {
+                "id": "r-p1-6-9",
+                "instruction": "Match each statement with the correct animal, A, B or C.\nChoose the correct letter, A, B or C, in boxes 6-9.\nNB   You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "matching",
+              "prompt": "9",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "fish"
+                },
+                {
+                  "key": "B",
+                  "text": "goats"
+                },
+                {
+                  "key": "C",
+                  "text": "oxen"
+                }
+              ],
+              "group": {
+                "id": "r-p1-6-9",
+                "instruction": "Match each statement with the correct animal, A, B or C.\nChoose the correct letter, A, B or C, in boxes 6-9.\nNB   You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "true-false-notgiven",
+              "prompt": "10",
+              "group": {
+                "id": "r-p1-10-12",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "true-false-notgiven",
+              "prompt": "11",
+              "group": {
+                "id": "r-p1-10-12",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "true-false-notgiven",
+              "prompt": "12",
+              "group": {
+                "id": "r-p1-10-12",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "13",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They meet all the dietary needs of the local population."
+                },
+                {
+                  "key": "B",
+                  "text": "The region's natural resources have not been fully exploited."
+                },
+                {
+                  "key": "C",
+                  "text": "They will be inadequate to support a growing population."
+                },
+                {
+                  "key": "D",
+                  "text": "A larger labour force will be required for maximum efficiency."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Babies cry in their mother tongue",
+          "body": "Babies cry in their mother tongue\nA newborn baby's cry may sound the same to the ears of sleep-deprived parents the world over but, say scientists, comparisons of babies a few days old show that the cry of a newborn shares similarities with the language its parents speak. The reason for this is presumably the different intonation patterns in their native languages, which are already perceived in the uterus and are later reproduced\nA\tIt is already known that human foetuses become attentive listeners in the final trimester of pregnancy. 'The mother's voice in particular is sensed early on,' explains Professor Amelia Finlayson of the Institute for Human Cognitive and Brain Sciences in Leipzig. 'Human foetuses perceive information filtered at around 400 hertz, but they cannot hear the actual words. It is a bit like holding your head under water when someone is talking next to the bath.'\nB\tFinlayson's research indicates that newborn babies probably cannot distinguish between the accents of Welsh and Northern Scottish people or between Low German and Upper Bavarian, but they can recognise major differences in the intonation patterns of their respective mother tongues. The Leipzig researchers showed that in an earlier experiment, by means of physiological studies of babies of three to four months of age. For that study, the babies had hoods with electrodes put on their heads, and had recordings of different intonation patterns played to them. The children's brainwaves reacted to the differences even when they were asleep.\nC\tAt the same time, Doctor Katya Williams of the University of Wurzburg first suggested in her PhD thesis that babies' crying might be a stage in their linguistic development. Said Williams: 'It used to be thought that a baby's cry was just a signal of alarm to call its mother. This assumption was corrected when we noticed that the cries are not the same from week to week. What biological purpose would that have? If a fire siren sounded different every day, we would not even recognise it!'\nD\tThe question thus presented itself as to whether babies' cries already showed the intonation patterns of their different mother tongues. To study this, the Leipzig brain researchers and the 'screaming researchers' of the University of Wurzburg worked in collaboration with their colleagues at the Laboratory of Cognitive Sciences and Linguistics, at the Ecole Normale Superieure in Paris, to devise a new experiment. German and French babies were selected for the comparison because the differences in the intonation shapes of these two mother tongues are particularly pronounced. For example, the German word Papa is Papa in French.\nE\tThese three research groups made a comparison of recordings of 60 healthy newborns aged between two and five days old: 30 infants born into French-speaking families and 30 born into German-speaking families. Whenever the babies were hungry or thirsty or simply wanted their mothers and announced the fact by crying, the researchers were at the ready with their microphones and recorded their complaints. More than 20 hours of recordings of babies' crying were then fed into a computer for the purpose of analysis.\nF\tThe amazing result, published in the journal Modern Biology, is that just a few days after birth, babies use the acoustic input they perceive in the uterus to adapt their linguistic production to their target mother tongue. The melody of the German babies' screams usually began loudly and at a high pitch and then followed a downward curve, while the French babies more often screamed with a rising melody contour. Thus, they reproduce precisely the intonation patterns that are characteristic of their respective mother tongues. This proves, says the team of researchers, that babies' cries are attempts to communicate specifically with their mothers. 'Newborns are probably highly motivated to imitate their mother's behaviour in order to attract her and foster bonding and therefore physical nourishment,' they wrote. 'Because melody contour may be the only aspect of their mother's speech that newborns are able to imitate, this might explain why we found melody contour imitation at that early age.' This finding is interesting because it suggests that babies are producing sounds they have heard in the womb, meaning that this is learning rather than an innatebehaviour.\nG\tFurthermore, the findings are consistent with the hypothesis that linguistic development does not just begin from the age of nine to ten months, with the first babbling resembling language such as 'mam- mam-mam' or 'ba-ba-ba', but with the very first sounds that babies produce. 'We are born to learn language. And that starts right away,' says Dr Katya Williams. Dr Williams' colleague, Mr Walter Meade, discovered that this initial sensitivity to the melodic features of language assists infants to subsequently learn their mother tongue. 'The melodic patterns practised in crying are building blocks for eventual sound production, such as gurgling and babbling, right up to the first words and sentences,' says Meade.\nH\tThe results also demonstrated once again how language distinguishes human infants from all other primates. According to Williams, among baby chimpanzees, the 'crying melody' is closely associated with the build-up and reduction of pressure in the lungs, and is not generated by a mental process. 'In comparison with the sounds of other primates, the cries of a newborn human baby display a fantastic repertoire of melodic and rhythmic variations,' she adds. 'Our babies are expert vocalists in comparison with all the other animals. Could that offer some small consolation for nerve-wracked parents?'\nQuestions 14–19\nReading Passage 2 has eight paragraphs,\u0000A-H.\nWhich paragraph contains the following information?\nChoose the correct letter, A-H, in boxes 14-19.\nNB  \tYou may use any letter more than once.\n14\ta description of the methodology of an experiment carried out by several research institutes\n15\tthe rationale for choosing the participants of an experiment\n16\ta suggestion that babies are driven to copy their mothers to gain food\n17\tan account of the methodology of a past experiment carried out by the Leipzig researchers\n18\tan illustration of the limitation of babies' ability to hear inside the womb\n19\tan assertion that babies of different nationalities cry with different intonation\nQuestions 20–23\nLook at the following statements (Questions 20-23) and the list of researchers below.\nMatch each statement with the correct researcher, A, B, or C.\nChoose the correct letter, A, B, or C, in boxes 20-23.\nNB  You may use any letter more than once.\nLists of reseachers\nA.Professor Amelia Finlayson\nB.Doctor Katya Williams\nC. Mr Walter Meade\u0000\n\n20\tImportant everyday sounds must remain consistent in order to be understood.\n21\tThe different tones used in crying help babies to learn language later on.\n22\tThe tune of young primates’ cries is created by their breathing, not their brain.\n23\tUnborn babies in the womb are focused on the voice of one specific person.\nQuestions 24–26\nComplete the sentences below.\nWrite\u0000ONE WORD ONLY\u0000from the passage for each answer.\nProfessor Amelia Finlayson doubts unborn babies can recognise different\u000024___________.\u0000  \nIn the first Leipzig experiment, the25___________of babies changed upon hearing different intonation patterns.\nEarly scientists believed that babies cried for no other reason than as a\u000026___________ that they wanted their parents.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "14",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Professor Amelia Finlayson"
+                },
+                {
+                  "key": "B",
+                  "text": "Doctor Katya Williams"
+                },
+                {
+                  "key": "C",
+                  "text": "Mr Walter Meade"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                }
+              ],
+              "group": {
+                "id": "r-p2-14-19-14",
+                "instruction": "Which paragraph contains the following information?\nChoose the correct letter, A-H, in boxes 14-19.\nNB  \tYou may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "15",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Professor Amelia Finlayson"
+                },
+                {
+                  "key": "B",
+                  "text": "Doctor Katya Williams"
+                },
+                {
+                  "key": "C",
+                  "text": "Mr Walter Meade"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                }
+              ],
+              "group": {
+                "id": "r-p2-14-19-15",
+                "instruction": "Which paragraph contains the following information?\nChoose the correct letter, A-H, in boxes 14-19.\nNB  \tYou may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "16",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Professor Amelia Finlayson"
+                },
+                {
+                  "key": "B",
+                  "text": "Doctor Katya Williams"
+                },
+                {
+                  "key": "C",
+                  "text": "Mr Walter Meade"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-p2-14-19-16",
+                "instruction": "Which paragraph contains the following information?\nChoose the correct letter, A-H, in boxes 14-19.\nNB  \tYou may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "17",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Professor Amelia Finlayson"
+                },
+                {
+                  "key": "B",
+                  "text": "Doctor Katya Williams"
+                },
+                {
+                  "key": "C",
+                  "text": "Mr Walter Meade"
+                }
+              ],
+              "group": {
+                "id": "r-p2-14-19-17",
+                "instruction": "Which paragraph contains the following information?\nChoose the correct letter, A-H, in boxes 14-19.\nNB  \tYou may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "18",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Professor Amelia Finlayson"
+                },
+                {
+                  "key": "B",
+                  "text": "Doctor Katya Williams"
+                },
+                {
+                  "key": "C",
+                  "text": "Mr Walter Meade"
+                }
+              ],
+              "group": {
+                "id": "r-p2-14-19-18",
+                "instruction": "Which paragraph contains the following information?\nChoose the correct letter, A-H, in boxes 14-19.\nNB  \tYou may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "19",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Professor Amelia Finlayson"
+                },
+                {
+                  "key": "B",
+                  "text": "Doctor Katya Williams"
+                },
+                {
+                  "key": "C",
+                  "text": "Mr Walter Meade"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-p2-14-19-19",
+                "instruction": "Which paragraph contains the following information?\nChoose the correct letter, A-H, in boxes 14-19.\nNB  \tYou may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "20",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Professor Amelia Finlayson"
+                },
+                {
+                  "key": "B",
+                  "text": "Doctor Katya Williams"
+                },
+                {
+                  "key": "C",
+                  "text": "Mr Walter Meade"
+                }
+              ],
+              "group": {
+                "id": "r-p2-20-23",
+                "instruction": "Match each statement with the correct researcher, A, B, or C.\nChoose the correct letter, A, B, or C, in boxes 20-23.\nNB  You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "matching",
+              "prompt": "21",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Professor Amelia Finlayson"
+                },
+                {
+                  "key": "B",
+                  "text": "Doctor Katya Williams"
+                },
+                {
+                  "key": "C",
+                  "text": "Mr Walter Meade"
+                }
+              ],
+              "group": {
+                "id": "r-p2-20-23",
+                "instruction": "Match each statement with the correct researcher, A, B, or C.\nChoose the correct letter, A, B, or C, in boxes 20-23.\nNB  You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "matching",
+              "prompt": "22",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Professor Amelia Finlayson"
+                },
+                {
+                  "key": "B",
+                  "text": "Doctor Katya Williams"
+                },
+                {
+                  "key": "C",
+                  "text": "Mr Walter Meade"
+                }
+              ],
+              "group": {
+                "id": "r-p2-20-23",
+                "instruction": "Match each statement with the correct researcher, A, B, or C.\nChoose the correct letter, A, B, or C, in boxes 20-23.\nNB  You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "matching",
+              "prompt": "23",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Professor Amelia Finlayson"
+                },
+                {
+                  "key": "B",
+                  "text": "Doctor Katya Williams"
+                },
+                {
+                  "key": "C",
+                  "text": "Mr Walter Meade"
+                }
+              ],
+              "group": {
+                "id": "r-p2-20-23",
+                "instruction": "Match each statement with the correct researcher, A, B, or C.\nChoose the correct letter, A, B, or C, in boxes 20-23.\nNB  You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "24___________",
+              "group": {
+                "id": "r-p2-24-26",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "words"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "completion",
+              "prompt": "25___________",
+              "group": {
+                "id": "r-p2-24-26",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "brainswaves"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "completion",
+              "prompt": "26___________",
+              "group": {
+                "id": "r-p2-24-26",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "signal"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Ancient Rome: archaeologists are trying to understand more about the early history of the city",
+          "body": "Ancient Rome: archaeologists are trying to understand more about the early history of the city\nFrom ancient times to the present, historians have asked the question: How and why did an ordinary little town in central Italy grow so much bigger than any other in the ancient Mediterranean and come to control such a huge empire?’ During the first century BCE, Roman writers themselves began systematically to study the earlier centuries of their city and their empire. Yet these historians had little more direct evidence of the earliest phases of Rome's history than modern writers have, and in some ways perhaps not as much, as there were no surviving documents or archives. Their 'histories' about the foundation of ancient Rome tell us a good deal about how the Romans saw their city, their values, and their failings. However, they tell us very little indeed about what they claim to inform us about: that is, what earliest Rome was actually like. One fact is obvious. Rome was already a very old city by 63 BCE, the birth date of its first emperor. But how exactly are we to access reliable information about the origins of Rome?\nOne way of doing this is by turning away from the histories of Roman writers and seeking out clues in the Latin language, or in later Roman institutions that might point back to features of earliest Rome. Much more tangible, however, is the evidence of archaeology. Dig down deep in the city of Rome, below the visible ancient monuments, and a few traces of a much earlier settlement or settlements remain. Beneath the Forum itself (an ancient marketplace at the centre of the city) lie the remains of an early cemetery, which caused tremendous excitement when they were first unearthed at the start of the 20th century. Cemeteries imply the existence of a community, and traces of that are presumably to be found in the groups of huts whose faint outlines have been detected under various parts of the later city, including on the Palatine (the centremost of the seven hills on which Rome is built). We have little idea of the nature of these huts beyond their construction in wood, clay, and thatch, and still less of the lifestyle they supported. But we can fill in some of the gaps if we look just outside Rome. One of the best preserved and most carefully excavated of these early structures was found at Fidenae, a few miles north of the city, in the 1980s. It is a rectangular building, some six by five metres, made of wood and rammed earth - a construction method still utilised up to the present day - with a simple porch around it, formed by the overhanging roof. Inside was a central hearth, some large pottery storage jars, and traces of predictable foodstuffs and domestic animals.\nThere are vivid glimpses of human and other life here; the question is, what do those glimpses add up to? The archaeological remains certainly demonstrate that there is a long and rich prehistory behind the ancient Rome we can still see, but quite how long that prehistory is is another matter.\nPart of the problem is the conditions of excavation in the city itself. The site of Rome has been so intensively built on for centuries that we find these traces of early occupation only in spots that happen not to have been disturbed. The foundations dug in the first and second centuries CE for the vast marble temples of the forum obliterated much of what then lay beneath the surface; the cellars of grand Renaissance houses cut through even more ancient remains in other parts of the city. So we have tiny snapshots, never the big picture. This is archaeology at its most difficult, and - although new fragments of evidence emerge all the time - its interpretation, and reinterpretation is almost always contested and often controversial. For example, there is an ongoing debate about whether the small pieces of wattle and daub found in excavations in the Forum in the mid-20th century indicate that there was an early hut settlement there too, or whether they were inadvertently introduced as part of the rubble used a few centuries later to provide a new raised surface for the area. It has to be said that this place, though fine for a cemetery, would have been rather damp and marshy for a village.\nPrecise dating is even more contentious. It cannot be stressed enough that there is no certain independent date for any of the archaeological material from earliest Rome or the area around, and that arguments still rage about the age of almost every major find. It has taken decades of work over the past century or so - using such diagnostics as the existence of wheel-made pottery (assumed to be later than handmade), the occasional presence on graves of Greek ceramics (whose dating is better, but still not perfectly understood) and careful comparison from site to site - to produce a rough chronological scheme covering the period from around 1000 to 600 BCE.\nOn that basis, the earliest burials in Rome would have been around 1000 BCE, and the earliest known settlements around 750-700 BCE. But even these dates are far from certain. Recent scientific methods - including radiocarbon dating, which calculates the age of any organic material - have suggested that they are all too 'young', by as much as a hundred years. The building at Fidenae, for example, was dated around the middle of the eighth century BCE according to traditional archaeological criteria, but that is pushed back to around the end of the ninth century BCE if we follow radiocarbon analysis. If anything, Rome appears to be getting older.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "yes-no-notgiven",
+              "prompt": "27",
+              "group": {
+                "id": "r-p3-27-32",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or choose NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "yes-no-notgiven",
+              "prompt": "28",
+              "group": {
+                "id": "r-p3-27-32",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or choose NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "yes-no-notgiven",
+              "prompt": "29",
+              "group": {
+                "id": "r-p3-27-32",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or choose NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "yes-no-notgiven",
+              "prompt": "30",
+              "group": {
+                "id": "r-p3-27-32",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or choose NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "yes-no-notgiven",
+              "prompt": "31",
+              "group": {
+                "id": "r-p3-27-32",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or choose NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "yes-no-notgiven",
+              "prompt": "32",
+              "group": {
+                "id": "r-p3-27-32",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or choose NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "multiple-choice",
+              "prompt": "33",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They shed some light on the way of life of ancient Romans."
+                },
+                {
+                  "key": "B",
+                  "text": "They were the first evidence of an ancient Roman settlement in the area."
+                },
+                {
+                  "key": "C",
+                  "text": "They overturned common assumptions about the diet of ancient Romans."
+                },
+                {
+                  "key": "D",
+                  "text": "They showed how sophisticated domestic Roman architecture could be."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "multiple-choice",
+              "prompt": "34",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They were the most enduring buildings of their respective eras."
+                },
+                {
+                  "key": "B",
+                  "text": "They were evidence of Rome's enormous wealth."
+                },
+                {
+                  "key": "C",
+                  "text": "They were built on previously unoccupied sites."
+                },
+                {
+                  "key": "D",
+                  "text": "Their construction destroyed evidence of earlier buildings."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "multiple-choice",
+              "prompt": "35",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Only the age of a proportion of remains can be agreed upon."
+                },
+                {
+                  "key": "B",
+                  "text": "Only an approximate sequence of eras can be established."
+                },
+                {
+                  "key": "C",
+                  "text": "Serious attempts at dating began only a few decades ago."
+                },
+                {
+                  "key": "D",
+                  "text": "More thorough investigations will result in reliable dates."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "multiple-choice",
+              "prompt": "36",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "traditional archaeological methods of dating have been discredited."
+                },
+                {
+                  "key": "B",
+                  "text": "many archaeologists are reluctant to abandon traditional methods of dating."
+                },
+                {
+                  "key": "C",
+                  "text": "radiocarbon dating is more accurate than archaeological methods."
+                },
+                {
+                  "key": "D",
+                  "text": "the findings of traditional archaeology and radiocarbon dating differ."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "matching",
+              "prompt": "37",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "composed of organic materials which are in use in the 21st century."
+                },
+                {
+                  "key": "B",
+                  "text": "referred to in popular legends about the origins of Rome."
+                },
+                {
+                  "key": "C",
+                  "text": "constructed on the site of an earlier burial ground."
+                },
+                {
+                  "key": "D",
+                  "text": "used to determine the relative dates of various Roman artefacts."
+                },
+                {
+                  "key": "E",
+                  "text": "chosen as the area for the greatest number of archaeological excavations."
+                },
+                {
+                  "key": "F",
+                  "text": "expected to shed some light on what Rome was originally like."
+                }
+              ],
+              "group": {
+                "id": "r-p3-37-40",
+                "instruction": "Complete each sentence with the corect ending, A-F, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "matching",
+              "prompt": "38",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "composed of organic materials which are in use in the 21st century."
+                },
+                {
+                  "key": "B",
+                  "text": "referred to in popular legends about the origins of Rome."
+                },
+                {
+                  "key": "C",
+                  "text": "constructed on the site of an earlier burial ground."
+                },
+                {
+                  "key": "D",
+                  "text": "used to determine the relative dates of various Roman artefacts."
+                },
+                {
+                  "key": "E",
+                  "text": "chosen as the area for the greatest number of archaeological excavations."
+                },
+                {
+                  "key": "F",
+                  "text": "expected to shed some light on what Rome was originally like."
+                }
+              ],
+              "group": {
+                "id": "r-p3-37-40",
+                "instruction": "Complete each sentence with the corect ending, A-F, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "matching",
+              "prompt": "39",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "composed of organic materials which are in use in the 21st century."
+                },
+                {
+                  "key": "B",
+                  "text": "referred to in popular legends about the origins of Rome."
+                },
+                {
+                  "key": "C",
+                  "text": "constructed on the site of an earlier burial ground."
+                },
+                {
+                  "key": "D",
+                  "text": "used to determine the relative dates of various Roman artefacts."
+                },
+                {
+                  "key": "E",
+                  "text": "chosen as the area for the greatest number of archaeological excavations."
+                },
+                {
+                  "key": "F",
+                  "text": "expected to shed some light on what Rome was originally like."
+                }
+              ],
+              "group": {
+                "id": "r-p3-37-40",
+                "instruction": "Complete each sentence with the corect ending, A-F, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "matching",
+              "prompt": "40",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "composed of organic materials which are in use in the 21st century."
+                },
+                {
+                  "key": "B",
+                  "text": "referred to in popular legends about the origins of Rome."
+                },
+                {
+                  "key": "C",
+                  "text": "constructed on the site of an earlier burial ground."
+                },
+                {
+                  "key": "D",
+                  "text": "used to determine the relative dates of various Roman artefacts."
+                },
+                {
+                  "key": "E",
+                  "text": "chosen as the area for the greatest number of archaeological excavations."
+                },
+                {
+                  "key": "F",
+                  "text": "expected to shed some light on what Rome was originally like."
+                }
+              ],
+              "group": {
+                "id": "r-p3-37-40",
+                "instruction": "Complete each sentence with the corect ending, A-F, below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Weekend Course Booking",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Start date",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "July 18th"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Course code",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Q1632"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Previous course attended: Editing",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "photographs"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Name: Nick",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Poskitt"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Address: 27 Hawthorn",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "way"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Occupation",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "engineer"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Dietary requests: no",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fish"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "One-to-one lesson selected:",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "blues"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "First heard about us from: a",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "magazine"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Additional request: would like",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "parking"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-4-listening-full.mp4"
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Denford Festival",
+          "questions": [
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "matching",
+              "prompt": "Bridge Street",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "talks about gardening"
+                },
+                {
+                  "key": "B",
+                  "text": "live music"
+                },
+                {
+                  "key": "C",
+                  "text": "an art exhibition"
+                },
+                {
+                  "key": "D",
+                  "text": "a children's playground"
+                },
+                {
+                  "key": "E",
+                  "text": "evening entertainment"
+                },
+                {
+                  "key": "F",
+                  "text": "a competition for adults"
+                },
+                {
+                  "key": "G",
+                  "text": "vegetable market"
+                }
+              ],
+              "group": {
+                "id": "r-attractions-11-15",
+                "instruction": "What is the main attraction in each of the following areas of the festival? Choose FIVE correct answers, A-G, next to questions 11-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "matching",
+              "prompt": "King's Park",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "talks about gardening"
+                },
+                {
+                  "key": "B",
+                  "text": "live music"
+                },
+                {
+                  "key": "C",
+                  "text": "an art exhibition"
+                },
+                {
+                  "key": "D",
+                  "text": "a children's playground"
+                },
+                {
+                  "key": "E",
+                  "text": "evening entertainment"
+                },
+                {
+                  "key": "F",
+                  "text": "a competition for adults"
+                },
+                {
+                  "key": "G",
+                  "text": "vegetable market"
+                }
+              ],
+              "group": {
+                "id": "r-attractions-11-15",
+                "instruction": "What is the main attraction in each of the following areas of the festival? Choose FIVE correct answers, A-G, next to questions 11-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "matching",
+              "prompt": "Oakvale School",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "talks about gardening"
+                },
+                {
+                  "key": "B",
+                  "text": "live music"
+                },
+                {
+                  "key": "C",
+                  "text": "an art exhibition"
+                },
+                {
+                  "key": "D",
+                  "text": "a children's playground"
+                },
+                {
+                  "key": "E",
+                  "text": "evening entertainment"
+                },
+                {
+                  "key": "F",
+                  "text": "a competition for adults"
+                },
+                {
+                  "key": "G",
+                  "text": "vegetable market"
+                }
+              ],
+              "group": {
+                "id": "r-attractions-11-15",
+                "instruction": "What is the main attraction in each of the following areas of the festival? Choose FIVE correct answers, A-G, next to questions 11-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "Green Road",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "talks about gardening"
+                },
+                {
+                  "key": "B",
+                  "text": "live music"
+                },
+                {
+                  "key": "C",
+                  "text": "an art exhibition"
+                },
+                {
+                  "key": "D",
+                  "text": "a children's playground"
+                },
+                {
+                  "key": "E",
+                  "text": "evening entertainment"
+                },
+                {
+                  "key": "F",
+                  "text": "a competition for adults"
+                },
+                {
+                  "key": "G",
+                  "text": "vegetable market"
+                }
+              ],
+              "group": {
+                "id": "r-attractions-11-15",
+                "instruction": "What is the main attraction in each of the following areas of the festival? Choose FIVE correct answers, A-G, next to questions 11-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "Sun Lane",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "talks about gardening"
+                },
+                {
+                  "key": "B",
+                  "text": "live music"
+                },
+                {
+                  "key": "C",
+                  "text": "an art exhibition"
+                },
+                {
+                  "key": "D",
+                  "text": "a children's playground"
+                },
+                {
+                  "key": "E",
+                  "text": "evening entertainment"
+                },
+                {
+                  "key": "F",
+                  "text": "a competition for adults"
+                },
+                {
+                  "key": "G",
+                  "text": "vegetable market"
+                }
+              ],
+              "group": {
+                "id": "r-attractions-11-15",
+                "instruction": "What is the main attraction in each of the following areas of the festival? Choose FIVE correct answers, A-G, next to questions 11-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "multiple-choice",
+              "prompt": "What does Sam say about the festival tickets?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They allow you to get into all the festival events."
+                },
+                {
+                  "key": "B",
+                  "text": "They are more expensive to buy on the day."
+                },
+                {
+                  "key": "C",
+                  "text": "They have nearly all been sold."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "multiple-choice",
+              "prompt": "On the last night of the festival, visitors will be able to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "take part in a dance."
+                },
+                {
+                  "key": "B",
+                  "text": "go to a theatre performance."
+                },
+                {
+                  "key": "C",
+                  "text": "watch some fireworks."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "multiple-choice",
+              "prompt": "What will be provided for international visitors?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "discounts on accommodation."
+                },
+                {
+                  "key": "B",
+                  "text": "tours of the local area."
+                },
+                {
+                  "key": "C",
+                  "text": "a guide written in different languages."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "multiple-choice",
+              "prompt": "What information is given about car park A?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It is bigger than car park B."
+                },
+                {
+                  "key": "B",
+                  "text": "It is closer to town than car park B."
+                },
+                {
+                  "key": "C",
+                  "text": "It will close earlier than car park B."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "multiple-choice",
+              "prompt": "What change have the organisers made to the programme this year?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "replacing the programme with an app"
+                },
+                {
+                  "key": "B",
+                  "text": "reducing the number of programmes printed"
+                },
+                {
+                  "key": "C",
+                  "text": "introducing a charge for the programmes"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-4-listening-full.mp4"
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Action Research Course for Practising Teachers",
+          "questions": [
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "get his recent book called",
+              "group": {
+                "id": "r-course-21-23",
+                "title": "Action Research Course for Practising Teachers",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Course leader: Alan Cumner\n(get his recent book called '[21]')\nCourse objectives: to develop skills in:\n● using different research techniques\n● researching as part of a [22]\n● [23] (in a collaborative culture)"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "professional learning"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "researching as part of a",
+              "group": {
+                "id": "r-course-21-23",
+                "title": "Action Research Course for Practising Teachers",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Course leader: Alan Cumner\n(get his recent book called '[21]')\nCourse objectives: to develop skills in:\n● using different research techniques\n● researching as part of a [22]\n● [23] (in a collaborative culture)"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "team"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "completion",
+              "prompt": "in a collaborative culture",
+              "group": {
+                "id": "r-course-21-23",
+                "title": "Action Research Course for Practising Teachers",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Course leader: Alan Cumner\n(get his recent book called '[21]')\nCourse objectives: to develop skills in:\n● using different research techniques\n● researching as part of a [22]\n● [23] (in a collaborative culture)"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "presenting results"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "To record aspects of lesson, e.g.",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "behaviour"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "completion",
+              "prompt": "Writing a",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "diary"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "completion",
+              "prompt": "Observational technique",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "video recording"
+                ]
+              }
+            },
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "completion",
+              "prompt": "in classroom",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "simulation"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "completion",
+              "prompt": "Analysing",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "test results"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "completion",
+              "prompt": "Use the",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "internet"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "completion",
+              "prompt": "Using",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "interviews"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-4-listening-full.mp4"
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Digital Technology and Theorists",
+          "questions": [
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "multiple-choice",
+              "prompt": "What impact does Marc Prensky believe that digital technology has had on young people?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It has altered their thinking patterns."
+                },
+                {
+                  "key": "B",
+                  "text": "It has harmed their physical development."
+                },
+                {
+                  "key": "C",
+                  "text": "It has limited their brain capacity."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "multiple-choice",
+              "prompt": "Digital immigrants tend to access computers",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "using their native language."
+                },
+                {
+                  "key": "B",
+                  "text": "less efficiently than young people."
+                },
+                {
+                  "key": "C",
+                  "text": "for less important information."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "multiple-choice",
+              "prompt": "What example is given of having a 'digital accent'?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "having less effective typing skills"
+                },
+                {
+                  "key": "B",
+                  "text": "doing things the old-fashioned way"
+                },
+                {
+                  "key": "C",
+                  "text": "being unable to understand instructions"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "matching",
+              "prompt": "Current teaching methods don't work.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "matching",
+              "prompt": "Many students don't understand computers.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "matching",
+              "prompt": "Computer technology doesn't interest all students.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "matching",
+              "prompt": "Students can still learn the traditional way.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "matching",
+              "prompt": "Students still need to learn research skills.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "matching",
+              "prompt": "We should use computer games to teach.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "matching",
+              "prompt": "Computers can't replace educators.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/vol9-test-4-listening-full.mp4"
+        }
+      ]
+    }
+  ]
+}

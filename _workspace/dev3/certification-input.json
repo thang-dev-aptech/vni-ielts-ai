@@ -1,0 +1,455 @@
+{
+  "certified": false,
+  "verdict": "NOT CERTIFIED",
+  "meaning": "Foundation Ready cannot be declared. The reasons below are exhaustive at the time of this run.",
+  "assessedAt": "2026-08-28T14:56:17.990Z",
+  "commit": "5cdb3fcd86c90e793cfb262de6af7ff23fd0387b",
+  "workingTreeClean": false,
+  "checklist": {
+    "foundationReady": "chưa đạt",
+    "inProgress": "F5.2",
+    "items": [
+      {
+        "id": "F0",
+        "checked": true,
+        "title": "- [x] **F0 — Khôi phục các quality gate đáng tin cậy**"
+      },
+      {
+        "id": "F1",
+        "checked": true,
+        "title": "- [x] **F1 — Clean checkout và toolchain đa nền tảng**"
+      },
+      {
+        "id": "F2",
+        "checked": true,
+        "title": "- [x] **F2 — Runtime, health và artifact triển khai**"
+      },
+      {
+        "id": "F3",
+        "checked": true,
+        "title": "- [x] **F3 — Dữ liệu, backup và đường chuyển PostgreSQL**"
+      },
+      {
+        "id": "F4",
+        "checked": false,
+        "title": "- [ ] **F4 — Observability, security và software supply chain**"
+      },
+      {
+        "id": "F5",
+        "checked": false,
+        "title": "- [ ] **F5 — CI hợp nhất và chứng nhận Foundation Ready**"
+      },
+      {
+        "id": "F0.1",
+        "checked": true,
+        "title": "- [x] **F0.1 · Object-storage readiness phản ánh đúng sự thật**"
+      },
+      {
+        "id": "F0.2",
+        "checked": true,
+        "title": "- [x] **F0.2 · Idempotency integration suite deterministic**"
+      },
+      {
+        "id": "F0.3",
+        "checked": true,
+        "title": "- [x] **F0.3 · Production-smoke khởi động được**"
+      },
+      {
+        "id": "F0.4",
+        "checked": true,
+        "title": "- [x] **F0.4 · Bằng chứng cũ được sửa trạng thái**"
+      },
+      {
+        "id": "F1.1",
+        "checked": true,
+        "title": "- [x] **F1.1 · Node/pnpm đồng nhất**"
+      },
+      {
+        "id": "F1.2",
+        "checked": true,
+        "title": "- [x] **F1.2 · Generated API client không còn là bước ngầm**"
+      },
+      {
+        "id": "F1.3",
+        "checked": true,
+        "title": "- [x] **F1.3 · Documentation checks chạy trên Windows/Linux**"
+      },
+      {
+        "id": "F1.4",
+        "checked": true,
+        "title": "- [x] **F1.4 · Line ending và format deterministic**"
+      },
+      {
+        "id": "F1.5",
+        "checked": true,
+        "title": "- [x] **F1.5 · Local stack an toàn và bootstrap được**"
+      },
+      {
+        "id": "F1.6",
+        "checked": true,
+        "title": "- [x] **F1.6 · Playwright reproducible**"
+      },
+      {
+        "id": "F2.1",
+        "checked": true,
+        "title": "- [x] **F2.1 · Health contract thống nhất cho API**"
+      },
+      {
+        "id": "F2.2",
+        "checked": true,
+        "title": "- [x] **F2.2 · Worker có liveness/readiness thật**"
+      },
+      {
+        "id": "F2.3",
+        "checked": true,
+        "title": "- [x] **F2.3 · Graceful shutdown**"
+      },
+      {
+        "id": "F2.4",
+        "checked": true,
+        "title": "- [x] **F2.4 · Trusted proxy và client identity**"
+      },
+      {
+        "id": "F2.5",
+        "checked": true,
+        "title": "- [x] **F2.5 · Production config fail-fast**"
+      },
+      {
+        "id": "F2.6",
+        "checked": true,
+        "title": "- [x] **F2.6 · Artifact trung lập nhà cung cấp**"
+      },
+      {
+        "id": "F3.1",
+        "checked": true,
+        "title": "- [x] **F3.1 · Persistence boundary được khóa bằng architecture test**"
+      },
+      {
+        "id": "F3.2",
+        "checked": true,
+        "title": "- [x] **F3.2 · Thiết kế migration PostgreSQL hoàn chỉnh**"
+      },
+      {
+        "id": "F3.3",
+        "checked": true,
+        "title": "- [x] **F3.3 · Backup/PITR đạt RPO 5 phút**"
+      },
+      {
+        "id": "F3.4",
+        "checked": true,
+        "title": "- [x] **F3.4 · Restore drill đạt RTO 60 phút**"
+      },
+      {
+        "id": "F3.5",
+        "checked": true,
+        "title": "- [x] **F3.5 · Backup runner portable**"
+      },
+      {
+        "id": "F4.1",
+        "checked": true,
+        "title": "- [x] **F4.1 · OpenTelemetry end-to-end**"
+      },
+      {
+        "id": "F4.2",
+        "checked": true,
+        "title": "- [x] **F4.2 · Correlation và redaction**"
+      },
+      {
+        "id": "F4.3",
+        "checked": true,
+        "title": "- [x] **F4.3 · Metric/alert contract**"
+      },
+      {
+        "id": "F4.4",
+        "checked": true,
+        "title": "- [x] **F4.4 · Dependency và static security gates**"
+      },
+      {
+        "id": "F4.5",
+        "checked": true,
+        "title": "- [x] **F4.5 · Container supply chain**"
+      },
+      {
+        "id": "F5.1",
+        "checked": true,
+        "title": "- [x] **F5.1 · Một root verification command đáng tin**"
+      },
+      {
+        "id": "F5.2",
+        "checked": false,
+        "title": "- [ ] **F5.2 · Required CI matrix**"
+      },
+      {
+        "id": "F5.3",
+        "checked": true,
+        "title": "- [x] **F5.3 · Flaky-test burn-in**"
+      },
+      {
+        "id": "F5.4",
+        "checked": true,
+        "title": "- [x] **F5.4 · Full failure drills**"
+      },
+      {
+        "id": "F5.5",
+        "checked": false,
+        "title": "- [ ] **F5.5 · Documentation và báo cáo tổng**"
+      }
+    ]
+  },
+  "phases": [
+    {
+      "phase": "F3",
+      "title": "Data, backup and the PostgreSQL migration path",
+      "owner": "dev1",
+      "handoff": "docs/development/infrastructure-foundation-report.md",
+      "handoffPresent": true,
+      "entries": [
+        {
+          "id": "backup-runner",
+          "description": "Portable backup runner a future scheduler can call (F3.5).",
+          "candidates": ["scripts/pbm-run.sh"],
+          "present": ["scripts/pbm-run.sh"],
+          "ok": true
+        },
+        {
+          "id": "retention-selector",
+          "description": "Retention selector — it decides which backups get deleted (F3.3).",
+          "candidates": ["scripts/pbm-retention.mjs"],
+          "present": ["scripts/pbm-retention.mjs"],
+          "ok": true
+        },
+        {
+          "id": "retention-tests",
+          "description": "Month and ISO-week arithmetic of the retention selector.",
+          "candidates": ["scripts/pbm-retention.test.mjs"],
+          "present": ["scripts/pbm-retention.test.mjs"],
+          "ok": true
+        },
+        {
+          "id": "freshness-alert",
+          "description": "Backup/PITR staleness alarm (F3.4).",
+          "candidates": ["scripts/pbm-alert.sh"],
+          "present": ["scripts/pbm-alert.sh"],
+          "ok": true
+        },
+        {
+          "id": "pitr-drill",
+          "description": "Point-in-time restore into an isolated instance, RPO/RTO measured (F3.4).",
+          "candidates": ["scripts/pitr-drill.sh"],
+          "present": ["scripts/pitr-drill.sh"],
+          "ok": true
+        },
+        {
+          "id": "restore-drill",
+          "description": "Encrypted dump/restore round trip, run on every backend build.",
+          "candidates": ["scripts/restore-drill.sh"],
+          "present": ["scripts/restore-drill.sh"],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "phase": "F4",
+      "title": "Observability, security and software supply chain",
+      "owner": "dev2",
+      "handoff": "docs/development/infrastructure-foundation-report.md",
+      "handoffPresent": true,
+      "entries": [
+        {
+          "id": "otlp-export-test",
+          "description": "F4.1 — a local collector receives a correlated trace, metric and log from API and worker.",
+          "candidates": ["backend/tests/Vni.Ielts.Integration.Tests/TelemetryExportTests.cs"],
+          "present": ["backend/tests/Vni.Ielts.Integration.Tests/TelemetryExportTests.cs"],
+          "ok": true
+        },
+        {
+          "id": "redaction-test",
+          "description": "F4.2 — a payload deliberately full of secret-shaped values must not reach any log or export.",
+          "candidates": [
+            "backend/tests/Vni.Ielts.Integration.Tests/RedactionTests.cs",
+            "backend/tests/Vni.Ielts.Infrastructure.Tests/Observability/RedactionTests.cs"
+          ],
+          "present": ["backend/tests/Vni.Ielts.Integration.Tests/RedactionTests.cs"],
+          "ok": true
+        },
+        {
+          "id": "metric-alert-contract",
+          "description": "F4.3 — the metric/alert contract, with thresholds left in configuration. Landed as alerting.md; the speculative names are kept so the entry still resolves either way.",
+          "candidates": [
+            "docs/development/alerting.md",
+            "docs/development/observability.md",
+            "docs/development/metrics-and-alerts.md"
+          ],
+          "present": ["docs/development/alerting.md"],
+          "ok": true
+        },
+        {
+          "id": "security-gate-command",
+          "description": "F4.4 — dependency audit, secret scan, SAST and image scan, each failing on a deliberate fixture.",
+          "candidates": [
+            ".github/workflows/security.yml",
+            "scripts/security-gates.sh",
+            "scripts/security-gates.mjs"
+          ],
+          "present": [".github/workflows/security.yml"],
+          "ok": true
+        },
+        {
+          "id": "dependabot",
+          "description": "F4.4 — weekly npm, NuGet, Docker and GitHub Actions updates.",
+          "candidates": [".github/dependabot.yml", ".github/dependabot.yaml"],
+          "present": [".github/dependabot.yml"],
+          "ok": true
+        },
+        {
+          "id": "vulnerability-allowlist",
+          "description": "F4.4 — High/Critical findings are exempted only with a reason, an owner and an expiry.",
+          "candidates": [
+            "security/vulnerability-allowlist.json",
+            "ci/vulnerability-allowlist.json",
+            ".github/vulnerability-allowlist.json"
+          ],
+          "present": ["security/vulnerability-allowlist.json"],
+          "ok": true
+        },
+        {
+          "id": "sbom-and-signing",
+          "description": "F4.5 — SBOM, provenance and a keyless Cosign signature bound to an immutable image digest.",
+          "candidates": [
+            ".github/workflows/release-images.yml",
+            ".github/workflows/supply-chain.yml",
+            "scripts/sbom.sh"
+          ],
+          "present": [".github/workflows/release-images.yml", "scripts/sbom.sh"],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "phase": "F5",
+      "title": "Unified CI and Foundation Ready certification",
+      "owner": "dev3",
+      "handoff": "_workspace/dev3/report.md",
+      "handoffPresent": true,
+      "entries": [
+        {
+          "id": "root-verification",
+          "description": "F5.1 — the single ordered verification command.",
+          "candidates": ["scripts/verify.mjs"],
+          "present": ["scripts/verify.mjs"],
+          "ok": true
+        },
+        {
+          "id": "skip-gate",
+          "description": "F5.1 — no test is skipped without a dated, owned exemption.",
+          "candidates": ["scripts/check-test-skips.mjs"],
+          "present": ["scripts/check-test-skips.mjs"],
+          "ok": true
+        },
+        {
+          "id": "drift-gate",
+          "description": "F5.1 — generated artifacts are reproducible and untracked.",
+          "candidates": ["scripts/check-generated-drift.mjs"],
+          "present": ["scripts/check-generated-drift.mjs"],
+          "ok": true
+        },
+        {
+          "id": "ci-matrix",
+          "description": "F5.2 — Linux runs the whole pipeline; Windows runs the portability gates.",
+          "candidates": [".github/workflows/verify.yml"],
+          "present": [".github/workflows/verify.yml"],
+          "ok": true
+        },
+        {
+          "id": "burn-in",
+          "description": "F5.3 — the idempotency suite, ten consecutive iterations, no workflow-level retry.",
+          "candidates": ["scripts/burn-in.mjs"],
+          "present": ["scripts/burn-in.mjs"],
+          "ok": true
+        },
+        {
+          "id": "failure-drills",
+          "description": "F5.4 — every fault drill, each with the failure it is required to produce.",
+          "candidates": ["scripts/failure-drills.mjs"],
+          "present": ["scripts/failure-drills.mjs"],
+          "ok": true
+        },
+        {
+          "id": "certification",
+          "description": "F5.5 — collects every phase's evidence and refuses to certify an incomplete one.",
+          "candidates": ["scripts/certify-foundation.mjs"],
+          "present": ["scripts/certify-foundation.mjs"],
+          "ok": true
+        },
+        {
+          "id": "timing",
+          "description": "Elapsed-time record, separating filesystem-derived span from proven continuous execution.",
+          "candidates": ["_workspace/dev3/infrastructure-timing.json"],
+          "present": ["_workspace/dev3/infrastructure-timing.json"],
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "id": "pipeline",
+      "path": "_artifacts/verify/summary.json",
+      "present": true,
+      "ok": false,
+      "detail": "verdict is PARTIAL, not PASS (nothing — stages were skipped, blocked, unavailable or failed)",
+      "ranAt": "2026-08-28T14:07:50.011Z",
+      "commit": "5cdb3fcd86c90e793cfb262de6af7ff23fd0387b"
+    },
+    {
+      "id": "burn-in",
+      "path": "_artifacts/burn-in/summary.json",
+      "present": true,
+      "ok": true,
+      "detail": "idempotency 10/10",
+      "ranAt": "2026-08-28T12:34:35.381Z",
+      "commit": "5cdb3fcd86c90e793cfb262de6af7ff23fd0387b"
+    },
+    {
+      "id": "drills",
+      "path": "_artifacts/drills/summary.json",
+      "present": true,
+      "ok": false,
+      "detail": "verdict is PARTIAL (0 failed, 1 not run)",
+      "ranAt": "2026-08-28T14:56:01.518Z",
+      "commit": "5cdb3fcd86c90e793cfb262de6af7ff23fd0387b"
+    }
+  ],
+  "handoffs": [
+    {
+      "agent": "dev1",
+      "path": "_workspace/dev1/report.md",
+      "owns": "F3.4-F3.5 backup and restore",
+      "present": false
+    },
+    {
+      "agent": "dev2",
+      "path": "_workspace/dev2/report.md",
+      "owns": "F4 observability, security and supply chain",
+      "present": false
+    },
+    {
+      "agent": "dev3",
+      "path": "_workspace/dev3/report.md",
+      "owns": "F5 CI, certification and timing",
+      "present": true
+    }
+  ],
+  "refusals": [
+    "F4 is still unchecked in docs/development/infrastructure-foundation-todolist.md.",
+    "F5 is still unchecked in docs/development/infrastructure-foundation-todolist.md.",
+    "F5.2 is still unchecked in docs/development/infrastructure-foundation-todolist.md.",
+    "F5.5 is still unchecked in docs/development/infrastructure-foundation-todolist.md.",
+    "pipeline: verdict is PARTIAL, not PASS (nothing — stages were skipped, blocked, unavailable or failed)  (_artifacts/verify/summary.json)",
+    "drills: verdict is PARTIAL (0 failed, 1 not run)  (_artifacts/drills/summary.json)",
+    "The working tree is dirty. A Foundation certification must name a commit that actually contains what was verified."
+  ],
+  "notes": [
+    "The working tree has 134 uncommitted change(s). A certification quotes a commit SHA, so it must be run on a clean tree — otherwise the SHA describes something other than what was tested."
+  ]
+}

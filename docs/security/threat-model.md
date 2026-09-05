@@ -42,9 +42,17 @@ Two boundaries deserve emphasis because they are easy to get wrong:
 
 ## Account and identity
 
-### T1 · Account takeover via silent identity linking
-**Impact: High.** An attacker controlling a social account bearing a victim's email address could inherit the victim's account if identities auto-link on matching email.
-**Mitigation:** never link silently. Linking requires proof of ownership of both identities; the API returns `409` and demands explicit confirmation. → [`../architecture/key-flows.md`](../architecture/key-flows.md)
+### T1 · Account takeover via identity linking on a matching email
+**Impact: High.** Two directions, and the second is the one that is live in this product:
+1. An attacker controlling a social account bearing the victim's address inherits the victim's account.
+2. An attacker **registers** the victim's address first — registration does not require verification for the account to exist — sets a password, and waits. When the real owner later signs in with Google, a naive merge leaves the attacker's password working on the merged account.
+
+**Mitigation** — `M-1` was resolved on 2026-08-21 toward *one email is one account*, so the mitigation is no longer "never link silently". → [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md)
+- Direction 1: link only on an address the **provider** asserts is verified (`email_verified`). Google asserts it; Facebook does not, and so still returns `409 IDENTITY_LINK_REQUIRED`.
+- Direction 2: linking into an account whose own email was never verified clears that account's password hash and revokes every refresh-token family for the user. The legitimate user notices nothing — they arrived via the provider; the squatter loses the account.
+- Neither path links a `Suspended` account, and neither accepts a provider profile the API did not fetch itself (`T2`).
+
+**Accepted:** a verified account links with no proof of the password, so compromising the person's Google account compromises this one. That is inherent to accepting an identity provider at all.
 
 ### T2 · OAuth abuse
 **Impact: High.** Authorisation-code interception, redirect-URI manipulation, token substitution.
@@ -52,15 +60,28 @@ Two boundaries deserve emphasis because they are easy to get wrong:
 
 ### T3 · Token theft
 **Impact: High.**
-**Mitigation:** short-lived access tokens; refresh-token rotation with reuse detection (a replayed refresh token revokes the family); `HttpOnly`/`Secure`/`SameSite` cookies on web; platform secure storage on mobile; tokens never in URLs or logs.
+**Mitigation:** short-lived access tokens (15 minutes); refresh-token rotation with reuse detection (a replayed refresh token revokes the family); suspension revokes every family immediately; platform secure storage on mobile; tokens never in URLs or logs.
+
+> **Corrected 2026-08-21.** This entry previously said *"`HttpOnly`/`Secure`/`SameSite` cookies on web"*. **That is not what is built.** The web clients store the session in `localStorage` (`packages/auth/src/session.ts`) and send a bearer token; the API sets no cookie anywhere. `HttpOnly` was the stronger claim and stating it here made the residual XSS risk invisible.
+>
+> The trade is real in both directions — a cookie-based session needs CSRF defence that a bearer token does not — so this records the actual position rather than asserting the safer-sounding one. **Two consequences follow and neither is currently addressed:**
+>
+> 1. **An XSS anywhere in a client reads the session.** There is no `dangerouslySetInnerHTML`, no `eval`, and no `innerHTML` in either app today, which is what makes the position tenable. The Articles module (`M-24`) will render authored content and is where that stops being true by default.
+> 2. **The learner app and the CMS deliberately share one `localStorage` key**, so an operator is not asked to sign in twice. `localStorage` is scoped per origin, so this only works if both apps are served from the **same** origin — and then the learner app's JavaScript can read an operator's token. The learner app is the larger attack surface of the two. `[OPEN QUESTION]` **`V-13`** — serve the CMS from a separate origin and accept a second sign-in, or keep one origin and accept the coupling.
 
 ### T4 · Credential stuffing / automated account creation
 **Impact: Medium.** Directly enables referral fraud (T13).
-**Mitigation:** rate limiting per IP and per account; exponential lockout; email verification required before entitlement accrues; bot mitigation on registration. `[ASSUMPTION]` CAPTCHA on registration if abuse is observed.
+**Mitigation:** rate limiting per IP **and per account**; email verification required before entitlement accrues. `[ASSUMPTION]` CAPTCHA on registration if abuse is observed; bot mitigation on registration is not built.
+
+**Two controls, and they are complements rather than alternatives.** The HTTP limiter partitions on IP and its bound is deliberately loose — 120/minute — because Vietnamese carrier NAT and any school or office put many legitimate users behind one address, and a tight per-IP limit is a self-inflicted outage that looks exactly like the attack it was meant to stop. Credential stuffing is designed to slip under exactly that kind of limit by spreading a few guesses per account across many accounts and many addresses.
+
+So the account-side control is separate: `ILoginThrottle` locks an address for 15 minutes after **10 consecutive failed sign-ins**, checked *before* the password hash so an attack does not also buy free Argon2id derivations. It counts addresses that have no account too — counting only real ones would make the lockout an account-enumeration oracle, which is the thing every other branch of `LoginWithPassword` works to avoid.
 
 ### T5 · Password attacks
 **Impact: Medium.**
-**Mitigation:** modern memory-hard hashing (Argon2id); no arbitrary composition rules; screen against known-breached password lists; constant-time comparison; password reset tokens single-use, short-lived, and invalidating existing sessions.
+**Mitigation:** modern memory-hard hashing (Argon2id); no arbitrary composition rules; constant-time comparison; a per-address lockout after 10 consecutive failures (see T4); password reset tokens single-use, short-lived, and invalidating existing sessions.
+
+`[OPEN QUESTION]` **Screening against known-breached password lists is specified here and not implemented.** It needs either a bundled corpus or a k-anonymity range query to an external service — the second is a third-party dependency in the sign-up path and interacts with `B-2`.
 
 ---
 

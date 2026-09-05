@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!--
+    F2.2 — `Sdk.Web`, not `Sdk.Worker`, even though this process has no
+    controllers, no MVC and serves nobody but an orchestrator. The only thing
+    taken from it is Kestrel: a real HTTP listener for /health/live and
+    /health/ready, the same two questions the API answers and for the same
+    reason — a restart policy and a load balancer are not the same reader.
+    Before this the worker had no health port at all, and Dockerfile.worker
+    had no HEALTHCHECK to point at one.
+
+    No explicit Microsoft.Extensions.Hosting reference any more: the Web SDK's
+    shared framework already carries it, and declaring it again is a stale
+    duplicate the SDK's own package-pruning refuses to build past
+    (NU1510) now that this project pulls in ASP.NET Core.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vni.Ielts.Application\Vni.Ielts.Application.csproj" />
+    <ProjectReference Include="..\Vni.Ielts.Infrastructure\Vni.Ielts.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,70 @@
+/* Module pages inside the student shell.
+ *
+ * The public pages were built as long marketing pages: full-bleed heroes,
+ * intro copy, FAQ, closing CTA. Inside the sidebar shell a signed-in learner
+ * gets the working part of each page under a dashboard heading. These rules
+ * make that working part sit like the dashboard does — same measure, same
+ * padding, same background — without rewriting every page's own stylesheet.
+ */
+
+.shell-body .app-page {
+  flex: 1;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--s-6) var(--s-5) var(--s-8);
+  box-sizing: border-box;
+  color: var(--ink);
+}
+
+.shell-body .app-page > .container,
+.shell-body .app-page .prac-work > .container,
+.shell-body .app-page .dict-lib-band > .container,
+.shell-body .app-page .res-lib-band > .container {
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* The bands that framed each library on the public page. Inside the shell
+   the page background is the frame. */
+.shell-body .app-page .prac-work,
+.shell-body .app-page .dict-lib-band,
+.shell-body .app-page .res-lib-band,
+.shell-body .app-page .art-toolbar-band,
+.shell-body .app-page .page-body {
+  padding-top: 0;
+  padding-bottom: 0;
+  background: transparent;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-bottom: var(--s-5);
+}
+
+.page-head-title {
+  margin: 0;
+}
+
+.page-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+/* Results and profile keep their own page classes; inside the shell they
+   lose the landing-page top padding and take the dashboard measure. */
+.shell-body .result-page,
+.shell-body .profile-page {
+  padding-top: 0;
+}
+
+.shell-body .result-hero,
+.shell-body .profile-shell {
+  padding-top: var(--s-4);
+}

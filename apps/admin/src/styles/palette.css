@@ -1,0 +1,98 @@
+/* The CMS palette, taken from the learner app.
+ *
+ * <b>Why this file exists at all.</b> `@vni/design-system` ships a blue accent
+ * (`--acc: #2867ac`). The learner app no longer uses it: `landing.css` declares
+ * a `:root` block that overrides the tokens with a green identity, and
+ * `DashboardShell` imports that file — so every signed-in learner screen runs
+ * on green while the CMS ran on blue. Two products, one brand, two accents.
+ *
+ * This layer re-points the CMS's semantic tokens at the learner app's values.
+ * It is deliberately a *remap*, not a rewrite: `admin.css` keeps referring to
+ * `--acc`, `--ink`, `--line` and so on, so the whole surface re-skins without
+ * a thousand edited declarations, and a future change of direction is one file
+ * again rather than a search-and-replace.
+ *
+ * Values marked "verbatim" are copied character-for-character from
+ * `apps/web/src/styles/landing.css`. Do not "tidy" them here — if the learner
+ * app moves, this file follows it, and a local improvement silently breaks the
+ * parity that is the entire point.
+ *
+ * ── The one place this file does NOT copy the learner app ─────────────────
+ *
+ * `--green: #10b050` measures 2.86 against white, both as text and as a
+ * background under white text. `landing.css` records that failure in its own
+ * header and leaves it as designed, because the landing page is a marketing
+ * surface being redrawn. The CMS is a tool somebody reads for eight hours, and
+ * the last two browser audits of it reported zero pairs under 4.5 — so the
+ * green keeps its role as a *fill and border* colour here, and text-weight
+ * greens are taken from the darker end of the learner app's own range:
+ *
+ *   --acc      #06803a   5.05 on white · 4.77 on --page · 4.87 on --sunk
+ *   --acc-700  #085f2b   7.83 on white
+ *
+ * `#06803a` is not invented: it is the button fill the learner app already
+ * uses in `module-pages.css`. Nothing here introduces a hue the product does
+ * not have.
+ *
+ * Status colours (`--warn`, `--bad`) stay on the measured design-system
+ * values. The learner app's orange `#f08030` and red `#e86a61` are decorative
+ * and fail as text; a status colour that cannot be read is not a status
+ * colour. Red still means only "this has broken" — DESIGN.md law L1.
+ */
+
+:root {
+  /* ── Identity, verbatim from the learner app ───────────────────────── */
+  --green: #10b050;
+  --green-dark: #0a8d3c;
+  --green-soft: #e4f7eb;
+  --blue: #2070b0;
+  --blue-dark: #165b91;
+
+  /* ── Ink ───────────────────────────────────────────────────────────── */
+  --ink: #252525; /* verbatim · 15.33 on --card · 14.48 on --page */
+  --ink-2: #55605a; /* learner app's body grey · 6.55 on --card */
+  --muted: #6e6e6e; /* verbatim · 5.10 on --card · 4.82 on --page */
+
+  /* ── Surfaces ──────────────────────────────────────────────────────── */
+  --page: #f7f9f6; /* verbatim (--surface) */
+  --card: #ffffff; /* verbatim (--paper) */
+  --sunk: #fafbf9; /* learner app's inset fill */
+  --line: #e5e5e5; /* verbatim */
+  --line-2: #eef1ec; /* learner app's hairline */
+
+  /* ── Accent — green, at text weight ────────────────────────────────── */
+  --acc: #06803a;
+  --acc-700: #085f2b;
+  --acc-soft: #e4f7eb; /* verbatim (--green-soft) */
+  --acc-line: #c4e6d2; /* learner app's green border */
+  --color-accent: var(--acc);
+
+  /* ── Status ────────────────────────────────────────────────────────── */
+  --ok: #06803a;
+  --ok-soft: #e4f7eb;
+  --warn: #9a4e07; /* measured · 5.72 on --page */
+  --warn-soft: #fdf1e3;
+  --bad: #b3261e; /* measured · 6.17 on --page */
+  --bad-soft: #fce9e7;
+
+  /* ── Type ──────────────────────────────────────────────────────────── */
+  /* A defect found while measuring, not a preference. `index.html` has
+   * preloaded Nunito since the CMS was built — the learner app moved to it
+   * with the confirmed redesign — but `--font` still named Archivo, so the
+   * page downloaded one font and rendered another. Verified in the browser:
+   * `getComputedStyle(document.body).fontFamily` read "Archivo" while the
+   * Nunito stylesheet was loading in the same document.
+   *
+   * Same stack as `apps/web/src/styles/landing.css`, in the same order. */
+  --font:
+    'Nunito', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* ── Review states ─────────────────────────────────────────────────── */
+  /* `in-review` and `approved` are neither good news nor bad news, and
+   * dressing them in green or red would say something the state does not
+   * mean. Blue is the learner app's second identity colour and carries no
+   * verdict. */
+  --hold: var(--blue-dark); /* 7.14 on --card */
+  --hold-soft: #e9f2f9;
+  --hold-line: #cfe0f1;
+}

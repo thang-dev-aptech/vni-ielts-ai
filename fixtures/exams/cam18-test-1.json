@@ -1,0 +1,2275 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 18 — Test 1",
+  "variant": "academic",
+  "description": "Cambridge IELTS 18 Academic Test 1. Reading và Listening chấm theo đáp án in trong sách; không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "Urban farming",
+          "body": "Urban farming\n\nIn Paris, urban farmers are trying a soil-free approach to agriculture that uses less space and fewer resources. Could it help cities face the threats to our food supplies?\nOn top of a striking new exhibition hall in southern Paris, the world’s largest urban rooftop farm has started to bear fruit. Strawberries that are small, intensely flavoured and resplendently red sprout abundantly from large plastic tubes. Peer inside and you see the tubes are completely hollow, the roots of dozens of strawberry plants dangling down inside them. From identical vertical tubes nearby burst row upon row of lettuces; near those are aromatic herbs, such as basil, sage and peppermint. Opposite, in narrow, horizontal trays packed not with soil but with coconut fibre, grow cherry tomatoes, shiny aubergines and brightly coloured chards.\n\nPascal Hardy, an engineer and sustainable development consultant, began experimenting with vertical farming and aeroponic growing towers — as the soil-free plastic tubes are known — on his Paris apartment block roof five years ago. The urban rooftop space above the exhibition hall is somewhat bigger: 14,000 square metres and almost exactly the size of a couple of football pitches. Already, the team of young urban farmers who tend it have picked, in one day, 3,000 lettuces and 150 punnets of strawberries. When the remaining two thirds of the vast open area are in production, 20 staff will harvest up to 1,000 kg of perhaps 35 different varieties of fruit and vegetables, every day. ‘We’re not ever, obviously, going to feed the whole city this way,’ cautions Hardy. ‘In the urban environment you’re working with very significant practical constraints, clearly, on what you can do and where. But if enough unused space can be developed like this, there’s no reason why you shouldn’t eventually target maybe between 5% and 10% of consumption.’\n\nPerhaps most significantly, however, this is a real-life showcase for the work of Hardy’s flourishing urban agriculture consultancy, Agripolis, which is currently fielding enquiries from around the world to design, build and equip a new breed of soil-free inner-city farm. The method’s advantages are many,’ he says. ‘First, I don’t much like the fact that most of the fruit and vegetables we eat have been treated with something like 17 different pesticides, or that the intensive farming techniques that produced them are such huge generators of greenhouse gases. I don’t much like the fact, either, that they’ve travelled an average of 2,000 refrigerated kilometres to my plate, that their quality is so poor, because the varieties are selected for their capacity to withstand such substantial journeys, or that 80% of the price I pay goes to wholesalers and transport companies, not the producers.’\n\nProduce grown using this soil-free method, on the other hand — which relies solely on a small quantity of water, enriched with organic nutrients, pumped around a closed circuit of pipes, towers and trays — is ‘produced up here, and sold locally, just down there. It barely travels at all,’ Hardy says. ‘You can select crop varieties for their flavour, not their resistance to the transport and storage chain, and you can pick them when they’re really at their best, and not before.’ No soil is exhausted, and the water that gently showers the plants’ roots every 12 minutes is recycled, so the method uses 90% less water than a classic intensive farm for the same yield.\n\nUrban farming is not, of course, a new phenomenon. Inner-city agriculture is booming from Shanghai to Detroit and Tokyo to Bangkok. Strawberries are being grown in disused shipping containers, mushrooms in underground carparks. Aeroponic farming, he says, is ‘virtuous’. The equipment weighs little, can be installed on almost any flat surface and is cheap to buy: roughly €100 to €150 per square metre. It is cheap to run, too, consuming a tiny fraction of the electricity used by some techniques.\nProduce grown this way typically sells at prices that, while generally higher than those of classic intensive agriculture, are lower than soil-based organic growers. There are limits to what farmers can grow this way, of course, and much of the produce is suited to the summer months. ‘Root vegetables we cannot do, at least not yet,” he says. ‘Radishes are OK, but carrots, potatoes, that kind of thing — the roots are simply too long. Fruit trees are obviously not an option. And beans tend to take up a lot of space for not much return.’ Nevertheless, urban farming of the kind being practised in Paris is one part of a bigger and fast-changing picture that is bringing food production closer to our lives.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "r-s1-1-3",
+                "instruction": "Choose NO MORE THAN TWO WORDS ANDIOR A NUMBER from the passage for each answer.",
+                "text": "Urban farming in Paris\n1 Vertical tubes are used to grow Strawberries, [1] and herbs.\n2 There will eventually be a daily harvest of AS MUCH AS [2] weight of fruit and vegetables.\n3 It may be possible that the farm’s produce will account for as much as 10% of the city’s [3] overall consumption."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "lettuces"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "r-s1-1-3",
+                "instruction": "Choose NO MORE THAN TWO WORDS ANDIOR A NUMBER from the passage for each answer.",
+                "text": "Urban farming in Paris\n1 Vertical tubes are used to grow Strawberries, [1] and herbs.\n2 There will eventually be a daily harvest of AS MUCH AS [2] weight of fruit and vegetables.\n3 It may be possible that the farm’s produce will account for as much as 10% of the city’s [3] overall consumption."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "1,000 kg"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "r-s1-1-3",
+                "instruction": "Choose NO MORE THAN TWO WORDS ANDIOR A NUMBER from the passage for each answer.",
+                "text": "Urban farming in Paris\n1 Vertical tubes are used to grow Strawberries, [1] and herbs.\n2 There will eventually be a daily harvest of AS MUCH AS [2] weight of fruit and vegetables.\n3 It may be possible that the farm’s produce will account for as much as 10% of the city’s [3] overall consumption."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "(food) consumption"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "r-s1-4-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "intensive farming versus aeroponic urban farming\n[4] Growth | Selection | Sale\nIntensive farming e wide range of [4] and vegetables used and [5] chosen that can survive long [6] | [7] of overall income\nAeroponic urban farming e no soil used e [8] added to water, which is recycled"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "pesticides"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "r-s1-4-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "intensive farming versus aeroponic urban farming\n[4] Growth | Selection | Sale\nIntensive farming e wide range of [4] and vegetables used and [5] chosen that can survive long [6] | [7] of overall income\nAeroponic urban farming e no soil used e [8] added to water, which is recycled"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "journeys"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "r-s1-4-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "intensive farming versus aeroponic urban farming\n[4] Growth | Selection | Sale\nIntensive farming e wide range of [4] and vegetables used and [5] chosen that can survive long [6] | [7] of overall income\nAeroponic urban farming e no soil used e [8] added to water, which is recycled"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "producers"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "r-s1-4-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "intensive farming versus aeroponic urban farming\n[4] Growth | Selection | Sale\nIntensive farming e wide range of [4] and vegetables used and [5] chosen that can survive long [6] | [7] of overall income\nAeroponic urban farming e no soil used e [8] added to water, which is recycled"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "flavour",
+                  "flavor"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "true-false-notgiven",
+              "prompt": "Urban farming can take place above or below ground.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE, FALSE or NOT GIVEN."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "true-false-notgiven",
+              "prompt": "Some of the equipment used in aeroponic farming can be made by hand.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE, FALSE or NOT GIVEN."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "true-false-notgiven",
+              "prompt": "Urban farming relies more on electricity than some other types of farming.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE, FALSE or NOT GIVEN."
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "true-false-notgiven",
+              "prompt": "Fruit and vegetables grown on an aeroponic urban farm are cheaper than traditionally grown organic produce.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE, FALSE or NOT GIVEN."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "true-false-notgiven",
+              "prompt": "Most produce can be grown on an aeroponic urban farm at any time of the year.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE, FALSE or NOT GIVEN."
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "true-false-notgiven",
+              "prompt": "Beans take longer to grow on an urban farm than other vegetables.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Choose TRUE, FALSE or NOT GIVEN."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Forest management in Pennsylvania, USA",
+          "body": "Forest management in Pennsylvania, USA\n\nHow managing low-quality wood (also known as low-use wood) for bioenergy can encourage sustainable forest management\n\nA A tree’s ‘value’ depends on several factors including its species, size, form, condition, quality, function, and accessibility, and depends on the management goals for a given forest. The same tree can be valued very differently by each person who looks at it. A large, straight black cherry tree has high value as timber to be cut into logs or made into furniture, but for a landowner more interested in wildlife habitat, the real value of that stem (or trunk) may be the food it provides to animals. Likewise, if the tree suffers from black knot disease, its value for timber decreases, but to a woodworker interested in making bowls, it brings an opportunity for a unique and beautiful piece of art.\n\nB In the past, Pennsylvania landowners were solely interested in the value of their trees as high-quality timber. The norm was to remove the stems of highest quality and leave behind poorly formed trees that were not as well suited to the site where they grew. This practice, called ‘high-grading’, has left a legacy of ‘low-use wood’ in the forests. Some people even call these ‘junk trees’, and they are abundant in Pennsylvania. These trees have lower economic value for traditional timber markets, compete for growth with higher-value trees, shade out desirable regeneration and decrease the health of a stand, leaving it more vulnerable to poor weather and disease. Management that specifically targets low-use wood can help landowners manage these forest health issues, and wood energy markets help promote this.\n\nC Wood energy markets can accept less expensive wood material of lower quality than would be suitable for traditional timber markets. Most wood used for energy in Pennsylvania is used to produce heat or electricity through combustion. Many schools and hospitals use wood boiler systems to heat and power their facilities, many homes are primarily heated with wood, and some coal plants incorporate wood into their coal streams to produce electricity. Wood can also be gasified for electrical generation and can even be made into liquid fuels like ethanol and gasoline for lorries and cars. All these products are made primarily from low-use wood. Several tree- and plant-cutting approaches, which could greatly improve the long-term quality of a forest, focus strongly or solely on the use of wood for those markets.\n\nD One such approach is called a Timber Stand Improvement (TSI) Cut. In a TSI Cut, really poor-quality tree and plant material is cut down to allow more space, light, and other resources to the highest-valued stems that remain. Removing invasive plants might be another primary goal of a TSI Cut. The stems that are left behind might then grow in size and develop more foliage and larger crowns or tops that produce more coverage for wildlife; they have a better chance to regenerate in a less crowded environment. TSI Cuts can be tailored to one farmer’s specific management goals for his or her land.\n\nE Another approach that might yield a high amount of low-use wood is a Salvage Cut. With the many pests and pathogens visiting forests including hemlock wooly adelgid, Asian longhorned beetle, emerald ash borer, and gypsy moth, to name just a few, it is important to remember that those working in the forests can help ease these issues through cutting procedures. These types of cut reduce the number of sick trees and seek to manage the future spread of a pest problem. They leave vigorous trees that have stayed healthy enough to survive the outbreak.\n\nF A Shelterwood Cut, which only takes place in a mature forest that has already been thinned several times, involves removing all the mature trees when other seedlings have become established. This then allows the forester to decide which tree species are regenerated. It leaves a young forest where all trees are at a similar point in their growth. It can also be used to develop a two-tier forest so that there are two harvests and the money that comes in is spread out over a decade or more.\n\nG Thinnings and dense and dead wood removal for fire prevention also center on the production of low-use wood. However, it is important to remember that some retention of what many would classify as low-use wood is very important. The tops of trees that have been cut down should be left on the site so that their nutrients cycle back into the soil. In addition, trees with many cavities are extremely important habitats for insect predators like woodpeckers, bats and small mammals. They help control problem insects and increase the health and resilience of the forest. It is also important to remember that not all small trees are low-use. For example, many species like hawthorn provide food for wildlife. Finally, rare species of trees in a forest should also stay behind as they add to its structural diversity.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "bad outcomes for a forest when people focus only on its financial reward",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nWhich paragraph contains the following information?\nWrite the correct letter, A-G, in boxes 14-18 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "reference to the aspects of any tree that contribute to its worth",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nWhich paragraph contains the following information?\nWrite the correct letter, A-G, in boxes 14-18 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "mention of the potential use of wood to help run vehicles",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nWhich paragraph contains the following information?\nWrite the correct letter, A-G, in boxes 14-18 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "examples of insects that attack trees",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nWhich paragraph contains the following information?\nWrite the correct letter, A-G, in boxes 14-18 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "an alternative name for trees that produce low-use wood",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has seven paragraphs, A-G.\nWhich paragraph contains the following information?\nWrite the correct letter, A-G, in boxes 14-18 on your answer sheet.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "to remove trees that are diseased",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "TSI Cut"
+                },
+                {
+                  "key": "B",
+                  "text": "Salvage Cut"
+                },
+                {
+                  "key": "C",
+                  "text": "Shelterwood Cut"
+                }
+              ],
+              "group": {
+                "id": "r-cuts-19-21",
+                "instruction": "Match each purpose with the correct timber cut, A, B or C.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "to generate income across a number of years",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "TSI Cut"
+                },
+                {
+                  "key": "B",
+                  "text": "Salvage Cut"
+                },
+                {
+                  "key": "C",
+                  "text": "Shelterwood Cut"
+                }
+              ],
+              "group": {
+                "id": "r-cuts-19-21",
+                "instruction": "Match each purpose with the correct timber cut, A, B or C.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "matching",
+              "prompt": "to create a forest whose trees are close in age",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "TSI Cut"
+                },
+                {
+                  "key": "B",
+                  "text": "Salvage Cut"
+                },
+                {
+                  "key": "C",
+                  "text": "Shelterwood Cut"
+                }
+              ],
+              "group": {
+                "id": "r-cuts-19-21",
+                "instruction": "Match each purpose with the correct timber cut, A, B or C.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "Question 22",
+              "group": {
+                "id": "r-s2-22-26",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "Some dead wood is removed to avoid the possibility of [22]\nThe [23] from the tops of cut trees can help improve soil quality.\nSome damaged trees should be left, as their [24] provide habitats for a range of creatures.\nSome trees that are small, such as [25], are a source of food for animals and insects\nAny trees that are [26] should be left to grow, as they add to the variety of species in the forest."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fire"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "completion",
+              "prompt": "Question 23",
+              "group": {
+                "id": "r-s2-22-26",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "Some dead wood is removed to avoid the possibility of [22]\nThe [23] from the tops of cut trees can help improve soil quality.\nSome damaged trees should be left, as their [24] provide habitats for a range of creatures.\nSome trees that are small, such as [25], are a source of food for animals and insects\nAny trees that are [26] should be left to grow, as they add to the variety of species in the forest."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "nutrients"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "Question 24",
+              "group": {
+                "id": "r-s2-22-26",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "Some dead wood is removed to avoid the possibility of [22]\nThe [23] from the tops of cut trees can help improve soil quality.\nSome damaged trees should be left, as their [24] provide habitats for a range of creatures.\nSome trees that are small, such as [25], are a source of food for animals and insects\nAny trees that are [26] should be left to grow, as they add to the variety of species in the forest."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "cavities"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "completion",
+              "prompt": "Question 25",
+              "group": {
+                "id": "r-s2-22-26",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "Some dead wood is removed to avoid the possibility of [22]\nThe [23] from the tops of cut trees can help improve soil quality.\nSome damaged trees should be left, as their [24] provide habitats for a range of creatures.\nSome trees that are small, such as [25], are a source of food for animals and insects\nAny trees that are [26] should be left to grow, as they add to the variety of species in the forest."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "hawthorn"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "completion",
+              "prompt": "Question 26",
+              "group": {
+                "id": "r-s2-22-26",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "Some dead wood is removed to avoid the possibility of [22]\nThe [23] from the tops of cut trees can help improve soil quality.\nSome damaged trees should be left, as their [24] provide habitats for a range of creatures.\nSome trees that are small, such as [25], are a source of food for animals and insects\nAny trees that are [26] should be left to grow, as they add to the variety of species in the forest."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "rare"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Conquering Earth’s space junk problem",
+          "body": "Conquering Earth’s space junk problem\n\nSatellites, rocket shards and collision debris are creating major traffic risks in orbit around the planet. Researchers are working to reduce these threats\n\nA Last year, commercial companies, military and civil departments and amateurs sent more than 400 satellites into orbit, over four times the yearly average in the previous decade. Numbers could rise even more sharply if leading space companies follow through on plans to deploy hundreds to thousands of large constellations of satellites to space in the next few years.\nAll that traffic can lead to disaster. Ten years ago, a US commercial Iridium satellite smashed into an inactive Russian communications satellite called Cosmos-2251, creating thousands of new pieces of space shrapnel that now threaten other satellites in low Earth orbit — the zone stretching up to 2,000 kilometres in altitude. Altogether, there are roughly 20,000 human-made objects in orbit, from working satellites to small rocket pieces. And satellite operators can’t steer away from every potential crash, because each move consumes time and fuel that could otherwise be used for the spacecraft’s main job.\nB Concern about space junk goes back to the beginning of the satellite era, but the number of objects in orbit is rising so rapidly that researchers are investigating new ways of attacking the problem. Several teams are trying to improve methods for assessing what is in orbit, so that satellite operators can work more efficiently in ever-more-crowded space. Some researchers are now starting to compile a massive data set that includes the best possible information on where everything is in orbit. Others are developing taxonomies of space debris — working on measuring properties such as the shape and size of an object, so that satellite operators know how much to worry about what's coming their way.\nThe alternative, many say, is unthinkable. Just a few uncontrolled space crashes could generate enough debris to set off a runaway cascade of fragments, rendering near-Earth space unusable. ‘If we go on like this, we will reach a point of no return,’ says Carolin Frueh, an astrodynamical researcher at Purdue University in West Lafayette, Indiana.\nC Even as our ability to monitor space objects increases, so too does the total number of items in orbit. That means companies, governments and other players in space are collaborating in new ways to avoid a shared threat. International groups such as the Inter-Agency Space Debris Coordination Committee have developed guidelines on space sustainability. Those include inactivating satellites at the end of their useful life by venting pressurised materials or leftover fuel that might lead to explosions. The intergovernmental groups also advise lowering satellites deep enough into the atmosphere that they will burn up or disintegrate within 25 years. But so far, only about half of all missions have abided by this 25-year goal, says Holger Krag, head of the European Space Agency’s space-debris office in Darmstadt, Germany. Operators of the planned large constellations of satellites say they will be responsible stewards in their enterprises in space, but Krag worries that problems could increase, despite their best intentions. ‘What happens to those that fail or go bankrupt?’ he asks. ‘They are probably not going to spend money to remove their satellites from space.’\nD In theory, given the vastness of space, satellite operators should have plenty of room for all these missions to fly safely without ever nearing another object. So some scientists are tackling the problem of space junk by trying to find out where all the debris is to a high degree of precision. That would alleviate the need for many of the unnecessary manoeuvres that are carried out to avoid potential collisions. ‘If you knew precisely where everything was, you would almost never have a problem,’ says Marlon Sorge, a space-debris specialist at the Aerospace Corporation in El Segundo, California.\nE The field is called space traffic management, because it’s similar to managing traffic on the roads or in the air. Think about a busy day at an airport, says Moriba Jah, an astrodynamicist at the University of Texas at Austin: planes line up in the sky, landing and taking off close to one another in a carefully choreographed routine. Air-traffic controllers know the location of the planes down to one metre in accuracy. The same can’t be said for space debris. Not all objects in orbit are known, and even those included in databases are not tracked consistently.\nF An additional problem is that there is no authoritative catalogue that accurately lists the orbits of all known space debris. Jah illustrates this with a web-based database that he has developed. It draws on several sources, such as catalogues maintained by the US and Russian governments, to visualise where objects are in space. When he types in an identifier for a particular space object, the database draws a purple line to designate its orbit. Only this doesn’t quite work for a number of objects, such as a Russian rocket body designated in the database as object number 32280. When Jah enters that number, the database draws two purple lines: the US and Russian sources contain two completely different orbits for the same object. Jah says that it is almost impossible to tell which is correct, unless a third source of information made it possible to cross-correlate.\n\nJah describes himself as a space environmentalist: ‘I want to make space a place that is safe to operate, that is free and useful for generations to come.’ Until that happens, he argues, the space community will continue devolving into a tragedy in which all spaceflight operators are polluting a common resource.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "areference to the cooperation that takes place to try and minimise risk",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-27-31",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nWhich section contains the following information?\nWrite the correct letter, A-F, in boxes 27-31 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "an explanation of a person’s aims",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-27-31",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nWhich section contains the following information?\nWrite the correct letter, A-F, in boxes 27-31 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "adescription of a major collision that occurred in space",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-27-31",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nWhich section contains the following information?\nWrite the correct letter, A-F, in boxes 27-31 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "acomparison between tracking objects in space and the efficiency of a transportation system",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-27-31",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nWhich section contains the following information?\nWrite the correct letter, A-F, in boxes 27-31 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "areference to efforts to classify space junk",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-27-31",
+                "instruction": "Reading Passage 3 has six sections, A-F.\nWhich section contains the following information?\nWrite the correct letter, A-F, in boxes 27-31 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "r-s3-32-35",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Inter-Agency Space Debris Coordination Committee\nThe committee gives advice on how the [32] of space can be achieved. The committee advises that when satellites are no longer active, any unused [33], or pressurised material that could cause [34] should be removed. Although operators of large satellite constellations accept that they have obligations as stewards of space, Holger Krag points out that the operators that become [35] are unlikely to prioritise removing their satellites from space."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "sustainability"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "r-s3-32-35",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Inter-Agency Space Debris Coordination Committee\nThe committee gives advice on how the [32] of space can be achieved. The committee advises that when satellites are no longer active, any unused [33], or pressurised material that could cause [34] should be removed. Although operators of large satellite constellations accept that they have obligations as stewards of space, Holger Krag points out that the operators that become [35] are unlikely to prioritise removing their satellites from space."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fuel"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "r-s3-32-35",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Inter-Agency Space Debris Coordination Committee\nThe committee gives advice on how the [32] of space can be achieved. The committee advises that when satellites are no longer active, any unused [33], or pressurised material that could cause [34] should be removed. Although operators of large satellite constellations accept that they have obligations as stewards of space, Holger Krag points out that the operators that become [35] are unlikely to prioritise removing their satellites from space."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "explosions"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "r-s3-32-35",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Inter-Agency Space Debris Coordination Committee\nThe committee gives advice on how the [32] of space can be achieved. The committee advises that when satellites are no longer active, any unused [33], or pressurised material that could cause [34] should be removed. Although operators of large satellite constellations accept that they have obligations as stewards of space, Holger Krag points out that the operators that become [35] are unlikely to prioritise removing their satellites from space."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "bankrupt"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "matching",
+              "prompt": "Knowing the exact location of space junk would help prevent any possible danger.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Carolin Frueh"
+                },
+                {
+                  "key": "B",
+                  "text": "Holger Krag"
+                },
+                {
+                  "key": "C",
+                  "text": "Marlon Sorge"
+                },
+                {
+                  "key": "D",
+                  "text": "Moriba Jah"
+                }
+              ],
+              "group": {
+                "id": "r-people-36-40",
+                "instruction": "Match each statement with the correct person, A, B, C or D.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "matching",
+              "prompt": "Space should be available to everyone and should be preserved for the future.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Carolin Frueh"
+                },
+                {
+                  "key": "B",
+                  "text": "Holger Krag"
+                },
+                {
+                  "key": "C",
+                  "text": "Marlon Sorge"
+                },
+                {
+                  "key": "D",
+                  "text": "Moriba Jah"
+                }
+              ],
+              "group": {
+                "id": "r-people-36-40",
+                "instruction": "Match each statement with the correct person, A, B, C or D.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "matching",
+              "prompt": "Arecommendation regarding satellites is widely ignored.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Carolin Frueh"
+                },
+                {
+                  "key": "B",
+                  "text": "Holger Krag"
+                },
+                {
+                  "key": "C",
+                  "text": "Marlon Sorge"
+                },
+                {
+                  "key": "D",
+                  "text": "Moriba Jah"
+                }
+              ],
+              "group": {
+                "id": "r-people-36-40",
+                "instruction": "Match each statement with the correct person, A, B, C or D.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "matching",
+              "prompt": "There is conflicting information about where some satellites are in space.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Carolin Frueh"
+                },
+                {
+                  "key": "B",
+                  "text": "Holger Krag"
+                },
+                {
+                  "key": "C",
+                  "text": "Marlon Sorge"
+                },
+                {
+                  "key": "D",
+                  "text": "Moriba Jah"
+                }
+              ],
+              "group": {
+                "id": "r-people-36-40",
+                "instruction": "Match each statement with the correct person, A, B, C or D.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "matching",
+              "prompt": "There is a risk we will not be able to undo the damage that occurs in space.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Carolin Frueh"
+                },
+                {
+                  "key": "B",
+                  "text": "Holger Krag"
+                },
+                {
+                  "key": "C",
+                  "text": "Marlon Sorge"
+                },
+                {
+                  "key": "D",
+                  "text": "Moriba Jah"
+                }
+              ],
+              "group": {
+                "id": "r-people-36-40",
+                "instruction": "Match each statement with the correct person, A, B, C or D.\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Transport survey",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Postcode",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn't own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "6C"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Date of bus journey",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn't own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "24 (th) April"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Reason for trip: Shopping and visit to the",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn't own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "dentist"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Travelled by bus because cost of",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn't own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "parking"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Got on bus at",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn't own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Claxby"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Complaints about bus service: bus today was",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn't own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "late"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "frequency of buses in the",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn't own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "evening"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Goes to the",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn't own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "supermarket"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Dislikes travelling by bike in the city centre because of the",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn't own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "pollution"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Doesn't own a bike because of a lack of",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn't own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "storage"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam18-test-1-listening-part1.mp3"
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Becoming a volunteer for ACE",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "Why does the speaker apologise about the seats?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They are too small."
+                },
+                {
+                  "key": "B",
+                  "text": "There are not enough of them."
+                },
+                {
+                  "key": "C",
+                  "text": "Some of them are very close together."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "What does the speaker say about the age of volunteers?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The age of volunteers is less important than other factors."
+                },
+                {
+                  "key": "B",
+                  "text": "Young volunteers are less reliable than older ones."
+                },
+                {
+                  "key": "C",
+                  "text": "Most volunteers are about 60 years old."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "What does the speaker say about training?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It is continuous."
+                },
+                {
+                  "key": "B",
+                  "text": "It is conducted by a manager."
+                },
+                {
+                  "key": "C",
+                  "text": "It takes place online."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-select",
+              "prompt": "Which TWO issues does the speaker ask the audience to consider before they apply to be volunteers?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "their financial situation"
+                },
+                {
+                  "key": "B",
+                  "text": "their level of commitment"
+                },
+                {
+                  "key": "C",
+                  "text": "their work experience"
+                },
+                {
+                  "key": "D",
+                  "text": "their ambition"
+                },
+                {
+                  "key": "E",
+                  "text": "their availability"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Fundraising",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "experience on stage"
+                },
+                {
+                  "key": "B",
+                  "text": "original, new ideas"
+                },
+                {
+                  "key": "C",
+                  "text": "parenting skills"
+                },
+                {
+                  "key": "D",
+                  "text": "an understanding of food and diet"
+                },
+                {
+                  "key": "E",
+                  "text": "retail experience"
+                },
+                {
+                  "key": "F",
+                  "text": "a good memory"
+                },
+                {
+                  "key": "G",
+                  "text": "a good level of fitness"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What does the speaker suggest would be helpful for each of the following areas of voluntary work? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 16-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Litter collection",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "experience on stage"
+                },
+                {
+                  "key": "B",
+                  "text": "original, new ideas"
+                },
+                {
+                  "key": "C",
+                  "text": "parenting skills"
+                },
+                {
+                  "key": "D",
+                  "text": "an understanding of food and diet"
+                },
+                {
+                  "key": "E",
+                  "text": "retail experience"
+                },
+                {
+                  "key": "F",
+                  "text": "a good memory"
+                },
+                {
+                  "key": "G",
+                  "text": "a good level of fitness"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What does the speaker suggest would be helpful for each of the following areas of voluntary work? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 16-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "‘Playmates’",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "experience on stage"
+                },
+                {
+                  "key": "B",
+                  "text": "original, new ideas"
+                },
+                {
+                  "key": "C",
+                  "text": "parenting skills"
+                },
+                {
+                  "key": "D",
+                  "text": "an understanding of food and diet"
+                },
+                {
+                  "key": "E",
+                  "text": "retail experience"
+                },
+                {
+                  "key": "F",
+                  "text": "a good memory"
+                },
+                {
+                  "key": "G",
+                  "text": "a good level of fitness"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What does the speaker suggest would be helpful for each of the following areas of voluntary work? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 16-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Story club",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "experience on stage"
+                },
+                {
+                  "key": "B",
+                  "text": "original, new ideas"
+                },
+                {
+                  "key": "C",
+                  "text": "parenting skills"
+                },
+                {
+                  "key": "D",
+                  "text": "an understanding of food and diet"
+                },
+                {
+                  "key": "E",
+                  "text": "retail experience"
+                },
+                {
+                  "key": "F",
+                  "text": "a good memory"
+                },
+                {
+                  "key": "G",
+                  "text": "a good level of fitness"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What does the speaker suggest would be helpful for each of the following areas of voluntary work? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 16-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "First aid",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "experience on stage"
+                },
+                {
+                  "key": "B",
+                  "text": "original, new ideas"
+                },
+                {
+                  "key": "C",
+                  "text": "parenting skills"
+                },
+                {
+                  "key": "D",
+                  "text": "an understanding of food and diet"
+                },
+                {
+                  "key": "E",
+                  "text": "retail experience"
+                },
+                {
+                  "key": "F",
+                  "text": "a good memory"
+                },
+                {
+                  "key": "G",
+                  "text": "a good level of fitness"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What does the speaker suggest would be helpful for each of the following areas of voluntary work? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 16-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam18-test-1-listening-part2.mp3"
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Talk on jobs in fashion design",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "What problem did Chantal have at the start of the talk?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Her view of the speaker was blocked."
+                },
+                {
+                  "key": "B",
+                  "text": "She was unable to find an empty seat."
+                },
+                {
+                  "key": "C",
+                  "text": "The students next to her were talking."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "What were Hugo and Chantal surprised to hear about the job market?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It has become more competitive than it used to be."
+                },
+                {
+                  "key": "B",
+                  "text": "There is more variety in it than they had realised."
+                },
+                {
+                  "key": "C",
+                  "text": "Some areas of it are more exciting than others."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "Hugo and Chantal agree that the speaker’s message was",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "unfair to them at times."
+                },
+                {
+                  "key": "B",
+                  "text": "hard for them to follow."
+                },
+                {
+                  "key": "C",
+                  "text": "critical of the industry."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "What do Hugo and Chantal criticise about their school careers advice?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "when they received the advice"
+                },
+                {
+                  "key": "B",
+                  "text": "how much advice was given"
+                },
+                {
+                  "key": "C",
+                  "text": "who gave the advice"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "multiple-choice",
+              "prompt": "When discussing their future, Hugo and Chantal disagree on",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "which is the best career in fashion."
+                },
+                {
+                  "key": "B",
+                  "text": "when to choose a career in fashion."
+                },
+                {
+                  "key": "C",
+                  "text": "why they would like a career in fashion."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "multiple-choice",
+              "prompt": "How does Hugo feel about being an unpaid assistant?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "He is realistic about the practice."
+                },
+                {
+                  "key": "B",
+                  "text": "He feels the practice is dishonest."
+                },
+                {
+                  "key": "C",
+                  "text": "He thinks others want to change the practice."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "multiple-select",
+              "prompt": "Which TWO mistakes did the speaker admit she made in her first job?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "being dishonest to her employer"
+                },
+                {
+                  "key": "B",
+                  "text": "paying too much attention to how she looked"
+                },
+                {
+                  "key": "C",
+                  "text": "expecting to become well known"
+                },
+                {
+                  "key": "D",
+                  "text": "trying to earn a lot of money"
+                },
+                {
+                  "key": "E",
+                  "text": "openly disliking her client"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "multiple-select",
+              "prompt": "Which TWO pieces of retail information do Hugo and Chantal agree would be useful?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the reasons people return fashion items"
+                },
+                {
+                  "key": "B",
+                  "text": "how much time people have to shop for clothes"
+                },
+                {
+                  "key": "C",
+                  "text": "fashion designs people want but can’t find"
+                },
+                {
+                  "key": "D",
+                  "text": "the best time of year for fashion buying"
+                },
+                {
+                  "key": "E",
+                  "text": "the most popular fashion sizes"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "C"
+                  ]
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam18-test-1-listening-part3.mp3"
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Elephant translocation",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "damage to",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants' [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fences"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "a suitable group of elephants from the same",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants' [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "family"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "vets and park staff made use of",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants' [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "helicopters"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "this process had to be completed quickly to reduce",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants' [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "stress"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "elephants had to be turned on their",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants' [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "sides"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "elephants'",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants' [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "breathing"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "data including the size of their tusks and",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants' [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "feet"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "opportunities",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants' [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "employment"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "a reduction in the number of poachers and",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants' [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "weapons 5"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "an increase in",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants' [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tourism"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam18-test-1-listening-part4.mp3"
+        }
+      ]
+    }
+  ]
+}

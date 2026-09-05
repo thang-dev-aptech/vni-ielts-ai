@@ -1,0 +1,2063 @@
+/* Exam surfaces: the library, a sitting, and its results.
+ *
+ * <b>The clock is the reason this file has rules other pages do not.</b>
+ * Product law L1: a countdown never turns red, never blinks, never animates.
+ * Red means something has broken; time passing has not broken anything, and a
+ * pulsing red number in the last minute of a reading test costs marks. The
+ * three levels below differ by SIZE, BORDER and a WORD — three channels, so
+ * the state survives being printed in greyscale and survives a learner who
+ * cannot distinguish the hues at all.
+ *
+ * <b>The save chip differs by shape as well as colour</b> (L2). Only "đã lưu"
+ * carries a tick, because a learner who sees a tick stops checking — a tick
+ * over work still sitting on the device is data loss the interface caused.
+ *
+ * Everything else follows the shared system: 4px spacing, the closed type
+ * scale, a 14px floor for Vietnamese, and no text/background pair under 4.5.
+ */
+
+/* ── The library ────────────────────────────────────────────────────────── */
+
+.exam-modes {
+  display: inline-flex;
+  gap: var(--s-1);
+  padding: var(--s-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+}
+
+.exam-mode {
+  min-height: 40px;
+  padding-inline: var(--s-4);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.exam-mode.is-active {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.exam-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exam-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--card);
+}
+
+.exam-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.exam-card-head h2 {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.exam-modules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exam-module {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+}
+
+.exam-module-icon,
+.exam-bar-icon,
+.result-icon {
+  flex: none;
+  width: var(--s-6);
+  height: var(--s-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+}
+
+.exam-module-icon {
+  width: var(--s-7);
+  height: var(--s-7);
+  border-radius: 14px;
+}
+
+.exam-module-text,
+.result-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.exam-module-text strong,
+.result-text strong {
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.exam-module-text span,
+.result-text span {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.exam-start {
+  flex: none;
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.exam-start:hover:not(:disabled) {
+  background: var(--sunk);
+}
+
+/* Dark ink on the green, not white: white on this family measures 2.86. */
+.exam-start.is-primary {
+  align-self: flex-start;
+  border-color: #c4e6d2;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.exam-start:disabled {
+  color: var(--muted);
+  cursor: progress;
+}
+
+.exam-note,
+.exam-error {
+  margin: 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.exam-note {
+  color: var(--muted);
+}
+
+.exam-error {
+  padding: var(--s-3) var(--s-4);
+  border-radius: 14px;
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+/* ── A sitting ──────────────────────────────────────────────────────────── */
+
+.exam-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--ink);
+}
+
+/*
+ * Three things and nothing else: which section, whether it is saved, how long
+ * is left. No brand, no navigation, no account menu — each of those is a way
+ * to walk out of a timed exam by accident.
+ */
+.exam-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+
+.exam-bar-section {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.exam-bar-section strong {
+  display: block;
+  font-size: var(--t-16);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+/*
+ * The second line of the section's identity: "Kỹ năng 2/4 · Academic Practice
+ * Test 1" in a Full Test, and the paper's name alone in a Single Skill one.
+ *
+ * `min-width: 0` on the row, `flex: none` on the position and `1 1 auto` on the
+ * title, so what gets clipped at 390px is the title — which is the same on all
+ * four sections — rather than the position, which is the part that changes.
+ */
+.exam-bar-sub {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.exam-bar-step {
+  flex: none;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* A separator that is not a character anyone has to read, and disappears with
+   the element it follows rather than being stranded before the title. */
+.exam-bar-step::after {
+  content: '·';
+  margin-left: var(--s-2);
+  color: var(--muted);
+}
+
+.exam-bar-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: block;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The clock. Never red, never animated — see the note at the top. */
+.exam-clock {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s-1);
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.exam-clock.level-2 {
+  font-size: var(--t-32);
+  line-height: var(--lh-display);
+  border-color: var(--warn);
+}
+
+.exam-clock.level-3 {
+  font-size: var(--t-44);
+  line-height: var(--lh-display);
+  border-width: 2px;
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.exam-clock-note {
+  font-family: var(--font);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--warn);
+  white-space: nowrap;
+}
+
+/* Four states, four shapes. Only `saved` has a tick. */
+.save-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--s-6);
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--sunk);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.save-chip.is-idle {
+  border-color: transparent;
+  background: transparent;
+  padding: 0;
+}
+
+.save-chip.is-saved {
+  border-color: #bfe3cd;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+/*
+ * Typed, not yet attempted. Neutral on purpose: this is the state a writer
+ * sees on every keystroke for an hour, so it must not look like a warning.
+ * `queued` — below — is the warning, and it now means only one thing.
+ */
+.save-chip.is-pending {
+  background: var(--card);
+  color: var(--muted);
+}
+
+/* Dashed, and no tick: the work is on the device, not on the server. */
+.save-chip.is-queued {
+  border-style: dashed;
+  border-color: #d9b98f;
+  background: transparent;
+  color: var(--warn);
+}
+
+.save-chip.is-sending {
+  background: var(--card);
+  color: var(--muted);
+}
+
+/* The only place --bad appears on this page. Something actually broke. */
+.save-chip.is-failed {
+  border-color: #e7b4b0;
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.exam-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s-5);
+  align-items: start;
+  width: min(1360px, calc(100% - var(--s-6)));
+  margin-inline: auto;
+  padding-block: var(--s-5);
+}
+
+.exam-passage,
+.exam-questions {
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--card);
+}
+
+/* The passage scrolls inside its own pane so the questions stay put. */
+.exam-passage {
+  position: sticky;
+  top: calc(var(--s-8) + var(--s-4));
+  max-height: calc(100vh - var(--s-8) - var(--s-7));
+  overflow-y: auto;
+}
+
+.exam-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.exam-part {
+  min-height: 40px;
+  padding-inline: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.exam-part.is-active {
+  background: var(--acc-soft);
+  border-color: var(--acc-line);
+  color: var(--acc-700);
+}
+
+.exam-passage-title {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+/* A reading column, held to a measure. Full-bleed prose across a wide monitor
+   is where the eye loses its place between lines. */
+.exam-passage-body {
+  max-width: var(--measure);
+  font-size: var(--t-16);
+  line-height: 1.7;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.exam-passage-body p {
+  margin: 0 0 var(--s-4);
+}
+
+.exam-cue {
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+}
+
+.exam-cue h2 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-18);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.exam-cue ul {
+  margin: 0;
+  padding-left: var(--s-5);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.exam-questions-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.exam-questions-head h2 {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.exam-question-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exam-question {
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+  /* No transition, no highlight on change. Animating an answer as it saves is
+     movement in the corner of the eye of someone reading. → anti-pattern 18 */
+}
+
+.exam-question-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+
+.exam-question-number {
+  flex: none;
+  width: var(--s-6);
+  height: var(--s-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.exam-question-head p {
+  margin: 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.q-choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.q-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.q-choice.is-picked {
+  border-color: var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc-700);
+}
+
+.q-choice input {
+  margin-top: var(--s-1);
+  accent-color: var(--acc);
+}
+
+.q-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.q-text input,
+.q-essay {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.q-essay {
+  width: 100%;
+  resize: vertical;
+  overflow-wrap: anywhere;
+}
+
+.q-hint {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.exam-foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--line);
+  background: var(--card);
+}
+
+.exam-foot-note,
+.exam-expired {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.exam-expired {
+  color: var(--warn);
+  font-weight: var(--w-emph);
+}
+
+/*
+ * <b>The loudest control on the page, because it is the most important one.</b>
+ *
+ * It was a pale `--ok-soft` fill with a `#c4e6d2` border — measured 1.14:1 and
+ * 1.35:1 against the white footer, against WCAG 1.4.11's 3:1 for a component
+ * boundary — so it read as disabled. Meanwhile `.prac-start`, the button that
+ * merely *opens* an exam, is a solid green. The hierarchy was inverted:
+ * starting shouted, submitting whispered, and the whisper is the one that ends
+ * an hour of work.
+ *
+ * `#0a8438` carries white at 4.80. → `--green-btn`
+ */
+.exam-submit {
+  min-height: 44px;
+  padding-inline: var(--s-6);
+  border: 1px solid #0a8438;
+  border-radius: 14px;
+  background: #0a8438;
+  color: #fff;
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.exam-submit:disabled {
+  color: var(--muted);
+  cursor: progress;
+}
+
+.exam-fallback {
+  margin: auto;
+  padding: var(--s-6);
+  text-align: center;
+}
+
+.exam-fallback h1 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+}
+
+.exam-fallback p {
+  margin: 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* ── Listening player ───────────────────────────────────────────────────── */
+
+.audio {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--sunk);
+}
+
+.audio-button {
+  flex: none;
+  width: var(--s-8);
+  height: var(--s-8);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--acc-line);
+  border-radius: var(--r-pill);
+  background: var(--acc-soft);
+  color: var(--acc-700);
+  cursor: pointer;
+}
+
+.audio-button:disabled {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.audio-body {
+  flex: 1;
+  min-width: 0;
+}
+
+/*
+ * A progress indicator, not a control. There is no thumb, no pointer cursor
+ * and no handler — a Listening section whose audio can be scrubbed is a
+ * reading comprehension of a transcript the candidate writes themselves.
+ */
+.audio-track {
+  height: var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--line-2);
+  overflow: hidden;
+}
+
+.audio-fill {
+  height: 100%;
+  background: var(--acc);
+}
+
+.audio-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.exam-transfer {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+/* ── Writing ────────────────────────────────────────────────────────────── */
+
+.word-count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.word-count .num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  color: var(--ink);
+}
+
+/* Warn, never bad. A short essay is unfinished, not broken. */
+.word-count.is-short,
+.word-count.is-short .num {
+  color: var(--warn);
+}
+
+/* ── Speaking ───────────────────────────────────────────────────────────── */
+
+.rec {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.rec-start,
+.rec-stop {
+  min-height: 44px;
+  padding-inline: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.rec-start:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.rec-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.rec-label {
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/*
+ * The one steady dot on the page, and it does not pulse.
+ *
+ * A blinking recording light next to a running clock is exactly the panic L1
+ * bans on the clock itself; the state is already carried by the word
+ * "Đang ghi âm" and by the count beside it.
+ */
+.rec-dot {
+  width: var(--s-3);
+  height: var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--bad);
+}
+
+/* Inside the card, and labelled — never on the chrome beside the section
+   clock. Two clocks in one place cannot be told apart. → L1 */
+.rec-clock {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.rec-stored {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s-6);
+  padding-inline: var(--s-3);
+  border: 1px solid #bfe3cd;
+  border-radius: var(--r-pill);
+  background: var(--ok-soft);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ok);
+}
+
+.rec-error {
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--bad);
+}
+
+/*
+ * Held on the device, not yet on the server. Shape differs from `.rec-stored`
+ * (solid green) and `.rec-error` (red text) so L2's "Chưa gửi được" chip is
+ * not mistaken for either saved or failed — border dashed, warn tone.
+ */
+.rec-queued {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s-6);
+  padding-inline: var(--s-3);
+  border: 1px dashed var(--warn);
+  border-radius: var(--r-pill);
+  background: var(--warn-soft);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--warn);
+}
+
+/*
+ * Input level during prep/record. Accent blue bars on a sunk strip — not a
+ * purple equaliser, not a pulsing red panic light (L1). Decorative only;
+ * state is already named by the phase label and the clock.
+ */
+.rec-meter {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 28px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--sunk);
+}
+
+.rec-meter-bar {
+  display: block;
+  width: 3px;
+  min-height: 3px;
+  border-radius: 2px;
+  background: var(--acc);
+  transition: height 60ms linear;
+}
+
+.rec-progress {
+  flex-basis: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--line);
+}
+
+.rec-progress > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--acc);
+  transition: width 120ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-meter-bar,
+  .rec-progress > i {
+    transition: none;
+  }
+}
+
+/* ── Results ────────────────────────────────────────────────────────────── */
+
+/*
+ * ── The overall band ──────────────────────────────────────────────────────
+ *
+ * <b>The one moment in the product worth celebrating, styled like it.</b> A
+ * learner reaches this screen having just finished a timed exam; everything
+ * before it is deliberately calm (product law L1) and this is where the
+ * restraint is allowed to stop. It is the surface the 2026-09-03 Duolingo
+ * adaptation exists for.
+ *
+ * Treatment is `landing.css`'s, not a second dialect: a solid green sticker
+ * with a 2px edge and a hard `0 4px 0` offset — physical thickness, not
+ * elevation — rather than the soft tinted panel that stood here.
+ *
+ * <b>The label is near-black on the green, and that is measured.</b> White on
+ * `--green` is 2.86:1; `--ink` on it is 7.9. `assets/brand/README.md` reached
+ * the same rule independently for the brand orange and green: a surface filled
+ * with either carries black text. This is that rule, applied.
+ */
+.result-overall {
+  display: flex;
+  flex-wrap: wrap;
+  /* Centre, not baseline: the value is a 44px glyph beside a 16px label, and
+     an em dash sits high in its own box — on the baseline it floated above the
+     words it belongs to. */
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-5);
+  border: var(--bw-2) solid var(--ink);
+  border-radius: var(--r-lg);
+  background: var(--green, #10b050);
+  box-shadow: 0 4px 0 var(--green-dark, #0a8d3c);
+}
+
+.result-overall-label {
+  font-size: var(--t-16);
+  font-weight: var(--w-display);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.result-overall-value {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-44);
+  font-weight: var(--w-display-heavy);
+  line-height: var(--lh-display);
+  color: var(--ink);
+}
+
+/*
+ * <b>No band, no celebration.</b> A green sticker around an em dash congratulates
+ * a learner on a result they have not been given — and Speaking reaches exactly
+ * that state on every sitting until an ASR provider exists. The panel drops back
+ * to paper with a plain edge, and the note beside it keeps saying why.
+ * → product law L3
+ */
+.result-overall:has(.result-overall-value.is-none) {
+  border-color: var(--line);
+  background: var(--card);
+  box-shadow: none;
+}
+
+/* Do not show an Overall IELTS panel for a Single Skill sitting (`D-9`) */
+.result-overall.is-single-mode {
+  display: none;
+}
+
+.result-overall:has(.result-overall-value.is-none) .result-overall-label {
+  color: var(--ink-2);
+  font-weight: var(--w-emph);
+}
+
+/*
+ * The absent band.
+ *
+ * A dash at the band's own weight is a solid bar four characters wide — it
+ * reads as something struck out rather than as something not yet given. The
+ * note beside it already says which; the glyph only has to stop shouting.
+ */
+.result-overall-value.is-none {
+  font-weight: var(--w-emph);
+  color: var(--ink-2);
+}
+
+.result-overall-note {
+  flex-basis: 100%;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+/* ── Single Skill Result Summary (`D-9`) ────────────────────────────────── */
+
+.result-single-hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card, 16px);
+  background: var(--card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.result-single-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+
+.result-single-skill-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.result-single-skill-badge h2 {
+  margin: 0;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  color: var(--ink);
+}
+
+.result-single-score-box {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.result-score-raw {
+  font-family: var(--font-display);
+  font-size: var(--t-36);
+  font-weight: var(--w-display-heavy);
+  color: var(--primary);
+  line-height: 1;
+}
+
+.result-score-max {
+  font-size: var(--t-20);
+  font-weight: var(--w-emph);
+  color: var(--muted);
+}
+
+.result-score-accuracy {
+  margin-left: var(--s-2);
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(6, 128, 58, 0.1);
+  color: var(--primary);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+}
+
+.result-single-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
+.result-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+}
+
+.result-stat-chip.is-right {
+  background: var(--ok-soft);
+  color: #10562f;
+}
+
+.result-stat-chip.is-wrong {
+  background: var(--bad-soft);
+  color: #8a2b1e;
+}
+
+.result-stat-chip.is-blank {
+  background: var(--sunk);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.result-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * One skill's row. A 2px edge and the tokenised radius — the raw `14px` here
+ * was one of the seventeen loose values DESIGN.md counted, and a row that sits
+ * beside the band sticker cannot be a hairline without looking unfinished next
+ * to it.
+ */
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: var(--bw-2) solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+}
+
+.result-band {
+  flex: none;
+  min-width: var(--s-7);
+  text-align: right;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-24);
+  font-weight: var(--w-display-heavy);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+/* ── Narrow ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  /* One column, passage first. It stops being sticky: two sticky panes in one
+     scroll on a phone is a fight the reader always loses. */
+  .exam-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .exam-passage {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .exam-body {
+    width: min(1360px, calc(100% - var(--s-4)));
+  }
+
+  .exam-bar {
+    flex-wrap: wrap;
+    padding-inline: var(--s-4);
+  }
+
+  .exam-passage,
+  .exam-questions {
+    padding: var(--s-4);
+  }
+
+  .exam-module {
+    flex-wrap: wrap;
+  }
+
+  .exam-start {
+    width: 100%;
+  }
+
+  .exam-submit {
+    width: 100%;
+  }
+}
+
+/*
+ * Escalation grows the clock by size and border, not by animation. At a short
+ * or heavily zoomed viewport the largest size would shove the save chip off
+ * the bar — clamp without removing the word that carries the state.
+ */
+@media (max-height: 480px), (max-width: 420px) {
+  .exam-clock.level-2,
+  .exam-clock.level-3 {
+    font-size: var(--t-24);
+    line-height: var(--lh-body);
+  }
+
+  .exam-bar {
+    position: static;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exam-page *,
+  .exam-page *::before,
+  .exam-page *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Expired. `level-3` said "còn dưới 1 phút" at 00:00; zero is its own state. */
+.exam-clock.level-4 {
+  border-color: #e7b4b0;
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+/*
+ * The wrapper between `.exam-bar-section` and `.exam-bar-title`.
+ *
+ * A flex item defaults to `min-width: auto`, which means it will not shrink
+ * below its content — so the title's ellipsis never engaged and at 390px it
+ * ran 135px past its parent with the save chip drawn over it.
+ */
+.exam-bar-names {
+  min-width: 0;
+}
+
+.exam-submit-error {
+  flex: 1 1 100%;
+  order: -1;
+  margin: 0 0 var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid #e7b4b0;
+  border-radius: var(--r-md);
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+/*
+ * How long preparation and the answer run, said before the button is pressed.
+ *
+ * `--mono` on the two numbers for the same reason the countdown uses it: they
+ * are the same two values, and a learner comparing "you get 01:00" against a
+ * clock reading 00:47 should not have to notice they are set in two faces.
+ */
+.rec-budget {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Where to grant the permission. Only shown for a refusal, because it is the
+   only failure the reader can fix from outside the page. */
+.rec-help {
+  max-width: 52ch;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/*
+ * Where a finished sitting goes next. → `E-13`
+ *
+ * The note wraps to its own line under the two links rather than sitting
+ * beside them: it explains an absence ("there is no next skill here"), and an
+ * explanation set level with the controls reads as a label for one of them.
+ */
+.result-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+}
+
+.result-next-note {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Per-question review.
+   → `SectionReview` in `ExamResultsPage`
+   ──────────────────────────────────────────────────────────────── */
+.result-review {
+  margin-top: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.result-review-head {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.result-review-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--s-3) var(--s-5);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.result-review-trigger:hover {
+  background: var(--sunk);
+}
+
+.result-review-caret {
+  flex: none;
+  font-size: var(--t-18);
+  color: var(--ink-2);
+}
+
+.result-review-body {
+  padding: 0 var(--s-5) var(--s-5);
+}
+
+.result-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.result-filter-chip {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.result-filter-chip:hover {
+  background: var(--sunk);
+}
+
+.result-filter-chip.is-active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.result-review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--s-3);
+  margin: 0 0 var(--s-4);
+  padding: 0;
+  list-style: none;
+}
+
+.result-review-grid > li.is-filtered-out {
+  display: none;
+}
+
+.result-review-grid > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+/*
+ * <b>A glyph as well as a ground.</b> Right and wrong differ by shape first —
+ * a tick or a cross — so the grid is readable to someone who cannot tell the
+ * two grounds apart. Both inks were measured against their own ground.
+ */
+.result-q {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex: none;
+  min-width: 54px;
+  min-height: 32px;
+  padding-inline: var(--s-2);
+  border-radius: var(--r-md);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+}
+
+.result-q.is-right {
+  background: var(--ok-soft);
+  color: #10562f; /* 7.69 */
+}
+
+.result-q.is-wrong {
+  background: var(--bad-soft);
+  color: #8a2b1e; /* 7.83 */
+}
+
+.result-q-mark {
+  font-size: var(--t-14);
+}
+
+/* What the learner wrote. Truncated rather than wrapped: a long essay answer
+   would otherwise turn a forty-question grid into a page of prose. */
+.result-q-answer {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-review-note {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.result-explanation {
+  flex: 1 1 100%;
+  margin-left: calc(54px + var(--s-3));
+}
+
+.result-explanation-action {
+  min-height: 36px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.result-explanation-action:hover:not(:disabled) {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.result-explanation-action:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.result-explanation-status {
+  display: block;
+  margin-top: var(--s-2);
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.result-explanation-status.is-bad {
+  color: var(--bad);
+}
+
+.result-explanation-card {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  border: 1px solid #c4e6d2;
+  border-radius: var(--r-md);
+  background: var(--ok-soft);
+  color: var(--ink);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.result-explanation-card p,
+.result-explanation-card ul {
+  margin: 0;
+}
+
+.result-explanation-card ul {
+  padding-left: var(--s-5);
+}
+
+.result-marking-body {
+  display: grid;
+  gap: var(--s-4);
+}
+
+/*
+ * One marked Writing task — the AI's four criterion bands and the evidence for
+ * each. Live since 2026-09-02; before that this card had never rendered a real
+ * marking in anyone's browser.
+ *
+ * A 2px edge rather than a hairline, because this card is the one carrying a
+ * judgement about the learner's own writing. It is a surface to read a score
+ * off, which is the split `--bw-2` was introduced for.
+ */
+.result-marking-card {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border: var(--bw-2) solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+}
+
+.result-marking-card.ai-advisory-card {
+  border: 2px dashed var(--primary);
+  border-radius: var(--r-card, 16px);
+  background: rgba(6, 128, 58, 0.02);
+  position: relative;
+}
+
+.ai-advisory-header {
+  margin-bottom: var(--s-1);
+}
+
+.result-marking-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.result-marking-head h3,
+.result-marking-rubric,
+.result-marking-flags {
+  margin: 0;
+}
+
+.result-marking-band {
+  flex: none;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-24);
+  font-weight: var(--w-display-heavy);
+  line-height: var(--lh-body);
+}
+
+.result-marking-rubric {
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.result-marking-flags {
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid #e7b4b0;
+  border-radius: var(--r-md);
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.result-criteria {
+  display: grid;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * One criterion. Paper on the sunken card, keeping a hairline rather than the
+ * 2px edge above it: four boxed criteria inside a boxed card inside a boxed
+ * section is the "cards inside cards" the design guide warns about, and the
+ * nesting reads as clutter rather than structure.
+ */
+.result-criteria > li {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  border: var(--bw-1) solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--card);
+}
+
+/* The criterion's band, in the display voice — the number only. Setting this on
+   the flex wrapper would put display weight on the criterion's name as well,
+   and four heavy labels beside four heavy numbers is a row with no hierarchy
+   left in it. */
+.result-criteria > li > span > .num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--w-display-heavy);
+  color: var(--ink);
+}
+
+.result-criteria > li > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.result-criteria p,
+.result-criteria blockquote {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.result-criteria blockquote {
+  padding-left: var(--s-3);
+  border-left: 3px solid var(--line);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Question groups — the shared frame a run of questions lives in.
+   → `QuestionList`
+   ──────────────────────────────────────────────────────────────── */
+
+/* The group is one item of the outer list, so it carries no card of its own —
+   its children are the cards. Without this it drew a box around a box. */
+.exam-group-item {
+  list-style: none;
+}
+
+.exam-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.exam-group-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.exam-group-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin: 0;
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+/* "Câu 15–20" — the anchor a candidate checks against the paper in front of
+   them, so it leads and it is tabular. */
+.exam-group-range {
+  flex: none;
+  padding: 2px var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-size: var(--t-14);
+  color: var(--ink-2);
+}
+
+.exam-group-name {
+  min-width: 0;
+}
+
+/*
+ * The rubric.
+ *
+ * <b>It is a scoring rule, and it is styled as one.</b> "NO MORE THAN TWO
+ * WORDS" decides whether a correct-sounding answer is marked wrong, so it does
+ * not get the grey, small, easily-skipped treatment a hint would — it gets a
+ * rule down the side and full body size. Nothing about it is restyled or
+ * summarised in the markup either; it travels verbatim from the package.
+ */
+.exam-group-rubric {
+  margin: 0;
+  padding-left: var(--s-4);
+  border-left: 3px solid var(--acc);
+  color: var(--ink);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.exam-group-questions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Summary completion — the gaps sit in the sentence.
+ *
+ * `line-height` is generous because an inline input is taller than the text
+ * around it; without the extra leading the lines of a five-gap paragraph
+ * collide and the paragraph stops reading as prose, which is the whole reason
+ * the gaps are inline rather than listed underneath.
+ */
+.exam-summary {
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--sunk);
+  font-size: var(--t-16);
+  line-height: 2.4;
+  color: var(--ink);
+}
+
+.exam-summary-gap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-inline: 4px;
+  vertical-align: baseline;
+}
+
+.exam-summary-input {
+  width: 14ch;
+  min-height: 36px;
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.exam-summary-input:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/*
+ * A bank of options, as a select.
+ *
+ * Six heading-matching questions against a bank of ten used to draw sixty
+ * radio buttons repeating the same ten headings — a screenful that buried the
+ * passage and made every choice a re-read of the whole bank.
+ */
+.q-bank {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.q-inline-bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.q-bank-token,
+.q-drop-target {
+  min-height: 44px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.q-bank-token[aria-pressed='true'],
+.q-drop-target.is-filled {
+  border-color: var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc-700);
+}
+
+.q-drop-target {
+  width: 100%;
+  max-width: 46ch;
+  text-align: left;
+  border-style: dashed;
+}
+
+.q-bank-token:focus-visible,
+.q-drop-target:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.q-bank-select {
+  width: 100%;
+  max-width: 46ch;
+  min-height: 44px;
+  padding-inline: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.q-bank-select:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Maps, diagrams and charts.
+   → `ExamImage`
+   ──────────────────────────────────────────────────────────────── */
+.exam-figure {
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.exam-figure-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
+  /* A plan or a chart is read, not glanced at. White behind it keeps a
+     transparent PNG legible on any surface this lands on. */
+  background: #fff;
+}
+
+.exam-figure-loading {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.exam-figure-caption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  margin-top: var(--s-3);
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* Stated, not hidden. A missing description is a defect the reader can report;
+   an invented one is a different exam. */
+.exam-figure-note {
+  color: var(--muted);
+}
+
+/*
+ * A labelled passage paragraph.
+ *
+ * The letter is a column down the left rather than a bold run inside the
+ * text, because a candidate matching six headings scans it six times — and a
+ * letter embedded in justified prose is something you read past, not
+ * something you scan.
+ */
+.exam-passage-para {
+  display: grid;
+  grid-template-columns: var(--s-6) 1fr;
+  gap: var(--s-3);
+  align-items: start;
+}
+
+.exam-passage-label {
+  position: sticky;
+  top: var(--s-4);
+  display: grid;
+  place-items: center;
+  width: var(--s-6);
+  height: var(--s-6);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  font-size: var(--t-14);
+  font-weight: var(--w-display);
+  line-height: 1;
+  color: var(--ink-2);
+}
+
+.exam-passage-text {
+  min-width: 0;
+}
+
+/*
+ * The list of headings, above the questions it is chosen from.
+ *
+ * Two columns where there is room: ten headings in one column pushes the first
+ * question below the fold, and the whole point of showing the bank is that it
+ * and the questions are visible together.
+ */
+.exam-bank {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--s-2) var(--s-5);
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--card);
+  list-style: none;
+}
+
+.exam-bank-item {
+  display: block;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.exam-bank-dnd {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.exam-bank-instructions {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.exam-bank-button {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--s-2);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.exam-bank-button[aria-pressed='true'] {
+  border-color: var(--acc-line);
+  background: var(--acc-soft);
+  color: var(--acc-700);
+}
+
+.exam-bank-button:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.exam-bank-used {
+  margin-inline-start: auto;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.exam-bank-key {
+  flex: none;
+  min-width: 3ch;
+  font-weight: var(--w-emph);
+  color: var(--ink-2);
+}
+
+/* ── Results page under `/practice` chrome ───────────────────────────────
+ *
+ * Same breadcrumb + container rhythm as the catalogue. Not the dashboard
+ * column: finishing a paper is still that paper.
+ */
+.result-page .result-hero {
+  padding: 28px 0 56px;
+  background:
+    radial-gradient(circle at 88% 12%, rgb(16 176 80 / 9%) 0%, transparent 42%),
+    linear-gradient(180deg, #f3f9f4 0%, rgb(255 255 255 / 0) 100%);
+  border-bottom: 1px solid rgb(229 229 229 / 60%);
+}
+
+.result-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  max-width: 880px;
+}
+
+.result-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.result-eyebrow {
+  margin: 0;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.result-title {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.result-lead {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--ink-2);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.result-next .btn {
+  text-decoration: none;
+}

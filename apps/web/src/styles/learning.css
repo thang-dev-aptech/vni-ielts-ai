@@ -1,0 +1,438 @@
+/* Goal coaching and the study streak — two blocks that appear on the student
+ * dashboard and the profile. They borrow the dashboard's vocabulary (white
+ * card, hairline, 20px corner, one accent) so they read as the same product
+ * whichever page they sit on.
+ *
+ * Colour pairs are the measured ones from dashboard.css. The flame is the one
+ * saturated element and it is only saturated when lit; unlit it is --muted,
+ * so a cold streak is not drawn as an alarm.
+ */
+
+.coach,
+.streak {
+  --lc-r: 20px;
+  --lc-r-sm: 12px;
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--lc-r);
+  background: var(--card, #fff);
+  color: var(--ink);
+}
+
+.coach-head,
+.streak-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.coach-eyebrow,
+.streak-eyebrow {
+  margin: 0 0 var(--s-1);
+  font-size: var(--t-12);
+  font-weight: var(--w-emph);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.coach-title,
+.streak-title {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  line-height: var(--lh-tight, 1.2);
+}
+
+.coach-goal {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.coach-goal-label {
+  font-size: var(--t-14);
+  color: var(--muted);
+}
+
+.coach-goal-select {
+  min-height: 40px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill, 999px);
+  background: var(--sunk);
+  font: inherit;
+  font-weight: var(--w-emph);
+  color: var(--ink);
+}
+
+.coach-note {
+  margin: var(--s-4) 0 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.coach-focus {
+  margin: var(--s-4) 0 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--lc-r-sm);
+  background: var(--acc-soft, #e8f0fb);
+  color: var(--acc, #2867ac);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+}
+
+.coach-focus.is-met {
+  background: var(--ok-soft, #e4f4ea);
+  color: var(--ok, #1e7a3c);
+}
+
+.coach-skills {
+  display: grid;
+  gap: var(--s-2);
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coach-skill {
+  display: grid;
+  grid-template-columns: 28px minmax(72px, auto) 1fr 44px auto auto;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.coach-skill:last-child {
+  border-bottom: 0;
+}
+
+.coach-skill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.coach-skill-name {
+  font-weight: var(--w-emph);
+}
+
+/* A rail from 4.0 to 9.0. Band as a dot, target as a tick. */
+.coach-skill-rail {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--sunk);
+}
+
+.coach-skill-dot {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--acc, #2867ac);
+  transform: translate(-50%, -50%);
+}
+
+.coach-skill.is-met .coach-skill-dot {
+  background: var(--ok, #1e7a3c);
+}
+.coach-skill.is-behind .coach-skill-dot {
+  background: var(--warn, #b3541e);
+}
+
+.coach-skill-tick {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 14px;
+  background: var(--ink-2, #4a4950);
+  transform: translateX(-50%);
+}
+
+.coach-skill-band {
+  text-align: right;
+  font-weight: var(--w-display);
+}
+
+.coach-skill-state {
+  font-size: var(--t-12);
+  font-weight: var(--w-emph);
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.coach-skill-state.is-met {
+  color: var(--ok, #1e7a3c);
+}
+.coach-skill-state.is-behind {
+  color: var(--warn, #b3541e);
+}
+.coach-skill-state.is-close {
+  color: var(--acc, #2867ac);
+}
+
+.coach-skill-link {
+  font-size: var(--t-12);
+  color: var(--acc, #2867ac);
+}
+
+.coach-subhead {
+  margin: var(--s-5) 0 var(--s-2);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.coach-tip-list {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coach-tip {
+  padding: var(--s-3);
+  border-radius: var(--lc-r-sm);
+  background: var(--sunk);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.coach-ai {
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px dashed var(--line);
+}
+
+.coach-ai-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+}
+
+.coach-ai-model {
+  font-size: var(--t-12);
+  color: var(--muted);
+}
+
+.coach-ai-summary {
+  margin: 0 0 var(--s-3);
+  line-height: var(--lh-body);
+}
+
+.coach-ai-note {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-12);
+  color: var(--muted);
+}
+
+.coach.is-compact .coach-skill {
+  grid-template-columns: 24px minmax(64px, auto) 1fr 40px auto;
+}
+
+.coach.is-compact .coach-skill-link {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .coach-skill {
+    grid-template-columns: 24px 1fr 40px auto;
+  }
+  .coach-skill-rail,
+  .coach-skill-link {
+    display: none;
+  }
+}
+
+/* ── Streak ─────────────────────────────────────────────────────────────── */
+
+.streak-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-1);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-pill, 999px);
+  background: var(--sunk);
+  color: var(--muted);
+}
+
+.streak-count.is-lit {
+  background: #fff1e6;
+  color: #b3541e;
+}
+
+.streak-count-value {
+  font-size: var(--t-24, 24px);
+  font-weight: var(--w-display);
+  line-height: 1;
+}
+
+.streak-count-label {
+  font-size: var(--t-12);
+}
+
+.streak-lead {
+  margin: var(--s-4) 0 0;
+  line-height: var(--lh-body);
+}
+
+.streak-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-3);
+  margin: var(--s-4) 0 0;
+}
+
+.streak-stats > div {
+  padding: var(--s-3);
+  border-radius: var(--lc-r-sm);
+  background: var(--sunk);
+}
+
+.streak-stats dt {
+  font-size: var(--t-12);
+  color: var(--muted);
+}
+
+.streak-stats dd {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+}
+
+.streak-note {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-12);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill, 999px);
+  background: var(--card, #fff);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--muted);
+}
+
+.streak-badge.is-lit {
+  border-color: #f2c9a8;
+  background: #fff1e6;
+  color: #b3541e;
+}
+
+.streak-badge-unit {
+  font-weight: 400;
+}
+
+.flame {
+  color: var(--muted);
+}
+.flame.is-lit {
+  color: #e8641b;
+  filter: drop-shadow(0 0 4px rgba(232, 100, 27, 0.45));
+  animation: flame-flicker 1.6s ease-in-out infinite;
+}
+
+@keyframes flame-flicker {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08) translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flame.is-lit {
+    animation: none;
+  }
+}
+
+/* ── Heatmap ────────────────────────────────────────────────────────────── */
+
+.heat {
+  --cell: 11px;
+  --gap: 3px;
+  margin-top: var(--s-4);
+  overflow-x: auto;
+}
+
+.heat-months {
+  display: grid;
+  grid-template-columns: repeat(53, var(--cell));
+  gap: var(--gap);
+  margin-bottom: 4px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.heat-grid {
+  display: grid;
+  grid-template-rows: repeat(7, var(--cell));
+  grid-auto-flow: column;
+  grid-auto-columns: var(--cell);
+  gap: var(--gap);
+}
+
+.heat-cell {
+  width: var(--cell);
+  height: var(--cell);
+  border-radius: 2px;
+  background: var(--sunk);
+}
+
+.heat-cell.lvl-1 {
+  background: #c6e6d0;
+}
+.heat-cell.lvl-2 {
+  background: #8fcfa4;
+}
+.heat-cell.lvl-3 {
+  background: #4fae72;
+}
+.heat-cell.lvl-4 {
+  background: #1e7a3c;
+}
+.heat-cell.is-future {
+  background: transparent;
+  border: 1px dashed var(--line);
+  box-sizing: border-box;
+}
+.heat-cell.is-today {
+  outline: 2px solid var(--acc, #2867ac);
+  outline-offset: 1px;
+}
+
+.heat-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  margin-top: var(--s-2);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.heat-legend > span:first-child,
+.heat-legend > span:last-child {
+  margin: 0 4px;
+}

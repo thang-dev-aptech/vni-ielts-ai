@@ -1,0 +1,5 @@
+name: vni-ielts/security-fixture-tests
+version: 0.0.0
+dependencies:
+  codeql/javascript-all: '*'
+extractor: javascript

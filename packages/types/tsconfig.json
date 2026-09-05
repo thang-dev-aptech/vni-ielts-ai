@@ -1,0 +1,4 @@
+{
+  "extends": "@vni/config/tsconfig.base.json",
+  "include": ["src"]
+}

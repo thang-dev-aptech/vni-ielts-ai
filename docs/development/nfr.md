@@ -13,12 +13,12 @@ Requirement §12, with **MVP** and **future scale** deliberately separated. Requ
 | Concurrent exam sessions | `[ASSUMPTION]` low hundreds | Thousands |
 | Approach | Stateless API, scale horizontally | Same, plus read replicas |
 | Workers | Scale **independently** of the API | Autoscale on queue depth |
-| Database | Single MongoDB **node** — see the transaction caveat below | Replica set → PostgreSQL with replicas |
+| Database | Single MongoDB node, **configured as a replica set (`rs0`)** — see below | Multi-node replica set → PostgreSQL with replicas |
 | Storage | Object storage from day one | CDN for exam assets |
 
 **API and worker scale separately.** This is the main reason they are separate processes: a burst of Speaking submissions needs more workers, not more API instances.
 
-> `[OPEN QUESTION]` **H-10 — "single instance" needs qualifying.** MongoDB supports multi-document transactions **only on a replica set**, and token deduction plus session creation must be atomic or a retry debits twice (threat `T22`).
+> **`H-10` RESOLVED 2026-08-20 → [ADR-0011](../decisions/0011-mongodb-single-node-replica-set.md).** The "single instance" wording above is superseded: one *node*, but configured as a replica set. Original reasoning retained below. MongoDB supports multi-document transactions **only on a replica set**, and token deduction plus session creation must be atomic or a retry debits twice (threat `T22`).
 >
 > A **single-node replica set** costs essentially nothing — one process, one configuration flag — and makes transactions available. Recommendation: run one from development onward, *and* design token deduction as a single atomic ledger update so it does not depend on the transaction either way. → [`../database/strategy-mongodb-to-postgresql.md`](../database/strategy-mongodb-to-postgresql.md)
 
@@ -40,6 +40,28 @@ Requirement §12, with **MVP** and **future scale** deliberately separated. Requ
 
 The autosave target matters more than its size suggests: a save that feels slow during a timed exam produces anxiety and duplicate submissions.
 
+### Four Skills reliability seams (FS9.3)
+
+**These are configured budgets and behavioural gates, not production SLOs.** The
+MVP latency table above remains `[ASSUMPTION]` until measured under real load
+(`M-3`). FS9.3 documents what the code already enforces and which tests lock it,
+so an operator can tune a timeout without inventing a commitment nobody made
+(`G-11`).
+
+| Concern | Configured seam | Behaviour under stress | Gate (existing / cheap) |
+|---|---|---|---|
+| Catalogue / session start / autosave | No invented p95 gate in CI | Contract tests prove correctness; latency stays an assumption from the table above | `ExamRunContractTests`, practice-unit start contracts — **not** a load harness |
+| Listening audio range / cache | Client sends `Range: bytes=0-`; response is materialised as one authenticated blob | Seek only when server policy allows; retry after transport/decode failure; no CDN cache invented | `practice-runner` Range assertion; `AudioPlayer` |
+| Concurrent Speaking uploads | Server-generated object key per session/question; complete verifies size/checksum/type | Two workers cannot both own one marking job; re-record replaces sheet answer without orphaning the prior take forever | `MarkingOutboxTests` exclusive claim; `SpeakingRecordingUploadTests`; `RecordingReconciliationTests` |
+| AI queue backpressure | `Alerts:QueueDepth` / `Alerts:QueueOldestAgeSeconds` (see [`alerting.md`](alerting.md)) | Enqueue is idempotent per `(session, module, rubric)`; workers claim with leases; owed backlog excludes live leases | `QueueBacklogTests`, `MarkingOutboxTests` |
+| Provider timeout / retry | `Assessment:WritingMarking:TimeoutSeconds` (default **120**, clamped **10…300**); `MaxAttempts` (default **3** **per provider**); optional `FallbackProvider` | Transient failures retry on the current provider, then fall back; exhausted attempts surface as marking failure — **not** a half-open circuit breaker with an invented open threshold | `WritingEvaluationRouterTests`, `WritingSectionEvaluatorConfigurationTests` |
+| AI egress / disable | `Assessment:WritingMarking:Enabled` (default **false**); `Ai:AllowCrossBorderTransfer` (default **false**); per-provider `SyntheticDataOnly` | Evaluator reports unconfigured; exams continue; R/L scores never depend on AI (`A-11`) | `AiEgressTests`, `WritingSectionEvaluatorConfigurationTests` |
+| Object-store outage | Readiness probe with a hard deadline | `/health/ready` fails without hanging; uploads refuse rather than write to a dead endpoint | `ObjectStorageHealthTests` (wrong secret, closed port, black-hole timeout) |
+
+**There is no classic circuit breaker.** Spend and hang risk are bounded by timeout + attempt ceiling + outbox exponential backoff with jitter (`MarkingWorker`) + the egress guard. Adding a breaker later is fine; inventing an open/half-open threshold in this document is not.
+
+Operator runbooks for the same seams: [`ai-provider-setup.md`](ai-provider-setup.md) · [`alerting.md`](alerting.md) · [`../security/object-storage-r2-setup.md`](../security/object-storage-r2-setup.md) · [`backup-and-restore.md`](backup-and-restore.md).
+
 ---
 
 ## Availability
@@ -49,11 +71,15 @@ The autosave target matters more than its size suggests: a save that feels slow 
 | Target | `[ASSUMPTION]` 99.5% | 99.9% |
 | Deployment | Rolling, brief downtime tolerated | Blue/green, zero-downtime |
 | Degradation | AI outage → results pending, exams continue | Same |
-| Backups | Daily, tested restore | Point-in-time recovery |
+| Backups | Client-side encrypted `mongodump --oplog` **plus continuous PITR via Percona Backup for MongoDB**, both restore-drilled 2026-08-28 | Scheduled runner on the chosen platform |
 
 **The degradation rule is the important one.** An AI provider outage must not prevent learners from taking exams. Reading and Listening score without AI at all; Writing and Speaking submissions queue and drain when service returns. The learner sees an honest "evaluating" state.
 
 **Never deploy during a scheduled exam window** once real usage exists — an in-flight session is stateful in a way a stateless API disguises.
+
+**RPO and RTO are still a `[BUSINESS DECISION]`, but the mechanism now measures far better than the sentence that used to stand here.** The sharp edge was that a daily backup means an incident at 11am loses a 9am sitting — a result a learner spent two hours on. `mongodump --oplog` could not fix that on its own: it captures the oplog only for the *duration of the dump*, so between two daily runs there was nothing.
+
+Continuous PITR closes that gap. Measured 2026-08-28 on the local stack: **recovery point ≤ 1 minute** of writes (PBM `oplogSpanMin=1`), and a point-in-time restore into an isolated target completed in **177 seconds**. What the business *requires* is still theirs to set; what the mechanism *delivers* is no longer a day. → [`backup-and-restore.md`](backup-and-restore.md)
 
 ---
 

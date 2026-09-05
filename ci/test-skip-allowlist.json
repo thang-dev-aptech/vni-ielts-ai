@@ -1,0 +1,26 @@
+{
+  "$comment": [
+    "F5.1 — the only place a skipped test is permitted, and only with an owner and a death date.",
+    "Read by scripts/check-test-skips.mjs. Every entry needs test, reason, owner and expires.",
+    "An expired entry fails the build exactly as an unauthorized skip does: the exemption has to be",
+    "renewed deliberately or the test has to start running again. A trailing '*' matches a prefix.",
+    "Dependency-backed tests run with VNI_REQUIRE_MONGO=1 and VNI_REQUIRE_MINIO=1 in CI, so missing",
+    "infrastructure is never exempt. One entry covers the valid one-in-a-million equality case",
+    "where a replacement-code test has no two distinct values to compare. The content-integrity",
+    "entry covers material deliberately excluded from clean checkout until redistribution rights exist."
+  ],
+  "allow": [
+    {
+      "test": "Vni.Ielts.Integration.Tests.VerificationCodeTests.Pressing_resend_leaves_one_live_code_rather_than_two",
+      "reason": "The test deliberately cannot compare replacement semantics when two independently generated six-digit codes collide; the collision itself is valid production behaviour with a one-in-a-million probability.",
+      "owner": "backend-maintainers",
+      "expires": "2026-11-30"
+    },
+    {
+      "test": "Vni.Ielts.Infrastructure.Tests.Content.RecordedContentIntegrityTests.The_recorded_Exam1_hashes_match_the_files_that_are_actually_there",
+      "reason": "Exam1 is intentionally gitignored because learner redistribution rights are not established, so a clean CI checkout cannot execute this real-content integrity check; synthetic committed fixtures remain mandatory and executable.",
+      "owner": "content-maintainers",
+      "expires": "2026-11-30"
+    }
+  ]
+}

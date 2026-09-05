@@ -1,0 +1,31 @@
+{
+  "startedAt": "2026-08-28T12:14:19+07:00",
+  "startedAtBasis": "filesystem creation of .claude/commands/complete-infrastructure.md",
+  "earliestCommandEvidenceAt": "2026-08-28T10:55:26+07:00",
+  "earliestCommandEvidenceBasis": "PITR drill timestamps recorded in infrastructure-foundation-report.md",
+  "lastActivityAt": "2026-08-28T19:58:40+07:00",
+  "measuredAt": "2026-08-28T19:58:40+07:00",
+  "elapsed": "PT7H44M21S",
+  "elapsedBasis": "minimum observed filesystem span from startedAt to measuredAt",
+  "evidenceSpan": "PT9H3M14S",
+  "evidenceSpanBasis": "earliest recorded command evidence to measuredAt; not continuous execution",
+  "continuousExecutionProven": false,
+  "continuousExecutionEvidence": {
+    "knownGaps": [
+      {
+        "from": "2026-08-28T19:29:00+07:00",
+        "to": "2026-08-28T19:31:00+07:00",
+        "cause": "dev3 session dropped on an API connection error and was resumed by the orchestrator",
+        "impact": "the elapsed span above covers this gap; it is a wall-clock span, not working time"
+      }
+    ],
+    "why": "No process supervisor recorded a continuous session for this queue. startedAt is a file creation time and measuredAt is a clock reading, so the difference is an upper bound on nothing and a lower bound on the wall-clock span only."
+  },
+  "dev3Measured": {
+    "firstToolingFileWrittenAt": "2026-08-28T19:22:00+07:00",
+    "firstToolingFileWrittenAtBasis": "filesystem mtime of ci/test-skip-allowlist.json",
+    "note": "dev3 F5 preparation ran from the first tooling file (19:22) to measuredAt, inside the wider span above. Two background runs are the only measured continuous stretches: the idempotency burn-in run 2 (10 iterations, 119.8s of dotnet test wall time) and the failure-drill sweep (5 drills, 71.3s). Everything else is interactive and unsupervised, so it is not claimed as continuous.",
+    "lastToolingChangeAt": "2026-08-28T19:58:40+07:00"
+  },
+  "note": "The repository did not record an exact task start timestamp, and this file must never invent one. startedAt and startedAtBasis are carried forward unchanged from the previous handoff. dev3 refreshes lastActivityAt, measuredAt and elapsed on every handoff and keeps the filesystem-derived minimum span distinct from proven continuous execution, which remains unproven."
+}

@@ -1,0 +1,508 @@
+/* Student-area chrome: sidebar left, content right, no marketing navigation.
+ *
+ * `[QUYẾT ĐỊNH]` chủ sản phẩm, 21/08/2026 — *"sidebar bên trái nội dung bên
+ * phải và full như trang mới không có menu header"*. The landing header's
+ * links point at marketing anchors on `/`; a signed-in learner needs the app's
+ * navigation, not the brochure's, and running both stacked two competing
+ * navigations on one screen.
+ *
+ * Two controls survive from that header into a slim top bar: notifications and
+ * the account menu. The account menu is the only route to sign-out, so
+ * dropping it to honour "no header" would strand people inside the app — and
+ * it is also where profile links belong, which is how the dashboard body stops
+ * carrying them.
+ *
+ * Measurements come from the shared tokens: the 4px spacing scale, the closed
+ * type scale, and colour pairs that were measured rather than eyeballed.
+ * Nothing here puts white text on #10b050 — that pair measures 2.86.
+ */
+
+.shell {
+  --shell-rail: 248px;
+  --shell-rail-min: 56px;
+  --shell-top: 68px;
+  --shell-r: 12px;
+
+  min-height: 100vh;
+  display: grid;
+  /* `auto` rather than a fixed track, so folding the sidebar is one width
+     change inside the sidebar itself and the grid need not know about it. */
+  grid-template-columns: auto minmax(0, 1fr);
+  /* Stretch, so the sidebar's white column runs the whole page rather than
+     stopping one viewport down with page grey underneath it. */
+  align-items: stretch;
+  background: var(--page);
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+
+/* The column: full height, so the surface is continuous. */
+.shell-rail {
+  width: var(--shell-rail);
+  border-right: 1px solid var(--line);
+  background: var(--card);
+  transition: width var(--dur) var(--ease);
+}
+
+/* The contents: this is the part that sticks. */
+.shell-rail-inner {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-3);
+}
+
+.shell.is-collapsed .shell-rail {
+  width: var(--shell-rail-min);
+}
+
+.shell.is-collapsed .shell-rail-inner {
+  align-items: center;
+}
+
+/* The brand moved here when the header went. It is still the way back to the
+   public site, and still the only VNI mark on the page. */
+.shell-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  padding-inline: var(--s-2);
+  overflow: hidden;
+}
+
+.shell-brand-logo {
+  width: 84px;
+  height: auto;
+  flex: none;
+  object-fit: contain;
+}
+
+.shell-brand-product {
+  padding-left: var(--s-2);
+  border-left: 1px solid var(--line);
+  color: var(--acc);
+  font-size: var(--t-14);
+  font-weight: 900;
+  line-height: var(--lh-body);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* Collapsed, the wordmark would be a smear at 72px wide. The component swaps
+   in the favicon crop — the three diamonds alone — which still reads there. */
+.shell.is-collapsed .shell-brand {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.shell.is-collapsed .shell-brand-logo {
+  width: 32px;
+}
+
+.shell.is-collapsed .shell-brand-product {
+  display: none;
+}
+
+.shell-rail-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--s-6);
+  margin-top: var(--s-2);
+  padding-inline: var(--s-2);
+}
+
+.shell.is-collapsed .shell-rail-head {
+  padding-inline: 0;
+}
+
+/* Hidden by CSS rather than dropped from the markup: the drawer needs this
+   heading at every width, and the collapsed desktop sidebar does not. */
+.shell.is-collapsed .shell-rail-label {
+  display: none;
+}
+
+.shell-rail-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  /* Small labels get weight and tracking, never uppercase — capitalising
+     Vietnamese destroys the diacritics. */
+  letter-spacing: 0.04em;
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+/* Phone only — see the drawer block at the foot of this file. */
+.shell-rail-close,
+.shell-burger,
+.shell-top-brand,
+.shell-top-fill,
+.shell-scrim {
+  display: none;
+}
+
+/* `--s-6` is 32px, and this is the control that folds the whole sidebar. */
+.shell-rail-toggle {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+}
+
+.shell-rail-toggle:hover {
+  background: var(--sunk);
+}
+
+.shell-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.shell-nav-item,
+.shell-home {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding-inline: var(--s-3);
+  border-radius: var(--shell-r);
+  color: var(--ink-2);
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  line-height: var(--lh-body);
+  transition: background var(--dur) var(--ease);
+}
+
+.shell-nav-item svg,
+.shell-home svg {
+  flex: none;
+}
+
+.shell-nav-item:hover {
+  background: var(--sunk);
+  color: var(--ink);
+}
+
+.shell-nav-item.is-active {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.shell-rail-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.shell-rail-group + .shell-rail-group {
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line-2);
+}
+
+.shell-rail-group-title {
+  padding: var(--s-1) var(--s-3);
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.shell.is-collapsed .shell-rail-group-title {
+  display: none;
+}
+
+.shell-nav-badge {
+  margin-left: auto;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--acc-soft);
+  color: var(--acc-700);
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+
+.shell.is-collapsed .shell-nav-badge {
+  display: none;
+}
+
+.shell-nav-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shell-top-title {
+  margin: 0;
+  font-size: var(--t-18);
+  font-weight: var(--w-emph);
+  color: var(--ink);
+}
+
+/* The assistant is a module now, so it wears the same row as the rest. Only
+   its icon marks it out. */
+.shell-nav-item {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Hidden from sight, kept in the accessibility tree. `display: none` here
+   would leave a column of icon buttons with no accessible name at all. */
+.shell.is-collapsed .shell-nav-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.shell.is-collapsed .shell-nav-item,
+.shell.is-collapsed .shell-home {
+  justify-content: center;
+  width: 44px;
+  padding-inline: 0;
+}
+
+/*
+ * The exit, and it is drawn as one: quiet, ruled off, and at the bottom. It is
+ * not competing with the modules above it for attention.
+ */
+.shell-home {
+  margin-top: auto;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line-2);
+  border-radius: 0;
+  color: var(--muted);
+}
+
+.shell-home:hover {
+  color: var(--ink);
+}
+
+/* ── Body ───────────────────────────────────────────────────────────────── */
+
+.shell-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * A bar, not a header: it carries no navigation. Sticky because the account
+ * menu and sign-out should not require scrolling back to the top of a long
+ * dashboard to reach.
+ */
+.shell-top {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  min-height: var(--shell-top);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-3);
+  padding-inline: var(--s-5);
+  border-bottom: 1px solid var(--line);
+  background: rgb(255 255 255 / 0.94);
+  backdrop-filter: blur(14px);
+}
+
+.shell-top-rule {
+  width: 1px;
+  height: var(--s-6);
+  background: var(--line);
+}
+
+/* ── Narrow screens ─────────────────────────────────────────────────────── */
+
+/*
+ * Below this the sidebar stops being a sidebar rather than becoming a
+ * horizontal scroller: narrow content reflows, it never slides sideways.
+ */
+/* ── Phone: the sidebar becomes a drawer ────────────────────────────────── */
+
+/*
+ * Wrapping the sidebar into a horizontal strip put a brand and four pills
+ * above the greeting, which pushed the actual work off the first screen of the
+ * page whose job is answering "what do I do next". Behind a hamburger it costs
+ * one tap and nothing above the fold.
+ */
+@media (max-width: 960px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shell-rail,
+  .shell.is-collapsed .shell-rail {
+    position: fixed;
+    z-index: 45;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(288px, 84vw);
+    border-right: 1px solid var(--line);
+    /* `visibility` as well as the transform: a drawer that is only slid out of
+       sight is still in the tab order and still read out, so a phone user
+       tabs into a menu they cannot see. */
+    visibility: hidden;
+    transform: translateX(-100%);
+    /*
+     * `visibility` is discrete, so a plain transition on it flips halfway
+     * through the slide — and the drawer was still hidden when the open effect
+     * called `focus()`, which browsers refuse on a hidden element. Focus
+     * silently stayed on <body> and a keyboard user was stranded.
+     *
+     * Duration 0 with a delay instead: visible immediately on the way in,
+     * hidden only once the slide out has finished.
+     */
+    transition:
+      transform var(--dur) var(--ease),
+      visibility 0s var(--dur);
+  }
+
+  .shell.is-nav-open .shell-rail {
+    visibility: visible;
+    transform: none;
+    transition:
+      transform var(--dur) var(--ease),
+      visibility 0s 0s;
+  }
+
+  /* Back to a column: it is a sidebar again, just one that slides. */
+  .shell-rail-inner,
+  .shell.is-collapsed .shell-rail-inner {
+    position: static;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .shell.is-collapsed .shell-rail-label {
+    display: block;
+  }
+
+  .shell.is-collapsed .shell-nav-text {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: hidden;
+    clip-path: none;
+  }
+
+  .shell.is-collapsed .shell-nav-item,
+  .shell.is-collapsed .shell-home,
+  .shell.is-collapsed .shell-brand {
+    justify-content: flex-start;
+    width: auto;
+    padding-inline: var(--s-3);
+  }
+
+  .shell.is-collapsed .shell-brand-logo {
+    width: 84px;
+  }
+
+  .shell.is-collapsed .shell-brand-product {
+    display: inline;
+  }
+
+  /* Folding is a desktop affordance. At this width the drawer is either open
+     or it is not, and there is nothing to reclaim. */
+  .shell-rail-toggle {
+    display: none;
+  }
+
+  .shell-rail-close {
+    display: grid;
+    flex: none;
+    width: var(--s-6);
+    height: var(--s-6);
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    background: var(--card);
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  .shell-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 44;
+    background: rgb(20 30 24 / 0.34);
+  }
+
+  /* The brand moves to the bar, because the sidebar carrying it is now closed
+     by default. */
+  .shell-burger {
+    display: grid;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    margin-inline-start: calc(var(--s-2) * -1);
+    border-radius: var(--shell-r);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .shell-burger:hover {
+    background: var(--sunk);
+  }
+
+  .shell-top-brand {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .shell-top-brand img {
+    width: 76px;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .shell-top-fill {
+    display: block;
+    flex: 1;
+  }
+
+  .shell-top {
+    justify-content: flex-start;
+    gap: var(--s-2);
+  }
+}
+
+@media (max-width: 560px) {
+  .shell-top {
+    padding-inline: var(--s-4);
+  }
+
+  .shell-top-brand img {
+    width: 64px;
+  }
+}

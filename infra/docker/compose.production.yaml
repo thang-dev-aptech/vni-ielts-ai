@@ -1,0 +1,90 @@
+# The production shape, runnable locally.
+#
+# <b>Not a deployment target — a smoke test you can run.</b> The production
+# configuration path had never been executed before 2026-08-28: there was no
+# Dockerfile, so nothing had ever booted with `ASPNETCORE_ENVIRONMENT=Production`
+# and the startup gate, the object-storage adapter and the SMTP sender were all
+# code nobody had run in the mode they exist for.
+#
+# What this is for is finding that class of problem before a deploy does. Point
+# it at the local stack, bring it up, and the two images either start or say
+# exactly what is missing.
+#
+#   docker compose -f infra/docker/compose.yaml up -d
+#   docker compose -f infra/docker/compose.production.yaml up --build
+#
+# <b>Every secret here is a placeholder and every one of them is refused in a
+# real deployment.</b> `Jwt__SigningKey` must come from the environment; the
+# value below is long enough to pass the length check and is not a secret,
+# which is the point — a file that could be copied into production is a file
+# that will be.
+
+name: vni-ielts-production-smoke
+
+services:
+  api:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: 8080
+
+      # Placeholder. A real deployment supplies this from a secret store.
+      Jwt__SigningKey: ${VNI_JWT_SIGNING_KEY:?set VNI_JWT_SIGNING_KEY before running this}
+
+      # <b>HTTPS, deliberately, even though nothing here resolves.</b>
+      # `StartupConfiguration.ValidateOrThrow` refuses any external origin or
+      # client URL over plain HTTP outside Development — correctly, since a
+      # session token or a password-reset link travelling to one of these in
+      # a real deployment would be readable in transit. This smoke test exists
+      # to run that exact gate against a real Production boot, so it has to
+      # feed it a configuration the gate is willing to accept. F0.3 found this
+      # compose file could never boot: these two were `http://`, so the
+      # container satisfied neither this check nor the "every origin is HTTP"
+      # transport check below, and crashed on every run before the image was
+      # ever exercised.
+      Cors__Origins__0: https://learn.smoke.invalid
+      Cors__Origins__1: https://admin.smoke.invalid
+
+      # `host.docker.internal` reaches the local stack from inside the
+      # container. A real deployment names a service, not a host.
+      Mongo__ConnectionString: mongodb://host.docker.internal:27018/?directConnection=true
+      Mongo__Database: vni_ielts_production_smoke
+
+      ObjectStorage__ServiceUrl: http://host.docker.internal:9000
+      ObjectStorage__AccessKey: vni-local
+      ObjectStorage__SecretKey: vni-local-dev-only
+
+      # No mail leaves this. The host does not resolve, so the sender reports
+      # `NotSent` and every screen says so — which is the behaviour being
+      # exercised, not a workaround.
+      Email__Host: smtp.invalid
+      Email__FromAddress: no-reply@vni.invalid
+      Email__ClientBaseUrl: https://learn.smoke.invalid
+    ports:
+      - '18080:8080'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  worker:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.worker
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      Mongo__ConnectionString: mongodb://host.docker.internal:27018/?directConnection=true
+      Mongo__Database: vni_ielts_production_smoke
+
+      # The reconciliation sweep is off unless switched on, everywhere. A
+      # background process that deletes audio is not something a smoke test
+      # should enable. → `I2.5`
+      Recordings__SweepEnabled: 'false'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    # F2.2 — the worker's own health port, published so this smoke test can
+    # ask it a real question instead of only "did the container stay up".
+    # Loopback only, matching F1.5's local-stack rule.
+    ports:
+      - '127.0.0.1:18081:8081'
+      - '[::1]:18081:8081'

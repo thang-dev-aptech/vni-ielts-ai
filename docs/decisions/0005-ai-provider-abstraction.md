@@ -1,9 +1,14 @@
 # ADR-0005 — AI provider deferred; port abstraction mandatory now
 
-- **Status:** Accepted (provider selection deliberately deferred)
+- **Status:** Accepted — the deferral clause was resolved on 2026-08-20, see Update below
 - **Date:** 2026-08-17
 - **Deciders:** Product owner
 - **Related:** Requirements A-5, A-9, A-10, S-5 · Owner decisions B-1, B-2 · [`../ai/provider-comparison.md`](../ai/provider-comparison.md)
+
+> **Update 2026-08-20.** The owner selected **GPT (OpenAI) + Gemini (Google)** for LLM evaluation
+> (`B-1` resolved; the Claude API remains excluded; speech-to-text is still open). The decision below —
+> ports mandatory, vendor types kept out of the domain — stands unchanged and is now load-bearing:
+> two adapters sit behind each port. → [`../ai/provider-comparison.md`](../ai/provider-comparison.md)
 
 ## Context
 

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi" data-density="compact">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Nunito and JetBrains Mono, both verified to carry a `vietnamese`
+         subset. Nunito, not Archivo: the learner app moved to it with the
+         confirmed redesign, and two fonts across two surfaces of one product
+         is the "hai hệ thiết kế" anti-pattern the CMS spec exists to avoid. -->
+    <!-- Cropped from the full VNI lockup in assets/brand/. The wordmark is
+         deliberately left out: at 32px "VNI EDUCATION" collapses into a smear
+         and squeezes the mark into a third of the space. The three diamonds
+         still read at 16px, which is the only size that matters here. -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap&subset=vietnamese,latin-ext,latin"
+      rel="stylesheet"
+    />
+    <title>VNI IELTS AI — Quản trị</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Classic script, deliberately: it blocks and runs before the deferred
+         module bundle below, so window.__VNI_RUNTIME_CONFIG__ is already set
+         by the time any module-level code reads it. → F2.6, packages/auth/src/runtimeConfig.ts -->
+    <script src="/env-config.js"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

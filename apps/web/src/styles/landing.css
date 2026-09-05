@@ -1,0 +1,3642 @@
+/*
+ * Ported verbatim from the confirmed redesign at ../VNI IELTS AI Web
+ * design/redesign/vni-ielts-home-redesign.html on 2026-08-21, at the product
+ * owner's direction. The owner has said DESIGN.md will be rewritten to match
+ * this, so where this file and DESIGN.md disagree, THIS FILE IS THE INTENT
+ * and DESIGN.md is stale. Two things that changed and are worth knowing
+ * before editing: Font Archivo -> Nunito. Verified against the Google Fonts
+ * CSS API on 2026-08-21: Nunito carries a `vietnamese` subset, so it does
+ * not repeat the Outfit failure where diacritics fell back mid-word. Shadows
+ * DESIGN.md direction C dropped shadows entirely in favour of three
+ * background layers. This design brings them back, including the chunky `0
+ * 4px 0` button. That is a deliberate change of direction, not an oversight.
+ * One measured issue, recorded rather than silently "fixed", because the
+ * design is confirmed and the owner is rewriting DESIGN.md: The primary
+ * button is white text on green. Measured contrast is 2.86 on the landing
+ * page, against a 4.5 threshold. Fixes that keep the look: darken the green
+ * to about #357a00, or switch the label to near-black (7.9 on the same
+ * green). Left as designed for now. -> docs/ux/DESIGN.md
+ */
+
+:root {
+  --primary: #06803a;
+  --primary-dark: #045a28;
+  --primary-hover: #056e32;
+  --green: #10b050;
+  --green-dark: #0a8d3c;
+  /*
+   * The green a white label can actually sit on.
+   *
+   * `--green` measures **2.86** against white — the failure recorded at the
+   * top of this file — and `--green-dark` measures **4.30**, which is the
+   * near-miss nobody had measured. `#0a8438` measures **4.80**, the darkest
+   * this family gets before it stops reading as the brand green. (`.btn-primary`
+   * already carries `#06803a` at 5.05; D-10 consolidates to --primary: #06803a).
+   *
+   * <b>Use this for any filled control carrying white text.</b> `--green-dark`
+   * stays what it was for borders, icons and text on a light ground, where it
+   * measures 4.9 and up.
+   */
+  --green-btn: var(--primary, #06803a);
+  --green-soft: #e4f7eb;
+  --blue: #2070b0;
+  --blue-dark: #165b91;
+  --yellow: #f0a24a;
+  --orange: #f08030;
+  --purple: #2070b0;
+  --red: #f08030;
+  --ink: #252525;
+  --muted: #6e6e6e;
+  --line: #e5e5e5;
+  --paper: #ffffff;
+  --surface: #f7f9f6;
+  --dark: #143322;
+  --shadow: 0 12px 28px rgba(32, 41, 35, 0.1);
+  --shadow-soft: 0 7px 0 rgba(35, 46, 37, 0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --max: 1160px;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  font-family:
+    'Nunito',
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.55;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.container {
+  width: min(var(--max), calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.brand-logo {
+  width: 104px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+.brand-product {
+  padding-left: 10px;
+  margin-left: 2px;
+  border-left: 1px solid #dfe5df;
+  color: var(--blue);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.brand-light .brand-product {
+  color: #9dd7bc;
+  border-left-color: #31533b;
+}
+
+/* Header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(229, 229, 229, 0.82);
+  backdrop-filter: blur(14px);
+}
+.nav {
+  height: 74px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.brand > span:last-child {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.brand strong {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+.brand small {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--green);
+}
+
+/*
+ * The link row measures itself — see `OverflowNav`. `flex: 1` with
+ * `min-width: 0` is load-bearing, not tidying. It makes the row's width a
+ * function of what the brand and the account controls leave over, and *not*
+ * of how many links it currently holds — which is what stops folding a link
+ * from changing the space available and re-triggering the measurement.
+ * `overflow: hidden` keeps the one frame before the first measurement from
+ * pushing the header wide, and `position: relative` is what the hidden gauge
+ * is positioned against.
+ */
+.nav-links {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+/*
+ * A class rather than `.nav-links a`, because the gauge holds spans: it must
+ * measure exactly what the row will render, and an element that does not
+ * match the selector measures the wrong width.
+ */
+/*
+ * <b>44px of height, and the padding is what makes it.</b> The row measured
+ * 39.7px tall. It is also the one selector the hidden gauge in `OverflowNav`
+ * must match exactly, so the padding change has to happen here and nowhere
+ * else — a second rule adding height to the visible links only would make the
+ * measurement wrong by that difference.
+ */
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  white-space: nowrap;
+  padding: 0 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #555;
+}
+a.nav-link:hover {
+  background: #f3f7f2;
+  color: #232323;
+}
+
+/*
+ * The measuring copy of the row. Out of sight, out of the accessibility
+ * tree, out of the layout — but still laid out, which is the whole point:
+ * `visibility: hidden` boxes have dimensions and `display: none` boxes do
+ * not.
+ */
+.nav-gauge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: inherit;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.text-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 4px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #5a5a5a;
+}
+.menu-btn {
+  display: none;
+  border: 0;
+  background: transparent;
+  font-size: 24px;
+}
+
+/*
+ * One button, three variants, and none of them are toys.
+ *
+ * <b>The mock gave every button a hard offset shadow — `0 4px 0` — and a 2px
+ * border and a 2px lift on hover.</b> That is a game-UI treatment: it reads as
+ * a physical key you press down. On a marketing page with two buttons on it,
+ * fine. On a page listing four exams it becomes four chunky keys stacked in a
+ * column, and the visual weight of the control exceeds the weight of the thing
+ * it acts on.
+ *
+ * A 1px border, a real radius, and a hover that changes colour rather than
+ * position. The primary keeps a soft shadow because it is the one button on a
+ * page that should look raised.
+ */
+.btn {
+  min-height: 44px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+/*
+ * A deeper green than the brand token, and only on this button. White on
+ * `--green` (#10b050) measures 2.86 — the label on the product's main call
+ * to action, on every page, is unreadable to a lot of people. #06803a
+ * measures 5.05 with white and stays in the same family. The token itself is
+ * untouched, so logos, fills and borders are unchanged. Moving the whole
+ * palette is a brand decision, not a CSS one.
+ */
+.btn-primary {
+  background: #06803a;
+  color: white;
+  box-shadow: 0 1px 2px rgb(4 60 28 / 24%);
+}
+
+.btn-primary:hover {
+  background: #05702f;
+  box-shadow: 0 3px 10px rgb(4 60 28 / 26%);
+}
+
+.btn-secondary {
+  background: white;
+  border-color: #d9ded8;
+  color: #333a34;
+}
+
+.btn-secondary:hover {
+  border-color: #b6c0b6;
+  background: #fafbf9;
+}
+.btn-white {
+  background: white;
+  color: #1d2a20;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.16);
+}
+/* 14px floor applies to buttons too. */
+.btn-small {
+  /* 44, not 42. It is the header's primary call to action and a thumb target
+     on every phone. */
+  min-height: 44px;
+  padding-inline: 15px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.full {
+  width: 100%;
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 85px 0 70px;
+  background-color: #fbfcfa;
+  background-image:
+    radial-gradient(circle at 86% 18%, rgba(16, 176, 80, 0.12) 0%, transparent 36%),
+    radial-gradient(circle at 14% 28%, rgba(32, 112, 176, 0.1) 0%, transparent 32%),
+    radial-gradient(circle at 50% 85%, rgba(240, 162, 74, 0.08) 0%, transparent 40%),
+    radial-gradient(#dce6da 1.2px, transparent 1.2px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    28px 28px;
+}
+.hero::before,
+.hero::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  filter: blur(80px);
+  opacity: 0.65;
+  pointer-events: none;
+}
+.hero::before {
+  top: -8%;
+  left: -6%;
+  width: 50vw;
+  height: 50vw;
+  max-width: 580px;
+  max-height: 580px;
+  background: #dcf2e4;
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  animation: morph 8s ease-in-out infinite both alternate;
+}
+.hero::after {
+  bottom: -6%;
+  right: -4%;
+  width: 40vw;
+  height: 40vw;
+  max-width: 480px;
+  max-height: 480px;
+  background: #e2f0fb;
+  border-radius: 60% 40% 30% 70% / 50% 60% 40% 50%;
+  animation: morph 10s ease-in-out infinite both alternate-reverse;
+}
+@keyframes morph {
+  0% {
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+  100% {
+    border-radius: 60% 40% 30% 70% / 50% 60% 40% 50%;
+  }
+}
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.02fr 0.98fr;
+  gap: 50px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+/*
+ * Was 11px, uppercase, letter-spaced 0.08em — and the text inside it is
+ * Vietnamese. Three separate problems in one rule. Below the 14px floor the
+ * stacked diacritics stop resolving; uppercasing Vietnamese pushes the marks
+ * into the line above and is banned outright in DESIGN.md; and #4f8e2f on
+ * #f0f8ec measured 3.71. The tracking was the only part doing useful work,
+ * so it stays at a reduced value. It looks slightly less like the design
+ * mock. The mock was set in English.
+ */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f0f8ec;
+  color: #3d7524;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+.hero-copy h1 {
+  margin: 17px 0 18px;
+  max-width: 690px;
+  font-size: clamp(42px, 5.3vw, 70px);
+  line-height: 1.02;
+  letter-spacing: -0.055em;
+  font-weight: 900;
+}
+.hero-copy h1 span,
+/*
+ * The half of every section heading set in green. `--green` measures 2.86 on
+ * white, which fails even the 3:1 allowance for large text; #1e7a3c measures
+ * 5.38 and passes as body text, which is the safer side of a line the
+ * display sizes here sit right on top of.
+ */
+.section-heading h2 span {
+  color: #1e7a3c;
+}
+.hero-lead {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 600;
+}
+.hero-ctas {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 27px;
+}
+.trust-row {
+  display: flex;
+  gap: 0;
+  margin-top: 32px;
+  padding-top: 21px;
+  border-top: 1px solid var(--line);
+  max-width: 610px;
+}
+.trust-item {
+  min-width: 140px;
+  display: grid;
+  gap: 1px;
+}
+.trust-item + .trust-item {
+  padding-left: 22px;
+  border-left: 1px solid var(--line);
+}
+.trust-item strong {
+  font-size: 21px;
+  line-height: 1.5;
+  font-weight: 900;
+}
+/* 12px → 14px, and #7d7d7d measured 4.00. #636363 measures 5.84. */
+.trust-item span {
+  color: #636363;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.hero-visual {
+  position: relative;
+  min-height: 540px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.learning-card {
+  position: relative;
+  z-index: 3;
+  width: min(440px, 100%);
+  padding: 24px;
+  border: 2px solid #d9dfd9;
+  border-radius: 28px;
+  background: white;
+  box-shadow: 0 26px 50px rgba(61, 76, 61, 0.14);
+}
+/* Wraps: signed in the pill reads "3/4 kỹ năng đã chấm", which is twice the
+   width of "Xem trước". */
+.learning-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+/* #148c48 measured 3.86 on the soft green. #116634 measures 6.32. */
+.green-soft {
+  color: #116634;
+  background: var(--green-soft);
+}
+/*
+ * The pill at the top right of the hero panel.
+ *
+ * It said "Sẵn sàng 24/7" — an uptime commitment for a product that is not
+ * deployed. It now says what the panel *is*: "Xem trước" before sign-in, and
+ * how many skills have been marked after it. Neutral ink, because neither is
+ * a status worth colouring.
+ */
+.preview-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border: 1px solid #dde4dc;
+  border-radius: 999px;
+  background: #f4f7f3;
+  color: #4d554e;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+/* The way back into an open sitting, inside the panel's banner. */
+.hub-resume {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding-inline: 12px;
+  border-radius: 999px;
+  background: var(--green-dark);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+
+.hub-resume:hover {
+  background: #076c2c;
+}
+
+/*
+ * The four skill marks, keyed to `SKILLS` in `skills.ts` rather than to
+ * colour names. `.blue` / `.yellow` / `.purple` / `.red` said nothing about
+ * which skill they belonged to, and the mapping had already drifted — two of
+ * the four resolved to the same blue. Every pair below is the one measured in
+ * `skills.ts`: 5.30 · 5.40 · 6.13 · 5.67 ink-on-tint.
+ */
+.skill-icon.is-reading {
+  background: #eef4fb;
+  color: #2867ac;
+}
+.skill-icon.is-listening {
+  background: #fdf1e3;
+  color: #9a4e07;
+}
+.skill-icon.is-writing {
+  background: #efecf9;
+  color: #5b4b9e;
+}
+.skill-icon.is-speaking {
+  background: #fdedf1;
+  color: #a8324f;
+}
+@keyframes pulseDot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.75);
+  }
+}
+
+.hub-banner {
+  margin: 18px 0 16px;
+  padding: 14px 16px;
+  background: #f5f8f5;
+  border: 1px solid #e2e8e1;
+  border-radius: 16px;
+}
+.hub-banner strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--ink);
+}
+/* #727b72 measured 4.10 on the panel. #5c645c measures 5.72. */
+.hub-banner span {
+  display: block;
+  font-size: 14px;
+  color: #5c645c;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+.hub-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.hub-tag {
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #dbe2da;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #454f45;
+}
+
+.skill-list {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 20px;
+}
+.skill {
+  display: grid;
+  grid-template-columns: 39px 1fr auto;
+  gap: 11px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 2px solid #edf1eb;
+  background: #fff;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+.skill:hover {
+  transform: translateX(3px);
+  border-color: #c9e6d4;
+}
+/*
+ * The single-letter skill marks.
+ *
+ * Every one of the four measured under 4.5 against its own tile — the red one
+ * at 2.81. They are 14px now, and each colour is the darkest member of its own
+ * family rather than a mid tone: blue 6.14, yellow 6.09, purple 7.09, red 5.49.
+ */
+.skill-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+}
+.skill-icon.blue {
+  background: #def5ff;
+  color: #175d94;
+}
+.skill-icon.yellow {
+  background: #fff2be;
+  color: #7d4a0e;
+}
+.skill-icon.purple {
+  background: #ede4ff;
+  color: #453596;
+}
+.skill-icon.red {
+  background: #ffe0e0;
+  color: #9c3d18;
+}
+.skill strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+/* #858f85 measured 3.35. #67716a measures 5.06. */
+.skill span {
+  font-size: 14px;
+  color: #67716a;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.score-pill {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f1f5f0;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.4;
+  color: var(--dark);
+}
+/* #148c48 measured 3.80 on this fill. #12622e measures 6.58. */
+.score-pill.active {
+  background: #def9cb;
+  color: #12622e;
+}
+
+.floating-card {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  padding: 10px 15px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border: 2px solid #e2e8df;
+  box-shadow: 0 16px 36px rgba(25, 40, 28, 0.14);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.floating-card b {
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+/* #768176 measured 4.06. #5f685f measures 5.78. */
+.floating-card small {
+  display: block;
+  color: #5f685f;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+/*
+ * Clear of the card, not on top of it.
+ *
+ * These sat 16px outside the panel's corners, which worked while the labels
+ * inside were 10px. Raising every string in the panel to the 14px floor made
+ * the badge and the button wider, and both floating cards landed on them —
+ * the top one across "PHÒNG LUYỆN", the bottom one across the call to action.
+ * Pushed out far enough that the card's corner radius is the only thing under
+ * them.
+ */
+.mini-top {
+  top: -30px;
+  left: -38px;
+  animation: floatBadge 4s ease-in-out infinite alternate;
+}
+/*
+ * Low enough to clear the call to action.
+ *
+ * The panel's button is full width, so no horizontal offset gets this card off
+ * it — only a vertical one does. At -52px the overlap is the button's bottom
+ * 10px, which is below its label.
+ */
+.mini-bottom {
+  bottom: -52px;
+  right: -38px;
+  animation: floatBadge 4s ease-in-out infinite alternate-reverse;
+}
+@keyframes floatBadge {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-7px);
+  }
+}
+
+/* Generic sections */
+/*
+ * <b>84px, down from 96.</b> `[QUYẾT ĐỊNH]` chủ sản phẩm, 24/08/2026: *"giao
+ * diện để thừa khoảng trắng quá nhiều"*. Five sections at 96 top and bottom is
+ * 960px of nothing between five card grids that all weighed the same, which is
+ * the arithmetic behind that sentence. The band is what gives the page a
+ * middle now; the rest can sit closer together.
+ */
+.section {
+  padding: 84px 0;
+}
+.section-heading {
+  margin-bottom: 36px;
+}
+.section-heading.centered {
+  max-width: 840px;
+  margin-inline: auto;
+  text-align: center;
+}
+/*
+ * <b>Caps at 44px, not 53.</b> At 53 every centred heading on this page broke
+ * into three lines with a one-word last line — "lại.", "luyện.", "chấm." —
+ * which is what made the empty space read as a mistake rather than as calm.
+ * `text-wrap: balance` then evens the lines that remain; where it is
+ * unsupported the result is the old behaviour, not a broken one.
+ */
+.section-heading h2 {
+  margin: 13px 0 9px;
+  font-size: clamp(30px, 3.4vw, 44px);
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  font-weight: 900;
+  text-wrap: balance;
+}
+/*
+ * #737373 measured 4.48 — under by a hair, and this is the lead sentence of
+ * every section on the site. #6b6b6b measures 5.28.
+ */
+.section-heading p {
+  max-width: 680px;
+  margin: 0;
+  color: #6b6b6b;
+  font-size: 16px;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+.section-heading.centered p {
+  margin-inline: auto;
+}
+/* #14743d on #e4f7eb measures 5.26. */
+.green-eyebrow {
+  background: var(--green-soft);
+  color: #14743d;
+}
+.feature-arrow {
+  color: #6f6f6f;
+  font-weight: 900;
+}
+.feature-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.feature-meta span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #5b615b;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Articles */
+.row-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+}
+/*
+ * 14px, not 13. The floor exists because Vietnamese diacritics stop
+ * resolving below it, and "Xem tất cả bài viết" carries three of them.
+ */
+.text-link {
+  /* #2c8b2e measured 4.34 — under the floor. #1e7a3c measures 5.38. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #1e7a3c;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.article-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+/*
+ * An article card, with nothing decorative on it.
+ *
+ * <b>Flatter than the mock, on purpose.</b> The previous version was a 2px
+ * border, a 22px radius, a drop shadow, a 180px drawn cover and a 5px lift on
+ * hover — five treatments competing for attention on an object whose entire
+ * job is to make a headline readable. Nine of them on a page read as nine
+ * posters rather than as a list of things to read.
+ *
+ * What is left: a hairline, a 4px category rule, and the text. The lift on
+ * hover is 2px, which is enough to say "pressable" without the card leaving
+ * the grid.
+ */
+.article-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e6eae4;
+  border-radius: 14px;
+  background: #fff;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.article-card:hover {
+  transform: translateY(-2px);
+  border-color: #cfe0d3;
+  box-shadow: 0 8px 20px rgb(32 41 35 / 8%);
+}
+
+/*
+ * The cover, when a caller asks for one.
+ *
+ * A fixed 16:9 box so a row of three cards has three headlines on the same
+ * line — an intrinsic height would let one drawing push its neighbour's title
+ * down. `slice` on the SVG rather than `meet`, so the drawing fills the box at
+ * any card width instead of letterboxing itself inside it.
+ */
+.article-cover {
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #eef2ec;
+}
+
+.article-cover svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * The 4px rule survives underneath the cover as a 3px one.
+ *
+ * The tag inside the card names the category in words, so this is redundant by
+ * design — it is what makes the grouping visible while scanning, before any
+ * label is read.
+ */
+.article-card.has-cover .article-cover {
+  border-bottom: 3px solid #cfe0d3;
+}
+
+.article-card.has-cover.is-huong-dan .article-cover {
+  border-bottom-color: #14743d;
+}
+.article-card.has-cover.is-bai-viet .article-cover {
+  border-bottom-color: #1f5f9e;
+}
+.article-card.has-cover.is-tuyen-dung .article-cover {
+  border-bottom-color: #55499b;
+}
+
+/* The drawing lifts a little further than the card does. */
+.article-card.has-cover .article-cover svg {
+  transition: transform 0.35s ease;
+}
+
+.article-card.has-cover:hover .article-cover svg {
+  transform: scale(1.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-card.has-cover:hover .article-cover svg {
+    transform: none;
+  }
+}
+
+/*
+ * The category, as 4px of colour.
+ *
+ * It replaces a 180px drawn shape that carried exactly this one bit of
+ * information. Grouping survives; the sixteen hundred vertical pixels of
+ * decoration on a nine-card page do not.
+ */
+.article-rule {
+  display: block;
+  height: 4px;
+  background: #cfe0d3;
+}
+
+.article-card.is-huong-dan .article-rule {
+  background: #14743d;
+}
+.article-card.is-bai-viet .article-rule {
+  background: #1f5f9e;
+}
+.article-card.is-tuyen-dung .article-rule {
+  background: #55499b;
+}
+
+.article-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.article-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/*
+ * The category label, quieted.
+ *
+ * It was a filled pill at weight 900 sitting directly above the headline,
+ * which made the loudest thing on the card the thing that matters least. Now
+ * it is text with a hairline under it in its own colour — same information,
+ * one rank lower.
+ */
+.article-tag {
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+.article-tag.is-huong-dan {
+  color: #14743d;
+}
+.article-tag.is-bai-viet {
+  color: #1f5f9e;
+}
+.article-tag.is-tuyen-dung {
+  color: #55499b;
+}
+
+.article-readtime {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  color: #6b756b;
+}
+
+/*
+ * The headline is the loudest thing on the card, and now it is the only loud
+ * thing on it.
+ *
+ * Weight 700, not 900. Everything on this card used to be 900 — the tag, the
+ * read time, the author, the date — which is the same as nothing being
+ * emphasised. 1.5 leading because a two-line Vietnamese headline stacks
+ * diacritics into the line above at anything tighter.
+ */
+.article-card h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.article-card p {
+  margin: 0 0 18px;
+  flex: 1;
+  color: #5f675f;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.article-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f3ef;
+}
+
+/* Appears on hover only. On nine cards at once it would be nine arrows. */
+.article-go {
+  color: #1e7a3c;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.article-card:hover .article-go,
+.article-card:focus-visible .article-go {
+  opacity: 1;
+}
+
+/* FAQ */
+.faq-section {
+  padding: 95px 0;
+  background: #f8f8f8;
+}
+.faq-wrap {
+  width: min(820px, calc(100% - 40px));
+}
+.faq-list {
+  display: grid;
+  gap: 10px;
+}
+details {
+  background: white;
+  border: 2px solid #e6e6e6;
+  border-radius: 18px;
+  padding: 0 18px;
+}
+summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 17px 28px 17px 0;
+  position: relative;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 900;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+summary:after {
+  content: '+';
+  position: absolute;
+  right: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
+  color: #70a45c;
+  font-weight: 500;
+}
+details[open] summary:after {
+  content: '–';
+}
+/* #777 measured 4.48 on white — just under. #6b6b6b measures 5.28. */
+details p {
+  margin: 0;
+  padding: 0 28px 17px 0;
+  color: #6b6b6b;
+  font-size: 15px;
+  line-height: 1.65;
+  font-weight: 600;
+}
+
+/* Companion (Luôn có người đồng hành) */
+.companion-section {
+  padding: 95px 0;
+  background: #fbfdfa;
+  position: relative;
+}
+.companion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.companion-card {
+  background: white;
+  border: 2px solid #e5ebe2;
+  border-radius: 24px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+  text-decoration: none;
+  color: inherit;
+}
+.companion-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 36px rgba(32, 45, 35, 0.1);
+  border-color: #bce5a7;
+}
+.companion-card.featured-card {
+  background: #142419;
+  color: white;
+  border-color: #274730;
+  box-shadow: 0 12px 32px rgba(17, 36, 22, 0.25);
+}
+.companion-card.featured-card:hover {
+  border-color: var(--green);
+  box-shadow: 0 20px 44px rgba(17, 36, 22, 0.35);
+}
+.companion-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.companion-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 900;
+  background: #f0f6ee;
+  border: 1px solid #e0e8dc;
+}
+/*
+ * The three channel marks.
+ *
+ * <b>Real logos since 24/08.</b> These tiles held `▶`, `✦` and `✱` — a play
+ * glyph and two typographic ornaments — while the footer three feet below
+ * carried the correct marks. The paths now come from `BrandIcons`, which takes
+ * them from simple-icons.
+ *
+ * <b>The brand colour is on the glyph, the tint is behind it.</b> Each mark is
+ * a single `currentColor` path, so the tile sets `color` and the SVG follows;
+ * the wash is the same hue at ~8% so three saturated logos in a row do not
+ * fight the page's own green. YouTube #FF0000 · Facebook #0866FF · Zalo
+ * #0068FF, per `BrandIcons`.
+ */
+.companion-icon-box svg {
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+
+/*
+ * The Zalo mark is a four-letter wordmark, not a pictorial glyph. At the 26px
+ * the other two take, each letterform lands near 6px and reads as a smudge
+ * beside a play button and an F. It gets the width it needs; the tile is the
+ * same size.
+ */
+.companion-icon-box.is-zalo svg {
+  width: 38px;
+  height: 38px;
+}
+
+.companion-icon-box.is-youtube {
+  background: #fdeaea;
+  color: #e00000;
+  border-color: #f8cdcd;
+}
+.companion-icon-box.is-facebook {
+  background: #e8f0ff;
+  color: #0866ff;
+  border-color: #cadeff;
+}
+.companion-icon-box.is-zalo {
+  background: #e6f0ff;
+  color: #0068ff;
+  border-color: #c8dcff;
+}
+
+/* On the dark card the wash is gone and the mark carries itself. */
+.companion-card.featured-card .companion-icon-box.is-zalo {
+  background: rgb(255 255 255 / 12%);
+  border-color: rgb(255 255 255 / 18%);
+  color: #6fa8ff;
+}
+.companion-badge {
+  /* 10px at #647063 on #f3f6f2 — 4.35, and under the size floor. */
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #f3f6f2;
+  color: #545e53;
+}
+.companion-card.featured-card .companion-badge {
+  background: rgba(16, 176, 80, 0.25);
+  color: #9ee870;
+}
+/*
+ * <b>`reset.css` colours every heading `--ink`, and that wins over inherited
+ * white.</b> On the dark featured card "Nhóm hỗ trợ học viên" measured
+ * **1.06:1** — present in the DOM, absent on screen. The same trap is
+ * documented and guarded against in `.stu` one section up; it was never
+ * applied here. White on #142419 measures 14.6.
+ */
+.companion-card h3 {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.companion-card.featured-card h3 {
+  color: #fff;
+}
+.companion-card p {
+  margin: 0 0 22px;
+  color: #5f675f;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 600;
+  flex: 1;
+}
+.companion-card.featured-card p {
+  color: #bdd1c0;
+}
+.companion-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* 13px at #2c8b2e — 4.34, and under the size floor. */
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 900;
+  color: #1e7a3c;
+}
+.companion-card.featured-card .companion-link {
+  color: #9ee870;
+}
+
+/*
+ * The dark CTA panel's focus ring.
+ *
+ * The base sheet's ring is near-black ink, which measures 1.3 on this panel —
+ * the same class of bug as the footer's, and for the same reason: a ring is
+ * judged against what is behind it, and both of these panels invert the page.
+ * White measures 13.8 here.
+ */
+.cta-box :focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+/* CTA */
+.cta-section {
+  padding: 90px 0;
+}
+.cta-box {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 58px 64px;
+  border-radius: 32px;
+  background: #112217;
+  border: 2px solid #28442e;
+  box-shadow: 0 24px 60px rgba(10, 30, 16, 0.28);
+  color: white;
+}
+.cta-box::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(16, 176, 80, 0.28), transparent 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+}
+.cta-box::after {
+  content: '';
+  position: absolute;
+  bottom: -40%;
+  left: -10%;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(230, 140, 50, 0.22), transparent 70%);
+  border-radius: 50%;
+  filter: blur(50px);
+  pointer-events: none;
+}
+.cta-content {
+  position: relative;
+  z-index: 2;
+  max-width: 620px;
+}
+.cta-box .eyebrow {
+  background: rgba(255, 255, 255, 0.12);
+  color: #9ee870;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.cta-box h2 {
+  margin: 16px 0 10px;
+  color: white;
+  font-size: clamp(32px, 3.8vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  font-weight: 900;
+}
+.cta-box h2 span {
+  color: var(--green);
+}
+.cta-box p {
+  margin: 0;
+  color: #c7d8c9;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.cta-actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 210px;
+}
+
+/* Footer */
+.footer {
+  background: #162219;
+  color: #e9f1e8;
+  padding: 55px 0 22px;
+}
+
+/*
+ * The base sheet's focus ring is `--acc` #2867ac, which measures 2.84 on this
+ * footer — under the 3:1 WCAG 1.4.11 asks of a focus indicator, on the
+ * thirteen links and three channel buttons that live down here. #9ee870
+ * measures 11.14, and it is the colour the footer already uses for emphasis.
+ */
+.footer :focus-visible {
+  outline: 3px solid #9ee870;
+  outline-offset: 3px;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.7fr repeat(3, 1fr);
+  gap: 35px;
+}
+.brand-light strong {
+  color: white;
+}
+.brand-light small {
+  color: #9ee870;
+}
+.footer-brand p {
+  max-width: 330px;
+  margin: 16px 0 0;
+  color: #9aae9b;
+  font-size: var(--t-16);
+  font-weight: 600;
+  line-height: 1.6;
+}
+.footer h2 {
+  margin: 0 0 13px;
+  /*
+   * Explicit, and not optional. The base sheet sets `h1..h6 { color:
+   * var(--ink) }`, and a declared value beats the light colour these would
+   * otherwise inherit from `.footer` — so the three column headings were
+   * near-black on the dark footer at a measured 1.07. White puts them at
+   * 15.3 and, being lighter than the #9aae9b links beneath, restores the
+   * heading-over-link ranking.
+   */
+  color: #fff;
+  font-size: var(--t-16);
+  letter-spacing: 0.04em;
+}
+/* 44px of target. A footer column is a stack of thumb-sized rows on a phone,
+   and these measured 24.8px. */
+.footer-grid > div:not(.footer-brand) a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: #9aae9b;
+  font-size: var(--t-16);
+  font-weight: 700;
+}
+.footer-grid > div:not(.footer-brand) a:hover {
+  color: #d9f7ca;
+}
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 40px;
+  padding-top: 17px;
+  border-top: 1px solid #2a382c;
+  /*
+   * Was #758576, which measures 4.21 on this footer's #162219 — under the
+   * 4.5 threshold. #8a9a8b keeps the same muted register at 5.54. Raising
+   * the size alone would not have fixed it: the large-text exemption does
+   * not begin until 24px.
+   */
+  color: #8a9a8b;
+  font-size: var(--t-14);
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .nav-links {
+    display: none;
+  }
+  .nav-actions {
+    margin-left: auto;
+  }
+  .menu-btn {
+    display: block;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-copy {
+    text-align: center;
+  }
+  .hero-copy .eyebrow,
+  .hero-ctas {
+    justify-content: center;
+  }
+  .hero-lead {
+    margin-inline: auto;
+  }
+  .trust-row {
+    margin-inline: auto;
+    justify-content: center;
+    text-align: left;
+  }
+  .hero-visual {
+    min-height: 500px;
+  }
+  /*
+   * The two floating cards exist to overlap the panel's corners in the
+   * two-column composition. Once the hero stacks, the panel is centred and
+   * they end up stranded in the page margin beside it, overlapping nothing.
+   * They were hidden at 640px, which left a 340px band where they floated in
+   * empty space.
+   */
+  .floating-card {
+    display: none;
+  }
+  .article-grid,
+  .companion-grid {
+    grid-template-columns: 1fr;
+  }
+  .cta-box {
+    padding: 42px 36px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 28px;
+  }
+  .cta-actions {
+    width: 100%;
+    flex-direction: row;
+  }
+  .cta-actions .btn {
+    flex: 1;
+  }
+  .footer-grid {
+    grid-template-columns: 1.5fr 1fr 1fr;
+  }
+  .footer-grid > div:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    width: min(var(--max), calc(100% - 28px));
+  }
+  .nav {
+    height: 67px;
+  }
+  .nav-actions .text-btn {
+    display: none;
+  }
+  .hero {
+    padding-top: 46px;
+  }
+  .hero-copy h1 {
+    font-size: 44px;
+  }
+  .hero-lead {
+    font-size: 15px;
+  }
+  .trust-row {
+    gap: 0;
+  }
+  .trust-item {
+    min-width: 0;
+    flex: 1;
+  }
+  .trust-item + .trust-item {
+    padding-left: 11px;
+  }
+  .trust-item strong {
+    font-size: 18px;
+  }
+  /* Was 9px. The floor holds at every width — "kỹ năng IELTS" and "phản hồi
+     tức thì" both carry stacked diacritics, and a narrow screen is where they
+     are hardest to read, not easiest. The row wraps instead. */
+  .trust-item span {
+    font-size: 14px;
+  }
+  .hero-visual {
+    min-height: 450px;
+    padding: 10px 0;
+  }
+  .learning-card {
+    padding: 18px;
+  }
+  .floating-card {
+    display: none;
+  }
+  .section {
+    padding: 73px 0;
+  }
+  .section-heading h2 {
+    font-size: 37px;
+  }
+  .row-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+  .article-grid {
+    grid-template-columns: 1fr;
+  }
+  .faq-section {
+    padding: 73px 0;
+  }
+  .cta-box {
+    padding: 32px 24px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .cta-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  .cta-actions .btn {
+    width: 100%;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .footer-brand {
+    grid-column: 1/-1;
+  }
+  .footer-grid > div:last-child {
+    display: block;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    margin-top: 28px;
+  }
+}
+
+@media (max-width: 430px) {
+  .nav-actions .btn {
+    display: none;
+  }
+  .hero-ctas .btn {
+    width: 100%;
+  }
+}
+
+/*
+ * ════════════════════════════════════════════════════════════════ Added
+ * after the port, at the owner's request: the sections read as too white and
+ * too empty. Everything above this line is the design verbatim; everything
+ * below is additive and removable.
+ * ════════════════════════════════════════════════════════════════
+ */
+
+/*
+ * ── Depth behind the sections ─────────────────────────────────── Very
+ * low-opacity washes and a dot grid, so a section has something behind the
+ * text without competing with it. The dot grid is the same device the auth
+ * panel already uses, which keeps the two pages related rather than merely
+ * adjacent.
+ */
+
+/*
+ * The sections establish a stacking context; the pseudo-elements paint inside
+ * it at `z-index: -1`.
+ *
+ * These are two rules and must stay two. They were briefly merged into one on
+ * 22/08 by a cleanup script that removed a dead selector from the end of the
+ * first list and took the closing brace with it — which left the three real
+ * selectors adopting the pseudo-element body, so every section on the page
+ * became `position: absolute; inset: 0` and the whole site collapsed to the
+ * height of its hero.
+ */
+.landing .section,
+.landing .companion-section,
+.landing .faq-section {
+  position: relative;
+  isolation: isolate;
+}
+
+.landing .section::before,
+.landing .companion-section::before,
+.landing .faq-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(16, 176, 80, 0.055), transparent 42%),
+    radial-gradient(circle at 88% 82%, rgba(32, 112, 176, 0.045), transparent 40%);
+}
+
+/*
+ * Alternate sections get a faint tint plus texture, so the page has a rhythm
+ * instead of one continuous sheet of white.
+ */
+.landing .section:nth-of-type(even)::after,
+.landing .companion-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg width='34' height='34' viewBox='0 0 34 34' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1.1' fill='%23102a1a' fill-opacity='0.05'/%3E%3C/svg%3E");
+  /*
+   * Fades out at both edges so the band has no hard seam against the
+   * sections above and below it.
+   */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+}
+
+/*
+ * ── Reveal on scroll ──────────────────────────────────────────── Armed by
+ * useReveal only after it runs, so a failed bundle or a reduced-motion
+ * preference leaves everything plainly visible.
+ */
+
+/*
+ * 300ms, down from 550.
+ *
+ * Half a second is long enough that a reader scrolling at any speed watches
+ * the section arrive rather than reading it — and it is the one motion in this
+ * product that breaks the 200–300ms ceiling every other transition here keeps.
+ * The travel drops with it: 18px over 300ms is the same velocity, and a
+ * shorter slide is what stops a fast scroll from showing four sections
+ * mid-flight at once.
+ */
+.reveal-armed [data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 0.3s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal-armed [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+ * A short stagger inside a grid, so cards arrive as a group rather than
+ * snapping in together.
+ */
+/*
+ * <b>The stagger was inert everywhere except one component.</b> The delay reads
+ * `--i`, and `--i` was set in exactly one file in the repository —
+ * `StudentsSection`, on the roadmap markers. Every other `data-reveal-stagger`
+ * in the product resolved to `calc(0 * 70ms)`, so four attributes across three
+ * pages requested an effect that never ran.
+ *
+ * Setting it here by position makes all of them work with no markup change.
+ * Six is the largest stagger group in the product; a seventh child simply
+ * inherits 0, which is the old behaviour rather than a broken one.
+ */
+.reveal-armed [data-reveal-stagger] > *:nth-child(1) {
+  --i: 0;
+}
+.reveal-armed [data-reveal-stagger] > *:nth-child(2) {
+  --i: 1;
+}
+.reveal-armed [data-reveal-stagger] > *:nth-child(3) {
+  --i: 2;
+}
+.reveal-armed [data-reveal-stagger] > *:nth-child(4) {
+  --i: 3;
+}
+.reveal-armed [data-reveal-stagger] > *:nth-child(5) {
+  --i: 4;
+}
+.reveal-armed [data-reveal-stagger] > *:nth-child(6) {
+  --i: 5;
+}
+
+.reveal-armed [data-reveal-stagger] > * {
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-armed [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/*
+ * ── Channel cards ───────────────────────────────────────────────
+ *
+ * Removed on 26/08. The whole `.channel-*` family — the card, its three
+ * per-brand `--channel` modifiers, and everything hanging off them — was dead:
+ * no component in either app rendered any of it. The design it belonged to was
+ * superseded when the community section was rebuilt around real links.
+ */
+.contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.contact-item:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--green) 45%, var(--line));
+  box-shadow: 0 10px 24px rgba(24, 40, 30, 0.08);
+}
+.contact-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+.contact-icon svg {
+  width: 19px;
+  height: 19px;
+}
+.contact-item small {
+  display: block;
+  /* 12px, and the labels beside it are Vietnamese ("Hotline", "Website"). */
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #5f675f;
+}
+.contact-item strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+/* ── Footer contact and social ───────────────────────────────────*/
+
+.footer-social {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+/*
+ * Real brand colours at rest, not only on hover. Official values via
+ * simple-icons: YouTube #FF0000, Facebook #0866FF, Zalo #0068FF. Against the
+ * dark footer each keeps a white glyph, which is how all three are used on
+ * dark backgrounds in their own guidelines.
+ */
+/* 44px, not 40. These are the three channel buttons in the footer and they
+   are thumb targets on every phone the product ships to. */
+.social-dot {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  color: #fff;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+.social-dot svg {
+  width: 20px;
+  height: 20px;
+}
+.social-dot.yt {
+  background: #ff0000;
+}
+.social-dot.fb {
+  background: #0866ff;
+}
+.social-dot.za {
+  background: #0068ff;
+}
+.social-dot:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.12);
+}
+
+/*
+ * The original sheet sets `.footer-grid > div:not(.footer-brand) a` to
+ * display:block — three classes deep, so a bare `.footer-contact a` loses
+ * and the icon drops onto its own line. Matched at the same depth rather
+ * than reached for with !important. This regressed once already: an edit
+ * that sliced the file at the string `.footer-contact a {` cut into the
+ * MIDDLE of this longer selector, silently restoring the weaker version.
+ * Change this rule by name, not by offset.
+ */
+.footer-grid > div.footer-contact a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--t-16);
+}
+
+/*
+ * A phone number must not break across lines.
+ *
+ * At 390px the footer column is narrow enough that "0823 86 5858" wrapped to
+ * "0823 86" / "5858", which reads as two numbers and is the one string on the
+ * page where a reader copying it wrongly has a real cost. The grouping itself
+ * is VNI's printed form and is deliberately not changed here. → `Contact`
+ */
+.footer-grid > div.footer-contact a[href^='tel:'] span:last-child,
+.footer-grid > div.footer-contact a[href^='tel:'] {
+  white-space: nowrap;
+}
+.footer-ico {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  opacity: 0.75;
+}
+.footer-ico svg {
+  width: 16px;
+  height: 16px;
+}
+
+/*
+ * The Zalo mark is a four-letter wordmark, not a pictorial glyph. At 16px each
+ * letterform lands near 4px and reads as a grey smudge beside a phone handset
+ * and a globe. It takes the whole 26px box; the row height does not change.
+ */
+.footer-ico.is-zalo svg {
+  width: 26px;
+  height: 26px;
+}
+
+@media (max-width: 720px) {
+  .contact-item {
+    justify-content: flex-start;
+  }
+}
+
+/*
+ * ── Documents ─────────────────────────────────────────────────── Plainer
+ * than the article cards on purpose: a document is a file to open, not a
+ * piece to read on the page, so it gets a row rather than a thumbnail and a
+ * read time.
+ */
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 30px;
+}
+.doc-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.doc-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--green) 40%, var(--line));
+  box-shadow: 0 14px 30px rgba(24, 40, 30, 0.09);
+}
+/*
+ * Was a 20px emoji. A file's format is the one thing someone wants to know
+ * before they open it, so the tile says PDF or MP3 instead of showing a
+ * picture of a page.
+ */
+.doc-format {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--green-soft);
+  color: #14743d;
+  /*
+   * "PDF" is Latin, but the floor is size-based and exceptions are how a
+   * floor stops being one. 14px fits the 46px badge with room to spare.
+   */
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+/* #b1601a measured 4.11 on this wash. #9a5316 measures 5.17. */
+.is-mp3 > .doc-format {
+  background: #fdf0e2;
+  color: #9a5316;
+}
+.is-docx > .doc-format {
+  background: #e9f1fb;
+  color: #1c5f9c;
+}
+.doc-card h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.doc-card p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/*
+ * Rendered where the design had a link but the destination does not exist
+ * yet — article detail pages and the AI feedback sample. Shown as inert text
+ * rather than as a link that goes nowhere: a link that does nothing teaches
+ * people not to trust the other links on the page.
+ */
+.is-inactive {
+  opacity: 0.55;
+  cursor: default;
+  text-decoration: none;
+}
+
+/*
+ * ──────────────────────────────────────────────────────────────── Signed-in
+ * header — added 21/08/2026
+ * ────────────────────────────────────────────────────────────────
+ */
+
+/*
+ * The brand against the outer edge instead of inside the reading column.
+ * Twenty pixels of gutter remain on purpose: flush against the viewport edge
+ * reads as a rendering fault rather than as a decision, and on a phone it
+ * puts the logo under the rounded corner of the screen.
+ */
+/*
+ * Flush to the edge. `[QUYẾT ĐỊNH]` chủ sản phẩm 21/08/2026: *"không chừa
+ * mép ngoài nữa"*. The 20px gutter that used to be here was my own caution,
+ * and it was overruled — the logo now sits against the viewport edge.
+ */
+.nav-wide {
+  width: 100%;
+  /*
+   * `.container` is defined twice — here, and in the design system's reset,
+   * where it is `max-width: 1200px; margin-inline: auto`. Setting `width`
+   * alone left the row capped at 1200 and centred, 120px short of the edge
+   * on a 1440 screen. A cap is not overridden by a width.
+   */
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+/*
+ * Bigger and heavier once signed in — *"text ở menu làm to dài để nổi đập
+ * thẳng vào mắt user"*. 17px against the 14px a visitor sees, which is a
+ * real step rather than a nudge, and comfortably above the 14px Vietnamese
+ * floor. Scoped to `.nav-wide`, so the marketing header a visitor meets is
+ * untouched: there the row competes with a headline and two calls to action,
+ * and shouting over them would cost more than it gains.
+ */
+.nav-wide .nav-links {
+  gap: 4px;
+}
+
+.nav-wide .nav-link,
+.nav-wide .nav-more-trigger {
+  padding: 0 16px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #26332b;
+}
+
+.nav-wide .nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  border-radius: 12px;
+}
+
+.nav-wide a.nav-link:hover {
+  background: #f3f6f3;
+}
+
+.account {
+  position: relative;
+}
+
+/*
+ * No hover treatment. `[QUYẾT ĐỊNH]` chủ sản phẩm 21/08/2026 — the grey pill
+ * that appeared under the name and avatar was noise, and the avatar is
+ * already a strong enough target to read as pressable. <b>The keyboard ring
+ * stays, and is not decoration.</b> Someone tabbing through the header has
+ * no pointer to tell them where they are; removing `:focus-visible` as well
+ * would leave them navigating blind. It only ever appears for keyboard
+ * users, so it costs the pointer experience nothing.
+ */
+.account-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 8px 4px 4px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.account-trigger:focus-visible {
+  outline: 2px solid var(--green, #16ad54);
+  outline-offset: 2px;
+}
+
+.account-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  /*
+   * A rounded square, not a circle. `[QUYẾT ĐỊNH]` chủ sản phẩm 21/08/2026,
+   * matching the reference header — and it reads as an account tile rather
+   * than a photo, which is honest for two letters.
+   */
+  border-radius: 11px;
+  /*
+   * The ground colour is set inline, chosen per sign-in — see avatarTint.ts.
+   * Every colour in that palette carries white at 4.5:1 or better, which is
+   * why the brand green and orange are not in it: they reach 2.94 and 2.53.
+   * → DESIGN.md palette
+   */
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  flex: none;
+}
+
+.account-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #333;
+  max-width: 168px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  min-width: 216px;
+  padding: 8px;
+  border: 1px solid #e2e8e3;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(16, 41, 26, 0.14);
+}
+
+.account-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #2c3630;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+}
+
+.account-item:hover,
+.account-item:focus-visible {
+  background: #f3f6f3;
+}
+
+/*
+ * Heavier than an ordinary list separator, and given more room. `[QUYẾT
+ * ĐỊNH]` chủ sản phẩm 21/08/2026: *"trên đăng xuất sẽ có 1 line đậm hơn để
+ * tách biệt ra với các module trên"*. It earns the weight — signing out ends
+ * the session rather than navigating, and it should not read as the fourth
+ * of four equal choices.
+ */
+.account-divider {
+  margin: 8px 4px;
+  border: 0;
+  border-top: 2px solid #dfe5e0;
+}
+
+/*
+ * Sign-out is the one destructive item here, so it is coloured — but it
+ * keeps the same weight and size as its neighbours, because a red item that
+ * is also bigger reads as the primary action.
+ */
+/*
+ * Red only at the moment of contact. Permanent red made sign-out the loudest
+ * thing in a menu of four, which is backwards: it is the item people want
+ * least often. Danger colour belongs on the interaction, not on the resting
+ * state — the heavier rule above it is what does the separating, and that
+ * was the point of asking for it.
+ */
+.account-signout {
+  color: #2c3630;
+}
+
+.account-signout:hover,
+.account-signout:focus-visible {
+  background: #fdf1f0;
+  color: #a32a24;
+}
+
+@media (max-width: 640px) {
+  /*
+   * The name goes; the avatar and the chevron stay, so the control is still
+   * obviously a menu and still 44px of target.
+   */
+  .account-name {
+    display: none;
+  }
+}
+
+/*
+ * At 320px the signed-in row measured 337px inside 320 — the account control
+ * is simply wider than the sign-in link it replaced, and the smallest phones
+ * have no slack. The wordmark goes first: the logo beside it already says
+ * whose site this is, and losing it costs less than a header that scrolls.
+ * Scoped to `.nav-wide` so the signed-out header, which fits, is untouched.
+ */
+/*
+ * Four blocks — brand, notifications, account, hamburger — plus 28px between
+ * each does not fit 320px once the account row gained a bell. Tightening the
+ * gap keeps all four; the alternative was hiding one, and every one of them
+ * is the only way to reach something.
+ */
+@media (max-width: 430px) {
+  .nav-wide {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 400px) {
+  /*
+   * `.nav-wide .brand-product` would lose: the existing `.brand >
+   * span:last-child` scores (0,2,1) because `:last-child` counts as a class,
+   * against (0,2,0) here, and being later in the file does not break a
+   * specificity tie — it only breaks an equal one. Naming the child element
+   * as well takes this to (0,3,0) and it wins.
+   */
+  .nav-wide .brand > .brand-product {
+    display: none;
+  }
+}
+
+/*
+ * ────────────────────────────────────────────────────────────────
+ * Narrow-screen overflow — fixed 21/08/2026
+ * ────────────────────────────────────────────────────────────────
+ */
+
+/*
+ * `1fr` means "one share of the free space, but never below my content".
+ * `minmax(0 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.subscore-item {
+  min-width: 0;
+}
+
+/*
+ * Two columns of score cards do not fit a small phone, and forcing them to
+ * only moved the damage: the labels stayed readable but every band number
+ * escaped its own card. Below 430px they stack.
+ *
+ * Worth stating because the first attempt looked like it worked — the page
+ * stopped scrolling, which was the thing being measured, while the cards
+ * quietly broke. Checking only the metric you set out to fix is how that gets
+ * shipped.
+ */
+@media (max-width: 430px) {
+}
+
+/*
+ * The panel the hamburger opens. Below 980px the header hides its link row
+ * and shows a hamburger; until 21/08/2026 that button had no handler, so the
+ * five section links simply did not exist on a phone. This is the missing
+ * half.
+ */
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 20px 16px;
+  border-top: 1px solid rgba(229, 229, 229, 0.82);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.mobile-nav a {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 8px;
+  border-radius: 12px;
+  color: #444;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.mobile-nav a:hover,
+.mobile-nav a:focus-visible {
+  background: #f3f6f3;
+}
+
+.mobile-nav-cta {
+  margin-top: 8px;
+  border-top: 1px solid #eceff0;
+  color: var(--green, #16ad54) !important;
+}
+
+/*
+ * The control was 37px. It is the only way into navigation on a phone, so it
+ * is also the last control that should be awkward to hit.
+ */
+.menu-btn {
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+/*
+ * ──────────────────────────────────────────────────────────────── Header
+ * overflow menu — 21/08/2026, after the reference the owner sent
+ * ────────────────────────────────────────────────────────────────
+ */
+
+.nav-more {
+  position: relative;
+}
+
+/*
+ * Matches `.nav-links a` exactly. It sits in the same row and means the same
+ * kind of thing, so it must not read as a different sort of control.
+ */
+.nav-more-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #555;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.nav-more-trigger:hover,
+.nav-more-trigger[aria-expanded='true'] {
+  background: #f3f6f3;
+  color: #1d2b22;
+}
+
+.nav-more-chevron {
+  /*
+   * 14px, not 12. The floor exists for Vietnamese text with stacked tone
+   * marks and a bare `▾` has none — but leaving one sub-floor value in the
+   * codebase means every audit reports a hit that has to be re-diagnosed as
+   * harmless.
+   */
+  font-size: var(--t-14, 14px);
+  color: #6b7b70;
+  transition: transform 0.18s ease;
+}
+.nav-more-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.nav-more-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  min-width: 196px;
+  padding: 8px;
+  border: 1px solid #e2e8e3;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(16, 41, 26, 0.14);
+}
+
+.nav-more-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: #2c3630;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.nav-more-item:hover,
+.nav-more-item:focus-visible {
+  background: #f3f6f3;
+}
+
+/*
+ * A hairline before the account control, as in the reference. It separates
+ * "where you can go" from "who you are", which are different kinds of thing
+ * sharing one row.
+ */
+.nav-actions .account {
+  padding-left: 12px;
+  border-left: 1px solid #e5e9e6;
+}
+
+/*
+ * ────────────────────────────────────────────────────────────────
+ * Notifications — 21/08/2026
+ * ────────────────────────────────────────────────────────────────
+ */
+
+.notif {
+  position: relative;
+}
+
+.notif-trigger {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: #55665c;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.notif-trigger:hover,
+.notif-trigger[aria-expanded='true'] {
+  background: #f3f6f3;
+  border-color: #dfe5df;
+  color: #1d2b22;
+}
+
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: min(304px, calc(100vw - 24px));
+  padding: 16px;
+  border: 1px solid #e2e8e3;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(16, 41, 26, 0.14);
+}
+
+.notif-title {
+  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 900;
+  color: #1d2b22;
+  line-height: 1.5;
+}
+
+.notif-empty {
+  font-size: 14px;
+  font-weight: 800;
+  color: #2c3630;
+  line-height: 1.5;
+}
+
+.notif-empty-body {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #6b7b70;
+  line-height: 1.5;
+}
+
+/*
+ * Icons sit quieter than their labels — the label is what is read, the icon
+ * is what is recognised. On hover both go to the item's colour together,
+ * because they inherit `currentColor`.
+ */
+.account-item svg,
+.nav-more-item svg {
+  flex: none;
+  color: #7d8b83;
+}
+
+.account-item:hover svg,
+.account-item:focus-visible svg,
+.nav-more-item:hover svg,
+.nav-more-item:focus-visible svg {
+  color: inherit;
+}
+
+/* The icon follows the label into red rather than being red on its own. */
+.account-signout:hover svg,
+.account-signout:focus-visible svg {
+  color: currentColor;
+}
+
+/* ── How it works ────────────────────────────────────────────────────── */
+
+/*
+ * The visitor header on a phone — 21/08/2026.
+ *
+ * Brand, "Đăng nhập", "Bắt đầu miễn phí" and a hamburger measure about 510px
+ * of content. On a 390px screen the two shrank into each other: the text link
+ * collapsed to nothing and the button's label broke across two lines inside a
+ * pill sized for one.
+ *
+ * Sign-in is not lost — it is the last row of the panel the hamburger opens,
+ * which is where the rest of the navigation already lives at this width. What
+ * stays in the row is the one action the page is asking for.
+ */
+@media (max-width: 640px) {
+  .nav {
+    gap: 12px;
+  }
+
+  .nav-actions .text-btn {
+    display: none;
+  }
+
+  /*
+   * A pill sized for one line, with two lines in it, reads as a rendering
+   * fault. Better to keep the label whole and let the button be wide.
+   */
+  .nav-actions .btn {
+    white-space: nowrap;
+  }
+}
+
+/* ── Dành cho học sinh ────────────────────────────────────────────────────
+ *
+ * The one dark band on the page, and the only place in this stylesheet that
+ * declares a palette of its own. Scoped to `.stu` rather than `:root`, so
+ * nothing outside the band can pick these up by accident.
+ *
+ * <b>Measured, not chosen by eye.</b> Every pair a reader actually reads,
+ * recomputed after the 24/08 review (the first set had three numbers written
+ * from memory and all three were wrong — a comment asserting a ratio is
+ * load-bearing, so these are the calculator's output):
+ *
+ *   white on --stu-bg ........ 15.15    --stu-dim on --stu-bg .... 9.40
+ *   white on --stu-panel ..... 10.78    --stu-dim on --stu-panel . 6.68
+ *   --stu-ink on --stu-acc ... 8.30     ink 82% on --stu-acc ..... 5.71
+ *   ink on --stu-card ........ 13.92    body on --stu-card ....... 6.56
+ *   white on --stu-next ...... 6.36     --stu-next-dim on it ..... 5.05
+ *
+ * <b>No accent fill carries white text.</b> The mint accent is light enough
+ * that white on it lands near 1.6:1. Ink on the fill is the rule here, which
+ * is also what the brand README concludes about the orange and the green.
+ *
+ * <b>Rank order is a measurement too.</b> The brief sets it: heading ▸ featured
+ * card ▸ feature grid ▸ progress card ▸ next-step card. The first build got the
+ * bottom two backwards — a pure-white progress card measured 15.15 against the
+ * ground and a full-cyan next-step card 8.78, so both outshouted the 7.58
+ * featured card they were supposed to sit under. The progress card is now a
+ * soft sage (12.91) and the next-step card a dark teal (2.38), which puts the
+ * order back the way it was asked for.
+ */
+
+.stu {
+  --stu-bg: #0d2b22;
+  --stu-panel: #1a4536;
+  --stu-acc: #2fd08a;
+  --stu-acc-2: #5fd4f0;
+  --stu-ink: #08231b;
+  --stu-dim: #b6d2c6;
+  --stu-line: rgb(255 255 255 / 15%);
+  --stu-tile: rgb(255 255 255 / 8%);
+  --stu-tile-2: rgb(255 255 255 / 12%);
+  --stu-mint: #7fe0b0;
+  --stu-cyan: #5fd4f0;
+
+  /* The light card in the bottom row, and the ink on it. */
+  --stu-card: #e6efe9;
+  --stu-card-ink: #1c211d;
+  --stu-card-body: #4d554e;
+  --stu-card-link: #14663a;
+
+  /* The next-step card: a surface, not a fill. */
+  --stu-next-bg: #2b686c;
+  --stu-next-dim: #cdeaf3;
+
+  position: relative;
+  isolation: isolate;
+  padding: 124px 0 128px;
+  background: var(--stu-bg);
+  color: #fff;
+}
+
+/*
+ * Two soft lights in the ground, so a very large dark area is not a flat
+ * rectangle. They are inside the band's own stacking context and cannot leak
+ * over the waves.
+ */
+.stu::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(circle at 12% 12%, rgb(47 208 138 / 16%) 0%, transparent 42%),
+    radial-gradient(circle at 88% 78%, rgb(95 212 240 / 12%) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/*
+ * The soft edges.
+ *
+ * Filled with the colour of the neighbouring section rather than with the
+ * band's own colour, so the curve reads as the page cutting into the band. The
+ * hero above ends on #fbfcfa and the section below opens on white; those two
+ * fills are what these paths carry. The two paths differ — see `Wave` — rather
+ * than one being the other rotated, which made the band read as a tilted
+ * parallelogram.
+ */
+.stu-wave {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 76px;
+  display: block;
+  pointer-events: none;
+}
+
+.stu-wave-top {
+  top: -1px;
+  transform: scaleY(-1);
+  fill: #fbfcfa;
+}
+
+.stu-wave-bottom {
+  bottom: -1px;
+  fill: var(--paper);
+}
+
+.stu-inner {
+  position: relative;
+}
+
+/* ── A. Intro ───────────────────────────────────────────────────────────── */
+
+.stu-intro {
+  max-width: 940px;
+  margin: 0 auto 54px;
+  text-align: center;
+}
+
+.stu-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
+  border: 1px solid var(--stu-line);
+  border-radius: 999px;
+  background: var(--stu-tile-2);
+  color: var(--stu-mint);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+/*
+ * The largest type in the band, and it has to earn that by more than 2px.
+ *
+ * It capped at 46 while `.section-heading h2` capped at 44 — a 4.5% difference
+ * is not a hierarchy, it is a rounding error, and the comment here claimed a
+ * 60px cap that did not exist. 58px is a rank the reader can see. It stops
+ * there rather than scaling on, because a two-line Vietnamese headline past
+ * that starts breaking mid-word on a 13" laptop.
+ */
+.stu-intro h2 {
+  margin: 20px 0 0;
+  /* `reset.css` colours every heading `--ink`. On this ground that is a
+     near-invisible dark red, so every heading inside `.stu` states its own. */
+  color: #fff;
+  font-size: clamp(32px, 4.6vw, 58px);
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+  font-weight: 900;
+  text-wrap: balance;
+}
+
+.stu-intro h2 span {
+  color: var(--stu-acc);
+}
+
+.stu-intro p {
+  max-width: 58ch;
+  margin: 18px auto 0;
+  color: var(--stu-dim);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.stu-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+/*
+ * The band's own button, because the page's `.btn-primary` is white on green
+ * and measures 2.86. Ink on the accent measures 8.30, so the one control this
+ * section leads with is legible.
+ */
+.stu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding-inline: 24px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: var(--stu-acc);
+  color: var(--stu-ink);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.5;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.stu-btn:hover {
+  transform: translateY(-2px);
+  background: var(--stu-mint);
+}
+
+.stu-btn-ghost {
+  background: transparent;
+  border-color: var(--stu-line);
+  color: #fff;
+}
+
+.stu-btn-ghost:hover {
+  background: var(--stu-tile);
+  border-color: var(--stu-acc);
+}
+
+/*
+ * Focus rings, and the reason there are two of them.
+ *
+ * A single cyan ring was set on both the buttons and the link inside the light
+ * progress card. On the dark ground cyan measures 8.78 ✓; on the light card it
+ * measures 1.73, against the 3:1 that WCAG 1.4.11 asks of a focus indicator —
+ * so the override made that one link *worse* than the inherited default it
+ * replaced. The ring is now chosen by what is behind it, and the `.stu`
+ * fallback exists so anything focusable added to the band later is safe by
+ * default rather than by remembering.
+ */
+.stu :focus-visible {
+  outline: 3px solid var(--stu-acc-2);
+  outline-offset: 3px;
+}
+
+/*
+ * The ring is judged against what is *behind* it, not what it surrounds.
+ *
+ * The featured card was given the ink ring on the reasoning that its fill is
+ * light — but `outline-offset: 3px` draws the ring on the dark band outside
+ * the card, where ink measures 1.09. It keeps the cyan (8.78). Only the link
+ * *inside* the light progress card sits on a light ground, and there ink
+ * measures 14.12 against the cyan's 1.73.
+ */
+.stu-progress :focus-visible {
+  outline-color: var(--stu-ink);
+}
+
+/* ── B. Feature area ────────────────────────────────────────────────────── */
+
+/*
+ * `align-items: start`, and that is a fix rather than a preference.
+ *
+ * Stretched, the featured card was forced to the height of the eight-item grid
+ * beside it and its paragraph carried `flex: 1` to absorb the difference — 169px
+ * of empty green at 1440, 36% of the card. That is the exact complaint this
+ * redesign exists to answer, reproduced inside the section meant to answer it.
+ *
+ * The columns are 1.08fr / 1fr rather than even: the brief puts the featured
+ * card at about half the width, and giving it the larger half is one more place
+ * the rank order is visible without a colour doing the work.
+ */
+.stu-features {
+  display: grid;
+  grid-template-columns: 1.08fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/*
+ * The featured feature — a link, and the only filled card in the section.
+ *
+ * It carries the rank three ways: the fill, the ordinal, and the largest
+ * heading below the section title. A reader scanning this grid should not have
+ * to work out which one matters.
+ */
+.stu-hero-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 34px 34px 30px;
+  border-radius: 28px;
+  background: var(--stu-acc);
+  color: var(--stu-ink);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.stu-hero-card:hover {
+  transform: translateY(-3px);
+}
+
+.stu-hero-num {
+  position: relative;
+  z-index: 1;
+  /* Was `opacity: .62`, which composites to 3.53 — under the floor, on the
+     element carrying the rank signal. 0.8 composites to 5.41. */
+  color: rgb(8 35 27 / 80%);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+}
+
+.stu-hero-card h3 {
+  position: relative;
+  z-index: 1;
+  margin: 14px 0 0;
+  max-width: 18ch;
+  color: var(--stu-ink);
+  font-size: clamp(25px, 2.4vw, 32px);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.stu-hero-card p {
+  position: relative;
+  z-index: 1;
+  margin: 14px 0 0;
+  max-width: 46ch;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.6;
+  /* Ink at 82% over the accent measures 5.71. */
+  color: rgb(8 35 27 / 82%);
+  text-wrap: pretty;
+}
+
+.stu-tags {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.stu-tag {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgb(8 35 27 / 12%);
+  color: var(--stu-ink);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.stu-hero-go {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 22px;
+  padding-block: 4px;
+  color: var(--stu-ink);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.stu-hero-card:hover .stu-hero-go span {
+  transform: translateX(3px);
+}
+
+.stu-hero-go span {
+  transition: transform 0.2s ease;
+}
+
+/* Depth, not decoration for its own sake: it keeps the flat fill from reading
+   as a swatch. Behind the copy, and never over it — which is why it scales
+   with the card rather than sitting at a fixed 260px that cut through the
+   tags on a phone. */
+.stu-hero-orb {
+  position: absolute;
+  right: -14%;
+  bottom: -30%;
+  width: 52%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 22%);
+  pointer-events: none;
+}
+
+/*
+ * The panel behind the 2×2 grid.
+ *
+ * It was `#14392c`, which measures 1.19 against the ground — a surface nobody
+ * can see is not a surface, and the brief asks for the four small features to
+ * be *held* by something. `#1a4536` measures 1.41 with a 15% hairline over it,
+ * and white on it still measures 10.78.
+ */
+.stu-panel {
+  padding: 16px;
+  border: 1px solid var(--stu-line);
+  border-radius: 28px;
+  background: var(--stu-panel);
+}
+
+.stu-minis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stu-minis > li {
+  display: flex;
+}
+
+.stu-mini {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 20px 18px;
+  border-radius: 18px;
+  color: inherit;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+/*
+ * Links lift, panels do not.
+ *
+ * Three of the five surfaces in the feature area used to behave differently on
+ * hover — one lifted, one changed colour, two did nothing. The rule now is the
+ * one a reader can learn in a single pass: if it moves, it goes somewhere.
+ */
+.stu-mini:hover {
+  background: var(--stu-tile);
+  transform: translateY(-2px);
+}
+
+.stu-mini-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--stu-tile);
+  border: 1px solid var(--stu-line);
+  transition: transform 0.2s ease;
+}
+
+.stu-mini:hover .stu-mini-icon {
+  transform: scale(1.06);
+}
+
+.stu-mini-icon.is-mint {
+  color: var(--stu-mint);
+}
+.stu-mini-icon.is-cyan {
+  color: var(--stu-cyan);
+}
+
+/*
+ * Two lines reserved while the grid is two across.
+ *
+ * "AI chấm Writing và Speaking" is the only one of the four that wraps, so its
+ * body copy started a line lower than its neighbour's and the row's baselines
+ * came apart. Reserving the second line evens all four without padding the
+ * one-column layout, where nothing sits beside anything.
+ */
+.stu-mini h4 {
+  margin: 16px 0 0;
+  min-height: calc(2 * 1.4em);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-wrap: balance;
+}
+
+.stu-mini p {
+  margin: 7px 0 0;
+  color: var(--stu-dim);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ── C. Progress and next step ──────────────────────────────────────────── */
+
+.stu-bottom {
+  display: grid;
+  grid-template-columns: 1.9fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/*
+ * The progress card.
+ *
+ * Sage rather than white. Pure white measured 15.15 against the ground, which
+ * is exactly as loud as the section heading and twice as loud as the featured
+ * card it is meant to rank below. #e6efe9 measures 12.91 and is still
+ * unmistakably the light card the brief asks for.
+ */
+.stu-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.78fr);
+  gap: 30px;
+  align-items: center;
+  padding: 34px;
+  border-radius: 28px;
+  background: var(--stu-card);
+  color: var(--stu-card-ink);
+}
+
+.stu-progress h3 {
+  margin: 0;
+  color: var(--stu-card-ink);
+  font-size: clamp(21px, 2vw, 26px);
+  font-weight: 900;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.stu-progress p {
+  margin: 12px 0 0;
+  color: var(--stu-card-body);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+/* 44px of target, not 21. The only call to action in this card. */
+.stu-progress-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-block: 11px;
+  color: var(--stu-card-link);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.stu-progress-link:hover {
+  text-decoration: underline;
+}
+
+/*
+ * The milestones.
+ *
+ * <b>No meters.</b> Four ascending bars ending in a full one is an invented
+ * percentage whether or not a numeral appears beside it, and this is the card
+ * whose copy is about not inventing numbers. Order along a rail carries the
+ * same idea and has no magnitude to misread. → `Roadmap`
+ */
+.stu-road {
+  margin: 0;
+}
+
+.stu-road-track {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 22px 22px 20px;
+  border-radius: 18px;
+  /* The card is tinted, so the panel inside it is white — the inverse of the
+     first version, where a #f4f8f4 panel on a white card measured 1.06 and was
+     invisible as a panel. */
+  background: #fff;
+  list-style: none;
+}
+
+/* The rail. Drawn on the container so it cannot overshoot the first and last
+   markers, and inset by half a marker so it runs through their centres. */
+.stu-road-track::before {
+  content: '';
+  position: absolute;
+  top: 30px;
+  bottom: 28px;
+  left: 27px;
+  width: 2px;
+  background: #d7e6dc;
+}
+
+.stu-road-step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stu-road-dot {
+  flex: none;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2fb47c;
+  box-shadow: 0 0 0 3px #fff;
+}
+
+/*
+ * The last milestone has not happened, and three things say so: a dashed and
+ * hollow marker, a lighter label, and the words "chưa tới". Never colour
+ * alone.
+ */
+.stu-road-step.is-goal .stu-road-dot {
+  background: #fff;
+  border: 2px dashed #8fc9ae;
+}
+
+.stu-road-label {
+  color: #454d46;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.stu-road-step.is-goal .stu-road-label {
+  color: #6b756b;
+}
+
+.stu-road-tail {
+  margin-left: auto;
+  padding: 3px 10px;
+  border: 1px dashed #c3d6c9;
+  border-radius: 999px;
+  color: #5d665e;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.stu-road-caption {
+  margin-top: 12px;
+  color: #5d665e;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+/* Each marker arrives in turn when the section is revealed. 0.4s, once. */
+.reveal-armed [data-reveal] .stu-road-dot {
+  transform: scale(0.1);
+}
+
+.reveal-armed [data-reveal].is-revealed .stu-road-dot {
+  transform: scale(1);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(160ms + var(--i) * 90ms);
+}
+
+/*
+ * The next-step card — rank 5, and now measurably rank 5.
+ *
+ * It was a full `#5fd4f0` fill, which measures 8.78 against the ground and put
+ * the quietest card in the brief above the featured one at 7.58. A dark teal
+ * surface at 2.38 keeps the cyan family and gives the card back its place; the
+ * cyan itself survives on the icon and the rule.
+ */
+.stu-next {
+  display: flex;
+  flex-direction: column;
+  padding: 30px 28px;
+  border: 1px solid rgb(95 212 240 / 26%);
+  border-radius: 28px;
+  background: var(--stu-next-bg);
+  color: #fff;
+}
+
+.stu-next-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 14%);
+  color: #fff;
+}
+
+.stu-next h3 {
+  margin: 20px 0 0;
+  color: #fff;
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.stu-next p {
+  flex: 1;
+  margin: 11px 0 0;
+  /* #cdeaf3 on #2b686c measures 5.05. */
+  color: var(--stu-next-dim);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.stu-next-note {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid rgb(255 255 255 / 22%);
+  /* 14px, not 13.5. The floor is not a rounding convenience — and this is the
+     honesty label on the card. */
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+  color: var(--stu-next-dim);
+}
+
+@media (max-width: 1000px) {
+  .stu-bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 880px) {
+  .stu {
+    padding: 96px 0 100px;
+  }
+
+  .stu-features {
+    grid-template-columns: 1fr;
+  }
+
+  .stu-progress {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  /*
+   * The hard break in the heading is a desktop instruction.
+   *
+   * At 390px the two lines wrap to three and leave "đang ở đâu." alone on the
+   * last one — the brief asked for two lines. Dropping the break lets
+   * `text-wrap: balance` do the whole job at this width.
+   */
+  .stu-intro h2 br {
+    display: none;
+  }
+
+  .stu-intro h2 span::before {
+    content: ' ';
+  }
+}
+
+@media (max-width: 520px) {
+  .stu {
+    padding: 78px 0 84px;
+  }
+
+  .stu-wave {
+    height: 44px;
+  }
+
+  .stu-hero-card,
+  .stu-progress,
+  .stu-next {
+    padding: 26px 22px;
+  }
+
+  .stu-minis {
+    grid-template-columns: 1fr;
+  }
+
+  .stu-mini {
+    padding: 16px 14px;
+  }
+
+  .stu-mini h4 {
+    min-height: 0;
+  }
+
+  .stu-ctas .stu-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/*
+ * <b>Reduce means reduce here too.</b> `tokens.css` zeroes `--dur`, but every
+ * transition in this band is written out in seconds, so the token never
+ * reached it: under `prefers-reduced-motion` the cards still lifted and the
+ * icons still scaled. The reveal fade was already handled — `useReveal` never
+ * arms the observer — and this closes the rest.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .stu-btn,
+  .stu-hero-card,
+  .stu-hero-go span,
+  .stu-mini,
+  .stu-mini-icon,
+  .reveal-armed [data-reveal].is-revealed .stu-road-dot {
+    transition: none;
+  }
+
+  .stu-btn:hover,
+  .stu-hero-card:hover,
+  .stu-mini:hover,
+  .stu-mini:hover .stu-mini-icon,
+  .stu-hero-card:hover .stu-hero-go span {
+    transform: none;
+  }
+
+  .reveal-armed [data-reveal] .stu-road-dot {
+    transform: none;
+  }
+}
+
+/* ── Line-work ────────────────────────────────────────────────────────────
+ *
+ * `[QUYẾT ĐỊNH]` chủ sản phẩm, 24/08/2026: *"cần bổ sung các nét vẽ thêm sinh
+ * động hơn"*. Between the hero and the footer the page was five flat white
+ * fields; the hero already carried a dot grid and two blurred blobs, and
+ * nothing after it carried anything.
+ *
+ * <b>Every mark here is a background, not an element.</b> Inline SVG in a
+ * `data:` URI — no request, nothing in the accessibility tree, nothing that
+ * can catch a pointer, and nothing a later markup edit can leave stranded.
+ * They are also deliberately faint: the brief asks for livelier, and the same
+ * brief forbids decoration that means nothing, so these sit at the threshold
+ * of visible and never cross a piece of text.
+ */
+
+/*
+ * The same 28px dot grid the hero uses, at a third of its strength, over a
+ * single soft light. It gives a large pale section a surface without giving it
+ * a pattern.
+ */
+.updates-section,
+.companion-section {
+  position: relative;
+  isolation: isolate;
+}
+
+.updates-section::before,
+.companion-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 84% 8%, rgb(16 176 80 / 7%) 0%, transparent 34%),
+    radial-gradient(circle at 6% 82%, rgb(32 112 176 / 6%) 0%, transparent 32%),
+    radial-gradient(#dce6da 1.1px, transparent 1.1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    28px 28px;
+  opacity: 0.55;
+}
+
+/*
+ * One drawn underline, under the coloured half of one heading.
+ *
+ * Once on the page, on the section about the exam library — the thing the
+ * product actually sells. Repeating it under all four centred headings would
+ * turn a flourish into a template. The stroke is drawn slightly wider than the
+ * text and is clipped to the span, so a two-line span underlines its last
+ * line only.
+ */
+.updates-section .section-heading h2 span {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8.4C42 3.6 96 2.4 197 5.6' fill='none' stroke='%2310b050' stroke-width='3.4' stroke-linecap='round' opacity='0.42'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  background-size: 100% 10px;
+}
+
+/* ── Cập nhật đề ────────────────────────────────────────────────────────── */
+
+.updates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.updates-card {
+  padding: 26px;
+  border: 2px solid #e7ece5;
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+/*
+ * A label for what the card is about, not a count of anything. The
+ * distinction matters on this section in particular: it is the one that
+ * talks about the exam library, where a number would be read as inventory.
+ */
+.updates-tag {
+  display: inline-block;
+  margin-bottom: 14px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: #1e7a3c;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.updates-card h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.updates-card p {
+  margin: 0;
+  color: #5c625c;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+/*
+ * The articles heading sits inside the same section, so it needs the gap a
+ * section boundary would otherwise have given it.
+ */
+.updates-articles-head {
+  margin-top: 56px;
+}
+
+/* ── Từ brand hiện tại đến mục tiêu ─────────────────────────────────────── */
+
+.brand-section {
+  background: var(--surface);
+}
+
+/*
+ * An ordered list, and it now reads as one.
+ *
+ * <b>The rail was described in this comment and never drawn.</b> Three cards
+ * in a row with a pill on each is a feature grid; what makes them a direction
+ * is a line running through the markers, and until 24/08 there was no line and
+ * no marker. The rail is drawn on the container so it cannot overshoot the
+ * first and last markers, and it sits above the top edge of the cards rather
+ * than through them.
+ */
+.brand-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 0;
+  padding: 26px 0 0;
+  list-style: none;
+}
+
+.brand-track::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  /* Stops at the centre of the first and last marker: one sixth of the track
+     in from each edge, which is where a three-column grid puts them. */
+  left: 16.6667%;
+  right: 16.6667%;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #cfe0d3 0 8px, transparent 8px 15px);
+}
+
+.brand-step {
+  position: relative;
+  padding: 28px 26px 26px;
+  border: 2px solid #e7ece5;
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+/* The marker, on the rail above its card. */
+.brand-step::before {
+  content: '';
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  border: 2px solid #cfe0d3;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.brand-step-label {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 2px solid #e7ece5;
+  color: #5c625c;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+/* The step being built now is the one the page is about. */
+.brand-step:nth-child(2) {
+  border-color: #bfe3cd;
+}
+
+.brand-step:nth-child(2)::before {
+  border-color: var(--green);
+  background: var(--green);
+  box-shadow: 0 0 0 5px rgb(16 176 80 / 14%);
+}
+
+.brand-step:nth-child(2) .brand-step-label {
+  border-color: transparent;
+  background: var(--green-soft);
+  color: #1e7a3c;
+}
+
+.brand-step h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.brand-step p {
+  margin: 0;
+  color: #5c625c;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+@media (max-width: 900px) {
+  .updates-grid,
+  .brand-track {
+    grid-template-columns: 1fr;
+  }
+
+  /* A horizontal rail through a vertical stack points nowhere. */
+  .brand-track {
+    padding-top: 0;
+  }
+
+  .brand-track::before,
+  .brand-step::before {
+    display: none;
+  }
+}
+
+/*
+ * The eyebrow on the dark CTA panel. The shared `.eyebrow` is dark ink on a
+ * pale pill, which is right everywhere except here — on the dark panel it
+ * measured 1.48. Inverted rather than re-tinted, so the pill still reads as
+ * the same component. Opaque, not a translucent white: what a translucent
+ * pill actually measures depends on whatever ends up behind it, which makes
+ * it unmeasurable in exactly the situation where the number matters. #2a4a35
+ * is the composite, fixed; white on it measures 10.8.
+ */
+.cta-content .eyebrow {
+  background: #2a4a35;
+  color: #fff;
+}

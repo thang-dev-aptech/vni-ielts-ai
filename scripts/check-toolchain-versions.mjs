@@ -1,0 +1,153 @@
+#!/usr/bin/env node
+//
+// F1.1 — one Node/pnpm version, declared once, verified everywhere it is
+// re-declared.
+//
+// This is exactly the bug it exists to catch: `.nvmrc`, package.json's
+// `engines.node` and `.github/workflows/frontend.yml` all named Node 24, and
+// `.github/workflows/e2e.yml` separately named Node 22 — four independent
+// copies of one fact, and nothing compared them. A frontend job and the
+// browser suite job could then run the same test suite on two different Node
+// majors with no error anywhere, until a version-specific difference actually
+// bit somebody and nobody knew where to look first.
+//
+// Node, not Python — this repo's docs/config checks are moving off `python3`
+// (F1.3) because it is not guaranteed present, and Node always is here. This
+// one has no reason to depend on anything else at all: no third-party parser,
+// just `.nvmrc`, JSON and a line-oriented read of the workflow YAML.
+//
+// Usage: node scripts/check-toolchain-versions.mjs
+//        node scripts/check-toolchain-versions.mjs --strict
+//
+// --strict (implied by CI) also fails when the Node running this check is not
+// the Node .nvmrc asks for. See hostNodeProblem below for why the severity
+// differs between CI and a developer host.
+
+import { readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import path from 'node:path';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+// <b>The version this process is actually running, which nothing here used to
+// look at.</b>
+//
+// FS0.5 found this host on Node v22.22.2 against `.nvmrc` 24 and
+// `engines.node >=24.0.0`. Every file that declares a version agreed with every
+// other file, so this gate passed — while every `pnpm` invocation printed
+// `WARN Unsupported engine` to stdout, and that warning is what corrupted a
+// scraped Playwright report and blinded the skip gate to 7 browser tests
+// (FS0.6, defect 1). Four copies of one fact were compared to each other and
+// none of them to reality.
+//
+// <b>Severity is deliberate, and it is not a weakened gate — it is a check that
+// did not exist.</b> On CI the Node version is chosen by the workflow, so a
+// mismatch is a defect in the repository and fails the build. On a developer
+// host the mismatch is a fact about the machine that no commit can fix, and
+// failing here would stop every gate on that host at stage one — including the
+// ones that would tell the developer what else is wrong. So it is reported
+// loudly, every run, and `verify.mjs` records `host.node` in its summary so no
+// evidence can be quoted without it. Pass --strict to fail anywhere.
+export function hostNodeProblem(runningVersion, expectedMajor) {
+  const major = String(runningVersion).replace(/^v/, '').split('.')[0];
+  if (major === expectedMajor) return null;
+  return (
+    `this process is Node ${runningVersion}, but .nvmrc asks for ${expectedMajor}. ` +
+    'pnpm prints `WARN Unsupported engine` on every invocation from a host like this, ' +
+    'and that line has already corrupted a test report once.'
+  );
+}
+
+// Run only when invoked as a command. Without the guard, importing
+// `hostNodeProblem` from a test would run the whole gate — and, on CI, exit the
+// test runner from inside an import.
+function main() {
+  const problems = [];
+
+  const nvmrc = readFileSync(path.join(root, '.nvmrc'), 'utf8').trim();
+  if (!/^\d+$/.test(nvmrc)) {
+    problems.push(`.nvmrc contains '${nvmrc}', which is not a plain major version number.`);
+  }
+  const expectedMajor = nvmrc;
+
+  const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+
+  const engineNode = pkg.engines?.node;
+  if (!engineNode) {
+    problems.push(
+      'package.json has no engines.node — nothing pins the Node version for `npm install`/`pnpm install` outside CI.',
+    );
+  } else {
+    const match = engineNode.match(/(\d+)\.0\.0/);
+    if (!match || match[1] !== expectedMajor) {
+      problems.push(
+        `package.json engines.node is '${engineNode}', which does not name major version ${expectedMajor} the way .nvmrc does.`,
+      );
+    }
+  }
+
+  const packageManager = pkg.packageManager;
+  if (!packageManager || !packageManager.startsWith('pnpm@')) {
+    problems.push(
+      `package.json packageManager is '${packageManager ?? '(missing)'}', expected a pinned 'pnpm@<version>'.`,
+    );
+  }
+
+  // <b>Every workflow that declares a node-version, not a hard-coded list of
+  // two files.</b> A hard-coded list is exactly how this drifted in the first
+  // place — a third workflow gaining its own `node-version:` tomorrow would
+  // again go unchecked. Scanning the directory means a fifth workflow with the
+  // same mistake is caught the same way the fourth was.
+  const workflowsDir = path.join(root, '.github', 'workflows');
+  const workflowFiles = readdirSync(workflowsDir).filter(
+    (f) => f.endsWith('.yml') || f.endsWith('.yaml'),
+  );
+
+  for (const file of workflowFiles) {
+    const contents = readFileSync(path.join(workflowsDir, file), 'utf8');
+
+    for (const line of contents.split(/\r?\n/)) {
+      const found = line.match(/^\s*node-version:\s*['"]?(\d+)['"]?\s*$/);
+      if (!found) continue;
+
+      if (found[1] !== expectedMajor) {
+        problems.push(
+          `.github/workflows/${file} pins node-version '${found[1]}', which does not match .nvmrc's ${expectedMajor}.`,
+        );
+      }
+    }
+  }
+
+  const strict = process.argv.includes('--strict') || !!process.env.CI;
+  const hostProblem = hostNodeProblem(process.version, expectedMajor);
+  if (hostProblem) {
+    if (strict) {
+      problems.push(`The running Node does not match the declared one: ${hostProblem}`);
+    } else {
+      console.warn(`WARNING — ${hostProblem}`);
+      console.warn(
+        `  Install Node ${expectedMajor} (nvm use) before quoting a run from this host as pipeline evidence.`,
+      );
+    }
+  }
+
+  if (problems.length > 0) {
+    console.error(
+      `Toolchain version check failed (${problems.length} problem${problems.length === 1 ? '' : 's'}):\n`,
+    );
+    for (const p of problems) console.error(`  · ${p}`);
+    console.error(
+      '\nOne Node/pnpm version, declared in .nvmrc, has to be the version every other file that names one agrees with.',
+    );
+    process.exit(1);
+  }
+
+  console.log(
+    `OK — Node ${expectedMajor} agrees across .nvmrc, package.json and ${workflowFiles.length} workflow file(s)` +
+      `${hostProblem ? ', but NOT with the Node running this check (see the warning above)' : `, and with the Node running this check (${process.version})`}.`,
+  );
+}
+
+if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

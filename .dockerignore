@@ -1,0 +1,26 @@
+# F2.6 — the frontend images build from the repo root (a pnpm workspace),
+# unlike the backend images, which build from backend/ and have their own
+# backend/.dockerignore. Everything below is either dead weight in that
+# build context or, for the last two entries, something that must never
+# reach an image layer. → CLAUDE.md rule 6
+
+**/node_modules/
+**/dist/
+.git/
+
+# Local reference material the owner handed over — already excluded from
+# git by .gitignore, and 1.4 GB of Cambridge papers/exam packages has no
+# business slowing down a frontend image build either.
+/Đề IELTS/
+/exam/
+
+backend/**/bin/
+backend/**/obj/
+
+# User secrets and any environment file. A credential copied into an image
+# layer is a credential in every registry that image reaches, and it
+# survives being deleted in a later layer.
+**/secrets.json
+**/secrets.develop.json
+**/secrets.production.json
+**/.env*

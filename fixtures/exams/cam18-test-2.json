@@ -1,0 +1,1042 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 18 — Test 2",
+  "variant": "academic",
+  "description": "Cambridge IELTS 18 Academic Test 2. Chỉ có Reading, chấm theo đáp án in trong sách; phần Listening của đề này chưa sẵn sàng nên không thi được Listening, Writing và Speaking.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "Stonehenge",
+          "body": "Stonehenge\nFor centuries, historians and archaeologists have puzzled over the many mysteries\nof Stonehenge, a prehistoric monument that took an estimated 1,500 years to erect.\nLocated on Salisbury Plain in southern England, it is comprised of roughly 100 massive\nupright stones placed in a circular layout.\nArchaeologists believe England’s most iconic prehistoric ruin was built in several stages,\nwith the earliest constructed 5,000 or more years ago. First, Neolithic* Britons used\nprimitive tools, which may have been fashioned out of deer antlers, to dig a massive\ncircular ditch and bank, or henge. Deep pits dating back to that era and located within\nthe circle may have once held a ring of timber posts, according to some scholars.\nSeveral hundred years later, it is thought, Stonehenge’s builders hoisted an estimated\n80 bluestones, 43 of which remain today, into standing positions and placed them in\neither a horseshoe or circular formation. These stones have been traced all the way\nto the Preseli Hills in Wales, some 300 kilometres from Stonehenge. How, then, did\nprehistoric builders without sophisticated tools or engineering haul these boulders, which\nweigh up to four tons, over such a great distance?\nAccording to one long-standing theory among archaeologists, Stonehenge’s builders\nfashioned sledges and rollers out of tree trunks to lug the bluestones from the Preseli\nHills. They then transferred the boulders onto rafts and floated them first along the\nWelsh coast and then up the River Avon toward Salisbury Plain; alternatively, they may\nhave towed each stone with a fleet of vessels. More recent archaeological hypotheses\nhave them transporting the bluestones with supersized wicker baskets on a combination\nof ball bearings and long grooved planks, hauled by oxen.\nAs early as the 1970s, geologists have been adding their voices to the debate over\nhow Stonehenge came into being. Challenging the classic image of industrious builders\npushing, carting, rolling or hauling giant stones from faraway Wales, some scientists\nhave suggested that it was glaciers, not humans, that carried the bluestones to Salisbury\nPlain. Most archaeologists have remained sceptical about this theory, however,\nwondering how the forces of nature could possibly have delivered the exact number of\nstones needed to complete the circle.\n\nThe third phase of construction took place around 2000 BCE. At this point, sandstone\nslabs — known as ‘sarsens’ — were arranged into an outer crescent or ring; some were\nassembled into the iconic three-pieced structures called trilithons that stand tall in the\ncentre of Stonehenge. Some 50 of these stones are now visible on the site, which\nmay once have contained many more. Radiocarbon dating has revealed that work\ncontinued at Stonehenge until roughly 1600 BCE, with the bluestones in particular being\nrepositioned multiple times.\nBut who were the builders of Stonehenge? In the 17th century, archaeologist John\nAubrey made the claim that Stonehenge was the work of druids, who had important\nreligious, judicial and political roles in Celtic” society. This theory was widely popularized\nby the antiquarian William Stukeley, who had unearthed primitive graves at the site.\nEven today, people who identify as modern druids continue to gather at Stonehenge for\nthe summer solstice. However, in the mid-20th century, radiocarbon dating demonstrated\nthat Stonehenge stood more than 1,000 years before the Celts inhabited the region.\nMany modern historians and archaeologists now agree that several distinct tribes\nof people contributed to Stonehenge, each undertaking a different phase of its\nconstruction. Bones, tools and other artefacts found on the site seem to support this\nhypothesis. The first stage was achieved by Neolithic agrarians who were likely to have\nbeen indigenous to the British Isles. Later, it is believed, groups with advanced tools and\na more communal way of life left their mark on the site. Some believe that they were\nimmigrants from the European continent, while others maintain that they were probably\nnative Britons, descended from the original builders.\nIf the facts surrounding the architects and construction of Stonehenge remain shadowy\nat best, the purpose of the striking monument is even more of a mystery. While there is\nconsensus among the majority of modern scholars that Stonehenge once served the\nfunction of burial ground, they have yet to determine what other purposes it had.\nIn the 1960s, the astronomer Gerald Hawkins suggested that the cluster of megalithic\nstones operated as a form of calendar, with different points corresponding to astrological\nphenomena such as solstices, equinoxes and eclipses occurring at different times of\nthe year. While his theory has received a considerable amount of attention over the\ndecades, critics maintain that Stonehenge’s builders probably lacked the knowledge\nnecessary to predict such events or that England’s dense cloud cover would have\nobscured their view of the skies.\nMore recently, signs of illness and injury in the human remains unearthed at Stonehenge\nled a group of British archaeologists to speculate that it was considered a place of\nhealing, perhaps because bluestones were thought to have curative powers.\n\n* Neolithic — The era, also known as the New Stone Age, which began around 12,000 years ago and ended around 3500 BCE\n** Celtic— The Celts were people who lived in Britain and northwest Europe during the Iron Age from 600 BCE to 43 CE",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "the ditch and henge were dug, possibly using tools made from",
+              "group": {
+                "id": "r-1-8",
+                "title": "Stonehenge",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+                "text": "Construction\nStage 1:\ne the ditch and henge were dug, possibly using tools made from [1]\ne [2] may have been arranged in deep pits inside the circle\nStage 2:\ne bluestones from the Preseli Hills were placed in standing position\ne theories about the transportation of the bluestones:\n— archaeological:\ne builders used [3] to make sledges and rollers\nor\n[4] pulled them on giant baskets\n— geological:\no they were brought from Wales by [5]\nStage 3:\ne sandstone slabs were arranged into an outer crescent or ring\nBuilders\ne a theory arose in the 17th century that its builders were Celtic [6]\nPurpose\ne many experts agree it has been used as a [7]\ne in the 1960s, it was suggested that it worked as a kind of [8]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "(deer) antlers"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "may have been arranged in deep pits inside the circle",
+              "group": {
+                "id": "r-1-8",
+                "title": "Stonehenge",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+                "text": "Construction\nStage 1:\ne the ditch and henge were dug, possibly using tools made from [1]\ne [2] may have been arranged in deep pits inside the circle\nStage 2:\ne bluestones from the Preseli Hills were placed in standing position\ne theories about the transportation of the bluestones:\n— archaeological:\ne builders used [3] to make sledges and rollers\nor\n[4] pulled them on giant baskets\n— geological:\no they were brought from Wales by [5]\nStage 3:\ne sandstone slabs were arranged into an outer crescent or ring\nBuilders\ne a theory arose in the 17th century that its builders were Celtic [6]\nPurpose\ne many experts agree it has been used as a [7]\ne in the 1960s, it was suggested that it worked as a kind of [8]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "(timber) posts"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "builders used to make sledges and rollers",
+              "group": {
+                "id": "r-1-8",
+                "title": "Stonehenge",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+                "text": "Construction\nStage 1:\ne the ditch and henge were dug, possibly using tools made from [1]\ne [2] may have been arranged in deep pits inside the circle\nStage 2:\ne bluestones from the Preseli Hills were placed in standing position\ne theories about the transportation of the bluestones:\n— archaeological:\ne builders used [3] to make sledges and rollers\nor\n[4] pulled them on giant baskets\n— geological:\no they were brought from Wales by [5]\nStage 3:\ne sandstone slabs were arranged into an outer crescent or ring\nBuilders\ne a theory arose in the 17th century that its builders were Celtic [6]\nPurpose\ne many experts agree it has been used as a [7]\ne in the 1960s, it was suggested that it worked as a kind of [8]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "tree trunks"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "pulled them on giant baskets",
+              "group": {
+                "id": "r-1-8",
+                "title": "Stonehenge",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+                "text": "Construction\nStage 1:\ne the ditch and henge were dug, possibly using tools made from [1]\ne [2] may have been arranged in deep pits inside the circle\nStage 2:\ne bluestones from the Preseli Hills were placed in standing position\ne theories about the transportation of the bluestones:\n— archaeological:\ne builders used [3] to make sledges and rollers\nor\n[4] pulled them on giant baskets\n— geological:\no they were brought from Wales by [5]\nStage 3:\ne sandstone slabs were arranged into an outer crescent or ring\nBuilders\ne a theory arose in the 17th century that its builders were Celtic [6]\nPurpose\ne many experts agree it has been used as a [7]\ne in the 1960s, it was suggested that it worked as a kind of [8]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "oxen"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "they were brought from Wales by",
+              "group": {
+                "id": "r-1-8",
+                "title": "Stonehenge",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+                "text": "Construction\nStage 1:\ne the ditch and henge were dug, possibly using tools made from [1]\ne [2] may have been arranged in deep pits inside the circle\nStage 2:\ne bluestones from the Preseli Hills were placed in standing position\ne theories about the transportation of the bluestones:\n— archaeological:\ne builders used [3] to make sledges and rollers\nor\n[4] pulled them on giant baskets\n— geological:\no they were brought from Wales by [5]\nStage 3:\ne sandstone slabs were arranged into an outer crescent or ring\nBuilders\ne a theory arose in the 17th century that its builders were Celtic [6]\nPurpose\ne many experts agree it has been used as a [7]\ne in the 1960s, it was suggested that it worked as a kind of [8]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "glaciers"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "a theory arose in the 17th century that its builders were Celtic",
+              "group": {
+                "id": "r-1-8",
+                "title": "Stonehenge",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+                "text": "Construction\nStage 1:\ne the ditch and henge were dug, possibly using tools made from [1]\ne [2] may have been arranged in deep pits inside the circle\nStage 2:\ne bluestones from the Preseli Hills were placed in standing position\ne theories about the transportation of the bluestones:\n— archaeological:\ne builders used [3] to make sledges and rollers\nor\n[4] pulled them on giant baskets\n— geological:\no they were brought from Wales by [5]\nStage 3:\ne sandstone slabs were arranged into an outer crescent or ring\nBuilders\ne a theory arose in the 17th century that its builders were Celtic [6]\nPurpose\ne many experts agree it has been used as a [7]\ne in the 1960s, it was suggested that it worked as a kind of [8]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "druids"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "many experts agree it has been used as a",
+              "group": {
+                "id": "r-1-8",
+                "title": "Stonehenge",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+                "text": "Construction\nStage 1:\ne the ditch and henge were dug, possibly using tools made from [1]\ne [2] may have been arranged in deep pits inside the circle\nStage 2:\ne bluestones from the Preseli Hills were placed in standing position\ne theories about the transportation of the bluestones:\n— archaeological:\ne builders used [3] to make sledges and rollers\nor\n[4] pulled them on giant baskets\n— geological:\no they were brought from Wales by [5]\nStage 3:\ne sandstone slabs were arranged into an outer crescent or ring\nBuilders\ne a theory arose in the 17th century that its builders were Celtic [6]\nPurpose\ne many experts agree it has been used as a [7]\ne in the 1960s, it was suggested that it worked as a kind of [8]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "burial"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "in the 1960s, it was suggested that it worked as a kind of",
+              "group": {
+                "id": "r-1-8",
+                "title": "Stonehenge",
+                "instruction": "Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+                "text": "Construction\nStage 1:\ne the ditch and henge were dug, possibly using tools made from [1]\ne [2] may have been arranged in deep pits inside the circle\nStage 2:\ne bluestones from the Preseli Hills were placed in standing position\ne theories about the transportation of the bluestones:\n— archaeological:\ne builders used [3] to make sledges and rollers\nor\n[4] pulled them on giant baskets\n— geological:\no they were brought from Wales by [5]\nStage 3:\ne sandstone slabs were arranged into an outer crescent or ring\nBuilders\ne a theory arose in the 17th century that its builders were Celtic [6]\nPurpose\ne many experts agree it has been used as a [7]\ne in the 1960s, it was suggested that it worked as a kind of [8]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "calendar"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "true-false-notgiven",
+              "prompt": "During the third phase of construction, sandstone slabs were placed in both the outer areas and the middle of the Stonehenge site.",
+              "group": {
+                "id": "r-9-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 9-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "true-false-notgiven",
+              "prompt": "There is scientific proof that the bluestones stood in the same spot until approximately 1600 BCE.",
+              "group": {
+                "id": "r-9-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 9-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "true-false-notgiven",
+              "prompt": "John Aubrey’s claim about Stonehenge was supported by 20th-century findings.",
+              "group": {
+                "id": "r-9-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 9-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "true-false-notgiven",
+              "prompt": "Objects discovered at Stonehenge seem to indicate that it was constructed by a number of different groups of people.",
+              "group": {
+                "id": "r-9-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 9-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "true-false-notgiven",
+              "prompt": "Criticism of Gerald Hawkins’ theory about Stonehenge has come mainly from other astronomers.",
+              "group": {
+                "id": "r-9-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 9-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Living with artificial intelligence",
+          "body": "Living with artificial intelligence\nPoweriul artificial intelligence (Al) needs to be reliably aligned with human values, but\ndoes this mean AI will eveniually have to\npolice those values?\nThis has been the decade of Al, with one astonishing feat after another. A chess-\nplaying Al that can defeat not only all human chess players, but also all previous\nhuman-programmed chess machines, after learning the game in just four hours? That’s\nyesterday's news, what’s next? True, these prodigious accomplishments are all in so-\ncalled narrow Al, where machines perform highly specialised tasks. But many experts\nbelieve this restriction is very temporary. By mid-century, we may have artificial general\nintelligence (AGI) — machines that can achieve human-level performance on the full\nrange of tasks that we ourselves can tackle.\nIf so, there’s little reason to think it will stop there. Machines will be free of many of\nthe physical constraints on human intelligence. Our brains run at slow biochemical\nprocessing speeds on the power of a light bulb, and their size is restricted by the\ndimensions of the human birth canal. It is remarkable what they accomplish, given these\nhandicaps. But they may be as far from the physical limits of thought as our eyes are\nfrom the incredibly powerful Webb Space Telescope.\nOnce machines are better than us at designing even smarter machines, progress\ntowards these limits could accelerate. What would this mean for us? Could we ensure\na safe and worthwhile coexistence with such machines? On the plus side, Al is already auseful and profitable for many things, and super Al might be expected to be super useful,\nand super profitable. But the more powerful Al becomes, the more important it will be to\nspecify its goals with great care. Folklore is full of tales of people who ask for the wrong\nthing, with disastrous consequences — King Midas, for example, might have wished\nthat everything he touched turned to gold, but didn’t really intend this to apply to his\nbreakfast.\nSo we need to create powerful Al machines that are ‘human-friendly’ — that have goals\nreliably aligned with our own values. One thing that makes this task difficult is that\nwe are far from reliably human-friendly ourselves. We do many terrible things to each\nother and to many other creatures with whom we share the planet. If superintelligent\nmachines don’t do a lot better than us, we'll be in deep trouble. We'll have powerful new\nintelligence amplifying the dark sides of our own fallible natures.\nFor safety’s sake, then, we want the machines to be ethically as well as cognitively\nsuperhuman. We want them to aim for the moral high ground, not for the troughs in\nwhich many of us spend some of our time. Luckily they'll be smart enough for the job.\nIf there are routes to the moral high ground, they’ll be better than us at finding them, and\nsteering us in the right direction.\nHowever, there are two big problems with this utopian vision. One is how we get\nthe machines started on the journey, the other is what it would mean to reach this\ndestination. The ‘getting started’ problem is that we need to tell the machines what\nthey’re looking for with sufficient clarity that we can be confident they will find it —\nwhatever ‘it’ actually turns out to be. This won't be easy, given that we are tribal\ncreatures and conflicted about the ideals ourselves. We often ignore the suffering of\nstrangers, and even contribute to it, at least indirectly. How then, do we point machines\nin the direction of something better?\nAs for the ‘destination’ problem, we might, by putting ourselves in the hands of these\nmoral guides and gatekeepers, be sacrificing our own autonomy — an important part\nof what makes us human. Machines who are better than us at sticking to the moral\nhigh ground may be expected to discourage some of the lapses we presently take for\ngranted. We might lose our freedom to discriminate in favour of our own communities,\nfor example.\nLoss of freedom to behave badly isn’t always a bad thing, of course: denying ourselves\nthe freedom to put children to work in factories, or to smoke in restaurants are signs of\nprogress. But are we ready for ethical silicon police limiting our options? They might be so\ngood at doing it that we won't notice them; but few of us are likely to welcome such a future.\nThese issues might seem far-fetched, but they are to some extent already here. Al\nalready has some input into how resources are used in our National Health Service (NHS)\nhere in the UK, for example. If it was given a greater role, it might do so much more\nefficiently than humans can manage, and act in the interests of taxpayers and those who\nuse the health system. However, we’d be depriving some humans (e.g. senior doctors) of\nthe control they presently enjoy. Since we’d want to ensure that people are treated equally\nand that policies are fair, the goals of Al would need to be specified correctly.\nWe have a new powerful technology to deal with — itself, literally, a new way of thinking.\nFor our own safety, we need to point these new thinkers in the right direction, and get\nthem to act well for us. It is not yet clear whether this is possible, but if it is, it will require\na cooperative spirit, and a willingness to set aside self-interest.\nBoth general intelligence and moral reasoning are often thought to be uniquely human\ncapacities. But safety seems to require that we think of them as a package: if we are to\ngive general intelligence to machines, we'll need to give them moral authority, too. And\nwhere exactly would that leave human beings? All the more reason to think about the\ndestination now, and to be careful about what we wish for.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "What point does the writer make about Al in the first paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Itis difficult to predict how quickly Al will progress."
+                },
+                {
+                  "key": "B",
+                  "text": "Much can be learned about the use of Al in chess machines."
+                },
+                {
+                  "key": "C",
+                  "text": "The future is unlikely to see limitations on the capabilities of Al."
+                },
+                {
+                  "key": "D",
+                  "text": "Experts disagree on which specialised tasks Al will be able to perform."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "What is the writer doing in the second paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "explaining why machines will be able to outperform humans"
+                },
+                {
+                  "key": "B",
+                  "text": "describing the characteristics that humans and machines share"
+                },
+                {
+                  "key": "C",
+                  "text": "giving information about the development of machine intelligence"
+                },
+                {
+                  "key": "D",
+                  "text": "indicating which aspects of humans are the most advanced"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "multiple-choice",
+              "prompt": "Why does the writer mention the story of King Midas?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "to compare different visions of progress"
+                },
+                {
+                  "key": "B",
+                  "text": "to illustrate that poorly defined objectives can go wrong"
+                },
+                {
+                  "key": "C",
+                  "text": "to emphasise the need for cooperation"
+                },
+                {
+                  "key": "D",
+                  "text": "to point out the financial advantages of a course of action"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "multiple-choice",
+              "prompt": "What challenge does the writer refer to in the fourth paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "encouraging humans to behave in a more principled way"
+                },
+                {
+                  "key": "B",
+                  "text": "deciding which values we want Al to share with us"
+                },
+                {
+                  "key": "C",
+                  "text": "creating a better world for all creatures on the planet"
+                },
+                {
+                  "key": "D",
+                  "text": "ensuring Al is more human-friendly than we are ourselves"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "multiple-choice",
+              "prompt": "What does the writer suggest about the future of Al in the fifth paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The safety of machines will become a key issue."
+                },
+                {
+                  "key": "B",
+                  "text": "Itis hard to know what impact machines will have on the world."
+                },
+                {
+                  "key": "C",
+                  "text": "Machines will be superior to humans in certain respects."
+                },
+                {
+                  "key": "D",
+                  "text": "Many humans will oppose machines having a wider role."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "multiple-choice",
+              "prompt": "Which of the following best summarises the writer’s argument in the sixth paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "More intelligent machines will result in greater abuses of power."
+                },
+                {
+                  "key": "B",
+                  "text": "Machine learning will share very few features with human learning."
+                },
+                {
+                  "key": "C",
+                  "text": "There are a limited number of people with the knowledge to program machines."
+                },
+                {
+                  "key": "D",
+                  "text": "Human shortcomings will make creating the machines we need more difficult."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "yes-no-notgiven",
+              "prompt": "Machines with the ability to make moral decisions may prevent us from promoting the interests of our communities.",
+              "group": {
+                "id": "r-20-23",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 20-23 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "yes-no-notgiven",
+              "prompt": "Silicon police would need to exist in large numbers in order to be effective.",
+              "group": {
+                "id": "r-20-23",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 20-23 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "yes-no-notgiven",
+              "prompt": "Many people are comfortable with the prospect of their independence being restricted by machines.",
+              "group": {
+                "id": "r-20-23",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 20-23 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "yes-no-notgiven",
+              "prompt": "If we want to ensure that machines act in our best interests, we all need to work together.",
+              "group": {
+                "id": "r-20-23",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 2?\nIn boxes 20-23 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "matching",
+              "prompt": "Al currently has a limited role in the way ........ are allocated in the health service.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "medical practitioners"
+                },
+                {
+                  "key": "B",
+                  "text": "specialised tasks"
+                },
+                {
+                  "key": "C",
+                  "text": "available resources"
+                },
+                {
+                  "key": "D",
+                  "text": "reduced illness"
+                },
+                {
+                  "key": "E",
+                  "text": "professional authority"
+                },
+                {
+                  "key": "F",
+                  "text": "technology experts"
+                }
+              ],
+              "group": {
+                "id": "r-24-26",
+                "instruction": "Complete the summary using the list of phrases, A-F, below.",
+                "title": "Using Al in the UK health system",
+                "text": "Using Al in the UK health system\n\nAl currently has a limited role in the way [24] are allocated in the\nhealth service. The positive aspect of Al having a bigger role is that it would be\nmore efficient and lead to patient benefits. However, such a change would result, for\nexample, in certain [25] not having their current level of\n[26]. It is therefore important that Al goals are appropriate so that\ndiscriminatory practices could be avoided."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "However, such a change would result, for example, in certain ........ not having their current level of",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "medical practitioners"
+                },
+                {
+                  "key": "B",
+                  "text": "specialised tasks"
+                },
+                {
+                  "key": "C",
+                  "text": "available resources"
+                },
+                {
+                  "key": "D",
+                  "text": "reduced illness"
+                },
+                {
+                  "key": "E",
+                  "text": "professional authority"
+                },
+                {
+                  "key": "F",
+                  "text": "technology experts"
+                }
+              ],
+              "group": {
+                "id": "r-24-26",
+                "instruction": "Complete the summary using the list of phrases, A-F, below.",
+                "title": "Using Al in the UK health system",
+                "text": "Using Al in the UK health system\n\nAl currently has a limited role in the way [24] are allocated in the\nhealth service. The positive aspect of Al having a bigger role is that it would be\nmore efficient and lead to patient benefits. However, such a change would result, for\nexample, in certain [25] not having their current level of\n[26]. It is therefore important that Al goals are appropriate so that\ndiscriminatory practices could be avoided."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "not having their current level of",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "medical practitioners"
+                },
+                {
+                  "key": "B",
+                  "text": "specialised tasks"
+                },
+                {
+                  "key": "C",
+                  "text": "available resources"
+                },
+                {
+                  "key": "D",
+                  "text": "reduced illness"
+                },
+                {
+                  "key": "E",
+                  "text": "professional authority"
+                },
+                {
+                  "key": "F",
+                  "text": "technology experts"
+                }
+              ],
+              "group": {
+                "id": "r-24-26",
+                "instruction": "Complete the summary using the list of phrases, A-F, below.",
+                "title": "Using Al in the UK health system",
+                "text": "Using Al in the UK health system\n\nAl currently has a limited role in the way [24] are allocated in the\nhealth service. The positive aspect of Al having a bigger role is that it would be\nmore efficient and lead to patient benefits. However, such a change would result, for\nexample, in certain [25] not having their current level of\n[26]. It is therefore important that Al goals are appropriate so that\ndiscriminatory practices could be avoided."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "An ideal city",
+          "body": "An ideal city\nLeonardo da Vinci’ ideal city was centuries ahead of its time\nThe word ‘genius’ is universally associated with the name of Leonardo da Vinci. A true\nRenaissance man, he embodied scientific spirit, artistic talent and humanist sensibilities.\nFive hundred years have passed since Leonardo died in his home at Chateau du Clos Lucé,\noutside Tours, France. Yet far from fading into insignificance, his thinking has carried down the\ncenturies and still surprises today.\nThe Renaissance marked the transition from the 15th century to modernity and took place after\nthe spread of the plague in the 14th century, which caused a global crisis resulting in some\n200 million deaths across Europe and Asia. Today, the world is on the cusp of a climate crisis,\nwhich is predicted to cause widespread displacement, extinctions and death, if left unaddressed.\nThen, as now, radical solutions were called for to revolutionise the way people lived and\nsafeguard humanity against catastrophe.\nAround 1486 — after a pestilence that killed half the population in Milan, Italy — Leonardo turned\nhis thoughts to urban planning problems. Following a typical Renaissance trend, he began to\nwork on an ‘ideal city’ project, which — due to its excessive costs — would remain unfulfilled. Yet\ngiven that unsustainable urban models are a key cause of global climate change today, it’s only\nnatural to wonder how Leonardo might have changed the shape of modern cities.\nAlthough the Renaissance is renowned as an era of incredible progress in art and architecture,\nit is rarely noted that the 15th century also marked the birth of urbanism as a true academic\ndiscipline. The rigour and method behind the conscious conception of a city had been largely\nmissing in Western thought until the moment when prominent Renaissance men pushed forward\nlarge-scale urban projects in Italy, such as the reconfiguration of the town of Pienza and the\nexpansion of the city of Ferrara. These works surely inspired Leonardo’s decision to rethink the\ndesign of medieval cities, with their winding and overcrowded streets and with houses piled\nagainst one another.\nIt is not easy to identify a coordinated vision of Leonardo’s ideal city because of his disordered\nway of working with notes and sketches. But from the largest collection of Leonardo’s papers\never assembled, a series of innovative thoughts can be reconstructed regarding the foundation of\na new city along the Ticino River, which runs from Switzerland into Italy and is 248 kilometres\nlong. He designed the city for the easy transport of goods and clean urban spaces, and he wanted\na comfortable and spacious city, with well-ordered streets and architecture. He recommended\n‘high, strong walls’, with ‘towers and battlements of all necessary and pleasant beauty’.\nHis plans for a modern and ‘rational’ city were consistent with Renaissance ideals. But, in\nkeeping with his personality, Leonardo included several innovations in his urban design.\nLeonardo wanted the city to be built on several levels, linked with vertical outdoor staircases.\nThis design can be seen in some of today’s high-rise buildings but was unconventional at the\ntime. Indeed, this idea of taking full advantage of the interior spaces wasn’t implemented until the\n1920s and 1930s, with the birth of the Modernist movement.\nWhile in the upper layers of the city, people could walk undisturbed between elegant palaces\nand streets, the lower layer was the place for services, trade, transport and industry. But the\ntrue originality of Leonardo’s vision was its fusion of architecture and engineering. Leonardo\ndesigned extensive hydraulic plants to create artificial canals throughout the city. The canals,\nregulated by clocks and basins, were supposed to make it easier for boats to navigate inland.\nLeonardo also thought that the width of the streets ought to match the average height of the\nadjacent houses: a rule still followed in many contemporary cities across Italy, to allow access to\nsun and reduce the risk of damage from earthquakes.\nAlthough some of these features existed in Roman cities, before Leonardo’s drawings there had\nnever been a multi-level, compact modern city which was thoroughly technically conceived.\nIndeed, it wasn’t until the 19th century that some of his ideas were applied. For example, the\nsubdivision of the city by function — with services and infrastructures located in the lower levels\nand wide and well-ventilated boulevards and walkways above for residents — is an idea that can\nbe found in Georges-Eugéne Haussmann’s renovation of Paris under Emperor Napoleon III\nbetween 1853 and 1870.\nToday, Leonardo’s ideas are not simply valid, they actually suggest a way forward for urban\nplanning. Many scholars think that the compact city, built upwards instead of outwards,\nintegrated with nature (especially water systems), with efficient transport infrastructure, could\nhelp modern cities become more efficient and sustainable. This is yet another reason why\nLeonardo was aligned so closely with modern urban planning and centuries ahead of his time.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "true-false-notgiven",
+              "prompt": "People first referred to Leonardo da Vinci as a genius 500 years ago.",
+              "group": {
+                "id": "r-27-33",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-33 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "true-false-notgiven",
+              "prompt": "The current climate crisis is predicted to cause more deaths than the plague.",
+              "group": {
+                "id": "r-27-33",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-33 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "true-false-notgiven",
+              "prompt": "Some of the challenges we face today can be compared to those of earlier times.",
+              "group": {
+                "id": "r-27-33",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-33 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "true-false-notgiven",
+              "prompt": "Leonardo da Vinci's ‘ideal city’ was constructed in the 15th century.",
+              "group": {
+                "id": "r-27-33",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-33 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "true-false-notgiven",
+              "prompt": "Poor town planning is a major contributor to climate change.",
+              "group": {
+                "id": "r-27-33",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-33 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "true-false-notgiven",
+              "prompt": "In Renaissance times, local people fought against the changes to Pienza and Ferrara.",
+              "group": {
+                "id": "r-27-33",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-33 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "true-false-notgiven",
+              "prompt": "Leonardo da Vinci kept a neat, organised record of his designs.",
+              "group": {
+                "id": "r-27-33",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-33 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "This was to provide better ........ for trade",
+              "group": {
+                "id": "r-34-40",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Leonardo da Vinci’s ideal city",
+                "text": "A collection of Leonardo da Vinci’s paperwork reveals his design of a new city\nbeside the Ticino River. This was to provide better [34] for trade\nand a less polluted environment. Although Leonardo da Vinci's city shared many of\nthe ideals of his time, some of his innovations were considered unconventional in\ntheir design. They included features that can be seen in some tower blocks today,\nsuch as [35] on the exterior of a building.\nLeonardo da Vinci wasn’t only an architect. His expertise in [36]\nwas evident in his plans for artificial canals within his ideal city. He also believed\nthat the height of houses should relate to the width of streets in case earthquakes\noccurred. The design of many cities in Italy today follows this [37].\nWhile some cities from [38] times have aspects that can also be\nfound in Leonardo’s designs, his ideas weren’t put into practice until long after his\ndeath. [39] is one example of a city that was redesigned in the\n19th century in the way that Leonardo had envisaged. His ideas are also relevant to\ntoday’s world, where building [40] no longer seems to be the best\napproach."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "transport"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "such as ........ on the exterior of a building",
+              "group": {
+                "id": "r-34-40",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Leonardo da Vinci’s ideal city",
+                "text": "A collection of Leonardo da Vinci’s paperwork reveals his design of a new city\nbeside the Ticino River. This was to provide better [34] for trade\nand a less polluted environment. Although Leonardo da Vinci's city shared many of\nthe ideals of his time, some of his innovations were considered unconventional in\ntheir design. They included features that can be seen in some tower blocks today,\nsuch as [35] on the exterior of a building.\nLeonardo da Vinci wasn’t only an architect. His expertise in [36]\nwas evident in his plans for artificial canals within his ideal city. He also believed\nthat the height of houses should relate to the width of streets in case earthquakes\noccurred. The design of many cities in Italy today follows this [37].\nWhile some cities from [38] times have aspects that can also be\nfound in Leonardo’s designs, his ideas weren’t put into practice until long after his\ndeath. [39] is one example of a city that was redesigned in the\n19th century in the way that Leonardo had envisaged. His ideas are also relevant to\ntoday’s world, where building [40] no longer seems to be the best\napproach."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "staircases"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "His expertise in ........ was evident in his plans for artificial canals within his ideal city.",
+              "group": {
+                "id": "r-34-40",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Leonardo da Vinci’s ideal city",
+                "text": "A collection of Leonardo da Vinci’s paperwork reveals his design of a new city\nbeside the Ticino River. This was to provide better [34] for trade\nand a less polluted environment. Although Leonardo da Vinci's city shared many of\nthe ideals of his time, some of his innovations were considered unconventional in\ntheir design. They included features that can be seen in some tower blocks today,\nsuch as [35] on the exterior of a building.\nLeonardo da Vinci wasn’t only an architect. His expertise in [36]\nwas evident in his plans for artificial canals within his ideal city. He also believed\nthat the height of houses should relate to the width of streets in case earthquakes\noccurred. The design of many cities in Italy today follows this [37].\nWhile some cities from [38] times have aspects that can also be\nfound in Leonardo’s designs, his ideas weren’t put into practice until long after his\ndeath. [39] is one example of a city that was redesigned in the\n19th century in the way that Leonardo had envisaged. His ideas are also relevant to\ntoday’s world, where building [40] no longer seems to be the best\napproach."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "engineering"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "The design of many cities in Italy today follows this",
+              "group": {
+                "id": "r-34-40",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Leonardo da Vinci’s ideal city",
+                "text": "A collection of Leonardo da Vinci’s paperwork reveals his design of a new city\nbeside the Ticino River. This was to provide better [34] for trade\nand a less polluted environment. Although Leonardo da Vinci's city shared many of\nthe ideals of his time, some of his innovations were considered unconventional in\ntheir design. They included features that can be seen in some tower blocks today,\nsuch as [35] on the exterior of a building.\nLeonardo da Vinci wasn’t only an architect. His expertise in [36]\nwas evident in his plans for artificial canals within his ideal city. He also believed\nthat the height of houses should relate to the width of streets in case earthquakes\noccurred. The design of many cities in Italy today follows this [37].\nWhile some cities from [38] times have aspects that can also be\nfound in Leonardo’s designs, his ideas weren’t put into practice until long after his\ndeath. [39] is one example of a city that was redesigned in the\n19th century in the way that Leonardo had envisaged. His ideas are also relevant to\ntoday’s world, where building [40] no longer seems to be the best\napproach."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "rule"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "While some cities from ........ times have aspects that can also be found in Leonardo’s designs",
+              "group": {
+                "id": "r-34-40",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Leonardo da Vinci’s ideal city",
+                "text": "A collection of Leonardo da Vinci’s paperwork reveals his design of a new city\nbeside the Ticino River. This was to provide better [34] for trade\nand a less polluted environment. Although Leonardo da Vinci's city shared many of\nthe ideals of his time, some of his innovations were considered unconventional in\ntheir design. They included features that can be seen in some tower blocks today,\nsuch as [35] on the exterior of a building.\nLeonardo da Vinci wasn’t only an architect. His expertise in [36]\nwas evident in his plans for artificial canals within his ideal city. He also believed\nthat the height of houses should relate to the width of streets in case earthquakes\noccurred. The design of many cities in Italy today follows this [37].\nWhile some cities from [38] times have aspects that can also be\nfound in Leonardo’s designs, his ideas weren’t put into practice until long after his\ndeath. [39] is one example of a city that was redesigned in the\n19th century in the way that Leonardo had envisaged. His ideas are also relevant to\ntoday’s world, where building [40] no longer seems to be the best\napproach."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Roman"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "........ is one example of a city that was redesigned in the 19th century in the way that Leonardo had envisaged.",
+              "group": {
+                "id": "r-34-40",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Leonardo da Vinci’s ideal city",
+                "text": "A collection of Leonardo da Vinci’s paperwork reveals his design of a new city\nbeside the Ticino River. This was to provide better [34] for trade\nand a less polluted environment. Although Leonardo da Vinci's city shared many of\nthe ideals of his time, some of his innovations were considered unconventional in\ntheir design. They included features that can be seen in some tower blocks today,\nsuch as [35] on the exterior of a building.\nLeonardo da Vinci wasn’t only an architect. His expertise in [36]\nwas evident in his plans for artificial canals within his ideal city. He also believed\nthat the height of houses should relate to the width of streets in case earthquakes\noccurred. The design of many cities in Italy today follows this [37].\nWhile some cities from [38] times have aspects that can also be\nfound in Leonardo’s designs, his ideas weren’t put into practice until long after his\ndeath. [39] is one example of a city that was redesigned in the\n19th century in the way that Leonardo had envisaged. His ideas are also relevant to\ntoday’s world, where building [40] no longer seems to be the best\napproach."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Paris"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "His ideas are also relevant to today’s world, where building ........ no longer seems to be the best approach.",
+              "group": {
+                "id": "r-34-40",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Leonardo da Vinci’s ideal city",
+                "text": "A collection of Leonardo da Vinci’s paperwork reveals his design of a new city\nbeside the Ticino River. This was to provide better [34] for trade\nand a less polluted environment. Although Leonardo da Vinci's city shared many of\nthe ideals of his time, some of his innovations were considered unconventional in\ntheir design. They included features that can be seen in some tower blocks today,\nsuch as [35] on the exterior of a building.\nLeonardo da Vinci wasn’t only an architect. His expertise in [36]\nwas evident in his plans for artificial canals within his ideal city. He also believed\nthat the height of houses should relate to the width of streets in case earthquakes\noccurred. The design of many cities in Italy today follows this [37].\nWhile some cities from [38] times have aspects that can also be\nfound in Leonardo’s designs, his ideas weren’t put into practice until long after his\ndeath. [39] is one example of a city that was redesigned in the\n19th century in the way that Leonardo had envisaged. His ideas are also relevant to\ntoday’s world, where building [40] no longer seems to be the best\napproach."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "outwards"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

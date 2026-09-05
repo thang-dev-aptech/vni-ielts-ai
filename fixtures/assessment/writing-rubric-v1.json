@@ -1,0 +1,43 @@
+{
+  "version": "ielts-writing-synthetic-v1",
+  "descriptorSource": "synthetic-ielts-style-descriptors-for-functional-core-fixtures",
+  "effectiveDate": "2026-08-29",
+  "contentHash": "sha256:f97ebf707120888e7cd3d3ad09624cec005e00a3b6e8104bbe3f08aa9c852136",
+  "criteria": [
+    "taskResponse",
+    "coherenceAndCohesion",
+    "lexicalResource",
+    "grammaticalRangeAndAccuracy"
+  ],
+  "promptVersion": "writing-eval-prompt-v1",
+  "descriptors": {
+    "taskResponse": {
+      "9": "Fully addresses all parts of the task with a fully developed position.",
+      "7": "Addresses all parts; clear position with main ideas extended and supported.",
+      "6": "Addresses all parts though some may be more fully covered than others.",
+      "5": "Addresses the task only partially; position may be unclear.",
+      "4": "Responds to the task only in a minimal way or tangentially."
+    },
+    "coherenceAndCohesion": {
+      "9": "Uses cohesion so that the message is effortless to follow.",
+      "7": "Logically organises information with clear progression throughout.",
+      "6": "Arranges information coherently with overall progression.",
+      "5": "Organises information with some logical sequencing but lacks overall clarity.",
+      "4": "Presents information but not arranged coherently."
+    },
+    "lexicalResource": {
+      "9": "Uses a wide range of vocabulary with very natural and sophisticated control.",
+      "7": "Uses a sufficient range of vocabulary with flexibility and precision.",
+      "6": "Uses an adequate range of vocabulary for the task.",
+      "5": "Uses a limited range of vocabulary; errors may cause difficulty.",
+      "4": "Uses only basic vocabulary which may be repetitive or inadequate."
+    },
+    "grammaticalRangeAndAccuracy": {
+      "9": "Uses a wide range of structures with full flexibility and accuracy.",
+      "7": "Uses a variety of complex structures with good control.",
+      "6": "Uses a mix of simple and complex forms with some errors.",
+      "5": "Uses only a limited range of structures with frequent errors.",
+      "4": "Uses only a very limited range of structures with errors predominate."
+    }
+  }
+}

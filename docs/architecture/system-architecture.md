@@ -218,7 +218,7 @@ Every row carries a status. Nothing here is implemented; the repository has no p
 | Auth libraries | Built-in JWT + OIDC handlers; defer Duende | [`backend-architecture.md`](backend-architecture.md) |
 | Validation · logging · telemetry | FluentValidation · Serilog · OpenTelemetry | [`backend-architecture.md`](backend-architecture.md) |
 | Frontend | Vite + React + TS · React Router · TanStack Query · react-hook-form · no global state library | [`client-architecture.md`](client-architecture.md) |
-| Object storage | `IObjectStorage` port over an S3-compatible API; MinIO for local development | below |
+| Object storage | `IObjectStorage` port over an S3-compatible API; MinIO for local development. Layout: one bucket per retention class by default, or one bucket with a prefix per class — owner decision 2026-09-04 | below · [ADR-0016](../decisions/0016-object-storage-one-bucket-prefix-per-class.md) |
 | New AI ports | `IChatCompletion` · `IExamContentParser` · `ITextToSpeech` | [`../ai/ai-architecture.md`](../ai/ai-architecture.md) |
 | Mongo document shape | Embed `ExamVersion` content and `SectionAttempt`; separate collections for `Answer`, `ChatMessage`, and the token ledger | [`../database/strategy-mongodb-to-postgresql.md`](../database/strategy-mongodb-to-postgresql.md) |
 

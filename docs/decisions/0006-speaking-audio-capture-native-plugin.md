@@ -33,7 +33,7 @@ The first row alone is disqualifying. Losing a learner's answer with no error an
 
 ## Decision
 
-**Speaking capture is implemented as a native Capacitor plugin. The WebView `MediaRecorder` API is never used for exam recording.**
+**Speaking capture is to be implemented as a native Capacitor plugin. The WebView `MediaRecorder` API is never to be used for exam recording.** (No plugin is built yet — this records the decision, not an implementation.)
 
 Required plugin capabilities:
 

@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.11" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageReference Include="Xunit.SkippableFact" Version="1.5.23" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Vni.Ielts.Infrastructure\Vni.Ielts.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <!--
+    A valid exam that belongs to the tests, not to the catalogue.
+
+    It used to live in `fixtures/exams`, which the development seeder loads
+    wholesale — so one directory served two jobs, and content the product ships
+    could not be emptied without taking the schema contract tests with it.
+    Owning the file here separates them: the seeder now sees only exams the
+    owner supplied, and these tests keep a document they control.
+  -->
+  <ItemGroup>
+    <None Update="Content\valid-exam.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

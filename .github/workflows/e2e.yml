@@ -1,0 +1,106 @@
+# The browser suite.
+#
+# Separate from `backend.yml` and `frontend.yml` because it is the only job that
+# needs all three at once — a database, a built API, and a browser — and folding
+# it into either would make that job's failures ambiguous about which half broke.
+#
+# → docs/development/infrastructure-gate.md, I7.5
+name: Browser
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    name: Real browser, real API
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      # A single-node replica set, the same shape every other environment runs.
+      # Transactions behave differently on a standalone node, and a browser
+      # suite is exactly where that difference would surface as a flake.
+      - name: Start MongoDB replica set
+        run: |
+          docker run -d --name vni-e2e-mongo -p 27018:27017 mongo:7 \
+            --replSet rs0 --bind_ip_all --port 27017
+
+          for _ in $(seq 1 60); do
+            if docker exec vni-e2e-mongo mongosh --quiet \
+              --eval 'db.adminCommand({ping:1}).ok' >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+
+          docker exec vni-e2e-mongo mongosh --quiet \
+            --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"
+
+          for _ in $(seq 1 60); do
+            if docker exec vni-e2e-mongo mongosh --quiet \
+              --eval 'db.hello().isWritablePrimary' 2>/dev/null | grep -q true; then break; fi
+            sleep 1
+          done
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # F1.1 — catches exactly the defect that let this workflow's Node
+      # version and the frontend suite's drift apart with nothing checking.
+      - name: Toolchain versions agree
+        run: pnpm toolchain:check
+
+      # F1.6 — the browser binary is what is slow and worth not re-downloading
+      # every run; the key is tied to the lockfile, so a Playwright version
+      # bump (which changes the exact Chromium build it wants — verified
+      # locally: a cached build for one Playwright version was refused by a
+      # newer one with "Executable doesn't exist") invalidates the cache
+      # instead of silently reusing a mismatched browser.
+      - name: Cache Chromium
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      # OS-level dependencies are not part of the cached path above and are
+      # cheap to (re)install on every run regardless of cache state.
+      - name: Install Chromium's OS dependencies
+        run: pnpm --filter @vni/e2e exec playwright install-deps chromium
+        timeout-minutes: 5
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @vni/e2e exec playwright install chromium
+        timeout-minutes: 5
+
+      # Desktop only. The mobile project runs the same specs against a phone
+      # viewport and catches layout, not behaviour — worth a developer's time
+      # locally, not worth doubling every build.
+      - name: Browser suite
+        run: pnpm --filter @vni/e2e exec playwright test --project=desktop
+
+      - name: Upload traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: e2e/test-results/
+          retention-days: 7
+
+      - name: Stop MongoDB
+        if: always()
+        run: docker rm -f vni-e2e-mongo || true

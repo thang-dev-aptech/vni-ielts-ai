@@ -1,0 +1,1509 @@
+{
+  "workflow": "dynamic-project-plan",
+  "version": 2,
+  "runId": "fscore-20260829",
+  "plan": "docs/development/four-skills-functional-core-todolist.md",
+  "status": "done",
+  "baselineCommit": "d2fb96c8272b39d25b0a63a3c7478a26d41f46ec",
+  "currentPhase": "Functional-Core-Ready",
+  "certificationTarget": "Functional Core Ready - Speaking AI deferred",
+  "carriedBlockers": [
+    {
+      "id": "GITGUARDIAN-R18",
+      "summary": "GitGuardian dashboard disagreement remains; GitHub secret scanning/gitleaks evidence is separate. Known non-blocking risk; not marked pass."
+    },
+    {
+      "id": "SECURITY-FIXTURE-CI",
+      "summary": "Security-fixture CI remains red in current infrastructure residual-risk state. Known non-blocking risk; not marked pass."
+    }
+  ],
+  "openBusinessDecisions": [
+    {
+      "id": "rights-registry-entries",
+      "summary": "Owner has not named which sources carry learner-production rights. Registry defaults fixture-only."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "FS0.1",
+      "title": "Content rights registry",
+      "owner": "backend-engineer",
+      "phase": "FS0",
+      "status": "done",
+      "dependsOn": [],
+      "startedAt": "2026-08-29T00:00:00+07:00",
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T00:00:00+07:00",
+      "files": [
+        "backend/src/Vni.Ielts.Domain/Content/",
+        "backend/src/Vni.Ielts.Application/Content/",
+        "backend/src/Vni.Ielts.Infrastructure/Content/",
+        "backend/src/Vni.Ielts.Api/Endpoints/ContentEndpoints.cs"
+      ],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS0.2",
+      "title": "Machine-readable content inventory",
+      "owner": "devops-engineer",
+      "phase": "FS0",
+      "status": "done",
+      "dependsOn": [],
+      "startedAt": "2026-08-29T00:00:00+07:00",
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T00:00:00+07:00",
+      "files": [
+        "scripts/content-inventory.mjs"
+      ],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS0.3",
+      "title": "Product/config decisions as versioned data",
+      "owner": "domain-analyst",
+      "phase": "FS0",
+      "status": "done",
+      "dependsOn": [],
+      "startedAt": "2026-08-29T00:00:00+07:00",
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T00:00:00+07:00",
+      "files": [
+        "contracts/schemas/",
+        "docs/domain/"
+      ],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS0.4",
+      "title": "AI/R2 secret contract",
+      "owner": "security-engineer",
+      "phase": "FS0",
+      "status": "done",
+      "dependsOn": [],
+      "startedAt": "2026-08-29T00:00:00+07:00",
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T00:00:00+07:00",
+      "files": [
+        "backend/src/Vni.Ielts.Api/Common/StartupConfiguration.cs",
+        "appsettings",
+        "docs/security/"
+      ],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS0.5",
+      "title": "Baseline executable",
+      "owner": "qa-engineer",
+      "phase": "FS0",
+      "status": "done",
+      "dependsOn": [],
+      "startedAt": "2026-08-29T00:00:00+07:00",
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T00:00:00+07:00",
+      "files": [
+        "_workspace/workflow/agents/qa-baseline.md"
+      ],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS1.1",
+      "title": "Exam Package schema v2 + ResponseSlot",
+      "owner": "domain-analyst",
+      "phase": "FS1",
+      "status": "done",
+      "dependsOn": [
+        "FS0.3"
+      ],
+      "startedAt": "2026-08-29T04:47:47.148Z",
+      "lastHeartbeatAt": "2026-08-29T05:00:54.4764857Z",
+      "completedAt": "2026-08-29T05:00:54.4764857Z",
+      "files": [
+        "contracts/schemas/exam.schema.json"
+      ],
+      "tests": [
+        "ExamPackageReaderTests 17/17",
+        "Infrastructure suite 112/112",
+        "solution build 0 warnings",
+        "generated drift + git diff check"
+      ],
+      "negativeProof": "Duplicate response-slot number refused with RESPONSE_SLOT_DUPLICATE; v1 multi-mark migration preserves accepted A/D answers.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md",
+        "contracts/schemas/exam.schema.json"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS1.2",
+      "title": "Domain mapping ExamVersion..ResponseSlot",
+      "owner": "domain-analyst",
+      "phase": "FS1",
+      "status": "done",
+      "dependsOn": [
+        "FS1.1"
+      ],
+      "startedAt": "2026-08-29T05:00:54.4764857Z",
+      "lastHeartbeatAt": "2026-08-29T05:25:00Z",
+      "completedAt": "2026-08-29T05:25:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Domain/Exams/ExamContent.cs"
+      ],
+      "tests": [
+        "Mapping 2/2",
+        "Architecture 10/10",
+        "Mongo immutability 5/5",
+        "Infrastructure 114/114"
+      ],
+      "negativeProof": "Slot answer changes the published content fingerprint and Mongo refuses a published slot-key rewrite.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS1.3",
+      "title": "v1 compatibility + migration",
+      "owner": "backend-engineer",
+      "phase": "FS1",
+      "status": "done",
+      "dependsOn": [
+        "FS1.2"
+      ],
+      "startedAt": "2026-08-29T05:25:00Z",
+      "lastHeartbeatAt": "2026-08-29T05:40:00Z",
+      "completedAt": "2026-08-29T05:40:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Infrastructure/"
+      ],
+      "tests": [
+        "Compatibility contracts 21/21",
+        "Infrastructure 116/116",
+        "Solution build 0 warnings"
+      ],
+      "negativeProof": "Unknown major 3.0 is refused and legacy slotless documents rehydrate stable per-mark slots.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS1.4",
+      "title": "Package validation rules",
+      "owner": "backend-engineer",
+      "phase": "FS1",
+      "status": "done",
+      "dependsOn": [
+        "FS1.2"
+      ],
+      "startedAt": "2026-08-29T05:40:00Z",
+      "lastHeartbeatAt": "2026-08-29T06:00:00Z",
+      "completedAt": "2026-08-29T06:00:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Application/Exams/"
+      ],
+      "tests": [
+        "Package reader 25/25",
+        "Infrastructure 123/123",
+        "Solution build 0 warnings"
+      ],
+      "negativeProof": "Missing/duplicate slot keys, sequence mismatch, missing asset checksum, option-bank conflict and false full-profile claims are refused.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS1.5",
+      "title": "API/OpenAPI/client for slots",
+      "owner": "backend-engineer",
+      "phase": "FS1",
+      "status": "done",
+      "dependsOn": [
+        "FS1.3",
+        "FS1.4"
+      ],
+      "startedAt": "2026-08-29T06:00:00Z",
+      "lastHeartbeatAt": "2026-08-29T06:35:00Z",
+      "completedAt": "2026-08-29T06:35:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Api/Endpoints/ExamEndpoints.cs",
+        "contracts/openapi/",
+        "packages/api-client/"
+      ],
+      "tests": [
+        "ExamRun/OpenAPI 30/30",
+        "Learner 253/253",
+        "Typecheck + generated drift"
+      ],
+      "negativeProof": "Real pre-submit HTTP payload exposes slot id/number and contains no answer key or explanation fields.",
+      "artifacts": [
+        "contracts/openapi/v1.json",
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS2.1",
+      "title": "Two separate import paths",
+      "owner": "backend-engineer",
+      "phase": "FS2",
+      "status": "done",
+      "dependsOn": [
+        "FS1.5"
+      ],
+      "startedAt": "2026-08-29T06:35:00Z",
+      "lastHeartbeatAt": "2026-08-29T07:20:00Z",
+      "completedAt": "2026-08-29T07:20:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Application/Importing/",
+        "backend/src/Vni.Ielts.Infrastructure/Content/ExamPackageValidator.cs",
+        "scripts/import-exam-package.py"
+      ],
+      "tests": [
+        "ExamImportWorkflowTests 4/4",
+        "Package reader + validator 27/27",
+        "Application suite 182/182",
+        "solution build 0 warnings",
+        "Windows CP1252-mode importer exit 0"
+      ],
+      "negativeProof": "Invalid AI parser output is refused by the shared deterministic validator, no draft is saved, and the import-only store records zero publish calls; changed source hash is refused before parsing.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS2.2",
+      "title": "Safe source extraction (DOCX/PDF)",
+      "owner": "security-engineer",
+      "phase": "FS2",
+      "status": "done",
+      "dependsOn": [
+        "FS1.5"
+      ],
+      "startedAt": "2026-08-29T07:20:00Z",
+      "lastHeartbeatAt": "2026-08-29T07:35:00Z",
+      "completedAt": "2026-08-29T07:35:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Infrastructure/Content/SafeSourceDocumentExtractor.cs",
+        "backend/src/Vni.Ielts.Infrastructure/Storage/ObjectStorage.cs"
+      ],
+      "tests": [
+        "SafeSourceDocumentExtractorTests 4/4",
+        "Infrastructure suite 129/129",
+        "Application suite 182/182",
+        "solution build 0 warnings"
+      ],
+      "negativeProof": "Sandbox traversal, PDF page overflow and unknown embedded-media signatures are deterministically refused before private upload.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS2.3",
+      "title": "Provider-neutral AI parser",
+      "owner": "ai-evaluation-engineer",
+      "phase": "FS2",
+      "status": "done",
+      "dependsOn": [
+        "FS2.1"
+      ],
+      "startedAt": "2026-08-29T07:35:00Z",
+      "lastHeartbeatAt": "2026-08-29T07:45:00Z",
+      "completedAt": "2026-08-29T07:45:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Application/Importing/ProviderNeutralExamSourceParser.cs"
+      ],
+      "tests": [
+        "Import/parser targeted tests 8/8",
+        "solution build 0 warnings"
+      ],
+      "negativeProof": "Transient failures stop at the configured retry bound and reseller egress refuses non-synthetic source before any client call.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS2.4",
+      "title": "CMS review workflow",
+      "owner": "frontend-engineer",
+      "phase": "FS2",
+      "status": "done",
+      "dependsOn": [
+        "FS2.1"
+      ],
+      "startedAt": "2026-08-29T07:45:00Z",
+      "lastHeartbeatAt": "2026-08-29T08:05:00Z",
+      "completedAt": "2026-08-29T08:05:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Application/Importing/ImportReviewWorkflow.cs",
+        "apps/admin/src/components/ImportReviewPanel.tsx"
+      ],
+      "tests": [
+        "Import/review targeted tests 9/9",
+        "Application suite 191/191",
+        "Admin suite 65/65",
+        "Admin typecheck pass",
+        "solution build 0 warnings"
+      ],
+      "negativeProof": "Unresolved warnings and any missing evidence check block approval; edit permission cannot approve, review permission cannot publish, and unapproved drafts cannot publish.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS2.5",
+      "title": "Pilot VOL 9 Test 1 package",
+      "owner": "domain-analyst",
+      "phase": "FS2",
+      "status": "done",
+      "dependsOn": [
+        "FS2.1",
+        "FS2.2",
+        "FS0.1"
+      ],
+      "startedAt": "2026-08-29T08:05:00Z",
+      "lastHeartbeatAt": "2026-08-29T08:20:00Z",
+      "completedAt": "2026-08-29T08:20:00Z",
+      "files": [
+        "scripts/import-exam-package.py",
+        "backend/tools/Vni.Ielts.PackageVerifier/"
+      ],
+      "tests": [
+        "local pilot schema/domain verification exit 0",
+        "Reading perfect round trip 40/40",
+        "Listening perfect round trip 40/40"
+      ],
+      "negativeProof": "The verifier rejects the four-module source-derived fixture with PILOT_MODULE_SCOPE; the pilot contains no Writing without rights and no authored Speaking.",
+      "artifacts": [
+        "fixtures/exams/exam-1-functional-core-pilot.json (gitignored local fixture)",
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS2.6",
+      "title": "Cambridge batch readiness",
+      "owner": "backend-engineer",
+      "phase": "FS2",
+      "status": "done",
+      "dependsOn": [
+        "FS2.5"
+      ],
+      "startedAt": "2026-08-29T08:20:00Z",
+      "lastHeartbeatAt": "2026-08-29T08:35:00Z",
+      "completedAt": "2026-08-29T08:35:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Application/Importing/ImportBatchRunner.cs"
+      ],
+      "tests": [
+        "ImportBatchRunnerTests 2/2",
+        "Application suite 193/193",
+        "Infrastructure suite with required MinIO 130/130",
+        "Content-rights publish integration 6/6",
+        "Admin suite 65/65",
+        "solution build 0 warnings"
+      ],
+      "negativeProof": "A failed middle item preserves completed drafts and resume retries only the failed item; full package pilot scope and missing learner-production rights are independently refused.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS3.1",
+      "title": "PracticeUnit projection",
+      "owner": "backend-engineer",
+      "phase": "FS3",
+      "status": "done",
+      "dependsOn": [
+        "FS1.5"
+      ],
+      "startedAt": "2026-08-29T08:35:00Z",
+      "lastHeartbeatAt": "2026-08-29T08:50:00Z",
+      "completedAt": "2026-08-29T08:50:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Application/Practice/PracticeUnitProjection.cs"
+      ],
+      "tests": [
+        "PracticeUnitProjectionTests 3/3"
+      ],
+      "negativeProof": "Projection shape contains no passage/audio/key fields, and publishing a separate new ExamVersion produces disjoint unit ids without mutating old units.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS3.2",
+      "title": "Catalogue API",
+      "owner": "backend-engineer",
+      "phase": "FS3",
+      "status": "done",
+      "dependsOn": [
+        "FS3.1"
+      ],
+      "startedAt": "2026-08-29T08:50:00Z",
+      "lastHeartbeatAt": "2026-08-29T09:05:00Z",
+      "completedAt": "2026-08-29T09:05:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Application/Practice/ListPracticeUnits.cs",
+        "backend/src/Vni.Ielts.Api/Endpoints/ExamEndpoints.cs",
+        "contracts/openapi/v1.json"
+      ],
+      "tests": [
+        "Projection/catalogue tests 5/5",
+        "Practice-unit HTTP contracts 2/2",
+        "OpenAPI contracts 3/3 after regeneration",
+        "generated client drift pass"
+      ],
+      "negativeProof": "Unknown scope is HTTP 400 SCOPE_INVALID instead of broadening the query, and draft versions never appear in the learner catalogue.",
+      "artifacts": [
+        "contracts/openapi/v1.json",
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS3.3",
+      "title": "Start-session contract",
+      "owner": "backend-engineer",
+      "phase": "FS3",
+      "status": "done",
+      "dependsOn": [
+        "FS3.1"
+      ],
+      "startedAt": "2026-08-29T09:05:00Z",
+      "lastHeartbeatAt": "2026-08-29T09:25:00Z",
+      "completedAt": "2026-08-29T09:25:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Application/Exams/ExamHandlers.cs",
+        "backend/src/Vni.Ielts.Api/Endpoints/ExamEndpoints.cs",
+        "backend/src/Vni.Ielts.Domain/Sessions/ExamSession.cs",
+        "contracts/openapi/v1.json"
+      ],
+      "tests": [
+        "Practice-unit start HTTP contracts 3/3",
+        "OpenAPI contracts 3/3 after regeneration",
+        "generated client drift pass"
+      ],
+      "negativeProof": "practiceUnitId combined with attacker-selected exam/module/mode/timing returns PRACTICE_UNIT_CONFLICT; legacy v1 response carries Deprecation, Sunset and successor Link headers.",
+      "artifacts": [
+        "contracts/openapi/v1.json",
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS3.4",
+      "title": "Session part state",
+      "owner": "backend-engineer",
+      "phase": "FS3",
+      "status": "done",
+      "dependsOn": [
+        "FS3.3"
+      ],
+      "startedAt": "2026-08-29T09:25:00Z",
+      "lastHeartbeatAt": "2026-08-29T09:45:00Z",
+      "completedAt": "2026-08-29T09:45:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Domain/Sessions/ExamSession.cs"
+      ],
+      "tests": [
+        "Session part-state HTTP/Mongo contracts 3/3",
+        "Domain suite 189/189",
+        "Application suite 198/198",
+        "OpenAPI contracts 3/3 after regeneration",
+        "solution build 0 warnings"
+      ],
+      "negativeProof": "A late answer targeting the completed part is refused; a mock deadline cannot be paused; the Mongo CAS includes current part id so concurrent same-module advances cannot both win.",
+      "artifacts": [
+        "contracts/openapi/v1.json",
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS3.5",
+      "title": "History separation",
+      "owner": "backend-engineer",
+      "phase": "FS3",
+      "status": "done",
+      "dependsOn": [
+        "FS3.4"
+      ],
+      "startedAt": "2026-08-29T09:45:00Z",
+      "lastHeartbeatAt": "2026-08-29T10:00:00Z",
+      "completedAt": "2026-08-29T10:00:00Z",
+      "files": [
+        "backend/src/Vni.Ielts.Application/Exams/ExamViews.cs",
+        "backend/src/Vni.Ielts.Application/Exams/ExamHandlers.cs"
+      ],
+      "tests": [
+        "History separation HTTP/Mongo 1/1",
+        "FS3 ExamRun/immutability/OpenAPI regression 44/44",
+        "generated client drift pass",
+        "solution build 0 warnings"
+      ],
+      "negativeProof": "Practice-part history is includeInIeltsTrend=false with no overall band; incomplete full mock is also excluded until a real four-skill overall exists.",
+      "artifacts": [
+        "contracts/openapi/v1.json",
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS4.1",
+      "title": "Runner shell",
+      "owner": "frontend-engineer",
+      "phase": "FS4",
+      "status": "done",
+      "dependsOn": [
+        "FS3.2",
+        "FS3.3"
+      ],
+      "startedAt": "2026-08-29T10:00:00Z",
+      "lastHeartbeatAt": "2026-08-29T10:15:00Z",
+      "completedAt": "2026-08-29T10:15:00Z",
+      "files": [
+        "apps/web/src/features/exam/practice-runner/",
+        "apps/web/src/features/exam/examApi.ts",
+        "apps/web/src/features/exam/contractParity.test.ts",
+        "apps/web/src/__tests__/practice-runner.test.tsx",
+        "apps/web/src/styles/practice-run.css"
+      ],
+      "tests": [
+        "Practice runner targeted suite 18/18",
+        "Learner full suite 257/257",
+        "Learner typecheck pass",
+        "Learner production build 173 modules"
+      ],
+      "negativeProof": "A malformed projected response containing another part cannot render it; a current part id with no matching server projection fails closed with zero question inputs. Exit cancel stays in-session and confirmed exit does not submit.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS4.2",
+      "title": "Header/timer",
+      "owner": "frontend-engineer",
+      "phase": "FS4",
+      "status": "done",
+      "dependsOn": [
+        "FS4.1"
+      ],
+      "startedAt": "2026-08-29T10:15:00Z",
+      "lastHeartbeatAt": "2026-08-29T10:30:00Z",
+      "completedAt": "2026-08-29T10:30:00Z",
+      "files": [
+        "apps/web/src/features/exam/practice-runner/PracticeHeader.tsx",
+        "apps/web/src/features/exam/practice-runner/PracticeRunnerPage.tsx",
+        "apps/web/src/styles/practice-run.css",
+        "apps/web/src/__tests__/practice-runner.test.tsx"
+      ],
+      "tests": [
+        "Practice runner targeted suite 19/19",
+        "Learner full suite 258/258",
+        "Learner typecheck pass",
+        "Learner production build 173 modules"
+      ],
+      "negativeProof": "A full-mock payload carrying running and target values still exposes only the server-deadline countdown; no practice pause, target or count-up clock is present. Practice pause sends no client timestamp.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS4.3",
+      "title": "Footer by ResponseSlot",
+      "owner": "frontend-engineer",
+      "phase": "FS4",
+      "status": "done",
+      "dependsOn": [
+        "FS4.1"
+      ],
+      "startedAt": "2026-08-29T10:30:00Z",
+      "lastHeartbeatAt": "2026-08-29T10:45:00Z",
+      "completedAt": "2026-08-29T10:45:00Z",
+      "files": [
+        "apps/web/src/features/exam/practice-runner/PracticeFooter.tsx",
+        "apps/web/src/features/exam/practice-runner/PracticeRunnerPage.tsx",
+        "apps/web/src/__tests__/practice-runner.test.tsx"
+      ],
+      "tests": [
+        "Practice runner targeted suite 20/20",
+        "Learner full suite 259/259",
+        "Learner typecheck pass",
+        "Learner production build 173 modules"
+      ],
+      "negativeProof": "A two-slot question is counted as 2/2 rather than 1/1, renders boxes 17 and 18, and focuses the second selected response from box 18. Unconfirmed work cannot receive the saved tick.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS4.4",
+      "title": "Reading layout",
+      "owner": "frontend-engineer",
+      "phase": "FS4",
+      "status": "done",
+      "dependsOn": [
+        "FS4.1"
+      ],
+      "startedAt": "2026-08-29T10:45:00Z",
+      "lastHeartbeatAt": "2026-08-29T11:00:00Z",
+      "completedAt": "2026-08-29T11:00:00Z",
+      "files": [
+        "apps/web/src/features/exam/practice-runner/PracticeRunnerPage.tsx",
+        "apps/web/src/styles/practice-run.css",
+        "apps/web/src/__tests__/practice-runner.test.tsx"
+      ],
+      "tests": [
+        "Practice runner targeted suite 21/21",
+        "Learner full suite 260/260",
+        "Learner typecheck pass",
+        "Learner production build 173 modules"
+      ],
+      "negativeProof": "Repeated mobile passage/question switches retain the exact answer field and unsaved value; part navigation restores independent passage/question offsets rather than applying the next part's scroll.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS4.5",
+      "title": "Listening layout + audio",
+      "owner": "frontend-engineer",
+      "phase": "FS4",
+      "status": "done",
+      "dependsOn": [
+        "FS4.1"
+      ],
+      "startedAt": "2026-08-29T11:00:00Z",
+      "lastHeartbeatAt": "2026-08-29T07:54:44Z",
+      "completedAt": "2026-08-29T07:54:44Z",
+      "files": [
+        "contracts/schemas/exam.schema.json",
+        "backend/src/Vni.Ielts.Domain/Exams/ExamContent.cs",
+        "backend/src/Vni.Ielts.Application/Exams/ExamViews.cs",
+        "backend/src/Vni.Ielts.Application/Exams/ExamHandlers.cs",
+        "backend/src/Vni.Ielts.Infrastructure/Content/ExamPackageReader.cs",
+        "backend/src/Vni.Ielts.Infrastructure/Persistence/Exams/Documents.cs",
+        "backend/src/Vni.Ielts.Infrastructure/Persistence/Exams/Mappers.cs",
+        "apps/web/src/features/exam/AudioPlayer.tsx",
+        "apps/web/src/features/exam/practice-runner/PracticeRunnerPage.tsx",
+        "apps/web/src/features/exam/ExamRunnerPage.tsx"
+      ],
+      "tests": [
+        "practice runner 25/25",
+        "learner 264/264",
+        "Application 199/199",
+        "Infrastructure 133/133",
+        "OpenAPI contract 1/1",
+        "typecheck/build pass"
+      ],
+      "negativeProof": "Incomplete package policy is schema-invalid; legacy documents fail closed; mock policy exposes no seek; authenticated audio 404 and range 416 both render a retry and recover only after a successful 206 response.",
+      "artifacts": [
+        "contracts/openapi/v1.json",
+        "fixtures/exams/synthetic-full-1.json",
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS4.6",
+      "title": "Question renderers + a11y",
+      "owner": "frontend-engineer",
+      "phase": "FS4",
+      "status": "done",
+      "dependsOn": [
+        "FS4.1"
+      ],
+      "startedAt": "2026-08-29T07:54:44Z",
+      "lastHeartbeatAt": "2026-08-29T08:15:49Z",
+      "completedAt": "2026-08-29T08:15:49Z",
+      "files": [
+        "apps/web/src/features/exam/QuestionInput.tsx",
+        "apps/web/src/features/exam/QuestionList.tsx",
+        "apps/web/src/features/exam/QuestionInput.test.tsx",
+        "apps/web/src/__tests__/exam-flow.test.tsx",
+        "apps/web/src/styles/exam.css",
+        "apps/web/src/i18n/strings.ts"
+      ],
+      "tests": [
+        "renderer + exam-flow targeted 43/43",
+        "learner 274/274",
+        "typecheck/build pass"
+      ],
+      "negativeProof": "A foreign drag key is ignored and cannot overwrite the selected value; matching is operable by click/tap and keyboard without opening the select; the select remains an independent fallback.",
+      "artifacts": [
+        "apps/web/src/features/exam/QuestionInput.test.tsx",
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS4.7",
+      "title": "Autosave/offline per slot",
+      "owner": "frontend-engineer",
+      "phase": "FS4",
+      "status": "done",
+      "dependsOn": [
+        "FS3.4",
+        "FS4.1"
+      ],
+      "startedAt": "2026-08-29T08:15:49Z",
+      "lastHeartbeatAt": "2026-08-29T08:57:00Z",
+      "completedAt": "2026-08-29T08:57:00Z",
+      "files": [
+        "apps/web/src/features/exam/slotAnswers.ts",
+        "apps/web/src/features/exam/useAnswerSheet.ts",
+        "apps/web/src/features/exam/patchJournal.ts",
+        "apps/web/src/features/exam/examApi.ts",
+        "apps/web/src/features/exam/practice-runner/PracticeRunnerPage.tsx",
+        "backend/src/Vni.Ielts.Application/Exams/ResponseSlotAnswers.cs",
+        "backend/src/Vni.Ielts.Application/Exams/ExamHandlers.cs",
+        "backend/src/Vni.Ielts.Application/Exams/ExamViews.cs"
+      ],
+      "tests": [
+        "ResponseSlot/SaveAnswersSlot Application 9/9",
+        "slot autosave frontend targeted 81/81",
+        "learner full suite 281/281",
+        "solution build 0 warnings",
+        "git diff --check exit 0"
+      ],
+      "negativeProof": "Direct slot-id autosave fails 400 when slot validation is removed; independent slot-17/slot-18 sequences send separate PUTs; journal acknowledge on one slot leaves sibling intact; part navigation blocked when final flush fails.",
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": "FS4 phase gate (E2E/fault tests)"
+    },
+    {
+      "id": "FS5.1",
+      "title": "Slot-based scorer",
+      "owner": "domain-analyst",
+      "phase": "FS5",
+      "status": "todo",
+      "dependsOn": [
+        "FS1.2"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [
+        "backend/src/Vni.Ielts.Domain/Exams/DeterministicScorer.cs"
+      ],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS5.2",
+      "title": "Result contract",
+      "owner": "backend-engineer",
+      "phase": "FS5",
+      "status": "todo",
+      "dependsOn": [
+        "FS5.1"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS5.3",
+      "title": "Canonical explanation",
+      "owner": "ai-evaluation-engineer",
+      "phase": "FS5",
+      "status": "todo",
+      "dependsOn": [
+        "FS2.3",
+        "FS5.2"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS5.4",
+      "title": "Personalized explanation",
+      "owner": "ai-evaluation-engineer",
+      "phase": "FS5",
+      "status": "todo",
+      "dependsOn": [
+        "FS5.3"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS5.5",
+      "title": "Evidence safety",
+      "owner": "ai-evaluation-engineer",
+      "phase": "FS5",
+      "status": "todo",
+      "dependsOn": [
+        "FS5.3"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS5.6",
+      "title": "Failure semantics",
+      "owner": "backend-engineer",
+      "phase": "FS5",
+      "status": "todo",
+      "dependsOn": [
+        "FS5.2",
+        "FS5.3"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS6.1",
+      "title": "Versioned rubric data",
+      "owner": "domain-analyst",
+      "phase": "FS6",
+      "status": "todo",
+      "dependsOn": [
+        "FS0.3"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS6.2",
+      "title": "Writing editor",
+      "owner": "frontend-engineer",
+      "phase": "FS6",
+      "status": "todo",
+      "dependsOn": [
+        "FS4.1"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS6.3",
+      "title": "OpenAI adapter",
+      "owner": "ai-evaluation-engineer",
+      "phase": "FS6",
+      "status": "todo",
+      "dependsOn": [
+        "FS6.1"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS6.4",
+      "title": "Gemini adapter",
+      "owner": "ai-evaluation-engineer",
+      "phase": "FS6",
+      "status": "todo",
+      "dependsOn": [
+        "FS6.1"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS6.5",
+      "title": "Server-side validation of AI marking",
+      "owner": "backend-engineer",
+      "phase": "FS6",
+      "status": "todo",
+      "dependsOn": [
+        "FS6.3",
+        "FS6.4"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS6.6",
+      "title": "Task/full Writing result",
+      "owner": "backend-engineer",
+      "phase": "FS6",
+      "status": "todo",
+      "dependsOn": [
+        "FS6.5"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS6.7",
+      "title": "Initial evaluation set",
+      "owner": "ai-evaluation-engineer",
+      "phase": "FS6",
+      "status": "todo",
+      "dependsOn": [
+        "FS6.5"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS6.8",
+      "title": "Production controls",
+      "owner": "devops-engineer",
+      "phase": "FS6",
+      "status": "todo",
+      "dependsOn": [
+        "FS6.5"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS7.1",
+      "title": "Package-driven sequence",
+      "owner": "backend-engineer",
+      "phase": "FS7",
+      "status": "done",
+      "dependsOn": [
+        "FS3.4"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T11:38:57.165Z",
+      "files": [],
+      "tests": [
+        "e2e/tests/four-skills-mock.spec.ts desktop 3/3",
+        "e2e/tests/four-skills-mock.spec.ts mobile 3/3"
+      ],
+      "negativeProof": null,
+      "artifacts": [
+        "e2e/tests/four-skills-mock.spec.ts",
+        "apps/web/src/features/exam/ExamRunnerPage.tsx"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS7.2",
+      "title": "Transition rules",
+      "owner": "backend-engineer",
+      "phase": "FS7",
+      "status": "done",
+      "dependsOn": [
+        "FS7.1"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T11:38:57.165Z",
+      "files": [],
+      "tests": [
+        "e2e/tests/four-skills-mock.spec.ts desktop 3/3",
+        "e2e/tests/four-skills-mock.spec.ts mobile 3/3"
+      ],
+      "negativeProof": null,
+      "artifacts": [
+        "e2e/tests/four-skills-mock.spec.ts",
+        "apps/web/src/features/exam/ExamRunnerPage.tsx"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS7.3",
+      "title": "Deadlines",
+      "owner": "backend-engineer",
+      "phase": "FS7",
+      "status": "done",
+      "dependsOn": [
+        "FS7.2"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T11:38:57.165Z",
+      "files": [],
+      "tests": [
+        "e2e/tests/four-skills-mock.spec.ts desktop 3/3",
+        "e2e/tests/four-skills-mock.spec.ts mobile 3/3"
+      ],
+      "negativeProof": null,
+      "artifacts": [
+        "e2e/tests/four-skills-mock.spec.ts",
+        "apps/web/src/features/exam/ExamRunnerPage.tsx"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS7.4",
+      "title": "Result aggregation",
+      "owner": "backend-engineer",
+      "phase": "FS7",
+      "status": "done",
+      "dependsOn": [
+        "FS7.2",
+        "FS5.2",
+        "FS6.6"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T11:38:57.165Z",
+      "files": [],
+      "tests": [
+        "e2e/tests/four-skills-mock.spec.ts desktop 3/3",
+        "e2e/tests/four-skills-mock.spec.ts mobile 3/3"
+      ],
+      "negativeProof": null,
+      "artifacts": [
+        "e2e/tests/four-skills-mock.spec.ts",
+        "apps/web/src/features/exam/ExamRunnerPage.tsx"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS7.5",
+      "title": "Resume/recovery",
+      "owner": "frontend-engineer",
+      "phase": "FS7",
+      "status": "done",
+      "dependsOn": [
+        "FS7.2"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T11:38:57.165Z",
+      "files": [],
+      "tests": [
+        "e2e/tests/four-skills-mock.spec.ts desktop 3/3",
+        "e2e/tests/four-skills-mock.spec.ts mobile 3/3"
+      ],
+      "negativeProof": null,
+      "artifacts": [
+        "e2e/tests/four-skills-mock.spec.ts",
+        "apps/web/src/features/exam/ExamRunnerPage.tsx"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS8.1",
+      "title": "Recording contract v2",
+      "owner": "backend-engineer",
+      "phase": "FS8",
+      "status": "todo",
+      "dependsOn": [
+        "FS3.4"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS8.2",
+      "title": "R2-compatible private store",
+      "owner": "devops-engineer",
+      "phase": "FS8",
+      "status": "todo",
+      "dependsOn": [
+        "FS8.1",
+        "FS0.4"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS8.3",
+      "title": "Resumable/retry upload",
+      "owner": "backend-engineer",
+      "phase": "FS8",
+      "status": "todo",
+      "dependsOn": [
+        "FS8.2"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS8.4",
+      "title": "Web recorder",
+      "owner": "frontend-engineer",
+      "phase": "FS8",
+      "status": "todo",
+      "dependsOn": [
+        "FS8.1"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS8.5",
+      "title": "Native seam",
+      "owner": "mobile-engineer",
+      "phase": "FS8",
+      "status": "todo",
+      "dependsOn": [
+        "FS8.4"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS8.6",
+      "title": "Retention/deletion/reconciliation",
+      "owner": "security-engineer",
+      "phase": "FS8",
+      "status": "todo",
+      "dependsOn": [
+        "FS8.2"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS8.7",
+      "title": "No-voice result state",
+      "owner": "backend-engineer",
+      "phase": "FS8",
+      "status": "todo",
+      "dependsOn": [
+        "FS8.3",
+        "FS7.4"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": null,
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS9.1",
+      "title": "Security/privacy hardening",
+      "owner": "security-engineer",
+      "phase": "FS9",
+      "status": "done",
+      "dependsOn": [
+        "FS7.4",
+        "FS8.7",
+        "FS6.6"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T13:28:38.847Z",
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS9.2",
+      "title": "Accessibility/responsive",
+      "owner": "frontend-engineer",
+      "phase": "FS9",
+      "status": "done",
+      "dependsOn": [
+        "FS4.6",
+        "FS6.2",
+        "FS8.4"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T13:28:38.847Z",
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS9.3",
+      "title": "Performance/reliability",
+      "owner": "devops-engineer",
+      "phase": "FS9",
+      "status": "done",
+      "dependsOn": [
+        "FS7.4",
+        "FS8.7"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T13:28:38.847Z",
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS9.4",
+      "title": "Full regression",
+      "owner": "qa-engineer",
+      "phase": "FS9",
+      "status": "done",
+      "dependsOn": [
+        "FS9.1",
+        "FS9.2",
+        "FS9.3"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T11:46:27.118Z",
+      "files": [],
+      "tests": [
+        "check-docs 0",
+        "check-generated-drift 0",
+        "dotnet build 0",
+        "Domain 198",
+        "Application 249",
+        "Infrastructure 164",
+        "MinIO required 12/12",
+        "Integration 208",
+        "web typecheck 0",
+        "web vitest 298"
+      ],
+      "negativeProof": null,
+      "artifacts": [
+        "docs/development/four-skills-functional-core-todolist.md#FS9.4"
+      ],
+      "blocker": null,
+      "nextDependency": "FS4 phase gate (browser E2E) before FS9.6"
+    },
+    {
+      "id": "FS9.5",
+      "title": "Operational docs",
+      "owner": "devops-engineer",
+      "phase": "FS9",
+      "status": "done",
+      "dependsOn": [
+        "FS9.3"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T13:28:38.847Z",
+      "files": [],
+      "tests": [],
+      "negativeProof": null,
+      "artifacts": [],
+      "blocker": null,
+      "nextDependency": null
+    },
+    {
+      "id": "FS9.6",
+      "title": "Final report",
+      "owner": "workflow-orchestrator",
+      "phase": "FS9",
+      "status": "done",
+      "dependsOn": [
+        "FS9.4",
+        "FS9.5"
+      ],
+      "startedAt": null,
+      "lastHeartbeatAt": null,
+      "completedAt": "2026-08-29T13:28:38.847Z",
+      "files": [],
+      "tests": [
+        "FS4 browser 22/22",
+        "FS7 mock 6/6",
+        "FS9.4 certification matrix"
+      ],
+      "negativeProof": null,
+      "artifacts": [
+        "docs/development/four-skills-functional-core-report.md#FS9.6",
+        "_workspace/workflow/final-report.md"
+      ],
+      "blocker": null,
+      "nextDependency": null
+    }
+  ],
+  "agents": {},
+  "updatedAt": "2026-08-29T09:00:00Z",
+  "notes": "Infrastructure board archived before Functional Core feature development. Exactly one item may be in_progress. Full-plan execution: parallel streams FS4-gate, FS5.1-5.2, FS6, FS7, FS8.1-8.2 launched 2026-08-29.",
+  "completedAt": "2026-08-29T13:28:38.847Z"
+}

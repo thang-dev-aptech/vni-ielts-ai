@@ -38,7 +38,7 @@ Organise by **feature** inside each project (`Identity/`, `Exams/`, `Sessions/`,
 
 **Idempotency on every state-changing endpoint.** Mobile clients retry aggressively; without it a retried submission consumes entitlement twice and triggers a second paid AI evaluation.
 
-**No AI provider SDK, and no AI credentials.** Ports only. The provider is undecided and the Claude API is excluded by owner decision. If work requires an AI call, stop and say so.
+**No AI provider SDK yet, and no AI credentials in this repository — ever.** Ports only. Providers were selected 2026-08-20 (GPT + Gemini; the Claude API is excluded), but adapters are Phase 7 work and keys live only in environment configuration. If work requires a live AI call, stop and say so.
 
 **Band scores are a value type**, not a bare `double`. Reject invalid values at construction. The overall-band rounding rule has asymmetric `.25`/`.75` cases — give it its own function and a table-driven test.
 

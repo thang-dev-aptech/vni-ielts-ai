@@ -1,0 +1,2409 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 17 — Test 2",
+  "variant": "academic",
+  "description": "Cambridge IELTS 17 Academic Test 2. Reading và Listening chấm theo đáp án in trong sách; không có Writing và Speaking nên không thi thử full được. Chọn một trong hai kỹ năng để làm.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "The Dead Sea Scrolls",
+          "body": "The Dead Sea Scrolls\n\nIn late 1946 or early 1947, three Bedouin teenagers were tending their goats and sheep\nnear the ancient settlement of Qumran, located on the northwest shore of the Dead\nSea in what is now known as the West Bank. One of these young shepherds tossed a\nrock into an opening on the side of a cliff and was surprised to hear a shattering sound.\nHe and his companions later entered the cave and stumbled across a collection of\nlarge clay jars, seven of which contained scrolls with writing on them. The teenagers\ntook the seven scrolls to a nearby town where they were sold for a small sum to a local\nantiquities dealer. Word of the find spread, and Bedouins and archaeologists eventually\nunearthed tens of thousands of additional scroll fragments from 10 nearby caves;\ntogether they make up between 800 and 900 manuscripts. It soon became clear that this\nwas one of the greatest archaeological discoveries ever made.\n\nThe origin of the Dead Sea Scrolls, which were written around 2,000 years ago between\n150 BCE and 70 CE, is still the subject of scholarly debate even today. According to the\nprevailing theory, they are the work of a population that inhabited the area until Roman\ntroops destroyed the settlement around 70 CE. The area was known as Judea at that\ntime, and the people are thought to have belonged to a group called the Essenes, a\ndevout Jewish sect.\n\nThe majority of the texts on the Dead Sea Scrolls are in Hebrew, with some fragments\nwritten in an ancient version of its alphabet thought to have fallen out of use in the fifth\ncentury BCE. But there are other languages as well. Some scrolls are in Aramaic, the\nlanguage spoken by many inhabitants of the region from the sixth century BCE to the\nsiege of Jerusalem in 70 CE. In addition, several texts feature translations of the Hebrew\nBible into Greek.\n\nThe Dead Sea Scrolls include fragments from every book of the Old Testament of the\nBible except for the Book of Esther. The only entire book of the Hebrew Bible preserved\namong the manuscripts from Qumran is Isaiah; this copy, dated to the first century BCE,\nis considered the earliest biblical manuscript still in existence. Along with biblical texts,\nthe scrolls include documents about sectarian regulations and religious writings that do\nnot appear in the Old Testament.\n\nThe writing on the Dead Sea Scrolls is mostly in black or occasionally red ink, and\nthe scrolls themselves are nearly all made of either parchment (animal skin) or an\nearly form of paper called ‘papyrus’. The only exception is the scroll numbered 3Q15,\nwhich was created out of a combination of copper and tin. Known as the Copper\nScroll, this curious document features letters chiselled onto metal – perhaps, as some\nhave theorized, to better withstand the passage of time. One of the most intriguing\nmanuscripts from Qumran, this is a sort of ancient treasure map that lists dozens of gold\nand silver caches. Using an unconventional vocabulary and odd spelling, it describes 64\nunderground hiding places that supposedly contain riches buried for safekeeping. None\nof these hoards have been recovered, possibly because the Romans pillaged Judea\nduring the first century CE. According to various hypotheses, the treasure belonged to\nlocal people, or was rescued from the Second Temple before its destruction or never\nexisted to begin with.\n\nSome of the Dead Sea Scrolls have been on interesting journeys. In 1948, a Syrian\nOrthodox archbishop known as Mar Samuel acquired four of the original seven scrolls\nfrom a Jerusalem shoemaker and part-time antiquity dealer, paying less than $100\nfor them. He then travelled to the United States and unsuccessfully offered them to a\nnumber of universities, including Yale. Finally, in 1954, he placed an advertisement in\nthe business newspaper The Wall Street Journal – under the category ‘Miscellaneous\nItems for Sale’ – that read: ‘Biblical Manuscripts dating back to at least 200 B.C. are for\nsale. This would be an ideal gift to an educational or religious institution by an individual\nor group.’ Fortunately, Israeli archaeologist and statesman Yigael Yadin negotiated their\npurchase and brought the scrolls back to Jerusalem, where they remain to this day.\n\nIn 2017, researchers from the University of Haifa restored and deciphered one of the last\nuntranslated scrolls. The university’s Eshbal Ratson and Jonathan Ben-Dov spent one\nyear reassembling the 60 fragments that make up the scroll. Deciphered from a band\nof coded text on parchment, the find provides insight into the community of people who\nwrote it and the 364-day calendar they would have used. The scroll names celebrations\nthat indicate shifts in seasons and details two yearly religious events known from\nanother Dead Sea Scroll. Only one more known scroll remains untranslated.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Dead Sea Scrolls\n Discovery\n\n Qumran, 1946/7\n\n •    three Bedouin shepherds in their teens were near an opening on side of cliff\n\n •    heard a noise of breaking when one teenager threw a [1]\n\n •\tteenagers went into the [2]                     and found a number of containers\n    made of [3]\n\n The scrolls\n\n •    date from between 150 BCE and 70 CE\n\n •\tthought to have been written by group of people known as the\n    [4]\n\n •    written mainly in the [5]                 language\n\n •    most are on religious topics, written using ink on parchment or papyrus"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "rock"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Dead Sea Scrolls\n Discovery\n\n Qumran, 1946/7\n\n •    three Bedouin shepherds in their teens were near an opening on side of cliff\n\n •    heard a noise of breaking when one teenager threw a [1]\n\n •\tteenagers went into the [2]                     and found a number of containers\n    made of [3]\n\n The scrolls\n\n •    date from between 150 BCE and 70 CE\n\n •\tthought to have been written by group of people known as the\n    [4]\n\n •    written mainly in the [5]                 language\n\n •    most are on religious topics, written using ink on parchment or papyrus"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "cave"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Dead Sea Scrolls\n Discovery\n\n Qumran, 1946/7\n\n •    three Bedouin shepherds in their teens were near an opening on side of cliff\n\n •    heard a noise of breaking when one teenager threw a [1]\n\n •\tteenagers went into the [2]                     and found a number of containers\n    made of [3]\n\n The scrolls\n\n •    date from between 150 BCE and 70 CE\n\n •\tthought to have been written by group of people known as the\n    [4]\n\n •    written mainly in the [5]                 language\n\n •    most are on religious topics, written using ink on parchment or papyrus"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "clay"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Dead Sea Scrolls\n Discovery\n\n Qumran, 1946/7\n\n •    three Bedouin shepherds in their teens were near an opening on side of cliff\n\n •    heard a noise of breaking when one teenager threw a [1]\n\n •\tteenagers went into the [2]                     and found a number of containers\n    made of [3]\n\n The scrolls\n\n •    date from between 150 BCE and 70 CE\n\n •\tthought to have been written by group of people known as the\n    [4]\n\n •    written mainly in the [5]                 language\n\n •    most are on religious topics, written using ink on parchment or papyrus"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Essenes"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "The Dead Sea Scrolls\n Discovery\n\n Qumran, 1946/7\n\n •    three Bedouin shepherds in their teens were near an opening on side of cliff\n\n •    heard a noise of breaking when one teenager threw a [1]\n\n •\tteenagers went into the [2]                     and found a number of containers\n    made of [3]\n\n The scrolls\n\n •    date from between 150 BCE and 70 CE\n\n •\tthought to have been written by group of people known as the\n    [4]\n\n •    written mainly in the [5]                 language\n\n •    most are on religious topics, written using ink on parchment or papyrus"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Hebrew"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "true-false-notgiven",
+              "prompt": "The Bedouin teenagers who found the scrolls were disappointed by how little money they received for them.",
+              "group": {
+                "id": "r-tfng-6-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1? In boxes 6–13 on your answer sheet, write\n         TRUE      if the statement agrees with the information\n         FALSE     if the statement contradicts the information\n         NOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "true-false-notgiven",
+              "prompt": "There is agreement among academics about the origin of the Dead Sea Scrolls.",
+              "group": {
+                "id": "r-tfng-6-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1? In boxes 6–13 on your answer sheet, write\n         TRUE      if the statement agrees with the information\n         FALSE     if the statement contradicts the information\n         NOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "true-false-notgiven",
+              "prompt": "Most of the books of the Bible written on the scrolls are incomplete.",
+              "group": {
+                "id": "r-tfng-6-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1? In boxes 6–13 on your answer sheet, write\n         TRUE      if the statement agrees with the information\n         FALSE     if the statement contradicts the information\n         NOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "true-false-notgiven",
+              "prompt": "The information on the Copper Scroll is written in an unusual way.",
+              "group": {
+                "id": "r-tfng-6-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1? In boxes 6–13 on your answer sheet, write\n         TRUE      if the statement agrees with the information\n         FALSE     if the statement contradicts the information\n         NOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "true-false-notgiven",
+              "prompt": "Mar Samuel was given some of the scrolls as a gift.",
+              "group": {
+                "id": "r-tfng-6-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1? In boxes 6–13 on your answer sheet, write\n         TRUE      if the statement agrees with the information\n         FALSE     if the statement contradicts the information\n         NOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "true-false-notgiven",
+              "prompt": "In the early 1950s, a number of educational establishments in the US were keen to buy scrolls from Mar Samuel.",
+              "group": {
+                "id": "r-tfng-6-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1? In boxes 6–13 on your answer sheet, write\n         TRUE      if the statement agrees with the information\n         FALSE     if the statement contradicts the information\n         NOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "true-false-notgiven",
+              "prompt": "The scroll that was pieced together in 2017 contains information about annual occasions in the Qumran area 2,000 years ago.",
+              "group": {
+                "id": "r-tfng-6-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1? In boxes 6–13 on your answer sheet, write\n         TRUE      if the statement agrees with the information\n         FALSE     if the statement contradicts the information\n         NOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "true-false-notgiven",
+              "prompt": "Academics at the University of Haifa are currently researching how to decipher the final scroll.",
+              "group": {
+                "id": "r-tfng-6-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1? In boxes 6–13 on your answer sheet, write\n         TRUE      if the statement agrees with the information\n         FALSE     if the statement contradicts the information\n         NOT GIVEN if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "A second attempt at domesticating the tomato",
+          "body": "A second attempt at domesticating the tomato\n\nA\n  It took at least 3,000 years for humans to learn how to domesticate the wild tomato\n  and cultivate it for food. Now two separate teams in Brazil and China have done it all\n  over again in less than three years. And they have done it better in some ways, as\n  the re-domesticated tomatoes are more nutritious than the ones we eat at present.\n\tThis approach relies on the revolutionary CRISPR genome editing technique, in\n  which changes are deliberately made to the DNA of a living cell, allowing genetic\n  material to be added, removed or altered. The technique could not only improve\n  existing crops, but could also be used to turn thousands of wild plants into useful\n  and appealing foods. In fact, a third team in the US has already begun to do this\n  with a relative of the tomato called the groundcherry.\n\tThis fast-track domestication could help make the world’s food supply healthier and\n  far more resistant to diseases, such as the rust fungus devastating wheat crops.\n\t‘This could transform what we eat,’ says Jorg Kudla at the University of Munster in\n  Germany, a member of the Brazilian team. ‘There are 50,000 edible plants in the\n  world, but 90 percent of our energy comes from just 15 crops.’\n\t‘We can now mimic the known domestication course of major crops like rice, maize,\n  sorghum or others,’ says Caixia Gao of the Chinese Academy of Sciences in Beijing.\n  ‘Then we might try to domesticate plants that have never been domesticated.’\nB\n  Wild tomatoes, which are native to the Andes region in South America, produce\n  pea-sized fruits. Over many generations, peoples such as the Aztecs and Incas\n  transformed the plant by selecting and breeding plants with mutations* in their\n  genetic structure, which resulted in desirable traits such as larger fruit.\n\tBut every time a single plant with a mutation is taken from a larger population for\n  breeding, much genetic diversity is lost. And sometimes the desirable mutations\n  come with less desirable traits. For instance, the tomato strains grown for\n  supermarkets have lost much of their flavour.\n\tBy comparing the genomes of modern plants to those of their wild relatives,\n  biologists have been working out what genetic changes occurred as plants were\n  domesticated. The teams in Brazil and China have now used this knowledge to\n  reintroduce these changes from scratch while maintaining or even enhancing the\n  desirable traits of wild strains.\n\n* mutations: changes in an organism’s genetic structure that can be passed down to later generations\n\nC\n  Kudla’s team made six changes altogether. For instance, they tripled the size\n  of fruit by editing a gene called FRUIT WEIGHT, and increased the number of\n  tomatoes per truss by editing another called MULTIFLORA.\n\n     \tWhile the historical domestication of tomatoes reduced levels of the red pigment\n     lycopene – thought to have potential health benefits – the team in Brazil managed\n     to boost it instead. The wild tomato has twice as much lycopene as cultivated ones;\n     the newly domesticated one has five times as much.\n\n     ‘They are quite tasty,’ says Kudla. ‘A little bit strong. And very aromatic.’\n\n     \tThe team in China re-domesticated several strains of wild tomatoes with desirable\n     traits lost in domesticated tomatoes. In this way they managed to create a strain\n     resistant to a common disease called bacterial spot race, which can devastate\n     yields. They also created another strain that is more salt tolerant – and has higher\n     levels of vitamin C.\n\nD\n  Meanwhile, Joyce Van Eck at the Boyce Thompson Institute in New York state\n  decided to use the same approach to domesticate the groundcherry or goldenberry\n  (Physalis pruinosa) for the first time. This fruit looks similar to the closely related\n  Cape gooseberry (Physalis peruviana).\n\n     \tGroundcherries are already sold to a limited extent in the US but they are hard to\n     produce because the plant has a sprawling growth habit and the small fruits fall\n     off the branches when ripe. Van Eck’s team has edited the plants to increase fruit\n     size, make their growth more compact and to stop fruits dropping. ‘There’s potential\n     for this to be a commercial crop,’ says Van Eck. But she adds that taking the\n     work further would be expensive because of the need to pay for a licence for the\n     CRISPR technology and get regulatory approval.\n\nE\n  This approach could boost the use of many obscure plants, says Jonathan Jones\n  of the Sainsbury Lab in the UK. But it will be hard for new foods to grow so popular\n  with farmers and consumers that they become new staple crops, he thinks.\n\n     \tThe three teams already have their eye on other plants that could be ‘catapulted\n     into the mainstream’, including foxtail, oat-grass and cowpea. By choosing wild\n     plants that are drought or heat tolerant, says Gao, we could create crops that will\n     thrive even as the planet warms.\n\n     \tBut Kudla didn’t want to reveal which species were in his team’s sights, because\n     CRISPR has made the process so easy. ‘Any one with the right skills could go to\n     their lab and do this.’",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "a reference to a type of tomato that can resist a dangerous infection",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                }
+              ],
+              "group": {
+                "id": "r-sections-14-18",
+                "instruction": "Reading Passage 2 has five sections, A–E. Which section contains the following information? Write the correct letter, A–E, in boxes 14–18 on your answer sheet. NB You may use any letter more than once.",
+                "eachLetterOnce": false
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "an explanation of how problems can arise from focusing only on a certain type of tomato plant.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                }
+              ],
+              "group": {
+                "id": "r-sections-14-18",
+                "instruction": "Reading Passage 2 has five sections, A–E. Which section contains the following information? Write the correct letter, A–E, in boxes 14–18 on your answer sheet. NB You may use any letter more than once.",
+                "eachLetterOnce": false
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "a number of examples of plants that are not cultivated at present but could be useful as food sources",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                }
+              ],
+              "group": {
+                "id": "r-sections-14-18",
+                "instruction": "Reading Passage 2 has five sections, A–E. Which section contains the following information? Write the correct letter, A–E, in boxes 14–18 on your answer sheet. NB You may use any letter more than once.",
+                "eachLetterOnce": false
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "a comparison between the early domestication of the tomato and more recent research",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                }
+              ],
+              "group": {
+                "id": "r-sections-14-18",
+                "instruction": "Reading Passage 2 has five sections, A–E. Which section contains the following information? Write the correct letter, A–E, in boxes 14–18 on your answer sheet. NB You may use any letter more than once.",
+                "eachLetterOnce": false
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "a personal reaction to the flavour of a tomato that has been genetically edited",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                }
+              ],
+              "group": {
+                "id": "r-sections-14-18",
+                "instruction": "Reading Passage 2 has five sections, A–E. Which section contains the following information? Write the correct letter, A–E, in boxes 14–18 on your answer sheet. NB You may use any letter more than once.",
+                "eachLetterOnce": false
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Domestication of certain plants could allow them to adapt to future environmental challenges.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Jorg Kudla"
+                },
+                {
+                  "key": "B",
+                  "text": "Caixia Gao"
+                },
+                {
+                  "key": "C",
+                  "text": "Joyce Van Eck"
+                },
+                {
+                  "key": "D",
+                  "text": "Jonathan Jones"
+                }
+              ],
+              "group": {
+                "id": "r-researchers-19-23",
+                "instruction": "Look at the following statements (Questions 19–23) and the list of researchers below. Match each statement with the correct researcher, A–D. Write the correct letter, A–D, in boxes 19–23 on your answer sheet. NB You may use any letter more than once.",
+                "eachLetterOnce": false
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "The idea of growing and eating unusual plants may not be accepted on a large scale.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Jorg Kudla"
+                },
+                {
+                  "key": "B",
+                  "text": "Caixia Gao"
+                },
+                {
+                  "key": "C",
+                  "text": "Joyce Van Eck"
+                },
+                {
+                  "key": "D",
+                  "text": "Jonathan Jones"
+                }
+              ],
+              "group": {
+                "id": "r-researchers-19-23",
+                "instruction": "Look at the following statements (Questions 19–23) and the list of researchers below. Match each statement with the correct researcher, A–D. Write the correct letter, A–D, in boxes 19–23 on your answer sheet. NB You may use any letter more than once.",
+                "eachLetterOnce": false
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "matching",
+              "prompt": "It is not advisable for the future direction of certain research to be made public.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Jorg Kudla"
+                },
+                {
+                  "key": "B",
+                  "text": "Caixia Gao"
+                },
+                {
+                  "key": "C",
+                  "text": "Joyce Van Eck"
+                },
+                {
+                  "key": "D",
+                  "text": "Jonathan Jones"
+                }
+              ],
+              "group": {
+                "id": "r-researchers-19-23",
+                "instruction": "Look at the following statements (Questions 19–23) and the list of researchers below. Match each statement with the correct researcher, A–D. Write the correct letter, A–D, in boxes 19–23 on your answer sheet. NB You may use any letter more than once.",
+                "eachLetterOnce": false
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "matching",
+              "prompt": "Present efforts to domesticate one wild fruit are limited by the costs involved.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Jorg Kudla"
+                },
+                {
+                  "key": "B",
+                  "text": "Caixia Gao"
+                },
+                {
+                  "key": "C",
+                  "text": "Joyce Van Eck"
+                },
+                {
+                  "key": "D",
+                  "text": "Jonathan Jones"
+                }
+              ],
+              "group": {
+                "id": "r-researchers-19-23",
+                "instruction": "Look at the following statements (Questions 19–23) and the list of researchers below. Match each statement with the correct researcher, A–D. Write the correct letter, A–D, in boxes 19–23 on your answer sheet. NB You may use any letter more than once.",
+                "eachLetterOnce": false
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "matching",
+              "prompt": "Humans only make use of a small proportion of the plant food available on Earth.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Jorg Kudla"
+                },
+                {
+                  "key": "B",
+                  "text": "Caixia Gao"
+                },
+                {
+                  "key": "C",
+                  "text": "Joyce Van Eck"
+                },
+                {
+                  "key": "D",
+                  "text": "Jonathan Jones"
+                }
+              ],
+              "group": {
+                "id": "r-researchers-19-23",
+                "instruction": "Look at the following statements (Questions 19–23) and the list of researchers below. Match each statement with the correct researcher, A–D. Write the correct letter, A–D, in boxes 19–23 on your answer sheet. NB You may use any letter more than once.",
+                "eachLetterOnce": false
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "Question 24",
+              "group": {
+                "id": "r-completion-24-26",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "24   An undesirable trait such as loss of [24] may be caused by a mutation\n     in a tomato gene.\n25   By modifying one gene in a tomato plant, researchers made the tomato three times\n     its original [25].\n26   A type of tomato which was not badly affected by [26], and was rich\n     in vitamin C, was produced by a team of researchers in China."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "flavour",
+                  "flavor"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "completion",
+              "prompt": "Question 25",
+              "group": {
+                "id": "r-completion-24-26",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "24   An undesirable trait such as loss of [24] may be caused by a mutation\n     in a tomato gene.\n25   By modifying one gene in a tomato plant, researchers made the tomato three times\n     its original [25].\n26   A type of tomato which was not badly affected by [26], and was rich\n     in vitamin C, was produced by a team of researchers in China."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "size"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "completion",
+              "prompt": "Question 26",
+              "group": {
+                "id": "r-completion-24-26",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "text": "24   An undesirable trait such as loss of [24] may be caused by a mutation\n     in a tomato gene.\n25   By modifying one gene in a tomato plant, researchers made the tomato three times\n     its original [25].\n26   A type of tomato which was not badly affected by [26], and was rich\n     in vitamin C, was produced by a team of researchers in China."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "salt"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Insight or evolution?",
+          "body": "Insight or evolution?\n\n  Two scientists consider the origins of discoveries and other innovative behavior\nScientific discovery is popularly believed to result from the sheer genius of such intellectual\nstars as naturalist Charles Darwin and theoretical physicist Albert Einstein. Our view of such\nunique contributions to science often disregards the person’s prior experience and the efforts of\ntheir lesser-known predecessors. Conventional wisdom also places great weight on insight in\npromoting breakthrough scientific achievements, as if ideas spontaneously pop into someone’s\nhead – fully formed and functional.\n\nThere may be some limited truth to this view. However, we believe that it largely misrepresents\nthe real nature of scientific discovery, as well as that of creativity and innovation in many other\nrealms of human endeavor.\n\nSetting aside such greats as Darwin and Einstein – whose monumental contributions are duly\ncelebrated – we suggest that innovation is more a process of trial and error, where two steps\nforward may sometimes come with one step back, as well as one or more steps to the right or\nleft. This evolutionary view of human innovation undermines the notion of creative genius and\nrecognizes the cumulative nature of scientific progress.\n\nConsider one unheralded scientist: John Nicholson, a mathematical physicist working in the\n1910s who postulated the existence of ‘proto-elements’ in outer space. By combining different\nnumbers of weights of these proto-elements’ atoms, Nicholson could recover the weights of all\nthe elements in the then-known periodic table. These successes are all the more noteworthy given\nthe fact that Nicholson was wrong about the presence of proto-elements: they do not actually\nexist. Yet, amid his often fanciful theories and wild speculations, Nicholson also proposed a novel\ntheory about the structure of atoms. Niels Bohr, the Nobel prize-winning father of modern atomic\ntheory, jumped off from this interesting idea to conceive his now-famous model of the atom.\n\nWhat are we to make of this story? One might simply conclude that science is a collective and\ncumulative enterprise. That may be true, but there may be a deeper insight to be gleaned. We\npropose that science is constantly evolving, much as species of animals do. In biological systems,\norganisms may display new characteristics that result from random genetic mutations. In the same\nway, random, arbitrary or accidental mutations of ideas may help pave the way for advances in\nscience. If mutations prove beneficial, then the animal or the scientific theory will continue to\nthrive and perhaps reproduce.\n\nSupport for this evolutionary view of behavioral innovation comes from many domains. Consider\none example of an influential innovation in US horseracing. The so-called ‘acey-deucy’ stirrup\nplacement, in which the rider’s foot in his left stirrup is placed as much as 25 centimeters\nlower than the right, is believed to confer important speed advantages when turning on oval tracks.\nIt was developed by a relatively unknown jockey named Jackie Westrope. Had Westrope conducted\nmethodical investigations or examined extensive film records in a shrewd plan to outrun his\nrivals? Had he foreseen the speed advantage that would be conferred by riding acey-deucy? No.\nHe suffered a leg injury, which left him unable to fully bend his left knee. His modification just\nhappened to coincide with enhanced left-hand turning performance. This led to the rapid and\nwidespread adoption of riding acey-deucy by many riders, a racing style which continues in\ntoday’s thoroughbred racing.\n\nPlenty of other stories show that fresh advances can arise from error, misadventure, and also\npure serendipity – a happy accident. For example, in the early 1970s, two employees of the\ncompany 3M each had a problem: Spencer Silver had a product – a glue which was only slightly\nsticky – and no use for it, while his colleague Art Fry was trying to figure out how to affix\ntemporary bookmarks in his hymn book without damaging its pages. The solution to both these\nproblems was the invention of the brilliantly simple yet phenomenally successful Post-It note.\nSuch examples give lie to the claim that ingenious, designing minds are responsible for human\ncreativity and invention. Far more banal and mechanical forces may be at work; forces that are\nfundamentally connected to the laws of science.\n\nThe notions of insight, creativity and genius are often invoked, but they remain vague and of\ndoubtful scientific utility, especially when one considers the diverse and enduring contributions of\nindividuals such as Plato, Leonardo da Vinci, Shakespeare, Beethoven, Galileo, Newton, Kepler,\nCurie, Pasteur and Edison. These notions merely label rather than explain the evolution of human\ninnovations. We need another approach, and there is a promising candidate.\n\nThe Law of Effect was advanced by psychologist Edward Thorndike in 1898, some 40 years\nafter Charles Darwin published his groundbreaking work on biological evolution, On the Origin\nof Species. This simple law holds that organisms tend to repeat successful behaviors and to\nrefrain from performing unsuccessful ones. Just like Darwin’s Law of Natural Selection, the Law\nof Effect involves an entirely mechanical process of variation and selection, without any end\nobjective in sight.\n\nOf course, the origin of human innovation demands much further study. In particular, the\nprovenance of the raw material on which the Law of Effect operates is not as clearly known as\nthat of the genetic mutations on which the Law of Natural Selection operates. The generation of\nnovel ideas and behaviors may not be entirely random, but constrained by prior successes and\nfailures – of the current individual (such as Bohr) or of predecessors (such as Nicholson).\n\nThe time seems right for abandoning the naive notions of intelligent design and genius, and for\nscientifically exploring the true origins of creative behavior.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "multiple-choice",
+              "prompt": "The purpose of the first paragraph is to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "defend particular ideas."
+                },
+                {
+                  "key": "B",
+                  "text": "compare certain beliefs."
+                },
+                {
+                  "key": "C",
+                  "text": "disprove a widely held view."
+                },
+                {
+                  "key": "D",
+                  "text": "outline a common assumption."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "multiple-choice",
+              "prompt": "What are the writers doing in the second paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "criticising an opinion"
+                },
+                {
+                  "key": "B",
+                  "text": "justifying a standpoint"
+                },
+                {
+                  "key": "C",
+                  "text": "explaining an approach"
+                },
+                {
+                  "key": "D",
+                  "text": "supporting an argument"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "In the third paragraph, what do the writers suggest about Darwin and Einstein?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They represent an exception to a general rule."
+                },
+                {
+                  "key": "B",
+                  "text": "Their way of working has been misunderstood."
+                },
+                {
+                  "key": "C",
+                  "text": "They are an ideal which others should aspire to."
+                },
+                {
+                  "key": "D",
+                  "text": "Their achievements deserve greater recognition."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "John Nicholson is an example of a person whose idea",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "established his reputation as an influential scientist."
+                },
+                {
+                  "key": "B",
+                  "text": "was only fully understood at a later point in history."
+                },
+                {
+                  "key": "C",
+                  "text": "laid the foundations for someone else’s breakthrough."
+                },
+                {
+                  "key": "D",
+                  "text": "initially met with scepticism from the scientific community."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "multiple-choice",
+              "prompt": "What is the key point of interest about the ‘acey-deucy’ stirrup placement?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the simple reason why it was invented"
+                },
+                {
+                  "key": "B",
+                  "text": "the enthusiasm with which it was adopted"
+                },
+                {
+                  "key": "C",
+                  "text": "the research that went into its development"
+                },
+                {
+                  "key": "D",
+                  "text": "the cleverness of the person who first used it"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "yes-no-notgiven",
+              "prompt": "Acknowledging people such as Plato or da Vinci as geniuses will help us understand the process by which great minds create new ideas.",
+              "group": {
+                "id": "r-ynng-32-36",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3? In boxes 32–36 on your answer sheet, write\n         YES       if the statement agrees with the claims of the writer\n         NO        if the statement contradicts the claims of the writer\n         NOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "yes-no-notgiven",
+              "prompt": "The Law of Effect was discovered at a time when psychologists were seeking a scientific reason why creativity occurs.",
+              "group": {
+                "id": "r-ynng-32-36",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3? In boxes 32–36 on your answer sheet, write\n         YES       if the statement agrees with the claims of the writer\n         NO        if the statement contradicts the claims of the writer\n         NOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "yes-no-notgiven",
+              "prompt": "The Law of Effect states that no planning is involved in the behaviour of organisms.",
+              "group": {
+                "id": "r-ynng-32-36",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3? In boxes 32–36 on your answer sheet, write\n         YES       if the statement agrees with the claims of the writer\n         NO        if the statement contradicts the claims of the writer\n         NOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "yes-no-notgiven",
+              "prompt": "The Law of Effect sets out clear explanations about the sources of new ideas and behaviours.",
+              "group": {
+                "id": "r-ynng-32-36",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3? In boxes 32–36 on your answer sheet, write\n         YES       if the statement agrees with the claims of the writer\n         NO        if the statement contradicts the claims of the writer\n         NOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "yes-no-notgiven",
+              "prompt": "Many scientists are now turning away from the notion of intelligent design and genius.",
+              "group": {
+                "id": "r-ynng-32-36",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3? In boxes 32–36 on your answer sheet, write\n         YES       if the statement agrees with the claims of the writer\n         NO        if the statement contradicts the claims of the writer\n         NOT GIVEN if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "matching",
+              "prompt": "Question 37",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "invention"
+                },
+                {
+                  "key": "B",
+                  "text": "goals"
+                },
+                {
+                  "key": "C",
+                  "text": "compromise"
+                },
+                {
+                  "key": "D",
+                  "text": "mistakes"
+                },
+                {
+                  "key": "E",
+                  "text": "luck"
+                },
+                {
+                  "key": "F",
+                  "text": "inspiration"
+                },
+                {
+                  "key": "G",
+                  "text": "experiments"
+                }
+              ],
+              "group": {
+                "id": "r-summary-37-40",
+                "instruction": "Complete the summary using the list of words, A–G, below. Write the correct letter, A–G, in boxes 37–40 on your answer sheet.",
+                "text": "The origins of creative behaviour\n The traditional view of scientific discovery is that breakthroughs happen when a\n single great mind has sudden 37                      . Although this can occur, it is\n not often the case. Advances are more likely to be the result of a longer process.\n In some cases, this process involves 38                      , such as Nicholson’s\n theory about proto-elements. In others, simple necessity may provoke innovation,\n as with Westrope’s decision to modify the position of his riding stirrups. There is also\n often an element of 39                     , for example, the coincidence of ideas that\n led to the invention of the Post-It note. With both the Law of Natural Selection and\n the Law of Effect, there may be no clear 40                       involved, but merely a\n process of variation and selection."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "matching",
+              "prompt": "Question 38",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "invention"
+                },
+                {
+                  "key": "B",
+                  "text": "goals"
+                },
+                {
+                  "key": "C",
+                  "text": "compromise"
+                },
+                {
+                  "key": "D",
+                  "text": "mistakes"
+                },
+                {
+                  "key": "E",
+                  "text": "luck"
+                },
+                {
+                  "key": "F",
+                  "text": "inspiration"
+                },
+                {
+                  "key": "G",
+                  "text": "experiments"
+                }
+              ],
+              "group": {
+                "id": "r-summary-37-40",
+                "instruction": "Complete the summary using the list of words, A–G, below. Write the correct letter, A–G, in boxes 37–40 on your answer sheet.",
+                "text": "The origins of creative behaviour\n The traditional view of scientific discovery is that breakthroughs happen when a\n single great mind has sudden 37                      . Although this can occur, it is\n not often the case. Advances are more likely to be the result of a longer process.\n In some cases, this process involves 38                      , such as Nicholson’s\n theory about proto-elements. In others, simple necessity may provoke innovation,\n as with Westrope’s decision to modify the position of his riding stirrups. There is also\n often an element of 39                     , for example, the coincidence of ideas that\n led to the invention of the Post-It note. With both the Law of Natural Selection and\n the Law of Effect, there may be no clear 40                       involved, but merely a\n process of variation and selection."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "matching",
+              "prompt": "Question 39",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "invention"
+                },
+                {
+                  "key": "B",
+                  "text": "goals"
+                },
+                {
+                  "key": "C",
+                  "text": "compromise"
+                },
+                {
+                  "key": "D",
+                  "text": "mistakes"
+                },
+                {
+                  "key": "E",
+                  "text": "luck"
+                },
+                {
+                  "key": "F",
+                  "text": "inspiration"
+                },
+                {
+                  "key": "G",
+                  "text": "experiments"
+                }
+              ],
+              "group": {
+                "id": "r-summary-37-40",
+                "instruction": "Complete the summary using the list of words, A–G, below. Write the correct letter, A–G, in boxes 37–40 on your answer sheet.",
+                "text": "The origins of creative behaviour\n The traditional view of scientific discovery is that breakthroughs happen when a\n single great mind has sudden 37                      . Although this can occur, it is\n not often the case. Advances are more likely to be the result of a longer process.\n In some cases, this process involves 38                      , such as Nicholson’s\n theory about proto-elements. In others, simple necessity may provoke innovation,\n as with Westrope’s decision to modify the position of his riding stirrups. There is also\n often an element of 39                     , for example, the coincidence of ideas that\n led to the invention of the Post-It note. With both the Law of Natural Selection and\n the Law of Effect, there may be no clear 40                       involved, but merely a\n process of variation and selection."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "matching",
+              "prompt": "Question 40",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "invention"
+                },
+                {
+                  "key": "B",
+                  "text": "goals"
+                },
+                {
+                  "key": "C",
+                  "text": "compromise"
+                },
+                {
+                  "key": "D",
+                  "text": "mistakes"
+                },
+                {
+                  "key": "E",
+                  "text": "luck"
+                },
+                {
+                  "key": "F",
+                  "text": "inspiration"
+                },
+                {
+                  "key": "G",
+                  "text": "experiments"
+                }
+              ],
+              "group": {
+                "id": "r-summary-37-40",
+                "instruction": "Complete the summary using the list of words, A–G, below. Write the correct letter, A–G, in boxes 37–40 on your answer sheet.",
+                "text": "The origins of creative behaviour\n The traditional view of scientific discovery is that breakthroughs happen when a\n single great mind has sudden 37                      . Although this can occur, it is\n not often the case. Advances are more likely to be the result of a longer process.\n In some cases, this process involves 38                      , such as Nicholson’s\n theory about proto-elements. In others, simple necessity may provoke innovation,\n as with Westrope’s decision to modify the position of his riding stirrups. There is also\n often an element of 39                     , for example, the coincidence of ideas that\n led to the invention of the Post-It note. With both the Law of Natural Selection and\n the Law of Effect, there may be no clear 40                       involved, but merely a\n process of variation and selection."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Opportunities for voluntary work in Southoe village",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n• Help with [1] books (times to be arranged)\n• Help needed to keep [2] of books up to date\n• Library is in the [3] Room in the village hall\n\nLunch club\n• Help by providing [4]\n• Help with hobbies such as [5]\n\nHelp for individuals needed next week\n• Taking Mrs Carroll to [6]\n• Work in the [7] at Mr Selsbury’s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "collecting"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n• Help with [1] books (times to be arranged)\n• Help needed to keep [2] of books up to date\n• Library is in the [3] Room in the village hall\n\nLunch club\n• Help by providing [4]\n• Help with hobbies such as [5]\n\nHelp for individuals needed next week\n• Taking Mrs Carroll to [6]\n• Work in the [7] at Mr Selsbury’s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "records"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n• Help with [1] books (times to be arranged)\n• Help needed to keep [2] of books up to date\n• Library is in the [3] Room in the village hall\n\nLunch club\n• Help by providing [4]\n• Help with hobbies such as [5]\n\nHelp for individuals needed next week\n• Taking Mrs Carroll to [6]\n• Work in the [7] at Mr Selsbury’s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "West"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n• Help with [1] books (times to be arranged)\n• Help needed to keep [2] of books up to date\n• Library is in the [3] Room in the village hall\n\nLunch club\n• Help by providing [4]\n• Help with hobbies such as [5]\n\nHelp for individuals needed next week\n• Taking Mrs Carroll to [6]\n• Work in the [7] at Mr Selsbury’s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "transport"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n• Help with [1] books (times to be arranged)\n• Help needed to keep [2] of books up to date\n• Library is in the [3] Room in the village hall\n\nLunch club\n• Help by providing [4]\n• Help with hobbies such as [5]\n\nHelp for individuals needed next week\n• Taking Mrs Carroll to [6]\n• Work in the [7] at Mr Selsbury’s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "art"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n• Help with [1] books (times to be arranged)\n• Help needed to keep [2] of books up to date\n• Library is in the [3] Room in the village hall\n\nLunch club\n• Help by providing [4]\n• Help with hobbies such as [5]\n\nHelp for individuals needed next week\n• Taking Mrs Carroll to [6]\n• Work in the [7] at Mr Selsbury’s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "hospital"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n• Help with [1] books (times to be arranged)\n• Help needed to keep [2] of books up to date\n• Library is in the [3] Room in the village hall\n\nLunch club\n• Help by providing [4]\n• Help with hobbies such as [5]\n\nHelp for individuals needed next week\n• Taking Mrs Carroll to [6]\n• Work in the [7] at Mr Selsbury’s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "garden"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-8-10",
+                "title": "Village social events",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Village social events\n\nDate       Event                      Location        Help needed\n19 Oct [8]                              Village hall    providing refreshments\n18 Nov dance                           Village hall       checking [9]\n31 Dec New Year’s Eve party            Mountfort Hotel designing the [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "quiz"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-8-10",
+                "title": "Village social events",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Village social events\n\nDate       Event                      Location        Help needed\n19 Oct [8]                              Village hall    providing refreshments\n18 Nov dance                           Village hall       checking [9]\n31 Dec New Year’s Eve party            Mountfort Hotel designing the [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tickets"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-8-10",
+                "title": "Village social events",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Village social events\n\nDate       Event                      Location        Help needed\n19 Oct [8]                              Village hall    providing refreshments\n18 Nov dance                           Village hall       checking [9]\n31 Dec New Year’s Eve party            Mountfort Hotel designing the [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "poster"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam17-test-2-listening-part1.mp3"
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Oniton Hall",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "Many past owners made changes to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the gardens."
+                },
+                {
+                  "key": "B",
+                  "text": "the house."
+                },
+                {
+                  "key": "C",
+                  "text": "the farm."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "Sir Edward Downes built Oniton Hall because he wanted",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a place for discussing politics."
+                },
+                {
+                  "key": "B",
+                  "text": "a place to display his wealth."
+                },
+                {
+                  "key": "C",
+                  "text": "a place for artists and writers."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "Visitors can learn about the work of servants in the past from",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "audio guides."
+                },
+                {
+                  "key": "B",
+                  "text": "photographs."
+                },
+                {
+                  "key": "C",
+                  "text": "people in costume."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "What is new for children at Oniton Hall?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "clothes for dressing up"
+                },
+                {
+                  "key": "B",
+                  "text": "mini tractors"
+                },
+                {
+                  "key": "C",
+                  "text": "the adventure playground"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "dairy",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A–H, next to Questions 15–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "large barn",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A–H, next to Questions 15–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "small barn",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A–H, next to Questions 15–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "stables",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A–H, next to Questions 15–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "shed",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A–H, next to Questions 15–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "parkland",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A–H, next to Questions 15–20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam17-test-2-listening-part2.mp3"
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Romeo and Juliet",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-select",
+              "prompt": "Which TWO things do the students agree they need to include in their reviews of Romeo and Juliet?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "analysis of the text"
+                },
+                {
+                  "key": "B",
+                  "text": "a summary of the plot"
+                },
+                {
+                  "key": "C",
+                  "text": "a description of the theatre"
+                },
+                {
+                  "key": "D",
+                  "text": "a personal reaction"
+                },
+                {
+                  "key": "E",
+                  "text": "a reference to particular scenes"
+                }
+              ],
+              "group": {
+                "id": "l-s3-21-22",
+                "instruction": "Choose TWO letters, A–E."
+              },
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "D",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "matching",
+              "prompt": "the set",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They both expected this to be more traditional."
+                },
+                {
+                  "key": "B",
+                  "text": "They both thought this was original."
+                },
+                {
+                  "key": "C",
+                  "text": "They agree this created the right atmosphere."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree this was a major strength."
+                },
+                {
+                  "key": "E",
+                  "text": "They were both disappointed by this."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about why this was an issue."
+                },
+                {
+                  "key": "G",
+                  "text": "They disagree about how this could be improved."
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which opinion do the speakers give about each of the following aspects of The Emporium’s production of Romeo and Juliet? Choose FIVE answers from the box and write the correct letter, A–G, next to Questions 23–27."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "matching",
+              "prompt": "the lighting",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They both expected this to be more traditional."
+                },
+                {
+                  "key": "B",
+                  "text": "They both thought this was original."
+                },
+                {
+                  "key": "C",
+                  "text": "They agree this created the right atmosphere."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree this was a major strength."
+                },
+                {
+                  "key": "E",
+                  "text": "They were both disappointed by this."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about why this was an issue."
+                },
+                {
+                  "key": "G",
+                  "text": "They disagree about how this could be improved."
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which opinion do the speakers give about each of the following aspects of The Emporium’s production of Romeo and Juliet? Choose FIVE answers from the box and write the correct letter, A–G, next to Questions 23–27."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "the costume design",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They both expected this to be more traditional."
+                },
+                {
+                  "key": "B",
+                  "text": "They both thought this was original."
+                },
+                {
+                  "key": "C",
+                  "text": "They agree this created the right atmosphere."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree this was a major strength."
+                },
+                {
+                  "key": "E",
+                  "text": "They were both disappointed by this."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about why this was an issue."
+                },
+                {
+                  "key": "G",
+                  "text": "They disagree about how this could be improved."
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which opinion do the speakers give about each of the following aspects of The Emporium’s production of Romeo and Juliet? Choose FIVE answers from the box and write the correct letter, A–G, next to Questions 23–27."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "the music",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They both expected this to be more traditional."
+                },
+                {
+                  "key": "B",
+                  "text": "They both thought this was original."
+                },
+                {
+                  "key": "C",
+                  "text": "They agree this created the right atmosphere."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree this was a major strength."
+                },
+                {
+                  "key": "E",
+                  "text": "They were both disappointed by this."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about why this was an issue."
+                },
+                {
+                  "key": "G",
+                  "text": "They disagree about how this could be improved."
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which opinion do the speakers give about each of the following aspects of The Emporium’s production of Romeo and Juliet? Choose FIVE answers from the box and write the correct letter, A–G, next to Questions 23–27."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "the actors’ delivery",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They both expected this to be more traditional."
+                },
+                {
+                  "key": "B",
+                  "text": "They both thought this was original."
+                },
+                {
+                  "key": "C",
+                  "text": "They agree this created the right atmosphere."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree this was a major strength."
+                },
+                {
+                  "key": "E",
+                  "text": "They were both disappointed by this."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about why this was an issue."
+                },
+                {
+                  "key": "G",
+                  "text": "They disagree about how this could be improved."
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which opinion do the speakers give about each of the following aspects of The Emporium’s production of Romeo and Juliet? Choose FIVE answers from the box and write the correct letter, A–G, next to Questions 23–27."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "multiple-choice",
+              "prompt": "The students think the story of Romeo and Juliet is still relevant for young people today because",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "it illustrates how easily conflict can start."
+                },
+                {
+                  "key": "B",
+                  "text": "it deals with problems that families experience."
+                },
+                {
+                  "key": "C",
+                  "text": "it teaches them about relationships."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "The students found watching Romeo and Juliet in another language",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "frustrating."
+                },
+                {
+                  "key": "B",
+                  "text": "demanding."
+                },
+                {
+                  "key": "C",
+                  "text": "moving."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "Why do the students think Shakespeare’s plays have such international appeal?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The stories are exciting."
+                },
+                {
+                  "key": "B",
+                  "text": "There are recognisable characters."
+                },
+                {
+                  "key": "C",
+                  "text": "They can be interpreted in many ways."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam17-test-2-listening-part3.mp3"
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "The impact of digital technology on the Icelandic language",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n• has approximately [31] speakers\n• has a [32] that is still growing\n• has not changed a lot over the last thousand years\n• has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n• are big users of digital technology, such as [34]\n• are becoming [35] very quickly\n• are having discussions using only English while they are in the [36] at school\n• are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n• write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n• has set up a fund to support the production of more digital content in the language\n• believes that Icelandic has a secure future\n• is worried that young Icelanders may lose their [39] as Icelanders\n• is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "321,000"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n• has approximately [31] speakers\n• has a [32] that is still growing\n• has not changed a lot over the last thousand years\n• has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n• are big users of digital technology, such as [34]\n• are becoming [35] very quickly\n• are having discussions using only English while they are in the [36] at school\n• are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n• write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n• has set up a fund to support the production of more digital content in the language\n• believes that Icelandic has a secure future\n• is worried that young Icelanders may lose their [39] as Icelanders\n• is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "vocabulary"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n• has approximately [31] speakers\n• has a [32] that is still growing\n• has not changed a lot over the last thousand years\n• has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n• are big users of digital technology, such as [34]\n• are becoming [35] very quickly\n• are having discussions using only English while they are in the [36] at school\n• are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n• write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n• has set up a fund to support the production of more digital content in the language\n• believes that Icelandic has a secure future\n• is worried that young Icelanders may lose their [39] as Icelanders\n• is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "podcast"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n• has approximately [31] speakers\n• has a [32] that is still growing\n• has not changed a lot over the last thousand years\n• has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n• are big users of digital technology, such as [34]\n• are becoming [35] very quickly\n• are having discussions using only English while they are in the [36] at school\n• are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n• write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n• has set up a fund to support the production of more digital content in the language\n• believes that Icelandic has a secure future\n• is worried that young Icelanders may lose their [39] as Icelanders\n• is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "smartphones"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n• has approximately [31] speakers\n• has a [32] that is still growing\n• has not changed a lot over the last thousand years\n• has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n• are big users of digital technology, such as [34]\n• are becoming [35] very quickly\n• are having discussions using only English while they are in the [36] at school\n• are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n• write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n• has set up a fund to support the production of more digital content in the language\n• believes that Icelandic has a secure future\n• is worried that young Icelanders may lose their [39] as Icelanders\n• is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "bilingual"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n• has approximately [31] speakers\n• has a [32] that is still growing\n• has not changed a lot over the last thousand years\n• has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n• are big users of digital technology, such as [34]\n• are becoming [35] very quickly\n• are having discussions using only English while they are in the [36] at school\n• are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n• write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n• has set up a fund to support the production of more digital content in the language\n• believes that Icelandic has a secure future\n• is worried that young Icelanders may lose their [39] as Icelanders\n• is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "playground"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n• has approximately [31] speakers\n• has a [32] that is still growing\n• has not changed a lot over the last thousand years\n• has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n• are big users of digital technology, such as [34]\n• are becoming [35] very quickly\n• are having discussions using only English while they are in the [36] at school\n• are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n• write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n• has set up a fund to support the production of more digital content in the language\n• believes that Icelandic has a secure future\n• is worried that young Icelanders may lose their [39] as Icelanders\n• is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "picture"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n• has approximately [31] speakers\n• has a [32] that is still growing\n• has not changed a lot over the last thousand years\n• has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n• are big users of digital technology, such as [34]\n• are becoming [35] very quickly\n• are having discussions using only English while they are in the [36] at school\n• are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n• write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n• has set up a fund to support the production of more digital content in the language\n• believes that Icelandic has a secure future\n• is worried that young Icelanders may lose their [39] as Icelanders\n• is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "grammar"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n• has approximately [31] speakers\n• has a [32] that is still growing\n• has not changed a lot over the last thousand years\n• has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n• are big users of digital technology, such as [34]\n• are becoming [35] very quickly\n• are having discussions using only English while they are in the [36] at school\n• are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n• write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n• has set up a fund to support the production of more digital content in the language\n• believes that Icelandic has a secure future\n• is worried that young Icelanders may lose their [39] as Icelanders\n• is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "identity"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n• has approximately [31] speakers\n• has a [32] that is still growing\n• has not changed a lot over the last thousand years\n• has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n• are big users of digital technology, such as [34]\n• are becoming [35] very quickly\n• are having discussions using only English while they are in the [36] at school\n• are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n• write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n• has set up a fund to support the production of more digital content in the language\n• believes that Icelandic has a secure future\n• is worried that young Icelanders may lose their [39] as Icelanders\n• is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fluent"
+                ]
+              }
+            }
+          ],
+          "audio": "assets/cam17-test-2-listening-part4.mp3"
+        }
+      ]
+    }
+  ]
+}

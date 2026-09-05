@@ -1,0 +1,1360 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 21 — Test 1",
+  "variant": "academic",
+  "description": "Cambridge IELTS 21 Academic Test 1. Chỉ có Reading, chấm theo đáp án in trong sách; bộ audio Listening của sách này chưa có nên không thi được Listening, Writing và Speaking.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "The Davies Sisters",
+          "body": "The Davies Sisters\n\nBetween 1908 and 1924,Gwendoline and Margaret Davies amassed one of\nthe largest collections of late-nineteenth and early-twentieth-century French\npaintings in Britain\n\nGwendoline (1882-1951) and Margaret (1884-1963) Davies were the granddaughters\nof David Davies, a Welshman who amassed a fortune in the shipping and mining\nindustries. In 1907, when Gwendoline came into her inheritance (Margaret would follow\nin 1909), the sisters were said to be the wealthiest unmarried women in Britain. Their\nreligious upbringing in rural Wales gave them a deep sense of social responsibility and\nthey chose to use their inheritance for cultural and philanthropic* purposes.\n\nWhile there was no real family history of art collecting, the sisters' education was\nrigorously geared toward such pursuits. Their London school focused on cultural rather\nthan academic study, and they travelled extensively with their governess, Jane Blaker,\nvisiting art galleries and making extensive notes on the collections there.\n\nThe sisters began to make regular art purchases from 1908, which roughly coincided\nwith the dates of their inheritance. They took advice from various people, including\nthe art dealer Hugh Blaker (the brother of Jane Blaker) and David Croal Thompson,\nwho was also an art dealer. While it was long assumed that these men were largely\nresponsible for the nature of the sisters' collection, it has recently been accepted that\nGwendoline and Margaret retained a far more active role in the process.\n\nThe sisters' journals reveal their preference for Old Master** paintings. Yet they initially\nmade very few attempts to secure any such works. ·while the sisters were wealthy in\nrelative terms, their income was nothing compared to the fortunes of American art\ncollectors of this period, such as J. Pierpont Morgan. Quite simply, high quality Old\nMaster works were, if not beyond their means, then beyond what they were willing to\npay for them. Instead, their early purchases were of the fashionable, safe variety, and\nincluded, for example, paintings by the French artist Jean- Baptiste-Camille Corot.\n\nHowever, it was only a few years before their collecting took a new direction and they\nturned to the work of the French Impressionists***. We lmow that Hugh Blaker, as a\nchampion of contemporaiy French art had a hand in the decision, and we lmow also that\nthey would have seen examples on their various trips to Paris. Whatever the precise reason\nfor this change, their first purchases of Impressionist art, made in October 1912, were\nscenes of Venice by the French artist Claude Monet. Over the next 12 years, the sisters\namassed the bulk of their Impressionist collection, including six further works by Monet,\ntwo more by Manet, and three by Renoir, including his well-lmown painting La Parisienne.\n\nThe First World War (1914-1918) played a part in the development of the sisters'\ncollection. Their initial response to the war effort was to finance the safe passage of\nartists from occupied Belgium to Wales, as a humanitarian act, but also with the hope of\nestablishing a vibrant artists' community in the area. Later in the conflict, both sisters\ndecided to volunteer at a canteen for troops at Troyes, in northern France; Gwendoline\nin 1916, followed by Margaret in 1917.\n\nIt was tedious and distressing work, which would have a permanent effect on Gwendoline's\nhealth. Yet on one of numerous trips to nearby Paris, she visited the Bernheim-Jeune\nGallery. Here she acquired two works by Cezanne - Provenc;alLandscape and The Franc;ois\nZola Dam. The paintings were shipped directly to Bath, England, where they became the\nfirst works by Cezanne to go on display in a public gallery in Britain.\n\nCommentators have often described the sisters as unlikely pioneer collectors. Much is\nmade of their isolation in rural Wales and the fact that they didn't make friends with\nartists or gallery owners. Yet they didn't feel obliged to follow fashionable tastes and\nwere free to pursue their own preferences. Although they relied on a trusted circle of\nadvisers, they made frequent trips to London and Paris, and also regularly had paintings\nsent to their home for consideration.\n\nBy the early 1920s, Gwendoline felt increasingly uncomfortable buying art works\nwhen faced with the poverty and social upheaval created by the First World War. Her\nphilanthropic pursuits then became focused almost exclusively on social causes and the\ndevelopment of the sisters' home at Gregynog Hall into a conference center and venue\nfor the Gregynog Festival of Music and Poetry. Gwendoline made her final art purchase\nin March 1926. Margaret also stopped collecting around this time, but started again in\nthe 1930s acquiring, on a relatively small scale, work by contemporary British artists.\n\nThe sisters collected French Impressionist paintings at a time when such art was\nroutinely ignored by individuals and institutions alike. The Gwendoline and Margaret\nDavies collection, donated in 1951 and 1963 respectively to the National Museum\nWales, contains major examples of work by leading French Impressionists. In collecting\npaintings that they loved, the sisters created a lasting and meaningful cultural legacy for\nthe people of Wales and beyond.\n\n* philanthropic: seeking to promote the welfare of others, often by charitable funding\n** Old Master: a highly respected artist of great skill who worked in Europe before about 1800\n*** Impressionist: an artist with a style of painting that developed in France in the late 1800s by Renoir, including his well-known painting\nLa Parisienne",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "r-s1-1-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Gwendoline and Margaret Davies",
+                "text": "Family and early life\n•      their grandfather's wealth came from [1]\nand transportation\nbusinesses\n•      their upbringing gave them a sense of social responsibility\n•      their [2]\nwas designed to give them an interest in activities\nsuch as collecting art\n•      their governess took them on trips to art galleries\n•      they took lengthy [3]\nabout the things they saw in art\ngalleries\n\nThe sisters as art collectors\n•      their [4]\nshowed they liked Old Master paintings, but they\nwere expensive to buy\n•      their early purchases were safe, popular paintings\n•      the first Impressionist paintings they bought showed places in\n[5]\n\nImpact of First World War\n•      they helped bring artists from Belgium to Wales\n•      they worked in a [6]\nfor soldiers in France\n\nOpinions about the sisters as art collectors\n•      were not considered typical collectors - they lived in isolation in the\ncountryside and did not have any [7]\nwho were artists"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "mining"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "r-s1-1-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Gwendoline and Margaret Davies",
+                "text": "Family and early life\n•      their grandfather's wealth came from [1]\nand transportation\nbusinesses\n•      their upbringing gave them a sense of social responsibility\n•      their [2]\nwas designed to give them an interest in activities\nsuch as collecting art\n•      their governess took them on trips to art galleries\n•      they took lengthy [3]\nabout the things they saw in art\ngalleries\n\nThe sisters as art collectors\n•      their [4]\nshowed they liked Old Master paintings, but they\nwere expensive to buy\n•      their early purchases were safe, popular paintings\n•      the first Impressionist paintings they bought showed places in\n[5]\n\nImpact of First World War\n•      they helped bring artists from Belgium to Wales\n•      they worked in a [6]\nfor soldiers in France\n\nOpinions about the sisters as art collectors\n•      were not considered typical collectors - they lived in isolation in the\ncountryside and did not have any [7]\nwho were artists"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "education"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "r-s1-1-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Gwendoline and Margaret Davies",
+                "text": "Family and early life\n•      their grandfather's wealth came from [1]\nand transportation\nbusinesses\n•      their upbringing gave them a sense of social responsibility\n•      their [2]\nwas designed to give them an interest in activities\nsuch as collecting art\n•      their governess took them on trips to art galleries\n•      they took lengthy [3]\nabout the things they saw in art\ngalleries\n\nThe sisters as art collectors\n•      their [4]\nshowed they liked Old Master paintings, but they\nwere expensive to buy\n•      their early purchases were safe, popular paintings\n•      the first Impressionist paintings they bought showed places in\n[5]\n\nImpact of First World War\n•      they helped bring artists from Belgium to Wales\n•      they worked in a [6]\nfor soldiers in France\n\nOpinions about the sisters as art collectors\n•      were not considered typical collectors - they lived in isolation in the\ncountryside and did not have any [7]\nwho were artists"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "notes"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "r-s1-1-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Gwendoline and Margaret Davies",
+                "text": "Family and early life\n•      their grandfather's wealth came from [1]\nand transportation\nbusinesses\n•      their upbringing gave them a sense of social responsibility\n•      their [2]\nwas designed to give them an interest in activities\nsuch as collecting art\n•      their governess took them on trips to art galleries\n•      they took lengthy [3]\nabout the things they saw in art\ngalleries\n\nThe sisters as art collectors\n•      their [4]\nshowed they liked Old Master paintings, but they\nwere expensive to buy\n•      their early purchases were safe, popular paintings\n•      the first Impressionist paintings they bought showed places in\n[5]\n\nImpact of First World War\n•      they helped bring artists from Belgium to Wales\n•      they worked in a [6]\nfor soldiers in France\n\nOpinions about the sisters as art collectors\n•      were not considered typical collectors - they lived in isolation in the\ncountryside and did not have any [7]\nwho were artists"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "journals"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "r-s1-1-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Gwendoline and Margaret Davies",
+                "text": "Family and early life\n•      their grandfather's wealth came from [1]\nand transportation\nbusinesses\n•      their upbringing gave them a sense of social responsibility\n•      their [2]\nwas designed to give them an interest in activities\nsuch as collecting art\n•      their governess took them on trips to art galleries\n•      they took lengthy [3]\nabout the things they saw in art\ngalleries\n\nThe sisters as art collectors\n•      their [4]\nshowed they liked Old Master paintings, but they\nwere expensive to buy\n•      their early purchases were safe, popular paintings\n•      the first Impressionist paintings they bought showed places in\n[5]\n\nImpact of First World War\n•      they helped bring artists from Belgium to Wales\n•      they worked in a [6]\nfor soldiers in France\n\nOpinions about the sisters as art collectors\n•      were not considered typical collectors - they lived in isolation in the\ncountryside and did not have any [7]\nwho were artists"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Venice"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "r-s1-1-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Gwendoline and Margaret Davies",
+                "text": "Family and early life\n•      their grandfather's wealth came from [1]\nand transportation\nbusinesses\n•      their upbringing gave them a sense of social responsibility\n•      their [2]\nwas designed to give them an interest in activities\nsuch as collecting art\n•      their governess took them on trips to art galleries\n•      they took lengthy [3]\nabout the things they saw in art\ngalleries\n\nThe sisters as art collectors\n•      their [4]\nshowed they liked Old Master paintings, but they\nwere expensive to buy\n•      their early purchases were safe, popular paintings\n•      the first Impressionist paintings they bought showed places in\n[5]\n\nImpact of First World War\n•      they helped bring artists from Belgium to Wales\n•      they worked in a [6]\nfor soldiers in France\n\nOpinions about the sisters as art collectors\n•      were not considered typical collectors - they lived in isolation in the\ncountryside and did not have any [7]\nwho were artists"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "canteen"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "r-s1-1-7",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Gwendoline and Margaret Davies",
+                "text": "Family and early life\n•      their grandfather's wealth came from [1]\nand transportation\nbusinesses\n•      their upbringing gave them a sense of social responsibility\n•      their [2]\nwas designed to give them an interest in activities\nsuch as collecting art\n•      their governess took them on trips to art galleries\n•      they took lengthy [3]\nabout the things they saw in art\ngalleries\n\nThe sisters as art collectors\n•      their [4]\nshowed they liked Old Master paintings, but they\nwere expensive to buy\n•      their early purchases were safe, popular paintings\n•      the first Impressionist paintings they bought showed places in\n[5]\n\nImpact of First World War\n•      they helped bring artists from Belgium to Wales\n•      they worked in a [6]\nfor soldiers in France\n\nOpinions about the sisters as art collectors\n•      were not considered typical collectors - they lived in isolation in the\ncountryside and did not have any [7]\nwho were artists"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "friends"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "true-false-notgiven",
+              "prompt": "The Davies sisters' childhood influenced the way they decided to use their wealth.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 8-13 on your answer sheet, write\n\nTRUE            if the statement agrees with the information\nFALSE           if the statement contradicts the information\nNOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "true-false-notgiven",
+              "prompt": "The Jean-Baptiste-Camille Corot paintings in the Davies sisters' collection were purchased from a gallery in France.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 8-13 on your answer sheet, write\n\nTRUE            if the statement agrees with the information\nFALSE           if the statement contradicts the information\nNOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "true-false-notgiven",
+              "prompt": "Hugh Blaker opposed the Davies sisters' decision to buy art by French Impressionists.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 8-13 on your answer sheet, write\n\nTRUE            if the statement agrees with the information\nFALSE           if the statement contradicts the information\nNOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "true-false-notgiven",
+              "prompt": "The exhibition of Cezanne paintings at the Bath gallery was very popular with the public.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 8-13 on your answer sheet, write\n\nTRUE            if the statement agrees with the information\nFALSE           if the statement contradicts the information\nNOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "true-false-notgiven",
+              "prompt": "The impact of the First World War encouraged Gwendoline to reconsider her interest in collecting art.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 8-13 on your answer sheet, write\n\nTRUE            if the statement agrees with the information\nFALSE           if the statement contradicts the information\nNOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "true-false-notgiven",
+              "prompt": "The Davies sisters bought French Impressionist art during a period when very few people were doing so.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 8-13 on your answer sheet, write\n\nTRUE            if the statement agrees with the information\nFALSE           if the statement contradicts the information\nNOT GIVEN       if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Why we need silence",
+          "body": "Why we need silence\n\nA    Humans are finely attuned to noise, and for good reason. From an evolutionary\n     perspective, sounds give us vital information, helping us navigate the world and avoid\n     danger. To help ensure loud or unexpected noises get the attention they deserve, our\n     internal chemistry alters in response to them. Our blood pressure goes up, muscles\n     tense and glands release hormones that prepare us for fight or flight. In the short\n     term, this is a good thing. When we are exposed to too much noise over the long\n     term, however, those responses can lead to a multitude of health issues, from sleep\n     disturbance to even cardiovascular disease.\n\nB    The World Health Organization has recently designated excessive noise as an\n     'underestimated threat' to public health, and has said that people living in cities\n     such as Mumbai, Tokyo and Buenos Aires are being exposed to far more than the\n     recommended 40 decibels of noise at night. A report from the European Environment\n     Agency concluded that noise was an ongoing and widespread issue in Europe, with at\n     least 1 in 5 people consistently exposed to levels considered harmful to health. 'There\n     are no \"earlids\" that can protect your brain from noise,' says Nick Antonio, an acoustic\n     consultant who has contributed to the British and international standards for noise.\n\nC    The good news is that several cities have been working to turn the volume down. One of\n     the first to do so was London. 'By providing recommendations for quieter buses, reducing\n     noise from roads and also controlling noise from aircraft, they were able to make the\n     city quieter,' says Antonio. Other cities have introduced noise-reducing road coatings,\n     for instance, alongside greenery that muffles sound. Some solutions are more specific:\n     Washington DC's ban on petrol-powered leaf blowers came into effect recently, while in\n     New York City, legislation has been approved to fine people who modify their vehicles\n     to make them noisier. 'People are seeing the benefits of these more quiet environments in\n     their cities,' Antonio says. 'I expect we will see much more of this in the future.'\n\nD    Researchers are also seeking to understand what aspects of silent experiences are most\n     beneficial to our health. One of the best-researched is the flotation tank: a lightproof,\n     soundproof tank of salt water in which a person floats as a form of deep relaxation.\n     While some people experience altered perception in the tanks, involving subtle\n     humming sounds and visual effects, these effects are benign and do not detract from\n     the benefits of the experience, says Justin Feinstein, a clinical neuropsychologist. 'When\n     you don't have external sensory stimuli coming in, the brain tries to fill the void to\n     make sense of this dark and silent world,' he explains. 'In these tanks, some people can\n     even hear the sound of their eyes blinking,' says Feinstein. 'But it is the ability to focus\n     on the breath that helps people reach a relaxed or meditative state.'\n\nE   To further explore flotation tanks as a therapeutic tool, Feinstein and his colleagues\n    recruited 50 people with a variety of conditions related to stress and had them answer a\n    questionnaire prior to and following a flotation session. Participants reported decreases\n    in muscle tension, pain and symptoms of their conditions after a single, I-hour float,\n    alongside an increase in feelings of relaxation and overall wellbeing.\n\n    Less is known about what effects sensory deprivation can have on the brain. To\n    investigate, Feinstein's team had 48 people participate in either three 90-minute float\n    sessions or three 90-minute periods of relaxing on a chair which reclined. Participants\n    had their brains scanned using functional magnetic resonance imaging at the beginning\n    and end of the trial. Float sessions uniquely decreased activity in the default mode\n    network (DMN), a collection of brain regions commonly linked with depression.\n    Feinstein says it is an exciting finding, because flotation tanks seem to offer a way of\n    'resetting' our nervous system to prevent it from getting out of balance.\n\nF   Neurobiologist Tai Dotan Ben-Soussan is also an advocate of silence as a therapy.\n    'When we find ways to be quiet, we are not only quiet in our environment, but quiet in\n    our inner selves,' she explains. 'This allows us to be more aware of what is happening\n    around us and what the situation may require from us so we can provide [a more]\n    adequate response.'\n\n    Not everyone will benefit from silence to the same extent, but Ben-Soussan says one\n    characteristic is key: the person must need to want to engage in the experience. 'We see\n    from animal models and human studies that volition and intentionality is important,'\n    she says. 'When people do not want silence, it can be very distressing.'\n\nG   Eric Pfeifer, a psychotherapy researcher, also concedes that some people may not\n    benefit from silence, particularly those who are in a heightened state of stress. 'People\n    in these states may not be able to relax or calm down in a silent condition,' he says.\n    Professional guidance can be useful, he adds, allowing people to approach silence\n    slowly so that they can gradually enjoy the benefits. And Pfeifer is convinced that\n    silence is more attainable in everyday life than people think. First, complete silence isn't\n    necessary. In a recent study, he found that participants reported more relaxation and\n    less boredom when they sat quietly in an outdoor garden compared with a completely\n    silent room. Second, Pfeifer believes we don't need a lot of silence to gain benefits. 'You\n    don't need to spend hours in silence,' he says. 'It is likely better to have more frequency\n    of silence for a few minutes at a time than a longer period of silence only once a week.\n    Just finding those places in your daily life where you can find some silence ... can make\n    a big difference.'",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "examples of strategies to decrease the noise that the public are exposed to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-17",
+                "instruction": "Reading Passage 2 has seven sections, A-G.\n\nWhich section contains the following      information?\n\nWrite the correct letter, A-G, in boxes 14-17 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "data indicating the extent of the problem of excessive noise",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-17",
+                "instruction": "Reading Passage 2 has seven sections, A-G.\n\nWhich section contains the following      information?\n\nWrite the correct letter, A-G, in boxes 14-17 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "a description   of physiological   changes in our bodies when we hear sudden noises",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-17",
+                "instruction": "Reading Passage 2 has seven sections, A-G.\n\nWhich section contains the following      information?\n\nWrite the correct letter, A-G, in boxes 14-17 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "evidence that a relatively quiet environment        can be more beneficial than a totally\nsilent one",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-17",
+                "instruction": "Reading Passage 2 has seven sections, A-G.\n\nWhich section contains the following      information?\n\nWrite the correct letter, A-G, in boxes 14-17 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "completion",
+              "prompt": "Question 18",
+              "group": {
+                "id": "r-s2-18-21",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Flotation Tanks",
+                "text": "According to Justin Feinstein, flotation tanks allow people to concentrate on their own\n[18]\n, which helps them relax and enables them to meditate.\n\nFeinstein and his colleagues conducted an experiment in which 50 people, who were\nall suffering from stress and related issues, were given a [19]\nto\ncomplete before and after using a flotation tank. Participants reported a reduction\nin their symptoms after an hour in the tank, together with signs of relaxation and\nimproved general [20]\n\nIn another experiment, the researchers had 48 people spend periods of 90 minutes\neither lying back in a chair or floating in a tank. Brain scans then revealed that those\npeople who had been in a tank had decreased activity in parts of the brain associated\nwith [21]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "breath"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "completion",
+              "prompt": "Question 19",
+              "group": {
+                "id": "r-s2-18-21",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Flotation Tanks",
+                "text": "According to Justin Feinstein, flotation tanks allow people to concentrate on their own\n[18]\n, which helps them relax and enables them to meditate.\n\nFeinstein and his colleagues conducted an experiment in which 50 people, who were\nall suffering from stress and related issues, were given a [19]\nto\ncomplete before and after using a flotation tank. Participants reported a reduction\nin their symptoms after an hour in the tank, together with signs of relaxation and\nimproved general [20]\n\nIn another experiment, the researchers had 48 people spend periods of 90 minutes\neither lying back in a chair or floating in a tank. Brain scans then revealed that those\npeople who had been in a tank had decreased activity in parts of the brain associated\nwith [21]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "questionnaire"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "completion",
+              "prompt": "Question 20",
+              "group": {
+                "id": "r-s2-18-21",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Flotation Tanks",
+                "text": "According to Justin Feinstein, flotation tanks allow people to concentrate on their own\n[18]\n, which helps them relax and enables them to meditate.\n\nFeinstein and his colleagues conducted an experiment in which 50 people, who were\nall suffering from stress and related issues, were given a [19]\nto\ncomplete before and after using a flotation tank. Participants reported a reduction\nin their symptoms after an hour in the tank, together with signs of relaxation and\nimproved general [20]\n\nIn another experiment, the researchers had 48 people spend periods of 90 minutes\neither lying back in a chair or floating in a tank. Brain scans then revealed that those\npeople who had been in a tank had decreased activity in parts of the brain associated\nwith [21]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "wellbeing"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "Question 21",
+              "group": {
+                "id": "r-s2-18-21",
+                "instruction": "Choose ONE WORD ONLY from the passage for each answer.",
+                "title": "Flotation Tanks",
+                "text": "According to Justin Feinstein, flotation tanks allow people to concentrate on their own\n[18]\n, which helps them relax and enables them to meditate.\n\nFeinstein and his colleagues conducted an experiment in which 50 people, who were\nall suffering from stress and related issues, were given a [19]\nto\ncomplete before and after using a flotation tank. Participants reported a reduction\nin their symptoms after an hour in the tank, together with signs of relaxation and\nimproved general [20]\n\nIn another experiment, the researchers had 48 people spend periods of 90 minutes\neither lying back in a chair or floating in a tank. Brain scans then revealed that those\npeople who had been in a tank had decreased activity in parts of the brain associated\nwith [21]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "depression"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "matching",
+              "prompt": "It is unpleasant and upsetting for people to be placed in a silent environment\nagainst their will.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Nick Antonio"
+                },
+                {
+                  "key": "B",
+                  "text": "Justin Feinstein"
+                },
+                {
+                  "key": "C",
+                  "text": "Tai Dotan Ben-Soussan"
+                },
+                {
+                  "key": "D",
+                  "text": "Eric pfeifer"
+                }
+              ],
+              "group": {
+                "id": "r-people-22-26",
+                "instruction": "Look at the following statements (Questions 22-26) and the list of people below.\n\nMatch each statement with the correct person, A, B, C or D.\n\nWrite the correct letter, A, B, C or D, in boxes 22-26 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "matching",
+              "prompt": "The trend towards creating quieter urban locations is likely to increase in the\ncoming years.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Nick Antonio"
+                },
+                {
+                  "key": "B",
+                  "text": "Justin Feinstein"
+                },
+                {
+                  "key": "C",
+                  "text": "Tai Dotan Ben-Soussan"
+                },
+                {
+                  "key": "D",
+                  "text": "Eric pfeifer"
+                }
+              ],
+              "group": {
+                "id": "r-people-22-26",
+                "instruction": "Look at the following statements (Questions 22-26) and the list of people below.\n\nMatch each statement with the correct person, A, B, C or D.\n\nWrite the correct letter, A, B, C or D, in boxes 22-26 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "matching",
+              "prompt": "When our body's senses are completely deprived of input, our minds compensate\nfor this by creating the illusion of images and sounds.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Nick Antonio"
+                },
+                {
+                  "key": "B",
+                  "text": "Justin Feinstein"
+                },
+                {
+                  "key": "C",
+                  "text": "Tai Dotan Ben-Soussan"
+                },
+                {
+                  "key": "D",
+                  "text": "Eric pfeifer"
+                }
+              ],
+              "group": {
+                "id": "r-people-22-26",
+                "instruction": "Look at the following statements (Questions 22-26) and the list of people below.\n\nMatch each statement with the correct person, A, B, C or D.\n\nWrite the correct letter, A, B, C or D, in boxes 22-26 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "Even a short amount of silent time can have a positive impact.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Nick Antonio"
+                },
+                {
+                  "key": "B",
+                  "text": "Justin Feinstein"
+                },
+                {
+                  "key": "C",
+                  "text": "Tai Dotan Ben-Soussan"
+                },
+                {
+                  "key": "D",
+                  "text": "Eric pfeifer"
+                }
+              ],
+              "group": {
+                "id": "r-people-22-26",
+                "instruction": "Look at the following statements (Questions 22-26) and the list of people below.\n\nMatch each statement with the correct person, A, B, C or D.\n\nWrite the correct letter, A, B, C or D, in boxes 22-26 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "External and internal quietness makes us more conscious of events occurring in\nour surroundings and helps us react appropriately to these events.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Nick Antonio"
+                },
+                {
+                  "key": "B",
+                  "text": "Justin Feinstein"
+                },
+                {
+                  "key": "C",
+                  "text": "Tai Dotan Ben-Soussan"
+                },
+                {
+                  "key": "D",
+                  "text": "Eric pfeifer"
+                }
+              ],
+              "group": {
+                "id": "r-people-22-26",
+                "instruction": "Look at the following statements (Questions 22-26) and the list of people below.\n\nMatch each statement with the correct person, A, B, C or D.\n\nWrite the correct letter, A, B, C or D, in boxes 22-26 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Book review:The World of Sugar by UlbeBosma",
+          "body": "Book review:The World of Sugar by\nUlbeBosma\n\nUlbe Bosma's The World of Sugar is a genuinely global history. Bosma discusses all the sugar-\ngrowing places of the world, beginning with Cuba and Java, the largest exporters of the early\n20th century. But this is a history not just of cane sugar but also of beet sugar, an equally\nimportant form of traded sugar over the last hundred years. Beet sugar is grown mainly in\nEurope and the United States. It has also been massively subsidised and sold at artificially low\nprices on world markets, threatening the livelihood of producers of cane sugar.\n\nBosma's discussion of the sugar market in Britain gives a sense of the book's range.\nThe sweet-toothed British first bought cane sugar from their own slavery-dependent\ncolonial plantations. Following the abolition of slavery in the British Empire, cane sugar\nwas imported to Britain from places which retained the practice, such as Cuba and\nBrazil. Towards the end of the 19th century, the British started to import beet sugar from\ncontinental Europe. Only in the 20th century was there a move to develop a national beet\nsugar industry.\n\nThe book provides a global labour history, investigating the wide range of labour regimes\nassociated with growing sugar. Contrary to popular belief, cane sugar production was never\njust restricted to large, dedicated plantations owned by rich men. For example, in Java, a\nhuge exporter of sugar in the early 20th century, sugar cane was grown together with rice in\nan extraordinarily labour-intensive way by small farmers.\n\nThe World of Sugar is also a story of similarity and continuity in sugar cultivation.\nFor example, imported labour has been used for much large-scale production. German beet\nfields employed Polish workers; Mexicans and many others, including Sicilians, were vital\nto US sugar production. Cane cutting, Bosma shows, remains a poorly paid and brutal\nbusiness to this day in many places in the world. But as well as this, the book is about the\ncontinuity of the use of traditional methods on small farms. In the mid 20th-century, this\ntype of sugar production dominated in South Asia and Latin America.\n\nThis is also a history of capitalists and sugar dynasties, as well as corporations that in\nsome cases have remained influential over very long periods. Great firms and great interests\nhave had profound influence on the policies of states. In many places - not just the British\nCaribbean but Cuba and the Philippines too - a powerful sugar bourgeoisie played a\nmajor role in politics and their interests were consequently protected by trade barriers and\nsubsidies. In the battle for control of the industry, it was inevitably the poor countries which\ncame off worse. All this is explored by Bosma with wonderful subtlety and control.\n\nBut sugar production was never just a matter of agriculture. It also involved the extraction,\nclose to the place of harvest, of sucrose from the sugar plant, a process which required\nmachinery powered by humans, animals, wind or steam. Further processes involved\nboiling (from the 19th century, this often involved vacuum systems) and the separation of\nsugar from other materials in a process known as refinement. From very early on, sugar\nproduction was an energy-intensive industrial process, mostly taking place in the countryside\nand in refineries in centres of consumption, both small and large. The growth of the industry\nentailed a very rapid diffusion of ideas and techniques from one country to another. Cuba,\nfor example, developed an extraordinarily dense system of railways to transport workers and\ncane, as well as steam-powered sugar factories. Particular varieties of cane sugar and beet\nsugar spread very rapidly across the world, in accordance with local needs and demands.\n\nWhere once only tiny quantities of sugar could be produced, now new techniques, varieties,\nfertilisers, irrigation systems and much more have turned gleaming white sugar into a\nubiquitous chemical. Over the same time, there has been a massive increase in consumption.\nOnce regarded as a luxury, sugar came to be promoted as a valuable source of energy. But as\nthe consumption of sugar has increased, so has the harm it does, whether to people's teeth\nor weight. In the face of appalling obstruction from the sugar industry to attempts to reduce\nconsumption, some countries have been forced to tax sugar in order to bring that about. The\nsugar industry has a history of attacking its critics and, when it comes to obesity, of trying\nto blame fats, and lack of exercise and self-control. And the recent past has seen worrying\nnew developments in mass sweetening. High-fructose corn syrup made from maize using an\nenzymatic process invented in Japan in the 1960s has a similar number of calories to table\nsugar but is far cheaper to produce. It is now widely consumed, having been adopted in the\nmaking of soft drinks and a large number of processed foods, and is regarded as a leading\ncause of obesity.\n\nThis is a wonderfully rich book, a model of global history, the history of production and\nthe history of capitalism. Bosma avoids outbursts of emotion, celebratory or critical, even\nif they might have made his analysis of the multiple tragedies involving sugar all the more\npowerful. He shows that we could always have done without sugar and that today we have\nmany alternative sources of sweetness. Yet many of the poorest people in the world still\ndepend on it to make a living.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "multiple-choice",
+              "prompt": "What does the reviewer suggest about the cultivation and trading of sugar in the\nfirst paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Sugar has played a major role in international relations."
+                },
+                {
+                  "key": "B",
+                  "text": "Beet sugar has been made more internationally competitive."
+                },
+                {
+                  "key": "C",
+                  "text": "Cane sugar is thought to be of superior quality to beet sugar."
+                },
+                {
+                  "key": "D",
+                  "text": "New locations for cultivating sugar have increased production."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "multiple-choice",
+              "prompt": "In the second paragraph, when discussing the sugar market in Britain, the\nreviewer stresses",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "how the sources used changed over time."
+                },
+                {
+                  "key": "B",
+                  "text": "how developments in agriculture affected trade."
+                },
+                {
+                  "key": "C",
+                  "text": "the increased demand for sugar over the years."
+                },
+                {
+                  "key": "D",
+                  "text": "the growing support for ethical methods of cultivation."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "What is the reviewer doing in the third paragraph?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "describing an efficient approach to sugar cultivation"
+                },
+                {
+                  "key": "B",
+                  "text": "explaining why the use of sugar plantations declined"
+                },
+                {
+                  "key": "C",
+                  "text": "addressing a misconception about the growing of sugar cane"
+                },
+                {
+                  "key": "D",
+                  "text": "evaluating different approaches to the cultivation of sugar cane"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "In the final paragraph, what does the reviewer suggest is the overall message of\nBosma's book?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Sugar is a harmful and unnecessary product."
+                },
+                {
+                  "key": "B",
+                  "text": "Economic pressure is needed to control sugar production."
+                },
+                {
+                  "key": "C",
+                  "text": "Conditions for workers in sugar production should be improved."
+                },
+                {
+                  "key": "D",
+                  "text": "Intensive marketing of sugar has had disastrous consequences."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "31 .............",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "national governments"
+                },
+                {
+                  "key": "B",
+                  "text": "agricultural developments"
+                },
+                {
+                  "key": "C",
+                  "text": "less wealthy nations"
+                },
+                {
+                  "key": "D",
+                  "text": "untrained workers"
+                },
+                {
+                  "key": "E",
+                  "text": "small-scale cultivation"
+                },
+                {
+                  "key": "F",
+                  "text": "outdated methods"
+                },
+                {
+                  "key": "G",
+                  "text": "financial controls"
+                },
+                {
+                  "key": "H",
+                  "text": "migrant workers"
+                },
+                {
+                  "key": "I",
+                  "text": "powerful individuals and businesses"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-36",
+                "instruction": "Complete the summary using the list of words, A-I, below.\n\nWrite the correct letter, A-I, in boxes 31-36 on your answer sheet.",
+                "title": "Sugar cultivation and production",
+                "text": "The book The World of Sugar points out the similarities in the way that sugar was\ncultivated around the world. In the big industries in both Germany and the US, sugar\nfarming depended on [31]    However, in other parts ofthe world such as South\nAsia and Latin America, [32] continued.\n\nSugar production has also involved [33] who were eager to protect their\nmarkets. In countries such as Cuba the sugar industry therefore had a major influence\non [34] .\n\nTo support the interests of sugar producers, [35]    were established. As a result\nof this, [36] were penalised."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "matching",
+              "prompt": "32 ............",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "national governments"
+                },
+                {
+                  "key": "B",
+                  "text": "agricultural developments"
+                },
+                {
+                  "key": "C",
+                  "text": "less wealthy nations"
+                },
+                {
+                  "key": "D",
+                  "text": "untrained workers"
+                },
+                {
+                  "key": "E",
+                  "text": "small-scale cultivation"
+                },
+                {
+                  "key": "F",
+                  "text": "outdated methods"
+                },
+                {
+                  "key": "G",
+                  "text": "financial controls"
+                },
+                {
+                  "key": "H",
+                  "text": "migrant workers"
+                },
+                {
+                  "key": "I",
+                  "text": "powerful individuals and businesses"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-36",
+                "instruction": "Complete the summary using the list of words, A-I, below.\n\nWrite the correct letter, A-I, in boxes 31-36 on your answer sheet.",
+                "title": "Sugar cultivation and production",
+                "text": "The book The World of Sugar points out the similarities in the way that sugar was\ncultivated around the world. In the big industries in both Germany and the US, sugar\nfarming depended on [31]    However, in other parts ofthe world such as South\nAsia and Latin America, [32] continued.\n\nSugar production has also involved [33] who were eager to protect their\nmarkets. In countries such as Cuba the sugar industry therefore had a major influence\non [34] .\n\nTo support the interests of sugar producers, [35]    were established. As a result\nof this, [36] were penalised."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "matching",
+              "prompt": "33 ............",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "national governments"
+                },
+                {
+                  "key": "B",
+                  "text": "agricultural developments"
+                },
+                {
+                  "key": "C",
+                  "text": "less wealthy nations"
+                },
+                {
+                  "key": "D",
+                  "text": "untrained workers"
+                },
+                {
+                  "key": "E",
+                  "text": "small-scale cultivation"
+                },
+                {
+                  "key": "F",
+                  "text": "outdated methods"
+                },
+                {
+                  "key": "G",
+                  "text": "financial controls"
+                },
+                {
+                  "key": "H",
+                  "text": "migrant workers"
+                },
+                {
+                  "key": "I",
+                  "text": "powerful individuals and businesses"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-36",
+                "instruction": "Complete the summary using the list of words, A-I, below.\n\nWrite the correct letter, A-I, in boxes 31-36 on your answer sheet.",
+                "title": "Sugar cultivation and production",
+                "text": "The book The World of Sugar points out the similarities in the way that sugar was\ncultivated around the world. In the big industries in both Germany and the US, sugar\nfarming depended on [31]    However, in other parts ofthe world such as South\nAsia and Latin America, [32] continued.\n\nSugar production has also involved [33] who were eager to protect their\nmarkets. In countries such as Cuba the sugar industry therefore had a major influence\non [34] .\n\nTo support the interests of sugar producers, [35]    were established. As a result\nof this, [36] were penalised."
+              },
+              "answerKey": {
+                "accepted": [
+                  "I"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "matching",
+              "prompt": "34 ............",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "national governments"
+                },
+                {
+                  "key": "B",
+                  "text": "agricultural developments"
+                },
+                {
+                  "key": "C",
+                  "text": "less wealthy nations"
+                },
+                {
+                  "key": "D",
+                  "text": "untrained workers"
+                },
+                {
+                  "key": "E",
+                  "text": "small-scale cultivation"
+                },
+                {
+                  "key": "F",
+                  "text": "outdated methods"
+                },
+                {
+                  "key": "G",
+                  "text": "financial controls"
+                },
+                {
+                  "key": "H",
+                  "text": "migrant workers"
+                },
+                {
+                  "key": "I",
+                  "text": "powerful individuals and businesses"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-36",
+                "instruction": "Complete the summary using the list of words, A-I, below.\n\nWrite the correct letter, A-I, in boxes 31-36 on your answer sheet.",
+                "title": "Sugar cultivation and production",
+                "text": "The book The World of Sugar points out the similarities in the way that sugar was\ncultivated around the world. In the big industries in both Germany and the US, sugar\nfarming depended on [31]    However, in other parts ofthe world such as South\nAsia and Latin America, [32] continued.\n\nSugar production has also involved [33] who were eager to protect their\nmarkets. In countries such as Cuba the sugar industry therefore had a major influence\non [34] .\n\nTo support the interests of sugar producers, [35]    were established. As a result\nof this, [36] were penalised."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "matching",
+              "prompt": "35 ............",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "national governments"
+                },
+                {
+                  "key": "B",
+                  "text": "agricultural developments"
+                },
+                {
+                  "key": "C",
+                  "text": "less wealthy nations"
+                },
+                {
+                  "key": "D",
+                  "text": "untrained workers"
+                },
+                {
+                  "key": "E",
+                  "text": "small-scale cultivation"
+                },
+                {
+                  "key": "F",
+                  "text": "outdated methods"
+                },
+                {
+                  "key": "G",
+                  "text": "financial controls"
+                },
+                {
+                  "key": "H",
+                  "text": "migrant workers"
+                },
+                {
+                  "key": "I",
+                  "text": "powerful individuals and businesses"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-36",
+                "instruction": "Complete the summary using the list of words, A-I, below.\n\nWrite the correct letter, A-I, in boxes 31-36 on your answer sheet.",
+                "title": "Sugar cultivation and production",
+                "text": "The book The World of Sugar points out the similarities in the way that sugar was\ncultivated around the world. In the big industries in both Germany and the US, sugar\nfarming depended on [31]    However, in other parts ofthe world such as South\nAsia and Latin America, [32] continued.\n\nSugar production has also involved [33] who were eager to protect their\nmarkets. In countries such as Cuba the sugar industry therefore had a major influence\non [34] .\n\nTo support the interests of sugar producers, [35]    were established. As a result\nof this, [36] were penalised."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "matching",
+              "prompt": "36 ............",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "national governments"
+                },
+                {
+                  "key": "B",
+                  "text": "agricultural developments"
+                },
+                {
+                  "key": "C",
+                  "text": "less wealthy nations"
+                },
+                {
+                  "key": "D",
+                  "text": "untrained workers"
+                },
+                {
+                  "key": "E",
+                  "text": "small-scale cultivation"
+                },
+                {
+                  "key": "F",
+                  "text": "outdated methods"
+                },
+                {
+                  "key": "G",
+                  "text": "financial controls"
+                },
+                {
+                  "key": "H",
+                  "text": "migrant workers"
+                },
+                {
+                  "key": "I",
+                  "text": "powerful individuals and businesses"
+                }
+              ],
+              "group": {
+                "id": "r-summary-31-36",
+                "instruction": "Complete the summary using the list of words, A-I, below.\n\nWrite the correct letter, A-I, in boxes 31-36 on your answer sheet.",
+                "title": "Sugar cultivation and production",
+                "text": "The book The World of Sugar points out the similarities in the way that sugar was\ncultivated around the world. In the big industries in both Germany and the US, sugar\nfarming depended on [31]    However, in other parts ofthe world such as South\nAsia and Latin America, [32] continued.\n\nSugar production has also involved [33] who were eager to protect their\nmarkets. In countries such as Cuba the sugar industry therefore had a major influence\non [34] .\n\nTo support the interests of sugar producers, [35]    were established. As a result\nof this, [36] were penalised."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "yes-no-notgiven",
+              "prompt": "Sugar has now become available in large quantities due to a range of agricultural\ndevelopments.",
+              "group": {
+                "id": "r-y-nng-37-40",
+                "instruction": "Do the following     statements agree with the views of the writer in Reading Passage 3?\n\nIn boxes 37-40 on your answer sheet, write\n\nYES               if the statement agrees with the views of the writer\nNO                if the statement contradicts the views of the writer\nNOT GIVEN         if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "yes-no-notgiven",
+              "prompt": "Advertisers   initially marketed sugar as a luxury product.",
+              "group": {
+                "id": "r-y-nng-37-40",
+                "instruction": "Do the following     statements agree with the views of the writer in Reading Passage 3?\n\nIn boxes 37-40 on your answer sheet, write\n\nYES               if the statement agrees with the views of the writer\nNO                if the statement contradicts the views of the writer\nNOT GIVEN         if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "yes-no-notgiven",
+              "prompt": "The invention of high-fructose     corn syrup was a positive development.",
+              "group": {
+                "id": "r-y-nng-37-40",
+                "instruction": "Do the following     statements agree with the views of the writer in Reading Passage 3?\n\nIn boxes 37-40 on your answer sheet, write\n\nYES               if the statement agrees with the views of the writer\nNO                if the statement contradicts the views of the writer\nNOT GIVEN         if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "yes-no-notgiven",
+              "prompt": "High-fructose    corn syrup is an ingredient in many processed foods.",
+              "group": {
+                "id": "r-y-nng-37-40",
+                "instruction": "Do the following     statements agree with the views of the writer in Reading Passage 3?\n\nIn boxes 37-40 on your answer sheet, write\n\nYES               if the statement agrees with the views of the writer\nNO                if the statement contradicts the views of the writer\nNOT GIVEN         if it is impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "criteria": {
+    "taskResponse": {
+      "band": 6.3,
+      "feedback": "This malformed fixture deliberately uses an invalid band to prove server refusal.",
+      "evidence": ["invalid band test"]
+    },
+    "coherenceAndCohesion": {
+      "band": 6,
+      "feedback": "Placeholder.",
+      "evidence": ["placeholder"]
+    },
+    "lexicalResource": {
+      "band": 6,
+      "feedback": "Placeholder.",
+      "evidence": ["placeholder"]
+    },
+    "grammaticalRangeAndAccuracy": {
+      "band": 6,
+      "feedback": "Placeholder.",
+      "evidence": ["placeholder"]
+    }
+  },
+  "sectionBand": 6,
+  "summary": "Invalid fixture for negative testing."
+}

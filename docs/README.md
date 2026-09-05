@@ -32,7 +32,7 @@ Every requirement, decision, and technology choice carries **exactly one** of fo
 
 **No qualifiers.** `CONFIRMED (business intent)` and `EXISTING (design)` are not valid. Nuance belongs in a **Note** column, never in the status itself.
 
-### `EXISTING` — deliberately narrow, because this repository has no source code
+### `EXISTING` — deliberately narrow, and now verifiable against code
 
 `EXISTING` applies to exactly two things, both verifiable:
 
@@ -45,13 +45,18 @@ Every requirement, decision, and technology choice carries **exactly one** of fo
 
 ### Documented is not implemented
 
-> This repository contains **no product source code**. Therefore:
+> **Corrected 2026-08-27.** This section used to open *"this repository contains no product source code"*, which stopped being true during Phase 4 and then went on being read as canonical. It is the most expensive kind of stale sentence: it lives in the document that defines how every other document is read.
+>
+> There is now a great deal of source code, and the rule it replaces is stricter rather than looser:
 >
 > - an **architecture document** is not evidence of implementation;
 > - an **ADR** is not evidence of a business requirement;
-> - a **prototype** is not a production implementation.
+> - a **prototype** is not a production implementation;
+> - and **a passing test is not evidence the feature works**, if the test and the feature agree on a contract nobody else keeps.
 >
-> With no source code to verify against, never describe a capability as *built*. State which it is: an owner-confirmed requirement, existing prototype behaviour, an existing accepted architectural decision, or proposed architecture.
+> That last one was learned the hard way. On 2026-08-27 the learner app and the marker each had passing tests: one proved the client spells a multi-select answer `"A|C"`, the other proved the marker accepts `"A,C"`. Both were true, both suites were green, and every "Choose TWO letters" question in the catalogue was marked wrong.
+>
+> So: never describe a capability as *built* from a document. Read the code, and prefer the test that crosses a boundary to the two that do not.
 
 ### Sourcing rule for `CONFIRMED`
 
@@ -83,7 +88,7 @@ When sources disagree, higher wins:
 8. Deprecated working notes            ← no authority
 ```
 
-**Tier 1 — decisions made in session.** When the owner states a new decision mid-conversation, it carries the authority of tier 2 and **must be written into the documentation before work continues**. A decision that lives only in chat history does not exist.
+**Tier 1 — decisions made in session.** When the owner states a new decision mid-conversation, it is tier 1 — the highest authority — and **must be written into the documentation before work continues**. A decision that lives only in chat history does not exist.
 
 **Tier 6 — third-party reviews.** A review document forwarded by the owner with "take a look at this" is a set of suggestions, not requirements. Its items default to **UNCONFIRMED** until the owner rules on them.
 
@@ -105,6 +110,13 @@ Every unresolved item carries exactly one tag. Never resolve an ambiguity silent
 | `[TECHNICAL RISK]` | A known technical hazard with a described mitigation. | Engineering |
 | `[BUSINESS DECISION]` | Not an engineering question. Requires a policy or commercial choice. | Product owner |
 
+Two further markers record **history**, not open work:
+
+| Marker | Meaning |
+|---|---|
+| `[SUPERSEDED <date>]` | A higher-precedence source overrode this item. The item is kept, per § Source precedence |
+| `[NEEDS RE-CONFIRMATION <date>]` | A newer owner statement addressed the same subject but said less; the older detail awaits restating by the owner rather than assumed continuity |
+
 All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 **[`requirements/assumptions-and-open-questions.md`](requirements/assumptions-and-open-questions.md)** — that file is the product owner's action list.
 
@@ -115,6 +127,7 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 ### Product — what and why
 - [`product/executive-summary.md`](product/executive-summary.md) — what the product is, what is technically hard, what is unknown
 - [`product/vision-and-scope.md`](product/vision-and-scope.md) — the four module groups, scope boundaries, non-goals
+- [`product/four-skills-practice-and-mock-research.md`](product/four-skills-practice-and-mock-research.md) — current research for part/full-skill practice, four-skill mock, scoring, AI/voice providers, required APIs and the gate before implementation planning
 - [`product/competitor-edly.md`](product/competitor-edly.md) — nearest competitor; three learner modules worth considering
 - [`product/web-demo-feature-map.md`](product/web-demo-feature-map.md) — prototype web vs confirmed scope (features and flows, not visuals)
 
@@ -151,23 +164,35 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 - [`security/zip-ingestion-security.md`](security/zip-ingestion-security.md) — secure ZIP processing
 - [`security/ai-security.md`](security/ai-security.md) — prompt injection, output validation, data leakage
 - [`security/privacy-vietnam-pdpl.md`](security/privacy-vietnam-pdpl.md) — Vietnamese data protection compliance
+- [`security/object-storage-r2-setup.md`](security/object-storage-r2-setup.md) — R2 bucket, CORS and lifecycle for Speaking recordings
 
 ### UX
-- [`ux/DESIGN.md`](ux/DESIGN.md) — design language. Direction **C · Soft Card** confirmed 2026-08-20; tokens, 4px spacing scale, type scale, and the four product laws all CONFIRMED
+- [`ux/DESIGN.md`](ux/DESIGN.md) — design language. Direction **C · Soft Card** CONFIRMED 2026-08-20; tokens, spacing/type scale, and the four product laws are binding engineering constraints held at `PROPOSED` — bundled owner confirmation due at requirement freeze
+- [`ux/practice-entry-test-flow.md`](ux/practice-entry-test-flow.md) — the choice layer at the entrance to four-skills practice (`E-15`…`E-19`): every state of the layer, both exits, and what the result screen may state while `H-4` and `B-2` are open. Surfaces `B-12` · `M-34`…`M-37`
+- [`ux/practice-mode.md`](ux/practice-mode.md) — **Luyện đề vs Thi thử** (`E-20`…`E-32`, owner instruction 2026-08-27): the rules that separate the two modes, the practice header/footer component contract, the Listening practice and review screens, the Reading split view, and five recorded conflicts. Narrows `B-8` for the Reading and Listening screens. Surfaces `B-13` · `M-38`…`M-44`
 - [`ux/cms-spec.md`](ux/cms-spec.md) — Admin CMS screens, states, permission matrix, import and AI-inspection flows
+- [`ux/cms-content-operations.md`](ux/cms-content-operations.md) — the CMS as the platform's content-operations system: content model, the unified draft → review → approve → publish lifecycle, the permission and role model behind it, and the authoring workspace. Role and lifecycle decisions confirmed 2026-08-24; the schema and screen proposals are `PROPOSED`
 - A clickable HTML prototype lives **outside this repo**: `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — `client/` (21 screens) and `admin/` (14 screens). Feature comparison: [`product/web-demo-feature-map.md`](product/web-demo-feature-map.md).
 
 > The four Claude Design prompt/audit files that used to live in `ux/` were **deleted on 2026-08-20**. They targeted a discontinued canvas project and had become the largest source of misdirection in the repository.
 
 ### API
 - [`api/api-design-principles.md`](api/api-design-principles.md) — versioning, errors, idempotency, pagination
+- [`api/sso-contract.md`](api/sso-contract.md) — social sign-in, as the client sees it: four endpoints and every error code
 
 ### Development
-- **[`development/next-actions.md`](development/next-actions.md) — ▶ the current task queue. Start here.**
+- **[`development/infrastructure-foundation-todolist.md`](development/infrastructure-foundation-todolist.md) — ▶ current Foundation infrastructure queue. Start here for infrastructure work.**
+- [`development/infrastructure-foundation-report.md`](development/infrastructure-foundation-report.md) — live per-phase evidence and final Foundation report
+- [`development/four-skills-functional-core-todolist.md`](development/four-skills-functional-core-todolist.md) — executable `FS0…FS9` plan for part/full practice, mock, AI explanations, Writing AI and Speaking recording/R2; Speaking AI remains an explicit deferred backlog
+- [`development/four-skills-functional-core-report.md`](development/four-skills-functional-core-report.md) — per-phase evidence template and final capability report for the four-skills queue
+- [`development/next-actions.md`](development/next-actions.md) — historical `T0…T7` and `A1…A21` task record
 - [`development/ai-assisted-development.md`](development/ai-assisted-development.md) — Claude Code + Cursor setup and division of labour
 - [`development/agent-orchestration.md`](development/agent-orchestration.md) — who owns what, what runs in parallel
 - [`development/skill-inventory.md`](development/skill-inventory.md) — classified plugin/skill inventory
+- [`development/sso-provider-setup.md`](development/sso-provider-setup.md) — registering the Google OAuth client and loading the keys
 - [`development/nfr.md`](development/nfr.md) — non-functional requirements, MVP vs. future scale
+- [`development/backup-and-restore.md`](development/backup-and-restore.md) — backup, khôi phục, và bài diễn tập đã chạy thật
+- [`development/infrastructure-completion-report.md`](development/infrastructure-completion-report.md) — historical report for the superseded `I0…I7` gate
 - [`development/roadmap.md`](development/roadmap.md) — phase plan
 
 ### Decisions — Architecture Decision Records
@@ -178,7 +203,7 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 | [0002](decisions/0002-client-capacitor-react.md) | Clients on Capacitor 8 + React + TypeScript | Accepted — re-evaluated 2026-08-20, unchanged |
 | [0003](decisions/0003-database-mongodb-first-postgresql-target.md) | MongoDB for Phase 1, PostgreSQL as target | Accepted |
 | [0004](decisions/0004-persistence-abstraction-boundary.md) | One strict persistence boundary, not full Clean Architecture | Accepted |
-| [0005](decisions/0005-ai-provider-abstraction.md) | **AI provider deferred; port abstraction mandatory** | Accepted (provider deferred) |
+| [0005](decisions/0005-ai-provider-abstraction.md) | **AI port abstraction mandatory** — the provider deferral was resolved 2026-08-20: GPT + Gemini, see S-5 | Accepted |
 | [0006](decisions/0006-speaking-audio-capture-native-plugin.md) | Speaking capture via native plugin, not WebView `MediaRecorder` | Accepted |
 | [0007](decisions/0007-server-authoritative-exam-timer.md) | Server-authoritative exam timing | Accepted |
 | [0008](decisions/0008-exam-package-format-v1.md) | Exam package format v1 | Accepted |

@@ -1,0 +1,71 @@
+/*
+ * The breadcrumb trail.
+ *
+ * <b>A shared component's styles cannot live in one page's stylesheet.</b>
+ * These rules were in `practice.css`, while `Breadcrumb` is rendered by
+ * `/articles`, `/documents` and `/dictation/:setId` as well — none of which
+ * import that file. It worked only because `App.tsx` imports every page
+ * eagerly, so all the CSS is in one bundle on every route; the first
+ * `React.lazy` anyone adds would have stripped the trail on three pages and
+ * left it on the fourth.
+ *
+ * The component imports this itself, so the two travel together.
+ */
+/* ── Breadcrumb ─────────────────────────────────────────────────────────── */
+
+.crumbs {
+  border-bottom: 1px solid rgb(229 229 229 / 60%);
+  background: #fff;
+}
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  /* 14px is the floor for Vietnamese diacritics and it applies here too, even
+     though a breadcrumb is the least-read row on the page. */
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+/*
+ * The separator is drawn, not typed — but drawn is not the same as silent.
+ *
+ * Chrome exposes `::before` content to the accessibility tree, so `content:
+ * '›'` was announced between every crumb exactly like the literal character it
+ * replaced. The `/ ''` suffix is CSS alt text: it gives the generated content
+ * an empty accessible name.
+ */
+.crumbs li + li::before {
+  content: '›' / '';
+  margin-right: 6px;
+  color: #9aa39b;
+}
+/* #5f675f on white measures 5.85. */
+.crumbs a {
+  color: #5f675f;
+}
+/*
+ * 30px of target, not 19.
+ *
+ * WCAG 2.5.8 asks for 24×24 at AA; the 44px this project uses elsewhere would
+ * make the breadcrumb taller than the hero's eyebrow, which is the one thing
+ * the brief says this row must not do. The padding buys the AA minimum and
+ * keeps the row at 38px overall.
+ */
+.crumbs a,
+.crumbs [aria-current='page'] {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+}
+.crumbs a:hover {
+  color: #1e7a3c;
+  text-decoration: underline;
+}
+.crumbs [aria-current='page'] {
+  color: #1c211d;
+}

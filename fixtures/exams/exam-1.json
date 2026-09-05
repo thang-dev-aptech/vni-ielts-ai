@@ -1,0 +1,2346 @@
+{
+  "formatVersion": "1.0",
+  "title": "Đề 1 — Full 4 kỹ năng",
+  "variant": "academic",
+  "description": "Đề đầy đủ bốn kỹ năng: Reading, Listening, Writing, Speaking. Thi thử full sẽ đi hết bốn kỹ năng trong một phiên theo đúng thứ tự phòng thi; hoặc chọn lẻ từng kỹ năng nếu bạn chỉ có 20–60 phút. Reading và Listening chấm ngay theo đáp án, Writing do AI chấm theo bốn tiêu chí IELTS.",
+  "timingProfile": {
+    "sections": {
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      },
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "writing": {
+        "durationSeconds": 3600
+      },
+      "speaking": {
+        "parts": [
+          {
+            "part": 1,
+            "responseSeconds": 300
+          },
+          {
+            "part": 2,
+            "prepSeconds": 60,
+            "responseSeconds": 120
+          },
+          {
+            "part": 3,
+            "responseSeconds": 300
+          }
+        ]
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "Leatherback Turtles",
+          "body": "**A**  Leatherback turtles follow the general sea turtle body plan of having a large, flattened, round body with two pairs of very large flippers and a short tail. Like other sea turtles, the leatherback's flattened forelimbs are adapted for swimming in the open ocean. Claws are absent from both pairs of flippers. The Leatherback's flippers are the largest in proportion to its body among extant sea turtles. Leatherback's front flippers can grow up to 2.7 meters (9 ft) in large specimens, the largest flippers (even in comparison to its body) of any sea turtle. As the last surviving member of its family, the leatherback turtle has several distinguishing characteristics that differentiate it from other sea turtles. Its most notable feature is that it lacks the bony carapace of the other extant sea turtles.\n\n**B**  During the past month, four turtles have washed up along Irish coasts from Wexford to Kerry. These turtles are more typical of warmer waters and only occur in Irish waters when they stray off course. It is likely that they may have originated from Florida, America. Two specimens have been taken to Coastal and Marine Resources Centre (stored at the National Maritime College), University College Cork, where a necropsy (post mortem for animals) will be conducted to establish their age, sex and their exact origin. During this same period, two leatherback turtles were found in Scotland, and a rare Kemp's Ridley turtle was found in Wales, thus making it an exceptional month for stranded turtles in Ireland and the UK.\n\n**C**  Actually, There has been extensive research conducted regarding the sea turtles' abilities to return to their nesting regions and sometimes exact locations from hundreds of miles away. In the water, their path is greatly affected by powerful currents. Despite their limited vision, and lack of landmarks in the open water, turtles are able to retrace their migratory paths. Some explanations of this phenomenon have found that sea turtles can detect the angle and intensity of the earth's magnetic fields.\n\n**D**  However, Loggerhead turtles are not normally found in Irish waters, because water temperatures here are far too cold for their survival. Instead, adult loggerheads prefer the warmers waters of the Mediterranean, the Caribbean and North America's east coast. The four turtles that were found have probably originated from the North American population of loggerheads. However it will require genetic analysis to confirm this assumption. It is thought that after leaving their nesting beach as hatchlings (when they measure 4.5 cm in length), these tiny turtles enter the North Atlantic Gyre (a giant circular ocean current) that takes them from America, across to Europe (Azores area), down towards North Africa, before being transported back again to America via a different current. This remarkable round trip may take many years during which these tiny turtles grow by several centimetres a year. Loggerheads may circulate around the North Atlantic several times before they settle in the coastal waters of Florida or the Caribbean.\n\n**E**  These four turtles were probably on their way around the Atlantic when they strayed a bit too far north from the Gulf Stream. Once they did, their fate was sealed, as the cooler waters of the North East Atlantic are too cold for loggerheads (unlike leatherback turtles which have many anatomical and physiological adaptations to enable them to swim in our seas). Once in cool waters, the body of a loggerhead begins to shut down as they get 'cold stunned', then get hypothermia and die.\n\n**F**  Leatherbacks are in immanent danger of extinction. A critical factor (among others) is the harvesting of eggs from nests. Valued as a food delicacy, Leatherback eggs are falsely touted to have aphrodisiacal properties in some cultures. The leatherback, unlike the Green Sea turtle, is not often killed for its meat; however, the increase in human populations coupled with the growing black market trade has escalated their egg depletion. Other critical factors causing the leatherbacks' decline are pollution such as plastics (leatherbacks eat this debris thinking it is jellyfish; fishing practices such as longline fishing and gill nets, and development on habitat areas. Scientists have estimated that there are only about 35,000 Leatherback turtles in the world.\n\n**G**  We are often unable to understand the critical impact a species has on the environment—that is, until that species becomes extinct. Even if we do not know the role a creature plays in the health of the environment, past lessons have taught US enough to know that every animal and plant is one important link in the integral chain of nature. Some scientists now speculate that the Leatherback may play an important role in the recovery of diminishing fish populations. Since the Leatherback consumes its weight in jellyfish per day, it helps to keep Jellyfish populations in check. Jellyfish consume large quantities of fish larvae. The rapid decline in Leatherback populations over the last 50 years has been accompanied by a significant increase in jellyfish and a marked decrease in fish in our oceans. Saving sea turtles is an International endeavor.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "matching",
+              "prompt": "Choose the most suitable heading for paragraph B.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Sea turtles are found in unusual locations"
+                },
+                {
+                  "key": "ii",
+                  "text": "Unique features of the Leatherbacks"
+                },
+                {
+                  "key": "iii",
+                  "text": "The Leatherback's contribution"
+                },
+                {
+                  "key": "iv",
+                  "text": "Methods used for routes tracking"
+                },
+                {
+                  "key": "v",
+                  "text": "Predict the migration routes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Remains multiplicity within the species"
+                },
+                {
+                  "key": "vii",
+                  "text": "The progress of hatching"
+                },
+                {
+                  "key": "viii",
+                  "text": "The fate of the lost turtles"
+                },
+                {
+                  "key": "ix",
+                  "text": "How trips suppose to look like?"
+                },
+                {
+                  "key": "x",
+                  "text": "Factors leading to population decline"
+                }
+              ],
+              "group": {
+                "id": "r-headings-1-6",
+                "instruction": "Choose the most suitable headings for paragraphs B–G from the list of headings below. NB There are more headings than paragraphs, so you will not use them all."
+              },
+              "answerKey": {
+                "accepted": [
+                  "i"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "matching",
+              "prompt": "Choose the most suitable heading for paragraph C.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Sea turtles are found in unusual locations"
+                },
+                {
+                  "key": "ii",
+                  "text": "Unique features of the Leatherbacks"
+                },
+                {
+                  "key": "iii",
+                  "text": "The Leatherback's contribution"
+                },
+                {
+                  "key": "iv",
+                  "text": "Methods used for routes tracking"
+                },
+                {
+                  "key": "v",
+                  "text": "Predict the migration routes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Remains multiplicity within the species"
+                },
+                {
+                  "key": "vii",
+                  "text": "The progress of hatching"
+                },
+                {
+                  "key": "viii",
+                  "text": "The fate of the lost turtles"
+                },
+                {
+                  "key": "ix",
+                  "text": "How trips suppose to look like?"
+                },
+                {
+                  "key": "x",
+                  "text": "Factors leading to population decline"
+                }
+              ],
+              "group": {
+                "id": "r-headings-1-6",
+                "instruction": "Choose the most suitable headings for paragraphs B–G from the list of headings below. NB There are more headings than paragraphs, so you will not use them all."
+              },
+              "answerKey": {
+                "accepted": [
+                  "iv"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "matching",
+              "prompt": "Choose the most suitable heading for paragraph D.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Sea turtles are found in unusual locations"
+                },
+                {
+                  "key": "ii",
+                  "text": "Unique features of the Leatherbacks"
+                },
+                {
+                  "key": "iii",
+                  "text": "The Leatherback's contribution"
+                },
+                {
+                  "key": "iv",
+                  "text": "Methods used for routes tracking"
+                },
+                {
+                  "key": "v",
+                  "text": "Predict the migration routes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Remains multiplicity within the species"
+                },
+                {
+                  "key": "vii",
+                  "text": "The progress of hatching"
+                },
+                {
+                  "key": "viii",
+                  "text": "The fate of the lost turtles"
+                },
+                {
+                  "key": "ix",
+                  "text": "How trips suppose to look like?"
+                },
+                {
+                  "key": "x",
+                  "text": "Factors leading to population decline"
+                }
+              ],
+              "group": {
+                "id": "r-headings-1-6",
+                "instruction": "Choose the most suitable headings for paragraphs B–G from the list of headings below. NB There are more headings than paragraphs, so you will not use them all."
+              },
+              "answerKey": {
+                "accepted": [
+                  "ix"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "matching",
+              "prompt": "Choose the most suitable heading for paragraph E.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Sea turtles are found in unusual locations"
+                },
+                {
+                  "key": "ii",
+                  "text": "Unique features of the Leatherbacks"
+                },
+                {
+                  "key": "iii",
+                  "text": "The Leatherback's contribution"
+                },
+                {
+                  "key": "iv",
+                  "text": "Methods used for routes tracking"
+                },
+                {
+                  "key": "v",
+                  "text": "Predict the migration routes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Remains multiplicity within the species"
+                },
+                {
+                  "key": "vii",
+                  "text": "The progress of hatching"
+                },
+                {
+                  "key": "viii",
+                  "text": "The fate of the lost turtles"
+                },
+                {
+                  "key": "ix",
+                  "text": "How trips suppose to look like?"
+                },
+                {
+                  "key": "x",
+                  "text": "Factors leading to population decline"
+                }
+              ],
+              "group": {
+                "id": "r-headings-1-6",
+                "instruction": "Choose the most suitable headings for paragraphs B–G from the list of headings below. NB There are more headings than paragraphs, so you will not use them all."
+              },
+              "answerKey": {
+                "accepted": [
+                  "viii"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "matching",
+              "prompt": "Choose the most suitable heading for paragraph F.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Sea turtles are found in unusual locations"
+                },
+                {
+                  "key": "ii",
+                  "text": "Unique features of the Leatherbacks"
+                },
+                {
+                  "key": "iii",
+                  "text": "The Leatherback's contribution"
+                },
+                {
+                  "key": "iv",
+                  "text": "Methods used for routes tracking"
+                },
+                {
+                  "key": "v",
+                  "text": "Predict the migration routes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Remains multiplicity within the species"
+                },
+                {
+                  "key": "vii",
+                  "text": "The progress of hatching"
+                },
+                {
+                  "key": "viii",
+                  "text": "The fate of the lost turtles"
+                },
+                {
+                  "key": "ix",
+                  "text": "How trips suppose to look like?"
+                },
+                {
+                  "key": "x",
+                  "text": "Factors leading to population decline"
+                }
+              ],
+              "group": {
+                "id": "r-headings-1-6",
+                "instruction": "Choose the most suitable headings for paragraphs B–G from the list of headings below. NB There are more headings than paragraphs, so you will not use them all."
+              },
+              "answerKey": {
+                "accepted": [
+                  "x"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "matching",
+              "prompt": "Choose the most suitable heading for paragraph G.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Sea turtles are found in unusual locations"
+                },
+                {
+                  "key": "ii",
+                  "text": "Unique features of the Leatherbacks"
+                },
+                {
+                  "key": "iii",
+                  "text": "The Leatherback's contribution"
+                },
+                {
+                  "key": "iv",
+                  "text": "Methods used for routes tracking"
+                },
+                {
+                  "key": "v",
+                  "text": "Predict the migration routes"
+                },
+                {
+                  "key": "vi",
+                  "text": "Remains multiplicity within the species"
+                },
+                {
+                  "key": "vii",
+                  "text": "The progress of hatching"
+                },
+                {
+                  "key": "viii",
+                  "text": "The fate of the lost turtles"
+                },
+                {
+                  "key": "ix",
+                  "text": "How trips suppose to look like?"
+                },
+                {
+                  "key": "x",
+                  "text": "Factors leading to population decline"
+                }
+              ],
+              "group": {
+                "id": "r-headings-1-6",
+                "instruction": "Choose the most suitable headings for paragraphs B–G from the list of headings below. NB There are more headings than paragraphs, so you will not use them all."
+              },
+              "answerKey": {
+                "accepted": [
+                  "iii"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "short-answer",
+              "prompt": "How many Leatherback turtles are there in the world?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "35,000",
+                  "35000",
+                  "35 000"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "short-answer",
+              "prompt": "What is the most noticeable difference between other sea turtles and leatherbacks?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "the bony carapace"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "short-answer",
+              "prompt": "What causes loggerhead turtles to die in Irish waters?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "cold waters",
+                  "cool waters",
+                  "the cooler waters",
+                  "cold water",
+                  "low temperature",
+                  "temperature"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "short-answer",
+              "prompt": "Where did the four turtles probably come from?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "Florida, America",
+                  "the North American"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "short-answer",
+              "prompt": "By which means can sea turtles retrace their migratory paths?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "magnetic fields",
+                  "detecting magnetic fields"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "short-answer",
+              "prompt": "For what purpose are Green Sea turtles killed by people?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "its meat",
+                  "for its meat"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "short-answer",
+              "prompt": "What kind of species will benefit from a decline in Leatherback populations?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "jellyfish"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Thoughtful Computing System",
+          "body": "**A**  \"YOUR BATTERY IS NOW FULLY CHARGED,\" ANNOUNCED THE LAPTOP COMPUTER to its owner, Donald A. Norman, with enthusiasm—perhaps even a hint of pride? in its synthetic voice. To be sure, distractions and multitasking are hardly new to the human condition. \"A complicated life, continually interrupted by competing requests for attention, is as old as procreation,\" laughs Ted Selker of the Massachusetts Institute of Technology Media Lab. But increasingly, it is not just our kids pulling us three ways at once; it is also a relentless barrage of e-mail, alerts, alarms, calls, instant messages and automated notifications, none of them coordinated and all of them oblivious to whether we are busy—or even present. \"It's ridiculous that my own computer can't figure out whether I'm in front of it, but a public toilet can,\" exclaims Roel Vertegaal of Queen's University in Ontario.\n\n**B**  Humanity has connected itself through roughly three billion networked telephones, computers, traffic lights—even refrigerators and picture frames—because these things make life more convenient and keep US available to those we care about. So although we could simply turn off the phones, close the e-mail program, and shut the office door when it is time for a meeting or a stretch of concentrated work, we usually don't. We just endure the consequences.\n\n**C**  Numerous studies have shown that when people are unexpectedly interrupted, they not only work less efficiently but also make more mistakes. \"It seems to add cumulatively to a feeling of frustration,\" Picard reports, and that stress response makes it hard to regain focus. It isn't merely a matter of productivity and the pace of life. For pilots, drivers, soldiers and doctors, errors of inattention can be downright dangerous. \"If we could just give our computers and phones some understanding of the limits of human attention and memory, it would make them seem a lot more thoughtful and courteous,\" says Eric Horvitz of Microsoft Research. Horvitz, Vertegaal, Selker and Picard are among a small but growing number of researches trying to teach computers, phones, care and other gadgets to behave less like egocentric oafs and more like considerate colleagues.\n\n**D**  \"Attentive\" computing systems have begun appearing in newer Volvos and IBM has introduced Websphere communications software with a basic busyness sense. Microsoft has beat running extensive in-house tests of a much more sophisticated system since 2003. Within a few years, companies may be able to offer every office worker a software version of the personal receptionist that only corner-suite executives enjoy today. But if such an offer should land in your inbox, be sure to read the print before you sign. An attentive system, by definition, is one that is always watching. That considerate computer may come to know more about your work habits than you do.\n\n**E**  Most people aren't as busy as they think they are, which is why we can usually tolerate interruptions from our inconsiderate electronic paraphernalia. James Fogarty and Scott E. Hudson of Carnegie Mellon University recently teamed up with Jennifer Lai of IBM Research to study 10 managers, researchers and interns at work. They videotaped the subjects and periodically had them rate then \"interruptibility.\" The amount of time the workers spent in leave-me-alone mode varied from person to person and day to day, ranging from 10 to 51 percent. On average, the subjects wanted to work without interruption about one third of the time. In studies of Microsoft employees, Horvitz has similarly found that they typically spend more than 65 percent of their day in a state of low attention.\n\n**F**  Today's phones and computers, which naively assume that the user is never too busy to take a call, read an email, or click \"OK\" on an alert box, thus are probably correct about two thirds of time. To be useful, then, considerate systems will have to be more than 65 percent accurate in sensing when their users are near their cognitive limits.\n\n**G**  Bestcom/Enhanced Telephony, a Microsoft prototype based on Horvitz's work, digs a little deeper into each user's computer to find clues about what they are up to. Microsoft launched an internal beta test of the system in mid-2003. By last October, Horvitz says, about 3,800 people were using the system to field their incoming phone calls.\n\n**H**  Horvitz himself is one of those testers, and while we talk in his office in Redmond, Wash, Bestcom silently handles one call after another. First it checks whether the caller is listed in his address book, the company directory, or its log of people he has called recently. Triangulating these sources, it tries to deduce their relationship. Family members, supervisors and people he called earlier today ring through Others see a message on their computer that he is in a meeting and won't be available until 3 PM. The system scans Horvitz's and the caller's calendar and offers to reschedule the call at a time that is open for both Some callers choose that option; others leave voice mail. E-mail messages get a similar screening. When Horvitz is out of the office, Bestcom automatically offers to forward selected callers to his cellphone—unless his calendar and other evidence suggest that he is in a meeting.\n\n**I**  Most large companies already use computerized phone systems and standard calendar and contact management software, so tapping into those \"sensors\" should be straightforward. Not all employees will like the idea of having a microphone on all the time in them office, however, nor will everyone want to expose them datebook to some program they do not ultimately control. Moreover, some managers might be tempted to equate a \"state of low attention\" with \"goofing off\" and punish those who seem insufficiently busy.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "true-false-notgiven",
+              "prompt": "According to Ted Selker, human productivity has been disturbed by office competitors frequently.",
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "true-false-notgiven",
+              "prompt": "If people are interrupted by calls or E-mails, they usually put up with it instead of taking uncooperative action.",
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "true-false-notgiven",
+              "prompt": "Microsoft is now investigating a software which is compatible with ordinary office units.",
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "true-false-notgiven",
+              "prompt": "People usually have misperception about whether they are busy or not.",
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "true-false-notgiven",
+              "prompt": "Researches conducted showed concentration-time span in office takes up only average a bit over than 65%.",
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "true-false-notgiven",
+              "prompt": "Advanced phone and computer system will install a shortcut key for people receive information immediately.",
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "completion",
+              "prompt": "Bestcom system made further efforts in order to find [20] about what users are doing",
+              "group": {
+                "id": "r-diagram-20-26",
+                "title": "BESTCOM WORKING PROCESS",
+                "instruction": "Complete the diagram below. Choose NO MORE THAN TWO WORDS AND/OR A NUMBER from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "clues"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "Check the [21] between caller and user whether callers have contact information of users, such as user's family or friends",
+              "group": {
+                "id": "r-diagram-20-26",
+                "title": "BESTCOM WORKING PROCESS",
+                "instruction": "Complete the diagram below. Choose NO MORE THAN TWO WORDS AND/OR A NUMBER from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "relationship"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "If callers are not in directory, a [22] will show up on their screen, saying that user is not available at the moment.",
+              "group": {
+                "id": "r-diagram-20-26",
+                "title": "BESTCOM WORKING PROCESS",
+                "instruction": "Complete the diagram below. Choose NO MORE THAN TWO WORDS AND/OR A NUMBER from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "message"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "completion",
+              "prompt": "Caller can [23] a suitable time for both",
+              "group": {
+                "id": "r-diagram-20-26",
+                "title": "BESTCOM WORKING PROCESS",
+                "instruction": "Complete the diagram below. Choose NO MORE THAN TWO WORDS AND/OR A NUMBER from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "reschedule"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "…or they can choose to leave a [24] to user",
+              "group": {
+                "id": "r-diagram-20-26",
+                "title": "BESTCOM WORKING PROCESS",
+                "instruction": "Complete the diagram below. Choose NO MORE THAN TWO WORDS AND/OR A NUMBER from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "voice mail"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "completion",
+              "prompt": "Bestcom provides solution to transfer your call to user's [25]",
+              "group": {
+                "id": "r-diagram-20-26",
+                "title": "BESTCOM WORKING PROCESS",
+                "instruction": "Complete the diagram below. Choose NO MORE THAN TWO WORDS AND/OR A NUMBER from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "cellphone"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "completion",
+              "prompt": "…if there is no [26] in his schedule",
+              "group": {
+                "id": "r-diagram-20-26",
+                "title": "BESTCOM WORKING PROCESS",
+                "instruction": "Complete the diagram below. Choose NO MORE THAN TWO WORDS AND/OR A NUMBER from the passage for each answer."
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "meeting"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Irish Elk",
+          "body": "Extinct: the Giant Deer\n\nToothed cats, mastodons, giant sloths, woolly rhinos, and many other big, shaggy mammals are widely thought to have died out around the end of the last ice age, some 10,500 years ago.\n\n**A**  The Irish elk is also known as the giant deer (Megaloceros giganteus). Analysis of ancient bones and teeth by scientists based in Britain and Russia show the huge herbivore survived until about 5,000 B.C.—more than three millennia later than previously believed. The research team says this suggests additional factors, besides climate change, probably hastened the giant deer's eventual extinction. The factors could include hunting or habitat destruction by humans.\n\n**B**  The Irish elk, so-called because its well-preserved remains are often found in lake sediments under peat bogs in Ireland, first appeared about 400,000 years ago in Europe and central Asia. Through a combination of radiocarbon dating of skeletal remains and the mapping of locations where the remains were unearthed, the team shows the Irish elk was widespread across Europe before the last \"big freeze.\" The deer's range later contracted to the Ural Mountains, in modern-day Russia, which separate Europe from Asia.\n\n**C**  The giant deer made its last stand in western Siberia, some 3,000 years after the ice sheets receded, said the study's co-author, Adrian Lister, professor of palaeobiology at University College London, England. \"The eastern foothills of the Urals became very densely forested about 8,000 years ago, which could have pushed them on to the plain,\" he said. He added that pollen analysis indicates the region then became very dry in response to further climactic change, leading to the loss of important food plants. \"In combination with human pressures, this could have finally snuffed them out,\" Lister said.\n\n**D**  Hunting by humans has often been put forward as a contributory cause of extinctions of the Pleistocene mega fauna. The team, though, said their new date for the Irish elk's extinction hints at an additional human-made problem-habitat destruction. Lister said, \"We haven't got just hunting 7,000 years ago-this was also about the time the first Neolithic people settled in the region. They were farmers who would have cleared the land.\" The presence of humans may help explain why the Irish elk was unable to tough out the latest of many climatic fluctuations- periods it had survived in the past.\n\n**E**  Meanwhile, Lister cast doubt on another possible explanation for the deer's demise-the male's huge antlers. Some scientists have suggested this exaggerated feature-the result of females preferring stags with the largest antlers, possibly because they advertised a male's fitness-contributed to the mammal's downfall. They say such antlers would have been a serious inconvenience in the dense forests that spread northward after the last ice age. But, Lister said, \"That's a hard argument to make, because the deer previously survived perfectly well through wooded interglacials [warmer periods between ice ages].\" Some research has suggested that a lack of sufficient high-quality forage caused the extinction of the elk. High amounts of calcium and phosphate compounds are required to form antlers, and therefore large quantities of these minerals are required for the massive structures of the Irish Elk. The males (and male deer in general) met this requirement partly from their bones, replenishing them from food plants after the antlers were grown or reclaiming the nutrients from discarded antlers (as has been observed in extant deer). Thus, in the antler growth phase. Giant Deer were suffering from a condition similar to osteoporosis. When the climate changed at the end of the last glacial period, the vegetation in the animal's habitat also changed towards species that presumably could not deliver sufficient amounts of the required minerals, at least in the western part of its range.\n\n**F**  The extinction of megafauna around the world was almost completed by the end of the last ice age. It is believed that megafauna initially came into existence in response to glacial conditions and became extinct with the onset of warmer climates. Tropical and subtropical areas have experienced less radical climatic change. The most dramatic of these changes was the transformation of a vast area of north Africa into the world's largest desert. Significantly, Africa escaped major faunal extinction as did tropical and sub-tropical Asia. The human exodus from Africa and our entrance into the Americas and Australia were also accompanied by climate change. Australia's climate changed from cold-dry to warm-dry. As a result, surface water became scarce. Most inland lakes became completely dry or dry in the warmer seasons. Most large, predominantly browsing animals lost their habitat and retreated to a narrow band in eastern Australia, where there was permanent water and better vegetation. Some animals may have survived until about 7000 years ago. If people have been in Australia for up to 60 000 years, then megafauna must have co-existed with humans for at least 30 000 years. Regularly hunted modem kangaroos survived not only 10 000 years of Aboriginal hunting, but also an onslaught of commercial shooters.\n\n**G**  The group of scientists led by A.J. Stuart focused on northern Eurasia, which he was taking as Europe, plus Siberia, essentially, where they 've got the best data that animals became extinct in Europe during the Late Pleistocene. Some cold-adapted animals, go through into the last part of the cold stage, and then become extinct up there. So you've actually got two phases of extinction. Now, neither of these coincide — these are Neanderthals here being replaced by modem humans. There's no obvious coincidence between the arrival of humans or climatic change alone and these extinctions. There's a climatic change here, so there's a double effect here. Again, as animals come through to the last part of the cold stage, here there's a fundamental change in the climate, reorganization of vegetation, and the combination of the climatic change and the presence of humans — of advanced Paleolithic humans — causes this wave of extinction. There's a profound difference between the North American data and that of Europe, which summarize that the extinctions in northern Eurasia, in Europe, are moderate and staggered, and in North America severe and sudden. And these things relate to the differences in the timing of human arrival. The extinctions follow from human predation, but only at times of fundamental changes in the environment.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "multiple-choice",
+              "prompt": "The passage is mainly about:",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Irish elk's extinction"
+                },
+                {
+                  "key": "B",
+                  "text": "climate change effects"
+                },
+                {
+                  "key": "C",
+                  "text": "human hunting impact"
+                },
+                {
+                  "key": "D",
+                  "text": "giant deer survival"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "completion",
+              "prompt": "Gap 28 in the summary.",
+              "group": {
+                "id": "r-summary-28-32",
+                "instruction": "Complete the following summary. Use NO MORE THAN THREE WORDS from the Reading Passage for each answer.",
+                "text": "It is commonly believed that large woody mammals became extinct about [28] at the end of last ice age. Having been preserved well in Europe and central Asia, the remains of the Irish elk was initially found approximately [29]. Around [30] they were driven to live in the plain after being restricted to the Ural Mountains. Hunting was considered as one of the important factors of Irish elk's extinction. However, another major problem could be habitat destruction that happened due to settlement of Neolithic people around until [31] the Irish elk was able to withstand climatic fluctuation. Some scientists think that the huge antlers may also have possibly contributed to the Irish elk's extinction, but this explanation was highly controversial as they lived pleasantly during the [32]."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "10,500 years ago",
+                  "10500 years ago",
+                  "10 500 years ago"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "completion",
+              "prompt": "Gap 29 in the summary.",
+              "group": {
+                "id": "r-summary-28-32",
+                "instruction": "Complete the following summary. Use NO MORE THAN THREE WORDS from the Reading Passage for each answer.",
+                "text": "It is commonly believed that large woody mammals became extinct about [28] at the end of last ice age. Having been preserved well in Europe and central Asia, the remains of the Irish elk was initially found approximately [29]. Around [30] they were driven to live in the plain after being restricted to the Ural Mountains. Hunting was considered as one of the important factors of Irish elk's extinction. However, another major problem could be habitat destruction that happened due to settlement of Neolithic people around until [31] the Irish elk was able to withstand climatic fluctuation. Some scientists think that the huge antlers may also have possibly contributed to the Irish elk's extinction, but this explanation was highly controversial as they lived pleasantly during the [32]."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "400,000 years ago",
+                  "400000 years ago",
+                  "400 000 years ago"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "completion",
+              "prompt": "Gap 30 in the summary.",
+              "group": {
+                "id": "r-summary-28-32",
+                "instruction": "Complete the following summary. Use NO MORE THAN THREE WORDS from the Reading Passage for each answer.",
+                "text": "It is commonly believed that large woody mammals became extinct about [28] at the end of last ice age. Having been preserved well in Europe and central Asia, the remains of the Irish elk was initially found approximately [29]. Around [30] they were driven to live in the plain after being restricted to the Ural Mountains. Hunting was considered as one of the important factors of Irish elk's extinction. However, another major problem could be habitat destruction that happened due to settlement of Neolithic people around until [31] the Irish elk was able to withstand climatic fluctuation. Some scientists think that the huge antlers may also have possibly contributed to the Irish elk's extinction, but this explanation was highly controversial as they lived pleasantly during the [32]."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "8,000 years ago",
+                  "8000 years ago",
+                  "8 000 years ago"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Gap 31 in the summary.",
+              "group": {
+                "id": "r-summary-28-32",
+                "instruction": "Complete the following summary. Use NO MORE THAN THREE WORDS from the Reading Passage for each answer.",
+                "text": "It is commonly believed that large woody mammals became extinct about [28] at the end of last ice age. Having been preserved well in Europe and central Asia, the remains of the Irish elk was initially found approximately [29]. Around [30] they were driven to live in the plain after being restricted to the Ural Mountains. Hunting was considered as one of the important factors of Irish elk's extinction. However, another major problem could be habitat destruction that happened due to settlement of Neolithic people around until [31] the Irish elk was able to withstand climatic fluctuation. Some scientists think that the huge antlers may also have possibly contributed to the Irish elk's extinction, but this explanation was highly controversial as they lived pleasantly during the [32]."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "7,000 years ago",
+                  "7000 years ago",
+                  "7 000 years ago"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Gap 32 in the summary.",
+              "group": {
+                "id": "r-summary-28-32",
+                "instruction": "Complete the following summary. Use NO MORE THAN THREE WORDS from the Reading Passage for each answer.",
+                "text": "It is commonly believed that large woody mammals became extinct about [28] at the end of last ice age. Having been preserved well in Europe and central Asia, the remains of the Irish elk was initially found approximately [29]. Around [30] they were driven to live in the plain after being restricted to the Ural Mountains. Hunting was considered as one of the important factors of Irish elk's extinction. However, another major problem could be habitat destruction that happened due to settlement of Neolithic people around until [31] the Irish elk was able to withstand climatic fluctuation. Some scientists think that the huge antlers may also have possibly contributed to the Irish elk's extinction, but this explanation was highly controversial as they lived pleasantly during the [32]."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "wooded interglacials"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "short-answer",
+              "prompt": "What man-made issue besides hunting suggest that the advent of human resulted in the extinction of Irish elk?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "habitat destruction",
+                  "Habitat destruction",
+                  "destruction of habitat"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "short-answer",
+              "prompt": "What kind of physical characteristics eventually contributed to the extinction of Irish elk?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "huge antlers",
+                  "Male's huge antlers",
+                  "Males huge antlers",
+                  "the huge antlers"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "short-answer",
+              "prompt": "What kind of nutrient substance needed in maintaining the huge size of Irish elk?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "calcium and phosphate",
+                  "Minerals",
+                  "minerals",
+                  "calcium and phosphate compounds"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "matching",
+              "prompt": "The continent where large mammals are known to have lived alongside humans for at least 30,000 years",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Eurasia"
+                },
+                {
+                  "key": "B",
+                  "text": "Australia"
+                },
+                {
+                  "key": "C",
+                  "text": "Asia"
+                },
+                {
+                  "key": "D",
+                  "text": "Africa"
+                }
+              ],
+              "group": {
+                "id": "r-matching-36-39",
+                "instruction": "Match each statement with the correct continent, A–D. NB Use each letter once only.",
+                "eachLetterOnce": true
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "matching",
+              "prompt": "The continent where climatic change turned a vast region into the world's largest desert",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Eurasia"
+                },
+                {
+                  "key": "B",
+                  "text": "Australia"
+                },
+                {
+                  "key": "C",
+                  "text": "Asia"
+                },
+                {
+                  "key": "D",
+                  "text": "Africa"
+                }
+              ],
+              "group": {
+                "id": "r-matching-36-39",
+                "instruction": "Match each statement with the correct continent, A–D. NB Use each letter once only.",
+                "eachLetterOnce": true
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "matching",
+              "prompt": "The continent where extinction resulted from climatic change and human presence acting together",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Eurasia"
+                },
+                {
+                  "key": "B",
+                  "text": "Australia"
+                },
+                {
+                  "key": "C",
+                  "text": "Asia"
+                },
+                {
+                  "key": "D",
+                  "text": "Africa"
+                }
+              ],
+              "group": {
+                "id": "r-matching-36-39",
+                "instruction": "Match each statement with the correct continent, A–D. NB Use each letter once only.",
+                "eachLetterOnce": true
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "matching",
+              "prompt": "The continent whose tropical and sub-tropical regions avoided major faunal extinction",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Eurasia"
+                },
+                {
+                  "key": "B",
+                  "text": "Australia"
+                },
+                {
+                  "key": "C",
+                  "text": "Asia"
+                },
+                {
+                  "key": "D",
+                  "text": "Africa"
+                }
+              ],
+              "group": {
+                "id": "r-matching-36-39",
+                "instruction": "Match each statement with the correct continent, A–D. NB Use each letter once only.",
+                "eachLetterOnce": true
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "multiple-choice",
+              "prompt": "Which statement is true according to the Stuart team's finding?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Neanderthals rather than modern humans caused the extinction in Europe"
+                },
+                {
+                  "key": "B",
+                  "text": "Paleolithic humans in Europe alone killed the big animals such as Giant deer"
+                },
+                {
+                  "key": "C",
+                  "text": "Climatic change was not solely responsible for the mega fauna extinction in Europe"
+                },
+                {
+                  "key": "D",
+                  "text": "Moderate and staggered extinction was mainly the result of fundamental climatic change"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Tour Booking Enquiry",
+          "audio": "assets/exam-1-listening-part1.mp3",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Type of holiday",
+              "group": {
+                "id": "l-table-1-10",
+                "title": "Tour Booking Enquiry",
+                "instruction": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Surfing"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Meal — including [2]",
+              "group": {
+                "id": "l-table-1-10",
+                "title": "Tour Booking Enquiry",
+                "instruction": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Breakfast"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Facilities — a pool, a nightclub and a [3]",
+              "group": {
+                "id": "l-table-1-10",
+                "title": "Tour Booking Enquiry",
+                "instruction": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Gym"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Prices — reduce from €[4] to €315",
+              "group": {
+                "id": "l-table-1-10",
+                "title": "Tour Booking Enquiry",
+                "instruction": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "360"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Self-catering Apartment — Stay in a [5] room",
+              "group": {
+                "id": "l-table-1-10",
+                "title": "Tour Booking Enquiry",
+                "instruction": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Shared"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Equipment Rental — Rental for one week: €[6]",
+              "group": {
+                "id": "l-table-1-10",
+                "title": "Tour Booking Enquiry",
+                "instruction": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "75"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Types of Insurance — [7] Cover: €30",
+              "group": {
+                "id": "l-table-1-10",
+                "title": "Tour Booking Enquiry",
+                "instruction": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Basic"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Types of Insurance — Premier cover: €[8]",
+              "group": {
+                "id": "l-table-1-10",
+                "title": "Tour Booking Enquiry",
+                "instruction": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "42.5",
+                  "42.50"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Transport — The cheapest way of going to airport: by [9]",
+              "group": {
+                "id": "l-table-1-10",
+                "title": "Tour Booking Enquiry",
+                "instruction": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Taxi"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Payment method — Pay by [10]: no extra fee",
+              "group": {
+                "id": "l-table-1-10",
+                "title": "Tour Booking Enquiry",
+                "instruction": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Cheque",
+                  "check"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Community Centre / dance course briefing",
+          "audio": "assets/exam-1-listening-part2.mp3",
+          "questions": [
+            {
+              "id": "l-11-12",
+              "order": 11,
+              "type": "multiple-select",
+              "prompt": "Which TWO items will participants receive when they check in?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a class list"
+                },
+                {
+                  "key": "B",
+                  "text": "a face towel"
+                },
+                {
+                  "key": "C",
+                  "text": "a name tag"
+                },
+                {
+                  "key": "D",
+                  "text": "a shoe bag"
+                },
+                {
+                  "key": "E",
+                  "text": "a water bottle"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "D"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-13-14",
+              "order": 13,
+              "type": "multiple-select",
+              "prompt": "Which TWO activities will be hosted in the first afternoon and evening?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "costume making"
+                },
+                {
+                  "key": "B",
+                  "text": "a musical show"
+                },
+                {
+                  "key": "C",
+                  "text": "an informal dance"
+                },
+                {
+                  "key": "D",
+                  "text": "a talk on dance history"
+                },
+                {
+                  "key": "E",
+                  "text": "a dance test"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "C",
+                    "D"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "labelling",
+              "prompt": "shower room",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Community Centre",
+                "instruction": "Label the map below. Write the correct letter, A–J, next to Questions 15–20.",
+                "image": "assets/exam-1-listening-part2-community-centre-map.jpg"
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "labelling",
+              "prompt": "bunk room",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Community Centre",
+                "instruction": "Label the map below. Write the correct letter, A–J, next to Questions 15–20.",
+                "image": "assets/exam-1-listening-part2-community-centre-map.jpg"
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "labelling",
+              "prompt": "games room",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Community Centre",
+                "instruction": "Label the map below. Write the correct letter, A–J, next to Questions 15–20.",
+                "image": "assets/exam-1-listening-part2-community-centre-map.jpg"
+              },
+              "answerKey": {
+                "accepted": [
+                  "I"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "labelling",
+              "prompt": "reception",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Community Centre",
+                "instruction": "Label the map below. Write the correct letter, A–J, next to Questions 15–20.",
+                "image": "assets/exam-1-listening-part2-community-centre-map.jpg"
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "labelling",
+              "prompt": "medical centre",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Community Centre",
+                "instruction": "Label the map below. Write the correct letter, A–J, next to Questions 15–20.",
+                "image": "assets/exam-1-listening-part2-community-centre-map.jpg"
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "labelling",
+              "prompt": "store",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                },
+                {
+                  "key": "J",
+                  "text": "J"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "title": "Plan of Community Centre",
+                "instruction": "Label the map below. Write the correct letter, A–J, next to Questions 15–20.",
+                "image": "assets/exam-1-listening-part2-community-centre-map.jpg"
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Assignment Feedback",
+          "audio": "assets/exam-1-listening-part3.mp3",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "Things that need to be done: Check accuracy of the [21] in the last section",
+              "group": {
+                "id": "l-notes-21-22",
+                "title": "Assignment Feedback",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "References"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "Things that need to be done: Give more [22]",
+              "group": {
+                "id": "l-notes-21-22",
+                "title": "Assignment Feedback",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "examples"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "short-answer",
+              "prompt": "When will Karen give her presentation?",
+              "group": {
+                "id": "l-short-23-27",
+                "instruction": "Answer the questions below. Write NO MORE THAN THREE WORDS for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "next seminar"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "short-answer",
+              "prompt": "What must she do during the presentation?",
+              "group": {
+                "id": "l-short-23-27",
+                "instruction": "Answer the questions below. Write NO MORE THAN THREE WORDS for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "Explain",
+                  "Explain the experiment"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "short-answer",
+              "prompt": "By which date does she have to submit an abstract?",
+              "group": {
+                "id": "l-short-23-27",
+                "instruction": "Answer the questions below. Write NO MORE THAN THREE WORDS for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "26 November",
+                  "November 26",
+                  "26th November",
+                  "November 26th"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "short-answer",
+              "prompt": "Where will the presentation take place?",
+              "group": {
+                "id": "l-short-23-27",
+                "instruction": "Answer the questions below. Write NO MORE THAN THREE WORDS for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "chemistry lab"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "short-answer",
+              "prompt": "Who will grade her presentation?",
+              "group": {
+                "id": "l-short-23-27",
+                "instruction": "Answer the questions below. Write NO MORE THAN THREE WORDS for each answer."
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "professor"
+                ]
+              }
+            },
+            {
+              "id": "l-28-30",
+              "order": 28,
+              "type": "multiple-select",
+              "prompt": "Which THREE modules will Karen study next year?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Communication Skills"
+                },
+                {
+                  "key": "B",
+                  "text": "Data collection"
+                },
+                {
+                  "key": "C",
+                  "text": "Discourse Analysis"
+                },
+                {
+                  "key": "D",
+                  "text": "Language and Society"
+                },
+                {
+                  "key": "E",
+                  "text": "Phonology"
+                },
+                {
+                  "key": "F",
+                  "text": "Psycholinguistics"
+                },
+                {
+                  "key": "G",
+                  "text": "Research Methodology"
+                },
+                {
+                  "key": "H",
+                  "text": "Social interaction"
+                }
+              ],
+              "marks": 3,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "C",
+                    "F"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Research on birds in Australia",
+          "audio": "assets/exam-1-listening-part4.mp3",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "The study — Cunningham, 1995: It aimed to study birds which were [31] in cities",
+              "group": {
+                "id": "l-notes-31-40",
+                "title": "Research on birds in Australia",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Protected"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Methodology: Researchers were able to [32] rather than count the number of birds by some methods, such as random sampling.",
+              "group": {
+                "id": "l-notes-31-40",
+                "title": "Research on birds in Australia",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "estimate"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Methodology: Researchers studied birds' companionship habits using a [33] system.",
+              "group": {
+                "id": "l-notes-31-40",
+                "title": "Research on birds in Australia",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "mapping"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Methodology: Researchers attached tags to birds' legs to identify their [34] over time.",
+              "group": {
+                "id": "l-notes-31-40",
+                "title": "Research on birds in Australia",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "trends"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Findings: Human activities such as [35] had a negative effect on the reproduction of birds",
+              "group": {
+                "id": "l-notes-31-40",
+                "title": "Research on birds in Australia",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "pollution"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Measures: To increase birds' rate of [36] in various ways",
+              "group": {
+                "id": "l-notes-31-40",
+                "title": "Research on birds in Australia",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "survival"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Measures: To reduce the dangers caused by [37] farms, e.g. colliding with turbines",
+              "group": {
+                "id": "l-notes-31-40",
+                "title": "Research on birds in Australia",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "wind"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "The study by Conway, 2006: Researchers monitored the [38] of birds' nocturnal callings during flight",
+              "group": {
+                "id": "l-notes-31-40",
+                "title": "Research on birds in Australia",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "frequency"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "The study by Conway, 2006: [39] were taken to listen to birds' sounds",
+              "group": {
+                "id": "l-notes-31-40",
+                "title": "Research on birds in Australia",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Recordings"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "The study by Conway, 2006: Data could be collected through noise detection devices placed at a great [40]",
+              "group": {
+                "id": "l-notes-31-40",
+                "title": "Research on birds in Australia",
+                "instruction": "Complete the notes below. Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "distance"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "writing",
+      "order": 3,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "task",
+          "taskNumber": 1,
+          "body": "The maps below show how an industrial area will change into a housing area in the future. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+          "image": "assets/exam-1-writing-task1-chart.jpg",
+          "constraints": {
+            "minWords": 150
+          },
+          "rubricRef": "writing-task1-v1",
+          "questions": [
+            {
+              "id": "w-task-1",
+              "order": 1,
+              "type": "essay-task"
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "task",
+          "taskNumber": 2,
+          "body": "Some people think the money spent on developing technology for space exploration is not justified. There are more beneficial ways to spend this money. To what extent do you agree or disagree? Give reasons for your answer and include any relevant examples from your own knowledge or experience.",
+          "constraints": {
+            "minWords": 250
+          },
+          "rubricRef": "writing-task2-v1",
+          "questions": [
+            {
+              "id": "w-task-2",
+              "order": 2,
+              "type": "essay-task"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "speaking",
+      "order": 4,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "speaking-part",
+          "title": "Introduction and interview",
+          "partNumber": 1,
+          "body": "Good morning / afternoon. My name is [examiner name]. Can you tell me your full name, please?\n\nNow, in this first part, I'd like to ask you some questions about yourself.\n\n**Work or studies**\n\nLet's talk about what you do. Do you work, or are you a student?\n\n· What subject are you studying?\n\n· Why did you choose that subject?\n\n· What do you find most difficult about your studies?\n\n· Do you prefer studying in the morning or in the evening? (Why?)\n\n· What job do you do?\n\n· How long have you been doing that job?\n\n· What is the most interesting part of your work?\n\n· Would you like to change your job in the future? (Why? / Why not?)\n\n**Food and cooking**\n\nNow let's move on to talk about food.\n\n· What kind of food do you usually eat?\n\n· Do you prefer eating at home or eating out? (Why?)\n\n· Have your eating habits changed in the last few years? (How?)\n\n· Do you think children should learn to cook? (Why? / Why not?)\n\n**Weather**\n\nLet's talk about the weather now.\n\n· What's the weather usually like where you live?\n\n· Which season of the year do you like most? (Why?)\n\n· Does the weather ever affect what you do during the day?\n\n· Do you prefer hot weather or cold weather? (Why?)",
+          "questions": [
+            {
+              "id": "s-part-1",
+              "order": 1,
+              "type": "speaking-response",
+              "prompt": "Introduction and interview"
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "speaking-part",
+          "title": "Individual long turn",
+          "partNumber": 2,
+          "cueCard": {
+            "topic": "Describe a time when you had to concentrate very hard on something.",
+            "bullets": [
+              "what you had to concentrate on",
+              "when and where this happened",
+              "why it was difficult to concentrate",
+              "and explain how you felt afterwards."
+            ]
+          },
+          "body": "Now, I'm going to give you a topic, and I'd like you to talk about it for one to two minutes. Before you talk, you'll have one minute to think about what you're going to say. You can make some notes if you wish. Do you understand? Here's some paper and a pencil for making notes, and here's your topic.\n\n**Sau phần nói, giám khảo có thể hỏi thêm:**\n\n· Do you often need to concentrate for a long time?\n\n· Was it easy for you to concentrate when you were a child?",
+          "questions": [
+            {
+              "id": "s-part-2",
+              "order": 2,
+              "type": "speaking-response",
+              "prompt": "Individual long turn"
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "speaking-part",
+          "title": "Two-way discussion",
+          "partNumber": 3,
+          "body": "Thank you. Now, we've been talking about concentration, and I'd like to discuss with you one or two more general questions related to this.\n\n**Concentration in modern working and studying life**\n\n· Do you think people today find it harder to concentrate than people did in the past? (Why do you think that is?)\n\n· What kinds of jobs require the greatest amount of concentration?\n\n· Some companies now give employees 'quiet hours' with no meetings and no messages. How effective do you think that is?\n\n· Do you think schools should teach children how to concentrate, in the same way they teach reading and mathematics?\n\n**Technology, distraction, and responsibility**\n\n· In what ways has technology changed the way people focus on tasks?\n\n· Whose responsibility is it to manage distraction — the individual, or the companies that design these products?\n\n· Some people believe that technology could be designed to protect our attention rather than compete for it. Do you think that is realistic?\n\n· How do you think the way people work and concentrate will change in the next twenty years?",
+          "questions": [
+            {
+              "id": "s-part-3",
+              "order": 3,
+              "type": "speaking-response",
+              "prompt": "Two-way discussion"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

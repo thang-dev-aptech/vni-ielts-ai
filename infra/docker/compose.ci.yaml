@@ -1,0 +1,36 @@
+# CI-only overlay for `compose.yaml`. Never use it on a developer machine.
+#
+# <b>It changes exactly one thing: which interfaces the two ports are published
+# on.</b> Nothing else — no image, no credential, no command — so the stack CI
+# runs is the stack the setup docs describe.
+#
+# `compose.yaml` publishes MongoDB and MinIO on `127.0.0.1` and `[::1]` only,
+# and that is deliberate (F1.5): the credentials in it are a committed,
+# publicly known local-dev password, and binding `0.0.0.0` on a laptop on a
+# café network hands anyone there a working S3-compatible store. That reasoning
+# does not transfer to an ephemeral runner with no other tenant, and on Linux
+# it actively breaks the production smoke test:
+#
+#   `compose.production.yaml` reaches the stack as `host.docker.internal`,
+#   declared through `extra_hosts: host-gateway`. On Linux that resolves to the
+#   Docker bridge gateway — 172.17.0.1, not 127.0.0.1 — so a database listening
+#   only on loopback refuses the connection. On Docker Desktop the same name is
+#   proxied differently, which is why this never shows up locally.
+#
+# Before this file the workflow started its own `docker run` containers on
+# 0.0.0.0 instead, which worked and cost more than it looked: the containers
+# were named `vni-verify-mongo` and `vni-verify-minio`, there was no PBM agent
+# and no `vni-ielts_default` network, so `restore-drill` reached for a
+# container that did not exist and `pitr-drill` could not run at all.
+#
+# `!override` replaces the inherited list rather than appending to it. Without
+# it Compose concatenates, and the same host port is claimed twice.
+
+services:
+  mongo:
+    ports: !override
+      - '27018:27017'
+
+  minio:
+    ports: !override
+      - '9000:9000'

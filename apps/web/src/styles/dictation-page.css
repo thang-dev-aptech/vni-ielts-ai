@@ -1,0 +1,677 @@
+/*
+ * Nghe chép chính tả — `/dictation` (thư viện) và `/dictation/:setId` (bài).
+ *
+ * <b>No new palette.</b> The brief offered a teal/indigo set; this project has
+ * a brand and four measured skill inks, and the brief itself says to prefer
+ * existing tokens. Listening's identity — `#fdf1e3` on `#9a4e07`, measured in
+ * `skills.ts` — is what colours this page, because that is the skill it
+ * trains. Everything else is the shared token set from `landing.css`.
+ *
+ * <b>It leans on `practice.css` deliberately.</b> `.section-heading h2` caps,
+ * `.steps`, `.intro-wrap`, `.resource-grid`, `.faq` and the whole decoration
+ * layer are already scoped under `.prac-page`, and this page carries that
+ * class alongside `.dict-page`. Two module pages that look like two products
+ * is the thing that scoping was written to prevent.
+ */
+
+/* The rank-order caps and the surface texture come from `.prac-page`; these
+   are the additions this page needs on top. */
+.dict-page .section-heading h2,
+.dict-page .cta-box h2 {
+  /* Inherited from `.prac-page`. Named here so a later reader looking only at
+     this file knows where the size is decided. → `practice.css` § Rank order */
+}
+
+.dict-lib-band,
+.how-section {
+  scroll-margin-top: 92px;
+}
+
+/* ── Hero ───────────────────────────────────────────────────────────────── */
+
+/*
+ * <b>Shorter than `/practice`'s, and with no illustration.</b> The brief asks
+ * for it: this page's reader is hunting for a set, and the search field is the
+ * next thing they need. The library underneath is the visual.
+ */
+.dict-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 30px 0 26px;
+  background-color: #f9faf7;
+  background-image:
+    radial-gradient(circle at 86% 8%, rgb(154 78 7 / 8%) 0%, transparent 40%),
+    radial-gradient(circle at 8% 96%, rgb(16 176 80 / 7%) 0%, transparent 38%),
+    radial-gradient(#dfe4da 1.1px, transparent 1.1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    26px 26px;
+  border-bottom: 1px solid rgb(229 229 229 / 60%);
+}
+
+/* One soft light, in Listening's own amber — the skill this page trains. */
+.dict-hero::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -30%;
+  right: -4%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: rgb(154 78 7 / 10%);
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+.dict-hero h1 {
+  margin: 12px 0 0;
+  max-width: 22ch;
+  font-size: clamp(28px, 3.6vw, 42px);
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.dict-hero h1 span {
+  color: #9a4e07;
+}
+
+.dict-hero p {
+  margin: 14px 0 0;
+  max-width: 58ch;
+  color: #5f675f;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.dict-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+/* ── Library band ───────────────────────────────────────────────────────── */
+
+/*
+ * Its own ground, like the practice workspace — the page's primary
+ * interaction has to outrank six sections of prose, and a tinted field plus a
+ * wider container are two signals that cost no type scale.
+ */
+.dict-lib-band {
+  position: relative;
+  isolation: isolate;
+  padding: 28px 0 44px;
+  background-color: #f5f7f3;
+  background-image:
+    radial-gradient(circle at 94% 0%, rgb(154 78 7 / 5%) 0%, transparent 34%),
+    radial-gradient(circle at 3% 100%, rgb(16 176 80 / 5%) 0%, transparent 32%),
+    radial-gradient(#d8e1d5 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    24px 24px;
+  border-bottom: 1px solid #e6ebe4;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 70%);
+}
+
+.dict-lib-band > .container {
+  width: min(1280px, calc(100% - 40px));
+}
+
+.dict-lib {
+  display: grid;
+  gap: 18px;
+}
+
+/* ── Search ─────────────────────────────────────────────────────────────── */
+
+.dict-search-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid #dbe3d9;
+  border-radius: 16px;
+  background: #fff;
+  color: #6b756b;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.dict-search-field:focus-within {
+  border-color: #9a4e07;
+  box-shadow: 0 0 0 4px rgb(154 78 7 / 12%);
+}
+
+.dict-search-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  /* Not 15px. Anything under 16px makes iOS Safari zoom the page on focus, and
+     the reader then has to pinch back out to see their own results. */
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* The browser's own clear affordance is inconsistent and unlabelled; this one
+   has a name and a 44px target. */
+.dict-search-field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.dict-search-clear {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: #6b756b;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.dict-search-clear:hover {
+  background: #f1f5f0;
+  color: var(--ink);
+}
+
+/* ── Filter chips ───────────────────────────────────────────────────────── */
+
+.dict-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+}
+
+.dict-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.dict-filter-group legend {
+  float: left;
+  padding: 0;
+  margin-right: 10px;
+  color: #4d554e;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.dset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/*
+ * A real checkbox with the box replaced by the chip.
+ *
+ * The input keeps its role, its group name and its keyboard behaviour; only
+ * its rendering changes. A row of `<button aria-pressed>` would have announced
+ * as unrelated toggles with no group and no additive meaning.
+ */
+/* 40px measured. Same floor as every other filter chip in the product. */
+.dset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #dbe3d9;
+  border-radius: 999px;
+  background: #fff;
+  color: #3c443d;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.dset-chip:hover {
+  border-color: #c2cfc0;
+}
+
+/* Visually hidden, still focusable, still the thing being toggled. */
+.dset-chip input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/*
+ * The chosen state is a fill, a border and a weight — three channels, so it
+ * survives greyscale. #7a3d05 on #fdf1e3 measures 7.4.
+ */
+.dset-chip.is-on {
+  border-color: #9a4e07;
+  background: #fdf1e3;
+  color: #7a3d05;
+  font-weight: 800;
+}
+
+/* Focus lands on the hidden input; the ring has to be drawn on the chip. */
+.dset-chip:has(input:focus-visible) {
+  outline: 3px solid #2867ac;
+  outline-offset: 2px;
+}
+
+.dset-chip.is-empty {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* #5f675f on #fff measures 5.85, on the chosen wash 5.1. */
+.dset-chip-count {
+  color: #5f675f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dset-chip.is-on .dset-chip-count {
+  color: #7a3d05;
+}
+
+/* 40px measured, against the 44 floor every other control on this page keeps.
+   Padding as well as height, because a 6px inline gutter on a text link makes
+   the visible target narrower than the words. */
+.dict-filters-clear {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: #1e7a3c;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── Library head ───────────────────────────────────────────────────────── */
+
+.dict-lib-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+}
+
+.dict-lib-title {
+  margin: 0;
+  /* The loudest heading below the h1, because it names the block the page is
+     for. Same rank discipline as `.work-title` on `/practice`. */
+  font-size: clamp(24px, 2.4vw, 30px);
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
+  color: #1c211d;
+}
+
+.dict-lib-count {
+  margin: 0;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+/* ── Grid ───────────────────────────────────────────────────────────────── */
+
+.dict-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dset-card {
+  position: relative;
+  /* The `::after` on the title link covers the whole card, so the pointer must
+     agree with it — without this the card reads as inert everywhere except
+     over the 25px of title text. */
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #e3e9e2;
+  border-radius: 18px;
+  background: #fff;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.dset-card:hover {
+  transform: translateY(-2px);
+  border-color: #e4c9a4;
+  box-shadow: 0 8px 20px rgb(32 41 35 / 8%);
+}
+
+/* Listening's tint and ink, from `skills.ts`. This is that skill's exercise,
+   so it wears that skill's colour rather than a fifth one. */
+.dset-card-mark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 16px;
+  background: #fdf1e3;
+  color: #9a4e07;
+  box-shadow: 0 0 0 1px rgb(154 78 7 / 14%);
+}
+
+.dset-card-mark svg {
+  width: 34px;
+  height: auto;
+}
+
+.dset-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dset-card-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+/*
+ * The title is the link and it stretches to the card.
+ *
+ * `::after` covers the card so the whole surface is clickable, while the
+ * accessible name stays the title alone — a card-wide `<a>` wrapping every
+ * element would have read out the description and the arrow as part of the
+ * link name. Text stays selectable because the overlay sits above the padding,
+ * not above the text nodes' own layer.
+ */
+.dset-card-title a {
+  color: inherit;
+}
+
+.dset-card-title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+}
+
+.dset-card-title a:focus-visible::after {
+  outline: 3px solid #2867ac;
+  outline-offset: 2px;
+}
+
+.dset-card-lead {
+  margin: 6px 0 0;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.dset-card-meta {
+  margin: 12px 0 0;
+  color: #5f675f;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.dset-card-meta .num {
+  font-weight: 800;
+  color: #2b332c;
+}
+
+.dset-card-go {
+  flex: none;
+  align-self: center;
+  color: #7a3d05;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.dset-card-go span {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.dset-card:hover .dset-card-go span {
+  transform: translateX(3px);
+}
+
+/*
+ * `.dict-gate`, `.dict-gate-actions` and `.dict-note` are deliberately *not*
+ * redefined here — `dictation.css` already owns them and this page uses them
+ * for the same roles: the sign-in card, its buttons, and a plain status line.
+ * Three of my own classes did collide with that file and were renamed to
+ * `dset-*`: the card, the filter chip and the note. Two stylesheets that both
+ * ship on every page cannot each define `.dict-card`, and the exercise panel's
+ * `flex-direction: column` was quietly winning over the library card's row.
+ */
+
+/* ── Benefits ───────────────────────────────────────────────────────────── */
+
+.dict-benefits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dict-benefit {
+  padding: 22px;
+  border: 1px solid #e3e9e2;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.dict-benefit h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.dict-benefit p {
+  margin: 0;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ── Path ───────────────────────────────────────────────────────────────── */
+
+.dict-path-section {
+  background: var(--surface);
+}
+
+.dict-path {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 860px;
+  margin-inline: auto;
+}
+
+/*
+ * A vertical list, not a horizontal roadmap.
+ *
+ * The brief draws this as `[4.5] ─── [5.0] ─── …`. Four stages with a sentence
+ * each do not fit across a row without the sentence becoming three words, and
+ * this page's version has no numbers to put in the nodes — it is about method,
+ * not band. Stacked, each stage keeps its explanation.
+ */
+.dict-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #e3e9e2;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.dict-stage-n {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 12px;
+  background: #fdf1e3;
+  color: #7a3d05;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.dict-stage h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.dict-stage p {
+  margin: 0;
+  color: #5f675f;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ── Set page ───────────────────────────────────────────────────────────── */
+
+.dict-set-body {
+  padding-top: 30px;
+}
+
+.dict-set-wrap {
+  width: min(820px, calc(100% - 40px));
+}
+
+.dict-set-back {
+  margin: 22px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.dict-set-back a {
+  color: #1e7a3c;
+}
+
+.dict-set-back a:hover {
+  text-decoration: underline;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .dict-grid,
+  .dict-benefits {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .dict-hero {
+    padding: 24px 0 22px;
+  }
+
+  .dict-lib-band {
+    padding: 22px 0 34px;
+  }
+
+  .dict-hero-ctas .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* The mark is decoration; at this width the title needs the room more. */
+  .dset-card-mark {
+    display: none;
+  }
+
+  /* The arrow is redundant once the card is full width and obviously tappable. */
+  .dset-card-go {
+    display: none;
+  }
+
+  .dict-filter-group legend {
+    float: none;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dset-card,
+  .dset-card-go span,
+  .dset-chip,
+  .dict-search-field {
+    transition: none;
+  }
+
+  .dset-card:hover {
+    transform: none;
+  }
+
+  .dset-card:hover .dset-card-go span {
+    transform: none;
+  }
+}
