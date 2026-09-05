@@ -263,7 +263,7 @@ export function QuestionInput({
     return (
       <textarea
         className="q-essay"
-        rows={12}
+        rows={16}
         value={value ?? ''}
         disabled={disabled}
         /*

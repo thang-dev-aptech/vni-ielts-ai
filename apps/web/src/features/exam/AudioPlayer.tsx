@@ -49,6 +49,25 @@ export function AudioPlayer({
   const [duration, setDuration] = useState(0);
   const [spent, setSpent] = useState(false);
   const [retryAttempt, setRetryAttempt] = useState(0);
+  const [speed, setSpeed] = useState<number>(1);
+  const [muted, setMuted] = useState(false);
+
+  function applySpeed(nextSpeed: number) {
+    setSpeed(nextSpeed);
+    if (audio.current) {
+      audio.current.playbackRate = nextSpeed;
+    }
+  }
+
+  function toggleMute() {
+    setMuted((was) => {
+      const next = !was;
+      if (audio.current) {
+        audio.current.muted = next;
+      }
+      return next;
+    });
+  }
 
   useEffect(() => {
     const pause = () => audio.current?.pause();
@@ -222,6 +241,40 @@ export function AudioPlayer({
                   : t('exam.audioReplayable')}
           </span>
         </div>
+      </div>
+
+      <div className="audio-extra-controls">
+        <div className="audio-speed-group" role="group" aria-label="Tốc độ phát">
+          {[0.8, 1.0, 1.2].map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={`audio-speed-btn${speed === s ? ' is-active' : ''}`}
+              aria-pressed={speed === s}
+              onClick={() => applySpeed(s)}
+            >
+              {s}x
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className={`audio-mute-btn${muted ? ' is-muted' : ''}`}
+          aria-label={muted ? 'Bật âm thanh' : 'Tắt tiếng'}
+          title={muted ? 'Bật âm thanh' : 'Tắt tiếng'}
+          onClick={toggleMute}
+        >
+          {muted ? (
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" />
+            </svg>
+          )}
+        </button>
       </div>
     </div>
   );

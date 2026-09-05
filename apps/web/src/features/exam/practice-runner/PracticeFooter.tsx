@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useI18n } from '../../../i18n/index.js';
 import type { PartView, QuestionView } from '../examApi.js';
 
@@ -49,6 +50,7 @@ export function PracticeFooter({
   busy,
   ending = 'submit',
   nextNote,
+  nextSkillName,
   onGoToPart,
   onScrollToSlot,
   onSubmit,
@@ -68,12 +70,15 @@ export function PracticeFooter({
   ending?: 'submit' | 'advance';
   /** Said beside "Tiếp theo" — irreversible, named skills. */
   nextNote?: string | null;
+  /** Explicit next skill name for D-7 button label "Tiếp theo: [Skill]" */
+  nextSkillName?: string | null;
   onGoToPart: (index: number) => void;
   onScrollToSlot: (questionId: string, slotIndex: number) => void;
   onSubmit: () => void;
   onAdvance?: () => void;
 }) {
   const { t } = useI18n();
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const part = parts[activePart];
   const questions = part?.questions ?? [];
@@ -125,42 +130,49 @@ export function PracticeFooter({
                   {t('practice.emptySection', { number: one.order })}
                 </p>
               ) : (
-                <ol className="prun-boxes">
-                  {slots.map(({ question, slot, slotIndex }) => {
-                    const box = state(question, slotIndex);
-                    return (
-                      <li key={slot.id}>
-                        {/*
-                          Three channels, not one colour: the fill, a glyph
-                          (tick for confirmed, hollow ring for unsaved, nothing
-                          for empty) and the accessible name. It survives
-                          greyscale, and it survives a reader who never looks
-                          at it because a screen reader is reading it out.
-                        */}
-                        <button
-                          type="button"
-                          className="prun-box"
-                          data-state={box}
-                          data-response-slot-id={slot.id}
-                          onClick={() => onScrollToSlot(question.id, slotIndex)}
-                        >
-                          <span className="num" aria-hidden="true">
-                            {slot.number}
-                          </span>
-                          <BoxGlyph state={box} />
-                          <span className="sr-only">
-                            {t('exam.questionNumber', { number: slot.number })} ·{' '}
-                            {box === 'answered'
-                              ? t('practice.boxAnswered')
-                              : box === 'unsaved'
-                                ? t('practice.boxUnsaved')
-                                : t('practice.boxEmpty')}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ol>
+                <div className="prun-boxes-wrap">
+                  <ol className="prun-boxes prun-boxes-desktop">
+                    {slots.map(({ question, slot, slotIndex }) => {
+                      const box = state(question, slotIndex);
+                      return (
+                        <li key={slot.id}>
+                          <button
+                            type="button"
+                            className="prun-box"
+                            data-state={box}
+                            data-response-slot-id={slot.id}
+                            onClick={() => onScrollToSlot(question.id, slotIndex)}
+                          >
+                            <span className="num" aria-hidden="true">
+                              {slot.number}
+                            </span>
+                            <BoxGlyph state={box} />
+                            <span className="sr-only">
+                              {t('exam.questionNumber', { number: slot.number })} ·{' '}
+                              {box === 'answered'
+                                ? t('practice.boxAnswered')
+                                : box === 'unsaved'
+                                  ? t('practice.boxUnsaved')
+                                  : t('practice.boxEmpty')}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ol>
+
+                  <button
+                    type="button"
+                    className="prun-sheet-trigger"
+                    aria-expanded={sheetOpen}
+                    onClick={() => setSheetOpen(true)}
+                  >
+                    <span>
+                      {t('practice.sectionN', { number: one.order })} · {answeredIn(one)}/{totalIn(one)}
+                    </span>
+                    <span aria-hidden="true"> ⇡</span>
+                  </button>
+                </div>
               )}
             </div>
           ) : (
@@ -214,11 +226,14 @@ export function PracticeFooter({
           <>
             <button
               type="button"
-              className="exam-submit"
+              className="exam-submit prun-advance-btn"
               disabled={busy}
+              aria-label={t('exam.next')}
               onClick={() => onAdvance?.()}
             >
-              {t('exam.next')}
+              <span className="prun-advance-label">
+                {nextSkillName ? `Tiếp theo: ${nextSkillName}` : t('exam.next')}
+              </span>
             </button>
             {nextNote != null && nextNote !== '' && (
               <p className="result-next-note prun-next-note">{nextNote}</p>
@@ -230,6 +245,63 @@ export function PracticeFooter({
           </button>
         )}
       </div>
+
+      {sheetOpen && (
+        <div
+          className="prun-sheet-scrim"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSheetOpen(false);
+          }}
+        >
+          <div
+            className="prun-sheet-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Bảng câu hỏi ${t('practice.sectionN', { number: part?.order ?? 1 })}`}
+          >
+            <div className="prun-sheet-head">
+              <h3 className="prun-sheet-title">
+                {t('practice.sectionN', { number: part?.order ?? 1 })} ·{' '}
+                {part ? `${answeredIn(part)}/${totalIn(part)} câu` : ''}
+              </h3>
+              <button
+                type="button"
+                className="prun-sheet-close"
+                aria-label="Đóng bảng câu hỏi"
+                onClick={() => setSheetOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <ol className="prun-boxes prun-sheet-boxes">
+              {slots.map(({ question, slot, slotIndex }) => {
+                const box = state(question, slotIndex);
+                return (
+                  <li key={`sheet-${slot.id}`}>
+                    <button
+                      type="button"
+                      className="prun-box"
+                      data-state={box}
+                      onClick={() => {
+                        setSheetOpen(false);
+                        onScrollToSlot(question.id, slotIndex);
+                      }}
+                    >
+                      <span className="num" aria-hidden="true">
+                        {slot.number}
+                      </span>
+                      <BoxGlyph state={box} />
+                      <span className="sr-only">
+                        {t('exam.questionNumber', { number: slot.number })}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </div>
+      )}
     </footer>
   );
 }

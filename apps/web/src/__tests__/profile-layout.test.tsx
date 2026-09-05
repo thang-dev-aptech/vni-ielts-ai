@@ -93,7 +93,10 @@ function openProfile(path = '/profile') {
     </StrictMode>,
   );
 
-  return screen.findByRole('heading', { level: 1, name: 'Hồ sơ của bạn' });
+  return screen.findByRole('heading', {
+    level: 1,
+    name: path.includes('progress') ? 'Tiến độ' : 'Hồ sơ của bạn',
+  });
 }
 
 beforeEach(() => {

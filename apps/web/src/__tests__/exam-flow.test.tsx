@@ -1413,6 +1413,8 @@ it('does not advance when the final save fails', async () => {
   const field = await screen.findByRole('textbox');
   await userEvent.type(field, 'cartography');
   await userEvent.click(screen.getByRole('button', { name: /Tiếp theo/ }));
+  const confirm = await screen.findByRole('button', { name: /Hoàn thành.*sang/ });
+  await userEvent.click(confirm);
 
   await waitFor(() => expect(document.querySelector('.exam-submit-error')).toBeInTheDocument());
   expect(advances).toBe(0);

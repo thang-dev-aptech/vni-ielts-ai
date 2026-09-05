@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { Paths } from '../../routes/paths.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n, type StringKey } from '../../i18n/index.js';
@@ -7,14 +7,13 @@ import { currentAvatarTint } from '../landing/avatarTint.js';
 import { initialOf } from '../landing/avatarInitial.js';
 import { ChartIcon, DevicesIcon, LockIcon } from '../landing/MenuIcons.js';
 import { DevicePanel } from './DevicePanel.js';
-import { GoalCoachingPanel } from '../learning/GoalCoachingPanel.js';
 import { StreakPanel } from '../learning/StreakPanel.js';
 import { PasswordPanel } from './PasswordPanel.js';
 import { PersonalInfo } from './PersonalInfo.js';
 import '../../styles/profile.css';
 import { usePageTitle } from '../../routes/usePageTitle.js';
 
-type ProfileTab = 'progress' | 'password' | 'devices';
+type ProfileTab = 'password' | 'devices';
 
 interface Tab {
   id: ProfileTab;
@@ -22,67 +21,20 @@ interface Tab {
   labelKey: StringKey;
 }
 
-/**
- * Two groups, and they are drawn as two groups.
- *
- * Security and devices are things you do to an <i>account</i>; progress is a
- * thing you look at about your <i>learning</i>. Running all three as one flat
- * strip made the reader work out the difference, which is the complaint the
- * owner raised. The strip keeps all three — `/profile?tab=progress` is linked
- * from the dashboard rail and is where `/progress` redirects, so removing it
- * would break live links — and separates them with a labelled rule instead.
- */
 const ACCOUNT_TABS: Tab[] = [
   { id: 'password', icon: LockIcon, labelKey: 'profile.tab.password' },
   { id: 'devices', icon: DevicesIcon, labelKey: 'profile.tab.devices' },
 ];
 
-const LEARNING_TABS: Tab[] = [
-  { id: 'progress', icon: ChartIcon, labelKey: 'profile.tab.progress' },
-];
-
 /**
  * `password` is the default. `[QUYẾT ĐỊNH]` chủ sản phẩm, 21/08/2026.
- *
- * It is also the one that reads sensibly as a landing panel: account security
- * is what someone opens a profile page for, where progress is something they
- * go looking for deliberately.
+ * D-3 chốt 2026-09-04: /profile is "Tài khoản & bảo mật", progress moves to /progress.
  */
 function parseTab(raw: string | null): ProfileTab {
-  if (raw === 'password' || raw === 'devices' || raw === 'progress') return raw;
+  if (raw === 'devices') return 'devices';
   return 'password';
 }
 
-/**
- * Learner profile.
- *
- * <b>Rebuilt 21/08/2026 against the owner's review.</b> The complaint was not
- * about features — it was that the page read as LMS account management with a
- * 160px empty green band on top, a tall profile card, and a void where the
- * right column ran out. Four things changed, and the reasoning matters more
- * than the diff:
- *
- * <b>The green band is gone rather than shortened.</b> Green now appears only
- * where it means something — the eyebrow, the active tab, the primary button.
- * A decorative mass of brand colour carrying no information was the largest
- * single thing on the page, and shrinking it to 80px would have kept a smaller
- * version of the same mistake. The page header it used to sit behind now
- * carries the words instead.
- *
- * <b>The void was structural, not a shortage of content.</b> A tall left card
- * beside a short right column leaves an L-shaped hole; `min-height: 100vh`
- * then padded it out to a full screen. Balancing the two columns fixed it
- * without adding anything to fill space with.
- *
- * <b>The page now answers one question.</b> `§15` of the brief: Profile is
- * *"what is my information and where does my learning stand"*. `GoalCoachingPanel`
- * supplies the second half. Recent activity is deliberately NOT here — the
- * dashboard already carries it, and a second copy would make this a second
- * dashboard, which the same rule forbids.
- *
- * <b>Nothing invented.</b> No band, no percentage, no XP, no exam date. There
- * is no exam engine and no progress endpoint, so every figure is `—`.
- */
 export function ProfilePage() {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -90,18 +42,13 @@ export function ProfilePage() {
   const [params] = useSearchParams();
   const [tint] = useState(currentAvatarTint);
 
+  // D-3: /profile?tab=progress redirects to /progress
+  if (params.get('tab') === 'progress') {
+    return <Navigate to={Paths.progress} replace />;
+  }
+
   const tab = parseTab(params.get('tab'));
 
-  /*
-   * A tab change moves focus into the panel it opened.
-   *
-   * The panel used to be an `aria-live` region, which announced its whole
-   * subtree on every switch and left the keyboard where it was. Focus is the
-   * honest signal: it says "you are here now" without reading a device list
-   * aloud, and the next Tab continues from inside the panel rather than from
-   * the tab strip. `mounted` keeps it from firing on first paint, when the
-   * reader has not asked for anything.
-   */
   const panelRef = useRef<HTMLDivElement>(null);
   const mounted = useRef(false);
   useEffect(() => {
@@ -110,20 +57,9 @@ export function ProfilePage() {
   }, [tab]);
 
   const panel = useMemo(() => {
-    if (tab === 'password') return <PasswordPanel />;
     if (tab === 'devices') return <DevicePanel />;
-
-    return (
-      <>
-        <h2 className="profile-panel-title">{t('profile.progress.title')}</h2>
-        <p className="profile-panel-lead">{t('profile.progress.lead')}</p>
-        <div className="profile-learning">
-          <StreakPanel />
-          <GoalCoachingPanel compact />
-        </div>
-      </>
-    );
-  }, [t, tab]);
+    return <PasswordPanel />;
+  }, [tab]);
 
   if (user === null) return null;
 
@@ -224,7 +160,10 @@ export function ProfilePage() {
             <p className="profile-nav-group" aria-hidden="true">
               {t('profile.tabGroup.learning')}
             </p>
-            {LEARNING_TABS.map(renderTab)}
+            <Link to={Paths.progress} className="profile-tab">
+              <ChartIcon />
+              {t('profile.tab.progress')}
+            </Link>
           </nav>
 
           <section className="profile-main" aria-labelledby="profile-modules">

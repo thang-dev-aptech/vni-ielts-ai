@@ -393,17 +393,12 @@ it('closes the notification panel when the account menu opens', async () => {
 });
 
 it('offers a way to progress from the menu, because nobody finds it otherwise', async () => {
-  // Progress lives as a tab inside the profile page, and it was left out of
-  // this menu on the reasoning that two items opening one screen look like a
-  // duplicate. The owner reported the outcome that settled it: people did not
-  // know it existed. A menu that hides what people are looking for is not
-  // tidy, it is empty.
+  // D-3: Progress is a dedicated page at /progress.
   signedIn();
   open();
 
   await userEvent.click(await screen.findByRole('button', { name: /Nguyễn Thị Đào/ }));
   await userEvent.click(await screen.findByRole('link', { name: 'Tiến độ học tập' }));
 
-  await waitFor(() => expect(window.location.pathname).toBe('/profile'));
-  expect(window.location.search).toContain('tab=progress');
+  await waitFor(() => expect(window.location.pathname).toBe('/progress'));
 });

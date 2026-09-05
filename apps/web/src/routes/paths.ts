@@ -136,10 +136,14 @@ export const Paths = {
   resetPassword: '/reset-password',
 
   /**
-   * Account profile. Progress (“Theo dõi”) is a module on this page
-   * (`?tab=progress`), not a separate top-level route.
+   * Account & security profile ("Tài khoản & bảo mật").
    */
   profile: '/profile',
+
+  /**
+   * Learning progress ("Tiến độ") — D-3 chốt 2026-09-04: real standalone route.
+   */
+  progress: '/progress',
 
   /**
    * Where the API sends the browser back after a social sign-in, carrying a

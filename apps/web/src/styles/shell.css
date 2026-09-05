@@ -19,9 +19,9 @@
 
 .shell {
   --shell-rail: 248px;
-  --shell-rail-min: 72px;
+  --shell-rail-min: 56px;
   --shell-top: 68px;
-  --shell-r: 14px;
+  --shell-r: 12px;
 
   min-height: 100vh;
   display: grid;
@@ -202,11 +202,58 @@
   color: var(--ok);
 }
 
+.shell-rail-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.shell-rail-group + .shell-rail-group {
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line-2);
+}
+
+.shell-rail-group-title {
+  padding: var(--s-1) var(--s-3);
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.shell.is-collapsed .shell-rail-group-title {
+  display: none;
+}
+
+.shell-nav-badge {
+  margin-left: auto;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--acc-soft);
+  color: var(--acc-700);
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+
+.shell.is-collapsed .shell-nav-badge {
+  display: none;
+}
+
 .shell-nav-text {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.shell-top-title {
+  margin: 0;
+  font-size: var(--t-18);
+  font-weight: var(--w-emph);
+  color: var(--ink);
 }
 
 /* The assistant is a module now, so it wears the same row as the rest. Only

@@ -5,11 +5,9 @@ import { useI18n } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
 
 /**
- * Progress is a tab, not a route of its own — `/progress` redirects here. The
- * query string is the contract that makes it linkable at all, which is exactly
- * why the menu can point at it.
+ * D-3: Progress is a standalone page at Paths.progress (/progress).
  */
-const PROGRESS = `${Paths.profile}?tab=progress`;
+const PROGRESS = Paths.progress;
 import { BookIcon, ChartIcon, PersonIcon, SignOutIcon } from './MenuIcons.js';
 import { initialOf } from './avatarInitial.js';
 import { currentAvatarTint } from './avatarTint.js';

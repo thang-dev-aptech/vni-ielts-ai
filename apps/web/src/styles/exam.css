@@ -996,6 +996,11 @@
   box-shadow: none;
 }
 
+/* Do not show an Overall IELTS panel for a Single Skill sitting (`D-9`) */
+.result-overall.is-single-mode {
+  display: none;
+}
+
 .result-overall:has(.result-overall-value.is-none) .result-overall-label {
   color: var(--ink-2);
   font-weight: var(--w-emph);
@@ -1018,6 +1023,104 @@
   font-size: var(--t-14);
   line-height: var(--lh-body);
   color: var(--ink-2);
+}
+
+/* ── Single Skill Result Summary (`D-9`) ────────────────────────────────── */
+
+.result-single-hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card, 16px);
+  background: var(--card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.result-single-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+
+.result-single-skill-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.result-single-skill-badge h2 {
+  margin: 0;
+  font-size: var(--t-24);
+  font-weight: var(--w-display);
+  color: var(--ink);
+}
+
+.result-single-score-box {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.result-score-raw {
+  font-family: var(--font-display);
+  font-size: var(--t-36);
+  font-weight: var(--w-display-heavy);
+  color: var(--primary);
+  line-height: 1;
+}
+
+.result-score-max {
+  font-size: var(--t-20);
+  font-weight: var(--w-emph);
+  color: var(--muted);
+}
+
+.result-score-accuracy {
+  margin-left: var(--s-2);
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(6, 128, 58, 0.1);
+  color: var(--primary);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+}
+
+.result-single-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
+.result-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+}
+
+.result-stat-chip.is-right {
+  background: var(--ok-soft);
+  color: #10562f;
+}
+
+.result-stat-chip.is-wrong {
+  background: var(--bad-soft);
+  color: #8a2b1e;
+}
+
+.result-stat-chip.is-blank {
+  background: var(--sunk);
+  color: var(--muted);
+  border: 1px solid var(--line);
 }
 
 .result-list {
@@ -1258,6 +1361,36 @@
   padding: 0 var(--s-5) var(--s-5);
 }
 
+.result-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.result-filter-chip {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.result-filter-chip:hover {
+  background: var(--sunk);
+}
+
+.result-filter-chip.is-active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
 .result-review-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -1265,6 +1398,10 @@
   margin: 0 0 var(--s-4);
   padding: 0;
   list-style: none;
+}
+
+.result-review-grid > li.is-filtered-out {
+  display: none;
 }
 
 .result-review-grid > li {
@@ -1409,6 +1546,17 @@
   border: var(--bw-2) solid var(--line);
   border-radius: var(--r-md);
   background: var(--sunk);
+}
+
+.result-marking-card.ai-advisory-card {
+  border: 2px dashed var(--primary);
+  border-radius: var(--r-card, 16px);
+  background: rgba(6, 128, 58, 0.02);
+  position: relative;
+}
+
+.ai-advisory-header {
+  margin-bottom: var(--s-1);
 }
 
 .result-marking-head {

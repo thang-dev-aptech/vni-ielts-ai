@@ -9,20 +9,22 @@ import { Fragment } from 'react';
  * is what a plain text split does — the reader is asked to find a paragraph
  * that is not labelled, and the whole question set becomes guesswork.
  *
- * <b>Exactly one construct is understood, and that is the point.</b> The
- * packages use `**bold**` and nothing else: no headings, no lists, no links.
- * A general markdown renderer here would be scope nobody asked for and an
- * HTML-injection surface on content that arrives from an uploaded ZIP. If a
- * package starts using something else, this file should grow one case with a
- * reason beside it rather than a dependency.
- *
- * Nothing is ever set as HTML. The text is split and rendered as React nodes,
- * so a passage containing `<script>` is a passage containing the characters
- * `<script>`.
+ * Supports font size customization and user-selected highlights per D-8.
  */
-export function PassageBody({ body }: { body: string }) {
+export function PassageBody({
+  body,
+  fontSize,
+  highlights = [],
+}: {
+  body: string;
+  fontSize?: number;
+  highlights?: string[];
+}) {
   return (
-    <div className="exam-passage-body">
+    <div
+      className="exam-passage-body"
+      style={fontSize ? { fontSize: `${fontSize}px` } : undefined}
+    >
       {body.split('\n\n').map((paragraph, at) => {
         const label = /^\*\*([A-Z])\*\*\s*/.exec(paragraph);
 
@@ -41,7 +43,11 @@ export function PassageBody({ body }: { body: string }) {
             )}
 
             <span className="exam-passage-text">
-              {emphasise(label === null ? paragraph : paragraph.slice(label[0].length), label?.[1])}
+              {emphasise(
+                label === null ? paragraph : paragraph.slice(label[0].length),
+                label?.[1],
+                highlights,
+              )}
             </span>
           </p>
         );
@@ -51,13 +57,9 @@ export function PassageBody({ body }: { body: string }) {
 }
 
 /**
- * `**text**` becomes bold. Everything else is text.
- *
- * The leading paragraph label is announced here rather than by the visible
- * chip, which is `aria-hidden`: "B. During the past…" reads as a labelled
- * paragraph, where a bare "B" floating before the sentence reads as a typo.
+ * `**text**` becomes bold. Highlight matches are wrapped in `<mark>`.
  */
-function emphasise(text: string, label?: string) {
+function emphasise(text: string, label?: string, highlights: string[] = []) {
   const pieces = text.split(/(\*\*[^*]+\*\*)/g);
 
   return (
@@ -65,11 +67,42 @@ function emphasise(text: string, label?: string) {
       {label !== undefined && <span className="sr-only">{label}. </span>}
       {pieces.map((piece, at) =>
         piece.startsWith('**') && piece.endsWith('**') && piece.length > 4 ? (
-          <b key={at}>{piece.slice(2, -2)}</b>
+          <b key={at}>{renderHighlightedText(piece.slice(2, -2), highlights)}</b>
         ) : (
-          <Fragment key={at}>{piece}</Fragment>
+          <Fragment key={at}>{renderHighlightedText(piece, highlights)}</Fragment>
         ),
       )}
+    </>
+  );
+}
+
+function renderHighlightedText(text: string, highlights: string[]) {
+  if (!text || highlights.length === 0) return text;
+
+  const validHighlights = highlights
+    .map((h) => h.trim())
+    .filter((h) => h.length > 0);
+
+  if (validHighlights.length === 0) return text;
+
+  const escaped = validHighlights.map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const regex = new RegExp(`(${escaped.join('|')})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        const isMatch = validHighlights.some(
+          (vh) => vh.toLowerCase() === part.toLowerCase(),
+        );
+        return isMatch ? (
+          <mark key={index} className="exam-highlight">
+            {part}
+          </mark>
+        ) : (
+          <Fragment key={index}>{part}</Fragment>
+        );
+      })}
     </>
   );
 }

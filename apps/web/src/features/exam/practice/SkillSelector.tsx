@@ -32,12 +32,9 @@ import { SKILLS, SKILL_ORDER } from '../skills.js';
  * offers, and pressing one still means "luyện kỹ năng này", which is what
  * switches the mode back.
  *
- * <b>Below 640px the row scrolls sideways, and the chosen card is scrolled
- * into it.</b> Four cards squeezed into 350px gives each about 80px, which is
- * not enough for a label beside a 46px icon — the brief is explicit that they
- * must not shrink. But a row that scrolls has an off-screen half, and
- * `/practice?skill=speaking` landed with Speaking selected and Reading in
- * view: the control appeared to have ignored the address.
+ * <b>Below 640px the selector is a 2×2 grid (D-5), never a clipped horizontal strip.</b>
+ * All four skills remain immediately visible and reachable on any mobile screen width
+ * without sideways scrolling or hidden options.
  */
 export function SkillSelector({
   selected,

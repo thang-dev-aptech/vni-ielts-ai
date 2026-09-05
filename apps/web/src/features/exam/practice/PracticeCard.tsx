@@ -61,53 +61,21 @@ export function PracticeCard({
         full ? undefined : ({ '--sk-ink': skill.ink, '--sk-tint': skill.tint } as CSSProperties)
       }
     >
-      <div className="prac-card-top">
-        {/*
-          <b>The badge only appears in full-test mode.</b> In single-skill mode
-          the grid is one skill by construction — the reader chose it two
-          controls ago and the heading above says it — so a "Reading" chip on
-          every one of six cards repeated the same word six times and pushed
-          the one thing that differed, the title, down a line.
-        */}
-        {full ? (
-          <span className="prac-badge is-full-badge">
+      <h3 className="prac-title">{item.title}</h3>
+
+      <div className="prac-card-tags">
+        {full && (
+          <span className="prac-chip is-full-badge">
             <span aria-hidden="true">◈</span>
-            {t('exam.modeFull')}
+            Full Test
           </span>
-        ) : (
-          <span className="prac-card-lead" />
         )}
 
-        {/* The API lower-cases every enum, which is right for a value a client
-            compares and wrong for one a person reads — and the spelling has to
-            match the filter's, or the reader has to work out whether "General"
-            and "General Training" are the same value. */}
         <span className="prac-variant">{variantLabel(item.variant)}</span>
       </div>
 
-      <h3 className="prac-title">{item.title}</h3>
-
-      {/*
-        <b>The paper's own sentence, and the reason it exists.</b> Until
-        2026-09-03 a card could say a title, a variant and a question count —
-        enough to choose between two papers only if their titles already did the
-        work. "VOL 9 Test 3" beside "VOL 9 Test 4" is not a choice anyone can
-        make, and sixteen more of those are being imported.
-
-        Rendered only when the package supplied one. A missing description is a
-        card with one less line, never a placeholder: an invented sentence under
-        a real paper reads as editorial the academic team did not write.
-      */}
       {item.description !== null && <p className="prac-desc">{item.description}</p>}
 
-      {/*
-        <b>Per-module minutes, not a sentence.</b> This slot held "Bốn kỹ năng
-        trong một phiên, theo thứ tự Reading → Listening → Writing → Speaking",
-        which a comment defended as differing between cards. It cannot:
-        `toFullItems` admits an exam only if it has all four modules and then
-        sorts them into `SKILL_ORDER`, so every full-test card printed the same
-        24 words. The minutes are the part that actually varies between papers.
-      */}
       {full && item.parts.length > 0 && (
         <ul className="prac-parts">
           {item.parts.map((part) => (
@@ -119,10 +87,6 @@ export function PracticeCard({
               >
                 {SKILLS[part.module].name.slice(0, 1)}
               </span>
-              {/* "phút", not the prime symbol. Every other duration on this
-                  page says "phút", and `′` is a mathematics glyph rather than a
-                  Vietnamese convention for minutes — several screen readers
-                  announce it as "prime". */}
               <span className="prac-part-min">
                 <span className="num">{part.minutes}</span> phút
               </span>
@@ -134,17 +98,21 @@ export function PracticeCard({
         </ul>
       )}
 
-      {/*
-        The digits are monospaced and the words are not.
-        `formatDuration` returns "2 giờ 45 phút", and putting the whole phrase
-        in `.num` set five Vietnamese words in JetBrains Mono beside "câu" in
-        Nunito. Only the numerals belong in the tabular face.
-      */}
+      {/* Metadata in D-5 order: parts/questions · duration · scoring source · resume state */}
       <ul className="prac-meta">
-        <li>
-          <span className="prac-meta-value num">{item.questionCount}</span>&nbsp;câu
+        <li className="prac-meta-item">
+          {item.parts.length > 0 ? (
+            <>
+              <span className="prac-meta-value num">{item.parts.length}</span>&nbsp;phần ·{' '}
+              <span className="prac-meta-value num">{item.questionCount}</span>&nbsp;câu
+            </>
+          ) : (
+            <>
+              <span className="prac-meta-value num">{item.questionCount}</span>&nbsp;câu
+            </>
+          )}
         </li>
-        <li>
+        <li className="prac-meta-item">
           {durationParts(item.durationSeconds).map((part, at) =>
             part.digits ? (
               <span className="prac-meta-value num" key={at}>
@@ -155,22 +123,17 @@ export function PracticeCard({
             ),
           )}
         </li>
-        {/*
-          The marking rule is a property of the skill, and in single-skill mode
-          the reader picked the skill — so it appeared on six cards and in the
-          status line above them, seven times on one screen. It stays on a
-          full-test card, where the sitting genuinely mixes both kinds.
-        */}
-        {full && <li className="prac-meta-marking">Chấm hỗn hợp</li>}
+        <li className="prac-meta-item prac-meta-marking">
+          {full
+            ? 'Theo đáp án / AI · tham khảo'
+            : item.module === 'writing' || item.module === 'speaking'
+              ? 'AI · tham khảo'
+              : 'Theo đáp án'}
+        </li>
       </ul>
 
       <div className="prac-starts">
-        {/*
-          <b>Luyện đề first, and only on a single-skill card.</b> The open-ended
-          clock is what most people came for, and a full-test luyện đề sitting
-          would need a chaining rule `B-13` has not written — so the offer is
-          absent there rather than present and half-built. `G-11`.
-        */}
+        {/* Luyện đề is the primary button on single-skill cards */}
         {!full && (
           <button
             type="button"
@@ -184,9 +147,10 @@ export function PracticeCard({
           </button>
         )}
 
+        {/* Full Test cards have only Thi thử */}
         <button
           type="button"
-          className="prac-start is-mock"
+          className={`prac-start is-mock${full ? ' is-full-primary' : ''}`}
           disabled={busy}
           onClick={() => onStart(item, 'deadline')}
           aria-label={
@@ -195,7 +159,7 @@ export function PracticeCard({
               : `${t('exam.start')} ${skill.name} — ${item.title}`
           }
         >
-          {busy ? t('exam.starting') : t('exam.start')}
+          {busy ? t('exam.starting') : full ? 'Bắt đầu Thi thử' : t('exam.start')}
           <span aria-hidden="true">→</span>
         </button>
       </div>

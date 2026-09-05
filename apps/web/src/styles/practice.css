@@ -1,4 +1,4 @@
-/*
+ /*
  * Luyện 4 kỹ năng — `/practice`.
  *
  * <b>Nothing here declares a colour that is not already a token or a measured
@@ -1321,32 +1321,33 @@
   }
 
   /*
-   * Four cards in a row that scrolls, not four squeezed into 350px.
-   *
-   * The brief is explicit — "Không làm 4 skill card quá nhỏ trên mobile" — and
-   * a 2×2 grid at this width gives each card about 160px, which is not enough
-   * for "Nghe chép chính tả"-length labels beside a 46px icon.
+   * D-5: 2×2 grid below 640px, never a clipped horizontal strip.
+   * Mobile: list rows, not cards.
    */
   .skill-picker {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    /* The row bleeds to the screen edges so the last card does not look
-       clipped by a margin. */
-    margin-inline: -20px;
-    padding: 4px 20px;
-    scrollbar-width: none;
-  }
-
-  .skill-picker::-webkit-scrollbar {
-    display: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-inline: 0;
+    padding: 0;
+    overflow-x: visible;
   }
 
   .skill-pick {
-    flex: 0 0 auto;
-    width: 210px;
-    scroll-snap-align: start;
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+  }
+
+  .prac-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .prac-card {
+    padding: 16px;
+    border-radius: var(--radius);
   }
 
   .work-bar {
@@ -1851,3 +1852,349 @@
     transition: none;
   }
 }
+
+/* ── D-5 Practice Components & Modals ──────────────────────────────────── */
+
+.prac-card-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.prac-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.prac-chip.is-full-badge {
+  background: var(--green-soft);
+  color: #14743d;
+}
+
+.prac-start.is-full-primary {
+  background: var(--primary) !important;
+  color: #fff !important;
+  border: 0 !important;
+}
+
+.prac-start.is-full-primary:hover:not(:disabled) {
+  background: var(--primary-dark) !important;
+}
+
+/* Work entry test banner */
+.work-entry-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 12px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  font-size: 14px;
+}
+
+.work-entry-banner-lead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.work-entry-banner-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.work-entry-banner-btn:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Work explainer block */
+.work-explainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 14px 18px;
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.work-explainer-item strong {
+  color: var(--ink);
+  margin-right: 6px;
+}
+
+@media (max-width: 640px) {
+  .work-explainer {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    font-size: 13px;
+  }
+}
+
+/* Mobile load more button */
+.work-load-more {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .work-load-more {
+    display: block;
+    margin: 16px 0;
+    text-align: center;
+  }
+
+  .work-load-more-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pager {
+    display: none;
+  }
+}
+
+/* Work modal dialogs */
+.work-modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(15 23 42 / 45%);
+  backdrop-filter: blur(4px);
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.work-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 40px rgb(0 0 0 / 12%);
+  color: var(--ink);
+}
+
+.work-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--sunk);
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.work-modal-close:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+.work-modal-title {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.work-modal-desc {
+  margin: 0 0 16px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.work-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.work-modal-actions .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Entry test modal specifics (S4) */
+.entry-test-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.entry-test-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.entry-test-notice-icon {
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.entry-test-disabled-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Readiness modal specifics */
+.readiness-header {
+  margin-bottom: 16px;
+}
+
+.readiness-exam-title {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.readiness-section-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.readiness-sequence {
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--sunk);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+
+.readiness-steps {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.readiness-step-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.readiness-step-num {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--sunk);
+  font-weight: 800;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.readiness-step-name {
+  font-weight: 700;
+  flex: 1;
+}
+
+.readiness-step-min {
+  color: var(--muted);
+}
+
+.readiness-total-time {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+}
+
+.readiness-rules {
+  margin-bottom: 16px;
+}
+
+.readiness-rule-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.readiness-rule-list li {
+  margin-bottom: 6px;
+}
+
+.readiness-rule-list strong {
+  color: var(--ink-2);
+}
+

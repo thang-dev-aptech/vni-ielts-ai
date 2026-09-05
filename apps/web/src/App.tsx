@@ -17,6 +17,7 @@ import { PublicShell } from './features/chrome/PublicShell.js';
 import { ArticlePage } from './features/articles/ArticlePage.js';
 import { ArticlesPage } from './features/articles/ArticlesPage.js';
 import { DocumentsPage } from './features/library/DocumentsPage.js';
+import { ProgressPage } from './features/student/ProgressPage.js';
 import { StudentDashboardPage } from './features/student/StudentDashboardPage.js';
 import { LandingPage } from './features/landing/LandingPage.js';
 import { ProfilePage } from './features/profile/ProfilePage.js';
@@ -125,6 +126,7 @@ export function App() {
                 */}
                 <Route element={<DashboardShell />}>
                   <Route path={Paths.dashboard} element={<StudentDashboardPage />} />
+                  <Route path={Paths.progress} element={<ProgressPage />} />
                 </Route>
 
                 {/*
@@ -173,10 +175,6 @@ export function App() {
               <Route
                 path="/students/dictation"
                 element={<Navigate to={Paths.dictation} replace />}
-              />
-              <Route
-                path="/progress"
-                element={<Navigate to={`${Paths.profile}?tab=progress`} replace />}
               />
 
               {/* Reachable either way: someone clicking a link from their

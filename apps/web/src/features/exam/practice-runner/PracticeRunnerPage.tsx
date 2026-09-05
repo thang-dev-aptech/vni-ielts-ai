@@ -23,12 +23,15 @@ import {
   submitSession,
 } from '../examApi.js';
 import type { SessionView } from '../examApi.js';
-import { refusedNumbers, useAnswerSheet, type SaveState } from '../useAnswerSheet.js';
+import { refusedNumbers, useAnswerSheet } from '../useAnswerSheet.js';
 import { usePracticeClock } from './usePracticeClock.js';
 import { PracticeHeader, type ControlState } from './PracticeHeader.js';
 import { PracticeFooter } from './PracticeFooter.js';
 import { SubmitConfirmCard } from './SubmitConfirmCard.js';
 import { LeaveConfirmCard } from './LeaveConfirmCard.js';
+import { AdvanceConfirmCard } from './AdvanceConfirmCard.js';
+import { FullTestProgressStrip } from './FullTestProgressStrip.js';
+import { PassageToolbar, type FontSize } from '../PassageToolbar.js';
 import { projectRunnerParts } from './sessionProjection.js';
 import '../../../styles/exam.css';
 import '../../../styles/practice-run.css';
@@ -63,6 +66,7 @@ export function PracticeRunnerPage() {
   const [activePart, setActivePart] = useState(0);
   const [mobilePane, setMobilePane] = useState<'passage' | 'questions'>('passage');
   const [confirming, setConfirming] = useState(false);
+  const [advancingConfirm, setAdvancingConfirm] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [submitState, setSubmitState] = useState<'idle' | 'submitting' | 'failed'>('idle');
   const [clockState, setClockState] = useState<ControlState>('idle');
@@ -82,6 +86,15 @@ export function PracticeRunnerPage() {
    * matters.
    */
   const [stepFailed, setStepFailed] = useState<'submit' | 'advance' | 'save' | null>(null);
+  const [passageFontSize, setPassageFontSize] = useState<FontSize>(() => {
+    try {
+      const saved = sessionStorage.getItem('vni:reading-font-size');
+      if (saved && [14, 16, 18, 20].includes(Number(saved))) return Number(saved) as FontSize;
+    } catch {}
+    return 16;
+  });
+  const [highlighterActive, setHighlighterActive] = useState(false);
+  const [highlightsByPart, setHighlightsByPart] = useState<Record<number, string[]>>({});
 
   usePageTitle(session?.examTitle);
 
@@ -105,6 +118,7 @@ export function PracticeRunnerPage() {
   const expiredRef = useRef(false);
   /** The control that opened the card, so focus can be given back to it. */
   const submitTrigger = useRef<Element | null>(null);
+  const advanceTrigger = useRef<Element | null>(null);
   const leaveTrigger = useRef<Element | null>(null);
 
   /**
@@ -148,6 +162,31 @@ export function PracticeRunnerPage() {
   const passage = useRef<HTMLElement>(null);
   const questionPane = useRef<HTMLElement>(null);
   const offsets = useRef<Record<number, { passage: number; questions: number }>>({});
+
+  const currentPartHighlights = highlightsByPart[activePart] ?? [];
+
+  function handleFontSizeChange(next: FontSize) {
+    setPassageFontSize(next);
+    try {
+      sessionStorage.setItem('vni:reading-font-size', String(next));
+    } catch {}
+  }
+
+  function handleClearHighlights() {
+    setHighlightsByPart((prev) => ({ ...prev, [activePart]: [] }));
+  }
+
+  function handlePassageMouseUp() {
+    if (!highlighterActive) return;
+    const sel = window.getSelection()?.toString().trim();
+    if (sel && sel.length > 1 && sel.length < 150) {
+      setHighlightsByPart((prev) => {
+        const list = prev[activePart] ?? [];
+        if (list.includes(sel)) return prev;
+        return { ...prev, [activePart]: [...list, sel] };
+      });
+    }
+  }
 
   const goToPart = useCallback(
     async (index: number) => {
@@ -372,12 +411,13 @@ export function PracticeRunnerPage() {
     }
   }
 
-  // ── Submit ──────────────────────────────────────────────────────────────
+  // ── Submit & Advance ──────────────────────────────────────────────────
   function openConfirm() {
     submitTrigger.current = document.activeElement;
     pauseListeningAudio();
     setSubmitState('idle');
     setStepFailed(null);
+    setAdvancingConfirm(false);
     setConfirming(true);
   }
 
@@ -386,9 +426,35 @@ export function PracticeRunnerPage() {
     (submitTrigger.current as HTMLElement | null)?.focus?.();
   }
 
+  function openAdvanceConfirm() {
+    advanceTrigger.current = document.activeElement;
+    pauseListeningAudio();
+    setStepFailed(null);
+    setConfirming(false);
+    setAdvancingConfirm(true);
+  }
+
+  function closeAdvanceConfirm() {
+    setAdvancingConfirm(false);
+    (advanceTrigger.current as HTMLElement | null)?.focus?.();
+  }
+
+  function handleViewUnanswered() {
+    setAdvancingConfirm(false);
+    const allQuestions = parts.flatMap((p) => p.questions);
+    const firstUnanswered = allQuestions.find((q) => {
+      const val = answers[q.id];
+      return val === null || val === undefined || val === '';
+    });
+    if (firstUnanswered) {
+      scrollToSlot(firstUnanswered.id, 0);
+    }
+  }
+
   function openLeave() {
     leaveTrigger.current = document.activeElement;
     pauseListeningAudio();
+    setAdvancingConfirm(false);
     setLeaving(true);
   }
 
@@ -399,6 +465,7 @@ export function PracticeRunnerPage() {
 
   function leave() {
     setLeaving(false);
+    setAdvancingConfirm(false);
     navigate(Paths.practice);
   }
 
@@ -481,6 +548,7 @@ export function PracticeRunnerPage() {
           setSubmitState('idle');
           setSaveBlocked(true);
           setStepFailed('save');
+          setAdvancingConfirm(false);
           return;
         }
       }
@@ -520,6 +588,7 @@ export function PracticeRunnerPage() {
       setRemaining(null);
       setSubmitState('idle');
       setConfirming(false);
+      setAdvancingConfirm(false);
       setLeaving(false);
     } catch (caught) {
       submitting_.current = false;
@@ -530,6 +599,7 @@ export function PracticeRunnerPage() {
       }
       setSubmitState('idle');
       setStepFailed('advance');
+      setAdvancingConfirm(false);
     }
   }
 
@@ -599,6 +669,7 @@ export function PracticeRunnerPage() {
           targetSeconds={null}
           clock="idle"
           target="idle"
+          saveState={save}
           onToggleRun={() => {}}
           onSetTarget={() => {}}
           onExit={openLeave}
@@ -628,6 +699,7 @@ export function PracticeRunnerPage() {
           targetSeconds={null}
           clock="idle"
           target="idle"
+          saveState={save}
           onToggleRun={() => {}}
           onSetTarget={() => {}}
           onExit={openLeave}
@@ -643,7 +715,9 @@ export function PracticeRunnerPage() {
     );
   }
 
-  const split = section.module === 'reading';
+  const isReading = section.module === 'reading';
+  const isWriting = section.module === 'writing';
+  const splitMode = isReading ? 'reading' : isWriting ? 'writing' : 'single';
   const skill = SKILLS[section.module];
   const moduleSequence = resolveModuleSequence(session.moduleSequence);
   const currentIndex = moduleSequence.indexOf(section.module);
@@ -678,6 +752,7 @@ export function PracticeRunnerPage() {
           partNumber={part.order}
           skillPosition={skillPosition}
           remaining={remaining}
+          saveState={save}
         />
       ) : (
         <PracticeHeader
@@ -691,9 +766,18 @@ export function PracticeRunnerPage() {
           targetSeconds={section.targetSeconds ?? null}
           clock={offline ? 'offline' : clockState}
           target={targetState}
+          saveState={save}
           onToggleRun={() => void toggleRun()}
           onSetTarget={(seconds) => void applyTarget(seconds)}
           onExit={openLeave}
+        />
+      )}
+
+      {session.mode === 'full' && (
+        <FullTestProgressStrip
+          moduleSequence={moduleSequence}
+          currentModule={section.module}
+          completedModules={session.completedModules}
         />
       )}
 
@@ -706,7 +790,6 @@ export function PracticeRunnerPage() {
         >
           {offline ? t('practice.connectionOffline') : t('practice.connectionOnline')}
         </span>
-        <SaveNote state={save} />
       </div>
 
       {stepFailedMessage !== null && (
@@ -742,10 +825,10 @@ export function PracticeRunnerPage() {
 
       <main
         className="prun-body"
-        data-split={split ? 'reading' : 'single'}
-        data-mobile-pane={split ? mobilePane : undefined}
+        data-split={splitMode}
+        data-mobile-pane={isReading ? mobilePane : undefined}
       >
-        {split && (
+        {isReading && (
           <div className="prun-mobile-tabs" role="group" aria-label={t('practice.readingView')}>
             <button
               type="button"
@@ -757,9 +840,13 @@ export function PracticeRunnerPage() {
             <button
               type="button"
               aria-pressed={mobilePane === 'questions'}
+              aria-label={t('exam.questionsLabel')}
               onClick={() => setMobilePane('questions')}
             >
-              {t('exam.questionsLabel')}
+              <span>{t('exam.questionsLabel')}</span>
+              <span className="prun-tab-count">
+                {' '}({part.questions.filter((q) => answers[q.id] != null && answers[q.id] !== '').length}/{part.questions.length})
+              </span>
             </button>
           </div>
         )}
@@ -769,24 +856,61 @@ export function PracticeRunnerPage() {
           two-pane layout does not survive a phone, and Android and iOS are
           shipping targets.
         */}
-        {split && (
+        {isReading && (
           <section
             className="prun-pane prun-passage"
             ref={passage}
             aria-label={t('exam.passageLabel')}
+            onMouseUp={handlePassageMouseUp}
           >
-            {part.title !== null && <h1 className="exam-passage-title">{part.title}</h1>}
+            <div className="prun-passage-header">
+              {part.title !== null && <h1 className="exam-passage-title">{part.title}</h1>}
+              <PassageToolbar
+                fontSize={passageFontSize}
+                onChangeFontSize={handleFontSizeChange}
+                highlighterActive={highlighterActive}
+                onToggleHighlighter={() => setHighlighterActive((v) => !v)}
+                hasHighlights={currentPartHighlights.length > 0}
+                onClearHighlights={handleClearHighlights}
+              />
+            </div>
+            {part.body !== null && (
+              <PassageBody
+                body={part.body}
+                fontSize={passageFontSize}
+                highlights={currentPartHighlights}
+              />
+            )}
+            {part.imageKey !== null && <ExamImage reference={part.imageKey} caption={part.title} />}
+          </section>
+        )}
+
+        {/* Writing: 40% prompt / 60% editor split on desktop (`D-8`) */}
+        {isWriting && (
+          <section
+            className="prun-pane prun-passage prun-writing-prompt"
+            ref={passage}
+            aria-label={t('exam.passageLabel')}
+          >
+            <div className="prun-writing-head">
+              {part.title !== null && <h1 className="exam-passage-title">{part.title}</h1>}
+              {part.minWords !== null && (
+                <span className="prun-writing-target-badge">
+                  {t('exam.minWords', { count: part.minWords })}
+                </span>
+              )}
+            </div>
             {part.body !== null && <PassageBody body={part.body} />}
             {part.imageKey !== null && <ExamImage reference={part.imageKey} caption={part.title} />}
           </section>
         )}
 
         <section
-          className="prun-pane prun-questions"
+          className={`prun-pane prun-questions${isWriting ? ' prun-writing-editor' : ''}`}
           ref={questionPane}
           aria-label={t('exam.questionsLabel')}
         >
-          {!split && (
+          {!isReading && !isWriting && (
             <>
               {part.title !== null && <h1 className="exam-passage-title">{part.title}</h1>}
               {/*
@@ -870,10 +994,11 @@ export function PracticeRunnerPage() {
         busy={submitState === 'submitting'}
         ending={advances ? 'advance' : 'submit'}
         nextNote={nextNote}
+        nextSkillName={nextSkill?.name ?? null}
         onGoToPart={goToPart}
         onScrollToSlot={scrollToSlot}
         onSubmit={openConfirm}
-        onAdvance={() => void advance()}
+        onAdvance={openAdvanceConfirm}
       />
 
       {confirming && (
@@ -884,6 +1009,20 @@ export function PracticeRunnerPage() {
           offline={offline}
           onCancel={closeConfirm}
           onConfirm={() => void submit()}
+        />
+      )}
+
+      {advancingConfirm && advances && nextSkill !== null && (
+        <AdvanceConfirmCard
+          currentSkillName={skill.name}
+          nextSkillName={nextSkill.name}
+          parts={parts}
+          answers={answers}
+          save={save}
+          busy={submitState === 'submitting'}
+          onCancel={closeAdvanceConfirm}
+          onConfirm={() => void advance()}
+          onViewUnanswered={handleViewUnanswered}
         />
       )}
 
@@ -899,45 +1038,7 @@ function timingFor(section: SessionView['current'], partNumber: number | null) {
   return configured ?? { part: partNumber ?? 1, prepSeconds: 0, responseSeconds: 300 };
 }
 
-/**
- * The chip, in words rather than in a colour.
- *
- * <b>`saved` is the only state that carries a tick.</b> A learner who sees a
- * tick stops checking, so a tick over work still on the device is data loss the
- * interface caused. → product law `L2`
- */
-function SaveNote({ state }: { state: SaveState }) {
-  const { t } = useI18n();
-  if (state === 'idle') return null;
 
-  const label =
-    state === 'saved'
-      ? t('exam.saved')
-      : state === 'sending'
-        ? t('exam.saving')
-        : state === 'pending'
-          ? t('exam.savePending')
-          : state === 'queued'
-            ? t('exam.notSentYet')
-            : t('exam.saveFailed');
-
-  return (
-    <span className={`save-chip is-${state}`} role="status">
-      {state === 'saved' && (
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
-          <path
-            d="M5 12.5 9.5 17 19 7.5"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
-      {label}
-    </span>
-  );
-}
 
 /**
  * Words written, against the minimum the task sets.

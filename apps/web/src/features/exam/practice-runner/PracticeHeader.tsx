@@ -2,6 +2,8 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { useI18n } from '../../../i18n/index.js';
 import { formatClock, formatElapsed, type ExamModule } from '../examApi.js';
 import { SKILLS } from '../skills.js';
+import type { SaveState } from '../useAnswerSheet.js';
+import { SaveNote } from './SaveNote.js';
 
 /**
  * How a control that talks to the server may be drawn.
@@ -35,6 +37,7 @@ export function PracticeHeader({
   clock,
   target,
   remaining,
+  saveState,
   onToggleRun,
   onSetTarget,
   onExit,
@@ -52,6 +55,7 @@ export function PracticeHeader({
   clock?: ControlState;
   target?: ControlState;
   remaining?: number | null;
+  saveState?: SaveState;
   onToggleRun?: () => void;
   /** Seconds, or null to clear. The server owns the range check. */
   onSetTarget?: (seconds: number | null) => void;
@@ -130,57 +134,68 @@ export function PracticeHeader({
       </div>
 
       <div className="prun-controls">
-        {open && onExit !== undefined && (
-          <button type="button" className="prun-exit" onClick={onExit}>
-            {t('practice.leave')}
-          </button>
-        )}
-        {open && onToggleRun !== undefined && (
-          <button
-            type="button"
-            className="prun-run"
-            disabled={unknown || clock === 'pending' || clock === 'offline'}
-            aria-describedby={clock === 'offline' ? 'prun-clock-note' : undefined}
-            onClick={onToggleRun}
-          >
-            <RunGlyph running={running === true} />
-            {running ? t('practice.pause') : t('practice.resume')}
-          </button>
-        )}
+        <div className="prun-controls-actions">
+          {open && onExit !== undefined && (
+            <button type="button" className="prun-exit" onClick={onExit}>
+              <ExitGlyph />
+              <span>{t('practice.leave')}</span>
+            </button>
+          )}
+          {open && onToggleRun !== undefined && (
+            <button
+              type="button"
+              className="prun-run"
+              disabled={unknown || clock === 'pending' || clock === 'offline'}
+              aria-describedby={clock === 'offline' ? 'prun-clock-note' : undefined}
+              onClick={onToggleRun}
+            >
+              <RunGlyph running={running === true} />
+              <span>{running ? t('practice.pause') : t('practice.resume')}</span>
+            </button>
+          )}
 
-        {open && onSetTarget !== undefined && (
-          <TargetControl
-            targetSeconds={targetSeconds ?? null}
-            state={target ?? 'idle'}
-            disabled={unknown}
-            onSetTarget={onSetTarget}
-          />
-        )}
+          {open && onSetTarget !== undefined && (
+            <TargetControl
+              targetSeconds={targetSeconds ?? null}
+              state={target ?? 'idle'}
+              disabled={unknown}
+              onSetTarget={onSetTarget}
+            />
+          )}
+        </div>
 
-        {!open && (
-          <span className="sr-only" role="alert">
-            {timeWarning}
-          </span>
-        )}
+        <div className="prun-controls-readout">
+          {!open && (
+            <span className="sr-only" role="alert">
+              {timeWarning}
+            </span>
+          )}
 
-        {/*
-          `aria-live="off"` on the readout itself: a per-second announcement
-          makes the page unusable.
-        */}
-        {open ? (
-          <span className="prun-clock" role="timer" aria-live="off">
-            <span className="sr-only">{t('practice.clockLabel')}</span>
-            <span className="num">{unknown ? '—' : formatElapsed(elapsed ?? 0)}</span>
-          </span>
-        ) : (
-          <span className={`exam-clock level-${level}`} role="timer" aria-live="off">
-            <span className="num">{left === null ? '--:--' : formatClock(left)}</span>
-            {level > 1 && level < 4 && (
-              <span className="exam-clock-note">
-                {level >= 3 ? t('exam.underOneMinute') : t('exam.underFiveMinutes')}
-              </span>
-            )}
-          </span>
+          {/*
+            `aria-live="off"` on the readout itself: a per-second announcement
+            makes the page unusable.
+          */}
+          {open ? (
+            <span className="prun-clock" role="timer" aria-live="off">
+              <span className="sr-only">{t('practice.clockLabel')}</span>
+              <span className="num">{unknown ? '—' : formatElapsed(elapsed ?? 0)}</span>
+            </span>
+          ) : (
+            <span className={`exam-clock level-${level}`} role="timer" aria-live="off">
+              <span className="num">{left === null ? '--:--' : formatClock(left)}</span>
+              {level > 1 && level < 4 && (
+                <span className="exam-clock-note">
+                  {level >= 3 ? t('exam.underOneMinute') : t('exam.underFiveMinutes')}
+                </span>
+              )}
+            </span>
+          )}
+        </div>
+
+        {saveState !== undefined && (
+          <div className="prun-header-save">
+            <SaveNote state={saveState} />
+          </div>
         )}
       </div>
 
@@ -214,6 +229,17 @@ export function PracticeHeader({
         </p>
       )}
     </header>
+  );
+}
+
+function ExitGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+      <path
+        d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
+        fill="currentColor"
+      />
+    </svg>
   );
 }
 

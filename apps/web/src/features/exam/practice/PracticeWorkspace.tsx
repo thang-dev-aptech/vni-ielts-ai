@@ -8,6 +8,8 @@ import { listExams, startSession, type ExamCatalogueItem, type ExamModule } from
 import { SKILLS, SKILL_ORDER } from '../skills.js';
 import { FilterPanel } from './FilterPanel.js';
 import { Pagination } from '../../chrome/Pagination.js';
+import { EntryTestModal } from './EntryTestModal.js';
+import { FullTestReadinessModal } from './FullTestReadinessModal.js';
 import { PracticeCard } from './PracticeCard.js';
 import { SkillSelector } from './SkillSelector.js';
 import {
@@ -72,6 +74,32 @@ export function PracticeWorkspace() {
 
   const skill = readSkill(params.get('skill'));
   const mode: PracticeMode = params.get('mode') === 'full' ? 'full' : 'single';
+
+  const [entryTestOpen, setEntryTestOpen] = useState(false);
+  const [readinessItem, setReadinessItem] = useState<PracticeItem | null>(null);
+
+  // Auto-open S4 Entry Test modal once per session for authenticated users
+  useEffect(() => {
+    if (state.kind !== 'ready' || accessToken === null) return;
+    try {
+      const dismissed = sessionStorage.getItem('vni.entryTestDismissed');
+      if (dismissed !== '1') {
+        setEntryTestOpen(true);
+      }
+    } catch {
+      // ignore
+    }
+  }, [state.kind, accessToken]);
+
+  const closeEntryTest = useCallback(() => {
+    try {
+      sessionStorage.setItem('vni.entryTestDismissed', '1');
+    } catch {
+      // ignore
+    }
+    setEntryTestOpen(false);
+    document.getElementById('work-results')?.focus();
+  }, []);
 
   /*
    * Set true on the way IN, not just false on the way out. StrictMode
@@ -232,6 +260,14 @@ export function PracticeWorkspace() {
     }
   }
 
+  function handleCardStart(item: PracticeItem, timing: 'deadline' | 'open') {
+    if (item.mode === 'full') {
+      setReadinessItem(item);
+    } else {
+      void start(item, timing);
+    }
+  }
+
   /* ── Render ──────────────────────────────────────────────────────────── */
 
   /*
@@ -318,21 +354,45 @@ export function PracticeWorkspace() {
             className={`work-mode${mode === 'single' ? ' is-active' : ''}`}
             onClick={() => switchMode('single')}
           >
-            {/* "Luyện từng kỹ năng" wraps to two lines inside a 144px pill at
-                390px, and a wrapped segmented control is a defect the brief
-                names. The narrow width gets a shorter label rather than a
-                smaller one — the 14px floor holds either way. */}
-            <span className="work-mode-long">{t('exam.modeSingle')}</span>
-            <span className="work-mode-short">Từng kỹ năng</span>
+            <span className="work-mode-long">Một kỹ năng</span>
+            <span className="work-mode-short">Một kỹ năng</span>
           </button>
           <button
             type="button"
             aria-pressed={mode === 'full'}
+            aria-label="Thi thử full"
             className={`work-mode${mode === 'full' ? ' is-active' : ''}`}
             onClick={() => switchMode('full')}
           >
-            {t('exam.modeFull')}
+            Full Test
           </button>
+        </div>
+      </div>
+
+      {/* Quiet entry-test banner (D-5 / practice-entry-test-flow) */}
+      <div className="work-entry-banner">
+        <div className="work-entry-banner-lead">
+          <span className="work-entry-banner-icon" aria-hidden="true">🎯</span>
+          <span>Chưa biết bắt đầu từ đâu?</span>
+        </div>
+        <button
+          type="button"
+          className="work-entry-banner-btn"
+          onClick={() => setEntryTestOpen(true)}
+        >
+          Làm bài test đầu vào <span aria-hidden="true">→</span>
+        </button>
+      </div>
+
+      {/* Explainer block for scope & experience dimensions (D-5) */}
+      <div className="work-explainer" aria-label="Giải thích các chế độ thi">
+        <div className="work-explainer-item">
+          <strong>Phạm vi bài thi:</strong>
+          <span>Một kỹ năng (luyện tập trung chuyên sâu) hoặc Full Test (thi liền mạch 4 kỹ năng trong một phiên).</span>
+        </div>
+        <div className="work-explainer-item">
+          <strong>Hình thức tính giờ:</strong>
+          <span>Luyện đề (đồng hồ đếm xuôi, có thể tạm dừng, đặt mục tiêu) hoặc Thi thử (đồng hồ đếm ngược, chốt giờ máy chủ).</span>
         </div>
       </div>
 
@@ -490,10 +550,22 @@ export function PracticeWorkspace() {
                       key={item.key}
                       item={item}
                       busy={starting === item.key}
-                      onStart={(one, timing) => void start(one, timing)}
+                      onStart={handleCardStart}
                     />
                   ))}
                 </ul>
+              )}
+
+              {safePage < pages && (
+                <div className="work-load-more">
+                  <button
+                    type="button"
+                    className="btn btn-secondary work-load-more-btn"
+                    onClick={() => setPage((p) => Math.min(p + 1, pages))}
+                  >
+                    Xem thêm bài luyện <span aria-hidden="true">↓</span>
+                  </button>
+                </div>
               )}
 
               <Pagination
@@ -507,6 +579,25 @@ export function PracticeWorkspace() {
           </div>
         </>
       )}
+
+      <EntryTestModal
+        isOpen={entryTestOpen}
+        onClose={closeEntryTest}
+      />
+
+      <FullTestReadinessModal
+        isOpen={readinessItem !== null}
+        item={readinessItem}
+        busy={starting === readinessItem?.key}
+        onConfirm={() => {
+          if (readinessItem) {
+            const itemToStart = readinessItem;
+            setReadinessItem(null);
+            void start(itemToStart, 'deadline');
+          }
+        }}
+        onCancel={() => setReadinessItem(null)}
+      />
     </div>
   );
 }

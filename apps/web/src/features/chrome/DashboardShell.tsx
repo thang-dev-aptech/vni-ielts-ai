@@ -4,9 +4,8 @@ import { useI18n } from '../../i18n/index.js';
 import type { StringKey } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
 import { readLocal, writeLocal } from '../../lib/storage.js';
-import { jumpToSection } from './jumpToSection.js';
 import { AccountMenu } from '../landing/AccountMenu.js';
-import { ArticleIcon, DocumentIcon, PersonIcon } from '../landing/MenuIcons.js';
+import { ArticleIcon, ChartIcon, DocumentIcon, PersonIcon } from '../landing/MenuIcons.js';
 import { NotificationMenu } from '../landing/NotificationMenu.js';
 import { AiChatPanel } from '../student/AiChatPanel.js';
 import { SkipLink } from './SkipLink.js';
@@ -19,8 +18,6 @@ import {
   FullTestIcon,
   GridIcon,
   MenuIcon,
-  ResultIcon,
-  SoonIcon,
   SparkIcon,
 } from '../student/StudentIcons.js';
 import '../../styles/landing.css';
@@ -29,98 +26,80 @@ import '../../styles/app-shell.css';
 
 /**
  * The student area's own chrome: sidebar left, content right, no marketing nav.
- *
- * <b>Why this exists instead of reusing `LearnerShell`.</b> `[QUYẾT ĐỊNH]` chủ
- * sản phẩm, 21/08/2026: the dashboard is a full page in dashboard form —
- * *"sidebar bên trái nội dung bên phải và full như trang mới không có menu
- * header"*. The landing header answers "what is this site" and its links point
- * at marketing anchors on `/`; a signed-in learner working through exams needs
- * navigation for the app, not for the brochure. Running both meant two
- * competing navigations stacked on one screen.
- *
- * <b>What survives from the header, and why.</b> Notifications and the account
- * menu move to a slim top bar. They have to live somewhere: the account menu
- * is the only route to sign-out, and dropping it to honour "no header" would
- * strand people in the app. It is also where profile links belong — which is
- * how this page stops carrying them in its own body.
- *
- * <b>The brand moves into the sidebar</b> and still links to `/`. Removing the
- * header removed the only VNI mark on the page and the only way back to the
- * public site.
- *
- * <b>No profile entries in the sidebar.</b> The version before this one had
- * "Hồ sơ học sinh" and "Theo dõi" in it; both are account surfaces, and mixing
- * them into the work navigation is what the owner asked to stop.
+ * D-1 chốt 2026-09-04: DashboardShell wraps every signed-in page outside a sitting.
  */
 
 const COLLAPSED_KEY = 'vni.studentRail.collapsed';
 
-interface Item {
+interface NavItem {
   key: StringKey;
-  icon: typeof GridIcon;
-  /** An in-page anchor. */
-  href?: string;
-  /** A route. Used once the destination is a page rather than a section. */
+  icon: typeof GridIcon | typeof ChartIcon;
   to?: string;
-  /** Marks the assistant, which opens beside the page rather than moving to it. */
   opensAssistant?: boolean;
+  badgeKey?: StringKey;
 }
 
-/*
- * The student area's modules.
- *
- * `[QUYẾT ĐỊNH]` chủ sản phẩm, 21/08/2026: the assistant is a module, so it
- * sits in this list rather than pinned apart at the foot of the sidebar. It
- * still opens a panel instead of navigating — a conversation belongs beside
- * the work, not somewhere you go — and it sits next to Luyện tập because the
- * two are the things you *do* here; results and what is coming are status.
- *
- * Every other entry is a real destination on this page. Nothing points at a
- * route that has not been built — a sidebar item landing on a 404 is worse
- * than an item that is not there — and nothing points into `/profile`.
+interface NavGroup {
+  labelKey: StringKey;
+  items: NavItem[];
+}
+
+/**
+ * Rail contents, three labelled groups, in this order:
+ * 1. Học tập: Tổng quan, Luyện 4 kỹ năng, Tiến độ
+ * 2. Tài nguyên: Nghe chép chính tả, Tài liệu, Bài viết
+ * 3. Tài khoản: Tài khoản & bảo mật, Trợ lý AI · Xem trước
  */
-/*
- * Every module a signed-in learner uses, in one rail. `[QUYẾT ĐỊNH]` chủ sản
- * phẩm, 04/09/2026: the dashboard chrome is the app's chrome, so the rail
- * carries the four header modules and the profile rather than only the
- * overview's own anchors. The two anchors stay, and stay overview-only.
- */
-const ITEMS: Item[] = [
-  { key: 'dash.nav.overview', to: Paths.dashboard, icon: GridIcon },
-  { key: 'dash.nav.practice', to: Paths.practice, icon: FullTestIcon },
-  { key: 'dash.more.dictation', to: Paths.dictation, icon: DictationIcon },
-  { key: 'dash.more.documents', to: Paths.documents, icon: DocumentIcon },
-  { key: 'dash.more.articles', to: Paths.articles, icon: ArticleIcon },
-  { key: 'nav.profile', to: Paths.profile, icon: PersonIcon },
-  { key: 'dash.ai.open', icon: SparkIcon, opensAssistant: true },
-  /*
-   * Both are in-page anchors into the overview, and both were renamed on
-   * 22/08: "Kết quả" pointed at a hard-coded empty state and now points at the
-   * learner's real history, and "Sắp mở" labelled three modules that have all
-   * shipped. A "coming soon" on a working feature tells the reader not to
-   * click the thing that works.
-   *
-   * <b>They are rendered only on the page that contains them.</b> The other
-   * rail items lead to `/practice` and `/dictation`, which live under
-   * `PublicShell` — the sidebar is not even on screen there, and from the
-   * dashboard's sibling routes these two pointed at sections that do not
-   * exist, so following them did nothing at all, silently. That is the exact
-   * failure `siteNav` documents and guards against, and it had been
-   * reintroduced one directory over.
-   */
-  { key: 'dash.nav.results', href: '#results', icon: ResultIcon },
-  { key: 'dash.nav.coming', href: '#coming', icon: SoonIcon },
+const GROUPS: NavGroup[] = [
+  {
+    labelKey: 'dash.group.learning',
+    items: [
+      { key: 'dash.nav.overview', to: Paths.dashboard, icon: GridIcon },
+      { key: 'dash.nav.practice', to: Paths.practice, icon: FullTestIcon },
+      { key: 'dash.nav.progress', to: Paths.progress, icon: ChartIcon },
+    ],
+  },
+  {
+    labelKey: 'dash.group.resources',
+    items: [
+      { key: 'dash.nav.dictation', to: Paths.dictation, icon: DictationIcon },
+      { key: 'dash.nav.documents', to: Paths.documents, icon: DocumentIcon },
+      { key: 'dash.nav.articles', to: Paths.articles, icon: ArticleIcon },
+    ],
+  },
+  {
+    labelKey: 'dash.group.account',
+    items: [
+      { key: 'dash.nav.profile', to: Paths.profile, icon: PersonIcon },
+      {
+        key: 'dash.nav.aiAssistant',
+        icon: SparkIcon,
+        opensAssistant: true,
+        badgeKey: 'dash.nav.previewBadge',
+      },
+    ],
+  },
 ];
+
+function getPageTitleKey(pathname: string): StringKey {
+  if (pathname === Paths.dashboard) return 'dash.nav.overview';
+  if (pathname === Paths.practice || pathname.startsWith(Paths.practice + '/')) return 'dash.nav.practice';
+  if (pathname === Paths.progress) return 'dash.nav.progress';
+  if (pathname === Paths.dictation || pathname.startsWith(Paths.dictation + '/')) return 'dash.nav.dictation';
+  if (pathname === Paths.documents || pathname.startsWith(Paths.documents + '/')) return 'dash.nav.documents';
+  if (pathname === Paths.articles || pathname.startsWith(Paths.articles + '/')) return 'dash.nav.articles';
+  if (pathname === Paths.profile) return 'dash.nav.profile';
+  if (pathname.includes('/results')) return 'title.results';
+  return 'dash.nav.overview';
+}
 
 export function DashboardShell() {
   const { t } = useI18n();
   // Active state follows the address, not a hard-coded flag. With the flag,
   // "Tổng quan" stayed highlighted while the reader was on the exam library.
   const { pathname } = useLocation();
-  /** The two `#fragment` rail items only mean anything on the page that holds
-   *  those sections. See `ITEMS`. */
-  const onOverview = pathname === Paths.dashboard;
   const [aiOpen, setAiOpen] = useState(false);
+  void NotificationMenu; // Retained in tree per D-1, not rendered
 
   /*
    * On a phone the sidebar becomes a drawer behind a hamburger.
@@ -269,83 +248,61 @@ export function DashboardShell() {
           it would repeat the text sitting under the cursor.
         */}
           <nav className="shell-nav" aria-label={t('dash.railLabel')}>
-            {ITEMS.filter((item) => item.href === undefined || onOverview).map(
-              ({ key, href, to, icon: Icon, opensAssistant }, index) => {
-                const label = t(key);
-                const current =
-                  to !== undefined && (pathname === to || pathname.startsWith(to + '/'));
-                const body = (
-                  <>
-                    <Icon size={18} />
-                    <span className="shell-nav-text">{label}</span>
-                  </>
-                );
-
-                if (opensAssistant) {
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      className="shell-nav-item"
-                      onClick={() => {
-                        setNavOpen(false);
-                        setAiOpen(true);
-                      }}
-                      {...(collapsed ? { title: label } : {})}
-                    >
-                      {body}
-                    </button>
+            {GROUPS.map((group, groupIndex) => (
+              <div
+                key={group.labelKey}
+                className="shell-rail-group"
+                role="group"
+                aria-label={t(group.labelKey)}
+              >
+                <span className="shell-rail-group-title">{t(group.labelKey)}</span>
+                {group.items.map(({ key, to, icon: Icon, opensAssistant, badgeKey }, itemIndex) => {
+                  const label = t(key);
+                  const current =
+                    to !== undefined && (pathname === to || (to !== Paths.dashboard && pathname.startsWith(to + '/')));
+                  const body = (
+                    <>
+                      <Icon size={18} />
+                      <span className="shell-nav-text">{label}</span>
+                      {badgeKey && <span className="shell-nav-badge">{t(badgeKey)}</span>}
+                    </>
                   );
-                }
 
-                /*
-                 * <b>The ref goes in `shared`, so both branches carry it.</b>
-                 *
-                 * It used to be attached only on the `<a>` branch — `ref={index
-                 * === 0 ? firstItem : undefined}` — and that branch is taken
-                 * only by items with an `href` and no `to`, which are indices 4
-                 * and 5. Index 0 has a `to`, so it always rendered as a `<Link>`
-                 * and the condition was never true on the branch that could
-                 * hold the ref. `firstItem.current` was permanently `null` and
-                 * the `focus()` call in the open effect was a silent no-op:
-                 * measured, opening the drawer left `document.activeElement` on
-                 * `<body>`, behind the scrim.
-                 *
-                 * `Link` forwards its ref to the `<a>` it renders, so one
-                 * spread covers both.
-                 */
-                const shared = {
-                  className: `shell-nav-item${current ? ' is-active' : ''}`,
-                  onClick: () => setNavOpen(false),
-                  ...(index === 0 ? { ref: firstItem } : {}),
-                  ...(current ? { 'aria-current': 'page' as const } : {}),
-                  ...(collapsed ? { title: label } : {}),
-                };
+                  if (opensAssistant) {
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        className="shell-nav-item"
+                        aria-label={label}
+                        onClick={() => {
+                          setNavOpen(false);
+                          setAiOpen(true);
+                        }}
+                        {...(collapsed ? { title: label } : {})}
+                      >
+                        {body}
+                      </button>
+                    );
+                  }
 
-                return to ? (
-                  <Link key={key} to={to} {...shared}>
-                    {body}
-                  </Link>
-                ) : (
-                  <a
-                    key={key}
-                    href={href}
-                    {...shared}
-                    onClick={(event) => {
-                      // `jumpToSection` moves the viewport *and* the keyboard;
-                      // a bare fragment moves only the first, leaving a screen
-                      // reader at the top of the document. The helper exists
-                      // for this and was not being used here.
-                      event.preventDefault();
-                      setNavOpen(false);
-                      jumpToSection(href!.slice(1));
-                    }}
-                  >
-                    {body}
-                  </a>
-                );
-              },
-            )}
+                  const isFirst = groupIndex === 0 && itemIndex === 0;
+                  const shared = {
+                    className: `shell-nav-item${current ? ' is-active' : ''}`,
+                    onClick: () => setNavOpen(false),
+                    ...(isFirst ? { ref: firstItem } : {}),
+                    ...(current ? { 'aria-current': 'page' as const } : {}),
+                    ...(collapsed ? { title: label, 'aria-label': label } : {}),
+                  };
+
+                  return (
+                    <Link key={key} to={to!} {...shared}>
+                      {body}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
 
           {/*
@@ -370,8 +327,8 @@ export function DashboardShell() {
       )}
 
       <div className="shell-body" id="main" tabIndex={-1}>
-        {/* No navigation in here. The two controls that had to survive the
-            header, and nothing else. */}
+        {/* Top bar: hamburger (mobile only) · current page title · AccountMenu.
+            Notification bell is hidden per D-1. */}
         <header className="shell-top">
           {/* Both phone-only. On a desktop the sidebar is already open and
               already carries the brand. */}
@@ -391,10 +348,10 @@ export function DashboardShell() {
             <img src="/brand/vni-logo.png" alt="VNI Education" />
           </Link>
 
+          <span className="shell-top-title">{t(getPageTitleKey(pathname))}</span>
+
           <span className="shell-top-fill" role="presentation" />
 
-          <NotificationMenu />
-          <span className="shell-top-rule" role="presentation" />
           <AccountMenu />
         </header>
 

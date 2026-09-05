@@ -19,6 +19,9 @@
  */
 
 :root {
+  --primary: #06803a;
+  --primary-dark: #045a28;
+  --primary-hover: #056e32;
   --green: #10b050;
   --green-dark: #0a8d3c;
   /*
@@ -28,14 +31,13 @@
    * top of this file — and `--green-dark` measures **4.30**, which is the
    * near-miss nobody had measured. `#0a8438` measures **4.80**, the darkest
    * this family gets before it stops reading as the brand green. (`.btn-primary`
-   * already carries `#06803a` at 5.05; the note at the top of this file
-   * predates that fix.)
+   * already carries `#06803a` at 5.05; D-10 consolidates to --primary: #06803a).
    *
    * <b>Use this for any filled control carrying white text.</b> `--green-dark`
    * stays what it was for borders, icons and text on a light ground, where it
    * measures 4.9 and up.
    */
-  --green-btn: #0a8438;
+  --green-btn: var(--primary, #06803a);
   --green-soft: #e4f7eb;
   --blue: #2070b0;
   --blue-dark: #165b91;
@@ -51,8 +53,8 @@
   --dark: #143322;
   --shadow: 0 12px 28px rgba(32, 41, 35, 0.1);
   --shadow-soft: 0 7px 0 rgba(35, 46, 37, 0.08);
-  --radius: 22px;
-  --radius-sm: 14px;
+  --radius: 12px;
+  --radius-sm: 8px;
   --max: 1160px;
 }
 

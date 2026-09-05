@@ -34,18 +34,37 @@
   --line: #e6e4e0;
   --line-2: #efedea;
 
-  /* ── Accent ──────────────────────────────────────────────────────────
+  /* ── Accent & Primary Action ─────────────────────────────────────────
    * The VNI logo blue #2A6FB1 (hue 209.3°) reaches only 4.96 on light —
    * borderline, and unusable for small text. --acc keeps the hue and drops
    * the lightness: hue 211.4°, a 2.1° shift, and 5.5 on #fff.
+   *
+   * --primary: #06803a achieves 5.05:1 on white text (WCAG AA).
+   * Replaces ad-hoc --green-btn and .btn-primary values (D-10 chốt 2026-09-04).
    */
   --acc: #2867ac;
   --acc-700: #1c4b7e;
   --acc-soft: #eef4fb;
   --acc-line: #cfe0f1;
 
+  --primary: #06803a;
+  --primary-dark: #045a28;
+  --primary-hover: #056e32;
+  --primary-soft: #e6f6ec;
+
   /* Required. Without it the canvas tooling's focus ring falls back to red. */
   --color-accent: var(--acc);
+
+  /* ── Shadows (D-10) ───────────────────────────────────────────────────
+   * One hard shadow `0 4px 0 <darker-hue>` on filled buttons and pressable cards
+   * (read as physical thickness; Duolingo adaptation 2026-09-04).
+   * Blurred elevation shadow ONLY on dialog / drawer / popover.
+   */
+  --shadow-press: 0 4px 0 var(--primary-dark);
+  --shadow-press-hover: 0 2px 0 var(--primary-dark);
+  --shadow-card: 0 4px 0 var(--line);
+  --shadow-card-hover: 0 2px 0 var(--line);
+  --shadow-elevation: 0 12px 32px rgba(23, 22, 26, 0.16);
 
   /* ── Status ──────────────────────────────────────────────────────────
    * --warn is INFORMATIONAL (clock at level 2–3, word count short).

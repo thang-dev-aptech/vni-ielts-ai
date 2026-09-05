@@ -100,13 +100,39 @@
 }
 
 .dash-alert {
-  padding: var(--s-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
   border: 1px solid #f0d7b4;
-  border-radius: var(--dash-r-sm);
+  border-radius: var(--r-md);
   background: var(--warn-soft);
   color: var(--warn);
   font-size: var(--t-16);
   line-height: var(--lh-body);
+}
+
+.dash-alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-alert-close {
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  color: var(--warn);
+  cursor: pointer;
+  padding: var(--s-1);
+  border-radius: var(--r-sm);
+  flex-shrink: 0;
+  transition: background var(--dur, 180ms) ease;
+}
+
+.dash-alert-close:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 /* Said once, at the top. The cards carry a two-word chip instead of five
@@ -1134,10 +1160,18 @@
    so it wants width. The right is what you have done — checked, so it wants
    to stay in view while you browse.
    ──────────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────
+   D-4: Desktop 8/4 grid, Mobile 1-column strictly ordered:
+   1. InProgressPanel
+   2. Bước tiếp theo
+   3. GoalCoachingPanel compact
+   4. StatStrip + StreakPanel
+   5. RecentSittings
+   6. Tài nguyên
+   ──────────────────────────────────────────────────────────────── */
 .dash-columns {
   display: grid;
   gap: var(--s-6);
-  align-items: start;
   min-width: 0;
 }
 
@@ -1149,31 +1183,161 @@
   min-width: 0;
 }
 
-@media (min-width: 1180px) {
+@media (min-width: 1024px) {
   .dash-main {
     max-width: 1180px;
   }
 
   .dash-columns {
-    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.85fr);
-    gap: var(--s-7);
+    grid-template-columns: minmax(0, 8fr) minmax(320px, 4fr);
+    gap: var(--s-6);
+    align-items: start;
   }
 
-  /*
-   * Sticky, and only where there is a second column to stick beside. Below
-   * this width the side column is simply the end of the page, and a sticky
-   * block there would pin itself over the content underneath it.
-   *
-   * The offset clears the shell's own sticky top bar.
-   */
   .dash-col-side {
     position: sticky;
     top: calc(74px + var(--s-4));
   }
 }
 
-@media (min-width: 560px) {
-  .dash-skill-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 1023px) {
+  .dash-columns {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-5);
   }
+
+  .dash-col-main,
+  .dash-col-side {
+    display: contents;
+  }
+
+  /* Mobile strict order per D-4 */
+  .dash-now { order: 1; }
+  .dash-next-step { order: 2; }
+  .dash-block-goal { order: 3; }
+  .dash-block-activity { order: 4; }
+  .dash-recent-block { order: 5; }
+  .dash-resources-block { order: 6; }
+}
+
+/* ── D-4 Block 2: Bước tiếp theo ────────────────────────────────────────── */
+
+.dash-next-step {
+  padding: var(--s-5);
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  box-shadow: var(--shadow-elevation, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+.dash-next-step-header {
+  display: flex;
+  align-items: center;
+}
+
+.dash-next-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 3px 10px;
+  background: var(--acc-soft);
+  color: var(--acc);
+  border-radius: var(--r-pill);
+  font-size: var(--t-13, 13px);
+  font-weight: var(--w-emph);
+  border: 1px dashed var(--acc);
+}
+
+.dash-next-step-title {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: var(--w-display);
+  color: var(--ink);
+}
+
+.dash-next-step-body {
+  margin: 0;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.dash-next-step-action {
+  margin-top: var(--s-2);
+}
+
+.dash-next-step-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 10px 22px;
+  background: var(--primary, #06803a);
+  color: #fff;
+  border-radius: var(--r-md);
+  font-size: var(--t-16);
+  font-weight: var(--w-emph);
+  text-decoration: none;
+  border: 2px solid var(--primary-dark, #045a28);
+  box-shadow: var(--shadow-press, 0 4px 0 var(--primary-dark, #045a28));
+  transition: transform var(--dur, 180ms) ease, box-shadow var(--dur, 180ms) ease;
+}
+
+.dash-next-step-btn:hover {
+  transform: translateY(-1px);
+}
+
+.dash-next-step-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--primary-dark, #045a28);
+}
+
+/* ── D-4 Block 5: Kết quả gần đây view-all link ─────────────────────────── */
+
+.dash-see-all {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--acc);
+  text-decoration: none;
+}
+
+.dash-see-all:hover {
+  text-decoration: underline;
+}
+
+/* ── D-4 Block 6: Tài nguyên (compact row of 3 text links) ───────────────── */
+
+.dash-resources-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+  padding: var(--s-4);
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-size: var(--t-14);
+}
+
+.dash-resources-label {
+  font-weight: var(--w-emph);
+  color: var(--ink-2);
+}
+
+.dash-resource-link {
+  color: var(--acc);
+  text-decoration: none;
+  font-weight: var(--w-body);
+}
+
+.dash-resource-link:hover {
+  text-decoration: underline;
+}
+
+.dash-resource-sep {
+  color: var(--muted);
+  user-select: none;
 }

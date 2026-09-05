@@ -126,40 +126,76 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it('offers Full Test and Single Skill as two separate things', async () => {
+it('renders the 6 D-4 blocks in order and directs practice through Bước tiếp theo', async () => {
+  // D-4: Dashboard replaced the 4 repetitive skill cards with the 6-block hierarchy:
+  // 1. InProgressPanel
+  // 2. Bước tiếp theo (coaching advice card with 1 primary button to /practice)
+  // 3. GoalCoachingPanel compact
+  // 4. StatStrip + StreakPanel
+  // 5. RecentSittings (max 5, links to /progress)
+  // 6. Tài nguyên (compact row of 3 text links)
   await openDashboard();
 
-  // The full test names its own order, because the order is the requirement.
-  const full = screen.getByRole('heading', { name: 'Thi thử full 4 kỹ năng' });
-  const card = full.closest('article');
-  expect(card).not.toBeNull();
-  expect(within(card as HTMLElement).getByText('Reading')).toBeInTheDocument();
+  // 1. InProgressPanel (idle state when no sitting inprogress)
+  expect(screen.getByRole('heading', { name: 'Không có bài nào đang làm dở' })).toBeInTheDocument();
 
-  // And single-skill practice says, in its own words, that it does not advance.
-  expect(screen.getByRole('heading', { name: 'Luyện từng kỹ năng' })).toBeInTheDocument();
-  expect(screen.getByText(/không tự chuyển sang kỹ năng khác/)).toBeInTheDocument();
+  // 2. Bước tiếp theo
+  expect(screen.getByRole('heading', { name: 'Bước tiếp theo' })).toBeInTheDocument();
+  const nextBtn = screen.getByRole('link', { name: /Bắt đầu luyện tập/ });
+  expect(nextBtn).toHaveAttribute('href', '/practice');
 
-  for (const skill of ['Reading', 'Listening', 'Writing', 'Speaking']) {
-    expect(screen.getByRole('heading', { name: skill, level: 4 })).toBeInTheDocument();
-  }
+  // 3. Mục tiêu và khoảng cách (GoalCoachingPanel)
+  expect(screen.getByRole('region', { name: 'Mục tiêu và lời khuyên' })).toBeInTheDocument();
+
+  // 4. Hoạt động (StreakPanel)
+  expect(screen.getByRole('region', { name: 'Ngày học liên tiếp' })).toBeInTheDocument();
+
+  // 5. Kết quả gần đây (RecentSittings)
+  expect(screen.getByRole('heading', { name: 'Buổi gần đây' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: /Xem tất cả/ })).toHaveAttribute('href', '/progress');
+
+  // 6. Tài nguyên (compact row of 3 text links)
+  const res = screen.getByRole('region', { name: 'Tài nguyên' });
+  expect(within(res).getByRole('link', { name: 'Nghe chép chính tả' })).toHaveAttribute('href', '/dictation');
+  expect(within(res).getByRole('link', { name: 'Tài liệu' })).toHaveAttribute('href', '/documents');
+  expect(within(res).getByRole('link', { name: 'Bài viết' })).toHaveAttribute('href', '/articles');
 });
 
-it('marks the AI-scored skills as indicative and the key-scored ones as not', async () => {
-  await openDashboard();
+it('allows dismissing the email verification notice for the session only', async () => {
+  // D-4: Email verification notice is dismissible for the session only
+  sessionStorage.clear();
+  signedIn();
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/api/v1/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coaching);
+      if (url.includes('/api/v1/me/activity')) return json(activity);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
+      if (url.includes('/api/v1/me')) return json({ ...me, emailVerified: false });
+      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
+      if (url.includes('/api/v1/sessions')) return json({ sittings: [] });
+      return json({ code: 'NOT_FOUND', status: 404, title: '', detail: '' }, 404);
+    }),
+  );
 
-  // Product law L4. Writing and Speaking are AI-scored (A-13a, F-1); Reading
-  // and Listening come from the answer key (A-11) and must not carry the
-  // reference label, or the distinction stops meaning anything.
-  for (const skill of ['Writing', 'Speaking']) {
-    const card = screen.getByRole('heading', { name: skill, level: 4 }).closest('article');
-    expect(within(card as HTMLElement).getByText('AI chấm · tham khảo')).toBeInTheDocument();
-  }
+  window.history.pushState({}, '', '/students/dashboard');
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
 
-  for (const skill of ['Reading', 'Listening']) {
-    const card = screen.getByRole('heading', { name: skill, level: 4 }).closest('article');
-    expect(within(card as HTMLElement).getByText('Chấm theo đáp án')).toBeInTheDocument();
-    expect(within(card as HTMLElement).queryByText(/tham khảo/)).not.toBeInTheDocument();
-  }
+  await screen.findByRole('heading', { name: /Xin chào/ });
+  const alert = screen.getByRole('status');
+  expect(alert).toHaveTextContent(/chưa được xác minh/i);
+
+  const closeBtn = within(alert).getByRole('button', { name: 'Đóng' });
+  await userEvent.click(closeBtn);
+
+  expect(document.querySelector('.dash-alert')).toBeNull();
+  expect(sessionStorage.getItem('vni.emailVerifyDismissed')).toBe('true');
 });
 
 it('states no score, count, or balance it does not have', async () => {
@@ -169,23 +205,17 @@ it('states no score, count, or balance it does not have', async () => {
 
   // Product law L3: a band that was never awarded is never drawn as 0.0.
   expect(page).not.toMatch(/\b0\.0\b/);
-  // Token amounts are undecided (B-5b) and selling is an open question (B-4),
-  // so no balance and no top-up button. The slot beside the account menu is
-  // left free for the day `GET /me` returns one.
   expect(screen.queryByText(/Nạp tiền/)).not.toBeInTheDocument();
   expect(screen.queryByText(/token/i)).not.toBeInTheDocument();
-
-  // What it says instead.
-  expect(screen.getAllByText('Chưa có đề').length).toBe(5);
 });
 
 it('opens the AI panel from the rail and admits it is not connected', async () => {
   await openDashboard();
 
-  const trigger = screen.getByRole('button', { name: 'Hỏi đáp AI' });
+  const trigger = screen.getByRole('button', { name: 'Trợ lý AI' });
   await userEvent.click(trigger);
 
-  const panel = await screen.findByRole('dialog', { name: 'Hỏi đáp AI' });
+  const panel = await screen.findByRole('dialog', { name: 'Trợ lý AI' });
   expect(
     within(panel).getByRole('heading', { name: 'Trợ lý chưa được kết nối' }),
   ).toBeInTheDocument();
@@ -198,22 +228,21 @@ it('opens the AI panel from the rail and admits it is not connected', async () =
 it('closes the AI panel on Escape and puts focus back on its trigger', async () => {
   await openDashboard();
 
-  const trigger = screen.getByRole('button', { name: 'Hỏi đáp AI' });
+  const trigger = screen.getByRole('button', { name: 'Trợ lý AI' });
   await userEvent.click(trigger);
-  await screen.findByRole('dialog', { name: 'Hỏi đáp AI' });
+  await screen.findByRole('dialog', { name: 'Trợ lý AI' });
 
   await userEvent.keyboard('{Escape}');
 
   await waitFor(() =>
-    expect(screen.queryByRole('dialog', { name: 'Hỏi đáp AI' })).not.toBeInTheDocument(),
+    expect(screen.queryByRole('dialog', { name: 'Trợ lý AI' })).not.toBeInTheDocument(),
   );
   // Without this the next Tab starts again from the top of the document.
   expect(trigger).toHaveFocus();
 });
 
 it('runs in its own shell: a sidebar, and no marketing navigation', async () => {
-  // `[QUYẾT ĐỊNH]` chủ sản phẩm, 21/08/2026 — dashboard form is a sidebar on
-  // the left and content on the right, with no header menu.
+  // D-1: dashboard rail has 3 groups: Learning, Resources, Account.
   await openDashboard();
 
   const nav = screen.getByRole('navigation', { name: 'Dành cho học sinh' });
@@ -221,40 +250,29 @@ it('runs in its own shell: a sidebar, and no marketing navigation', async () => 
     within(nav)
       .getAllByRole('link')
       .map((a) => a.textContent),
-    // 'Nghe chép chính tả' is a confirmed module (`M-22`) with a route of
-    // its own; 'Hỏi đáp AI' is a button, so it is not among the links.
   ).toEqual([
     'Tổng quan',
-    'Luyện tập',
+    'Luyện 4 kỹ năng',
+    'Tiến độ',
     'Nghe chép chính tả',
     'Tài liệu',
     'Bài viết',
-    'Hồ sơ',
-    'Buổi gần đây',
-    'Phần khác',
+    'Tài khoản & bảo mật',
   ]);
 
   // The landing header's links pointed at marketing anchors on `/`. Those do
   // not belong here.
-  //
-  // "Nghe chép chính tả" is deliberately NOT in this list any more: it used to
-  // be a marketing anchor and is now a confirmed module (`M-22`) with a route.
-  // Same words, different thing — which is exactly why the assertion is about
-  // where a label goes rather than about the label itself.
   for (const gone of ['Lộ trình', 'Thêm']) {
     expect(within(nav).queryByRole('link', { name: gone })).not.toBeInTheDocument();
   }
 });
 
 it('lists the assistant among the modules, and the way out below them', async () => {
-  // `[QUYẾT ĐỊNH]` chủ sản phẩm, 21/08/2026: the assistant is a module, so it
-  // belongs in the module list rather than pinned apart at the foot of the
-  // sidebar. It is still a button — it opens a panel beside the page instead
-  // of navigating to one — which is why it is not among the links above.
+  // D-1: the assistant is in the Account group of the rail.
   await openDashboard();
 
   const nav = screen.getByRole('navigation', { name: 'Dành cho học sinh' });
-  expect(within(nav).getByRole('button', { name: 'Hỏi đáp AI' })).toBeInTheDocument();
+  expect(within(nav).getByRole('button', { name: 'Trợ lý AI' })).toBeInTheDocument();
 
   // And the slot it vacated is the exit. Outside the nav on purpose: it is not
   // a module, it is the way back to the public site.
@@ -308,7 +326,7 @@ it('opens the navigation drawer from the hamburger and closes it three ways', as
   // anchor into this page, which is exactly the case being tested: the drawer
   // has to close even when nothing navigates.
   await userEvent.click(burger);
-  await userEvent.click(screen.getByRole('link', { name: 'Buổi gần đây' }));
+  await userEvent.click(screen.getByRole('link', { name: 'Tổng quan' }));
   await waitFor(() => expect(shell()?.classList.contains('is-nav-open')).toBe(false));
 
   // 3 — the scrim.
@@ -336,14 +354,16 @@ it('keeps the sidebar items named once it is folded to icons', async () => {
 
   for (const name of [
     'Tổng quan',
-    'Luyện tập',
+    'Luyện 4 kỹ năng',
+    'Tiến độ',
     'Nghe chép chính tả',
-    'Buổi gần đây',
-    'Phần khác',
+    'Tài liệu',
+    'Bài viết',
+    'Tài khoản & bảo mật',
   ]) {
     expect(rail.getByRole('link', { name })).toBeInTheDocument();
   }
-  expect(rail.getByRole('button', { name: 'Hỏi đáp AI' })).toBeInTheDocument();
+  expect(rail.getByRole('button', { name: 'Trợ lý AI' })).toBeInTheDocument();
 });
 
 it('does not paint an expired sitting as a success', async () => {
@@ -378,133 +398,54 @@ it('does not paint an expired sitting as a success', async () => {
   expect(panel!.className).toContain('is-over');
 });
 
-it('keeps the four skills as a matched set, never three and one', async () => {
-  /*
-   * `auto-fit` resolved to three columns at the dashboard's own width and left
-   * Speaking alone on a second row. It is the right tool for a list nobody
-   * knows the length of; this list is IELTS and its length is settled.
-   */
+it('renders an 8/4 grid layout on desktop with the 6 blocks', async () => {
+  // D-4: Desktop 8/4 grid, mobile single-column.
   await openDashboard();
 
-  const grid = document.querySelector('.dash-skill-grid');
-  expect(grid).not.toBeNull();
+  const columns = document.querySelector('.dash-columns');
+  expect(columns).not.toBeNull();
 
-  const columns = getComputedStyle(grid!).gridTemplateColumns.split(' ').length;
-  expect([1, 2, 4]).toContain(columns);
+  const main = document.querySelector('.dash-col-main');
+  const side = document.querySelector('.dash-col-side');
+  expect(main).not.toBeNull();
+  expect(side).not.toBeNull();
+
+  expect(main?.querySelector('.dash-next-step')).not.toBeNull();
+  expect(side?.querySelector('.coach')).not.toBeNull();
+  expect(side?.querySelector('.streak')).not.toBeNull();
 });
 
-/**
- * A catalogue the dashboard can actually read.
- *
- * `signedIn` answers 404 for `/api/v1/exams`, which is the right default for
- * the tests above — they are about a page with nothing to offer. The two below
- * are about a page that has something, so they need a catalogue.
- */
-function signedInWithExams(exams: unknown[]) {
-  localStorage.setItem('vni.session', JSON.stringify(session));
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url.endsWith('/api/v1/exams')) return json({ exams });
-      if (url.includes('/api/v1/me/sessions')) return json({ sessions: [] });
-      if (url.includes('/api/v1/me/coaching')) return json(coaching);
-      if (url.includes('/api/v1/me/activity')) return json(activity);
-      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
-      if (url.includes('/api/v1/me')) return json(me);
-      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
-      if (url.includes('/api/v1/sessions')) return json({ sittings: [] });
-      return json({ code: 'NOT_FOUND', status: 404, title: '', detail: '' }, 404);
-    }),
-  );
+it('uses server coaching advice for Bước tiếp theo and falls back honestly', async () => {
+  // D-4: Advice is sourced from getCoachingAdvice, falls back without inventing bands
+  await openDashboard();
 
-  window.history.pushState({}, '', '/students/dashboard');
-  render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  );
-}
-
-const FOUR_SKILLS = ['reading', 'listening', 'writing', 'speaking'] as const;
-
-/**
- * The card you press decides the paper you get.
- *
- * <b>Every card on this page linked to a bare `/practice`.</b> The workspace
- * defaults to Single Skill Reading, so the Full Test card opened one Reading
- * paper — and all four skill cards opened Reading too, whichever was pressed.
- * `PracticeWorkspace` had read `mode` and `skill` from the query since it was
- * written; nothing was passing them.
- *
- * Asserting on the href rather than following it: the destination is what was
- * wrong, and a test that clicks through ends up testing the workspace.
- * → CLAUDE.md rule 10, `E-11`…`E-13`
- */
-it('sends each card to the paper it advertises', async () => {
-  signedInWithExams([
-    {
-      examVersionId: 'v-full',
-      title: 'Đề đủ bốn kỹ năng',
-      variant: 'academic',
-      modules: FOUR_SKILLS.map((module) => ({ module, questionCount: 40 })),
-    },
-  ]);
-
-  await screen.findByRole('heading', { name: /Xin chào/ });
-
-  const fullCard = screen
-    .getByRole('heading', { name: 'Thi thử full 4 kỹ năng' })
-    .closest('article')!;
-
-  await waitFor(() =>
-    expect(within(fullCard).getByRole('link')).toHaveAttribute(
-      'href',
-      expect.stringContaining('mode=full'),
-    ),
-  );
-
-  for (const skill of FOUR_SKILLS) {
-    const links = screen.getAllByRole('link');
-    const match = links.find((a) => a.getAttribute('href')?.includes(`skill=${skill}`));
-
-    expect(match, `no card links to ${skill}`).toBeDefined();
-    expect(match).toHaveAttribute('href', expect.stringContaining('mode=single'));
-  }
+  const nextStep = document.querySelector('.dash-next-step');
+  expect(nextStep).not.toBeNull();
+  expect(within(nextStep as HTMLElement).getByText(/Bắt đầu với Reading hoặc Listening/)).toBeInTheDocument();
 });
 
-/**
- * Four single-skill papers are not a Full Test.
- *
- * The availability check took the union of every module in the catalogue, so
- * four separate papers satisfied it — and the card then offered a sitting the
- * engine cannot start, because a Full Test runs four skills in **one** session.
- * The union is still the right question for the per-skill cards, which is why
- * both live side by side rather than one replacing the other.
- */
-it('offers Full Test only when one paper carries all four skills', async () => {
-  signedInWithExams(
-    FOUR_SKILLS.map((module, i) => ({
-      examVersionId: `v-${i}`,
-      title: `Đề ${module}`,
-      variant: 'academic',
-      modules: [{ module, questionCount: 40 }],
-    })),
-  );
+it('caps recent sittings at 5 on the dashboard and links to /progress for all', async () => {
+  // D-4: Recent results max 5 on dashboard, links to /progress for the full history
+  const sittings = Array.from({ length: 8 }, (_, i) => ({
+    sessionId: `sit-${i}`,
+    examVersionId: `v-${i}`,
+    examTitle: `Practice Test ${i + 1}`,
+    variant: 'academic',
+    mode: 'single',
+    status: 'completed',
+    startedAt: new Date(Date.now() - (i + 1) * 3_600_000).toISOString(),
+    submittedAt: new Date(Date.now() - i * 3_600_000).toISOString(),
+    currentModule: 'reading',
+    deadlineAt: null,
+    sections: [{ module: 'reading', band: 7.0 }],
+    overallBand: null,
+  }));
 
-  await screen.findByRole('heading', { name: /Xin chào/ });
+  await openDashboard(sittings);
 
-  // Every skill is practisable, so the per-skill cards are live…
-  await waitFor(() =>
-    expect(
-      screen.getAllByRole('link').some((a) => a.getAttribute('href')?.includes('skill=speaking')),
-    ).toBe(true),
-  );
+  const rows = document.querySelectorAll('.dash-recent-row');
+  expect(rows.length).toBe(5);
 
-  // …and Full Test is not, because no single paper runs all four.
-  const fullCard = screen
-    .getByRole('heading', { name: 'Thi thử full 4 kỹ năng' })
-    .closest('article')!;
-
-  expect(within(fullCard).queryByRole('link')).toBeNull();
+  const seeAll = screen.getByRole('link', { name: /Xem tất cả/ });
+  expect(seeAll).toHaveAttribute('href', '/progress');
 });

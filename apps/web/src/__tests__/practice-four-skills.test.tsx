@@ -222,6 +222,8 @@ it('advances a Full Test to the next skill in the same session', async () => {
   expect(screen.getByText(/Không quay lại được/)).toBeInTheDocument();
 
   await userEvent.click(next);
+  const confirm = await screen.findByRole('button', { name: /Hoàn thành.*sang/ });
+  await userEvent.click(confirm);
 
   await waitFor(() => expect(screen.getByText('listening phần một')).toBeInTheDocument());
 
@@ -286,6 +288,8 @@ it('advances once however many times Tiếp theo is pressed', async () => {
   await screen.findByText('reading phần một');
 
   const next = screen.getByRole('button', { name: 'Tiếp theo' });
+  await userEvent.click(next);
+  const confirm = await screen.findByRole('button', { name: /Hoàn thành.*sang/ });
   /*
    * <b>Raw `.click()`, all three inside one `act`.</b> `userEvent.click`
    * awaits between presses, which lets React re-render and disable the
@@ -293,9 +297,9 @@ it('advances once however many times Tiếp theo is pressed', async () => {
    * render, which is the whole subject. The `act` wrapper is what was missing.
    */
   act(() => {
-    next.click();
-    next.click();
-    next.click();
+    confirm.click();
+    confirm.click();
+    confirm.click();
   });
 
   await waitFor(() => expect(advanceKeys.length).toBeGreaterThan(0));
@@ -317,6 +321,8 @@ it('names the step that failed rather than reporting a submission that never hap
   await screen.findByText('reading phần một');
 
   await userEvent.click(screen.getByRole('button', { name: 'Tiếp theo' }));
+  const confirm = await screen.findByRole('button', { name: /Hoàn thành.*sang/ });
+  await userEvent.click(confirm);
 
   expect(await screen.findByText(/Không chuyển được sang kỹ năng tiếp theo/)).toBeInTheDocument();
   expect(screen.queryByText(/Không nộp được bài/)).toBeNull();
@@ -351,6 +357,8 @@ it('carries no expiry latch from one section into the next', async () => {
   // Still the Full Test ending: an expired Reading section does not end a
   // four-skill sitting.
   await userEvent.click(screen.getByRole('button', { name: 'Tiếp theo' }));
+  const confirm = await screen.findByRole('button', { name: /Hoàn thành.*sang/ });
+  await userEvent.click(confirm);
 
   await waitFor(() => expect(screen.getByText('listening phần một')).toBeInTheDocument());
   expect(screen.getByRole('textbox', { name: /Câu hỏi 1/ })).toBeEnabled();
@@ -376,6 +384,8 @@ it('sends a sitting that is already closed to its results instead of offering a 
   await screen.findByText('reading phần một');
 
   await userEvent.click(screen.getByRole('button', { name: 'Tiếp theo' }));
+  const confirm = await screen.findByRole('button', { name: /Hoàn thành.*sang/ });
+  await userEvent.click(confirm);
 
   await waitFor(() => expect(window.location.pathname).toBe('/practice/results/sit-full'));
   expect(screen.queryByText(/Không chuyển được/)).toBeNull();

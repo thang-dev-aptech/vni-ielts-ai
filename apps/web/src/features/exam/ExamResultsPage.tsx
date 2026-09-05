@@ -174,7 +174,9 @@ export function ExamResultsPage() {
         </p>
       </header>
 
-      <section className="result-overall">
+      <section
+        className={`result-overall${results.mode === 'single' ? ' is-single-mode' : ''}${results.overallBand === null ? ' is-pending' : ''}`}
+      >
         <span className="result-overall-label">{t('exam.overall')}</span>
         {/* `is-none` when there is no band: the em dash inherited a 44px
               display weight and rendered as a thick black bar — it read as a
@@ -443,12 +445,25 @@ function SectionReview({
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'needs-review' | 'wrong' | 'blank' | 'right'>('all');
   const [explanations, setExplanations] = useState<Record<string, PersonalizedExplanationView>>({});
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [requestErrors, setRequestErrors] = useState<Record<string, string>>({});
   const panelId = useId();
   const skill = SKILLS[moduleId];
   const explainable = moduleId === 'reading' || moduleId === 'listening';
+
+  const totalCount = section.questions.length;
+  const rightCount = section.questions.filter((q) => q.isCorrect).length;
+  const blankCount = section.questions.filter(
+    (q) => q.submitted === null || q.submitted === '',
+  ).length;
+  const wrongCount = section.questions.filter(
+    (q) => !q.isCorrect && q.submitted !== null && q.submitted !== '',
+  ).length;
+  const needsReviewCount = section.questions.filter(
+    (q) => !q.isCorrect || q.submitted === null || q.submitted === '',
+  ).length;
 
   async function askForExplanation(questionId: string) {
     if (accessToken === null) return;
@@ -499,6 +514,49 @@ function SectionReview({
 
       {open && (
         <div className="result-review-body" id={panelId}>
+          <div className="result-filter-bar" role="group" aria-label="Bộ lọc câu hỏi">
+            <button
+              type="button"
+              className={`result-filter-chip${filter === 'all' ? ' is-active' : ''}`}
+              aria-pressed={filter === 'all'}
+              onClick={() => setFilter('all')}
+            >
+              {t('exam.filterAll')} ({totalCount})
+            </button>
+            <button
+              type="button"
+              className={`result-filter-chip${filter === 'needs-review' ? ' is-active' : ''}`}
+              aria-pressed={filter === 'needs-review'}
+              onClick={() => setFilter('needs-review')}
+            >
+              {t('exam.filterNeedsReview')} ({needsReviewCount})
+            </button>
+            <button
+              type="button"
+              className={`result-filter-chip${filter === 'wrong' ? ' is-active' : ''}`}
+              aria-pressed={filter === 'wrong'}
+              onClick={() => setFilter('wrong')}
+            >
+              {t('exam.filterIncorrect')} ({wrongCount})
+            </button>
+            <button
+              type="button"
+              className={`result-filter-chip${filter === 'blank' ? ' is-active' : ''}`}
+              aria-pressed={filter === 'blank'}
+              onClick={() => setFilter('blank')}
+            >
+              {t('exam.filterUnanswered')} ({blankCount})
+            </button>
+            <button
+              type="button"
+              className={`result-filter-chip${filter === 'right' ? ' is-active' : ''}`}
+              aria-pressed={filter === 'right'}
+              onClick={() => setFilter('right')}
+            >
+              {t('exam.filterCorrect')} ({rightCount})
+            </button>
+          </div>
+
           <ol className="result-review-grid">
             {section.questions.map((question, at) => {
               const existing = explanations[question.questionId];
@@ -509,8 +567,25 @@ function SectionReview({
               const reason = existing?.reason ?? status?.reason ?? null;
               const questionBusy = busy[question.questionId] === true;
 
+              const isBlank = question.submitted === null || question.submitted === '';
+              const isWrong = !question.isCorrect && !isBlank;
+              const isRight = question.isCorrect;
+              const matches =
+                filter === 'all'
+                  ? true
+                  : filter === 'needs-review'
+                    ? !isRight
+                    : filter === 'wrong'
+                      ? isWrong
+                      : filter === 'blank'
+                        ? isBlank
+                        : isRight;
+
               return (
-                <li key={question.questionId}>
+                <li
+                  key={question.questionId}
+                  className={matches ? undefined : 'is-filtered-out'}
+                >
                   <span className={`result-q${question.isCorrect ? ' is-right' : ' is-wrong'}`}>
                     <span className="num" aria-hidden="true">
                       {at + 1}
@@ -650,9 +725,12 @@ function MarkingReview({
         <div className="result-review-body result-marking-body" id={panelId}>
           {sorted.map((marking) => (
             <article
-              className="result-marking-card"
+              className="result-marking-card ai-advisory-card"
               key={`${marking.module}-${marking.taskNumber ?? 'whole'}`}
             >
+              <div className="ai-advisory-header">
+                <span className="dash-tag dash-tag-ai">{t('exam.aiAdvisory')}</span>
+              </div>
               <header className="result-marking-head">
                 <h3>
                   {marking.taskNumber === null
