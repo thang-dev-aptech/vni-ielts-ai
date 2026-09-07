@@ -5,7 +5,8 @@ import { useI18n } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
 
 /**
- * D-3: Progress is a standalone page at Paths.progress (/progress).
+ * D-3: Progress is a standalone page at Paths.progress (/students/progress
+ * since 08/09/2026).
  */
 const PROGRESS = Paths.progress;
 import { BookIcon, ChartIcon, PersonIcon, SignOutIcon } from './MenuIcons.js';
