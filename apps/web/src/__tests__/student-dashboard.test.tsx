@@ -129,7 +129,7 @@ afterEach(() => {
 it('renders the 6 D-4 blocks in order and directs practice through Bước tiếp theo', async () => {
   // D-4: Dashboard replaced the 4 repetitive skill cards with the 6-block hierarchy:
   // 1. InProgressPanel
-  // 2. Bước tiếp theo (coaching advice card with 1 primary button to /practice)
+  // 2. Bước tiếp theo (coaching advice card with 1 primary button to /students/practice)
   // 3. GoalCoachingPanel compact
   // 4. StatStrip + StreakPanel
   // 5. RecentSittings (max 5, links to /progress)
@@ -142,7 +142,7 @@ it('renders the 6 D-4 blocks in order and directs practice through Bước tiế
   // 2. Bước tiếp theo
   expect(screen.getByRole('heading', { name: 'Bước tiếp theo' })).toBeInTheDocument();
   const nextBtn = screen.getByRole('link', { name: /Bắt đầu luyện tập/ });
-  expect(nextBtn).toHaveAttribute('href', '/practice');
+  expect(nextBtn).toHaveAttribute('href', '/students/practice');
 
   // 3. Mục tiêu và khoảng cách (GoalCoachingPanel)
   expect(screen.getByRole('region', { name: 'Mục tiêu và lời khuyên' })).toBeInTheDocument();

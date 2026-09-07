@@ -136,7 +136,7 @@ export function StudentDashboardPage() {
                 {coaching?.ai?.summary ?? t('dash.nextAction.defaultBody')}
               </p>
               <div className="dash-next-step-action">
-                <Link className="btn-primary dash-next-step-btn" to={Paths.practice}>
+                <Link className="btn-primary dash-next-step-btn" to={Paths.studentsPractice}>
                   {t('dash.nextAction.cta')} →
                 </Link>
               </div>

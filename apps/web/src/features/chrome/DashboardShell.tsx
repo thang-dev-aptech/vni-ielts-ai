@@ -55,7 +55,7 @@ const GROUPS: NavGroup[] = [
     labelKey: 'dash.group.learning',
     items: [
       { key: 'dash.nav.overview', to: Paths.dashboard, icon: GridIcon },
-      { key: 'dash.nav.practice', to: Paths.practice, icon: FullTestIcon },
+      { key: 'dash.nav.practice', to: Paths.studentsPractice, icon: FullTestIcon },
       { key: 'dash.nav.progress', to: Paths.progress, icon: ChartIcon },
     ],
   },
@@ -84,6 +84,8 @@ const GROUPS: NavGroup[] = [
 function getPageTitleKey(pathname: string): StringKey {
   if (pathname === Paths.dashboard) return 'dash.nav.overview';
   if (pathname === Paths.practice || pathname.startsWith(Paths.practice + '/')) return 'dash.nav.practice';
+  if (pathname === Paths.studentsPractice || pathname.startsWith(Paths.studentsPractice + '/'))
+    return 'dash.nav.practice';
   if (pathname === Paths.progress) return 'dash.nav.progress';
   if (pathname === Paths.dictation || pathname.startsWith(Paths.dictation + '/')) return 'dash.nav.dictation';
   if (pathname === Paths.documents || pathname.startsWith(Paths.documents + '/')) return 'dash.nav.documents';
@@ -259,7 +261,16 @@ export function DashboardShell() {
                 {group.items.map(({ key, to, icon: Icon, opensAssistant, badgeKey }, itemIndex) => {
                   const label = t(key);
                   const current =
-                    to !== undefined && (pathname === to || (to !== Paths.dashboard && pathname.startsWith(to + '/')));
+                    to !== undefined &&
+                    (pathname === to ||
+                      (to !== Paths.dashboard && pathname.startsWith(to + '/')) ||
+                      // `/practice` itself still renders inside this shell for a
+                      // signed-in visitor (AppShell dispatches by auth status),
+                      // and `/practice/results/:id` is a third address for the
+                      // same module — both keep highlighting "Luyện 4 kỹ năng"
+                      // now that the nav item's own `to` points at the hub.
+                      (to === Paths.studentsPractice &&
+                        (pathname === Paths.practice || pathname.startsWith(Paths.practice + '/'))));
                   const body = (
                     <>
                       <Icon size={18} />
