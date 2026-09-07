@@ -67,7 +67,6 @@ const vi = {
   'auth.createFree': 'Tạo tài khoản miễn phí',
   'auth.signInNow': 'Đăng nhập ngay',
   'auth.google': 'Tiếp tục với Google',
-  'auth.soon': 'sắp có',
   'auth.notBuilt': 'Tính năng này chưa được xây dựng.',
   'auth.rateLimited': 'Bạn thử quá nhiều lần. Vui lòng đợi {seconds} giây rồi thử lại.',
   'auth.ssoSoon': 'Đăng nhập bằng Google đang được hoàn thiện',
@@ -283,7 +282,6 @@ const vi = {
     'Tài khoản của bạn dùng bình thường. Khi nào tiện, bạn có thể xác minh email ở trang hồ sơ.',
   'home.unverifiedAction': 'Xác minh ở trang hồ sơ',
   'home.practiceEmpty': 'Chưa có đề thi nào',
-  'home.practiceEmptyBody': 'Phần thi chưa được xây dựng. Khi có đề, các đề sẽ xuất hiện tại đây.',
   'home.historyEmpty': 'Bạn chưa làm bài nào',
   'home.historyEmptyBody': 'Kết quả các lần làm bài sẽ hiện tại đây.',
 
@@ -335,7 +333,7 @@ const vi = {
   'exam.loading': 'Đang tải…',
   'exam.loadFailed': 'Không tải được danh sách đề. Kiểm tra kết nối rồi thử lại.',
   'exam.emptyTitle': 'Chưa có đề nào',
-  'exam.emptyBody': 'Kho đề đang được xây dựng. Khi có đề, các đề sẽ hiện ở đây.',
+  'exam.emptyBody': 'Chưa có đề nào trong kho. Khi có đề, các đề sẽ hiện ở đây.',
 
   'exam.passageLabel': 'Bài đọc',
   'exam.questionsLabel': 'Câu hỏi',
@@ -433,6 +431,8 @@ const vi = {
    */
   'exam.speakingBudget': 'Chuẩn bị {prep} · nói tối đa {response}',
   'exam.speakingBudgetNoPrep': 'Nói tối đa {response}, không có thời gian chuẩn bị',
+  'exam.speakingTimingMissing':
+    'Đề này chưa cấu hình thời lượng cho phần Speaking này. Hãy báo cho quản trị viên.',
   'exam.preparing': 'Đang chuẩn bị',
   'exam.recording': 'Đang ghi âm',
   'exam.stopRecording': 'Dừng',
@@ -529,6 +529,10 @@ const vi = {
   'exam.overall': 'Điểm tổng',
   'exam.overallPending': 'Điểm tổng chỉ có khi đủ cả bốn kỹ năng.',
   'exam.rawOf': 'Đúng {raw}/{max} câu',
+  // `P-11`: shown beside a Reading/Listening dash when the server sent a band
+  // but its conversion table is not yet verified — UI copy, not a business
+  // rule; the rule itself is `bandVerified`.
+  'exam.bandUnverified': 'Band đang ẩn vì bảng quy đổi của đề này chưa được xác minh.',
   'exam.notMarked': 'Chưa chấm',
   'exam.aiMarkedTasks': 'AI đã chấm {count} bài',
   // Kept as the fallback for a sitting whose marking has no job behind it —
@@ -569,6 +573,19 @@ const vi = {
   'exam.markingWholeSkill': 'Toàn bộ kỹ năng',
   'exam.markingRubric': 'Bộ tiêu chí: {version}',
   'exam.markingFlags': 'Có {count} cảnh báo cần giáo viên xem lại.',
+  // `P-12`: the combined Writing band — additive to the two task bands above,
+  // never their average.
+  'exam.writingBandCombined': 'Band Writing tổng',
+  'exam.writingBandReasonAwaitingTasks':
+    'Cần đủ hai bài Task 1 và Task 2 được chấm mới tính được band Writing tổng.',
+  'exam.writingBandReasonWeightingNotConfigured':
+    'Chưa cấu hình tỉ lệ Task 1 : Task 2 nên chưa tính được band Writing tổng.',
+  // `S2`: the paper as sat, left of the review — passage, prompt, cue card.
+  'exam.contentReviewTitle': 'Xem lại đề bài · {skill}',
+  'exam.recordingPlay': 'Nghe lại',
+  'exam.recordingLoading': 'Đang tải bản ghi…',
+  'exam.recordingUnavailable': 'Bản ghi chưa sẵn sàng hoặc không thuộc phiên này.',
+  'exam.recordingFailed': 'Không tải được bản ghi. Kiểm tra kết nối rồi thử lại.',
   'exam.filterAll': 'Tất cả',
   'exam.filterNeedsReview': 'Cần xem lại',
   'exam.filterIncorrect': 'Sai',
@@ -590,6 +607,23 @@ const vi = {
   'dash.group.account': 'Tài khoản',
   'dash.nav.overview': 'Tổng quan',
   'dash.nav.practice': 'Luyện 4 kỹ năng',
+  'prac.hub.eyebrow': 'Luyện IELTS',
+  'prac.hub.browseCta': 'Xem bộ đề',
+  'prac.crumb.categories': 'Danh sách bộ đề',
+  'prac.categories.title': 'Danh sách bộ đề',
+  'prac.categories.lead': 'Chọn bộ đề theo series, hoặc tìm theo tên.',
+  'prac.categories.searchPlaceholder': 'Tìm bộ đề…',
+  'prac.categories.sortLabel': 'Sắp xếp',
+  'prac.categories.sortNameAsc': 'Tên A–Z',
+  'prac.categories.sortMostTests': 'Nhiều đề nhất',
+  'prac.categories.empty': 'Không tìm thấy bộ đề nào khớp.',
+  'prac.categories.testsLabel': 'đề',
+  'prac.set.testsHeading': 'Các đề trong bộ',
+  'prac.test.detailEyebrow': 'Chi tiết đề',
+  'prac.test.startCta': 'Bắt đầu Thi thử',
+  'prac.test.skillsLabel': 'kỹ năng',
+  'prac.launcher.preparing': 'Đang chuẩn bị bài làm…',
+  'prac.launcher.retryLabel': 'Quay lại',
   'dash.nav.progress': 'Tiến độ',
   'dash.nav.dictation': 'Nghe chép chính tả',
   'dash.nav.documents': 'Tài liệu',
@@ -602,8 +636,6 @@ const vi = {
 
   'dash.eyebrow': 'Khu vực học sinh',
   'dash.lead': 'Bài đang làm dở, kết quả gần đây, và các phần luyện tập của bạn.',
-  'dash.notice':
-    'Kho đề đang được xây dựng nên chưa có đề nào để bắt đầu. Các lối vào bên dưới sẽ mở ngay khi có đề.',
 
   // ── Tổng quan: trạng thái thật của người học ──────────────────────────
   'dash.now.title': 'Đang làm dở',
@@ -721,9 +753,6 @@ const vi = {
   'dash.scoring.ai': 'AI chấm · tham khảo',
   'dash.status.noExam': 'Chưa có đề',
   'dash.open': 'Vào luyện →',
-  'dash.noticeSome':
-    'Kho đề đang được xây dựng. Hiện đã có đề mẫu để bạn đi trọn một lượt làm bài.',
-  'dash.status.soon': 'Sắp mở',
 
   'dash.results.title': 'Kết quả gần đây',
   'dash.results.emptyBody':
@@ -736,7 +765,6 @@ const vi = {
     'Bắt đầu với Reading hoặc Listening — hai kỹ năng chấm theo đáp án, có kết quả ngay.',
   'dash.nextAction.cta': 'Bắt đầu luyện tập',
 
-  'dash.more.title': 'Sắp mở',
   'dash.more.dictation': 'Nghe chép chính tả',
   'dash.more.dictationBody': 'Nghe audio, gõ lại và đối chiếu từng từ.',
   'dash.more.documents': 'Tài liệu',
@@ -853,7 +881,6 @@ const en: Record<StringKey, string> = {
   'auth.createFree': 'Create a free account',
   'auth.signInNow': 'Sign in',
   'auth.google': 'Continue with Google',
-  'auth.soon': 'soon',
   'auth.notBuilt': 'This feature has not been built yet.',
   'auth.rateLimited': 'Too many attempts. Please wait {seconds} seconds and try again.',
   'auth.ssoSoon': 'Google sign-in is still being built',
@@ -1041,8 +1068,6 @@ const en: Record<StringKey, string> = {
     'Your account works as normal. You can verify your email from your profile whenever it suits you.',
   'home.unverifiedAction': 'Verify from your profile',
   'home.practiceEmpty': 'No exams yet',
-  'home.practiceEmptyBody':
-    'The exam section has not been built. Exams will appear here once added.',
   'home.historyEmpty': 'No attempts yet',
   'home.historyEmptyBody': 'Results from your attempts will appear here.',
 
@@ -1092,7 +1117,7 @@ const en: Record<StringKey, string> = {
   'exam.loading': 'Loading…',
   'exam.loadFailed': 'The exam list could not be loaded. Check your connection and try again.',
   'exam.emptyTitle': 'No exams yet',
-  'exam.emptyBody': 'The exam library is still being built. Exams will appear here once added.',
+  'exam.emptyBody': 'There are no exams in the library yet. Exams will appear here once added.',
 
   'exam.passageLabel': 'Passage',
   'exam.questionsLabel': 'Questions',
@@ -1173,6 +1198,8 @@ const en: Record<StringKey, string> = {
   'exam.prepareThenRecord': 'Start preparation',
   'exam.speakingBudget': '{prep} to prepare · up to {response} speaking',
   'exam.speakingBudgetNoPrep': 'Up to {response} speaking, with no preparation time',
+  'exam.speakingTimingMissing':
+    'This exam has no timing configured for this Speaking part. Please tell an administrator.',
   'exam.preparing': 'Preparing',
   'exam.recording': 'Recording',
   'exam.stopRecording': 'Stop',
@@ -1265,6 +1292,7 @@ const en: Record<StringKey, string> = {
   'exam.overall': 'Overall band',
   'exam.overallPending': 'An overall band needs all four skills.',
   'exam.rawOf': '{raw}/{max} correct',
+  'exam.bandUnverified': "Band is hidden because this paper's conversion table is not verified yet.",
   'exam.notMarked': 'Not marked',
   'exam.aiMarkedTasks': '{count} task(s) marked by AI',
   'exam.aiPending':
@@ -1301,6 +1329,16 @@ const en: Record<StringKey, string> = {
   'exam.markingWholeSkill': 'Whole skill',
   'exam.markingRubric': 'Rubric: {version}',
   'exam.markingFlags': '{count} validation warnings need teacher review.',
+  'exam.writingBandCombined': 'Combined Writing band',
+  'exam.writingBandReasonAwaitingTasks':
+    'The combined Writing band needs both Task 1 and Task 2 marked.',
+  'exam.writingBandReasonWeightingNotConfigured':
+    'The Task 1 : Task 2 weighting is not configured yet, so there is no combined Writing band.',
+  'exam.contentReviewTitle': 'Review the paper · {skill}',
+  'exam.recordingPlay': 'Play back',
+  'exam.recordingLoading': 'Loading recording…',
+  'exam.recordingUnavailable': 'This recording is not ready yet, or does not belong to this sitting.',
+  'exam.recordingFailed': 'Could not load the recording. Check your connection and try again.',
   'exam.filterAll': 'All',
   'exam.filterNeedsReview': 'Needs review',
   'exam.filterIncorrect': 'Incorrect',
@@ -1322,6 +1360,23 @@ const en: Record<StringKey, string> = {
   'dash.group.account': 'Account',
   'dash.nav.overview': 'Overview',
   'dash.nav.practice': 'Practice 4 skills',
+  'prac.hub.eyebrow': 'IELTS practice',
+  'prac.hub.browseCta': 'Browse test sets',
+  'prac.crumb.categories': 'Test library',
+  'prac.categories.title': 'Test library',
+  'prac.categories.lead': 'Browse test sets by series, or search by name.',
+  'prac.categories.searchPlaceholder': 'Search test sets…',
+  'prac.categories.sortLabel': 'Sort',
+  'prac.categories.sortNameAsc': 'Name A–Z',
+  'prac.categories.sortMostTests': 'Most tests',
+  'prac.categories.empty': 'No test sets match your search.',
+  'prac.categories.testsLabel': 'tests',
+  'prac.set.testsHeading': 'Tests in this set',
+  'prac.test.detailEyebrow': 'Test details',
+  'prac.test.startCta': 'Start Full Test',
+  'prac.test.skillsLabel': 'skills',
+  'prac.launcher.preparing': 'Preparing your session…',
+  'prac.launcher.retryLabel': 'Go back',
   'dash.nav.progress': 'Progress',
   'dash.nav.dictation': 'Dictation',
   'dash.nav.documents': 'Documents',
@@ -1334,8 +1389,6 @@ const en: Record<StringKey, string> = {
 
   'dash.eyebrow': 'Student area',
   'dash.lead': 'What you have open, how you have been scoring, and where to practise next.',
-  'dash.notice':
-    'The exam library is still being built, so there is nothing to start yet. The entries below open as soon as exams exist.',
 
   'dash.now.title': 'In progress',
   'dash.now.section': 'Currently on',
@@ -1448,15 +1501,11 @@ const en: Record<StringKey, string> = {
   'dash.scoring.ai': 'AI marked · indicative',
   'dash.status.noExam': 'No exam yet',
   'dash.open': 'Practise →',
-  'dash.noticeSome':
-    'The exam library is still being built. A sample exam is available so you can take a full run through.',
-  'dash.status.soon': 'Coming',
 
   'dash.results.title': 'Recent results',
   'dash.results.emptyBody':
     'After each submission, the per-skill bands and the overall band appear here. A skill that has not finished marking shows a dash, never a provisional score.',
 
-  'dash.more.title': 'Coming',
   'dash.more.dictation': 'Dictation',
   'dash.more.dictationBody': 'Listen, type it back, and compare word by word.',
   'dash.more.documents': 'Documents',

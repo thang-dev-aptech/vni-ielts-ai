@@ -12,6 +12,7 @@ import { DictationSetPage } from './features/dictation/DictationSetPage.js';
 import { ExamResultsPage } from './features/exam/ExamResultsPage.js';
 import { ExamRunnerPage } from './features/exam/ExamRunnerPage.js';
 import { PracticeRunnerPage } from './features/exam/practice-runner/PracticeRunnerPage.js';
+import { PracticeCategoriesPage } from './features/exam/practice/PracticeCategoriesPage.js';
 import { PracticePage } from './features/exam/PracticePage.js';
 import { PublicShell } from './features/chrome/PublicShell.js';
 import { ArticlePage } from './features/articles/ArticlePage.js';
@@ -158,6 +159,16 @@ export function App() {
                   one of them may ever refuse a write for being late. → `E-20`
                 */}
                 <Route path={Paths.practiceSessionPattern} element={<PracticeRunnerPage />} />
+
+                {/*
+                  The practice hub and its categories → sets → tests
+                  hierarchy — additional depth for a signed-in learner,
+                  alongside (not instead of) the public `/practice`
+                  catalogue. → students-practice-hub plan, 08/09/2026
+                */}
+                <Route element={<DashboardShell />}>
+                  <Route path={Paths.studentsPracticeCategories} element={<PracticeCategoriesPage />} />
+                </Route>
 
                 {/* Profile keeps the landing header: it is reached from the
                     public side of the product as often as from the app. */}

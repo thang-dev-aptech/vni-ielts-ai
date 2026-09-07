@@ -93,6 +93,42 @@ export const Paths = {
   practiceSessionPattern: '/students/practice/:sessionId',
 
   /**
+   * The practice hub, and the categories → sets → tests hierarchy beneath it.
+   *
+   * <b>Under `/students`, unlike `practice` above.</b> `/practice` stays the
+   * public catalogue — 22/08/2026 decided that page has to be reachable
+   * before sign-up. This hub is additional depth for a learner who is
+   * already signed in and wants to browse by series rather than by skill;
+   * it does not replace `/practice`, and nothing here re-gates it.
+   *
+   * <b>Shares its first two segments with `practiceSessionPattern` above,
+   * and that is safe.</b> React Router ranks a literal segment
+   * (`categories`, `sets`, `tests`, `exam`) above a dynamic one
+   * (`:sessionId`) at the same depth, so `/students/practice/categories`
+   * can never be swallowed by `/students/practice/:sessionId` — proven in
+   * `students-practice-routing.test.tsx`.
+   */
+  studentsPractice: '/students/practice',
+  studentsPracticeCategories: '/students/practice/categories',
+  studentsPracticeCategory: (categorySlug: string) =>
+    `/students/practice/categories/${categorySlug}`,
+  studentsPracticeCategoryPattern: '/students/practice/categories/:categorySlug',
+  studentsPracticeSet: (setId: string) => `/students/practice/sets/${setId}`,
+  studentsPracticeSetPattern: '/students/practice/sets/:setId',
+  studentsPracticeTest: (testId: string) => `/students/practice/tests/${testId}`,
+  studentsPracticeTestPattern: '/students/practice/tests/:testId',
+  /**
+   * Turns a catalogue pick into a running sitting. Not a page a learner
+   * reads — it creates a session via the same `startSession` call
+   * `PracticeWorkspace` uses, then replaces itself with the real runner
+   * address (`practiceSession`/`examSession`). The runner itself stays keyed
+   * by `sessionId`, unchanged; this route exists only so the test detail
+   * page has a stable address to link to before a session exists.
+   */
+  studentsPracticeExam: (examId: string) => `/students/practice/exam/${examId}`,
+  studentsPracticeExamPattern: '/students/practice/exam/:examId',
+
+  /**
    * What a sitting produced.
    *
    * <b>A page of its own, under `/practice`, not under `/students`.</b> The
