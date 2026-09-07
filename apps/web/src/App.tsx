@@ -14,6 +14,7 @@ import { ExamRunnerPage } from './features/exam/ExamRunnerPage.js';
 import { PracticeRunnerPage } from './features/exam/practice-runner/PracticeRunnerPage.js';
 import { PracticeCategoriesPage } from './features/exam/practice/PracticeCategoriesPage.js';
 import { PracticeCategoryDetailPage } from './features/exam/practice/PracticeCategoryDetailPage.js';
+import { PracticeSetDetailPage } from './features/exam/practice/PracticeSetDetailPage.js';
 import { PracticePage } from './features/exam/PracticePage.js';
 import { PublicShell } from './features/chrome/PublicShell.js';
 import { ArticlePage } from './features/articles/ArticlePage.js';
@@ -173,6 +174,7 @@ export function App() {
                     path={Paths.studentsPracticeCategoryPattern}
                     element={<PracticeCategoryDetailPage />}
                   />
+                  <Route path={Paths.studentsPracticeSetPattern} element={<PracticeSetDetailPage />} />
                 </Route>
 
                 {/* Profile keeps the landing header: it is reached from the

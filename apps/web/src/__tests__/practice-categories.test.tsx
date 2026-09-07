@@ -122,3 +122,21 @@ it('shows an honest empty state for an unknown category slug', async () => {
 
   expect(await screen.findByText('Không tìm thấy bộ đề nào khớp.')).toBeInTheDocument();
 });
+
+it('shows the tests inside one set, with a breadcrumb through its category', async () => {
+  signedIn();
+  window.history.pushState({}, '', '/students/practice/sets/cambridge-ielts-17');
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+
+  expect(await screen.findByRole('heading', { name: 'Cambridge IELTS 17' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Test 1' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Test 2' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Cambridge IELTS' })).toHaveAttribute(
+    'href',
+    '/students/practice/categories/cambridge-ielts',
+  );
+});
