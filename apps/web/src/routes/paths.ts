@@ -173,13 +173,22 @@ export const Paths = {
 
   /**
    * Account & security profile ("Tài khoản & bảo mật").
+   *
+   * <b>Was `/profile`.</b> Moved under `/students`, 08/09/2026, completing the
+   * nesting `dashboard`'s own comment anticipated ("leaves room for a later
+   * nested student area") — every authenticated page now lives under one
+   * prefix. `/profile` keeps working via the legacy redirect in `App.tsx`.
    */
-  profile: '/profile',
+  profile: '/students/profile',
 
   /**
    * Learning progress ("Tiến độ") — D-3 chốt 2026-09-04: real standalone route.
+   *
+   * <b>Was `/progress`.</b> Moved under `/students`, 08/09/2026, same reason
+   * and same treatment as `profile` above. `/progress` keeps working via the
+   * legacy redirect in `App.tsx`.
    */
-  progress: '/progress',
+  progress: '/students/progress',
 
   /**
    * Where the API sends the browser back after a social sign-in, carrying a

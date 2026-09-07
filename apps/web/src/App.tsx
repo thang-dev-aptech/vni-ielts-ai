@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { AuthProvider } from './features/auth/AuthContext.js';
 import { AuthPage } from './features/auth/AuthPage.js';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage.js';
@@ -48,6 +48,23 @@ function LegacyResultsRedirect() {
   const { sessionId = '' } = useParams();
   return <Navigate to={Paths.examResults(sessionId)} replace />;
 }
+
+/**
+ * `/profile` and `/progress` moved under `/students`, 08/09/2026. A plain
+ * `<Navigate to={Paths.profile}>` would drop the query string — and
+ * `/profile?tab=devices` / `?tab=progress` are real, bookmarked addresses
+ * (`ProfilePage`'s own in-page tab routing reads them) — so this carries
+ * `search`/`hash` forward instead of silently losing the tab.
+ */
+function legacyStudentRedirect(to: string) {
+  return function LegacyStudentRedirect() {
+    const { search, hash } = useLocation();
+    return <Navigate to={{ pathname: to, search, hash }} replace />;
+  };
+}
+
+const LegacyProfileRedirect = legacyStudentRedirect(Paths.profile);
+const LegacyProgressRedirect = legacyStudentRedirect(Paths.progress);
 
 export function App() {
   return (
@@ -199,6 +216,10 @@ export function App() {
 
               {/* Old bookmarks keep working. */}
               <Route path="/dashboard" element={<Navigate to={Paths.dashboard} replace />} />
+              {/* `/profile` and `/progress` moved under `/students`, 08/09/2026 —
+                  same rename `/dashboard` already had, same reason. */}
+              <Route path="/profile" element={<LegacyProfileRedirect />} />
+              <Route path="/progress" element={<LegacyProgressRedirect />} />
               {/* Dictation moved out from behind the guard on 24/08 — it is a
                   public page of its own now, same as `/practice` was on
                   22/08. `/students/practice` is a separate, additional

@@ -14,7 +14,9 @@ import '../../styles/learning.css';
 import '../../styles/dashboard.css';
 
 /**
- * ProgressPage — Real standalone route `/progress` (D-3 chốt 2026-09-04).
+ * ProgressPage — Real standalone route `/students/progress` (D-3 chốt
+ * 2026-09-04; moved under `/students` 08/09/2026, `/progress` still works
+ * via a redirect).
  *
  * Contains:
  * 1. GoalCoachingPanel (full)

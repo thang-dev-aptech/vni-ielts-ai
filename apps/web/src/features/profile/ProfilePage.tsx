@@ -28,7 +28,8 @@ const ACCOUNT_TABS: Tab[] = [
 
 /**
  * `password` is the default. `[QUYẾT ĐỊNH]` chủ sản phẩm, 21/08/2026.
- * D-3 chốt 2026-09-04: /profile is "Tài khoản & bảo mật", progress moves to /progress.
+ * D-3 chốt 2026-09-04: /students/profile is "Tài khoản & bảo mật", progress
+ * moves to /students/progress (both moved under `/students` 08/09/2026).
  */
 function parseTab(raw: string | null): ProfileTab {
   if (raw === 'devices') return 'devices';
