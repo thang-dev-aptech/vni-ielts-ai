@@ -14,6 +14,7 @@ import { ExamRunnerPage } from './features/exam/ExamRunnerPage.js';
 import { PracticeRunnerPage } from './features/exam/practice-runner/PracticeRunnerPage.js';
 import { PracticeCategoriesPage } from './features/exam/practice/PracticeCategoriesPage.js';
 import { PracticeCategoryDetailPage } from './features/exam/practice/PracticeCategoryDetailPage.js';
+import { PracticeExamLauncherPage } from './features/exam/practice/PracticeExamLauncherPage.js';
 import { PracticeSetDetailPage } from './features/exam/practice/PracticeSetDetailPage.js';
 import { PracticeTestDetailPage } from './features/exam/practice/PracticeTestDetailPage.js';
 import { PracticePage } from './features/exam/PracticePage.js';
@@ -162,6 +163,14 @@ export function App() {
                   one of them may ever refuse a write for being late. → `E-20`
                 */}
                 <Route path={Paths.practiceSessionPattern} element={<PracticeRunnerPage />} />
+
+                {/*
+                  The thin launcher behind the test-detail page's "start"
+                  actions — creates a session, then hands off to the real
+                  runner above. Outside every shell for the same reason the
+                  runners are: nothing here is a screen a learner reads.
+                */}
+                <Route path={Paths.studentsPracticeExamPattern} element={<PracticeExamLauncherPage />} />
 
                 {/*
                   The practice hub and its categories → sets → tests
