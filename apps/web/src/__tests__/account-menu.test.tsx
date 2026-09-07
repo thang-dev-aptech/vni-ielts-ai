@@ -196,7 +196,7 @@ it('navigates to the profile from the menu', async () => {
   await userEvent.click(await screen.findByRole('button', { name: /Nguyễn Thị Đào/ }));
   await userEvent.click(await screen.findByRole('link', { name: 'Hồ sơ học sinh' }));
 
-  await waitFor(() => expect(window.location.pathname).toBe('/profile'));
+  await waitFor(() => expect(window.location.pathname).toBe('/students/profile'));
 });
 
 it('reaches the student page through the menu, not through a redirect', async () => {
@@ -222,7 +222,7 @@ it('opens the password module by default on the profile page', async () => {
   await userEvent.click(await screen.findByRole('button', { name: /Nguyễn Thị Đào/ }));
   await userEvent.click(await screen.findByRole('link', { name: 'Hồ sơ học sinh' }));
 
-  await waitFor(() => expect(window.location.pathname).toBe('/profile'));
+  await waitFor(() => expect(window.location.pathname).toBe('/students/profile'));
   expect(window.location.search).toBe('');
   expect(await screen.findByRole('heading', { level: 2, name: 'Tạo mật khẩu' })).toBeTruthy();
 });
@@ -234,7 +234,7 @@ it('opens the progress module from its own address', async () => {
   // makes the panel shareable and bookmarkable. Testing the label would mean
   // this file breaks every time someone rewords a tab.
   signedIn();
-  window.history.pushState({}, '', '/profile?tab=progress');
+  window.history.pushState({}, '', '/students/profile?tab=progress');
   open();
 
   expect(await screen.findByRole('heading', { name: 'Ngày học liên tiếp' })).toBeTruthy();
@@ -242,7 +242,7 @@ it('opens the progress module from its own address', async () => {
 
 it('lists the devices signed in to the account', async () => {
   signedIn();
-  window.history.pushState({}, '', '/profile?tab=devices');
+  window.history.pushState({}, '', '/students/profile?tab=devices');
   open();
 
   expect(await screen.findByText('Chrome trên macOS')).toBeTruthy();
@@ -254,7 +254,7 @@ it('offers sign-out on other devices and never on the one in your hand', async (
   // while still rendering a signed-in header. The server refuses it too.
   signedIn();
 
-  window.history.pushState({}, '', '/profile?tab=devices');
+  window.history.pushState({}, '', '/students/profile?tab=devices');
   open();
 
   await screen.findByText('Chrome trên macOS');
@@ -393,12 +393,12 @@ it('closes the notification panel when the account menu opens', async () => {
 });
 
 it('offers a way to progress from the menu, because nobody finds it otherwise', async () => {
-  // D-3: Progress is a dedicated page at /progress.
+  // D-3: Progress is a dedicated page, at /students/progress since 08/09/2026.
   signedIn();
   open();
 
   await userEvent.click(await screen.findByRole('button', { name: /Nguyễn Thị Đào/ }));
   await userEvent.click(await screen.findByRole('link', { name: 'Tiến độ học tập' }));
 
-  await waitFor(() => expect(window.location.pathname).toBe('/progress'));
+  await waitFor(() => expect(window.location.pathname).toBe('/students/progress'));
 });

@@ -152,7 +152,7 @@ it('renders the 6 D-4 blocks in order and directs practice through Bước tiế
 
   // 5. Kết quả gần đây (RecentSittings)
   expect(screen.getByRole('heading', { name: 'Buổi gần đây' })).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /Xem tất cả/ })).toHaveAttribute('href', '/progress');
+  expect(screen.getByRole('link', { name: /Xem tất cả/ })).toHaveAttribute('href', '/students/progress');
 
   // 6. Tài nguyên (compact row of 3 text links)
   const res = screen.getByRole('region', { name: 'Tài nguyên' });
@@ -289,11 +289,11 @@ it('links to the profile once, from the rail, and nowhere in the body', async ()
 
   const sidebar = screen.getByRole('navigation', { name: 'Dành cho học sinh' });
   const links = within(sidebar).getAllByRole('link');
-  expect(links.filter((a) => a.getAttribute('href')?.startsWith('/profile'))).toHaveLength(1);
+  expect(links.filter((a) => a.getAttribute('href')?.startsWith('/students/profile'))).toHaveLength(1);
 
   const dash = document.querySelector('.dash');
   const inBody = [...(dash?.querySelectorAll('a') ?? [])];
-  expect(inBody.filter((a) => a.getAttribute('href')?.startsWith('/profile'))).toHaveLength(0);
+  expect(inBody.filter((a) => a.getAttribute('href')?.startsWith('/students/profile'))).toHaveLength(0);
 });
 
 it('opens the navigation drawer from the hamburger and closes it three ways', async () => {
@@ -447,5 +447,5 @@ it('caps recent sittings at 5 on the dashboard and links to /progress for all', 
   expect(rows.length).toBe(5);
 
   const seeAll = screen.getByRole('link', { name: /Xem tất cả/ });
-  expect(seeAll).toHaveAttribute('href', '/progress');
+  expect(seeAll).toHaveAttribute('href', '/students/progress');
 });

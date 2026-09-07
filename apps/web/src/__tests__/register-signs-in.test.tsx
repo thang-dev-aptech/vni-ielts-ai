@@ -190,6 +190,6 @@ it('tells an unverified learner where to verify, and does not claim they are blo
   expect(alert.textContent).not.toMatch(/mở sau khi|sẽ mở|tính năng/i);
   expect(within(alert).getByRole('link', { name: /xác minh ở trang hồ sơ/i })).toHaveAttribute(
     'href',
-    '/profile',
+    '/students/profile',
   );
 });
