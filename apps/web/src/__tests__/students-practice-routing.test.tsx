@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
 
@@ -181,4 +182,45 @@ it('/students/practice renders the hub, not a redirect to /practice', async () =
     'href',
     '/students/practice/categories',
   );
+});
+
+it('walks category → set → test → exam → runner end to end', async () => {
+  const exams = [
+    {
+      examVersionId: 'cam17-1',
+      title: 'Cambridge IELTS 17 — Test 1',
+      variant: 'academic',
+      description: null,
+      moduleSequence: ['reading', 'listening', 'writing', 'speaking'],
+      modules: [
+        { module: 'reading', questionCount: 40, durationSeconds: 3600 },
+        { module: 'listening', questionCount: 40, durationSeconds: 1800 },
+        { module: 'writing', questionCount: 2, durationSeconds: 3600 },
+        { module: 'speaking', questionCount: 3, durationSeconds: 900 },
+      ],
+    },
+  ];
+
+  signedIn((url) => {
+    if (url.includes('/api/v1/exams')) return json({ exams });
+    return undefined;
+  });
+
+  window.history.pushState({}, '', '/students/practice/categories');
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+
+  await userEvent.click(await screen.findByRole('link', { name: 'Cambridge IELTS 17' }));
+  await waitFor(() =>
+    expect(window.location.pathname).toBe('/students/practice/sets/cambridge-ielts-17'),
+  );
+
+  await userEvent.click(await screen.findByRole('link', { name: 'Test 1' }));
+  await waitFor(() => expect(window.location.pathname).toBe('/students/practice/tests/cam17-1'));
+
+  await userEvent.click(await screen.findByRole('link', { name: 'Bắt đầu Thi thử' }));
+  await waitFor(() => expect(window.location.pathname).toBe('/students/session/sit-new-1'));
 });

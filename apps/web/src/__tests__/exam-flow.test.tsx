@@ -339,12 +339,14 @@ it('selects a skill from the address bar, and puts a chosen skill back into it',
   expect(window.location.search).toContain('mode=single');
 });
 
-it('redirects the old practice address to the page that replaced it', async () => {
-  // `/students/practice` was behind the sign-in guard until 22/08. Bookmarks
-  // and any link already sent out still point at it.
+it('renders the practice hub at /students/practice rather than redirecting away', async () => {
+  // `/students/practice` was behind the sign-in guard until 22/08, then
+  // stood as a bare redirect to `/practice` while nothing lived there.
+  // 08/09/2026: it is a real page again — the authenticated hub, additional
+  // depth alongside (not instead of) the public `/practice` catalogue.
   open('/students/practice');
 
-  await waitFor(() => expect(window.location.pathname).toBe('/practice'));
+  await waitFor(() => expect(window.location.pathname).toBe('/students/practice'));
 });
 
 it('says so when an exam cannot be sat as a full test', async () => {
