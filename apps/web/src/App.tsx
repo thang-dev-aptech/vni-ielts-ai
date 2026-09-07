@@ -24,6 +24,7 @@ import { ArticlesPage } from './features/articles/ArticlesPage.js';
 import { DocumentsPage } from './features/library/DocumentsPage.js';
 import { ProgressPage } from './features/student/ProgressPage.js';
 import { StudentDashboardPage } from './features/student/StudentDashboardPage.js';
+import { StudentPracticeHubPage } from './features/student/StudentPracticeHubPage.js';
 import { LandingPage } from './features/landing/LandingPage.js';
 import { ProfilePage } from './features/profile/ProfilePage.js';
 import { I18nProvider } from './i18n/index.js';
@@ -179,6 +180,7 @@ export function App() {
                   catalogue. → students-practice-hub plan, 08/09/2026
                 */}
                 <Route element={<DashboardShell />}>
+                  <Route path={Paths.studentsPractice} element={<StudentPracticeHubPage />} />
                   <Route path={Paths.studentsPracticeCategories} element={<PracticeCategoriesPage />} />
                   <Route
                     path={Paths.studentsPracticeCategoryPattern}
@@ -197,10 +199,11 @@ export function App() {
 
               {/* Old bookmarks keep working. */}
               <Route path="/dashboard" element={<Navigate to={Paths.dashboard} replace />} />
-              {/* The practice page moved out from behind the guard on 22/08,
-                  dictation on 24/08 — each of the four header modules is a
-                  public page of its own now. */}
-              <Route path="/students/practice" element={<Navigate to={Paths.practice} replace />} />
+              {/* Dictation moved out from behind the guard on 24/08 — it is a
+                  public page of its own now, same as `/practice` was on
+                  22/08. `/students/practice` is a separate, additional
+                  address: the authenticated hub registered above, not a
+                  path back to `/practice`, so it carries no redirect here. */}
               <Route
                 path="/students/dictation"
                 element={<Navigate to={Paths.dictation} replace />}

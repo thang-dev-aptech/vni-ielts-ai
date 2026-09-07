@@ -165,3 +165,20 @@ it('the exam launcher creates a session and hands off to the deadline runner', a
 
   await waitFor(() => expect(window.location.pathname).toBe('/students/session/sit-new-1'));
 });
+
+it('/students/practice renders the hub, not a redirect to /practice', async () => {
+  signedIn();
+  window.history.pushState({}, '', '/students/practice');
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+
+  await screen.findByRole('heading', { name: 'Luyện 4 kỹ năng' });
+  expect(window.location.pathname).toBe('/students/practice');
+  expect(screen.getByRole('link', { name: 'Xem bộ đề' })).toHaveAttribute(
+    'href',
+    '/students/practice/categories',
+  );
+});
