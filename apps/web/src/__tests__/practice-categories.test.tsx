@@ -97,3 +97,28 @@ it('lists sets grouped by category, and search narrows them', async () => {
 
   await waitFor(() => expect(document.title).toMatch(/^Danh sách bộ đề/));
 });
+
+it('shows the sets inside one category', async () => {
+  signedIn();
+  window.history.pushState({}, '', '/students/practice/categories/cambridge-ielts');
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+
+  expect(await screen.findByRole('heading', { name: 'Cambridge IELTS' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Cambridge IELTS 17' })).toBeInTheDocument();
+});
+
+it('shows an honest empty state for an unknown category slug', async () => {
+  signedIn();
+  window.history.pushState({}, '', '/students/practice/categories/does-not-exist');
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+
+  expect(await screen.findByText('Không tìm thấy bộ đề nào khớp.')).toBeInTheDocument();
+});
