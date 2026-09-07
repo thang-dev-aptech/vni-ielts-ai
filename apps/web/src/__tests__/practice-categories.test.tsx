@@ -140,3 +140,26 @@ it('shows the tests inside one set, with a breadcrumb through its category', asy
     '/students/practice/categories/cambridge-ielts',
   );
 });
+
+it('shows test details with both start actions, and a breadcrumb through set and category', async () => {
+  signedIn();
+  window.history.pushState({}, '', '/students/practice/tests/cam17-1');
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+
+  expect(
+    await screen.findByRole('heading', { name: 'Cambridge IELTS 17 — Test 1' }),
+  ).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Cambridge IELTS 17' })).toHaveAttribute(
+    'href',
+    '/students/practice/sets/cambridge-ielts-17',
+  );
+
+  const openLink = screen.getByRole('link', { name: 'Luyện đề' });
+  expect(openLink).toHaveAttribute('href', '/students/practice/exam/cam17-1?timing=open');
+  const deadlineLink = screen.getByRole('link', { name: 'Bắt đầu Thi thử' });
+  expect(deadlineLink).toHaveAttribute('href', '/students/practice/exam/cam17-1?timing=deadline');
+});
