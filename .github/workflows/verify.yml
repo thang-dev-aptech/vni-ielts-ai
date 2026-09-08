@@ -212,7 +212,7 @@ jobs:
       # run after a failed step by default.
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: verify-test-results-linux
           path: |
@@ -225,7 +225,7 @@ jobs:
 
       - name: Upload Playwright traces
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-traces
           path: e2e/test-results/
@@ -234,7 +234,7 @@ jobs:
 
       - name: Upload burn-in results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: burn-in-results
           path: _artifacts/burn-in/
@@ -243,7 +243,7 @@ jobs:
 
       - name: Upload failure-drill results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: failure-drill-results
           path: _artifacts/drills/
@@ -256,7 +256,7 @@ jobs:
       # keeps this step honest until then rather than green-by-accident.
       - name: Upload security and supply-chain reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-reports
           path: |
@@ -276,7 +276,7 @@ jobs:
 
       - name: Upload smoke logs artifact
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: smoke-logs
           path: _artifacts/smoke/
@@ -397,7 +397,7 @@ jobs:
 
       - name: Upload Windows gate results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: verify-results-windows
           path: _artifacts/
