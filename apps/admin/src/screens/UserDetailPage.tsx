@@ -8,7 +8,7 @@ import {
   approvePrivacyRequest,
   createPrivacyRequest,
   executePrivacyRequest,
-  forceUserPasswordReset,
+
   getUser,
   listPrivacyRequests,
   listUserActivity,
@@ -40,7 +40,7 @@ type Ask =
   | { kind: 'password' }
   | { kind: 'save-profile' }
   | { kind: 'resend' }
-  | { kind: 'reset' }
+
   | { kind: 'export' }
   | { kind: 'privacy' }
   | { kind: 'privacy-approve'; requestId: string }
@@ -186,14 +186,7 @@ export function UserDetailPage() {
           text: 'Đã đặt lại mật khẩu. Mọi phiên đăng nhập của họ đã bị thu hồi.',
         });
         setNewPassword('');
-      } else if (ask.kind === 'reset') {
-        const sent = await forceUserPasswordReset(accessToken, userId);
-        say({
-          tone: 'ok',
-          text: sent.emailSent
-            ? 'Đã gửi thư đặt lại mật khẩu và thu hồi phiên.'
-            : 'Đã thu hồi phiên. Thư đặt lại mật khẩu chưa gửi được.',
-        });
+
       } else if (ask.kind === 'export') {
         try {
           await requestUserExport(accessToken, userId);
@@ -401,9 +394,7 @@ export function UserDetailPage() {
             <button type="button" className="cms-secondary" onClick={() => setAsk({ kind: 'resend' })}>
               Gửi lại thư xác minh
             </button>
-            <button type="button" className="cms-danger" onClick={() => setAsk({ kind: 'reset' })}>
-              Bắt buộc đặt lại mật khẩu
-            </button>
+
           </div>
         </section>
       )}
@@ -518,7 +509,6 @@ export function UserDetailPage() {
         tone={
           (ask?.kind === 'status' && ask.suspend) ||
           ask?.kind === 'password' ||
-          ask?.kind === 'reset' ||
           ask?.kind === 'privacy'
             ? 'danger'
             : 'normal'
@@ -603,7 +593,7 @@ const titleOf = (ask: Ask) => {
   if (ask.kind === 'role') return ask.grant ? `Gán vai trò ${ask.name}?` : `Gỡ vai trò ${ask.name}?`;
   if (ask.kind === 'save-profile') return 'Lưu hồ sơ người này?';
   if (ask.kind === 'resend') return 'Gửi lại thư xác minh?';
-  if (ask.kind === 'reset') return 'Bắt buộc đặt lại mật khẩu?';
+
   if (ask.kind === 'export') return 'Xuất dữ liệu cá nhân?';
   if (ask.kind === 'privacy-approve') return 'Duyệt yêu cầu quyền riêng tư?';
   if (ask.kind === 'privacy-execute') return 'Thực thi yêu cầu quyền riêng tư?';
@@ -616,7 +606,7 @@ const confirmOf = (ask: Ask) => {
   if (ask.kind === 'role') return ask.grant ? 'Gán' : 'Gỡ';
   if (ask.kind === 'save-profile') return 'Lưu';
   if (ask.kind === 'resend') return 'Gửi';
-  if (ask.kind === 'reset') return 'Đặt lại';
+
   if (ask.kind === 'export') return 'Xuất';
   if (ask.kind === 'privacy-approve') return 'Duyệt';
   if (ask.kind === 'privacy-execute') return 'Thực thi';
@@ -702,14 +692,7 @@ function bodyOf(
   if (ask.kind === 'resend') {
     return <p>Một mã xác minh mới được gửi tới địa chỉ hiện tại, nếu tài khoản chưa xác minh.</p>;
   }
-  if (ask.kind === 'reset') {
-    return (
-      <p>
-        Mọi phiên đăng nhập bị thu hồi. Không tạo mật khẩu mới trên màn này — người dùng tự đặt qua
-        thư.
-      </p>
-    );
-  }
+
   if (ask.kind === 'export') {
     return <p>Xuất dữ liệu của đúng tài khoản này. Hash mật khẩu và token không nằm trong gói.</p>;
   }
