@@ -74,19 +74,19 @@ export type StartSessionRequest = Schemas['StartSessionRequest'];
 
 // ── Identity ──────────────────────────────────────────────────────────────
 
+/**
+ * Sign-in takes one `identifier` — a phone number or an email address — rather
+ * than an address specifically. `[QUYẾT ĐỊNH]` chủ sản phẩm, 08/09/2026.
+ */
 export type LoginRequest = Schemas['LoginRequest'];
+
+/** Registration takes a phone number and never an address. → ADR-0018 */
 export type RegisterRequest = Schemas['RegisterRequest'];
+
 export type RefreshRequest = Schemas['RefreshRequest'];
 export type SetPasswordRequest = Schemas['SetPasswordRequest'];
 export type SetPhoneRequest = Schemas['SetPhoneRequest'];
-
-/**
- * The six digits from the verification email.
- *
- * `[QUYẾT ĐỊNH]` chủ sản phẩm, 28/08/2026 — a code rather than a link, because
- * the learner is already signed in and already on their profile page.
- */
-export type ConfirmEmailCodeRequest = Schemas['ConfirmEmailCodeRequest'];
+export type ChangeEmailRequest = Schemas['ChangeEmailRequest'];
 
 // ── Errors ────────────────────────────────────────────────────────────────
 

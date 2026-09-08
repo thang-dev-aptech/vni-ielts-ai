@@ -13,12 +13,15 @@ sequenceDiagram
     participant IDP as Google / Facebook
     participant DB as Database
 
-    alt Email registration
-        C->>API: POST /auth/register {email, password}
-        API->>DB: create User (emailVerified=false)
-        API-->>C: 201 + verification email sent
-        C->>API: GET /auth/verify?token=…
-        API->>DB: set emailVerified=true
+    alt Phone registration
+        C->>API: POST /auth/register {phone, password, displayName, referralCode?}
+        API->>DB: create User (email = null, phone unique)
+        API->>DB: append usage grant + referral credit
+        API-->>C: 201 + session (access + refresh) — signed in immediately
+    else Password sign-in
+        C->>API: POST /auth/login {identifier, password}
+        API->>API: identifier contains "@" ? email : phone
+        API->>DB: find User by that handle, then password row by user id
     else Social sign-in
         C->>API: POST /auth/sso/{provider}/start
         API->>DB: store state + PKCE verifier + nonce, TTL 10 min
@@ -28,14 +31,19 @@ sequenceDiagram
         API->>IDP: exchange code with secret + code_verifier, fetch JWKS
         IDP-->>API: ID token — signature, iss, aud, exp, nonce all checked
         API->>DB: find UserIdentity by (provider, subject)
-        alt identity known
+        alt identity known, account still holds the asserted address
             API->>DB: load User
-        else email matches a User, provider says verified
-            API->>DB: link identity — and if that User was never verified,<br/>clear its password and revoke its sessions
-        else email matches, provider asserts nothing
+        else identity known, account has moved to another address
+            API->>DB: drop the identity row, fall through to the branches below
+        end
+        alt nobody holds the address
+            API->>DB: create User + UserIdentity<br/>grant keyed grant:sso:{provider}:{subject}
+        else address held by an account with a password
             API-->>C: redirect with error=IDENTITY_LINK_REQUIRED
-        else unknown email
-            API->>DB: create User + UserIdentity
+        else address held, provider asserts nothing
+            API-->>C: redirect with error=IDENTITY_LINK_REQUIRED
+        else address held, no password, provider vouches
+            API->>DB: link identity to that account
         end
         API-->>C: redirect with a one-time handoff code, TTL 60 s
         C->>API: POST /auth/sso/complete {handoffCode}
@@ -47,7 +55,13 @@ sequenceDiagram
 
 **The backend runs the whole OAuth exchange and hands the client a one-time code, not a token.** The client never holds the client secret, the PKCE verifier, the `state` or the `nonce`, and no token ever travels in a URL. → [ADR-0014](../decisions/0014-backend-mediated-oidc-handoff-code.md), threats `T2` and `T3`
 
-**Linking on a matching email is silent — but only on an address the provider vouches for.** `M-1` was resolved on 2026-08-21: one email is one account. The safety condition, and what happens when the existing account never verified its own address, are in [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md) and threat `T1`.
+**The address labels whichever account currently holds it, and it moves.** Reversed on 2026-09-08. Registration collects no address, so `User.Email` is null on most accounts and the **phone number** is the primary handle; sign-in takes **one identifier** that may be either. Changing an account's address migrates the account onto it and frees the old address — so the stale-link branch above drops the provider link and the *next* sign-in at the freed address creates a brand-new account. An account that already holds a password is **refused**, never taken over. → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md), threat `T1`
+
+The link is dropped **lazily, at sign-in**, and only when all three hold: the provider both asserts email verification and asserts it true, a usable address was asserted at all, and the linked account's own address is non-null and different. Checking it here rather than eagerly at the profile edit is what avoids storing the provider's address on the identity row and backfilling it. → `SignInWithSso.ResolveUserAsync`
+
+**There is no email verification and no mail infrastructure.** No six-digit code, no `/auth/verify`, no `User.EmailVerified`, no `email_verified` claim of our own, no SMTP sender. A forgotten password is a Zalo contact link followed by an operator calling `POST /api/v1/admin/users/{userId}/password` (`user.reset-password`, audited as `UserPasswordReset`, self-reset refused, target sessions revoked).
+
+> **The clients have caught up.** Verified 2026-09-08, after the web and CMS slices landed: `apps/web` registers with a phone number, offers one sign-in field that takes either handle, and its forgot-password route is a Zalo contact card that makes no request; `/verify-email` and `/reset-password` are gone. `apps/admin` signs in with `identifier` and carries the operator reset. `contracts/openapi/v1.json` was regenerated from the running API and no longer declares the removed paths. The diagram describes what is shipped.
 
 PKCE is used even though the backend holds a secret, because the mobile clients are public clients and run the same server flow.
 
@@ -270,20 +284,18 @@ sequenceDiagram
     R->>API: GET /me/referral-code
     API-->>R: signed code + share link
     R->>N: shares link (share completion NOT verifiable)
-    N->>API: POST /auth/register?ref=CODE
-    API->>API: verify code signature
-    API->>DB: create User + ReferralAttribution (pending)
-    N->>API: verify email
-    API->>DB: attribution → confirmed
-    API->>DB: append RewardLedgerEntry for referrer
-    API-->>R: reward granted
+    N->>API: POST /auth/register {phone, password, displayName, referralCode}
+    API->>API: verify code, refuse self-referral, refuse re-attribution
+    API->>DB: create User (phone unique) + attribution, set once
+    API->>DB: append UsageEntry referral.qualified, credited to the referrer
+    API-->>R: turns granted
 ```
 
-**The reward is triggered by a verified signup, not by a share.** No platform reports share completion ([R1](../requirements/risks-and-dependencies.md#r1)) — `navigator.share()` resolves `undefined`, Facebook's Share Dialog returns only `error_message`, and `@capacitor/share` returns only `activityType`.
+**The reward is triggered by a registration through the link, not by a share.** No platform reports share completion ([R1](../requirements/risks-and-dependencies.md#r1)) — `navigator.share()` resolves `undefined`, Facebook's Share Dialog returns only `error_message`, and `@capacitor/share` returns only `activityType`.
 
-Attribution stays `pending` until the referred user verifies their email, which blocks the obvious fraud of self-referring with throwaway addresses.
+**Since 2026-09-08 the reward pays at registration, and the anti-fraud control is the unique phone number.** It used to wait on the invitee verifying their email; there is no email verification any more, so the thing that makes self-referral with throwaway identities expensive is that a phone number can back exactly one account. That is a weaker control than a proven mailbox in one respect and a stronger one in another — a number costs something to obtain, but nothing here proves the registrant owns it (`M-29`). → `T13`, [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
 
-> **Not implemented.** This flow is the *recommended* replacement and awaits owner decisions B-3 and B-4. → [`../requirements/assumptions-and-open-questions.md`](../requirements/assumptions-and-open-questions.md)
+**Implemented, on the API.** `UsageRecorder.ReferralQualifiedAsync` — renamed from `EmailVerifiedAsync` — is called from both account-creation paths, phone registration and SSO creation. `UsageActions.ReferralQualified` (`referral.qualified`) sits **beside** the retained `ReferralVerified` (`referral.verified`) rather than replacing it: the ledger is append-only, so historical rows must keep meaning what they meant, and any report that counts referrals has to count both. Amounts beyond the 10-turn grant stay at zero under `G-11`; `B-3`/`B-4` are still open.
 
 ---
 

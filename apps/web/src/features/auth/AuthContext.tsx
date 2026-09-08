@@ -31,7 +31,12 @@ import { onAccountChanged } from './accountEvents.js';
 interface AuthState {
   status: 'loading' | 'signed-out' | 'signed-in';
   user: Me | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  /**
+   * `identifier` is a phone number or an email address — the server decides
+   * which by looking for an `@`. Named for what it carries rather than for
+   * what it used to be, since 08/09/2026 made a number the common case.
+   */
+  signIn: (identifier: string, password: string) => Promise<void>;
   /**
    * Installs a session obtained somewhere other than the password form —
    * today, the social sign-in callback.
@@ -53,7 +58,7 @@ interface AuthState {
    * Re-reads `/me`.
    *
    * The profile page changes things the header and the panels both render —
-   * a phone number, a verification flag. Without this each screen would either
+   * a phone number, an address. Without this each screen would either
    * hold its own copy and drift, or the page would need a reload to tell the
    * truth.
    */
@@ -130,9 +135,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * the whole family — which is why there is a `REFRESH_TOKEN_REUSED` branch
    * below at all. It shows up as "my session randomly ends when I reload".
    *
-   * `VerifyEmailPage` and `SsoCallbackPage` already carried this exact guard,
-   * for this exact reason, and both explain why an `attempted` ref and a
-   * `cancelled` flag must not be combined. This file predates both.
+   * `SsoCallbackPage` already carried this exact guard, for this exact
+   * reason, and explains why an `attempted` ref and a `cancelled` flag must
+   * not be combined. This file predates it.
    */
   const attempted = useRef(false);
 
@@ -147,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      * then runs the effect again: the first run fires the request and sets
      * `attempted`, the cleanup sets `cancelled`, and the second run returns
      * early — so the only request in flight is one whose result is thrown
-     * away, and the provider sits on `loading` forever. `VerifyEmailPage`
+     * away, and the provider sits on `loading` forever. `SsoCallbackPage`
      * carries the same warning for the same reason.
      *
      * A `setState` after unmount is a no-op in React 18+, so there is nothing
@@ -224,8 +229,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, [signOut]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const next = await apiLogin(email, password);
+  const signIn = useCallback(async (identifier: string, password: string) => {
+    const next = await apiLogin(identifier, password);
     newAvatarTint();
     adoptShared(next);
     setSession(next);

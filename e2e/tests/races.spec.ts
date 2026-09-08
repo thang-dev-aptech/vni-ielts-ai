@@ -42,7 +42,7 @@ test.describe('races', () => {
     const learner = await registerLearner(request);
     const sitting = await startFullTest(request, learner.session.accessToken);
 
-    await signIn(page, learner, `/students/session/${sitting.sessionId}`);
+    await signIn(page, learner, `/exam/${sitting.sessionId}`);
 
     const answer = page.getByRole('textbox', { name: READING_Q1 });
     await expect(answer).toBeVisible();
@@ -158,11 +158,11 @@ test.describe('races', () => {
     });
 
     const first = await context.newPage();
-    await signIn(first, learner, `/students/session/${sitting.sessionId}`);
+    await signIn(first, learner, `/exam/${sitting.sessionId}`);
     await expect(first.getByRole('textbox', { name: READING_Q1 })).toBeVisible();
 
     const second = await context.newPage();
-    await second.goto(`/students/session/${sitting.sessionId}`);
+    await second.goto(`/exam/${sitting.sessionId}`);
     await expect(second.getByRole('textbox', { name: READING_Q1 })).toBeVisible();
 
     /*

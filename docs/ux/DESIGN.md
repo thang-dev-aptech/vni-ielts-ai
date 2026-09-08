@@ -679,10 +679,19 @@ thi có tính giờ. **Điều đó vẫn đúng, và nó chia đôi sản phẩ
 | Vùng | Ngôn ngữ |
 |---|---|
 | **Trong phiên thi** (`ExamRunnerPage`, đồng hồ chạy) | Giữ nguyên tiết chế. Không mảng màu, không chữ display, không sticker. Luật L1 — giao diện phải bình tĩnh |
-| **Ngoài phiên thi** (kết quả, trang chủ, thư viện, tài liệu) | Đây là nơi ngôn ngữ Duolingo được áp: mảng màu đặc, viền 2px, chữ display cho điểm |
+| **Ngoài phiên thi** (kết quả, trang chủ, luyện 4 kỹ năng `/practice`, tài liệu) | Đây là nơi ngôn ngữ thân thiện, năng động được áp: linh vật VNI Bot (AI Companion), mảng màu đặc, viền 2px, chữ display cho điểm |
 
-Màn kết quả là chỗ đáng áp nhất: nó là lúc học viên **đã nộp bài xong**, và là màn duy nhất trong sản
-phẩm có một con số đáng ăn mừng.
+Màn kết quả, trang Luyện 4 kỹ năng (`/practice`), và trung tâm học viên (`/students/practice`) là các vị trí áp dụng ngôn ngữ thiết kế 2026 hiện đại:
+- **Linh vật VNI Bot (AI Learning Companion)**: Robot màu trắng viền xanh lá, màn hình LED biểu cảm, tai nghe xanh và mầm lá đỉnh đầu. Đi kèm các tư thế: làm việc bên laptop, đọc sách, chào mừng, suy nghĩ, giải thích và ăn mừng.
+- **Trang `/practice` (2026 Clone)**: Thiết kế 4 khối chuẩn: (1) Hero 3D VNI Bot + Thanh 4 cam kết; (2) Lưới 4 card kỹ năng Reading/Listening/Writing/Speaking độc lập; (3) Bộ đôi Thẻ Trợ lí AI VNI & Quy trình 3 bước; (4) Banner CTA xanh ngọc bích.
+- **Trang Danh sách bộ đề `/students/practice` (2026 Clone)**: Thiết kế trung tâm luyện thi của học sinh bên trong `DashboardShell`:
+  1. Breadcrumb phân cấp: `Trang chủ > Luyện 4 kỹ năng > [Kỹ năng nếu có] > Danh sách bộ đề`.
+  2. Header với tiêu đề lớn `Danh sách bộ đề`, eyebrow `Luyện IELTS` (hoặc kèm kỹ năng) và ô tìm kiếm tức thì `Tìm tên bộ đề, chủ đề...`.
+  3. Thanh phân loại kỹ năng nhanh (Skill Selector Tabs): `Tất cả kỹ năng`, `Reading (Đọc)`, `Listening (Nghe)`, `Writing (Viết)`, `Speaking (Nói)`, đồng bộ cùng tham số `?skill=...`.
+  4. Khối 1 **Khám phá bộ đề**: 4 thẻ danh mục trực quan có mã màu riêng biệt (Cambridge IELTS, IELTS Practice Tests, Bộ đề theo chủ đề, Đề thi thử).
+  5. Khối 2 **Tất cả bộ đề**: Thanh công cụ lọc chip danh mục, trạng thái lọc kỹ năng, dropdown sắp xếp (Mới nhất, A-Z, Nhiều đề nhất), nút chuyển Grid/List view, lưới 3x3 thẻ bộ đề kèm huy hiệu phân loại, các chip kỹ năng chi tiết (`Reading`, `Listening`, `Writing`, `Speaking`), số đề, thang đo trình độ và nút hành động `Xem chi tiết →`.
+  6. Thanh phân trang đồng bộ.
+  7. Không gian làm bài chi tiết theo kỹ năng (`PracticeWorkspace`) được quy hoạch tại đường dẫn `/students/practice/workspace`.
 
 ---
 

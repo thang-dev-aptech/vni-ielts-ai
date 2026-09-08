@@ -1,0 +1,1410 @@
+{
+  "formatVersion": "1.0",
+  "title": "VOL 9 \u2014 Test 5 (Reading \u002B Listening)",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "The origins of tennis",
+          "body": "The origins of tennis\nThe game of tennis has a very long history. It is officially still known as \u2018lawn tennis,\u2019 partly because it was originally only played on grass, and also to distinguish it from the older game known as \u2018real tennis,\u2019 from which the modern game developed.\nSome people believe that the ancient Egyptians, Greeks, and Romans played various versions of tennis. No drawings or descriptions of any tennis-like games have been discovered, but a couple of Arabic words dating from ancient Egyptian times are cited as evidence. The theory goes that the name \u2018tennis\u2019 is derived from the Egyptian town of Tennis alongside the Nile, and the word \u2018racquet\u2019 evolved from the Arabic word for the palm of the hand, rahat.\nAside from these two Arabic words, there is no other evidence for any form of tennis prior to the year 1000. Most historians believe the origins of the game date back to 11th- and 12th-century France. It\u0027s thought that French monks were the first to play a basic game of handball against their monastery buildings, or over a rope strung across a courtyard. Those who dispute more ancient origins argue that the name \u2018tennis\u2019 is derived from the French tenez, which meant something to the effect of \u2018take this,\u2019 said as one player would serve to the other.\nThis game took on the name jeu de paume, which means \u0022game of the hand or palm.\u0022 But as they found playing with bare hands quite uncomfortable, players began using a simple glove, and later either a glove with webbing between the fingers or a solid paddle, similar to the ones used in table tennis today. Wooden racquets were not invented until much later.\nThe French nobility learned the game from the monks, and some accounts report as many as 1,800 tennis courts in France by the 13th century. The game, which remained exclusive to the upper classes, gained more popularity over the 14th and 15th centuries. As it became increasingly fashionable, outdoor courtyards were modified into indoor courts. The game became such a widespread diversion among the aristocracy that both the pope and the French king tried to ban it. By the 16th century, the game had spread to England, where it became known as \u2018tennis.\u2019 Both kings Henry VII and Henry VIII were avid players who promoted the building of courts, and it also became a very fashionable game among the English upper classes.\nAn example of one of these early \u2018real tennis\u2019 courts can be seen at the royal palace of Hampton Court near London. It was built in 1525 and is still used today. Only a handful of such courts remain. It is a tall, narrow indoor court, bearing more resemblance to a squash court than the type of tennis courts we are familiar with today. \u2018Real tennis\u2019 is a remarkably fast and difficult game as the ball can be bounced off any of the surfaces, some of which are slanted at odd angles. The net is just over 1.5 metres high at each end, but drops to just under a metre in the middle.\nUntil the 19th century, the ball was either constructed from a wad of hair, wool, or cork wrapped in string and cloth or leather. Then a major development took place when Charles Goodyear invented vulcanisation, a process that allows rubber to withstand heat and cold. This led to the development of rubber tennis balls. During the 1850s, players began to experiment with these new balls, which bounced easily on outdoor grass courts.\nIn 1874 a Welshman, Major Walter C. Wingfield, known as \u2018the father of lawn tennis,\u2019 had the idea of devising rules, which he published. He also introduced standardised equipment, including racquets, balls, posts, and a net, which he patented and sold in sets. The game quickly became a very popular and sociable open-air pursuit for the English middle classes. People also started playing tennis in countries such as the United States, Russia, India, Canada, and China.\nHowever, not all of Wingfield\u2019s ideas ultimately survived. Inspired by his knowledge of Greek, he called his version of tennis Sphairistike \u2014 a name which never caught on. Interestingly, his original court had the shape of an hourglass, with the net across its narrowest section.\nA major tennis tournament took place for the first time in Wimbledon, London in 1877, and its organising committee came up with a rectangular court and a modified set of rules that are essentially the same as for the game we know today. The net was still high at the sides, a carryover from the game\u0027s indoor ancestor. But by 1882, the specifications for the size of the court, the equipment, and the rules had evolved to their current form.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "true-false-notgiven",
+              "prompt": "There are a few surviving documents which show that a game similar to tennis was played in the ancient world.",
+              "group": {
+                "id": "r-tfng-1-6",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "true-false-notgiven",
+              "prompt": "An early form of tennis involved players hitting a ball with just their hand.",
+              "group": {
+                "id": "r-tfng-1-6",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "true-false-notgiven",
+              "prompt": "The game of table tennis developed around the same time as tennis.",
+              "group": {
+                "id": "r-tfng-1-6",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "true-false-notgiven",
+              "prompt": "Tennis became popular with all sections of French society in the 14th and 15th centuries.",
+              "group": {
+                "id": "r-tfng-1-6",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "true-false-notgiven",
+              "prompt": "The indoor courts created in the 14th and 15th centuries were larger than the outdoor courtyards.",
+              "group": {
+                "id": "r-tfng-1-6",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "true-false-notgiven",
+              "prompt": "There were attempts to prevent French aristocrats from playing tennis.",
+              "group": {
+                "id": "r-tfng-1-6",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "r-notes-7-13",
+                "title": "The development of tennis in England",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "The development of tennis in England\n\u2022    \u2018Real tennis\u2019 court at Hampton Court\n-    The bail may be hit against the [7] around the court\n-    The [8] is lower in the centre\n\u2022    1850s\n-    Balls made out of [9] started to be used\n\u2022    1874\n-    Major Walter C. Wingfield\nPublished written [10] for the game\nProduced complete sets of tennis [11] for sale\nIntroduced a name for the game which was never adopted\nDesigned an unusual [12] for the court\n\u2022    1877\n-    The first large [13] was held"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "surfaces"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "r-notes-7-13",
+                "title": "The development of tennis in England",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "The development of tennis in England\n\u2022    \u2018Real tennis\u2019 court at Hampton Court\n-    The bail may be hit against the [7] around the court\n-    The [8] is lower in the centre\n\u2022    1850s\n-    Balls made out of [9] started to be used\n\u2022    1874\n-    Major Walter C. Wingfield\nPublished written [10] for the game\nProduced complete sets of tennis [11] for sale\nIntroduced a name for the game which was never adopted\nDesigned an unusual [12] for the court\n\u2022    1877\n-    The first large [13] was held"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "net"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "r-notes-7-13",
+                "title": "The development of tennis in England",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "The development of tennis in England\n\u2022    \u2018Real tennis\u2019 court at Hampton Court\n-    The bail may be hit against the [7] around the court\n-    The [8] is lower in the centre\n\u2022    1850s\n-    Balls made out of [9] started to be used\n\u2022    1874\n-    Major Walter C. Wingfield\nPublished written [10] for the game\nProduced complete sets of tennis [11] for sale\nIntroduced a name for the game which was never adopted\nDesigned an unusual [12] for the court\n\u2022    1877\n-    The first large [13] was held"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "rubber"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "r-notes-7-13",
+                "title": "The development of tennis in England",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "The development of tennis in England\n\u2022    \u2018Real tennis\u2019 court at Hampton Court\n-    The bail may be hit against the [7] around the court\n-    The [8] is lower in the centre\n\u2022    1850s\n-    Balls made out of [9] started to be used\n\u2022    1874\n-    Major Walter C. Wingfield\nPublished written [10] for the game\nProduced complete sets of tennis [11] for sale\nIntroduced a name for the game which was never adopted\nDesigned an unusual [12] for the court\n\u2022    1877\n-    The first large [13] was held"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "rules"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "completion",
+              "prompt": "Question 11",
+              "group": {
+                "id": "r-notes-7-13",
+                "title": "The development of tennis in England",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "The development of tennis in England\n\u2022    \u2018Real tennis\u2019 court at Hampton Court\n-    The bail may be hit against the [7] around the court\n-    The [8] is lower in the centre\n\u2022    1850s\n-    Balls made out of [9] started to be used\n\u2022    1874\n-    Major Walter C. Wingfield\nPublished written [10] for the game\nProduced complete sets of tennis [11] for sale\nIntroduced a name for the game which was never adopted\nDesigned an unusual [12] for the court\n\u2022    1877\n-    The first large [13] was held"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "equipment"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "completion",
+              "prompt": "Question 12",
+              "group": {
+                "id": "r-notes-7-13",
+                "title": "The development of tennis in England",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "The development of tennis in England\n\u2022    \u2018Real tennis\u2019 court at Hampton Court\n-    The bail may be hit against the [7] around the court\n-    The [8] is lower in the centre\n\u2022    1850s\n-    Balls made out of [9] started to be used\n\u2022    1874\n-    Major Walter C. Wingfield\nPublished written [10] for the game\nProduced complete sets of tennis [11] for sale\nIntroduced a name for the game which was never adopted\nDesigned an unusual [12] for the court\n\u2022    1877\n-    The first large [13] was held"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "shape"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "completion",
+              "prompt": "Question 13",
+              "group": {
+                "id": "r-notes-7-13",
+                "title": "The development of tennis in England",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "The development of tennis in England\n\u2022    \u2018Real tennis\u2019 court at Hampton Court\n-    The bail may be hit against the [7] around the court\n-    The [8] is lower in the centre\n\u2022    1850s\n-    Balls made out of [9] started to be used\n\u2022    1874\n-    Major Walter C. Wingfield\nPublished written [10] for the game\nProduced complete sets of tennis [11] for sale\nIntroduced a name for the game which was never adopted\nDesigned an unusual [12] for the court\n\u2022    1877\n-    The first large [13] was held"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tournament"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "John Ray and the Study of Plants",
+          "body": "John Ray and the Study of Plants\n14_____________\nThe 17th-century English scholar and botanist John Ray was well aware that he lived through, and participated in, a profound revolution in the way people interacted with nature. In the preface to his Synopsis of British Plants, published in 1690, he gave thanks that he had been born at a time when traditional dependence on the teaching of the Greek philosopher Aristotle (384\u2013322 BCE) had given way to a new philosophy, based on experiment and observation of the real world, that we now call science.\n15_____________\nRay was born in 1627. His father was a village blacksmith, and his mother was also a respected member of the community, a healer who was an expert in folk medicine and the use of herbs to treat ailments. Ray must have stood out as an unusually bright boy among his schoolmates, and his talents were recognised by a church official, Samuel Covell, who had graduated from Cambridge University in 1600, and maintained his links with his university. Through his influence, Ray was admitted to Cambridge University in 1644 at the age of seventeen \u2013 a huge step for a village blacksmith\u2019s son. There he made a solid start, and quickly gained a reputation as a brilliant student. He studied the classics (Greek, Latin and Hebrew) and mathematics, but there was nothing yet we would now call science in the curriculum. After graduating in 1648, he became a minor member of staff at Trinity College, Cambridge. He was appointed Lecturer in Greek in 1651, Lecturer in Mathematics in 1653, and Lecturer in Humanities in 1655.\n16_____________\nAlmost immediately after graduating, Ray also seems to have developed the interest to which he would devote the rest of his life: the study of the natural world. He explains this conversion into a naturalist \u2013 in particular into a botanist \u2013 in the preface to his first book, the Cambridge Catalogue of English Plants. Here Ray tells us that he suffered an illness in his early twenties, and was advised to take long walks and ride in the fresh air while recovering. While doing this, he became interested in the local flora, and finding nobody able to teach him, Ray investigated it for himself. He then went on to pass on the knowledge he acquired to others.\n17_____________\nBy the mid-1650s, even the first-year students at Trinity College were able to identify the plants and flowers around Cambridge, as they were being taught (unofficially \u2013 none of this was part of their formal education) by Ray. Many of them were the sons of landowners, and so had a natural, if amateurish, interest in country matters. But a few of them took his efforts to understand the natural world much more seriously. One of these, Francis Willughby, later played an important part in Ray\u2019s life.\n18_____________\nHaving himself had no authority on the subject of plants on which to draw, Ray also started work on what would become his Cambridge Catalogue of English Plants. The work was not published until 1660 because, as Ray explained in the preface, he had to start from scratch:\n\u201CI had first to become familiar with the literature, to compare the plants that I found with the pictures, and when there seemed to be a resemblance, to go fully into any unknown descriptions. Gaining skill by experience, I acquired at last the ability to recognise to what tribe and family similars or could be assigned; this taught me to search for similarities and saved a vast deal of labour, which others would have spent in their difficulties. I was eager to make the most of this and was fortunate to share my enthusiasm with my friends \u2026\u201D\n19_____________\nRay\u2019s Cambridge Catalogue of English Plants was much more than a simple list of species. It gave the names of plants found in the area around Cambridge and included information about where they grew and how common they were. In doing this, Ray was producing something that would be of practical use to students and other readers interested in the local natural world. At the same time, the book showed his determination to describe plants accurately, on the basis of direct examination rather than reliance on old authorities. In this respect, it reflected the spirit of the new learning that Ray admired.\n20_____________\nRay\u2019s studies of plants were only the beginning of a much larger ambition. With the support of Francis Willughby, he began to imagine a more comprehensive investigation of nature, one that would attempt to classify living things according to careful observation of their shared characteristics. This was an ambitious undertaking, especially at a time when many aspects of the natural world remained poorly described. Yet Ray believed that by collecting evidence systematically and comparing related forms, it would be possible to build a more reliable understanding of nature than scholars had possessed before.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 14.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Ray\u2019s account of his working methods"
+                },
+                {
+                  "key": "ii",
+                  "text": "The botanical expert who inspired Ray"
+                },
+                {
+                  "key": "iii",
+                  "text": "A succession of academic achievements"
+                },
+                {
+                  "key": "iv",
+                  "text": "Ray\u2019s informal tuition"
+                },
+                {
+                  "key": "v",
+                  "text": "Ray\u2019s appreciation of his contemporary academic culture"
+                },
+                {
+                  "key": "vi",
+                  "text": "A childhood interest in plant"
+                },
+                {
+                  "key": "vii",
+                  "text": "Plans for a bold new project"
+                },
+                {
+                  "key": "viii",
+                  "text": "A description of the content of Ray\u2019s first book"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i\u2013ix, in boxes 14\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "v"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 15.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Ray\u2019s account of his working methods"
+                },
+                {
+                  "key": "ii",
+                  "text": "The botanical expert who inspired Ray"
+                },
+                {
+                  "key": "iii",
+                  "text": "A succession of academic achievements"
+                },
+                {
+                  "key": "iv",
+                  "text": "Ray\u2019s informal tuition"
+                },
+                {
+                  "key": "v",
+                  "text": "Ray\u2019s appreciation of his contemporary academic culture"
+                },
+                {
+                  "key": "vi",
+                  "text": "A childhood interest in plant"
+                },
+                {
+                  "key": "vii",
+                  "text": "Plans for a bold new project"
+                },
+                {
+                  "key": "viii",
+                  "text": "A description of the content of Ray\u2019s first book"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i\u2013ix, in boxes 14\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "iii"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 16.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Ray\u2019s account of his working methods"
+                },
+                {
+                  "key": "ii",
+                  "text": "The botanical expert who inspired Ray"
+                },
+                {
+                  "key": "iii",
+                  "text": "A succession of academic achievements"
+                },
+                {
+                  "key": "iv",
+                  "text": "Ray\u2019s informal tuition"
+                },
+                {
+                  "key": "v",
+                  "text": "Ray\u2019s appreciation of his contemporary academic culture"
+                },
+                {
+                  "key": "vi",
+                  "text": "A childhood interest in plant"
+                },
+                {
+                  "key": "vii",
+                  "text": "Plans for a bold new project"
+                },
+                {
+                  "key": "viii",
+                  "text": "A description of the content of Ray\u2019s first book"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i\u2013ix, in boxes 14\u201320."
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 17.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Ray\u2019s account of his working methods"
+                },
+                {
+                  "key": "ii",
+                  "text": "The botanical expert who inspired Ray"
+                },
+                {
+                  "key": "iii",
+                  "text": "A succession of academic achievements"
+                },
+                {
+                  "key": "iv",
+                  "text": "Ray\u2019s informal tuition"
+                },
+                {
+                  "key": "v",
+                  "text": "Ray\u2019s appreciation of his contemporary academic culture"
+                },
+                {
+                  "key": "vi",
+                  "text": "A childhood interest in plant"
+                },
+                {
+                  "key": "vii",
+                  "text": "Plans for a bold new project"
+                },
+                {
+                  "key": "viii",
+                  "text": "A description of the content of Ray\u2019s first book"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i\u2013ix, in boxes 14\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "iv"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 18.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Ray\u2019s account of his working methods"
+                },
+                {
+                  "key": "ii",
+                  "text": "The botanical expert who inspired Ray"
+                },
+                {
+                  "key": "iii",
+                  "text": "A succession of academic achievements"
+                },
+                {
+                  "key": "iv",
+                  "text": "Ray\u2019s informal tuition"
+                },
+                {
+                  "key": "v",
+                  "text": "Ray\u2019s appreciation of his contemporary academic culture"
+                },
+                {
+                  "key": "vi",
+                  "text": "A childhood interest in plant"
+                },
+                {
+                  "key": "vii",
+                  "text": "Plans for a bold new project"
+                },
+                {
+                  "key": "viii",
+                  "text": "A description of the content of Ray\u2019s first book"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i\u2013ix, in boxes 14\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "i"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 19.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Ray\u2019s account of his working methods"
+                },
+                {
+                  "key": "ii",
+                  "text": "The botanical expert who inspired Ray"
+                },
+                {
+                  "key": "iii",
+                  "text": "A succession of academic achievements"
+                },
+                {
+                  "key": "iv",
+                  "text": "Ray\u2019s informal tuition"
+                },
+                {
+                  "key": "v",
+                  "text": "Ray\u2019s appreciation of his contemporary academic culture"
+                },
+                {
+                  "key": "vi",
+                  "text": "A childhood interest in plant"
+                },
+                {
+                  "key": "vii",
+                  "text": "Plans for a bold new project"
+                },
+                {
+                  "key": "viii",
+                  "text": "A description of the content of Ray\u2019s first book"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i\u2013ix, in boxes 14\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "viii"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 20.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "Ray\u2019s account of his working methods"
+                },
+                {
+                  "key": "ii",
+                  "text": "The botanical expert who inspired Ray"
+                },
+                {
+                  "key": "iii",
+                  "text": "A succession of academic achievements"
+                },
+                {
+                  "key": "iv",
+                  "text": "Ray\u2019s informal tuition"
+                },
+                {
+                  "key": "v",
+                  "text": "Ray\u2019s appreciation of his contemporary academic culture"
+                },
+                {
+                  "key": "vi",
+                  "text": "A childhood interest in plant"
+                },
+                {
+                  "key": "vii",
+                  "text": "Plans for a bold new project"
+                },
+                {
+                  "key": "viii",
+                  "text": "A description of the content of Ray\u2019s first book"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-20",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below.\nChoose the correct number, i\u2013ix, in boxes 14\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "vii"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "Question 21",
+              "group": {
+                "id": "r-summary-21-24",
+                "title": "A New Approach to Knowledge",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "A New Approach to Knowledge\nJohn Ray was a scholar and self-taught botanist, whose work reflected the [21] that was taking place during the 17th century in people\u2019s way of thinking about the natural world. This new approach is the basis of the modern field of [22]. It represented a complete break from the ideas of Aristotle, which had dominated thinking up until that time.\nAs Ray himself explained, his interest in plants was aroused after graduating, when he had to spend time outdoors after a period of [23]. He taught himself, in addition to many Cambridge [24], and began compiling his catalogue of plants, which was published in 1660."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "philosophy"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "Question 22",
+              "group": {
+                "id": "r-summary-21-24",
+                "title": "A New Approach to Knowledge",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "A New Approach to Knowledge\nJohn Ray was a scholar and self-taught botanist, whose work reflected the [21] that was taking place during the 17th century in people\u2019s way of thinking about the natural world. This new approach is the basis of the modern field of [22]. It represented a complete break from the ideas of Aristotle, which had dominated thinking up until that time.\nAs Ray himself explained, his interest in plants was aroused after graduating, when he had to spend time outdoors after a period of [23]. He taught himself, in addition to many Cambridge [24], and began compiling his catalogue of plants, which was published in 1660."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "science"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "completion",
+              "prompt": "Question 23",
+              "group": {
+                "id": "r-summary-21-24",
+                "title": "A New Approach to Knowledge",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "A New Approach to Knowledge\nJohn Ray was a scholar and self-taught botanist, whose work reflected the [21] that was taking place during the 17th century in people\u2019s way of thinking about the natural world. This new approach is the basis of the modern field of [22]. It represented a complete break from the ideas of Aristotle, which had dominated thinking up until that time.\nAs Ray himself explained, his interest in plants was aroused after graduating, when he had to spend time outdoors after a period of [23]. He taught himself, in addition to many Cambridge [24], and began compiling his catalogue of plants, which was published in 1660."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "illness"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "Question 24",
+              "group": {
+                "id": "r-summary-21-24",
+                "title": "A New Approach to Knowledge",
+                "instruction": "Write ONE WORD ONLY from the passage for each answer.",
+                "text": "A New Approach to Knowledge\nJohn Ray was a scholar and self-taught botanist, whose work reflected the [21] that was taking place during the 17th century in people\u2019s way of thinking about the natural world. This new approach is the basis of the modern field of [22]. It represented a complete break from the ideas of Aristotle, which had dominated thinking up until that time.\nAs Ray himself explained, his interest in plants was aroused after graduating, when he had to spend time outdoors after a period of [23]. He taught himself, in addition to many Cambridge [24], and began compiling his catalogue of plants, which was published in 1660."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "students"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "multiple-select",
+              "prompt": "Which TWO of the following statements are true of Ray\u2019s early life?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "His teacher recommended that he should go to university."
+                },
+                {
+                  "key": "B",
+                  "text": "His school record was not exceptional in any way."
+                },
+                {
+                  "key": "C",
+                  "text": "He was helped by a former student of Cambridge University."
+                },
+                {
+                  "key": "D",
+                  "text": "His parents were both valued by the people in their local area."
+                },
+                {
+                  "key": "E",
+                  "text": "He originally planned to take up his father\u2019s occupation."
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "C",
+                    "D"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Sir Francis Ronalds 1788 \u2013 1873",
+          "body": "Sir Francis Ronalds 1788 \u2013 1873\nAn early pioneer in the story of long-distance communication\nA  Francis Ronalds was born in London in 1788, the second of eleven children. When he was nineteen his father died, and as the eldest son, the young Ronalds had to assume the responsibility of running the family\u0027s cheese business. He combined this occupation with his passions for chemical experiments and for meteorology, the study of the Earth\u0027s atmosphere and its changes. This brought him into contact with the elderly Swiss meteorologist Jean Andre de Luc, who was also an inspired inventor in the field of electricity. In 1814, de Luc encouraged Ronalds to start work on this new discipline.\nB  For the next few years, Ronalds experimented enthusiastically with various kinds of electrostatic clockwork devices. He was particularly interested in the idea of electric telegraphy: transmitting messages over distance, using electrical impulses carried along metal wires. In the best traditions of nineteenth- century scientists, these investigations were carried out at home. In early 1816, Ronalds gutted the family home in Hammersmith, West London, and covered its rooms, halls, and staircases with electric wire. This experiment involved the use of current to produce movement in small corks at the ends of circuits.\nC  Some months later, Ronalds built two large wooden frames accommodating 8 miles (12.9 km) ofelectrically charged iron wire in his back garden. At either end of the wire was a revolving disc, on which letters and numbers were engraved. These dials were kept revolving by means of a clockwork mechanism. When somebody wanted to send a message, he would wait until the dial at his end was showing the desired number or letter, and then interrupt the charge on the wire. This would cause two balls suspended on the wire to fall together. The person at the opposite end would then note down what was indicated by the dial at his end at the moment when the balls made contact. Ronalds soon developed a modified version of his invention in which the wire was encased in glass tubes and buried in the ground. The system was slow and depended on the two dials staying in step, but it worked.\nD  Ronalds immediately contacted the Admiralty, the department of the British government which had control over the nation\u0027s naval affairs. He was not the first to propose a system of this nature to them. Some ten years earlier, in 1806, the inventor Ralph Wedgwood had offered the Admiralty a similar type of telegraph based on frictional electricity, which it had rejected. The Admiralty had its home in London, whereas its naval fleets were based over 130 km away in Portsmouth. With communication between these two cities in mind, Ronalds wrote to Lord Melville, the then First Lord of the Admiralty, to offer him his telegraphic system.\nE  Ronalds believed that his invention was capable of carrying messages some 800 km, and in his letter to Lord Melville written on 11 July 1816 he spoke of the \u0027mode of conveying telegraphic intelligence with great rapidity, accuracy, and certainty, in all states of the atmosphere, either at night or in the day, and at small expense.\u0027 In 1816, the Admiralty had at its disposal only the late eighteenth-century telegraphic system of semaphore, whereby a mechanical device was used to control a mast with two arms. The disadvantage of this system was that it was only usable in daylight and in clear weather conditions. Nevertheless, John Barrow, Secretary to the Admiralty, wrote back to Ronalds on 5 August, saying that \u0027telegraphs of any kind are wholly unnecessary, and NO other than the one now in use will be adopted.\u0027\nF  Ronalds did not pursue the matter further or attempt to patent his telegraph. However, in a smallpamphlet published in 1823, he described his invention and listed some of its potential uses: \u0027Why should not government govern at Portsmouth almost as promptly as in Downing Street? Why should our defaulters escape by default of our foggy climate? Let us have Electrical Conversazione offices communicating with each other all over the kingdom if we can.\u0027\nAlthough Ronalds lived long enough to see his prophecies come to fruition, he made NO further contribution to the progress of telegraphic communication. In 1843, he was appointed the first Honorary Director and Superintendent of the Observatory at Kew, where he devised an accurate, automatic system for registering meteorological data using photography. A similar system was developed independently by Charles Brooke, but the British Association of Meteorologists confirmed Ronalds\u0027s priority. His system remained in use for many decades.\nG  Meanwhile, the people who benefited most directly from Ronalds\u0027s telegraphic work were the physicist Charles Wheatstone and his business partner William Cooke. They saw the potential of a rapid communication system for the growing number of private railway companies, and in 1837 they developed the Wheatstone-Cooke five-needle telegraph. The pair patented their design in the same year, the first of its kind to be officially registered, and reaped considerable financial gain as a result. Ronalds himself retired in 1852 and devoted his later years to collecting and cataloguing a vast library of published material on electricity and magnetism. In 1870, three years before he died, he was knighted by Queen Victoria, a belated honour in recognition of his \u0027early and remarkable labours in telegraphic investigations.\u0027",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "The first electric telegraph system was submitted to the Admiralty.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "1806"
+                },
+                {
+                  "key": "B",
+                  "text": "1814"
+                },
+                {
+                  "key": "C",
+                  "text": "1816"
+                },
+                {
+                  "key": "D",
+                  "text": "1823"
+                },
+                {
+                  "key": "E",
+                  "text": "1837"
+                },
+                {
+                  "key": "F",
+                  "text": "1843"
+                },
+                {
+                  "key": "G",
+                  "text": "1852"
+                },
+                {
+                  "key": "H",
+                  "text": "1870"
+                }
+              ],
+              "group": {
+                "id": "r-dates-27-31",
+                "instruction": "Look at the following events (Questions 27-31) and the list of dates below.\nMatch each event with the correct date, A-H.\nChoose the correct letter, A-H, in boxes 27-31."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Ronalds received official recognition of his contribution to telegraphy.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "1806"
+                },
+                {
+                  "key": "B",
+                  "text": "1814"
+                },
+                {
+                  "key": "C",
+                  "text": "1816"
+                },
+                {
+                  "key": "D",
+                  "text": "1823"
+                },
+                {
+                  "key": "E",
+                  "text": "1837"
+                },
+                {
+                  "key": "F",
+                  "text": "1843"
+                },
+                {
+                  "key": "G",
+                  "text": "1852"
+                },
+                {
+                  "key": "H",
+                  "text": "1870"
+                }
+              ],
+              "group": {
+                "id": "r-dates-27-31",
+                "instruction": "Look at the following events (Questions 27-31) and the list of dates below.\nMatch each event with the correct date, A-H.\nChoose the correct letter, A-H, in boxes 27-31."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "The first electric telegraph was patented.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "1806"
+                },
+                {
+                  "key": "B",
+                  "text": "1814"
+                },
+                {
+                  "key": "C",
+                  "text": "1816"
+                },
+                {
+                  "key": "D",
+                  "text": "1823"
+                },
+                {
+                  "key": "E",
+                  "text": "1837"
+                },
+                {
+                  "key": "F",
+                  "text": "1843"
+                },
+                {
+                  "key": "G",
+                  "text": "1852"
+                },
+                {
+                  "key": "H",
+                  "text": "1870"
+                }
+              ],
+              "group": {
+                "id": "r-dates-27-31",
+                "instruction": "Look at the following events (Questions 27-31) and the list of dates below.\nMatch each event with the correct date, A-H.\nChoose the correct letter, A-H, in boxes 27-31."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Ronalds began to experiment with electricity.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "1806"
+                },
+                {
+                  "key": "B",
+                  "text": "1814"
+                },
+                {
+                  "key": "C",
+                  "text": "1816"
+                },
+                {
+                  "key": "D",
+                  "text": "1823"
+                },
+                {
+                  "key": "E",
+                  "text": "1837"
+                },
+                {
+                  "key": "F",
+                  "text": "1843"
+                },
+                {
+                  "key": "G",
+                  "text": "1852"
+                },
+                {
+                  "key": "H",
+                  "text": "1870"
+                }
+              ],
+              "group": {
+                "id": "r-dates-27-31",
+                "instruction": "Look at the following events (Questions 27-31) and the list of dates below.\nMatch each event with the correct date, A-H.\nChoose the correct letter, A-H, in boxes 27-31."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "Ronalds informed the public about the possible uses of his telegraph.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "1806"
+                },
+                {
+                  "key": "B",
+                  "text": "1814"
+                },
+                {
+                  "key": "C",
+                  "text": "1816"
+                },
+                {
+                  "key": "D",
+                  "text": "1823"
+                },
+                {
+                  "key": "E",
+                  "text": "1837"
+                },
+                {
+                  "key": "F",
+                  "text": "1843"
+                },
+                {
+                  "key": "G",
+                  "text": "1852"
+                },
+                {
+                  "key": "H",
+                  "text": "1870"
+                }
+              ],
+              "group": {
+                "id": "r-dates-27-31",
+                "instruction": "Look at the following events (Questions 27-31) and the list of dates below.\nMatch each event with the correct date, A-H.\nChoose the correct letter, A-H, in boxes 27-31."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "short-answer",
+              "prompt": "What was marked on the dials on Ronalds\u0027s garden telegraph?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "a revolving disc"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "short-answer",
+              "prompt": "What did Ronalds use to enclose the wires on his later version of the garden telegraph?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "glass tubes"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "short-answer",
+              "prompt": "How far did Ronalds believe his telegraph could transmit information?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "some 800km"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "short-answer",
+              "prompt": "What did the communication system invented by Ralph Wedgwood use?",
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "frictional electricity"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "matching",
+              "prompt": "a description of a commercial application for the electric telegraph",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-36-40",
+                "instruction": "Reading Passage 3 has seven paragraphs, A-G.\nWhich paragraph contains the following information?\nChoose the correct letter, A-G, in boxes 36-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "matching",
+              "prompt": "a rejection of Ronalds\u0027s invention",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-36-40",
+                "instruction": "Reading Passage 3 has seven paragraphs, A-G.\nWhich paragraph contains the following information?\nChoose the correct letter, A-G, in boxes 36-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "matching",
+              "prompt": "a drawback of Ronalds\u0027s invention",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-36-40",
+                "instruction": "Reading Passage 3 has seven paragraphs, A-G.\nWhich paragraph contains the following information?\nChoose the correct letter, A-G, in boxes 36-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "matching",
+              "prompt": "reference to the positive influence on Ronald of a fellow scientist",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-36-40",
+                "instruction": "Reading Passage 3 has seven paragraphs, A-G.\nWhich paragraph contains the following information?\nChoose the correct letter, A-G, in boxes 36-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "matching",
+              "prompt": "reference to the adoption of one of Ronalds\u0027s procedures in preference to that of another scientist",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "r-para-36-40",
+                "instruction": "Reading Passage 3 has seven paragraphs, A-G.\nWhich paragraph contains the following information?\nChoose the correct letter, A-G, in boxes 36-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -198,69 +198,19 @@ public sealed class StartupAndHealthTests(SsoAppFactory app) : IClassFixture<Sso
     }
 
 
-    /// <summary>
-    /// <b>A production process with no mail sender reports success and sends
-    /// nothing.</b>
-    ///
-    /// The only other sender writes the link to the server log. That is right
-    /// in Development and an outright lie in production: an account is created,
-    /// the API says a verification mail was sent, and the address can never be
-    /// verified. Password reset is worse — the learner is locked out and the
-    /// recovery path silently does nothing.
-    /// </summary>
-    [Fact]
-    public void A_production_configuration_with_no_mail_sender_refuses_to_boot()
-    {
-        var failure = Assert.Throws<InvalidOperationException>(() =>
-        {
-            using var broken = new WebApplicationFactory<Program>()
-                .WithWebHostBuilder(host =>
-                {
-                    host.UseSetting(WebHostDefaults.EnvironmentKey, Environments.Production);
-                    host.UseSetting("Jwt:SigningKey", new string('k', 48));
-                    host.UseSetting("Cors:Origins:0", "https://app.example.com");
-                    host.UseSetting("ObjectStorage:ServiceUrl", "https://s3.example.com");
-                    host.UseSetting("ObjectStorage:AccessKey", "key");
-                    host.UseSetting("ObjectStorage:SecretKey", "secret");
-                });
-
-            broken.CreateClient();
-        });
-
-        Assert.Contains("Email is not configured", failure.Message, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// Port 25 is unauthenticated relay with no expectation of encryption.
-    ///
-    /// A password-reset link travelling in the clear is a link anybody on the
-    /// path can use, and it arrives looking exactly like the real one.
-    /// </summary>
-    [Fact]
-    public void A_mail_sender_on_port_25_refuses_to_boot()
-    {
-        var failure = Assert.Throws<InvalidOperationException>(() =>
-        {
-            using var broken = new WebApplicationFactory<Program>()
-                .WithWebHostBuilder(host =>
-                {
-                    host.UseSetting(WebHostDefaults.EnvironmentKey, Environments.Production);
-                    host.UseSetting("Jwt:SigningKey", new string('k', 48));
-                    host.UseSetting("Cors:Origins:0", "https://app.example.com");
-                    host.UseSetting("ObjectStorage:ServiceUrl", "https://s3.example.com");
-                    host.UseSetting("ObjectStorage:AccessKey", "key");
-                    host.UseSetting("ObjectStorage:SecretKey", "secret");
-                    host.UseSetting("Email:Host", "smtp.example.com");
-                    host.UseSetting("Email:Port", "25");
-                    host.UseSetting("Email:FromAddress", "no-reply@example.com");
-                    host.UseSetting("Email:ClientBaseUrl", "https://app.example.com");
-                });
-
-            broken.CreateClient();
-        });
-
-        Assert.Contains("Email:Port is 25", failure.Message, StringComparison.Ordinal);
-    }
+    /*
+     * <b>The two mail boot-gates were deleted, not relaxed.</b>
+     *
+     * They refused a production start without SMTP, and refused port 25,
+     * because registration claimed to send a verification message and password
+     * reset claimed to send a link. As of 08/09/2026 neither exists:
+     * registration asks for a phone number, verification is gone, and recovery
+     * is a Zalo contact link plus an operator. A gate guarding a capability
+     * nothing uses only ever blocks a deployment for no reason.
+     *
+     * If mail is ever wired back in, both gates come back with it — the
+     * reasoning in ADR-0018 says why they were right while there was mail.
+     */
 
     /// <summary>
     /// And a fully configured production process starts.

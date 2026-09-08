@@ -282,7 +282,7 @@ it('keeps the answers a refused batch did not name, and does not submit without 
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   // Two answers in one batch: one the server will refuse, one it will take.
   const first = await screen.findByRole('textbox', { name: /Câu hỏi 1/ });
@@ -321,7 +321,8 @@ it('keeps the answers a refused batch did not name, and does not submit without 
   expect(sent[1]!['r-2']).toBe('TRUE');
   expect(order).toEqual(['answers', 'answers', 'submit']);
 
-  await screen.findByRole('heading', { name: 'Academic Practice Test 1', level: 1 });
+  // Landed on the result page: the paper is named under its heading.
+  await screen.findByText('Đề thi: Academic Practice Test 1');
 }, 45_000);
 
 /**
@@ -370,7 +371,7 @@ it('numbers every edit, and clears a token another writer has already used', asy
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   const first = await screen.findByRole('textbox', { name: /Câu hỏi 1/ });
   await userEvent.type(first, 'one');
@@ -422,7 +423,7 @@ it('writes a keystroke to the journal before the autosave has fired', async () =
     vi.fn(async (input: RequestInfo | URL) => stubbed(String(input))),
   );
 
-  const page = open('/students/session/sit-1');
+  const page = open('/exam/sit-1');
 
   await userEvent.type(await screen.findByRole('textbox', { name: /Câu hỏi 1/ }), 'cartography');
 
@@ -474,7 +475,7 @@ it('brings back an answer the tab was carrying when it went away', async () => {
     }),
   );
 
-  const page = open('/students/session/sit-1');
+  const page = open('/exam/sit-1');
 
   /*
    * <b>Back on screen, from disk.</b> The server's copy of this sheet is empty,
@@ -537,7 +538,7 @@ it('does not restore work the server has already recorded', async () => {
     }),
   );
 
-  const page = open('/students/session/sit-1');
+  const page = open('/exam/sit-1');
 
   const field = await screen.findByRole('textbox', { name: /Câu hỏi 1/ });
 
@@ -607,7 +608,7 @@ it('issues independent sequences for two slots on one question', async () => {
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   await userEvent.click(await screen.findByRole('checkbox', { name: /Alpha/ }));
   await settle(() => sent.some((entry) => 'slot-17' in entry.changes), 20_000);
@@ -682,7 +683,7 @@ it('restores journal entries per response slot', async () => {
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   await waitFor(() => {
     expect(screen.getByRole('checkbox', { name: /Alpha/ })).toBeChecked();

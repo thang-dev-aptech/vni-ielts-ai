@@ -500,8 +500,14 @@ assumption.
 
 > **Narrowed 2026-09-06 by `P-16`.** The owner accepted that a bare share cannot be verified
 > ([ADR-0009](../decisions/0009-share-gating-not-verifiable.md)) and moved the reward to **registration
-> through a referral link, granted when the invitee verifies their email**. What remains open is only
-> whether *Share Exam* / *Share Result* (`T-2`) survive as unrewarded features or are dropped.
+> through a referral link**. It was originally granted when the invitee verified their email; email
+> verification was removed on 08/09/2026, so the owner moved the trigger to registration itself and
+> the control that stops a self-referral farm is now the **unique phone number** — a real cost per
+> account rather than a free disposable address. → `P-16`, threat `T13`,
+> [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
+>
+> What remains open is only whether *Share Exam* / *Share Result* (`T-2`) survive as unrewarded
+> features or are dropped.
 **Two layers, and they have different answers:**
 
 | Layer | Status |
@@ -634,7 +640,7 @@ This determines whether `Evaluation` needs a full review workflow and audit trai
 
 ## Medium impact — resolve before the relevant phase
 
-### M-1 · Account linking across identity providers `RESOLVED 2026-08-21`
+### M-1 · Account linking across identity providers `RESOLVED 2026-08-21` · `[SUPERSEDED 2026-09-08]`
 **The question was:** if a user registers with email and later signs in with Google using the same address, is that one account or two? Auto-linking is convenient and a known account-takeover vector (`T1`); manual linking is safer and worse UX.
 
 **Decision — chủ sản phẩm, 21/08/2026:** *"sẽ là 2 tài khoàn chung luôn nếu cùng gmail chỉ khác phương thức đăng nhập thôi"*. One email is one account: a social sign-in on a matching address links to the existing account instead of creating a second one, and the provider becomes an additional login method.
@@ -642,6 +648,16 @@ This determines whether `Evaluation` needs a full review workflow and audit trai
 Silent linking is conditional on the provider asserting the address is verified, and a link into an account whose own email was never verified additionally clears that account's password and revokes its sessions — closing the *reverse* takeover, where an attacker registers the victim's address first and waits. Facebook asserts nothing about the address, so it still returns `IDENTITY_LINK_REQUIRED`. → [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md)
 
 > The earlier `[ASSUMPTION]` here read *"link only after verified email ownership, never silently"*. It was **wrong about the owner's intent** — linking is silent for the person signing in. What survived from it is the provider-side half: verification is still required, it is just the *provider* that supplies it rather than a confirmation screen.
+
+> **`[SUPERSEDED 2026-09-08]` — the answer is now the opposite of "one email is one account".**
+> Registration stopped collecting an address on 08/09/2026, so the address cannot identify an account
+> and email verification does not exist. An address now identifies **whichever account currently holds
+> it**, and it moves: changing it migrates the account and frees the old address, so a Google sign-in
+> at the freed address creates a **brand-new account**. An account that already holds a password is
+> **refused** (`IDENTITY_LINK_REQUIRED`) rather than having its password cleared — the eviction branch
+> above is deleted, not dormant. The provider-vouching condition survives unchanged; it is the only
+> half of `M-1` that does. → `AU-9`/`AU-10` in [`confirmed.md`](confirmed.md),
+> [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
 
 ### M-29 · Xác minh số điện thoại `RESOLVED 2026-08-21`
 **Câu hỏi:** số điện thoại người học nhập vào có phải xác minh bằng OTP không?
@@ -652,6 +668,23 @@ minh"** ở bất kỳ đâu trên giao diện — có test riêng canh điều 
 
 Hệ quả nếu sau này đổi ý: cần một nhà cung cấp SMS, chi phí theo tin nhắn, và số điện thoại vào diện
 dữ liệu cá nhân phải khai trong hồ sơ `B-2`.
+
+> **`[NEEDS RE-CONFIRMATION 2026-09-08]` — câu trả lời vẫn là "không OTP", nhưng câu hỏi đã đổi.**
+> Ngày 21/08 số điện thoại là **thông tin liên hệ**. Từ 08/09/2026 nó là **handle đăng nhập chính**:
+> đăng ký chỉ hỏi họ tên, số điện thoại và mật khẩu, số điện thoại là **duy nhất** trên toàn hệ thống,
+> và nó là thứ thay thế email đã xác minh trong vai trò chống gian lận giới thiệu (`T13`) và chống tạo
+> tài khoản hàng loạt (`T4`).
+>
+> Ba hệ quả cần chủ sản phẩm nhìn lại, không phải kỹ thuật quyết:
+>
+> - **Duy nhất được bảo đảm, quyền sở hữu thì không.** Chỉ số đầu tiên nhập một số là giữ được số đó.
+>   Nhập nhầm một chữ số nghĩa là chiếm mất handle của người khác, và không có đường tự sửa.
+> - **Mất mật khẩu là việc của người vận hành** — không còn hòm thư để đặt lại. Xem `AU-10`.
+> - **Số điện thoại là dữ liệu cá nhân** và giờ nằm trong hồ sơ `B-2` — đúng cái hệ quả dòng trên đã
+>   ghi trước. → [`../security/privacy-vietnam-pdpl.md`](../security/privacy-vietnam-pdpl.md)
+>
+> Nhãn "đã xác minh" vẫn **không** được xuất hiện ở đâu cả.
+> → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
 
 ### M-2 · Audio retention period `[BUSINESS DECISION]`
 How long are student voice recordings kept after evaluation? Interacts directly with B-2 (PDPL), storage cost, and any future model-calibration work.
@@ -1192,7 +1225,22 @@ Chủ sản phẩm chốt luồng đăng ký: *"xử lí phần register như sa
 như bình thường nhưng sẽ xác minh ở trang hồ sơ học sinh sau cũng được"*. Câu này chốt **đăng nhập**,
 và chỉ đăng nhập. Nó để lại đúng một câu chưa ai trả lời, ghi ở dưới.
 
-### M-46 · Cơ chế xác minh email — **RESOLVED 2026-08-28** ✅ mã 6 số
+> **`[SUPERSEDED 2026-09-08]` — cả cụm này là lịch sử.** Ngày 08/09/2026 chủ sản phẩm bỏ email khỏi
+> đăng ký: *"register chỉ cần điền : Họ và tên, số điện thoại, mật khẩu, nhập lại mật khẩu -> tạo xong
+> ở profile phần email bỏ trống -> như vậy sẽ không cần tính năng verify nữa bỏ luôn"*. Không còn địa
+> chỉ nào để xác minh, nên **toàn bộ tính năng xác minh bị xoá** — mã 6 số, link `/auth/verify` cũ,
+> `User.EmailVerified`, claim `email_verified`, và cả hạ tầng gửi mail. Hai mục `M-46` và `M-45` dưới
+> đây **giữ nguyên làm hồ sơ**, không phải để làm theo. → `AU-9`/`AU-10` trong
+> [`confirmed.md`](confirmed.md), [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
+
+### M-46 · Cơ chế xác minh email — **RESOLVED 2026-08-28** ✅ mã 6 số · `[SUPERSEDED 2026-09-08]`
+
+> **Không còn tính năng nào ở đây.** Quyết định 08/09/2026 xoá hẳn xác minh email, nên mọi tham số
+> dưới đây — mã 6 số, TTL 10 phút, 5 lần đoán, `POST /api/v1/me/verify-email`, và cả `POST /auth/verify`
+> ghi là "giữ nguyên chưa xoá" — **đều đã bị gỡ khỏi mã nguồn**. Mục này giữ lại vì lập luận
+> "mã cho luồng đã đăng nhập, link cho luồng chưa đăng nhập" vẫn đúng và sẽ cần lại nếu có ngày phải
+> xác minh một handle nào đó (ví dụ OTP điện thoại, `M-29`). Đừng dựng lại từ đây.
+> → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
 
 **`[QUYẾT ĐỊNH]` chủ sản phẩm, 28/08/2026.** Câu hỏi: gửi **mã 6 số** để học viên nhập, hay gửi
 **link** để bấm là xác nhận luôn?
@@ -1239,7 +1287,17 @@ ai đó. Ngừng gửi link mới, xoá sau khi TTL cũ trôi hết.
 
 ---
 
-### M-45 · Tài khoản **chưa xác minh email** bị hạn chế những gì `[BUSINESS DECISION]`
+### M-45 · Tài khoản **chưa xác minh email** bị hạn chế những gì ~~`[BUSINESS DECISION]`~~ · `[SUPERSEDED 2026-09-08]`
+
+> **Câu hỏi tự tan, không phải được trả lời.** Từ 08/09/2026 **không có tài khoản nào đã xác minh
+> email**, vì không còn xác minh. Ba câu hỏi cuối mục này — token cho tài khoản chưa xác minh, tính là
+> một lượt giới thiệu thành công, mốc thời gian nhắc nhở — không còn nghĩa.
+>
+> Hai chỗ trong mô hình mối đe doạ mà mục này treo vào đã có câu trả lời khác: `T4` và `T13` giờ dựa
+> vào **số điện thoại duy nhất** thay cho hòm thư đã xác minh, và phần thưởng giới thiệu (`P-16`)
+> **trả ngay lúc đăng ký**. Ghi chú kỹ thuật cuối mục (chưa có dịch vụ email, API từ chối khởi động
+> ngoài Development) cũng hết hiệu lực: hạ tầng mail đã bị xoá và cổng khởi động cùng với nó.
+> → `AU-10`, [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
 **Chặn:** luật cộng/trừ token cho tài khoản mới, và luật ghi công giới thiệu.
 Đi kèm `B-4`, `B-5a`, `M-27`.
 

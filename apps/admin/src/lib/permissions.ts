@@ -68,6 +68,9 @@ export const PERMISSION: Record<string, PermissionFace> = {
   'user.read': { label: 'Xem người dùng', group: 'Người dùng' },
   'user.update': { label: 'Sửa người dùng', group: 'Người dùng' },
   'user.suspend': { label: 'Khoá tài khoản', group: 'Người dùng' },
+  // Its own key, not part of `user.update`: holding it means being able to
+  // sign in as any other account. → ADR-0018, and the note on UserDetailPage.
+  'user.reset-password': { label: 'Cấp lại mật khẩu', group: 'Người dùng' },
   'user.delete': { label: 'Xoá tài khoản', group: 'Người dùng' },
   'user.export': { label: 'Xuất dữ liệu cá nhân', group: 'Người dùng' },
   'role.read': { label: 'Xem vai', group: 'Vai' },
@@ -159,6 +162,9 @@ const ADMIN: string[] = [
     'user.read',
     'user.update',
     'user.suspend',
+    // Admin only, matching the server's seed: support can read an account but
+    // must not be able to become one.
+    'user.reset-password',
     'user.delete',
     'user.export',
     'role.read',

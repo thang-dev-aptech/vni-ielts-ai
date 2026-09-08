@@ -11,35 +11,32 @@ export function pauseListeningAudio() {
   window.dispatchEvent(new Event(PAUSE_LISTENING_AUDIO));
 }
 
+export interface ExamAudioPolicy {
+  playOnce: boolean;
+  allowSeek: boolean;
+}
+
 /**
- * The Listening player.
+ * The fetch-and-decode machinery behind every Listening transport, shared by
+ * `AudioPlayer` (the plain progress-bar transport used everywhere else a
+ * section carries audio) and `listening/ListeningAudioPlayer` (the
+ * screenshot-matched transport used only by the open-clock Listening layout).
  *
- * <b>No browser-native controls.</b> They expose a scrubber regardless of the
- * exam version. This component renders either a passive progress bar or an
- * accessible seek control from the server-resolved policy.
+ * <b>Extracted rather than duplicated, on 2026-09-08.</b> Two Listening
+ * transports need one policy: fetch the file as an authenticated blob, decode
+ * it exactly once, and respect `playOnce` / `allowSeek` from the exam
+ * version. A second copy of this hook is a second place the once-only rule or
+ * the auth-blob fetch can quietly drift from the other, and neither is
+ * something a visual redesign should be allowed to touch.
  *
- * <b>It plays once.</b> That is the real examination's behaviour and the
- * mock profile's usual behaviour. It is policy data rather than a client
- * default, and is announced before the first press rather than discovered
- * after it.
- *
- * <b>The audio is fetched with the access token, not linked.</b> An
- * `<audio src>` cannot carry an Authorization header, so a plain URL would
- * mean anonymous access to exam content — collectable and transcribable by
- * anyone who can guess a filename. Fetching it into a blob keeps the route
- * authenticated. The request carries a byte Range and accepts 206; because
- * the authenticated response is still materialised as one blob, this is not
- * claimed as progressive streaming.
+ * <b>Everything about the `<audio>` element itself stays with the caller.</b>
+ * This hook returns state and the event handlers to spread onto an `<audio>`
+ * tag; it does not render one. `currentTime` and `duration` are properties of
+ * a live DOM node, and two skins showing the same file need their own nodes —
+ * what they must not have is their own copy of the policy logic around it.
  */
-export function AudioPlayer({
-  reference,
-  policy,
-}: {
-  reference: string;
-  policy: { playOnce: boolean; allowSeek: boolean };
-}) {
+export function useExamAudioTrack(reference: string, policy: ExamAudioPolicy) {
   const { accessToken } = useAuth();
-  const { t } = useI18n();
 
   const audio = useRef<HTMLAudioElement | null>(null);
   const [source, setSource] = useState<string | null>(null);
@@ -51,6 +48,7 @@ export function AudioPlayer({
   const [retryAttempt, setRetryAttempt] = useState(0);
   const [speed, setSpeed] = useState<number>(1);
   const [muted, setMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
 
   function applySpeed(nextSpeed: number) {
     setSpeed(nextSpeed);
@@ -67,6 +65,36 @@ export function AudioPlayer({
       }
       return next;
     });
+  }
+
+  function applyVolume(next: number) {
+    const clamped = Math.min(1, Math.max(0, next));
+    setVolume(clamped);
+    if (audio.current) {
+      audio.current.volume = clamped;
+      // Dragging the slider above zero after a mute should be heard, same as
+      // every native volume control — otherwise the control looks broken.
+      if (clamped > 0 && muted) {
+        audio.current.muted = false;
+        setMuted(false);
+      }
+    }
+  }
+
+  function togglePlay() {
+    const element = audio.current;
+    if (element === null) return;
+    if (playing) element.pause();
+    else void element.play();
+  }
+
+  function seekTo(seconds: number) {
+    if (audio.current !== null) audio.current.currentTime = seconds;
+    setElapsed(seconds);
+  }
+
+  function retry() {
+    setRetryAttempt((attempt) => attempt + 1);
   }
 
   useEffect(() => {
@@ -120,43 +148,99 @@ export function AudioPlayer({
     };
   }, [accessToken, reference, retryAttempt]);
 
+  const progress = duration > 0 ? Math.min(100, (elapsed / duration) * 100) : 0;
+
+  return {
+    audioRef: audio,
+    source,
+    failed,
+    playing,
+    elapsed,
+    duration,
+    spent,
+    speed,
+    muted,
+    volume,
+    progress,
+    applySpeed,
+    toggleMute,
+    applyVolume,
+    togglePlay,
+    seekTo,
+    retry,
+    /** Spread onto the `<audio>` element the caller renders. */
+    elementProps: {
+      onLoadedMetadata: (event: React.SyntheticEvent<HTMLAudioElement>) =>
+        setDuration(event.currentTarget.duration),
+      onTimeUpdate: (event: React.SyntheticEvent<HTMLAudioElement>) =>
+        setElapsed(event.currentTarget.currentTime),
+      /*
+       * A decode failure after loading is silent without this.
+       *
+       * The fetch was guarded and the `<audio>` element was not, so a file
+       * that downloaded but would not decode — a codec the browser does not
+       * carry, a truncated body — left the learner pressing a play button
+       * that did nothing, in the middle of a timed Listening section, with
+       * no message and no way to tell whether it was them or the page.
+       */
+      onError: () => setFailed(true),
+      onPlay: () => setPlaying(true),
+      onPause: () => setPlaying(false),
+      onEnded: () => {
+        setPlaying(false);
+        if (policy.playOnce) setSpent(true);
+      },
+    },
+  };
+}
+
+/**
+ * The Listening player.
+ *
+ * <b>No browser-native controls.</b> They expose a scrubber regardless of the
+ * exam version. This component renders either a passive progress bar or an
+ * accessible seek control from the server-resolved policy.
+ *
+ * <b>It plays once.</b> That is the real examination's behaviour and the
+ * mock profile's usual behaviour. It is policy data rather than a client
+ * default, and is announced before the first press rather than discovered
+ * after it.
+ *
+ * <b>The audio is fetched with the access token, not linked.</b> An
+ * `<audio src>` cannot carry an Authorization header, so a plain URL would
+ * mean anonymous access to exam content — collectable and transcribable by
+ * anyone who can guess a filename. Fetching it into a blob keeps the route
+ * authenticated. The request carries a byte Range and accepts 206; because
+ * the authenticated response is still materialised as one blob, this is not
+ * claimed as progressive streaming.
+ *
+ * <b>The fetch/decode/policy logic lives in `useExamAudioTrack`.</b> This
+ * component only draws it — see that hook for why, and for the sibling
+ * `listening/ListeningAudioPlayer`, which draws the same state differently.
+ */
+export function AudioPlayer({ reference, policy }: { reference: string; policy: ExamAudioPolicy }) {
+  const { t } = useI18n();
+  const track = useExamAudioTrack(reference, policy);
+  const { audioRef, source, failed, playing, elapsed, duration, spent, progress } = track;
+
   if (failed) {
     return (
       <div className="audio-failed" role="alert">
         <p>{t('exam.audioFailed')}</p>
-        <button type="button" onClick={() => setRetryAttempt((attempt) => attempt + 1)}>
+        <button type="button" onClick={track.retry}>
           {t('exam.audioRetry')}
         </button>
       </div>
     );
   }
 
-  const progress = duration > 0 ? Math.min(100, (elapsed / duration) * 100) : 0;
-
   return (
     <div className="audio">
       <audio
-        ref={audio}
+        ref={audioRef}
         {...(source !== null ? { src: source } : {})}
         preload="metadata"
-        onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
-        onTimeUpdate={(event) => setElapsed(event.currentTarget.currentTime)}
-        /*
-         * A decode failure after loading is silent without this.
-         *
-         * The fetch was guarded and the `<audio>` element was not, so a file
-         * that downloaded but would not decode — a codec the browser does not
-         * carry, a truncated body — left the learner pressing a play button
-         * that did nothing, in the middle of a timed Listening section, with
-         * no message and no way to tell whether it was them or the page.
-         */
-        onError={() => setFailed(true)}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => {
-          setPlaying(false);
-          if (policy.playOnce) setSpent(true);
-        }}
+        {...track.elementProps}
       />
 
       {/*
@@ -181,12 +265,7 @@ export function AudioPlayer({
                 ? t('exam.pause')
                 : t('exam.play')
         }
-        onClick={() => {
-          const element = audio.current;
-          if (element === null) return;
-          if (playing) element.pause();
-          else void element.play();
-        }}
+        onClick={track.togglePlay}
       >
         {playing ? (
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -215,11 +294,7 @@ export function AudioPlayer({
             value={Math.min(elapsed, duration || 0)}
             disabled={source === null || duration <= 0}
             aria-label={t('exam.audioSeek')}
-            onChange={(event) => {
-              const next = Number(event.currentTarget.value);
-              if (audio.current !== null) audio.current.currentTime = next;
-              setElapsed(next);
-            }}
+            onChange={(event) => track.seekTo(Number(event.currentTarget.value))}
           />
         ) : (
           <div className="audio-track" aria-hidden="true">
@@ -249,9 +324,9 @@ export function AudioPlayer({
             <button
               key={s}
               type="button"
-              className={`audio-speed-btn${speed === s ? ' is-active' : ''}`}
-              aria-pressed={speed === s}
-              onClick={() => applySpeed(s)}
+              className={`audio-speed-btn${track.speed === s ? ' is-active' : ''}`}
+              aria-pressed={track.speed === s}
+              onClick={() => track.applySpeed(s)}
             >
               {s}x
             </button>
@@ -260,17 +335,33 @@ export function AudioPlayer({
 
         <button
           type="button"
-          className={`audio-mute-btn${muted ? ' is-muted' : ''}`}
-          aria-label={muted ? 'Bật âm thanh' : 'Tắt tiếng'}
-          title={muted ? 'Bật âm thanh' : 'Tắt tiếng'}
-          onClick={toggleMute}
+          className={`audio-mute-btn${track.muted ? ' is-muted' : ''}`}
+          aria-label={track.muted ? 'Bật âm thanh' : 'Tắt tiếng'}
+          title={track.muted ? 'Bật âm thanh' : 'Tắt tiếng'}
+          onClick={track.toggleMute}
         >
-          {muted ? (
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          {track.muted ? (
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
               <path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" />
             </svg>
           ) : (
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
               <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" />
             </svg>
           )}

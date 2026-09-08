@@ -30,11 +30,21 @@ export interface AdminExam {
   modules: AdminModuleSummary[];
 }
 
+/**
+ * A row in the account list.
+ *
+ * <b>`phone` is the identity now and `email` is the optional extra.</b>
+ * Registration collects a phone number, so most accounts have no address at
+ * all — `email` is nullable, and there is no `emailVerified` beside it any
+ * more because nothing sets it. Both fields are still nullable rather than
+ * one-or-the-other: an account created before 08/09/2026 has an address and no
+ * phone, and the list has to show both kinds of row.
+ */
 export interface AdminUser {
   userId: string;
   displayName: string;
-  email: string;
-  emailVerified: boolean;
+  email: string | null;
+  phone: string | null;
   status: string;
   createdAt: string;
   roleIds: string[];
@@ -75,8 +85,7 @@ export interface AdminRoleRef {
 export interface AdminUserDetail {
   userId: string;
   displayName: string;
-  email: string;
-  emailVerified: boolean;
+  email: string | null;
   phone: string | null;
   status: string;
   createdAt: string;
@@ -182,6 +191,28 @@ export const setUserRole = (accessToken: string, userId: string, roleId: string,
     method: 'POST',
     accessToken,
     body: { roleId, grant },
+    idempotencyKey: key(),
+  });
+
+/**
+ * Sets another account's password, and ends every session it has.
+ *
+ * <b>204, no body — the new password is never read back.</b> The operator
+ * typed it and has to hand it over themselves; echoing it would put it in a
+ * response the browser caches, the audit detail, and any proxy log in between,
+ * for no gain at all.
+ *
+ * The server refuses two cases whatever this client offers: a caller without
+ * `user.reset-password` gets 403, and a caller targeting their own account
+ * gets 409 — resetting your own password through the admin door would be a way
+ * to change a credential without proving you hold the current one.
+ * `UserDetailPage` hides the control in both cases; the refusal is the rule.
+ */
+export const resetUserPassword = (accessToken: string, userId: string, newPassword: string) =>
+  request<void>(`/api/v1/admin/users/${userId}/password`, {
+    method: 'POST',
+    accessToken,
+    body: { newPassword },
     idempotencyKey: key(),
   });
 

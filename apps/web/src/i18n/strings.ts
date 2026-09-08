@@ -47,6 +47,7 @@ const vi = {
   'common.cancel': 'Huỷ',
   'common.close': 'Đóng',
   'common.email': 'Email',
+  'common.phone': 'Số điện thoại',
   'common.password': 'Mật khẩu',
   'common.displayName': 'Tên hiển thị',
   'common.notConnected': 'Không kết nối được tới máy chủ. Kiểm tra mạng rồi thử lại.',
@@ -58,8 +59,25 @@ const vi = {
   'auth.welcomeSub': 'Đăng nhập để tiếp tục hành trình học của bạn.',
   'auth.createTitle': 'Tạo tài khoản mới',
   'auth.createSub': 'Bắt đầu hành trình luyện thi IELTS của bạn.',
-  'auth.orEmail': 'hoặc dùng email',
   'auth.fullName': 'Họ và tên',
+  /*
+   * Một ô, nhận cả số điện thoại lẫn email — máy chủ tự phân biệt bằng dấu
+   * `@`. Không bắt người dùng chọn trước "số hay email": đó là câu hỏi về
+   * cách chúng ta lưu dữ liệu, không phải về họ.
+   */
+  'auth.identifier': 'Số điện thoại hoặc email',
+  'auth.identifierRequired': 'Vui lòng nhập số điện thoại hoặc email.',
+  'auth.phoneRequired': 'Vui lòng nhập số điện thoại.',
+  /*
+   * Nói rõ cả hai cách viết được chấp nhận. Máy chủ từ chối `912345678` vì
+   * không đoán được là thiếu số 0 hay là số nước ngoài; chỉ báo "không hợp lệ"
+   * sẽ khiến người học gõ lại đúng chín chữ số đó lần nữa.
+   */
+  'auth.phoneInvalid': 'Số này chưa đúng. Nhập dạng 0912345678 hoặc +84912345678.',
+  'auth.confirmPassword': 'Nhập lại mật khẩu',
+  'auth.confirmPlaceholder': 'Nhập lại mật khẩu vừa đặt',
+  'auth.orPhone': 'hoặc dùng số điện thoại',
+  'auth.orPassword': 'hoặc dùng mật khẩu',
   'auth.passwordPlaceholder': 'Nhập mật khẩu',
   'auth.showPassword': 'Hiện mật khẩu',
   'auth.hidePassword': 'Ẩn mật khẩu',
@@ -90,44 +108,27 @@ const vi = {
   'sso.backToSignIn': 'Quay lại đăng nhập',
   'sso.starting': 'Đang chuyển tới Google…',
 
-  'verifyAgain.send': 'Gửi email xác minh',
-  'verifyAgain.sending': 'Đang gửi…',
-  'verifyAgain.sent': 'Đã gửi. Kiểm tra hộp thư của bạn, kể cả mục spam.',
-  'verifyAgain.retry': 'Thử lại',
-  /*
-   * Máy chủ trả lời rằng **không có thư nào được gửi đi**, và màn hình nói
-   * đúng như vậy. Chưa có dịch vụ gửi email nào được cấu hình; liên kết xác
-   * minh được ghi vào log của máy chủ. Viết "đã gửi" ở đây là đẩy người học đi
-   * mở một hộp thư trống rồi kết luận sản phẩm hỏng. → `M-45`
-   */
-  'verifyAgain.notSent':
-    'Chưa gửi được: hệ thống chưa nối dịch vụ email nào. Liên kết xác minh đang được ghi vào log của máy chủ.',
-  'verifyAgain.tooOften': 'Bạn vừa yêu cầu rồi. Đợi một lát rồi thử lại.',
-
-  // ── Mã xác minh 6 số ────────────────────────────────────────────────
-  // Mỗi lời từ chối có một câu riêng, vì bước tiếp theo của học viên khác
-  // nhau: sai mã thì nhìn lại thứ vừa gõ, hết hạn thì bấm gửi lại, hết lượt
-  // thì phải biết vì sao mã trong tay đã ngừng hoạt động.
-  'verifyCode.label': 'Mã xác minh 6 số',
-  // Nói rõ đã gửi *cái gì* và sống được bao lâu. "Đã gửi" một mình để học viên
-  // đi tìm một cái link không tồn tại — mail này không có link nào cả.
-  'verifyCode.hint':
-    'Đã gửi mã 6 số tới email của bạn. Mã có hiệu lực 10 phút — nhớ xem cả mục spam.',
-  'verifyCode.submit': 'Xác minh',
-  'verifyCode.checking': 'Đang kiểm tra…',
-  'verifyCode.done': 'Đã xác minh email của bạn.',
-  'verifyCode.incorrect': 'Mã không đúng. Hãy kiểm tra lại email và thử lần nữa.',
-  'verifyCode.expired': 'Mã đã hết hạn. Hãy bấm gửi lại để nhận mã mới.',
-  'verifyCode.exhausted':
-    'Bạn đã nhập sai quá nhiều lần và mã này không còn dùng được. Hãy bấm gửi lại để nhận mã mới.',
-  'verifyCode.resend': 'Gửi lại mã',
-
+  'email.add': 'Thêm email',
   'email.change': 'Đổi',
-  'email.changeHint':
-    'Chỉ đổi được khi email chưa xác minh. Xác minh xong là khoá lại — vì đó là đường lấy lại tài khoản của bạn.',
+  'email.changeHint': 'Để trống rồi bấm Lưu nếu bạn muốn bỏ email khỏi tài khoản.',
   'email.taken': 'Email này đã có tài khoản khác dùng.',
   'email.invalid': 'Email chưa đúng định dạng.',
-  'email.locked': 'Email đã xác minh nên không đổi được nữa.',
+  /*
+   * Cảnh báo *trước* khi lưu, không phải sau. Với tài khoản đang liên kết
+   * Google, đổi email là chuyển cả tài khoản sang địa chỉ mới; địa chỉ cũ được
+   * trả tự do, và lần sau bấm "Tiếp tục với Google" bằng địa chỉ cũ sẽ tạo ra
+   * một tài khoản trống mang đúng tên họ. Không có bước nào cảnh báo ở thời
+   * điểm đó, nên phải nói ở đây.
+   */
+  'email.googleWarning':
+    'Tài khoản này đang đăng nhập bằng Google. Đổi email sẽ chuyển tài khoản sang địa chỉ mới, và địa chỉ cũ được trả tự do — lần sau bấm "Tiếp tục với Google" bằng địa chỉ cũ sẽ không vào được tài khoản này nữa.',
+  /*
+   * Từ chối duy nhất mà người học không tự đoán được nguyên nhân. Bỏ email đi
+   * thì tài khoản không còn cách nào để đăng nhập: chưa có số điện thoại, chưa
+   * có mật khẩu. Nói luôn việc cần làm trước, thay vì chỉ báo "không xoá được".
+   */
+  'email.signInRequired':
+    'Không bỏ được email: đây là cách duy nhất để vào tài khoản này. Hãy thêm số điện thoại hoặc đặt mật khẩu trước.',
 
   'phone.add': 'Thêm số điện thoại',
   'phone.change': 'Sửa',
@@ -153,17 +154,24 @@ const vi = {
   'password.othersSignedOut':
     'Sau khi lưu, các thiết bị khác sẽ bị đăng xuất. Thiết bị bạn đang dùng thì không.',
   'password.forgotTitle': 'Quên mật khẩu',
+  /*
+   * Trang này không gửi gì đi cả, và câu dẫn phải nói thẳng điều đó. Tài khoản
+   * đăng ký bằng số điện thoại (08/09/2026) nên không có hộp thư nào để gửi
+   * liên kết đặt lại; thứ duy nhất còn lại là một người ở trung tâm. Hứa hẹn
+   * một email không tồn tại là cách chắc chắn nhất để người học ngồi đợi.
+   */
   'password.forgotLead':
-    'Nhập email của bạn. Nếu địa chỉ đó có tài khoản, chúng tôi sẽ gửi một liên kết đặt lại mật khẩu.',
-  'password.forgotSubmit': 'Gửi liên kết',
-  'password.forgotSent':
-    'Nếu địa chỉ này có tài khoản, liên kết đặt lại đã được gửi. Kiểm tra hộp thư của bạn.',
-  'password.resetTitle': 'Đặt mật khẩu mới',
-  'password.resetLead': 'Đặt mật khẩu mới cho tài khoản của bạn.',
-  'password.resetSubmit': 'Lưu mật khẩu',
-  'password.resetDone': 'Xong. Bạn có thể đăng nhập bằng mật khẩu mới.',
-  'password.resetInvalid': 'Liên kết này không còn hiệu lực. Hãy yêu cầu một liên kết mới.',
-  'password.resetMissing': 'Liên kết thiếu mã đặt lại. Hãy mở lại từ email.',
+    'Tài khoản đăng ký bằng số điện thoại nên không có email đặt lại mật khẩu. Nhắn cho trung tâm để được đặt lại giúp.',
+  'password.forgotZalo': 'Nhắn cho trung tâm qua Zalo',
+  /*
+   * Chưa cấu hình kênh hỗ trợ nào. Nói thật thay vì hiện một liên kết chết —
+   * nhưng vẫn phải có bước tiếp theo, vì người đọc trang này đang không vào
+   * được tài khoản của chính họ.
+   */
+  'password.forgotNoChannel':
+    'Kênh hỗ trợ trực tuyến chưa được cấu hình cho bản cài đặt này. Bạn liên hệ trung tâm theo số:',
+  'password.forgotWhatToSay':
+    'Nhắn kèm số điện thoại và họ tên bạn đã đăng ký, để trung tâm xác minh và đặt lại mật khẩu giúp bạn.',
   'password.backToSignIn': 'Về trang đăng nhập',
 
   'devices.lead': 'Những thiết bị đang đăng nhập vào tài khoản này.',
@@ -184,15 +192,20 @@ const vi = {
   'time.days': '{n} ngày trước',
 
   'profile.email': 'Email',
-  'profile.emailNone': 'Chưa có email',
+  'profile.emailNone': 'Chưa thêm',
   'profile.phone': 'Số điện thoại',
   'profile.phoneNone': 'Chưa thêm',
   'profile.password.googleOnly': 'Bạn đang đăng nhập bằng Google',
   'profile.password.googleOnlyBody':
     'Tài khoản của bạn không dùng mật khẩu riêng — bạn vào bằng nút "Tiếp tục với Google". Mật khẩu và bảo mật do Google quản lý, nên muốn đổi thì đổi ở tài khoản Google của bạn.',
   'profile.password.hasPassword': 'Đổi mật khẩu',
+  /*
+   * Câu cũ sai hai lần: đổi mật khẩu đã làm xong từ lâu, và lời khuyên "quên
+   * thì đăng nhập bằng Google cùng email" chính là trường hợp bị từ chối 409
+   * kể từ 08/09/2026 — tài khoản có mật khẩu thì nút Google không nhận.
+   */
   'profile.password.hasPasswordBody':
-    'Phần đổi mật khẩu đang được hoàn thiện. Trong lúc chờ, nếu bạn quên mật khẩu thì đăng nhập bằng Google với cùng địa chỉ email này cũng vào được tài khoản.',
+    'Bạn cần nhập mật khẩu hiện tại để đổi sang mật khẩu mới. Nếu quên mật khẩu, hãy liên hệ trung tâm để được cấp lại.',
 
   'account.profile': 'Hồ sơ học sinh',
   'account.studentPage': 'Trang học sinh',
@@ -211,8 +224,8 @@ const vi = {
   'signIn.busy': 'Đang đăng nhập…',
   'signIn.noAccount': 'Chưa có tài khoản?',
   'signIn.invalidWithHint':
-    'Email hoặc mật khẩu không đúng. Nếu bạn từng vào bằng nút "Tiếp tục với Google", hãy dùng lại nút đó thay vì nhập mật khẩu.',
-  'signIn.invalid': 'Email hoặc mật khẩu không đúng.',
+    'Số điện thoại, email hoặc mật khẩu không đúng. Nếu bạn từng vào bằng nút "Tiếp tục với Google", hãy dùng lại nút đó thay vì nhập mật khẩu.',
+  'signIn.invalid': 'Số điện thoại, email hoặc mật khẩu không đúng.',
   'signIn.suspended': 'Tài khoản này đã bị khoá. Liên hệ hỗ trợ nếu bạn cho rằng đây là nhầm lẫn.',
 
   'signUp.title': 'Tạo tài khoản',
@@ -221,13 +234,29 @@ const vi = {
   'signUp.haveAccount': 'Đã có tài khoản?',
   'signUp.passwordHint':
     'Ít nhất 12 ký tự. Không bắt buộc chữ hoa hay ký tự đặc biệt — độ dài quan trọng hơn.',
-  'signUp.emailTaken':
-    'Email này đã có tài khoản rồi. Nếu trước đây bạn vào bằng nút "Tiếp tục với Google" thì hãy bấm nút đó — tài khoản kiểu này không có mật khẩu riêng.',
   'signUp.goSignIn': 'Sang trang đăng nhập',
-  'signUp.emailInvalid': 'Địa chỉ email không hợp lệ.',
+  /*
+   * Ngõ cụt mà câu này gỡ: tài khoản đã tồn tại (tạo ở đây, hoặc tạo bằng
+   * Google rồi thêm số sau) thì đăng ký bị từ chối; sang tab đăng nhập gõ mật
+   * khẩu thì cũng bị từ chối, vì tài khoản Google không có mật khẩu nào cả.
+   * Hai câu đều đúng, và cộng lại thì không có lối ra. → `AU-7`
+   */
+  /*
+   * Cố ý KHÔNG nhắc tới Google. Tài khoản tạo bằng Google chỉ có địa chỉ email,
+   * không bao giờ có số điện thoại, nên một số đã dùng thì chắc chắn là tài
+   * khoản đăng ký bằng mật khẩu — chỉ đường sang nút Google ở đây là chỉ sai.
+   */
+  'signUp.phoneTaken':
+    'Số điện thoại này đã có tài khoản. Hãy đăng nhập bằng số điện thoại và mật khẩu của bạn.',
+  'signUp.confirmRequired': 'Vui lòng nhập lại mật khẩu.',
+  /*
+   * Kiểm tra hoàn toàn ở phía trình duyệt: máy chủ chỉ nhận một mật khẩu, nên
+   * không có gì để nó đối chiếu. Gõ sai ở đây là mất tài khoản vừa tạo — không
+   * còn luồng tự đặt lại mật khẩu nữa.
+   */
+  'signUp.confirmMismatch': 'Hai mật khẩu chưa khớp nhau.',
   'signUp.passwordWeak': 'Mật khẩu cần ít nhất 12 ký tự.',
   'signUp.nameRequired': 'Vui lòng nhập tên hiển thị.',
-  'auth.emailRequired': 'Vui lòng nhập email.',
   'auth.passwordRequired': 'Vui lòng nhập mật khẩu.',
   'auth.tabsLabel': 'Đăng nhập hoặc tạo tài khoản',
   'auth.backHome': 'Về trang chủ',
@@ -242,8 +271,6 @@ const vi = {
    */
   'title.landing': 'Luyện thi IELTS có AI chấm',
   'title.forgotPassword': 'Quên mật khẩu',
-  'title.verifyEmail': 'Xác minh email',
-  'title.resetPassword': 'Đặt mật khẩu mới',
   'title.ssoCallback': 'Đang đăng nhập',
   'title.articles': 'Bài viết',
   'title.dashboard': 'Khu vực học sinh',
@@ -258,29 +285,8 @@ const vi = {
   'notFound.elsewhere': 'Hoặc đi tới một trong bốn phần chính',
   'sso.title': 'Đang đăng nhập…',
   'sso.failedTitle': 'Không đăng nhập được',
-  'password.requestNew': 'Yêu cầu liên kết mới',
-
-  'verify.title': 'Xác minh email',
-  'verify.busy': 'Đang xác minh…',
-  'verify.success': 'Email của bạn đã được xác minh.',
-  'verify.invalid':
-    'Liên kết xác minh này không còn hiệu lực. Liên kết chỉ dùng được một lần và hết hạn sau 24 giờ.',
-  'verify.missing': 'Liên kết thiếu mã xác minh.',
-  'verify.continue': 'Tiếp tục',
 
   'home.greeting': 'Xin chào, {name}',
-  'home.unverifiedTitle': 'Email chưa được xác minh',
-  /*
-   * Câu cũ là *"Một số tính năng sẽ mở sau khi bạn xác minh email"* — một luật
-   * **không tồn tại**. Không có chỗ nào trong sản phẩm từ chối tài khoản chưa
-   * xác minh bất cứ điều gì, và tài khoản chưa xác minh **được phép làm gì**
-   * vẫn là câu hỏi của chủ sản phẩm (`M-45`). Nói trước hộ chủ sản phẩm là bịa
-   * chính sách; nói với người học rằng họ đang bị chặn trong khi họ không bị
-   * chặn là nói sai. → `G-11`
-   */
-  'home.unverifiedBody':
-    'Tài khoản của bạn dùng bình thường. Khi nào tiện, bạn có thể xác minh email ở trang hồ sơ.',
-  'home.unverifiedAction': 'Xác minh ở trang hồ sơ',
   'home.practiceEmpty': 'Chưa có đề thi nào',
   'home.historyEmpty': 'Bạn chưa làm bài nào',
   'home.historyEmptyBody': 'Kết quả các lần làm bài sẽ hiện tại đây.',
@@ -389,6 +395,103 @@ const vi = {
   'exam.nextNote': 'Bấm “Tiếp theo” là nộp phần {current} và mở phần {next}. Không quay lại được.',
   'exam.lastSectionNote': 'Đây là kỹ năng cuối. Nộp bài là kết thúc cả phiên thi.',
   'exam.sectionOf': 'Kỹ năng {number}/{total}',
+  /* ── The timed sitting screen (`/exam/:attemptId`) ──────────────────────
+   * Part labels follow the paper: Reading has passages, Listening sections,
+   * Writing tasks, Speaking parts. → `partLabelKey`
+   */
+  'exam.help': 'Trợ giúp',
+  'exam.helpTitle': 'Trong lúc làm bài',
+  'exam.helpClock': 'Đồng hồ do máy chủ giữ. Mất mạng thì đồng hồ vẫn chạy.',
+  'exam.helpSave': 'Câu trả lời tự lưu. Chữ ở góc trên chỉ ghi “Đã lưu” khi máy chủ đã nhận.',
+  'exam.helpNav': 'Bấm số ở chân trang để nhảy tới câu đó. Ô xanh là câu đã lưu.',
+  'exam.chipFullTest': 'Luyện toàn bài',
+  'exam.chipSingleSkill': 'Luyện một kỹ năng',
+  'exam.chipTimed': 'Tính giờ như thi thật',
+  /* ── The result screen (`/results/:attemptId`) ──────────────────────────
+   * Three of the reference screenshot's figures have no source in this
+   * product — a difficulty rating, a cohort percentile and a band
+   * distribution. The strings for those slots say so; they never stand in for
+   * a number. → DESIGN.md anti-pattern #12
+   */
+  'exam.resultHeading': 'Kết quả {skill}',
+  'exam.resultPaper': 'Đề thi: {title}',
+  'exam.resultNotSubmitted': 'Chưa nộp bài',
+  'exam.resultFinishedOn': 'Hoàn thành ngày {date}',
+  'exam.resultTook': '{time}',
+  'exam.resultKeepGoingTitle': 'Bạn đã hoàn thành bài này!',
+  'exam.resultKeepGoingBody':
+    'Bạn trả lời đúng {correct}/{total} câu. Xem lại từng câu bên dưới để biết mình hụt ở đâu.',
+  'exam.resultKeepGoingNoScore':
+    'Bài đã nộp. Kỹ năng này không chấm theo đáp án, nên kết quả sẽ hiện khi phần chấm xong.',
+  'exam.resultSaying': 'Kiến thức hôm nay là điểm tựa cho ước mơ ngày mai.',
+  'exam.overallBandFor': 'Overall Band Score ({skill})',
+  'exam.statCorrect': 'Số câu đúng',
+  'exam.statAccuracy': 'Tỷ lệ chính xác',
+  'exam.statTime': 'Thời gian làm bài',
+  'exam.statDifficulty': 'Độ khó của đề',
+  'exam.statCompletion': 'Hoàn thành bài thi',
+  'exam.statCorrectOf': '{correct}/{total} câu đúng',
+  'exam.statAttemptedOf': 'Đã làm {attempted}/{total} câu',
+  'exam.statPacePerQuestion': 'Trung bình {time}/câu',
+  'exam.statNoAnswerKey': 'Kỹ năng này không chấm theo đáp án',
+  'exam.statNoStartTime': 'Không còn dữ liệu giờ bắt đầu của buổi này',
+  'exam.seeExplanations': 'Xem giải thích',
+  'exam.retakeThis': 'Làm lại đề này',
+  'exam.keepPractising': 'Tiếp tục luyện tập',
+  'exam.overviewTitle': 'Tổng quan kết quả',
+  'exam.overviewLead': 'Xem chi tiết hiệu suất làm bài của bạn trong từng khía cạnh.',
+  'exam.breakdownTitle': 'Kết quả theo dạng câu hỏi',
+  'exam.breakdownLead': 'Hiểu rõ điểm mạnh, điểm cần cải thiện của bạn.',
+  'exam.breakdownEmpty': 'Chưa có dữ liệu theo dạng câu hỏi cho buổi làm bài này.',
+  'exam.compareTitle': 'So sánh kết quả',
+  'exam.compareLead': 'Vị trí điểm của bạn so với những người học khác.',
+  'exam.compareUnavailable':
+    'Chưa có dữ liệu so sánh. Hệ thống chưa đo phân bố điểm của người học, nên phần này để trống thay vì hiện một con số chưa kiểm chứng.',
+  'exam.compareYouAreHere': 'Bạn đang ở đây',
+  'exam.compareAxis': 'Band score',
+  'exam.compareAxisSkill': 'Band score ({skill})',
+  'exam.reviewListTitle': 'Chi tiết câu trả lời',
+  'exam.reviewListLead': 'Xem lại từng câu hỏi, đáp án và giải thích chi tiết.',
+  'exam.reviewFilterLabel': 'Bộ lọc câu hỏi',
+  'exam.reviewFilterEmpty': 'Không có câu nào trong bộ lọc này.',
+  'exam.reviewShowMore': 'Xem thêm {count} câu hỏi',
+  'exam.yourAnswer': 'Đáp án của bạn',
+  'exam.correctAnswer': 'Đáp án đúng',
+  'exam.reviewRightShort': 'Đúng',
+  'exam.reviewWrongShort': 'Sai',
+  'exam.nextStepsTitle': 'Gợi ý luyện tập tiếp theo',
+  'exam.nextStepsLead': 'Dựa trên chính bài làm này:',
+  'exam.nextStepsEmpty': 'Bài này không có điểm yếu nào nổi bật để gợi ý.',
+  'exam.docsTitle': 'Tài liệu gợi ý cho bạn',
+  'exam.docsLead': 'Tài liệu trong thư viện, lọc theo kỹ năng bạn vừa làm.',
+  'exam.docsEmpty': 'Thư viện chưa có tài liệu cho kỹ năng này.',
+  'exam.docsFailed': 'Không tải được tài liệu. Kiểm tra kết nối rồi mở lại trang.',
+  'exam.perSkillTitle': 'Điểm từng kỹ năng',
+  'exam.perSkillLead': 'Điểm tổng chỉ có khi đủ cả bốn kỹ năng.',
+  'exam.bannerTitle': 'Hành trình IELTS của bạn vẫn đang tiếp tục!',
+  'exam.bannerLead': 'Luyện tập đều đặn mỗi ngày để tiến gần hơn đến mục tiêu.',
+  /* English, because they head the paper's own English rubric. */
+  'exam.questionsRange': 'Questions {from} – {to}',
+  'exam.questionsOne': 'Question {number}',
+  'exam.emptyPart': '{label} chưa có câu hỏi nào',
+  'exam.passageN': 'Passage {number}',
+  'exam.sectionN': 'Section {number}',
+  'exam.sectionBreakdownTitle': 'Kết quả theo section',
+  'exam.sectionBreakdownLead': 'Điểm số của bạn ở từng phần nghe.',
+  'exam.sectionBreakdownEmpty': 'Chưa có dữ liệu theo section cho buổi làm bài này.',
+  'exam.sectionQuestionsRange': 'Câu {first}–{last}',
+  'exam.sectionScoreOf': '{correct}/{total}',
+  'exam.replayAnswer': 'Nghe lại',
+  'exam.replayAnswerHide': 'Ẩn audio',
+  'exam.taskN': 'Task {number}',
+  'exam.partN': 'Part {number}',
+  'exam.partProgress': '{label} · {answered}/{total}',
+  'exam.prevShort': 'TRƯỚC',
+  'exam.nextShort': 'TIẾP',
+  'exam.submitShort': 'NỘP BÀI',
+  'exam.nextSkill': 'Tiếp theo: {skill}',
+  'exam.passageCollapse': 'Thu nhỏ',
+  'exam.passageExpand': 'Mở rộng',
   'exam.newTest': 'Làm đề mới',
   'exam.singleEndsHere':
     'Luyện từng kỹ năng kết thúc ở đây — không có bước chuyển sang kỹ năng khác.',
@@ -562,12 +665,17 @@ const vi = {
     'Đây là những gì bạn đã điền. Đáp án đúng không hiển thị ở đây, để đề này còn làm lại được.',
   'exam.reviewExplanationNote':
     'Giải thích chỉ mở sau khi nộp bài và không thay đổi điểm đã chấm theo đáp án.',
-  'exam.explanationRequest': 'Vì sao đúng?',
   'exam.explanationRetry': 'Thử tạo lại giải thích',
   'exam.explanationLoading': 'Đang tạo giải thích…',
   'exam.explanationPending': 'Đang tạo giải thích cá nhân.',
   'exam.explanationFailed': 'Chưa tạo được giải thích. Hãy thử lại.',
   'exam.explanationCorrectAnswer': 'Đáp án đúng',
+  'exam.explanationTranslation': 'Dịch',
+  'exam.explanationReason': 'Giải thích',
+  'exam.explanationEvidence': 'Dẫn chứng trong bài',
+  'exam.explanationMistake': 'Lỗi thường gặp',
+  'exam.explanationCapped': 'Đã thử nhiều lần nhưng chưa tạo được giải thích cho câu này.',
+  'exam.selectProgress': 'Chọn {total} đáp án · đã chọn {picked}/{total}',
   'exam.markingReviewTitle': 'Xem nhận xét · {skill}',
   'exam.markingTask': 'Task {number}',
   'exam.markingWholeSkill': 'Toàn bộ kỹ năng',
@@ -608,7 +716,15 @@ const vi = {
   'dash.nav.overview': 'Tổng quan',
   'dash.nav.practice': 'Luyện 4 kỹ năng',
   'prac.hub.eyebrow': 'Luyện IELTS',
-  'prac.hub.browseCta': 'Xem bộ đề',
+  'prac.hub.browseCta': 'Xem tất cả bộ đề',
+  'prac.hub.title': 'Luyện 4 kỹ năng',
+  'prac.hub.lead':
+    'Chọn kỹ năng, chọn đề, làm như thi thật. Reading và Listening chấm theo đáp án; Writing và Speaking do AI chấm, luôn mang nhãn tham khảo.',
+  'prac.filters.skillLabel': 'Kỹ năng',
+  'prac.filters.modeLabel': 'Hình thức',
+  'prac.filters.reset': 'Đặt lại bộ lọc',
+  'prac.filters.summary': 'Đang lọc',
+  'prac.categories.skillEmpty': 'Không có bộ đề nào chứa kỹ năng đã chọn.',
   'prac.crumb.categories': 'Danh sách bộ đề',
   'prac.categories.title': 'Danh sách bộ đề',
   'prac.categories.lead': 'Chọn bộ đề theo series, hoặc tìm theo tên.',
@@ -618,10 +734,24 @@ const vi = {
   'prac.categories.sortMostTests': 'Nhiều đề nhất',
   'prac.categories.empty': 'Không tìm thấy bộ đề nào khớp.',
   'prac.categories.testsLabel': 'đề',
+  'prac.categories.exploreTitle': 'Khám phá theo danh mục',
+  'prac.categories.allSetsTitle': 'Tất cả bộ đề',
+  'prac.categories.filterAll': 'Tất cả',
+  'prac.categories.setsLabel': 'bộ đề',
+  'prac.library.viewCta': 'Xem chi tiết',
+  'prac.category.backLink': 'Quay lại danh sách bộ đề',
+  'prac.back.to': 'Quay lại',
   'prac.set.testsHeading': 'Các đề trong bộ',
   'prac.test.detailEyebrow': 'Chi tiết đề',
   'prac.test.startCta': 'Bắt đầu Thi thử',
   'prac.test.skillsLabel': 'kỹ năng',
+  'prac.test.modulesHeading': 'Nội dung bài thi',
+  'prac.test.statSkills': 'Kỹ năng',
+  'prac.test.statQuestions': 'Câu hỏi',
+  'prac.test.statDuration': 'Tổng thời gian',
+  'prac.test.actionsNote':
+    'Luyện tập chạy đồng hồ đếm lên, dừng lại được bất cứ lúc nào. Thi thử đếm ngược theo giờ của phòng thi và nộp bài khi hết giờ.',
+  'prac.categories.resultCount': '{shown}/{total} bộ đề',
   'prac.launcher.preparing': 'Đang chuẩn bị bài làm…',
   'prac.launcher.retryLabel': 'Quay lại',
   'dash.nav.progress': 'Tiến độ',
@@ -786,9 +916,6 @@ const vi = {
   'profile.memberHint': 'Tài khoản VNI IELTS AI',
   'profile.personalInfo': 'Thông tin cá nhân',
   'profile.userId': 'Mã người dùng',
-  'profile.emailVerified': 'Trạng thái email',
-  'profile.verified': 'Đã xác minh',
-  'profile.unverified': 'Chưa xác minh',
   'profile.edit': 'Chỉnh sửa',
   'profile.editSoon': 'Chỉnh sửa hồ sơ sẽ mở khi có API cập nhật.',
   'profile.modules': 'Mục hồ sơ',
@@ -861,6 +988,7 @@ const en: Record<StringKey, string> = {
   'common.cancel': 'Cancel',
   'common.close': 'Close',
   'common.email': 'Email',
+  'common.phone': 'Phone number',
   'common.password': 'Password',
   'common.displayName': 'Display name',
   'common.notConnected': 'Could not reach the server. Check your connection and try again.',
@@ -872,8 +1000,15 @@ const en: Record<StringKey, string> = {
   'auth.welcomeSub': 'Sign in to pick up where you left off.',
   'auth.createTitle': 'Create your account',
   'auth.createSub': 'Start your IELTS practice journey.',
-  'auth.orEmail': 'or use email',
   'auth.fullName': 'Full name',
+  'auth.identifier': 'Phone number or email',
+  'auth.identifierRequired': 'Please enter your phone number or email.',
+  'auth.phoneRequired': 'Please enter your phone number.',
+  'auth.phoneInvalid': 'That number does not look right. Use 0912345678 or +84912345678.',
+  'auth.confirmPassword': 'Confirm password',
+  'auth.confirmPlaceholder': 'Type the same password again',
+  'auth.orPhone': 'or use a phone number',
+  'auth.orPassword': 'or use a password',
   'auth.passwordPlaceholder': 'Enter your password',
   'auth.showPassword': 'Show password',
   'auth.hidePassword': 'Hide password',
@@ -904,31 +1039,15 @@ const en: Record<StringKey, string> = {
   'sso.backToSignIn': 'Back to sign in',
   'sso.starting': 'Redirecting to Google…',
 
-  'verifyAgain.send': 'Send the verification email',
-  'verifyAgain.sending': 'Sending…',
-  'verifyAgain.sent': 'Sent. Check your inbox, and your spam folder.',
-  'verifyAgain.retry': 'Try again',
-  'verifyAgain.notSent':
-    'Not sent: no email provider is connected yet. The verification link is written to the server log.',
-  'verifyAgain.tooOften': 'You just asked for one. Wait a moment and try again.',
-
-  'verifyCode.label': '6-digit verification code',
-  'verifyCode.hint':
-    'A 6-digit code has been sent to your email. It is valid for 10 minutes — check spam too.',
-  'verifyCode.submit': 'Verify',
-  'verifyCode.checking': 'Checking…',
-  'verifyCode.done': 'Your email is verified.',
-  'verifyCode.incorrect': 'That code is not right. Check the email and try again.',
-  'verifyCode.expired': 'That code has expired. Send a new one.',
-  'verifyCode.exhausted': 'Too many wrong attempts, so that code no longer works. Send a new one.',
-  'verifyCode.resend': 'Send a new code',
-
+  'email.add': 'Add an email',
   'email.change': 'Change',
-  'email.changeHint':
-    'Only while it is unverified. Once verified it locks — it is how you get back into your account.',
+  'email.changeHint': 'Leave it empty and save to remove your email address.',
   'email.taken': 'Another account already uses that address.',
   'email.invalid': 'That is not a valid email address.',
-  'email.locked': 'A verified address cannot be changed.',
+  'email.googleWarning':
+    'This account signs in with Google. Changing the email moves the account to the new address and frees the old one — "Continue with Google" from the old address will no longer reach this account.',
+  'email.signInRequired':
+    'That address cannot be removed: it is the only way into this account. Add a phone number or set a password first.',
 
   'phone.add': 'Add a phone number',
   'phone.change': 'Change',
@@ -955,16 +1074,12 @@ const en: Record<StringKey, string> = {
     'Saving signs your other devices out. The one you are using stays signed in.',
   'password.forgotTitle': 'Forgot password',
   'password.forgotLead':
-    'Enter your email. If it has an account, we will send a link to set a new password.',
-  'password.forgotSubmit': 'Send the link',
-  'password.forgotSent':
-    'If that address has an account, the reset link is on its way. Check your inbox.',
-  'password.resetTitle': 'Set a new password',
-  'password.resetLead': 'Choose a new password for your account.',
-  'password.resetSubmit': 'Save password',
-  'password.resetDone': 'Done. You can sign in with the new password.',
-  'password.resetInvalid': 'This link is no longer valid. Request a new one.',
-  'password.resetMissing': 'The link is missing its reset code. Open it from the email again.',
+    'Accounts are registered with a phone number, so there is no reset email. Message the centre and they will reset it for you.',
+  'password.forgotZalo': 'Message the centre on Zalo',
+  'password.forgotNoChannel':
+    'No online support channel is configured for this deployment. Please call the centre on:',
+  'password.forgotWhatToSay':
+    'Include the phone number and the name you registered with, so the centre can check who you are and reset your password.',
   'password.backToSignIn': 'Back to sign in',
 
   'devices.lead': 'Devices currently signed in to this account.',
@@ -985,7 +1100,7 @@ const en: Record<StringKey, string> = {
   'time.days': '{n} days ago',
 
   'profile.email': 'Email',
-  'profile.emailNone': 'No email',
+  'profile.emailNone': 'Not added',
   'profile.phone': 'Phone number',
   'profile.phoneNone': 'Not added',
   'profile.password.googleOnly': 'You sign in with Google',
@@ -993,7 +1108,7 @@ const en: Record<StringKey, string> = {
     'Your account has no separate password — you sign in with the "Continue with Google" button. Google looks after the password, so change it in your Google account.',
   'profile.password.hasPassword': 'Change password',
   'profile.password.hasPasswordBody':
-    'Changing your password here is still being built. In the meantime, signing in with Google using this same address also gets you in.',
+    'Enter your current password to set a new one. If you have forgotten it, contact the centre and an operator will reset it for you.',
 
   'account.profile': 'Student profile',
   'account.studentPage': 'Student page',
@@ -1013,8 +1128,8 @@ const en: Record<StringKey, string> = {
   'signIn.busy': 'Signing in…',
   'signIn.noAccount': 'No account yet?',
   'signIn.invalidWithHint':
-    'Email address or password is incorrect. If you used the "Continue with Google" button before, use it again instead of a password.',
-  'signIn.invalid': 'Email address or password is incorrect.',
+    'Phone number, email address or password is incorrect. If you used the "Continue with Google" button before, use it again instead of a password.',
+  'signIn.invalid': 'Phone number, email address or password is incorrect.',
   'signIn.suspended':
     'This account has been suspended. Contact support if you think this is a mistake.',
 
@@ -1024,20 +1139,18 @@ const en: Record<StringKey, string> = {
   'signUp.haveAccount': 'Already have an account?',
   'signUp.passwordHint':
     'At least 12 characters. No uppercase or symbol required — length matters more.',
-  'signUp.emailTaken':
-    'This address already has an account. If you used the "Continue with Google" button before, use it again — an account set up that way has no separate password.',
   'signUp.goSignIn': 'Go to sign in',
-  'signUp.emailInvalid': 'That is not a valid email address.',
+  'signUp.phoneTaken':
+    'That phone number already has an account. Sign in with your phone number and password.',
+  'signUp.confirmRequired': 'Please type your password again.',
+  'signUp.confirmMismatch': 'The two passwords do not match.',
   'signUp.passwordWeak': 'Password must be at least 12 characters.',
   'signUp.nameRequired': 'Please enter a display name.',
-  'auth.emailRequired': 'Please enter your email.',
   'auth.passwordRequired': 'Please enter your password.',
   'auth.tabsLabel': 'Sign in or create an account',
   'auth.backHome': 'Back to the home page',
   'title.landing': 'IELTS practice with AI marking',
   'title.forgotPassword': 'Forgotten password',
-  'title.verifyEmail': 'Verify your email',
-  'title.resetPassword': 'Set a new password',
   'title.ssoCallback': 'Signing you in',
   'title.articles': 'Articles',
   'title.dashboard': 'Student area',
@@ -1052,21 +1165,8 @@ const en: Record<StringKey, string> = {
   'notFound.elsewhere': 'Or head to one of the four main sections',
   'sso.title': 'Signing you in…',
   'sso.failedTitle': 'Could not sign you in',
-  'password.requestNew': 'Request a new link',
-
-  'verify.title': 'Verify your email',
-  'verify.busy': 'Verifying…',
-  'verify.success': 'Your email address has been verified.',
-  'verify.invalid':
-    'This verification link is no longer valid. Links can be used once and expire after 24 hours.',
-  'verify.missing': 'The link is missing its verification code.',
-  'verify.continue': 'Continue',
 
   'home.greeting': 'Hello, {name}',
-  'home.unverifiedTitle': 'Email not verified',
-  'home.unverifiedBody':
-    'Your account works as normal. You can verify your email from your profile whenever it suits you.',
-  'home.unverifiedAction': 'Verify from your profile',
   'home.practiceEmpty': 'No exams yet',
   'home.historyEmpty': 'No attempts yet',
   'home.historyEmptyBody': 'Results from your attempts will appear here.',
@@ -1161,6 +1261,93 @@ const en: Record<StringKey, string> = {
   'exam.nextNote': '“Next” submits {current} and opens {next}. You cannot come back.',
   'exam.lastSectionNote': 'This is the last skill. Submitting ends the whole sitting.',
   'exam.sectionOf': 'Skill {number} of {total}',
+  'exam.help': 'Help',
+  'exam.helpTitle': 'While you are sitting',
+  'exam.helpClock': 'The clock is held by the server. It keeps running if you lose connection.',
+  'exam.helpSave':
+    'Answers save themselves. The chip above says “Đã lưu” only once the server has it.',
+  'exam.helpNav': 'Press a number in the footer to jump to that question. A filled box is saved.',
+  'exam.chipFullTest': 'Full paper',
+  'exam.chipSingleSkill': 'Single skill',
+  'exam.chipTimed': 'Timed like the real exam',
+  'exam.resultHeading': '{skill} result',
+  'exam.resultPaper': 'Paper: {title}',
+  'exam.resultNotSubmitted': 'Not submitted',
+  'exam.resultFinishedOn': 'Finished on {date}',
+  'exam.resultTook': '{time}',
+  'exam.resultKeepGoingTitle': 'You finished this paper.',
+  'exam.resultKeepGoingBody':
+    'You answered {correct} of {total} correctly. The review below shows where each one went.',
+  'exam.resultKeepGoingNoScore':
+    'Submitted. This skill is not marked from an answer key, so the result appears once marking finishes.',
+  'exam.resultSaying': 'What you learn today is what tomorrow stands on.',
+  'exam.overallBandFor': 'Overall Band Score ({skill})',
+  'exam.statCorrect': 'Correct answers',
+  'exam.statAccuracy': 'Accuracy',
+  'exam.statTime': 'Time taken',
+  'exam.statDifficulty': 'Paper difficulty',
+  'exam.statCompletion': 'Questions attempted',
+  'exam.statCorrectOf': '{correct}/{total} correct',
+  'exam.statAttemptedOf': '{attempted}/{total} attempted',
+  'exam.statPacePerQuestion': '{time} per question on average',
+  'exam.statNoAnswerKey': 'This skill is not marked from an answer key',
+  'exam.statNoStartTime': 'No start time recorded for this sitting',
+  'exam.seeExplanations': 'See explanations',
+  'exam.retakeThis': 'Sit this paper again',
+  'exam.keepPractising': 'Keep practising',
+  'exam.overviewTitle': 'Result overview',
+  'exam.overviewLead': 'How the sitting went, broken down.',
+  'exam.breakdownTitle': 'By question type',
+  'exam.breakdownLead': 'Where you are strong, and what to work on.',
+  'exam.breakdownEmpty': 'No question-type data for this sitting.',
+  'exam.compareTitle': 'How this compares',
+  'exam.compareLead': 'Where your band sits against other learners.',
+  'exam.compareUnavailable':
+    'No comparison data. This product does not measure the distribution of learner bands, so this panel stays empty rather than showing an unverified figure.',
+  'exam.compareYouAreHere': 'You are here',
+  'exam.compareAxis': 'Band score',
+  'exam.compareAxisSkill': 'Band score ({skill})',
+  'exam.reviewListTitle': 'Answer review',
+  'exam.reviewListLead': 'Every question, what you wrote, and what was right.',
+  'exam.reviewFilterLabel': 'Question filter',
+  'exam.reviewFilterEmpty': 'No questions match this filter.',
+  'exam.reviewShowMore': 'Show {count} more questions',
+  'exam.yourAnswer': 'Your answer',
+  'exam.correctAnswer': 'Correct answer',
+  'exam.reviewRightShort': 'Right',
+  'exam.reviewWrongShort': 'Wrong',
+  'exam.nextStepsTitle': 'What to practise next',
+  'exam.nextStepsLead': 'Read off this sitting:',
+  'exam.nextStepsEmpty': 'Nothing in this sitting stands out as a weakness.',
+  'exam.docsTitle': 'Documents for you',
+  'exam.docsLead': 'From the library, filtered to the skill you just sat.',
+  'exam.docsEmpty': 'The library has no documents for this skill yet.',
+  'exam.docsFailed': 'Could not load documents. Check your connection and reopen the page.',
+  'exam.perSkillTitle': 'Band per skill',
+  'exam.perSkillLead': 'An overall band appears only once all four skills are marked.',
+  'exam.bannerTitle': 'Your IELTS journey continues.',
+  'exam.bannerLead': 'Practise regularly to close the gap to your target.',
+  'exam.questionsRange': 'Questions {from} – {to}',
+  'exam.questionsOne': 'Question {number}',
+  'exam.emptyPart': '{label} has no questions',
+  'exam.passageN': 'Passage {number}',
+  'exam.sectionN': 'Section {number}',
+  'exam.sectionBreakdownTitle': 'Results by section',
+  'exam.sectionBreakdownLead': 'Your score in each listening section.',
+  'exam.sectionBreakdownEmpty': 'No per-section data for this sitting yet.',
+  'exam.sectionQuestionsRange': 'Questions {first}–{last}',
+  'exam.sectionScoreOf': '{correct}/{total}',
+  'exam.replayAnswer': 'Play again',
+  'exam.replayAnswerHide': 'Hide audio',
+  'exam.taskN': 'Task {number}',
+  'exam.partN': 'Part {number}',
+  'exam.partProgress': '{label} · {answered}/{total}',
+  'exam.prevShort': 'BACK',
+  'exam.nextShort': 'NEXT',
+  'exam.submitShort': 'SUBMIT',
+  'exam.nextSkill': 'Next: {skill}',
+  'exam.passageCollapse': 'Collapse',
+  'exam.passageExpand': 'Expand',
   'exam.newTest': 'New test',
   'exam.singleEndsHere': 'Single-skill practice ends here — there is no next skill to move on to.',
   'exam.nothingMarkedTitle': 'No result for this sitting yet',
@@ -1292,7 +1479,8 @@ const en: Record<StringKey, string> = {
   'exam.overall': 'Overall band',
   'exam.overallPending': 'An overall band needs all four skills.',
   'exam.rawOf': '{raw}/{max} correct',
-  'exam.bandUnverified': "Band is hidden because this paper's conversion table is not verified yet.",
+  'exam.bandUnverified':
+    "Band is hidden because this paper's conversion table is not verified yet.",
   'exam.notMarked': 'Not marked',
   'exam.aiMarkedTasks': '{count} task(s) marked by AI',
   'exam.aiPending':
@@ -1318,12 +1506,18 @@ const en: Record<StringKey, string> = {
     'This is what you entered. The correct answers are not shown here, so this paper can be sat again.',
   'exam.reviewExplanationNote':
     'Explanations are available only after submit and do not change the answer-key score.',
-  'exam.explanationRequest': 'Why is this correct?',
   'exam.explanationRetry': 'Try the explanation again',
   'exam.explanationLoading': 'Creating explanation…',
   'exam.explanationPending': 'Creating a personal explanation.',
   'exam.explanationFailed': 'The explanation is not ready. Try again.',
   'exam.explanationCorrectAnswer': 'Correct answer',
+  'exam.explanationTranslation': 'Translation',
+  'exam.explanationReason': 'Explanation',
+  'exam.explanationEvidence': 'Evidence in the text',
+  'exam.explanationMistake': 'Common mistake',
+  'exam.explanationCapped':
+    'Tried several times and could not produce an explanation for this question.',
+  'exam.selectProgress': 'Choose {total} · {picked}/{total} chosen',
   'exam.markingReviewTitle': 'Review feedback · {skill}',
   'exam.markingTask': 'Task {number}',
   'exam.markingWholeSkill': 'Whole skill',
@@ -1337,7 +1531,8 @@ const en: Record<StringKey, string> = {
   'exam.contentReviewTitle': 'Review the paper · {skill}',
   'exam.recordingPlay': 'Play back',
   'exam.recordingLoading': 'Loading recording…',
-  'exam.recordingUnavailable': 'This recording is not ready yet, or does not belong to this sitting.',
+  'exam.recordingUnavailable':
+    'This recording is not ready yet, or does not belong to this sitting.',
   'exam.recordingFailed': 'Could not load the recording. Check your connection and try again.',
   'exam.filterAll': 'All',
   'exam.filterNeedsReview': 'Needs review',
@@ -1347,7 +1542,8 @@ const en: Record<StringKey, string> = {
   'exam.aiAdvisory': 'AI · Advisory',
   'exam.accuracy': 'Accuracy',
   'exam.fullTestAvailable': 'Results available for {ready} of {total} skills',
-  'exam.overallNote': 'Overall band will appear only after all four valid skill scores are available.',
+  'exam.overallNote':
+    'Overall band will appear only after all four valid skill scores are available.',
   'exam.backToPractice': '← Back to the exam list',
 
   'dash.railLabel': 'Student area',
@@ -1361,7 +1557,15 @@ const en: Record<StringKey, string> = {
   'dash.nav.overview': 'Overview',
   'dash.nav.practice': 'Practice 4 skills',
   'prac.hub.eyebrow': 'IELTS practice',
-  'prac.hub.browseCta': 'Browse test sets',
+  'prac.hub.browseCta': 'View all test sets',
+  'prac.hub.title': 'Practise the four skills',
+  'prac.hub.lead':
+    'Pick a skill, pick a paper, sit it like the real thing. Reading and Listening are marked against the answer key; Writing and Speaking are AI-marked and always carry an advisory label.',
+  'prac.filters.skillLabel': 'Skill',
+  'prac.filters.modeLabel': 'Mode',
+  'prac.filters.reset': 'Reset filters',
+  'prac.filters.summary': 'Filtering by',
+  'prac.categories.skillEmpty': 'No test set covers the skill you picked.',
   'prac.crumb.categories': 'Test library',
   'prac.categories.title': 'Test library',
   'prac.categories.lead': 'Browse test sets by series, or search by name.',
@@ -1371,10 +1575,24 @@ const en: Record<StringKey, string> = {
   'prac.categories.sortMostTests': 'Most tests',
   'prac.categories.empty': 'No test sets match your search.',
   'prac.categories.testsLabel': 'tests',
+  'prac.categories.exploreTitle': 'Explore by category',
+  'prac.categories.allSetsTitle': 'All test sets',
+  'prac.categories.filterAll': 'All',
+  'prac.categories.setsLabel': 'test sets',
+  'prac.library.viewCta': 'View set',
+  'prac.category.backLink': 'Back to test library',
+  'prac.back.to': 'Back to',
   'prac.set.testsHeading': 'Tests in this set',
   'prac.test.detailEyebrow': 'Test details',
   'prac.test.startCta': 'Start Full Test',
   'prac.test.skillsLabel': 'skills',
+  'prac.test.modulesHeading': 'What this test covers',
+  'prac.test.statSkills': 'Skills',
+  'prac.test.statQuestions': 'Questions',
+  'prac.test.statDuration': 'Total time',
+  'prac.test.actionsNote':
+    'Practice runs a stopwatch you can stop at any time. Full Test counts down on the exam clock and submits when time runs out.',
+  'prac.categories.resultCount': '{shown}/{total} test sets',
   'prac.launcher.preparing': 'Preparing your session…',
   'prac.launcher.retryLabel': 'Go back',
   'dash.nav.progress': 'Progress',
@@ -1534,9 +1752,6 @@ const en: Record<StringKey, string> = {
   'profile.memberHint': 'VNI IELTS AI account',
   'profile.personalInfo': 'Personal details',
   'profile.userId': 'User id',
-  'profile.emailVerified': 'Email status',
-  'profile.verified': 'Verified',
-  'profile.unverified': 'Not verified',
   'profile.edit': 'Edit',
   'profile.editSoon': 'Profile editing opens once an update API exists.',
   'profile.modules': 'Profile sections',

@@ -21,10 +21,7 @@ export function PassageBody({
   highlights?: string[];
 }) {
   return (
-    <div
-      className="exam-passage-body"
-      style={fontSize ? { fontSize: `${fontSize}px` } : undefined}
-    >
+    <div className="exam-passage-body" style={fontSize ? { fontSize: `${fontSize}px` } : undefined}>
       {body.split('\n\n').map((paragraph, at) => {
         const label = /^\*\*([A-Z])\*\*\s*/.exec(paragraph);
 
@@ -79,9 +76,7 @@ function emphasise(text: string, label?: string, highlights: string[] = []) {
 function renderHighlightedText(text: string, highlights: string[]) {
   if (!text || highlights.length === 0) return text;
 
-  const validHighlights = highlights
-    .map((h) => h.trim())
-    .filter((h) => h.length > 0);
+  const validHighlights = highlights.map((h) => h.trim()).filter((h) => h.length > 0);
 
   if (validHighlights.length === 0) return text;
 
@@ -92,9 +87,7 @@ function renderHighlightedText(text: string, highlights: string[]) {
   return (
     <>
       {parts.map((part, index) => {
-        const isMatch = validHighlights.some(
-          (vh) => vh.toLowerCase() === part.toLowerCase(),
-        );
+        const isMatch = validHighlights.some((vh) => vh.toLowerCase() === part.toLowerCase());
         return isMatch ? (
           <mark key={index} className="exam-highlight">
             {part}

@@ -1,0 +1,19 @@
+source     TEST 5-R.docx
+sandbox    /Users/metacom/Documents/VNI/VNI IELTS AI/Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING
+key        KEY - EXPLAINATION/KEY TEST 5-R.docx (321 characters)
+extracted  19.729 characters, classification RightsCleared
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[100] Start processing HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[100] Sending HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[101] Received HTTP response headers after 2516.372ms - 200
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[101] End processing HTTP request after 2545.2945ms - 200
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam parse stream opened after headers.
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by gpt-5.4, request chatcmpl-202609031933595733237118268d9d6R4T39lCZ, prompt exam-parse-prompt-v7, attempt 1, 9522 in / 9315 out.
+parsed     39.015 characters by OpenAi/gpt-5.4, request chatcmpl-202609031933595733237118268d9d6R4T39lCZ
+kept       reading section only
+written    /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t5-reading.json
+foreign parts dropped
+key read   39 entr(ies) covering 40 mark(s)
+answer key refused
+  warning ANSWER_KEY_FOLDED_CHOICE /sections/0/parts/1/questions: Questions 25–26 were 2 separate choice items sharing a prompt; folded into one multiple-select so the key "C, D" can land on a 2-mark question.
+  error ANSWER_KEY_TYPE_MISMATCH /sections/0/parts/1/questions/2: Question 16 is matching and the key says "ix", which is not one of the options printed on it.
+The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.

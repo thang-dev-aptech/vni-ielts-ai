@@ -79,7 +79,7 @@ export function ProgressPage() {
               'Bắt đầu với Reading hoặc Listening — hai kỹ năng chấm theo đáp án, có kết quả ngay.'}
           </p>
           <div>
-            <Link className="btn-primary" to={Paths.practice} style={{ display: 'inline-flex', padding: '10px 20px', textDecoration: 'none' }}>
+            <Link className="btn btn-primary" to={Paths.practice}>
               Vào luyện tập ngay
             </Link>
           </div>

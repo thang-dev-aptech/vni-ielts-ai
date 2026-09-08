@@ -18,12 +18,17 @@ namespace Vni.Ielts.Api.Endpoints;
 /// fail because someone else's link went stale. → `P-16`
 /// </param>
 public sealed record RegisterRequest(
-    string Email, string Password, string DisplayName, string? ReferralCode = null);
-public sealed record LoginRequest(string Email, string Password);
+    string Phone, string Password, string DisplayName, string? ReferralCode = null);
+
+/// <param name="Identifier">
+/// A phone number or an email address — one box on the client, and the server
+/// works out which from whether it contains an `@`. Accounts registered since
+/// 08/09/2026 have a number and no address; older accounts, accounts created
+/// through Google that later set a password, and every operator account have an
+/// address and no number. → <see cref="LoginWithPassword"/>
+/// </param>
+public sealed record LoginRequest(string Identifier, string Password);
 public sealed record RefreshRequest(string RefreshToken);
-public sealed record VerifyEmailRequest(string Token);
-public sealed record ForgotPasswordRequest(string Email);
-public sealed record ResetPasswordRequest(string Token, string NewPassword);
 
 public sealed record SessionResponse(
     string AccessToken,
@@ -44,30 +49,16 @@ public sealed record SessionResponse(
 /// two shapes drift.
 /// </para>
 /// </summary>
-/// <param name="EmailVerified">
-/// Always false on a fresh registration. Sent anyway so the client never has
-/// to assume it, and so the field means the same thing as it does on
-/// <c>/me</c>.
-/// </param>
-/// <param name="VerificationEmailSent">
-/// <b>Whether a message actually left the server.</b> False is the normal
-/// answer today — the only configured sender writes the link to the server
-/// log — and a client that shows "check your inbox" over a false here is
-/// telling the learner to wait for something that will never arrive.
-/// </param>
-public sealed record RegisterResponse(
-    SessionResponse Session,
-    bool EmailVerified,
-    bool VerificationEmailSent);
+public sealed record RegisterResponse(SessionResponse Session);
 
 public sealed record MeResponse(
     string UserId,
     string DisplayName,
+    /// <summary>Null on every account that registered with a phone number.</summary>
     string? Email,
-    bool EmailVerified,
     string? Phone,
     IReadOnlyCollection<string> Permissions,
-    /// <summary>Lower-case provider keys this account can sign in with: email, google.</summary>
+    /// <summary>Lower-case provider keys this account can sign in with: password, google.</summary>
     IReadOnlyCollection<string> Providers,
     bool HasPassword);
 
@@ -79,12 +70,12 @@ public static class AuthEndpoints
 
         group.MapPost("/register", Register)
             .WithName("Register")
-            .WithSummary("Register with an email address and password")
+            .WithSummary("Register with a phone number and password")
             .RequireRateLimiting(RateLimitPolicies.Registration);
 
         group.MapPost("/login", Login)
             .WithName("Login")
-            .WithSummary("Sign in with an email address and password")
+            .WithSummary("Sign in with a phone number or email address and a password")
             .RequireRateLimiting(RateLimitPolicies.Authentication);
 
         group.MapPost("/refresh", Refresh)
@@ -92,20 +83,14 @@ public static class AuthEndpoints
             .WithSummary("Exchange a refresh token for a new pair")
             .RequireRateLimiting(RateLimitPolicies.Authentication);
 
-        group.MapPost("/verify", Verify)
-            .WithName("VerifyEmail")
-            .WithSummary("Redeem an email verification token")
-            .RequireRateLimiting(RateLimitPolicies.Authentication);
-
-        group.MapPost("/forgot-password", ForgotPassword)
-            .WithName("ForgotPassword")
-            .WithSummary("Send a password reset link, if the address has an account")
-            .RequireRateLimiting(RateLimitPolicies.Authentication);
-
-        group.MapPost("/reset-password", ResetPasswordEndpoint)
-            .WithName("ResetPassword")
-            .WithSummary("Redeem a reset link and set a new password")
-            .RequireRateLimiting(RateLimitPolicies.Authentication);
+        /*
+         * <b>There is no /verify, /forgot-password or /reset-password.</b> All
+         * three were removed on 08/09/2026 with email verification itself.
+         * Registration asks for no address, so a reset link had nowhere to go
+         * for most accounts; recovery is a Zalo contact link on the sign-in
+         * page and an operator using POST /admin/users/{id}/password.
+         * → ADR-0018, PermissionKeys.UserResetPassword
+         */
 
         /*
          * <b>Signing out was a local act, and it should never have been.</b>
@@ -156,18 +141,14 @@ public static class AuthEndpoints
     {
         var result = await handler.HandleAsync(
             new RegisterUserCommand(
-                request.Email, request.Password, request.DisplayName, request.ReferralCode),
+                request.Phone, request.Password, request.DisplayName, request.ReferralCode),
             ct);
 
         return result.Match(
-            // 201 with a session. Registration signs the learner in and the
-            // address is verified later from the profile page. → `M-45`
+            // 201 with a session. Registration signs the learner in.
             ok => Results.Created(
                 $"/api/v1/users/{ok.Session.UserId.Value}",
-                new RegisterResponse(
-                    ToSession(ok.Session),
-                    EmailVerified: false,
-                    VerificationEmailSent: ok.VerificationMessage == MessageDelivery.Sent)),
+                new RegisterResponse(ToSession(ok.Session))),
             error => ApiProblem.From(error, http));
     }
 
@@ -178,7 +159,8 @@ public static class AuthEndpoints
         HttpContext http,
         CancellationToken ct)
     {
-        var result = await handler.HandleAsync(new LoginCommand(request.Email, request.Password), ct);
+        var result = await handler.HandleAsync(
+            new LoginCommand(request.Identifier, request.Password), ct);
         if (result.IsSuccess) await presence.TouchAsync(result.Value!.UserId, ActivityKind.SignIn, ct);
         return result.Match(ok => Results.Ok(ToSession(ok)), error => ApiProblem.From(error, http));
     }
@@ -197,67 +179,17 @@ public static class AuthEndpoints
     }
 
     /// <summary>
-    /// Read straight from the validated token. No database round trip — the
-    /// permissions were resolved when the token was issued.
-    ///
-    /// The trade-off is stated in JwtTokenService: a permission revoked
-    /// mid-session stays effective until the access token expires. That is
-    /// what bounds AccessTokenMinutes at 15.
-    /// </summary>
-    private static async Task<IResult> Verify(
-        [FromBody] VerifyEmailRequest request,
-        VerifyEmail handler,
-        HttpContext http,
-        CancellationToken ct)
-    {
-        var result = await handler.HandleAsync(new VerifyEmailCommand(request.Token), ct);
-
-        return result.Match(
-            userId => Results.Ok(new { userId = userId.Value, emailVerified = true }),
-            error => ApiProblem.From(error, http));
-    }
-
-    /// <summary>
     /// The caller's account.
     ///
     /// <para>
-    /// <b>This now reads the database, and that is a deliberate change.</b> It
-    /// used to answer entirely from the validated token, which was free. But
-    /// which providers are linked cannot travel in a token that lives fifteen
-    /// minutes: someone who links Google must see it immediately, not when the
-    /// access token next rolls over. Permissions still come from the token,
-    /// where the fifteen-minute staleness is a documented trade.
+    /// <b>This reads the database, unlike the rest of the token-backed
+    /// surface.</b> Which providers are linked cannot travel in a token that
+    /// lives fifteen minutes: someone who links Google must see it
+    /// immediately, not when the access token next rolls over. Permissions
+    /// still come from the token, where the fifteen-minute staleness is a
+    /// documented trade.
     /// </para>
     /// </summary>
-    /// <summary>
-    /// <b>Always 202, whatever happened.</b> Telling the caller whether the
-    /// address exists would make this a free account-enumeration oracle, and
-    /// nobody legitimate needs the answer — they are about to go and look in
-    /// their mailbox either way. → threat T4
-    /// </summary>
-    private static async Task<IResult> ForgotPassword(
-        [FromBody] ForgotPasswordRequest request,
-        RequestPasswordReset handler,
-        CancellationToken ct)
-    {
-        await handler.HandleAsync(new RequestPasswordResetCommand(request.Email), ct);
-        return Results.Accepted();
-    }
-
-    private static async Task<IResult> ResetPasswordEndpoint(
-        [FromBody] ResetPasswordRequest request,
-        ResetPassword handler,
-        HttpContext http,
-        CancellationToken ct)
-    {
-        var result = await handler.HandleAsync(
-            new ResetPasswordCommand(request.Token, request.NewPassword), ct);
-
-        return result.Match(
-            userId => Results.Ok(new { userId = userId.Value }),
-            error => ApiProblem.From(error, http));
-    }
-
     private static async Task<IResult> Me(
         ClaimsPrincipal principal, GetMyAccount handler, CancellationToken ct)
     {
@@ -270,7 +202,6 @@ public static class AuthEndpoints
             account.UserId.Value,
             account.DisplayName,
             account.Email,
-            account.EmailVerified,
             account.Phone,
             principal.Permissions(),
             account.Providers,

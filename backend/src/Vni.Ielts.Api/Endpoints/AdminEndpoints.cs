@@ -107,7 +107,27 @@ public static class AdminEndpoints
         group.MapPost("/users/{userId}/roles", AssignRoleEndpoint)
             .WithName("AdminAssignRole")
             .WithSummary("Grant or revoke one role on one account");
+
+        /*
+         * <b>The recovery path, and the most dangerous thing in this file.</b>
+         *
+         * There is no self-service password reset any more: registration takes
+         * a phone number, so for most accounts there is no address to mail a
+         * link to. The owner chose this shape on 08/09/2026 — the learner
+         * reaches support over Zalo and an operator sets a new password.
+         *
+         * What it costs is not hidden: whoever holds `user.reset-password` can
+         * sign in as anybody. That is why it is its own permission rather than
+         * part of `user.update`, why only `admin` is seeded with it, and why it
+         * writes its own audit action. → ADR-0018, threat `T21`
+         */
+        group.MapPost("/users/{userId}/password", ResetUserPasswordEndpoint)
+            .WithName("AdminResetUserPassword")
+            .WithSummary("Set a new password for an account that cannot sign in");
     }
+
+    /// <summary>The new password, in the clear over TLS and never logged.</summary>
+    public sealed record ResetUserPasswordRequest(string NewPassword);
 
     /// <summary>
     /// <b>Drafts included — that is the whole difference from the learner
@@ -168,10 +188,11 @@ public static class AdminEndpoints
             {
                 userId = u.Id.Value,
                 displayName = u.DisplayName,
-                // The address is shown to an operator who has `user.read`; it
-                // is the only way to tell two accounts apart in a support call.
-                email = u.Email.Value,
-                emailVerified = u.EmailVerified,
+                // Both handles are shown to an operator who has `user.read`.
+                // The address may be absent — registration asks for a number —
+                // so the number is what a support call is usually traced by.
+                email = u.Email?.Value,
+                phone = u.Phone?.Value,
                 status = u.Status.ToString().ToLowerInvariant(),
                 createdAt = u.CreatedAt,
                 roleIds = u.RoleIds.Select(r => r.Value),
@@ -217,8 +238,7 @@ public static class AdminEndpoints
         {
             userId = user.Id.Value,
             displayName = user.DisplayName,
-            email = user.Email.Value,
-            emailVerified = user.EmailVerified,
+            email = user.Email?.Value,
             phone = user.Phone?.Value,
             status = user.Status.ToString().ToLowerInvariant(),
             createdAt = user.CreatedAt,
@@ -576,7 +596,7 @@ public static class AdminEndpoints
         await Record(
             audit, principal,
             suspend ? AuditAction.UserSuspended : AuditAction.UserReinstated,
-            "user", user.Id.Value, user.Email.Value, clock.UtcNow, ct);
+            "user", user.Id.Value, Label(user), clock.UtcNow, ct);
 
         return Results.Ok(new { status = user.Status.ToString().ToLowerInvariant() });
     }
@@ -607,7 +627,7 @@ public static class AdminEndpoints
         await Record(
             audit, principal,
             request.Grant ? AuditAction.RoleAssigned : AuditAction.RoleRemoved,
-            "user", user.Id.Value, user.Email.Value, clock.UtcNow, ct,
+            "user", user.Id.Value, Label(user), clock.UtcNow, ct,
             new Dictionary<string, string> { ["role"] = role.Name });
 
         return Results.Ok(new { roles = user.RoleIds.Select(r => r.Value) });
@@ -628,9 +648,100 @@ public static class AdminEndpoints
         audit.AppendAsync(
             AuditEntry.Record(
                 new UserId(principal.UserId() ?? "unknown"),
-                principal.Email() ?? principal.DisplayName(),
+                ActorLabel(principal),
                 action, targetType, targetId, targetLabel, now, detail),
             ct);
+
+    /// <summary>
+    /// Sets another account's password.
+    ///
+    /// <para>
+    /// <b>Every session of the target ends.</b> Whatever the learner could not
+    /// sign in to, somebody else may well be signed in to — a shared machine,
+    /// a phone that was handed on, or the compromise that caused the call in
+    /// the first place. Leaving those alive would make the reset theatre.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Revoked after the write, not before</b>, for the same reason
+    /// suspension is: a revocation that succeeds against an account whose
+    /// password write then fails leaves the person signed out of everything
+    /// and still unable to get back in.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>An operator cannot use this on themselves.</b> Not because it would
+    /// be dangerous, but because it would be a worse version of the
+    /// self-service change they already have — and it would write an audit row
+    /// claiming an account takeover that did not happen.
+    /// </para>
+    /// </summary>
+    private static async Task<IResult> ResetUserPasswordEndpoint(
+        string userId,
+        ClaimsPrincipal principal,
+        ResetUserPasswordRequest request,
+        IUserRepository users,
+        IUserIdentityRepository identities,
+        IPasswordHasher hasher,
+        ITokenService tokens,
+        IAuditLog audit,
+        IClock clock,
+        HttpContext http,
+        CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.UserResetPassword) is { } denial) return denial;
+
+        if (principal.UserId() == userId)
+        {
+            return Conflict(
+                "Không thể tự đặt lại mật khẩu của chính mình ở đây. "
+                + "Hãy đổi mật khẩu trong trang hồ sơ.");
+        }
+
+        var password = PasswordPolicy.Validate(request.NewPassword);
+        if (!password.IsSuccess) return ApiProblem.From(password.Error, http);
+
+        var user = await users.FindByIdAsync(new UserId(userId), ct);
+        if (user is null) return Results.NotFound();
+
+        await PasswordIdentity.SetAsync(identities, hasher, clock, user, password.Value!, ct);
+
+        await tokens.RevokeAllForUserAsync(user.Id, ct);
+
+        // The row records that it happened and to whom. It carries no password
+        // and no hash, and never will — this is the log that has to survive
+        // being read by everyone who can read logs.
+        await Record(
+            audit, principal, AuditAction.UserPasswordReset,
+            "user", user.Id.Value, Label(user), clock.UtcNow, ct);
+
+        return Results.NoContent();
+    }
+
+    /// <summary>
+    /// A stable name for whoever performed an act.
+    ///
+    /// <para>
+    /// <b>The display name is the last resort, not the second.</b> An operator
+    /// may now have a phone number and no address, and falling straight to the
+    /// display name would put a field its owner can edit into the record of
+    /// what they did — which is exactly the record that must not be rewritable
+    /// by the person it names. The account id is worse to read but cannot be
+    /// changed at all, so it sits underneath both handles rather than under
+    /// none. → threat `T21`
+    /// </para>
+    /// </summary>
+    private static string ActorLabel(ClaimsPrincipal principal) =>
+        principal.Email()
+        ?? principal.Phone()
+        ?? principal.UserId()
+        ?? principal.DisplayName();
+
+    /// <summary>
+    /// How an account is named in an audit row. Same ordering, same reason.
+    /// </summary>
+    private static string Label(Domain.Identity.User user) =>
+        user.Email?.Value ?? user.Phone?.Value ?? user.Id.Value;
 
     /// <summary>
     /// The highest page any listing will serve.

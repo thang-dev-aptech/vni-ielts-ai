@@ -1,0 +1,34 @@
+source     TEST 8-L.docx
+sandbox    /Users/metacom/Documents/VNI/VNI IELTS AI/Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING
+key        KEY - TRANSCRIPT/KEY TEST 8-L.docx (19.129 characters)
+extracted  5.842 characters, classification RightsCleared
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[100] Start processing HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[100] Sending HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[101] Received HTTP response headers after 1983.39ms - 200
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[101] End processing HTTP request after 2007.285ms - 200
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam parse stream opened after headers.
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by gpt-5.4, request chatcmpl-202609031950537358346538268d9d6o6kgyWJI, prompt exam-parse-prompt-v7, attempt 1, 6743 in / 3571 out.
+parsed     13.168 characters by OpenAi/gpt-5.4, request chatcmpl-202609031950537358346538268d9d6o6kgyWJI
+kept       listening section only
+written    /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t8-listening.json
+foreign parts dropped
+model answers  10 answerKey(s) the model wrote were removed; the key document is applied instead
+key read   40 entr(ies) covering 40 mark(s)
+answer key refused
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 3, which the paper does not contain. Key text: "25th February,25 February,February 25th,February 25".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 4, which the paper does not contain. Key text: "Lower".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 5, which the paper does not contain. Key text: "three days,3 days".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 6, which the paper does not contain. Key text: "afternoon".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 7, which the paper does not contain. Key text: "box".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 8, which the paper does not contain. Key text: "painkillers".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 9, which the paper does not contain. Key text: "ice".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 10, which the paper does not contain. Key text: "exercise".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 33, which the paper does not contain. Key text: "olive oil".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 34, which the paper does not contain. Key text: "camels".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 35, which the paper does not contain. Key text: "square".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 36, which the paper does not contain. Key text: "grass".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 37, which the paper does not contain. Key text: "slaves".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 38, which the paper does not contain. Key text: "dark blue".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 39, which the paper does not contain. Key text: "herds".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 40, which the paper does not contain. Key text: "guides".
+The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.

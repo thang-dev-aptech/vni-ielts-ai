@@ -4,6 +4,8 @@ import { ApiError } from '../../../lib/api.js';
 import { useI18n } from '../../../i18n/index.js';
 import { Paths } from '../../../routes/paths.js';
 import { useAuth } from '../../auth/AuthContext.js';
+import { Breadcrumb } from '../../chrome/Breadcrumb.js';
+import { PageHead } from '../../chrome/PageHead.js';
 import { listExams, startSession, type ExamCatalogueItem, type ExamModule } from '../examApi.js';
 import { SKILLS, SKILL_ORDER } from '../skills.js';
 import { FilterPanel } from './FilterPanel.js';
@@ -19,7 +21,10 @@ import {
   type PracticeItem,
   type PracticeMode,
 } from './practiceCatalogue.js';
+import { withIntent } from './practiceIntent.js';
 import { useAlive } from '../../../lib/useAlive.js';
+import '../../../styles/practice.css';
+import '../../../styles/practice-library.css';
 
 const PER_PAGE = 6;
 
@@ -220,14 +225,9 @@ export function PracticeWorkspace() {
       // the learner pressed "bắt đầu" and the next thing they should see is
       // the first question.
       //
-      // Two routes still, because the clocks have different failure rules: a
-      // late write is refused on a deadline and never on an open stopwatch.
-      // The chrome is the same page; only the URL and the clock differ.
-      navigate(
-        timing === 'open'
-          ? Paths.practiceSession(session.sessionId)
-          : Paths.examSession(session.sessionId),
-      );
+      // One address for both clocks now — the runner branches on the
+      // server's own `deadlineAt`, not on which URL got it there.
+      navigate(Paths.examSession(session.sessionId));
     } catch (caught) {
       if (!alive.current) return;
       setError(caught instanceof ApiError ? t('exam.startFailed') : t('common.notConnected'));
@@ -295,11 +295,39 @@ export function PracticeWorkspace() {
     return `${shown.length} bài luyện · ${how}`;
   }
 
-  return (
-    <div className="work">
-      {selector}
+  /*
+   * The one way into "browse by bộ đề" — a test set spans several skills by
+   * nature, so its cards are never the answer to "I picked Reading": they
+   * belong behind an explicit door, not under the tabs. → `practiceIntent.ts`
+   */
+  const browseHref = withIntent(Paths.studentsPracticeCategories, {
+    skill: mode === 'full' ? 'all' : skill,
+    mode: 'practice',
+  });
 
-      <div className="work-bar" id="work-results" tabIndex={-1}>
+  return (
+    <div className="dash-page prac-page">
+      <Breadcrumb
+        trail={[
+          { label: t('dash.nav.overview'), to: Paths.dashboard },
+          { label: t('dash.nav.practice') },
+        ]}
+      />
+      <PageHead
+        eyebrow={t('prac.hub.eyebrow')}
+        title={t('prac.hub.title')}
+        lead={t('prac.hub.lead')}
+        actions={
+          <Link className="btn btn-primary prac-all-tests-cta" to={browseHref}>
+            {t('prac.hub.browseCta')} <span aria-hidden="true">→</span>
+          </Link>
+        }
+      />
+
+      <div className="work">
+        {selector}
+
+        <div className="work-bar" id="work-results" tabIndex={-1}>
         {/*
           <b>The heading and the count are one live region.</b> Only the count
           carried `role="status"`, so changing skill silently rewrote the `<h2>`
@@ -348,11 +376,17 @@ export function PracticeWorkspace() {
       <div className="work-explainer" aria-label="Giải thích các chế độ thi">
         <div className="work-explainer-item">
           <strong>Phạm vi bài thi:</strong>
-          <span>Một kỹ năng (luyện tập trung chuyên sâu) hoặc Full Test (thi liền mạch 4 kỹ năng trong một phiên).</span>
+          <span>
+            Một kỹ năng (luyện tập trung chuyên sâu) hoặc Full Test (thi liền mạch 4 kỹ năng trong
+            một phiên).
+          </span>
         </div>
         <div className="work-explainer-item">
           <strong>Hình thức tính giờ:</strong>
-          <span>Luyện đề (đồng hồ đếm xuôi, có thể tạm dừng, đặt mục tiêu) hoặc Thi thử (đồng hồ đếm ngược, chốt giờ máy chủ).</span>
+          <span>
+            Luyện đề (đồng hồ đếm xuôi, có thể tạm dừng, đặt mục tiêu) hoặc Thi thử (đồng hồ đếm
+            ngược, chốt giờ máy chủ).
+          </span>
         </div>
       </div>
 
@@ -539,6 +573,7 @@ export function PracticeWorkspace() {
           </div>
         </>
       )}
+      </div>
 
       <FullTestReadinessModal
         isOpen={readinessItem !== null}

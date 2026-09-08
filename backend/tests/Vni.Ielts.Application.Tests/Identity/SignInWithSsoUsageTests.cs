@@ -35,7 +35,7 @@ public sealed class SignInWithSsoUsageTests
         public FakeUsageLedger Ledger { get; } = new();
 
         public SignInWithSso Sut => new(
-            new FakeProviderRegistry(Provider), States, Users, Identities, Roles, Tokens, Handoffs,
+            new FakeProviderRegistry(Provider), States, Users, Identities, Roles, Handoffs,
             new FixedClock(Now),
             new UsageRecorder(
                 Ledger, new UsageOptions { InitialGrantTurns = 10m },
@@ -51,8 +51,9 @@ public sealed class SignInWithSsoUsageTests
         }
     }
 
-    private static ExternalIdentity Identity(bool emailVerified = true) =>
-        new(IdentityProvider.Google, Subject, Address, emailVerified, "Học Viên Google");
+    private static ExternalIdentity Identity(
+        bool emailVerified = true, string? email = Address) =>
+        new(IdentityProvider.Google, Subject, email, emailVerified, "Hoc Vien Google");
 
     [Fact]
     public async Task A_brand_new_social_account_is_granted_the_welcome_turns()
@@ -79,5 +80,48 @@ public sealed class SignInWithSsoUsageTests
 
         var row = Assert.Single(h.Ledger.Written);
         Assert.Equal(UsageActions.AccountCreated, row.Action);
+    }
+
+    [Fact]
+    public async Task Repeatedly_freeing_an_address_grants_the_welcome_turns_only_once()
+    {
+        /*
+         * <b>A loop this change created, closed by keying the grant on the
+         * provider subject.</b>
+         *
+         * Freeing an address is deliberate and legitimate: move your account to
+         * a new address and the old one is unclaimed, so signing in at it again
+         * starts a fresh account. But "starts a fresh account" is now something
+         * one Google login can do over and over — change address, sign in, get a
+         * new account and a new welcome grant, change *its* address, repeat.
+         *
+         * Keyed on `grant:{userId}` every turn is a new id and a new grant,
+         * indefinitely, from a single provider account. The subject is the part
+         * that does not change, so the append-only ledger pays it once.
+         * → threat T4, UsageEntry.ProviderGrantId
+         */
+        var h = new Harness();
+        h.Provider.Result = Identity();
+
+        // First sign-in: a new account, and the welcome grant.
+        var first = await h.Sut.HandleAsync(await h.ArmAsync(), default);
+        var firstUserId = await h.Handoffs.ResolveAsync(first.Value!.HandoffCode);
+
+        // The learner moves that account onto another address, freeing this one.
+        var account = await h.Users.FindByIdAsync(firstUserId!.Value, default);
+        account!.ChangeEmail(
+            Vni.Ielts.Domain.Identity.Email.Create("da.chuyen@example.com"),
+            hasLinkedProvider: true);
+        await h.Users.SaveAsync(account, default);
+
+        // Signing in again mints a second account, correctly — but not a second grant.
+        var second = await h.Sut.HandleAsync(await h.ArmAsync(), default);
+        var secondUserId = await h.Handoffs.ResolveAsync(second.Value!.HandoffCode);
+
+        Assert.NotEqual(firstUserId, secondUserId);
+
+        var row = Assert.Single(h.Ledger.Written);
+        Assert.Equal(UsageActions.AccountCreated, row.Action);
+        Assert.Equal(10m, row.Turns);
     }
 }

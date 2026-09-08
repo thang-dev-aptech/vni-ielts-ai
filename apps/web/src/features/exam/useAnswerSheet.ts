@@ -548,9 +548,7 @@ export function useAnswerSheet({
          */
         const theirs = saved?.sequences;
         if (theirs !== undefined) {
-          for (const [slotId, seq] of Object.entries(
-            normalizeStoredSequences(section, theirs),
-          )) {
+          for (const [slotId, seq] of Object.entries(normalizeStoredSequences(section, theirs))) {
             observe(seq);
             if (slotId in pendingChanges.current) continue;
             sequences.current[slotId] = seq;
@@ -571,7 +569,10 @@ export function useAnswerSheet({
             // re-render on every autosave for a value nothing draws.
             if (!mine.has(questionId)) continue;
             const question = findQuestion(section, questionId);
-            if (question !== undefined && questionHasPendingSlots(question, pendingChanges.current)) {
+            if (
+              question !== undefined &&
+              questionHasPendingSlots(question, pendingChanges.current)
+            ) {
               continue;
             }
             if (Object.is(next[questionId], value)) continue;
@@ -864,84 +865,90 @@ export function useAnswerSheet({
    * measured **two** PUTs. Under concurrent rendering the same shape can
    * re-run in production, which is the version nobody would find.
    */
-  const change = useCallback((questionId: string, value: string | null) => {
-    const question = findQuestion(section, questionId);
-    if (question === undefined) return;
-
-    /*
-     * <b>Built from the mirror, not from the `answers` closure.</b>
-     *
-     * The merge in `sendOnce` calls `setAnswers` from a promise continuation,
-     * and React does not commit that synchronously. A keystroke handled by the
-     * render that came *before* the commit would compute its next sheet without
-     * the other tab's answer and write that over both the state and the mirror
-     * — and because the revision has already moved on, the server will never
-     * offer the merged sheet again. The learner would watch the other device's
-     * answer appear and then vanish on their next keypress, for good.
-     */
-    const previousSlots = expandQuestionValueToSlots(question, latestSheet.current[questionId] ?? null);
-    const nextSlots = expandQuestionValueToSlots(question, value);
-    const slotChanges = diffSlotValues(previousSlots, nextSlots);
-
-    const next = { ...latestSheet.current, [questionId]: value };
-    setAnswers(next);
-
-    /*
-     * <b>The refs, not the state, are what the save queue reads.</b>
-     *
-     * `setAnswers` is asynchronous, so a save fired from this same tick would
-     * send the sheet as it was before this keystroke. More importantly the
-     * generation has to move *now*: it is what tells an in-flight response for
-     * the previous draft that it no longer speaks for the current one.
-     */
-    latestSheet.current = next;
-
-    for (const [slotId, slotValue] of Object.entries(slotChanges)) {
-      pendingChanges.current[slotId] = slotValue;
-
-      // One token per slot edit, monotonic across the section. Re-typing the
-      // same slot issues a higher one, which is what makes the later keystroke
-      // win however the two requests are ordered on the way out.
-      const sequence = nextSequence.current++;
-      sequences.current[slotId] = sequence;
+  const change = useCallback(
+    (questionId: string, value: string | null) => {
+      const question = findQuestion(section, questionId);
+      if (question === undefined) return;
 
       /*
-       * <b>To disk before it is on the wire.</b> The 1.2 s debounce is 1.2 s in
-       * which the only copy of this keystroke is in memory, and the whole point
-       * of the journal is that a tab which goes away in that window does not take
-       * the answer with it.
+       * <b>Built from the mirror, not from the `answers` closure.</b>
+       *
+       * The merge in `sendOnce` calls `setAnswers` from a promise continuation,
+       * and React does not commit that synchronously. A keystroke handled by the
+       * render that came *before* the commit would compute its next sheet without
+       * the other tab's answer and write that over both the state and the mirror
+       * — and because the revision has already moved on, the server will never
+       * offer the merged sheet again. The learner would watch the other device's
+       * answer appear and then vanish on their next keypress, for good.
        */
-      if (journalKey.current !== null) {
-        void remember({
-          sessionId: journalKey.current.sessionId,
-          module: journalKey.current.module,
-          responseSlotId: slotId,
-          value: slotValue,
-          sequence,
-          savedAt: Date.now(),
-        });
+      const previousSlots = expandQuestionValueToSlots(
+        question,
+        latestSheet.current[questionId] ?? null,
+      );
+      const nextSlots = expandQuestionValueToSlots(question, value);
+      const slotChanges = diffSlotValues(previousSlots, nextSlots);
+
+      const next = { ...latestSheet.current, [questionId]: value };
+      setAnswers(next);
+
+      /*
+       * <b>The refs, not the state, are what the save queue reads.</b>
+       *
+       * `setAnswers` is asynchronous, so a save fired from this same tick would
+       * send the sheet as it was before this keystroke. More importantly the
+       * generation has to move *now*: it is what tells an in-flight response for
+       * the previous draft that it no longer speaks for the current one.
+       */
+      latestSheet.current = next;
+
+      for (const [slotId, slotValue] of Object.entries(slotChanges)) {
+        pendingChanges.current[slotId] = slotValue;
+
+        // One token per slot edit, monotonic across the section. Re-typing the
+        // same slot issues a higher one, which is what makes the later keystroke
+        // win however the two requests are ordered on the way out.
+        const sequence = nextSequence.current++;
+        sequences.current[slotId] = sequence;
+
+        /*
+         * <b>To disk before it is on the wire.</b> The 1.2 s debounce is 1.2 s in
+         * which the only copy of this keystroke is in memory, and the whole point
+         * of the journal is that a tab which goes away in that window does not take
+         * the answer with it.
+         */
+        if (journalKey.current !== null) {
+          void remember({
+            sessionId: journalKey.current.sessionId,
+            module: journalKey.current.module,
+            responseSlotId: slotId,
+            value: slotValue,
+            sequence,
+            savedAt: Date.now(),
+          });
+        }
       }
-    }
 
-    draftGeneration.current += 1;
+      draftGeneration.current += 1;
 
-    /*
-     * A refusal is about the answer that was refused, and this is a different
-     * answer. Leaving the notice up would tell a learner who has just fixed
-     * the problem that it is still there.
-     */
-    setRefused((current) => {
-      if (!(questionId in current)) return current;
-      const { [questionId]: _gone, ...rest } = current;
-      return rest;
-    });
+      /*
+       * A refusal is about the answer that was refused, and this is a different
+       * answer. Leaving the notice up would tell a learner who has just fixed
+       * the problem that it is still there.
+       */
+      setRefused((current) => {
+        if (!(questionId in current)) return current;
+        const { [questionId]: _gone, ...rest } = current;
+        return rest;
+      });
 
-    dirty.current = true;
-    setSave('pending');
+      dirty.current = true;
+      setSave('pending');
 
-    if (timer.current !== null) clearTimeout(timer.current);
-    timer.current = setTimeout(() => void flushRef.current(), AUTOSAVE_MS);
-  }, [section]);
+      if (timer.current !== null) clearTimeout(timer.current);
+      timer.current = setTimeout(() => void flushRef.current(), AUTOSAVE_MS);
+    },
+    [section],
+  );
 
   /**
    * The sitting this sheet belongs to, for the journal's key.

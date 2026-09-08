@@ -54,10 +54,16 @@ Tài liệu này ghi nhận kết quả đánh giá toàn diện hiện trạng 
 - **Severity**: HIGH
 - **Route**: `/practice`
 - **Viewport**: Mọi viewport
-- **Observed Evidence**: Các nút "Luyện đề" và "Thi thử" đặt cạnh nhau mà không có giải thích phân định; trên mobile danh sách kỹ năng bị cuộn ngang tràn màn hình.
-- **Related Component**: `apps/web/src/features/exam/PracticePage.tsx`
-- **User Impact**: Người học nhầm lẫn giữa Luyện đề tự do (được tạm dừng, đếm giờ tăng) và Thi thử (đếm ngược nghiêm ngặt, chấm AI).
-- **Recommendation**: Thực hiện `D-5`: Bộ điều khiển Scope (Một kỹ năng | Full Test) + `SkillSelector` lưới 2x2 trên mobile; card bài thi thể hiện đúng thứ tự nút; bổ sung Modal chuẩn bị Full Test (Readiness Dialog); khóa Entry-test ở trạng thái S4.
+- **Status**: **RESOLVED (2026-09-08)**
+- **Observed Evidence**: Trước đây trang `/practice` nhúng trực tiếp danh sách bài thi và bộ lọc phức tạp, thiếu tính định hướng module.
+- **Related Component**: `apps/web/src/features/exam/PracticePage.tsx`, `apps/web/src/styles/practice.css`
+- **Resolution**:
+  - Clone 100% giao diện mới chuẩn 2026 cho `/practice`:
+    1. Hero 3D VNI Mascot với thanh 4 cam kết giá trị (Bám sát đề thi thật, Phân tích AI, Lộ trình cá nhân hóa, Linh hoạt mọi lúc).
+    2. Lưới 4 card kỹ năng riêng biệt (Reading, Listening, Writing, Speaking) với số lượng bài tập và nút điều hướng chuyên biệt.
+    3. Cụm 2 cột: Thẻ Trợ lí AI VNI (chấm điểm chi tiết, phân tích lỗi, đồng hành 24/7) và Thẻ Quy trình 3 bước (Chọn kỹ năng -> Làm bài tập -> Xem kết quả & cải thiện).
+    4. CTA Banner xanh ngọc gradient kêu gọi hành động với họa tiết tăng trưởng.
+  - Toàn bộ không gian làm bài chi tiết (`PracticeWorkspace`) được phân tách rõ ràng và đưa vào trung tâm học viên tại `/students/practice` (`StudentPracticeHubPage`).
 - **Category**: Presentation & UX
 
 ### AUDIT-05: Header phòng thi bị vỡ và rớt dòng trên Mobile

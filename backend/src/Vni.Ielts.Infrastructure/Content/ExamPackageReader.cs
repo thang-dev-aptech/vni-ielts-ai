@@ -440,7 +440,8 @@ public sealed class ExamPackageReader(JsonSchema schema)
             ? new QuestionExplanation(e["correctAnswer"]?.GetValue<string>(), e["shortReason"]!.GetValue<string>(),
                 [.. e["evidence"]!.AsArray().Select(x => x is JsonValue v
                     ? v.GetValue<string>()
-                    : x!["quote"]!.GetValue<string>())], e["commonMistake"]?.GetValue<string>())
+                    : x!["quote"]!.GetValue<string>())], e["commonMistake"]?.GetValue<string>(),
+                e["translation"]?.GetValue<string>())
             : null;
         return new Question(q["id"]!.GetValue<string>(), q["order"]!.GetValue<int>(), type,
             q["prompt"]?.GetValue<string>(), [.. (q["options"]?.AsArray() ?? []).Select(o => new QuestionOption(o!["key"]!.GetValue<string>(), o["text"]!.GetValue<string>()))],

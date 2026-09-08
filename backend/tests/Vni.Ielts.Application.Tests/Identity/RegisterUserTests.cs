@@ -1,81 +1,29 @@
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Identity;
-using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Identity;
 
 namespace Vni.Ielts.Application.Tests.Identity;
 
 /// <summary>
-/// Registration, after the 27/08/2026 owner decision.
+/// Registration, after the 08/09/2026 owner decision.
 ///
 /// <para>
-/// <i>"tạo tài khoản với email pass cho login như bình thường nhưng sẽ xác
-/// minh ở trang hồ sơ học sinh sau cũng được"</i> — create the account with an
-/// email and a password, let them sign in as normal, verify later from the
-/// profile page.
+/// <i>"register chỉ cần điền: Họ và tên, số điện thoại, mật khẩu, nhập lại mật
+/// khẩu → tạo xong ở profile phần email bỏ trống → như vậy sẽ không cần tính
+/// năng verify nữa bỏ luôn"</i> — a name, a number and a password; the address
+/// field starts empty; verification is gone.
 /// </para>
 ///
 /// <para>
-/// Two of these tests exist to stop a well-meaning reinstatement. The comment
-/// this handler used to carry argued that a fresh account must not be signed
-/// in because the address is an unproven claim, and it was internally
-/// consistent — it was just not what the owner asked for, and no code
-/// anywhere actually refused an unverified account anything.
+/// Two of these exist to stop a well-meaning reinstatement. The handler used
+/// to argue that a fresh account must not be signed in because its address was
+/// an unproven claim; there is no address at registration any more, and there
+/// never was any code that refused an unverified account anything.
 /// </para>
 /// </summary>
 public sealed class RegisterUserTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 8, 27, 9, 0, 0, TimeSpan.Zero);
-
-    private sealed class FakeVerificationTokens : IEmailVerificationTokens
-    {
-        public List<UserId> Issued { get; } = [];
-
-        public Task<string> IssueAsync(UserId userId, CancellationToken ct)
-        {
-            Issued.Add(userId);
-            return Task.FromResult($"verify-{Issued.Count}");
-        }
-
-        public Task<UserId?> RedeemAsync(string token, CancellationToken ct) =>
-            Task.FromResult<UserId?>(null);
-
-        /*
-         * <b>The code flow is modelled, not stubbed to succeed.</b> A fake that
-         * returned `Verified` for anything would let every test above it pass
-         * while the attempt cap — the thing that makes six digits safe — did
-         * not exist.
-         */
-        public string? OutstandingCode { get; private set; }
-
-        public int Attempts { get; private set; }
-
-        public Task<string> IssueCodeAsync(UserId userId, CancellationToken ct)
-        {
-            Issued.Add(userId);
-            OutstandingCode = "123456";
-            Attempts = 0;
-            return Task.FromResult(OutstandingCode);
-        }
-
-        public Task<CodeRedemption> RedeemCodeAsync(
-            UserId userId, string code, CancellationToken ct)
-        {
-            if (OutstandingCode is null) return Task.FromResult(CodeRedemption.Expired);
-            if (Attempts >= 5) return Task.FromResult(CodeRedemption.TooManyAttempts);
-
-            Attempts++;
-
-            if (code != OutstandingCode)
-            {
-                return Task.FromResult(
-                    Attempts >= 5 ? CodeRedemption.TooManyAttempts : CodeRedemption.Incorrect);
-            }
-
-            OutstandingCode = null;
-            return Task.FromResult(CodeRedemption.Verified);
-        }
-    }
+    private static readonly DateTimeOffset Now = new(2026, 9, 8, 9, 0, 0, TimeSpan.Zero);
 
     private sealed class Harness
     {
@@ -83,17 +31,17 @@ public sealed class RegisterUserTests
         public FakeUserIdentityRepository Identities { get; } = new();
         public FakeRoleRepository Roles { get; } = new();
         public FakePasswordHasher Hasher { get; } = new();
-        public FakeVerificationTokens Tokens { get; } = new();
-        public FakeVerificationMessageSender Sender { get; } = new();
         public FakeTokenService Sessions { get; } = new();
 
         public RegisterUser Sut => new(
-            Users, Identities, Roles, Hasher, Tokens, Sender,
+            Users, Identities, Roles, Hasher,
             new FakePermissionResolver(PermissionKeys.ExamRead), Sessions, new FixedClock(Now));
     }
 
-    private static RegisterUserCommand Command(string email = "hoc.vien@example.com") =>
-        new(email, "mot-mat-khau-du-dai-2026", "Học viên");
+    private const string Password = "mot-mat-khau-du-dai-2026";
+
+    private static RegisterUserCommand Command(string phone = "0912345678") =>
+        new(phone, Password, "Hoc vien");
 
     [Fact]
     public async Task Registering_signs_the_new_account_in()
@@ -105,7 +53,7 @@ public sealed class RegisterUserTests
         Assert.True(result.IsSuccess);
         Assert.Equal("access", result.Value!.Session.Tokens.AccessToken);
         Assert.Equal("refresh", result.Value.Session.Tokens.RefreshToken);
-        Assert.Equal("Học viên", result.Value.Session.DisplayName);
+        Assert.Equal("Hoc vien", result.Value.Session.DisplayName);
         Assert.Equal(1, h.Sessions.IssueCallCount);
     }
 
@@ -123,54 +71,32 @@ public sealed class RegisterUserTests
     }
 
     [Fact]
-    public async Task The_account_is_created_unverified_and_that_stops_nothing()
+    public async Task The_account_starts_with_the_number_and_no_address()
     {
+        // The profile shows an empty email field, which is the owner's
+        // instruction — not a placeholder, not the phone number repeated into
+        // a fake address to satisfy a non-null column.
         var h = new Harness();
 
         var result = await h.Sut.HandleAsync(Command(), default);
 
         var user = await h.Users.FindByIdAsync(result.Value!.Session.UserId, default);
-        Assert.False(user!.EmailVerified);
-
-        // Unverified and holding a working session, which is the decision.
-        Assert.True(result.IsSuccess);
-        Assert.Equal(1, h.Sessions.IssueCallCount);
+        Assert.Null(user!.Email);
+        Assert.Equal("+84912345678", user.Phone!.Value.Value);
     }
 
     [Fact]
-    public async Task A_verification_token_is_issued_and_sent_to_the_address()
+    public async Task The_number_is_stored_normalised_however_it_was_typed()
     {
+        // Two people typing the same number two ways must not become two
+        // accounts — the number is the handle they will sign in with.
         var h = new Harness();
 
-        var result = await h.Sut.HandleAsync(Command(), default);
+        await h.Sut.HandleAsync(Command("091 234 5678"), default);
+        var again = await h.Sut.HandleAsync(Command("+84912345678"), default);
 
-        Assert.Equal([result.Value!.Session.UserId], h.Tokens.Issued);
-        Assert.Equal([("hoc.vien@example.com", "verify-1")], h.Sender.Verifications);
-    }
-
-    [Fact]
-    public async Task It_reports_that_nothing_was_sent_when_nothing_was_sent()
-    {
-        // The configured sender writes the link to a log. A result that did not
-        // carry this would leave the API free to answer "we emailed you",
-        // which is the lie the whole MessageDelivery type exists to prevent.
-        var h = new Harness();
-        h.Sender.Delivery = MessageDelivery.NotSent;
-
-        var result = await h.Sut.HandleAsync(Command(), default);
-
-        Assert.Equal(MessageDelivery.NotSent, result.Value!.VerificationMessage);
-    }
-
-    [Fact]
-    public async Task It_reports_a_send_when_a_real_provider_delivered_one()
-    {
-        var h = new Harness();
-        h.Sender.Delivery = MessageDelivery.Sent;
-
-        var result = await h.Sut.HandleAsync(Command(), default);
-
-        Assert.Equal(MessageDelivery.Sent, result.Value!.VerificationMessage);
+        Assert.False(again.IsSuccess);
+        Assert.Equal(ErrorCodes.PhoneAlreadyRegistered, again.Error.Code);
     }
 
     [Fact]
@@ -186,21 +112,28 @@ public sealed class RegisterUserTests
     }
 
     [Fact]
-    public async Task A_password_identity_is_created_so_the_learner_can_come_back()
+    public async Task A_password_identity_is_created_keyed_by_the_account()
     {
+        /*
+         * <b>Keyed by the account id, not by a handle.</b> That is what lets
+         * one row serve both sign-in routes: the learner can add an address
+         * later and use either, without a second row carrying a duplicate hash
+         * that the next password change would forget to update.
+         */
         var h = new Harness();
 
-        await h.Sut.HandleAsync(Command(), default);
+        var result = await h.Sut.HandleAsync(Command(), default);
+        var userId = result.Value!.Session.UserId;
 
         var identity = await h.Identities.FindByProviderAsync(
-            IdentityProvider.Email, "hoc.vien@example.com", default);
+            IdentityProvider.Password, userId.Value, default);
 
         Assert.NotNull(identity);
-        Assert.Equal(h.Hasher.Hash("mot-mat-khau-du-dai-2026"), identity!.PasswordHash);
+        Assert.Equal(h.Hasher.Hash(Password), identity!.PasswordHash);
     }
 
     [Fact]
-    public async Task An_address_that_already_has_an_account_is_refused_without_a_session()
+    public async Task A_number_that_already_has_an_account_is_refused_without_a_session()
     {
         var h = new Harness();
         await h.Sut.HandleAsync(Command(), default);
@@ -208,7 +141,7 @@ public sealed class RegisterUserTests
         var again = await h.Sut.HandleAsync(Command(), default);
 
         Assert.False(again.IsSuccess);
-        Assert.Equal(ErrorCodes.EmailAlreadyRegistered, again.Error.Code);
+        Assert.Equal(ErrorCodes.PhoneAlreadyRegistered, again.Error.Code);
 
         // One session from the first registration, none from the refusal.
         Assert.Equal(1, h.Sessions.IssueCallCount);
@@ -217,27 +150,32 @@ public sealed class RegisterUserTests
     [Fact]
     public async Task Losing_the_unique_index_race_reads_as_the_same_conflict()
     {
+        // The pre-check is a courtesy that produces a clean message; the index
+        // is the guarantee. Both paths have to answer identically or the loser
+        // of a race sees a 500 for an ordinary duplicate.
         var h = new Harness();
-        h.Users.ThrowDuplicateOnNextAdd = true;
+        h.Users.ThrowDuplicatePhoneOnNextAdd = true;
 
         var result = await h.Sut.HandleAsync(Command(), default);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorCodes.EmailAlreadyRegistered, result.Error.Code);
+        Assert.Equal(ErrorCodes.PhoneAlreadyRegistered, result.Error.Code);
         Assert.Equal(0, h.Sessions.IssueCallCount);
     }
 
     [Theory]
-    [InlineData("khong-phai-email", ErrorCodes.EmailInvalid)]
-    [InlineData("", ErrorCodes.EmailInvalid)]
-    public async Task A_malformed_address_is_refused(string address, string code)
+    [InlineData("khong-phai-so")]
+    [InlineData("")]
+    [InlineData("12345")]
+    [InlineData("912345678")]
+    public async Task A_number_that_is_not_usable_is_refused(string phone)
     {
         var h = new Harness();
 
-        var result = await h.Sut.HandleAsync(Command(address), default);
+        var result = await h.Sut.HandleAsync(Command(phone), default);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(code, result.Error.Code);
+        Assert.Equal(ErrorCodes.PhoneInvalid, result.Error.Code);
         Assert.Equal(0, h.Sessions.IssueCallCount);
     }
 
@@ -247,11 +185,13 @@ public sealed class RegisterUserTests
         var h = new Harness();
 
         var result = await h.Sut.HandleAsync(
-            new RegisterUserCommand("hoc.vien@example.com", "ngan", "Học viên"), default);
+            new RegisterUserCommand("0912345678", "ngan", "Hoc vien"), default);
 
         Assert.False(result.IsSuccess);
-        Assert.Empty(h.Sender.Verifications);
         Assert.Equal(0, h.Sessions.IssueCallCount);
+
+        var (users, _) = await h.Users.ListAsync(null, 0, 10, default);
+        Assert.Empty(users);
     }
 
     [Fact]
@@ -260,8 +200,7 @@ public sealed class RegisterUserTests
         var h = new Harness();
 
         var result = await h.Sut.HandleAsync(
-            new RegisterUserCommand("hoc.vien@example.com", "mot-mat-khau-du-dai-2026", "  "),
-            default);
+            new RegisterUserCommand("0912345678", Password, "  "), default);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorCodes.ValidationFailed, result.Error.Code);

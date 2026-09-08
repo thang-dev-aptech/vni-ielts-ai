@@ -1,12 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import {
-  API,
-  getResults,
-  getSession,
-  registerLearner,
-  signIn,
-  startFullTest,
-} from './harness';
+import { API, getResults, getSession, registerLearner, signIn, startFullTest } from './harness';
 
 /**
  * FS7 phase gate — shortened four-skill Full Mock in a real browser.
@@ -60,7 +53,9 @@ async function fillWriting(page: Page) {
   await page.locator('.q-essay').fill(ESSAY);
   await waitForSaved(page);
 
-  await page.getByRole('button', { name: /Phần 2|Part 2/i }).click();
+  // The footer names a part the way the paper does — Writing has tasks,
+  // Reading passages, Listening sections. → `partLabelKey`
+  await page.getByRole('button', { name: /(Task|Phần|Part|Section)\s*2/i }).click();
   await expect(page.getByText(/cultural budget/i)).toBeVisible();
   await page.locator('.q-essay').fill(ESSAY + ESSAY);
   await waitForSaved(page);
@@ -68,7 +63,7 @@ async function fillWriting(page: Page) {
 
 /** Footer primary action — "Tiếp theo" while skills remain, "Nộp bài" on the last. */
 function primaryAction(page: Page) {
-  return page.locator('.prun-foot .exam-submit, .exam-foot .exam-submit');
+  return page.locator('.exr-foot .exr-btn-primary, .prun-foot .exam-submit');
 }
 
 async function clickNext(page: Page) {
@@ -100,7 +95,7 @@ test.describe('four-skill mock', () => {
     ]);
     expect(sitting.current.module).toBe(sequence[0]);
 
-    await signIn(page, learner, `/students/session/${sitting.sessionId}`);
+    await signIn(page, learner, `/exam/${sitting.sessionId}`);
     await expect(page.getByRole('heading', { name: READING_PASSAGE })).toBeVisible();
     await expect(page.getByText(/Kỹ năng 1\/4|Skill 1 of 4/i)).toBeVisible();
 
@@ -143,7 +138,7 @@ test.describe('four-skill mock', () => {
     // (NothingSubmitted / AwaitingVoiceProvider / dash) must still hold.
     await clickNext(page);
 
-    await expect(page).toHaveURL(`/practice/results/${sitting.sessionId}`, {
+    await expect(page).toHaveURL(`/results/${sitting.sessionId}`, {
       timeout: 30_000,
     });
     await expect(page.getByText(/Kết quả|Results/i).first()).toBeVisible();
@@ -199,7 +194,7 @@ test.describe('four-skill mock', () => {
       }
     });
 
-    await signIn(page, learner, `/students/session/${sitting.sessionId}`);
+    await signIn(page, learner, `/exam/${sitting.sessionId}`);
     await expect(page.getByRole('heading', { name: READING_PASSAGE })).toBeVisible();
 
     await fillReading(page);
@@ -235,10 +230,9 @@ test.describe('four-skill mock', () => {
     });
 
     const open = await getSession(request, learner.session.accessToken, sitting.sessionId);
-    expect(
-      open.current.module,
-      'Double-click must not skip Listening into Writing.',
-    ).toBe('listening');
+    expect(open.current.module, 'Double-click must not skip Listening into Writing.').toBe(
+      'listening',
+    );
     expect(open.completedModules).toEqual(['reading']);
 
     expect(
@@ -269,7 +263,7 @@ test.describe('four-skill mock', () => {
       }
     });
 
-    await signIn(page, learner, `/students/session/${sitting.sessionId}`);
+    await signIn(page, learner, `/exam/${sitting.sessionId}`);
 
     await fillReading(page);
     await waitForSaved(page);
@@ -291,7 +285,7 @@ test.describe('four-skill mock', () => {
     await expect(submit).toHaveText(/Nộp bài|Submit/i);
     await submit.dblclick({ delay: 40 });
 
-    await expect(page).toHaveURL(`/practice/results/${sitting.sessionId}`, {
+    await expect(page).toHaveURL(`/results/${sitting.sessionId}`, {
       timeout: 30_000,
     });
 

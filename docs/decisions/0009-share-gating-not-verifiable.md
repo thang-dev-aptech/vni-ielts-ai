@@ -58,6 +58,10 @@ Two further points make this structural rather than incidental:
 - The impossibility is surfaced now, in Phase 0, rather than discovered during Phase 7 implementation.
 - Referral attribution is both verifiable *and* a better business metric — new verified users, not share-button presses.
 - Attribution held `pending` until email verification blocks self-referral with throwaway addresses.
+  **Superseded 2026-09-08:** there is no email verification any more, so attribution confirms at
+  registration and the control is the unique phone number instead. The reasoning above is why a
+  control was needed at all; only the mechanism changed.
+  → [ADR-0018](0018-email-as-a-movable-account-label.md)
 
 ### Negative
 - A stated requirement cannot be delivered as written. The owner must re-cut the feature.

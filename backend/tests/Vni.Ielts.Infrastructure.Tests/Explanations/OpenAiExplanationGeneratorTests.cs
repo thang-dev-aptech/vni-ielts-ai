@@ -169,6 +169,121 @@ public sealed class OpenAiExplanationGeneratorTests
         Assert.Equal("EXPLANATION_EGRESS_SYNTHETICDATAONLY", result.RefusalCode);
     }
 
+    /// <summary>
+    /// The model can only translate options it was shown, and only answers in
+    /// Vietnamese when told to. Both instructions must survive into the wire
+    /// body, for the canonical and the personalized prompt alike.
+    /// </summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Request_body_carries_the_options_block_and_the_vietnamese_instruction(bool personalized)
+    {
+        string? body = null;
+        var handler = new StubHandler(request =>
+        {
+            body = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """{"id":"x","choices":[{"message":{"role":"assistant","content":"{}"}}]}""",
+                    Encoding.UTF8,
+                    "application/json"),
+            };
+        });
+
+        var options = Options.Create(new AiOptions
+        {
+            AllowCrossBorderTransfer = true,
+            OpenAi = new AiProviderOptions
+            {
+                ApiKey = "secret",
+                BaseUrl = "https://api.vietapi.tech/v1",
+                Model = "gpt-test",
+                SyntheticDataOnly = false,
+            },
+        });
+
+        var generator = new OpenAiExplanationGenerator(
+            new StubHttpClientFactory(handler),
+            options,
+            NullLogger<OpenAiExplanationGenerator>.Instance);
+
+        await generator.GenerateAsync(
+            new ExplanationGenerationRequest(
+                ExamModule.Reading,
+                "q1",
+                "Which map was drawn first?",
+                "B",
+                LearnerAnswer: personalized ? "A" : null,
+                PassageOrTranscript: "The passage includes sample passage evidence for the answer.",
+                Personalized: personalized,
+                QuestionOptions: "A. The coastal chart\nB. The river survey"),
+            default);
+
+        Assert.NotNull(body);
+        using var doc = System.Text.Json.JsonDocument.Parse(body!);
+        var messages = doc.RootElement.GetProperty("messages");
+        var system = messages[0].GetProperty("content").GetString()!;
+        var user = messages[1].GetProperty("content").GetString()!;
+
+        Assert.Contains("A. The coastal chart", user, StringComparison.Ordinal);
+        Assert.Contains("B. The river survey", user, StringComparison.Ordinal);
+        Assert.Contains("in Vietnamese", user, StringComparison.Ordinal);
+        Assert.Contains("translation", user, StringComparison.Ordinal);
+        Assert.Contains("verbatim, contiguous substring", user, StringComparison.Ordinal);
+        Assert.Contains("Vietnamese", system, StringComparison.Ordinal);
+        Assert.Contains("character for character", system, StringComparison.Ordinal);
+        Assert.Contains("\"source\": \"prompt\"", system, StringComparison.Ordinal);
+        Assert.Contains("band", system, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Request_body_switches_to_prompt_sourced_evidence_when_no_source_is_supplied()
+    {
+        string? body = null;
+        var handler = new StubHandler(request =>
+        {
+            body = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """{"id":"x","choices":[{"message":{"role":"assistant","content":"{}"}}]}""",
+                    Encoding.UTF8,
+                    "application/json"),
+            };
+        });
+
+        var options = Options.Create(new AiOptions
+        {
+            OpenAi = new AiProviderOptions
+            {
+                ApiKey = "secret",
+                BaseUrl = "https://api.vietapi.tech/v1",
+                Model = "gpt-test",
+                SyntheticDataOnly = true,
+            },
+        });
+
+        var generator = new OpenAiExplanationGenerator(
+            new StubHttpClientFactory(handler),
+            options,
+            NullLogger<OpenAiExplanationGenerator>.Instance);
+
+        await generator.GenerateAsync(
+            new ExplanationGenerationRequest(
+                ExamModule.Reading, "q1", "Which map was drawn first?", "B",
+                LearnerAnswer: null, PassageOrTranscript: null, Personalized: false),
+            default);
+
+        using var doc = System.Text.Json.JsonDocument.Parse(body!);
+        var user = doc.RootElement.GetProperty("messages")[1].GetProperty("content").GetString()!;
+
+        Assert.Contains(ExplanationPromptSafety.NoSourceNotice, user, StringComparison.Ordinal);
+        Assert.Contains("\"source\": \"prompt\"", user, StringComparison.Ordinal);
+        Assert.Contains("Options: none", user, StringComparison.Ordinal);
+    }
+
     private sealed class StubHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(

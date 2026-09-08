@@ -206,9 +206,7 @@ it('states the permission hint and speaking budget before recording', () => {
 
   expect(screen.getByRole('button', { name: 'Bắt đầu chuẩn bị' })).toBeInTheDocument();
   expect(screen.getByText(/Chuẩn bị 01:00/)).toBeInTheDocument();
-  expect(
-    screen.getByText(/Trình duyệt sẽ hỏi quyền micro trước khi đồng hồ/),
-  ).toBeInTheDocument();
+  expect(screen.getByText(/Trình duyệt sẽ hỏi quyền micro trước khi đồng hồ/)).toBeInTheDocument();
 });
 
 it('shows how to grant the mic when permission is refused', async () => {

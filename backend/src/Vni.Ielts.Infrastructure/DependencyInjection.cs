@@ -76,39 +76,15 @@ public static class DependencyInjection
 
         services.AddSingleton<IPasswordHasher, Argon2idPasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
-        services.AddScoped<IEmailVerificationTokens, MongoEmailVerificationTokens>();
-        services.AddScoped<IPasswordResetTokens, MongoPasswordResetTokens>();
 
-        // No production email sender exists yet. Registering the logging one
-        // unconditionally would mean a production deployment silently never
-        // sends a verification message while reporting success — so the caller
-        // must opt in, and Program.cs only does so outside Production.
         /*
-         * ── Who delivers a verification or reset link ──────────────────────
-         *
-         * <b>SMTP when it is configured; the log when it is not.</b> The
-         * logging sender writes the link to the server log and reports
-         * `NotSent`, so every screen that would say "check your inbox" says
-         * the truth instead. That is the right development behaviour and it is
-         * an outright lie in production, which is why the startup gate refuses
-         * to boot without a real one.
-         *
-         * <b>Configured wins even in Development</b>, so a real provider can be
-         * exercised locally by pointing at one — a mail path nobody runs before
-         * production is a mail path nobody has tested.
+         * <b>There is no mail sender, because nothing sends mail.</b>
+         * Verification and password reset were the only two callers and both
+         * are gone (owner, 08/09/2026): registration takes no address, and
+         * recovery is a Zalo link plus an operator. Keeping a dormant SMTP
+         * registration would leave a boot-time configuration gate guarding a
+         * capability nothing uses. → ADR-0018
          */
-        var email = configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>()
-            ?? new SmtpOptions();
-
-        if (email.IsConfigured)
-        {
-            services.AddSingleton(email);
-            services.AddScoped<IVerificationMessageSender, SmtpMessageSender>();
-        }
-        else
-        {
-            services.AddScoped<IVerificationMessageSender, LoggingVerificationMessageSender>();
-        }
 
         services.AddScoped<IExamCatalogue, MongoExamCatalogue>();
         services.AddScoped<IExamSessionRepository, MongoExamSessionRepository>();
@@ -150,7 +126,14 @@ public static class DependencyInjection
 
         services.AddHttpClient(nameof(OpenAiWritingEvaluationClient));
         services.AddHttpClient(nameof(GeminiWritingEvaluationClient));
-        services.AddHttpClient(nameof(OpenAiExplanationGenerator));
+        services.AddHttpClient(nameof(OpenAiExplanationGenerator), client =>
+        {
+            // A hung provider fails as EXPLANATION_PROVIDER_TIMEOUT within a
+            // configured bound, not HttpClient's 100 s default. → AiOptions.ExplanationTimeoutSeconds
+            var timeout = configuration.GetSection(AiOptions.SectionName).Get<AiOptions>()
+                ?.ExplanationTimeoutSeconds ?? new AiOptions().ExplanationTimeoutSeconds;
+            client.Timeout = TimeSpan.FromSeconds(Math.Clamp(timeout, 5, 300));
+        });
         services.AddSingleton<IWritingEvaluationCostMetric, NullWritingEvaluationCostMetric>();
         services.AddSingleton<WritingEvaluationRouter>();
         services.AddSingleton<OpenAiWritingEvaluationClient>();
@@ -274,7 +257,6 @@ public static class DependencyInjection
         services.AddScoped<RegisterUser>();
         services.AddScoped<LoginWithPassword>();
         services.AddScoped<RefreshTokens>();
-        services.AddScoped<VerifyEmail>();
         services.AddScoped<StartSsoSignIn>();
         services.AddScoped<SignInWithSso>();
         services.AddScoped<CompleteSsoSignIn>();
@@ -282,13 +264,9 @@ public static class DependencyInjection
         services.AddScoped<ListSessions>();
         services.AddScoped<RevokeSession>();
         services.AddScoped<RevokeOtherSessions>();
-        services.AddScoped<RequestPasswordReset>();
-        services.AddScoped<ResetPassword>();
         services.AddScoped<SetPassword>();
         services.AddScoped<SetPhone>();
         services.AddScoped<ChangeEmail>();
-        services.AddScoped<ResendVerification>();
-        services.AddScoped<ConfirmEmailCode>();
 
         // The two libraries (P-22): documents and articles, learner reads and
         // CMS writes. Files are a URL string in this slice — no upload yet.
@@ -516,10 +494,12 @@ public static class DependencyInjection
         var ctx = scope.ServiceProvider.GetRequiredService<MongoContext>();
 
         await ctx.AssertReplicaSetAsync(ct);
+
+        // Before the indexes, deliberately: it clears the two things that stop
+        // them being created at all. → IdentityReworkMigration
+        await Persistence.Identity.IdentityReworkMigration.RunAsync(ctx.Database, ct);
+
         await ctx.EnsureIndexesAsync(ct);
-        await MongoEmailVerificationTokens.EnsureIndexesAsync(ctx.Database, ct);
-        await MongoEmailVerificationTokens.EnsureCodeIndexesAsync(ctx.Database, ct);
-        await MongoPasswordResetTokens.EnsureIndexesAsync(ctx.Database, ct);
         await MongoSsoStateStore.EnsureIndexesAsync(ctx.Database, ct);
         await MongoHandoffCodeStore.EnsureIndexesAsync(ctx.Database, ct);
         await MongoAuditLog.EnsureIndexesAsync(ctx.Database, ct);
@@ -617,6 +597,10 @@ public static class DependencyInjection
             PermissionKeys.EvaluationOverride, PermissionKeys.LearnerContentRead,
             PermissionKeys.UserRead, PermissionKeys.UserUpdate, PermissionKeys.UserSuspend,
             PermissionKeys.UserDelete, PermissionKeys.UserExport,
+            // The only recovery path a locked-out learner has, now that there
+            // is no address to mail a reset link to. Admin only — support can
+            // read an account but must not be able to become one.
+            PermissionKeys.UserResetPassword,
             PermissionKeys.RoleRead, PermissionKeys.RoleAssign, PermissionKeys.RoleManage,
             PermissionKeys.ConfigRead, PermissionKeys.ConfigUpdate, PermissionKeys.AuditRead,
             PermissionKeys.DocumentWrite, PermissionKeys.DocumentPublish,

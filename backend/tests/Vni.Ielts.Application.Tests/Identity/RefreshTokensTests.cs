@@ -45,7 +45,7 @@ public sealed class RefreshTokensTests
     private static async Task<(User User, FakeUserRepository Users)> SeedAsync(bool suspended = false)
     {
         var users = new FakeUserRepository();
-        var user = User.Register(Email.Create("hoc.vien@example.com"), "Học viên", Now);
+        var user = User.Register(PhoneNumber.Create("0912345678"), "Hoc vien", Now);
         if (suspended) user.Suspend();
         await users.AddAsync(user, default);
         return (user, users);

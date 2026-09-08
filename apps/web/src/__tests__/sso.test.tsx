@@ -192,11 +192,7 @@ describe('the callback', () => {
 
   it('honours where the visitor was originally going', async () => {
     mockApi();
-    window.history.pushState(
-      {},
-      '',
-      '/login/sso?code=handoff-abc&returnTo=%2Fstudents%2Fprofile',
-    );
+    window.history.pushState({}, '', '/login/sso?code=handoff-abc&returnTo=%2Fstudents%2Fprofile');
     render();
 
     await waitFor(() => expect(window.location.pathname).toBe('/students/profile'));

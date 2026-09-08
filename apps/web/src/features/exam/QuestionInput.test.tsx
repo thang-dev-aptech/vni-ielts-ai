@@ -77,6 +77,51 @@ it('renders multiple-select as checkboxes with deterministic pipe ordering', asy
   expect(screen.getByTestId('value')).toHaveTextContent('A|C');
 });
 
+it('locks the remaining options once a multiple-select is full, and unlocks on untick', async () => {
+  /*
+   * `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026: "chọn 2 trong 5 đáp án thì chọn 2
+   * đáp án xong sẽ không cho chọn nữa". The count is the paper's own — the
+   * two answer-sheet lines the server publishes as `slots`.
+   */
+  const twoSlots: QuestionView = {
+    ...question('multiple-select'),
+    slots: [
+      { id: 'slot-17', number: 17 },
+      { id: 'slot-18', number: 18 },
+    ],
+  };
+  render(<Controlled item={twoSlots} />);
+
+  expect(screen.getByText('Chọn 2 đáp án · đã chọn 0/2')).toBeVisible();
+
+  await userEvent.click(screen.getByRole('checkbox', { name: /A Alpha/ }));
+  await userEvent.click(screen.getByRole('checkbox', { name: /C Gamma/ }));
+
+  expect(screen.getByTestId('value')).toHaveTextContent('A|C');
+  expect(screen.getByText('Chọn 2 đáp án · đã chọn 2/2')).toBeVisible();
+  expect(screen.getByRole('checkbox', { name: /B Beta/ })).toBeDisabled();
+
+  // A third pick is refused; unticking one re-opens the rest.
+  await userEvent.click(screen.getByRole('checkbox', { name: /B Beta/ }));
+  expect(screen.getByTestId('value')).toHaveTextContent('A|C');
+
+  await userEvent.click(screen.getByRole('checkbox', { name: /A Alpha/ }));
+  expect(screen.getByRole('checkbox', { name: /B Beta/ })).toBeEnabled();
+  await userEvent.click(screen.getByRole('checkbox', { name: /B Beta/ }));
+  expect(screen.getByTestId('value')).toHaveTextContent('B|C');
+});
+
+it('a single-slot multiple-select applies no cap it cannot know', async () => {
+  render(<Controlled item={question('multiple-select')} />);
+
+  await userEvent.click(screen.getByRole('checkbox', { name: /A Alpha/ }));
+  await userEvent.click(screen.getByRole('checkbox', { name: /B Beta/ }));
+  await userEvent.click(screen.getByRole('checkbox', { name: /C Gamma/ }));
+
+  expect(screen.getByTestId('value')).toHaveTextContent('A|B|C');
+  expect(screen.queryByText(/đã chọn/)).toBeNull();
+});
+
 it('renders completion as an uncorrected text input with its word limit', async () => {
   render(<Controlled item={question('completion', [])} />);
 
@@ -97,6 +142,23 @@ it.each(['matching', 'labelling'])('%s offers tap and native-select paths', asyn
 
   expect(screen.getByTestId('value')).toHaveTextContent('B');
   expect(screen.getByRole('combobox', { name: /Renderer prompt/ })).toHaveValue('B');
+  // The box says what was dropped in it the way a person reads it — "Beta",
+  // not "B — Beta". The key is still what is saved.
+  expect(screen.getByRole('button', { name: /Renderer prompt/ })).toHaveTextContent(/^Beta$/);
+});
+
+it('a bank of bare letters keeps the letter in the box', async () => {
+  const letters = [
+    { key: 'A', text: 'A' },
+    { key: 'B', text: 'B' },
+  ];
+  render(<Controlled item={question('labelling', letters)} />);
+
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+  await userEvent.click(within(bank).getByRole('button', { name: /B/ }));
+  await userEvent.click(screen.getByRole('button', { name: /Renderer prompt/ }));
+
+  expect(screen.getByRole('button', { name: /Renderer prompt/ })).toHaveTextContent(/^B$/);
 });
 
 it('keeps essay spellcheck off and surfaces under-min as text, not colour alone', () => {

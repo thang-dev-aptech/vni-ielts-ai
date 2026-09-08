@@ -16,8 +16,7 @@ internal static class IdentityMappers
     public static UserDocument ToDocument(this User user) => new()
     {
         Id = user.Id.Value,
-        Email = user.Email.Value,
-        EmailVerified = user.EmailVerified,
+        Email = user.Email?.Value,
         DisplayName = user.DisplayName,
         Phone = user.Phone?.Value,
         Status = user.Status.ToString(),
@@ -29,8 +28,7 @@ internal static class IdentityMappers
 
     public static User ToDomain(this UserDocument doc) => User.Rehydrate(
         new UserId(doc.Id),
-        Email.Create(doc.Email),
-        doc.EmailVerified,
+        Email.TryCreate(doc.Email, out var email) ? email : null,
         doc.DisplayName,
         doc.Phone is null ? null : PhoneNumber.Create(doc.Phone),
         Enum.TryParse<UserStatus>(doc.Status, out var status) ? status : UserStatus.Active,
@@ -55,6 +53,9 @@ internal static class IdentityMappers
     public static UserIdentity ToDomain(this UserIdentityDocument doc) => UserIdentity.Rehydrate(
         new UserIdentityId(doc.Id),
         new UserId(doc.UserId),
+        // Parsed, never matched against a hard-coded list: rows written before
+        // the identity migration still say "Email", and the enum keeps that
+        // value for exactly as long as such a row can exist. → UserIdentity
         Enum.Parse<IdentityProvider>(doc.Provider),
         doc.ProviderUserId,
         doc.PasswordHash,

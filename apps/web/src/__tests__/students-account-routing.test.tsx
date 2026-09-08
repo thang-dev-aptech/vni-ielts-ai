@@ -44,7 +44,8 @@ function signedIn() {
     vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes('/api/v1/me/sessions')) return json({ sessions: [] });
-      if (url.includes('/api/v1/me/coaching')) return json({ goal: null, skills: [], focus: [], ai: null });
+      if (url.includes('/api/v1/me/coaching'))
+        return json({ goal: null, skills: [], focus: [], ai: null });
       if (url.includes('/api/v1/me/activity'))
         return json({
           timeZone: 'Asia/Ho_Chi_Minh',

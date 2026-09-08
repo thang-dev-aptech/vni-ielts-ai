@@ -447,44 +447,25 @@ public static class StartupConfiguration
         // ── AI providers ──────────────────────────────────────────────────
         ValidateAi(builder, development, problems, warnings);
 
-        // ── Email ─────────────────────────────────────────────────────────
-        var email = builder.Configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>()
-            ?? new SmtpOptions();
-
-        if (!email.IsConfigured && !development)
-        {
-            /*
-             * <b>Without it, registration reports success and nobody ever
-             * receives anything.</b> The only other sender writes the link to
-             * the server log — which is right in Development and is an outright
-             * lie in production: an account is created, the API says a
-             * verification mail was sent, and the address can never be
-             * verified. Password reset is worse: the learner is locked out and
-             * the recovery path silently does nothing.
-             */
-            problems.Add(
-                "Email is not configured (Host, FromAddress, ClientBaseUrl). Outside Development "
-                + "the only other sender writes verification and password-reset links to the "
-                + "server log, so a learner would never receive either.");
-        }
-
-        if (email.IsConfigured && email.Port == 25)
-        {
-            problems.Add(
-                "Email:Port is 25. That is unauthenticated server-to-server relay with no "
-                + "expectation of encryption — a password-reset link would travel in the clear. "
-                + "Use 587 for STARTTLS or 465 for implicit TLS.");
-        }
-
-        if (email.IsConfigured
-            && !development
-            && email.ClientBaseUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
-        {
-            problems.Add(
-                $"Email:ClientBaseUrl is plain HTTP ({email.ClientBaseUrl}). Every verification "
-                + "and password-reset link this process sends would point at an address a "
-                + "network observer can read and rewrite.");
-        }
+        /*
+         * ── Email ─────────────────────────────────────────────────────────
+         *
+         * <b>Deliberately nothing to check.</b> This block used to refuse a
+         * production boot without SMTP, because registration claimed to send a
+         * verification message and password reset claimed to send a link. As
+         * of 08/09/2026 neither exists: registration asks for a phone number,
+         * verification is gone, and recovery is a Zalo contact link plus an
+         * operator. A gate guarding a capability nothing uses is a gate that
+         * only ever blocks a deployment for no reason. → ADR-0018
+         *
+         * The support link itself is not validated here on purpose. It is
+         * consumed by the unauthenticated forgot-password page, which is
+         * reached exactly when the API may be the thing that is broken, so it
+         * is injected into the web client's runtime config and validated where
+         * it is injected. A second copy in this process could only drift from
+         * the one people actually see.
+         * → apps/web/docker-entrypoint.d/40-vni-runtime-config.sh
+         */
 
         // ── Shutdown timeout ──────────────────────────────────────────────
         /*
@@ -794,8 +775,6 @@ public static class StartupConfiguration
             ?? new SsoOptions();
         var storage = configuration.GetSection(ObjectStorageOptions.SectionName)
             .Get<ObjectStorageOptions>() ?? new ObjectStorageOptions();
-        var email = configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>()
-            ?? new SmtpOptions();
         var ai = configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
         var assessment = configuration.GetSection(AssessmentOptions.SectionName)
             .Get<AssessmentOptions>() ?? new AssessmentOptions();
@@ -847,12 +826,6 @@ public static class StartupConfiguration
                 + (storage.SpeakingRecordingRetentionDays?.ToString()
                     ?? "not set — unanswered business decision, G-11"),
 
-            $"Email:Host = {email.Host}",
-            $"Email:Port = {email.Port}",
-            $"Email:Username = {SecretRedaction.Identifier(email.Username)}",
-            $"Email:Password = {SecretRedaction.Describe(email.Password)}",
-            $"Email:FromAddress = {email.FromAddress}",
-            $"Email:ClientBaseUrl = {SecretRedaction.Url(email.ClientBaseUrl)}",
 
             $"Ai:AllowCrossBorderTransfer = {ai.AllowCrossBorderTransfer}",
 

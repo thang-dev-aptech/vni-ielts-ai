@@ -54,6 +54,18 @@ public enum AuditAction
     ExamUnpublished,
     UserSuspended,
     UserReinstated,
+
+    /// <summary>
+    /// An operator set another account's password.
+    ///
+    /// <b>The detail carries no password and never will.</b> It records that
+    /// the act happened and to whom — which is the whole point, because this is
+    /// the one action that lets one person sign in as another. Without a row
+    /// here, an operator who takes over an account leaves the account's own
+    /// activity looking like the account holder's. → threat `T21`
+    /// </summary>
+    UserPasswordReset,
+
     RoleAssigned,
     RoleRemoved,
 

@@ -1,0 +1,1498 @@
+/*
+ * The result screen — `/results/:attemptId`.
+ *
+ * <b>A clone of the supplied reference, not a derivation from it.</b>
+ * `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026. Hero with the band, four summary
+ * cards, the per-type breakdown beside the band comparison, then the answer
+ * review with its two sidebar cards, then the closing banner.
+ *
+ * <b>Standalone: no `DashboardShell`.</b> The page carries its own header and
+ * its own breadcrumb. Finishing a paper is the end of that paper, not a jump
+ * into the student area.
+ *
+ * The greens are the measured ones, as on the sitting screen: `--exs-green`
+ * #06803a is 5.05:1 on white, where the reference's #10b050 is 2.86 and fails
+ * AA for the white text it carries.
+ */
+
+.exs-page {
+  --exs-page: #f7faf8;
+  --exs-card: #ffffff;
+  --exs-line: #e6ece8;
+  --exs-line-soft: #eef2f0;
+  --exs-ink: #17251d;
+  --exs-ink-2: #3c4a43;
+  --exs-muted: #6b7a72;
+  --exs-green: #06803a;
+  --exs-green-ink: #0b6f36;
+  --exs-green-soft: #e8f6ee;
+  --exs-green-line: #c3e7d2;
+  --exs-red: #b3261e;
+  --exs-red-soft: #fdecea;
+  --exs-blue: #2470b4;
+  --exs-blue-soft: #e9f1fa;
+  --exs-amber: #9a4e07;
+  --exs-amber-soft: #fdf1e3;
+  --exs-violet: #5b4b9e;
+  --exs-violet-soft: #efecf9;
+
+  background: var(--exs-page);
+  color: var(--exs-ink);
+  font-family: var(--font);
+  min-height: 100vh;
+  padding-bottom: var(--s-8);
+}
+
+.exs-wrap {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 var(--s-5);
+}
+
+.exs-page .crumbs {
+  background: transparent;
+  border: 0;
+}
+
+.exs-stack {
+  display: grid;
+  gap: var(--s-5);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────
+ * The runner's top-bar rules with the nav row this page adds. Unlike the
+ * sitting, the result is a place a learner is meant to leave from, so the
+ * links are real.
+ */
+/*
+ * The results bar keeps the wordmark and the account read-out — the owner's
+ * 2026-09-08 request removed them from the *sitting* only, and the rules
+ * that drew them went with the sitting's top bar. They are re-stated here,
+ * scoped to this bar, so the logo is a 34px mark and not a full-width image.
+ */
+.exs-top .exr-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.exs-top .exr-logo {
+  height: 34px;
+  width: auto;
+  display: block;
+}
+
+.exs-top .exr-account {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding-left: var(--s-5);
+  border-left: var(--bw-1) solid var(--exs-line);
+}
+
+.exs-top .exr-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  font-size: var(--t-14);
+  font-weight: 700;
+  color: var(--exs-ink);
+  flex: 0 0 auto;
+}
+
+.exs-top .exr-account-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.exs-top .exr-account-hi {
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+}
+
+.exs-top .exr-account-name {
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--exs-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.exs-top .exr-account-caret {
+  color: var(--exs-muted);
+  display: grid;
+  place-items: center;
+}
+
+.exs-top .exr-top-in {
+  gap: var(--s-6);
+}
+
+.exs-brand-link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  text-decoration: none;
+}
+
+.exs-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.exs-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.exs-nav-link {
+  font-size: var(--t-14);
+  font-weight: var(--w-label);
+  color: var(--exs-ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: var(--s-2) 0;
+}
+
+.exs-nav-link:hover {
+  color: var(--exs-green-ink);
+}
+
+.exs-page .exr-help {
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .exs-nav {
+    display: none;
+  }
+}
+
+/* ── Band per skill ──────────────────────────────────────────────────────
+ * `result-list` / `result-row` keep their class names: the tag that says
+ * where a band came from (product law L4) is proven against them.
+ */
+.exs-page .result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.exs-page .result-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto auto;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-3) 0;
+  border-top: var(--bw-1) solid var(--exs-line-soft);
+}
+
+.exs-page .result-list > .result-row:first-child {
+  border-top: 0;
+}
+
+.exs-page .result-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+}
+
+.exs-page .result-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.exs-page .result-text strong {
+  font-size: var(--t-16);
+  font-weight: 700;
+}
+
+.exs-page .result-text span {
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+}
+
+.exs-page .result-reason {
+  color: var(--exs-amber);
+}
+
+.exs-page .result-band {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-20);
+  font-weight: 700;
+  color: var(--exs-ink);
+}
+
+.exs-page .dash-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--exs-line-soft);
+  color: var(--exs-ink-2);
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  white-space: nowrap;
+}
+
+/* An AI band and an answer-key band must never look interchangeable — the
+   dashed edge is the difference, and it survives greyscale. → product law L4 */
+.exs-page .dash-tag-ai {
+  background: transparent;
+  border: var(--bw-1) dashed var(--exs-violet);
+  color: var(--exs-violet);
+}
+
+.exs-page .result-overall-note {
+  margin: var(--s-4) 0 0;
+  padding-top: var(--s-3);
+  border-top: var(--bw-1) solid var(--exs-line-soft);
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.exs-page .result-overall-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-24);
+  font-weight: 700;
+  color: var(--exs-ink);
+}
+
+.exs-page .result-overall-value.is-none {
+  font-weight: var(--w-label);
+  color: var(--exs-muted);
+}
+
+.exs-page .result-next-note {
+  margin: 0;
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+  text-align: center;
+}
+
+/* ── Hero ────────────────────────────────────────────────────────────────*/
+.exs-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.18fr);
+  gap: var(--s-6);
+  align-items: start;
+  padding: var(--s-6);
+  border-radius: 24px;
+  background: linear-gradient(120deg, #f1faf4 0%, #eaf7f0 60%, #f4fbf7 100%);
+  border: var(--bw-1) solid var(--exs-green-line);
+}
+
+.exs-hero-left {
+  display: grid;
+  gap: var(--s-4);
+  min-width: 0;
+}
+
+.exs-hero-title-row {
+  display: flex;
+  gap: var(--s-4);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.exs-hero-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-lg);
+  display: grid;
+  place-items: center;
+  background: var(--exs-green);
+  color: #fff;
+  flex: 0 0 auto;
+}
+
+.exs-hero-badge svg {
+  width: 28px;
+  height: 28px;
+}
+
+.exs-hero-heading {
+  min-width: 0;
+}
+
+.exs-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 38px;
+  line-height: var(--lh-display);
+  font-weight: var(--w-display-heavy);
+  letter-spacing: -0.02em;
+  color: var(--exs-ink);
+}
+
+.exs-subtitle {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--exs-ink-2);
+}
+
+.exs-meta {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+}
+
+/* The encouragement card. Its sentence is only drawn when the payload
+   supports one; see `ResultHero`. */
+.exs-note {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  padding: var(--s-4);
+  border-radius: var(--r-lg);
+  background: #e4f4ea;
+  border: var(--bw-1) solid var(--exs-green-line);
+}
+
+.exs-note svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  color: var(--exs-green-ink);
+  margin-top: 2px;
+}
+
+.exs-note strong {
+  display: block;
+  font-size: var(--t-14);
+  font-weight: 700;
+  color: var(--exs-green-ink);
+}
+
+.exs-note p {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-13);
+  line-height: var(--lh-body);
+  color: var(--exs-ink-2);
+}
+
+/* ── Score card ──────────────────────────────────────────────────────────*/
+.exs-score {
+  background: var(--exs-card);
+  border: var(--bw-1) solid var(--exs-line);
+  border-radius: 20px;
+  padding: var(--s-5);
+  display: grid;
+  gap: var(--s-4);
+}
+
+.exs-score-label {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  height: 28px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--exs-green-soft);
+  color: var(--exs-green-ink);
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+}
+
+.exs-score-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+
+.exs-score-value {
+  font-family: var(--font-display);
+  font-size: 72px;
+  line-height: 1;
+  font-weight: var(--w-display-heavy);
+  letter-spacing: -0.03em;
+  color: var(--exs-green);
+  font-variant-numeric: tabular-nums;
+}
+
+/* An em dash inherits the display weight and renders as a thick black bar —
+   it reads as a redaction rather than as "not marked yet". → product law L3 */
+.exs-score-value.is-none {
+  font-size: 44px;
+  font-weight: var(--w-label);
+  color: var(--exs-muted);
+}
+
+.exs-score-say {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.exs-score-say p {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--exs-ink-2);
+}
+
+.exs-score-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: var(--bw-1) solid var(--exs-line-soft);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.exs-score-stat {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  padding: var(--s-3) var(--s-2);
+  min-width: 0;
+}
+
+.exs-score-stat + .exs-score-stat {
+  border-left: var(--bw-1) solid var(--exs-line-soft);
+}
+
+.exs-score-stat svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.exs-score-stat-text {
+  min-width: 0;
+}
+
+.exs-score-stat-label {
+  display: block;
+  font-size: 10.5px;
+  color: var(--exs-muted);
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exs-score-stat-value {
+  display: block;
+  font-size: var(--t-16);
+  font-weight: 800;
+  color: var(--exs-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exs-score-actions {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────*/
+.exs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: 42px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-md);
+  border: var(--bw-1) solid var(--exs-line);
+  background: var(--exs-card);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--exs-ink-2);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.exs-btn:hover {
+  border-color: var(--exs-green-line);
+  color: var(--exs-green-ink);
+}
+
+.exs-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* One filled action per view. → DESIGN.md § Một hành động chính mỗi khung nhìn */
+.exs-btn-primary {
+  background: var(--exs-green);
+  border-color: var(--exs-green);
+  color: #fff;
+  box-shadow: var(--shadow-press-primary);
+  flex: 1 1 auto;
+}
+
+.exs-btn-primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: #fff;
+  transform: translateY(2px);
+  box-shadow: var(--shadow-press-primary-hover);
+}
+
+/* ── Section heads ───────────────────────────────────────────────────────*/
+.exs-section-head {
+  margin: var(--s-4) 0 0;
+}
+
+.exs-section-head h2 {
+  margin: 0;
+  font-size: var(--t-24);
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.exs-section-head p {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-14);
+  color: var(--exs-muted);
+}
+
+/* ── Summary cards ───────────────────────────────────────────────────────*/
+.exs-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.exs-card {
+  background: var(--exs-card);
+  border: var(--bw-1) solid var(--exs-line);
+  border-radius: var(--r-lg);
+  padding: var(--s-4);
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.exs-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.exs-card-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.exs-card-icon[data-tone='green'] {
+  background: var(--exs-green-soft);
+  color: var(--exs-green-ink);
+}
+.exs-card-icon[data-tone='blue'] {
+  background: var(--exs-blue-soft);
+  color: var(--exs-blue);
+}
+.exs-card-icon[data-tone='amber'] {
+  background: var(--exs-amber-soft);
+  color: var(--exs-amber);
+}
+.exs-card-icon[data-tone='violet'] {
+  background: var(--exs-violet-soft);
+  color: var(--exs-violet);
+}
+
+.exs-card-body {
+  min-width: 0;
+}
+
+.exs-card-label {
+  display: block;
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+  line-height: 1.4;
+}
+
+.exs-card-value {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--exs-ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.exs-card-value.is-none {
+  font-size: var(--t-24);
+  font-weight: var(--w-label);
+  color: var(--exs-muted);
+}
+
+.exs-card-sub {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+  line-height: 1.4;
+}
+
+/* ── Panels ──────────────────────────────────────────────────────────────*/
+.exs-two {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: start;
+}
+
+.exs-main-two {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: start;
+}
+
+.exs-panel {
+  background: var(--exs-card);
+  border: var(--bw-1) solid var(--exs-line);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+}
+
+.exs-panel-head {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  margin-bottom: var(--s-4);
+}
+
+.exs-panel-head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  background: var(--exs-green-soft);
+  color: var(--exs-green-ink);
+  flex: 0 0 auto;
+}
+
+.exs-panel-head-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.exs-panel-head h2,
+.exs-panel-head h3 {
+  margin: 0;
+  font-size: var(--t-18);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.exs-panel-head p {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+  line-height: var(--lh-body);
+}
+
+.exs-empty {
+  margin: 0;
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+  border: var(--bw-1) dashed var(--exs-line);
+  font-size: var(--t-13);
+  line-height: var(--lh-body);
+  color: var(--exs-muted);
+}
+
+/* ── Breakdown bars ──────────────────────────────────────────────────────*/
+.exs-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-4);
+}
+
+.exs-bar-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.1fr) minmax(0, 1.6fr) auto auto;
+  gap: var(--s-3);
+  align-items: center;
+}
+
+.exs-bar-label {
+  font-size: 13.5px;
+  color: var(--exs-ink-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exs-bar-track {
+  display: block;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: #eef1ef;
+  overflow: hidden;
+}
+
+/* `display: block` is load-bearing: both of these are spans, and an inline box
+   ignores width and height — every bar drew as an empty track. */
+.exs-bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: var(--r-pill);
+  background: var(--exs-green);
+}
+
+.exs-bar-count {
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.exs-bar-pct {
+  font-size: var(--t-13);
+  font-weight: 700;
+  color: var(--exs-green-ink);
+  font-variant-numeric: tabular-nums;
+  min-width: 42px;
+  text-align: right;
+}
+
+/* ── Band comparison ─────────────────────────────────────────────────────
+ * A column chart with a marker over the learner's own band. The bar heights
+ * come from a distribution the server sends; with none, the panel keeps its
+ * footprint and says so rather than drawing a shape from nothing.
+ */
+.exs-chart {
+  display: grid;
+  grid-template-columns: repeat(var(--exs-chart-cols, 6), minmax(0, 1fr));
+  gap: var(--s-2);
+  align-items: end;
+  height: 190px;
+  padding-top: var(--s-6);
+}
+
+.exs-chart-col {
+  display: grid;
+  gap: var(--s-2);
+  justify-items: center;
+  align-content: end;
+  height: 100%;
+  position: relative;
+}
+
+.exs-chart-pct {
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.exs-chart-bar {
+  display: block;
+  width: 100%;
+  max-width: 54px;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  background: #e4e8e6;
+  min-height: 4px;
+}
+
+.exs-chart-col[data-here='true'] .exs-chart-bar {
+  background: var(--exs-green);
+}
+
+.exs-chart-col[data-here='true'] .exs-chart-pct {
+  color: var(--exs-green-ink);
+  font-weight: 700;
+}
+
+.exs-chart-here {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--exs-green-soft);
+  color: var(--exs-green-ink);
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+}
+
+.exs-chart-axis {
+  display: grid;
+  grid-template-columns: repeat(var(--exs-chart-cols, 6), minmax(0, 1fr));
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: var(--bw-1) solid var(--exs-line-soft);
+}
+
+.exs-chart-axis span {
+  text-align: center;
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.exs-chart-caption {
+  margin: var(--s-2) 0 0;
+  text-align: center;
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+}
+
+/* ── Answer review ───────────────────────────────────────────────────────*/
+.exs-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.exs-filter {
+  height: 34px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-pill);
+  border: var(--bw-1) solid var(--exs-line);
+  background: var(--exs-card);
+  font: inherit;
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  color: var(--exs-ink-2);
+  cursor: pointer;
+}
+
+.exs-filter[aria-pressed='true'] {
+  background: var(--exs-ink);
+  border-color: var(--exs-ink);
+  color: #fff;
+}
+
+.exs-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.exs-row {
+  border-top: var(--bw-1) solid var(--exs-line-soft);
+}
+
+.exs-rows > .exs-row:first-child {
+  border-top: 0;
+}
+
+.exs-row-main {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 96px 96px 74px 20px;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-3) 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.exs-row-num {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-13);
+  font-weight: 700;
+}
+
+.exs-row[data-verdict='right'] .exs-row-num {
+  background: var(--exs-green-soft);
+  color: var(--exs-green-ink);
+}
+
+.exs-row[data-verdict='wrong'] .exs-row-num,
+.exs-row[data-verdict='blank'] .exs-row-num {
+  background: var(--exs-red-soft);
+  color: var(--exs-red);
+}
+
+.exs-row-text {
+  font-size: var(--t-14);
+  color: var(--exs-ink-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exs-row-answer {
+  min-width: 0;
+}
+
+.exs-row-answer span {
+  display: block;
+  font-size: 11px;
+  color: var(--exs-muted);
+  line-height: 1.4;
+}
+
+.exs-row-answer strong {
+  display: block;
+  font-size: var(--t-14);
+  font-weight: 700;
+  color: var(--exs-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exs-row-answer[data-tone='wrong'] strong {
+  color: var(--exs-red);
+}
+
+.exs-row-answer[data-tone='key'] strong {
+  color: var(--exs-green-ink);
+}
+
+/* Verdict is a word as well as a ground: colour is never the only channel. */
+.exs-verdict {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-pill);
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+}
+
+.exs-row[data-verdict='right'] .exs-verdict {
+  background: var(--exs-green-soft);
+  color: var(--exs-green-ink);
+}
+
+.exs-row[data-verdict='wrong'] .exs-verdict,
+.exs-row[data-verdict='blank'] .exs-verdict {
+  background: var(--exs-red-soft);
+  color: var(--exs-red);
+}
+
+.exs-row-caret {
+  color: var(--exs-muted);
+  display: grid;
+  place-items: center;
+  transition: transform var(--dur) var(--ease);
+}
+
+.exs-row-main[aria-expanded='true'] .exs-row-caret {
+  transform: rotate(180deg);
+}
+
+.exs-row-detail {
+  padding: 0 0 var(--s-4) calc(28px + var(--s-3));
+  display: grid;
+  gap: var(--s-2);
+}
+
+.exs-row-detail p {
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  color: var(--exs-ink-2);
+}
+
+.exs-row-detail ul {
+  margin: 0;
+  padding-left: var(--s-4);
+  display: grid;
+  gap: var(--s-1);
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+}
+
+/* ── The explanation under an open row ──────────────────────────────────
+ * Translation, reason, evidence, common mistake — four labelled blocks, in
+ * the order a learner reads them. A block with nothing to say is not drawn.
+ */
+.exs-row-prompt {
+  font-weight: var(--w-emph);
+  color: var(--exs-ink);
+}
+
+.exs-expl {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--exs-soft, #f6f8f7);
+  border: var(--bw-1) solid var(--exs-line, #e6ece8);
+}
+
+.exs-expl-block {
+  display: grid;
+  gap: var(--s-1);
+}
+
+.exs-expl-label {
+  font-size: var(--t-12);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--exs-muted);
+}
+
+.exs-expl-block[data-kind='translation'] .exs-expl-label {
+  color: var(--exs-blue, #2470b4);
+}
+
+.exs-expl-text {
+  white-space: pre-line;
+}
+
+.exs-expl-wait {
+  color: var(--exs-muted);
+}
+
+.exs-link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: var(--w-emph);
+  color: var(--exs-green-ink, #0b6f36);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.exs-more {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--s-4);
+}
+
+/* ── Listening: Section / Dạng câu hỏi badges and "Nghe lại" ────────────────
+ * `.exs-row-line` holds the toggle button and the audio button as siblings —
+ * two buttons side by side, never one nested inside the other, which is
+ * invalid HTML and would make the inner one unreachable by keyboard.
+ */
+.exs-row-line {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.exs-row-line > .exs-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.exs-row-main[data-variant='listening'] {
+  grid-template-columns: 28px 84px minmax(90px, 140px) minmax(0, 1fr) 96px 96px 74px 20px;
+}
+
+.exs-row-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--s-2);
+  border-radius: var(--r-sm);
+  background: var(--sunk);
+  border: var(--bw-1) solid var(--exs-line);
+  font-size: 12px;
+  font-weight: var(--w-emph);
+  color: var(--exs-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exs-row-badge[data-tone='section'] {
+  color: var(--exs-blue);
+  border-color: var(--exs-blue-soft);
+  background: var(--exs-blue-soft);
+}
+
+.exs-row-audio-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-pill);
+  border: var(--bw-1) solid var(--exs-line);
+  background: var(--exs-card);
+  font: inherit;
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  color: var(--exs-ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.exs-row-audio-btn[aria-expanded='true'] {
+  background: var(--exs-ink);
+  border-color: var(--exs-ink);
+  color: #fff;
+}
+
+.exs-row-audio-player {
+  margin: var(--s-2) 0 var(--s-3) calc(28px + var(--s-3));
+}
+
+/* ── "Kết quả theo section" — one card per Listening part ───────────────── */
+.exs-section-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.exs-section-card {
+  background: var(--exs-card);
+  border: var(--bw-1) solid var(--exs-line);
+  border-radius: var(--r-lg);
+  padding: var(--s-4);
+  display: grid;
+  gap: var(--s-1);
+  min-width: 0;
+}
+
+.exs-section-card-title {
+  font-size: var(--t-14);
+  font-weight: 800;
+  color: var(--exs-ink);
+}
+
+.exs-section-card-range {
+  font-size: var(--t-13);
+  color: var(--exs-muted);
+}
+
+.exs-section-card-score {
+  margin-top: var(--s-1);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--exs-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.exs-section-card .exs-bar-track {
+  margin-top: var(--s-1);
+}
+
+/* ── Sidebar lists ───────────────────────────────────────────────────────*/
+.exs-side {
+  display: grid;
+  gap: var(--s-4);
+  align-content: start;
+}
+
+.exs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.exs-list-item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 18px;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-3) 0;
+  border-top: var(--bw-1) solid var(--exs-line-soft);
+  text-decoration: none;
+  color: inherit;
+}
+
+.exs-list > li:first-child .exs-list-item {
+  border-top: 0;
+}
+
+.exs-list-item:hover {
+  background: var(--sunk);
+}
+
+.exs-list-num {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  background: var(--exs-green-soft);
+  color: var(--exs-green-ink);
+  font-family: var(--mono);
+  font-size: var(--t-13);
+  font-weight: 700;
+}
+
+.exs-list-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  display: grid;
+  place-items: center;
+}
+
+.exs-list-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.exs-list-text {
+  min-width: 0;
+}
+
+.exs-list-title {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--exs-ink);
+  line-height: 1.45;
+}
+
+.exs-list-body {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--exs-muted);
+  line-height: 1.5;
+}
+
+.exs-list-caret {
+  color: var(--exs-muted);
+  display: grid;
+  place-items: center;
+}
+
+/* ── Closing banner ──────────────────────────────────────────────────────*/
+.exs-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  padding: var(--s-5);
+  border-radius: 20px;
+  background: #e4f4ea;
+  border: var(--bw-1) solid var(--exs-green-line);
+  flex-wrap: wrap;
+}
+
+.exs-banner-text {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.exs-banner-text svg {
+  width: 22px;
+  height: 22px;
+  color: var(--exs-green-ink);
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.exs-banner-text strong {
+  display: block;
+  font-size: var(--t-16);
+  font-weight: 800;
+  color: var(--exs-ink);
+}
+
+.exs-banner-text p {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-13);
+  color: var(--exs-ink-2);
+}
+
+/* ── The marked skills, and the paper as sat ─────────────────────────────
+ * `MarkingReview` and `SectionContentReview` keep their own markup; only the
+ * frame around them changes here.
+ */
+.exs-page .result-review {
+  background: var(--exs-card);
+  border: var(--bw-1) solid var(--exs-line);
+  border-radius: var(--r-lg);
+  padding: var(--s-4) var(--s-5);
+}
+
+.exs-page .result-review-head {
+  margin: 0;
+  font-size: var(--t-18);
+}
+
+.exs-page .result-review-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  background: none;
+  border: 0;
+  padding: var(--s-2) 0;
+  font: inherit;
+  font-size: var(--t-18);
+  font-weight: 800;
+  color: var(--exs-ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.exs-page .result-review-caret {
+  color: var(--exs-muted);
+  font-size: var(--t-20);
+}
+
+.exs-page .dash-notice {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--exs-amber-soft);
+  border: var(--bw-1) solid #f2ddc2;
+  color: var(--exs-amber);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+.exs-page .dash-retry {
+  height: 40px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-md);
+  border: var(--bw-1) solid var(--exs-line);
+  background: var(--exs-card);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  cursor: pointer;
+}
+
+.exs-page .dash-empty {
+  background: var(--exs-card);
+  border: var(--bw-1) solid var(--exs-line);
+  border-radius: var(--r-lg);
+  padding: var(--s-6);
+  display: grid;
+  gap: var(--s-3);
+  justify-items: start;
+}
+
+.exs-page .dash-empty h3 {
+  margin: 0;
+  font-size: var(--t-20);
+  font-weight: 800;
+}
+
+.exs-page .dash-empty p {
+  margin: 0;
+  color: var(--exs-muted);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────
+ * Desktop is the reference and nothing above is relaxed for a phone: every
+ * rule here is inside a max-width query.
+ */
+@media (max-width: 1080px) {
+  .exs-hero,
+  .exs-two,
+  .exs-main-two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .exs-cards,
+  .exs-section-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .exs-wrap {
+    padding: 0 var(--s-4);
+  }
+
+  .exs-title {
+    font-size: 28px;
+  }
+
+  .exs-score-value {
+    font-size: 56px;
+  }
+
+  .exs-cards,
+  .exs-section-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .exs-score-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .exs-score-stat:nth-child(3) {
+    border-left: 0;
+  }
+
+  /* The review table folds into stacked rows rather than scrolling sideways.
+     → DESIGN.md anti-pattern #15 */
+  .exs-row-main,
+  .exs-row-main[data-variant='listening'] {
+    grid-template-columns: 28px minmax(0, 1fr) 20px;
+    row-gap: var(--s-2);
+  }
+
+  .exs-row-answer,
+  .exs-verdict,
+  .exs-row-badge {
+    grid-column: 2;
+  }
+
+  .exs-row-line {
+    flex-wrap: wrap;
+  }
+
+  .exs-row-audio-player {
+    margin-left: 0;
+  }
+}

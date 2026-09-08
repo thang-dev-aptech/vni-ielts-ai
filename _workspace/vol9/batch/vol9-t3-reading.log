@@ -1,0 +1,17 @@
+source     TEST 3-R.docx
+sandbox    /Users/metacom/Documents/VNI/VNI IELTS AI/Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING
+key        KEY - EXPLAINATION/KEY TEST 3-R.docx (242 characters)
+extracted  21.529 characters, classification RightsCleared
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[100] Start processing HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[100] Sending HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[101] Received HTTP response headers after 2573.9067ms - 200
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[101] End processing HTTP request after 2605.1006ms - 200
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam parse stream opened after headers.
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by gpt-5.4, request chatcmpl-202609031853286941138208268d9d6EMjuQgLn, prompt exam-parse-prompt-v7, attempt 1, 9723 in / 9427 out.
+parsed     41.455 characters by OpenAi/gpt-5.4, request chatcmpl-202609031853286941138208268d9d6EMjuQgLn
+kept       reading section only
+written    /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t3-reading.json
+foreign parts dropped
+package refused
+  error ANSWER_KEY_NOT_IN_SOURCE /sections: The package carries 40 answer key(s) and no answer key document was supplied with the source. They were produced by the model rather than read from the paper, so they are guesses — and a wrong key marks every learner who sits this paper. Supply the key document and parse again.
+  (40 question(s) affected; the draft is on disk for inspection.)

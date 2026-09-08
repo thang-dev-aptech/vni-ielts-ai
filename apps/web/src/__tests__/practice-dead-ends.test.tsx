@@ -133,8 +133,14 @@ afterEach(() => {
 /* ── S8: no dialog in the way ─────────────────────────────────────────── */
 
 it('opens the practice workspace for a signed-in learner with no dialog in the way', async () => {
-  open('/practice');
+  open('/students/practice');
 
+  /*
+   * `/students/practice` briefly stopped listing individual papers on
+   * 08/09/2026 — corrected the same day, so the exam title is back to being
+   * proof the page loaded: the skill tabs and their matching grid are one
+   * screen again, not a "chọn rồi bấm nút mới thấy danh sách" detour.
+   */
   await screen.findByText('Academic Practice Test 1');
 
   // Nothing modal, and specifically not the entry-test dialog that used to
@@ -142,6 +148,20 @@ it('opens the practice workspace for a signed-in learner with no dialog in the w
   expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.queryByText(/Bài test đầu vào/)).toBeNull();
   expect(screen.queryByRole('button', { name: /chưa mở/ })).toBeNull();
+});
+
+it('renders the new /practice landing page with 4 skills and VNI mascot', async () => {
+  open('/practice');
+
+  expect(await screen.findByText('Luyện IELTS toàn diện')).toBeInTheDocument();
+  expect(screen.getAllByRole('heading', { name: /Luyện 4 kỹ năng/ }).length).toBeGreaterThanOrEqual(
+    1,
+  );
+  expect(screen.getByText('Reading')).toBeInTheDocument();
+  expect(screen.getByText('Listening')).toBeInTheDocument();
+  expect(screen.getByText('Writing')).toBeInTheDocument();
+  expect(screen.getByText('Speaking')).toBeInTheDocument();
+  expect(screen.queryByRole('dialog')).toBeNull();
 });
 
 /* ── S1 row 3: minutes come from the catalogue, never from the dialog ─── */
@@ -185,7 +205,9 @@ it('refuses to start a full test whose item carries no timing', () => {
   const dialog = screen.getByRole('dialog');
 
   // The error state, said as one.
-  const notice = within(dialog).getByText('Đề này chưa cấu hình thời lượng. Hãy báo cho quản trị viên.');
+  const notice = within(dialog).getByText(
+    'Đề này chưa cấu hình thời lượng. Hãy báo cho quản trị viên.',
+  );
   expect(notice).toHaveAttribute('role', 'alert');
 
   // No rows at all — not four invented ones.
@@ -222,7 +244,9 @@ it('apologises in Vietnamese only when a render throws', () => {
   const alert = screen.getByRole('alert');
   expect(within(alert).getByText('Trang gặp sự cố')).toBeInTheDocument();
   expect(
-    within(alert).getByText('Bạn có thể tải lại trang. Nếu lỗi lặp lại, vui lòng báo cho chúng tôi.'),
+    within(alert).getByText(
+      'Bạn có thể tải lại trang. Nếu lỗi lặp lại, vui lòng báo cho chúng tôi.',
+    ),
   ).toBeInTheDocument();
   expect(within(alert).getByRole('button', { name: 'Tải lại trang' })).toBeInTheDocument();
 

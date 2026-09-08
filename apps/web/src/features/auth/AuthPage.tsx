@@ -70,8 +70,29 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
   // The tab follows the panel: the toggle inside the card swaps modes without
   // navigating, so the title cannot be derived from the route alone.
   usePageTitle(t(mode === 'login' ? 'title.signIn' : 'title.signUp'));
-  const [email, setEmail] = useState('');
+  /**
+   * One field on the sign-in tab, and it is not an email box.
+   *
+   * <b>The server decides which it is, by looking for an `@`.</b> Asking the
+   * visitor to pick "phone or email" first would be asking them to know
+   * something about our storage; and two separate boxes would mean a password
+   * manager filling the wrong one. `autoComplete="username"` is what makes the
+   * saved credential keep working across the change from an email field.
+   */
+  const [identifier, setIdentifier] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  /**
+   * Checked here and nowhere else, deliberately.
+   *
+   * The server takes one password — there is no second value for it to
+   * compare — so this is a client-side guard against a typo in a credential
+   * nobody can reset by themselves any more. It must therefore refuse
+   * *without* a request: firing one and reporting a server error would both
+   * lie about where the refusal came from and create the account with the
+   * mistyped password.
+   */
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -81,15 +102,15 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
   const inFlight = useRef(false);
 
   /**
-   * "This address already has an account" is not a form error, it is a
+   * "This number already has an account" is not a form error, it is a
    * signpost — so it gets its own state and its own way out.
    *
-   * <b>The dead end this closes.</b> Someone who signed in with Google and
-   * later tries to register with the same address is told the address is
-   * taken. They go to the sign-in tab, type that address and a password, and
-   * are told the credentials are wrong — because their account has no password
-   * at all. Nothing anywhere tells them to press the Google button, and both
-   * messages are individually correct. → `AU-7`, ADR-0013
+   * <b>The dead end this closes.</b> Someone whose account exists already —
+   * created here, or through Google and given a number later — is told the
+   * number is taken. They go to the sign-in tab, type it with a password, and
+   * are told the credentials are wrong, because a Google account has no
+   * password at all. Nothing anywhere tells them to press the Google button,
+   * and both messages are individually correct. → `AU-7`, ADR-0013
    */
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -137,12 +158,43 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
      * rather than the app's. One model, in the app's voice, on both.
      */
     const missing: Record<string, string> = {};
-    if (mode === 'register' && fullName.trim() === '') missing.fullName = t('signUp.nameRequired');
-    if (email.trim() === '') missing.email = t('auth.emailRequired');
+    if (mode === 'register') {
+      if (fullName.trim() === '') missing.fullName = t('signUp.nameRequired');
+      if (phone.trim() === '') missing.phone = t('auth.phoneRequired');
+    } else if (identifier.trim() === '') {
+      missing.identifier = t('auth.identifierRequired');
+    }
     if (password === '') missing.password = t('auth.passwordRequired');
+    if (mode === 'register' && password !== '' && confirmPassword === '') {
+      missing.confirmPassword = t('signUp.confirmRequired');
+    }
+
+    /*
+     * The mismatch is checked with the empty-field rules, not after them, so
+     * the two never disagree about which control to send the person back to.
+     * `password !== ''` keeps a blank form from reporting a mismatch as well
+     * as a missing password — two errors for one omission.
+     */
+    if (
+      mode === 'register' &&
+      password !== '' &&
+      confirmPassword !== '' &&
+      password !== confirmPassword
+    ) {
+      missing.confirmPassword = t('signUp.confirmMismatch');
+    }
+
     if (Object.keys(missing).length > 0) {
       setFieldErrors(missing);
-      const first = missing.fullName ? 'fullname' : missing.email ? 'email' : 'password';
+      const first = missing.fullName
+        ? 'fullname'
+        : missing.phone
+          ? 'phone'
+          : missing.identifier
+            ? 'identifier'
+            : missing.password
+              ? 'password'
+              : 'confirm-password';
       document.getElementById(first)?.focus();
       return;
     }
@@ -152,7 +204,7 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
 
     try {
       if (mode === 'login') {
-        await signIn(email, password);
+        await signIn(identifier.trim(), password);
         // No navigation here: RequireAnonymous owns the redirect, including
         // back to whatever page the visitor originally asked for. Navigating
         // here as well would race it, and the guard would win.
@@ -162,7 +214,8 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
          *
          * `[QUYẾT ĐỊNH]` chủ sản phẩm, 27/08/2026: *"tạo tài khoản với email
          * pass cho login như bình thường nhưng sẽ xác minh ở trang hồ sơ học
-         * sinh sau cũng được"*.
+         * sinh sau cũng được"* — and on 08/09/2026 the credential itself
+         * became a phone number, which retired the verification step with it.
          *
          * What used to be here was `setRegistered(true)`, which swapped this
          * panel for a "we have sent you a verification link" screen whose only
@@ -175,7 +228,7 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
          * No navigation here, for the same reason the sign-in branch has none:
          * `RequireAnonymous` owns the redirect, and a second one would race it.
          */
-        const created = await register(email, password, fullName, idempotencyKey);
+        const created = await register(phone.trim(), password, fullName, idempotencyKey);
         await adoptSession(created.session);
       }
     } catch (caught) {
@@ -195,11 +248,18 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
       case 'ACCOUNT_SUSPENDED':
         setError(t('signIn.suspended'));
         break;
-      case 'EMAIL_ALREADY_REGISTERED':
+      case 'PHONE_ALREADY_REGISTERED':
         setAlreadyRegistered(true);
         break;
-      case 'EMAIL_INVALID':
-        setFieldErrors({ email: t('signUp.emailInvalid') });
+      /*
+       * <b>Told here, not by the server's own wording.</b> The server rejects
+       * a bare `912345678` as ambiguous — it cannot tell a missing leading
+       * zero from a foreign number — and "invalid" alone would leave someone
+       * retyping the same nine digits. The message names both accepted
+       * spellings instead. → `auth.phoneInvalid`
+       */
+      case 'PHONE_INVALID':
+        setFieldErrors({ phone: t('auth.phoneInvalid') });
         break;
       case 'PASSWORD_TOO_WEAK':
         setFieldErrors({ password: t('signUp.passwordWeak') });
@@ -235,10 +295,10 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
           break;
         }
         // Every sign-in failure the server can distinguish is deliberately
-        // indistinguishable here too — wrong password, unknown address and a
-        // malformed one all arrive as INVALID_CREDENTIALS.
+        // indistinguishable here too — wrong password, unknown number or
+        // address, and a malformed one all arrive as INVALID_CREDENTIALS.
         // The hint is static and identical for every failure, so it reveals
-        // nothing about whether the address exists or which provider it uses —
+        // nothing about whether the account exists or which provider it uses —
         // it just stops someone with a Google-only account guessing passwords
         // forever at a form that can never accept one.
         setError(mode === 'login' ? t('signIn.invalidWithHint') : t('common.unexpected'));
@@ -291,7 +351,7 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
           <SocialButtons returnTo={returnTarget} />
 
           <div className="divider">
-            <span>{t('auth.orEmail')}</span>
+            <span>{mode === 'login' ? t('auth.orPassword') : t('auth.orPhone')}</span>
           </div>
 
           <form className="form" onSubmit={handleSubmit} noValidate>
@@ -303,7 +363,7 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
 
             {alreadyRegistered && (
               <div className="form-notice" role="alert">
-                <p>{t('signUp.emailTaken')}</p>
+                <p>{t('signUp.phoneTaken')}</p>
                 {/* A real navigation, not a tab flip.
                     Switching the panel in place left the address bar saying
                     `/register` while the sign-in form was showing — so a
@@ -329,18 +389,42 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
               />
             )}
 
-            <Field
-              id="email"
-              kind="email"
-              label={t('common.email')}
-              type="email"
-              value={email}
-              onChange={setEmail}
-              autoComplete="email"
-              placeholder="you@example.com"
-              error={fieldErrors['email']}
-              required
-            />
+            {mode === 'register' ? (
+              <Field
+                id="phone"
+                kind="phone"
+                label={t('common.phone')}
+                type="tel"
+                inputMode="tel"
+                value={phone}
+                onChange={setPhone}
+                autoComplete="tel"
+                placeholder="0912 345 678"
+                error={fieldErrors['phone']}
+                required
+              />
+            ) : (
+              /*
+                <b>One box, and `autoComplete="username"` on it.</b> It takes a
+                number or an address and the server tells them apart by the
+                `@`. The token is `username` rather than `tel` or `email`
+                precisely because it is either: a password manager that filled
+                the old email field keeps filling this one, which is what stops
+                the change of credential from reading as "my saved login
+                stopped working".
+              */
+              <Field
+                id="identifier"
+                kind="identifier"
+                label={t('auth.identifier')}
+                value={identifier}
+                onChange={setIdentifier}
+                autoComplete="username"
+                placeholder="0912 345 678"
+                error={fieldErrors['identifier']}
+                required
+              />
+            )}
 
             <Field
               id="password"
@@ -369,6 +453,29 @@ export function AuthPage({ initialMode = 'login' }: { initialMode?: Mode }) {
                   already settled and a meter there would just be noise. */}
               {mode === 'register' && <PasswordStrength value={password} />}
             </Field>
+
+            {/*
+              <b>Its own field, not a "show password" tick.</b> There is no
+              self-service reset any more — registration collects no address to
+              send one to — so a typo here is a learner locked out of an
+              account they created ninety seconds ago, and the only way back is
+              a person at the centre. Typing it twice is the cheapest guard
+              against that, and it costs a form that is already only four rows.
+            */}
+            {mode === 'register' && (
+              <Field
+                id="confirm-password"
+                kind="password"
+                label={t('auth.confirmPassword')}
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                autoComplete="new-password"
+                placeholder={t('auth.confirmPlaceholder')}
+                error={fieldErrors['confirmPassword']}
+                required
+              />
+            )}
 
             {mode === 'login' && (
               <div className="form-row">
@@ -543,7 +650,7 @@ function GoogleMark() {
   );
 }
 
-type FieldKind = 'name' | 'email' | 'password';
+type FieldKind = 'name' | 'identifier' | 'phone' | 'password';
 
 interface FieldProps {
   id: string;
@@ -552,6 +659,8 @@ interface FieldProps {
   value: string;
   onChange: (value: string) => void;
   type?: string;
+  /** Which on-screen keyboard a phone raises. `type="tel"` alone is not enough on Android. */
+  inputMode?: 'tel';
   autoComplete?: string;
   placeholder?: string;
   error?: string | undefined;
@@ -578,6 +687,7 @@ function Field({
   value,
   onChange,
   type = 'text',
+  inputMode,
   autoComplete,
   placeholder,
   error,
@@ -597,6 +707,7 @@ function Field({
           type={type}
           value={value}
           required={required}
+          inputMode={inputMode}
           autoComplete={autoComplete}
           placeholder={placeholder}
           aria-invalid={error !== undefined}
@@ -627,7 +738,12 @@ function FieldIcon({ kind }: { kind: FieldKind }) {
     'aria-hidden': true,
   };
 
-  if (kind === 'name') {
+  /*
+   * The sign-in box takes a number or an address, so neither a handset nor an
+   * envelope would be true of it — a person glyph is, and it is the one the
+   * name field already uses for "who you are".
+   */
+  if (kind === 'name' || kind === 'identifier') {
     return (
       <svg {...common}>
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -636,11 +752,11 @@ function FieldIcon({ kind }: { kind: FieldKind }) {
     );
   }
 
-  if (kind === 'email') {
+  if (kind === 'phone') {
     return (
       <svg {...common}>
-        <rect x="2" y="4" width="20" height="16" rx="2" />
-        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+        <rect x="6" y="2" width="12" height="20" rx="2" />
+        <path d="M12 18h.01" />
       </svg>
     );
   }

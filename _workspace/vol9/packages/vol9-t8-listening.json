@@ -1,0 +1,1031 @@
+{
+  "formatVersion": "1.0",
+  "title": "VOL 9 \u2014 Test 8 (Reading \u002B Listening)",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Call Record Card",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Caller\u2019s name: Robert 1 \u2026\u2026\u2026\u2026",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Call Record Card",
+                "instruction": "Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer.",
+                "text": "Call Record Card\nExample\nCaller\u2019s phone number: 03786 439251\nCaller\u2019s name: Robert 1 \u2026\u2026\u2026\u2026\nAddress: 27 2 \u2026\u2026\u2026\u2026\nMoortown\nPostcode: DP17 5HJ\nDate of birth: 3 \u2026\u2026\u2026 , 1975\nDoctor\u2019s name: Dr Craven\nDoctor\u2019s address: Moortown Health Centre\nReason for call: Pain in his 4 \u2026\u2026\u2026\u2026 back\nPrevious history: Similar back problem in June last year\nDetails of present problem: Started 5 \u2026\u2026\u2026\u2026 ago\nGot worse this 6 \u2026\u2026\u2026\u2026\nNo abdominal pain\nPossible cause: Lifting up a heavy 7 \u2026\u2026\u2026\u2026\nTreatment already applied: Has applied heat\nHas taken 8 \u2026\u2026\u2026\u2026\nAdvice given: Try using 9 \u2026\u2026\u2026\u2026\nGo to doctor tomorrow\nAsk for information about 10 \u2026\u2026\u2026\u2026"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "Ridyard"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Address: 27 2 \u2026\u2026\u2026\u2026",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Call Record Card",
+                "instruction": "Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer.",
+                "text": "Call Record Card\nExample\nCaller\u2019s phone number: 03786 439251\nCaller\u2019s name: Robert 1 \u2026\u2026\u2026\u2026\nAddress: 27 2 \u2026\u2026\u2026\u2026\nMoortown\nPostcode: DP17 5HJ\nDate of birth: 3 \u2026\u2026\u2026 , 1975\nDoctor\u2019s name: Dr Craven\nDoctor\u2019s address: Moortown Health Centre\nReason for call: Pain in his 4 \u2026\u2026\u2026\u2026 back\nPrevious history: Similar back problem in June last year\nDetails of present problem: Started 5 \u2026\u2026\u2026\u2026 ago\nGot worse this 6 \u2026\u2026\u2026\u2026\nNo abdominal pain\nPossible cause: Lifting up a heavy 7 \u2026\u2026\u2026\u2026\nTreatment already applied: Has applied heat\nHas taken 8 \u2026\u2026\u2026\u2026\nAdvice given: Try using 9 \u2026\u2026\u2026\u2026\nGo to doctor tomorrow\nAsk for information about 10 \u2026\u2026\u2026\u2026"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "Station Road"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 2,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Preparing for a trip to an outdoor education center",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "A trip to the outdoor education center will help the children",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "create good relationships"
+                },
+                {
+                  "key": "B",
+                  "text": "manage without adult supervision"
+                },
+                {
+                  "key": "C",
+                  "text": "react positively to new challenges"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "To prepare their children for the trip, parents should",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "let them try sleeping in a tent at home"
+                },
+                {
+                  "key": "B",
+                  "text": "make sure they get enough sleep before they leave"
+                },
+                {
+                  "key": "C",
+                  "text": "tell them that they will be in a tent with their friends"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "What do parents need to put in their children\u0027s backpack?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "plastic bags"
+                },
+                {
+                  "key": "B",
+                  "text": "snacks and biscuits"
+                },
+                {
+                  "key": "C",
+                  "text": "a small amount of money"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "What are children allowed to bring on the trip?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "electronic games"
+                },
+                {
+                  "key": "B",
+                  "text": "cell phones"
+                },
+                {
+                  "key": "C",
+                  "text": "penknives"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "How are parents selected to attend the trip?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The first ten parents to sign up will be able to go"
+                },
+                {
+                  "key": "B",
+                  "text": "Parents\u0027 names will be chosen from a box"
+                },
+                {
+                  "key": "C",
+                  "text": "Preference will be given to parents with camping skills"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "multiple-choice",
+              "prompt": "Payment for the trip",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "must be handed to the child\u0027s teacher"
+                },
+                {
+                  "key": "B",
+                  "text": "can be left at the school office"
+                },
+                {
+                  "key": "C",
+                  "text": "should be made directly to the outdoor education center"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Woodcarving studio",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "l-map-17-20",
+                "instruction": "Choose the correct letter, A-G, next to the questions 17-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Emergency meeting point",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "l-map-17-20",
+                "instruction": "Choose the correct letter, A-G, next to the questions 17-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Conservation center",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "l-map-17-20",
+                "instruction": "Choose the correct letter, A-G, next to the questions 17-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "Arts and crafts room",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                }
+              ],
+              "group": {
+                "id": "l-map-17-20",
+                "instruction": "Choose the correct letter, A-G, next to the questions 17-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 3,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Stone Point: A New Zealand historical site",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "According to Liz, Stone Point played a key role in local history because",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "it was used for defence or attack purposes."
+                },
+                {
+                  "key": "B",
+                  "text": "it was the landing point for the first Maori settlers."
+                },
+                {
+                  "key": "C",
+                  "text": "it was developed as a commercial port."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "Scott and Liz agree Maori originally chose to inhabit Stone Point because of",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "its rich soil."
+                },
+                {
+                  "key": "B",
+                  "text": "the supply of fish."
+                },
+                {
+                  "key": "C",
+                  "text": "available building materials."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "Scott and Liz agree that using Maori terminology in their presentation",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "will be of interest to international students."
+                },
+                {
+                  "key": "B",
+                  "text": "is required as a component of their research."
+                },
+                {
+                  "key": "C",
+                  "text": "would be best avoided."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "When Scott mentions the engines at Stone Point, Liz advises him to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "focus on the human aspect instead."
+                },
+                {
+                  "key": "B",
+                  "text": "check the accuracy of specific dates."
+                },
+                {
+                  "key": "C",
+                  "text": "explain complex technical language."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "Early Maori inhibition of Stone Point",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "provide further description"
+                },
+                {
+                  "key": "B",
+                  "text": "find images"
+                },
+                {
+                  "key": "C",
+                  "text": "set up an interview"
+                },
+                {
+                  "key": "D",
+                  "text": "check author\u2019s details"
+                },
+                {
+                  "key": "E",
+                  "text": "check the exact location"
+                },
+                {
+                  "key": "F",
+                  "text": "obtain official permission"
+                },
+                {
+                  "key": "G",
+                  "text": "be more objective"
+                },
+                {
+                  "key": "H",
+                  "text": "reduce it in length"
+                }
+              ],
+              "group": {
+                "id": "l-do-25-30",
+                "title": "Things to do",
+                "instruction": "Choose SIX correct answers, A-G, next to questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "The use of Stone Point as a lookout point",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "provide further description"
+                },
+                {
+                  "key": "B",
+                  "text": "find images"
+                },
+                {
+                  "key": "C",
+                  "text": "set up an interview"
+                },
+                {
+                  "key": "D",
+                  "text": "check author\u2019s details"
+                },
+                {
+                  "key": "E",
+                  "text": "check the exact location"
+                },
+                {
+                  "key": "F",
+                  "text": "obtain official permission"
+                },
+                {
+                  "key": "G",
+                  "text": "be more objective"
+                },
+                {
+                  "key": "H",
+                  "text": "reduce it in length"
+                }
+              ],
+              "group": {
+                "id": "l-do-25-30",
+                "title": "Things to do",
+                "instruction": "Choose SIX correct answers, A-G, next to questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "The reconstruction of the fort",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "provide further description"
+                },
+                {
+                  "key": "B",
+                  "text": "find images"
+                },
+                {
+                  "key": "C",
+                  "text": "set up an interview"
+                },
+                {
+                  "key": "D",
+                  "text": "check author\u2019s details"
+                },
+                {
+                  "key": "E",
+                  "text": "check the exact location"
+                },
+                {
+                  "key": "F",
+                  "text": "obtain official permission"
+                },
+                {
+                  "key": "G",
+                  "text": "be more objective"
+                },
+                {
+                  "key": "H",
+                  "text": "reduce it in length"
+                }
+              ],
+              "group": {
+                "id": "l-do-25-30",
+                "title": "Things to do",
+                "instruction": "Choose SIX correct answers, A-G, next to questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Modernisation of the fort in the 1930s-40s",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "provide further description"
+                },
+                {
+                  "key": "B",
+                  "text": "find images"
+                },
+                {
+                  "key": "C",
+                  "text": "set up an interview"
+                },
+                {
+                  "key": "D",
+                  "text": "check author\u2019s details"
+                },
+                {
+                  "key": "E",
+                  "text": "check the exact location"
+                },
+                {
+                  "key": "F",
+                  "text": "obtain official permission"
+                },
+                {
+                  "key": "G",
+                  "text": "be more objective"
+                },
+                {
+                  "key": "H",
+                  "text": "reduce it in length"
+                }
+              ],
+              "group": {
+                "id": "l-do-25-30",
+                "title": "Things to do",
+                "instruction": "Choose SIX correct answers, A-G, next to questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Uses of Stone Point from 1950s to the present day",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "provide further description"
+                },
+                {
+                  "key": "B",
+                  "text": "find images"
+                },
+                {
+                  "key": "C",
+                  "text": "set up an interview"
+                },
+                {
+                  "key": "D",
+                  "text": "check author\u2019s details"
+                },
+                {
+                  "key": "E",
+                  "text": "check the exact location"
+                },
+                {
+                  "key": "F",
+                  "text": "obtain official permission"
+                },
+                {
+                  "key": "G",
+                  "text": "be more objective"
+                },
+                {
+                  "key": "H",
+                  "text": "reduce it in length"
+                }
+              ],
+              "group": {
+                "id": "l-do-25-30",
+                "title": "Things to do",
+                "instruction": "Choose SIX correct answers, A-G, next to questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "The use of Stone Point as public park",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "provide further description"
+                },
+                {
+                  "key": "B",
+                  "text": "find images"
+                },
+                {
+                  "key": "C",
+                  "text": "set up an interview"
+                },
+                {
+                  "key": "D",
+                  "text": "check author\u2019s details"
+                },
+                {
+                  "key": "E",
+                  "text": "check the exact location"
+                },
+                {
+                  "key": "F",
+                  "text": "obtain official permission"
+                },
+                {
+                  "key": "G",
+                  "text": "be more objective"
+                },
+                {
+                  "key": "H",
+                  "text": "reduce it in length"
+                }
+              ],
+              "group": {
+                "id": "l-do-25-30",
+                "title": "Things to do",
+                "instruction": "Choose SIX correct answers, A-G, next to questions 25-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "listening",
+      "order": 4,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Rural Development",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "began to lead a nomadic life, moving across 31 \u2026\u2026\u2026.. and mountains",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Rural Development",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Rural Development\nThe Berbers\n\u25CF lived in various countries in North Africa\n\u25CF were driven from their homes during the 12th century\n\u25CF began to lead a nomadic life, moving across 31 \u2026\u2026\u2026.. and mountains\nDifferent Berber Lifestyles\n\u25CF some Berbers, known as 32 \u2026\u2026\u2026\u2026. nomads, moved twice a year\n\u25CF some Berbers were completely nomadic\n\u25CF some Berbers settled by oases, producing fruit, vegetables, and 33 \u2026\u2026\u2026\u2026\u2026. to cook with\n\u25CF people and belongings were carried by 34 \u2026\u2026\u2026\u2026\n\u25CF settled Berbers lived in houses\n\u25CF nomadic Berbers used tents\n\u25CF settled communities organised themselves by holding regular meetings in the 35 \u2026\u2026\u2026\u2026\u2026. of the village\nThe Tuaregs\n\u25CF if goatskins were unavailable, tents were made from 36 \u2026\u2026\u2026\u2026\u2026 or palm-leaf mats\n\u25CF Tuareg labourers were the descendants of 37 \u2026\u2026\u2026\u2026\u2026.\n\u25CF adult men always wore a 38 \u2026\u2026\u2026\u2026. veil\n\u25CF some Tuaregs moved to Burkina Faso with their 39\u2026\u2026\u2026\u2026\u2026.\nTuaregs and Timbuktu\n\u25CF Timbuktu was settled by Tuaregs around 1000 years ago\n\u25CF the city built wealth on the salt and gold trades\n\u25CF some Tuaregs now work as 40 \u2026\u2026\u2026\u2026.. for the Mallian Department of Tourism"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "deserts"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "some Berbers, known as 32 \u2026\u2026\u2026\u2026. nomads, moved twice a year",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Rural Development",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Rural Development\nThe Berbers\n\u25CF lived in various countries in North Africa\n\u25CF were driven from their homes during the 12th century\n\u25CF began to lead a nomadic life, moving across 31 \u2026\u2026\u2026.. and mountains\nDifferent Berber Lifestyles\n\u25CF some Berbers, known as 32 \u2026\u2026\u2026\u2026. nomads, moved twice a year\n\u25CF some Berbers were completely nomadic\n\u25CF some Berbers settled by oases, producing fruit, vegetables, and 33 \u2026\u2026\u2026\u2026\u2026. to cook with\n\u25CF people and belongings were carried by 34 \u2026\u2026\u2026\u2026\n\u25CF settled Berbers lived in houses\n\u25CF nomadic Berbers used tents\n\u25CF settled communities organised themselves by holding regular meetings in the 35 \u2026\u2026\u2026\u2026\u2026. of the village\nThe Tuaregs\n\u25CF if goatskins were unavailable, tents were made from 36 \u2026\u2026\u2026\u2026\u2026 or palm-leaf mats\n\u25CF Tuareg labourers were the descendants of 37 \u2026\u2026\u2026\u2026\u2026.\n\u25CF adult men always wore a 38 \u2026\u2026\u2026\u2026. veil\n\u25CF some Tuaregs moved to Burkina Faso with their 39\u2026\u2026\u2026\u2026\u2026.\nTuaregs and Timbuktu\n\u25CF Timbuktu was settled by Tuaregs around 1000 years ago\n\u25CF the city built wealth on the salt and gold trades\n\u25CF some Tuaregs now work as 40 \u2026\u2026\u2026\u2026.. for the Mallian Department of Tourism"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "seasonal"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

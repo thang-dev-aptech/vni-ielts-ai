@@ -138,10 +138,7 @@ async function inStore<T>(
  */
 export async function remember(entry: JournalEntry): Promise<void> {
   await inStore<void>('readwrite', undefined, (store, done) => {
-    const request = store.put(
-      entry,
-      keyOf(entry.sessionId, entry.module, entry.responseSlotId),
-    );
+    const request = store.put(entry, keyOf(entry.sessionId, entry.module, entry.responseSlotId));
     request.onsuccess = () => done(undefined);
     request.onerror = () => done(undefined);
   });

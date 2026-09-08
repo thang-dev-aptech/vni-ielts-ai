@@ -211,16 +211,57 @@ public sealed class MongoContext
 
     private string Describe() => $"{_db.Client.Settings.Server} (database '{_db.DatabaseNamespace.DatabaseName}')";
 
+    /// <summary>
+    /// The unique index on the address. Named here because
+    /// <c>MongoUserRepository</c> matches on it to tell one duplicate-key
+    /// violation from another.
+    /// </summary>
+    public const string EmailIndexName = "ux_users_email";
+
+    /// <summary>The unique index on the phone number. See <see cref="EmailIndexName"/>.</summary>
+    public const string PhoneIndexName = "ux_users_phone";
+
     public async Task EnsureIndexesAsync(CancellationToken ct)
     {
-        // One account per address. This is what actually prevents a duplicate
-        // registration when two requests arrive together — the check inside
-        // RegisterUser is a courtesy that produces a clean error message, not
-        // the guarantee.
+        /*
+         * One account per address, and one per number — but only among the
+         * accounts that have one.
+         *
+         * <b>Partial, not sparse, and the difference is not cosmetic.</b> A
+         * sparse index skips documents where the field is *missing*; it does
+         * not skip documents where the field is present and null. Registration
+         * creates accounts with no address at all, so the moment a mapper
+         * writes `email: null` instead of omitting the key — one dropped
+         * `[BsonIgnoreIfNull]` — a sparse unique index would reject the second
+         * such account with a duplicate-key error nobody could explain. The
+         * partial filter says what is actually meant: index the accounts whose
+         * address is a string.
+         */
         await Users.Indexes.CreateOneAsync(
             new CreateIndexModel<UserDocument>(
                 Builders<UserDocument>.IndexKeys.Ascending(u => u.Email),
-                new CreateIndexOptions { Unique = true, Name = "ux_users_email" }),
+                new CreateIndexOptions<UserDocument>
+                {
+                    Unique = true,
+                    Name = EmailIndexName,
+                    PartialFilterExpression = Builders<UserDocument>.Filter.Type(
+                        u => u.Email, BsonType.String),
+                }),
+            cancellationToken: ct);
+
+        // The handle registration actually asks for. Unique because sign-in
+        // accepts it: two accounts sharing a number makes "sign in with your
+        // phone number" ambiguous, and nothing downstream could resolve it.
+        await Users.Indexes.CreateOneAsync(
+            new CreateIndexModel<UserDocument>(
+                Builders<UserDocument>.IndexKeys.Ascending(u => u.Phone),
+                new CreateIndexOptions<UserDocument>
+                {
+                    Unique = true,
+                    Name = PhoneIndexName,
+                    PartialFilterExpression = Builders<UserDocument>.Filter.Type(
+                        u => u.Phone, BsonType.String),
+                }),
             cancellationToken: ct);
 
         // Sparse: most historical rows have none until `EnsureReferralCode`

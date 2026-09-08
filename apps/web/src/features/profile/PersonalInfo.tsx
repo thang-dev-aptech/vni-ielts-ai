@@ -1,18 +1,20 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError } from '../../lib/api.js';
-import { changeEmail, confirmEmailCode, resendVerification, setPhone } from '../../lib/session.js';
+import { changeEmail, setPhone } from '../../lib/session.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
 import { MailIcon, PhoneIcon } from '../landing/MenuIcons.js';
 
 /**
- * Email and phone, with the two things you can actually do to them.
+ * Email and phone, with the things you can actually do to them.
  *
- * <b>Email carries a verified state; phone does not — and that asymmetry is
- * the point.</b> An address is proven by a link the person clicks; a number is
- * whatever they typed, because no requirement asks for an OTP and inventing
- * one would be inventing the policy behind it. Showing a "verified" tag beside
- * both would make the honest one a lie.
+ * <b>Neither carries a verified state any more, and that is the point.</b>
+ * Until 08/09/2026 the address was the credential: it was proven by a
+ * six-digit code, and it locked once proven, because it was the way back into
+ * the account. Registration now takes a phone number, so the address is an
+ * optional contact detail like the number beside it — nothing proves either,
+ * and a tag claiming otherwise on either row would be a lie of the quiet,
+ * plausible kind.
  */
 export function PersonalInfo() {
   const { t } = useI18n();
@@ -31,38 +33,30 @@ function EmailRow() {
   const { user, accessToken, refreshUser } = useAuth();
 
   const [busy, setBusy] = useState(false);
-  /**
-   * What became of the last message this row asked for.
-   *
-   * <b>Three states, not two, and the third is the point.</b> `'sent'` means a
-   * provider took it; `'not-sent'` means the request succeeded and nothing
-   * left the server, which is what every environment does today because no
-   * email provider is configured. Collapsing the two into a boolean is how a
-   * screen ends up saying <i>"Đã gửi. Kiểm tra hộp thư của bạn"</i> about a
-   * message that does not exist — the same class of lie the autosave chip
-   * rules exist to prevent. → `M-45`
-   */
-  const [outcome, setOutcome] = useState<'idle' | 'sent' | 'not-sent'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
 
-  /*
-   * ── The six digits ──────────────────────────────────────────────────────
-   *
-   * `[QUYẾT ĐỊNH]` chủ sản phẩm, 28/08/2026. The learner is already here and
-   * already signed in, so they read the code off their phone and type it into
-   * this page — same tab, same session. A link would have opened in whatever
-   * browser the mail app chose, and on a phone that is usually an in-app
-   * webview with no session at all.
-   */
-  const [code, setCode] = useState('');
-  const [verifying, setVerifying] = useState(false);
-  const [codeError, setCodeError] = useState<string | null>(null);
-
   if (user === null) return null;
 
-  const locked = user.emailVerified;
+  /**
+   * A Google account keyed on this address needs telling before, not after.
+   *
+   * <b>What actually happens on save.</b> The account moves to the new
+   * address and the old one is freed. Next time they press "Tiếp tục với
+   * Google" with the old address, it no longer matches this account — it is
+   * free for a *new* account to be created on. Nothing is deleted and nothing
+   * warns them at that moment either; they simply find themselves in an empty
+   * account with their own name on it.
+   *
+   * Read off `providers`, not off `hasPassword`: the trap belongs to whoever
+   * signs in through Google, whether or not they also set a password.
+   */
+  /* `?? []` because the field is typed as required and is not always sent:
+     an older server, and any `/me` payload written before providers existed,
+     omit it — and a profile page that throws on a missing optional field
+     takes the whole signed-in area down with it. */
+  const googleLinked = (user.providers ?? []).includes('google');
 
   async function save(event: FormEvent) {
     event.preventDefault();
@@ -72,75 +66,16 @@ function EmailRow() {
     setError(null);
 
     try {
-      // A new address means a fresh link went to it — unless nothing is
-      // configured to send one, which the server now says outright.
-      const changed = await changeEmail(accessToken, draft);
+      // An empty box removes the address. Sent as null rather than '', so the
+      // server is never asked to guess which of the two the learner meant.
+      const trimmed = draft.trim();
+      await changeEmail(accessToken, trimmed === '' ? null : trimmed);
       await refreshUser();
       setEditing(false);
-      setOutcome(changed.verificationEmailSent ? 'sent' : 'not-sent');
     } catch (caught) {
       setError(emailError(caught, t));
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function resend() {
-    if (accessToken === null) return;
-
-    setBusy(true);
-    setError(null);
-
-    try {
-      const result = await resendVerification(accessToken);
-      setOutcome(result.verificationEmailSent ? 'sent' : 'not-sent');
-      // In case they verified in another tab while this one sat open.
-      await refreshUser();
-    } catch (caught) {
-      setError(
-        caught instanceof ApiError && caught.problem.code === 'RATE_LIMITED'
-          ? t('verifyAgain.tooOften')
-          : t('common.notConnected'),
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function confirm(event: FormEvent) {
-    event.preventDefault();
-    if (accessToken === null) return;
-
-    setVerifying(true);
-    setCodeError(null);
-
-    try {
-      await confirmEmailCode(accessToken, code);
-
-      // The tag above reads `user.emailVerified`, so the row corrects itself
-      // rather than this handler keeping a second copy of the same fact.
-      await refreshUser();
-      setCode('');
-      setOutcome('idle');
-    } catch (caught) {
-      /*
-       * <b>Three refusals, three sentences.</b> "Wrong code" sends them back
-       * to what they typed; "expired" sends them to the resend button; "too
-       * many attempts" has to explain why the code in their hand stopped
-       * working, or they will keep trying it from the same email.
-       */
-      setCodeError(
-        caught instanceof ApiError
-          ? ({
-              VERIFICATION_CODE_EXPIRED: t('verifyCode.expired'),
-              VERIFICATION_CODE_ATTEMPTS_EXCEEDED: t('verifyCode.exhausted'),
-              VERIFICATION_CODE_INCORRECT: t('verifyCode.incorrect'),
-              RATE_LIMITED: t('verifyAgain.tooOften'),
-            }[caught.problem.code] ?? t('common.notConnected'))
-          : t('common.notConnected'),
-      );
-    } finally {
-      setVerifying(false);
     }
   }
 
@@ -173,122 +108,45 @@ function EmailRow() {
               </button>
             </div>
 
+            {/* Said here rather than discovered later — the same rule the
+                phone row follows, for the same reason: clearing the box is the
+                only way back out for someone who typed the wrong address. */}
             <span className="info-hint">{t('email.changeHint')}</span>
+
+            {/*
+              <b>`role="alert"`, and it is not an error.</b> The warning is
+              rendered the moment the form opens rather than after a failed
+              save, because by the time the save has failed the account has
+              already moved. A Google learner who reads this and closes the
+              form is exactly who it is for.
+            */}
+            {googleLinked && (
+              <span className="info-hint is-warn" role="alert">
+                {t('email.googleWarning')}
+              </span>
+            )}
           </form>
         ) : (
           <span className="info-value-row">
-            <span className="profile-info-value">{user.email ?? t('profile.emailNone')}</span>
-
-            {/* No edit control once it is verified. Absent, not disabled — a
-                greyed-out button invites someone to hunt for the way to turn
-                it on, and there is no way, by design. */}
-            {!locked && (
-              <button
-                type="button"
-                className="info-action is-inline"
-                onClick={() => {
-                  setDraft(user?.email ?? '');
-                  setError(null);
-                  setOutcome('idle');
-                  setEditing(true);
-                }}
-              >
-                {t('email.change')}
-              </button>
-            )}
-          </span>
-        )}
-
-        <span className={locked ? 'profile-info-tag is-ok' : 'profile-info-tag is-warn'}>
-          {locked ? t('profile.verified') : t('profile.unverified')}
-        </span>
-
-        {!locked && outcome === 'idle' && !editing && (
-          <button
-            type="button"
-            className="info-action"
-            disabled={busy}
-            onClick={() => void resend()}
-          >
-            {busy ? t('verifyAgain.sending') : t('verifyCode.resend')}
-          </button>
-        )}
-
-        {outcome === 'sent' && (
-          <span className="info-hint" role="status">
-            {t('verifyCode.hint')}
-          </span>
-        )}
-
-        {/*
-          <b>The code box, and it is offered before the mail arrives.</b>
-          Rendering it only after a successful send would hide it from the
-          learner who asked for a code, closed the tab, and came back — the
-          code is still live for ten minutes and they have it in front of them.
-        */}
-        {!locked && !editing && (
-          <form className="verify-code" onSubmit={(e) => void confirm(e)}>
-            <input
-              type="text"
-              aria-label={t('verifyCode.label')}
-              value={code}
-              /*
-               * <b>`inputMode="numeric"` and `autoComplete="one-time-code"`.</b>
-               * The first brings up the digit keypad on a phone rather than the
-               * full keyboard; the second is what lets iOS and Android offer
-               * the code straight from the notification, so the common case is
-               * one tap and no typing at all.
-               *
-               * `maxLength` is six because the code is six — a box that accepts
-               * more invites a paste with a trailing space to spend one of the
-               * five attempts.
-               */
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              placeholder="000000"
-              // Digits only, on the way in. A stray letter would otherwise
-              // reach the server and cost an attempt for a typo.
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            />
-
-            <button
-              type="submit"
-              className="info-action is-primary"
-              disabled={verifying || code.length !== 6}
-            >
-              {verifying ? t('verifyCode.checking') : t('verifyCode.submit')}
-            </button>
-          </form>
-        )}
-
-        {codeError !== null && (
-          <span className="info-error" role="alert">
-            {codeError}
-          </span>
-        )}
-
-        {/*
-          Nothing was sent, and the screen says so instead of dressing a
-          no-op as a success. It keeps the button, because the honest next
-          step for whoever set this environment up is to read the link out of
-          the server log — and because a learner who tries again after a
-          provider is wired should not have to reload the page to do it.
-        */}
-        {outcome === 'not-sent' && (
-          <>
-            <span className="info-hint is-warn" role="status">
-              {t('verifyAgain.notSent')}
+            <span className={user.email ? 'profile-info-value' : 'profile-info-value is-empty'}>
+              {user.email ?? t('profile.emailNone')}
             </span>
+
+            {/* One control, whatever the state — "Thêm" when there is nothing
+                there, "Đổi" when there is. The lock that used to remove it
+                entirely went with the verification flow. */}
             <button
               type="button"
-              className="info-action"
-              disabled={busy}
-              onClick={() => void resend()}
+              className="info-action is-inline"
+              onClick={() => {
+                setDraft(user?.email ?? '');
+                setError(null);
+                setEditing(true);
+              }}
             >
-              {busy ? t('verifyAgain.sending') : t('verifyAgain.retry')}
+              {user.email ? t('email.change') : t('email.add')}
             </button>
-          </>
+          </span>
         )}
 
         {error !== null && (
@@ -433,7 +291,9 @@ function forDisplay(stored: string): string {
 /** Every refusal the change-email endpoint can produce, in plain words. */
 function emailError(
   caught: unknown,
-  t: (key: 'email.taken' | 'email.invalid' | 'email.locked' | 'common.notConnected') => string,
+  t: (
+    key: 'email.taken' | 'email.invalid' | 'email.signInRequired' | 'common.notConnected',
+  ) => string,
 ): string {
   if (!(caught instanceof ApiError)) return t('common.notConnected');
 
@@ -442,8 +302,15 @@ function emailError(
       return t('email.taken');
     case 'EMAIL_INVALID':
       return t('email.invalid');
-    case 'EMAIL_LOCKED':
-      return t('email.locked');
+    /*
+     * <b>The refusal that has to explain itself.</b> Removing the address
+     * would leave this account with no way to sign in at all — no number, no
+     * password, and Google keyed on the address being removed. "Không xoá
+     * được" alone would read as a bug; naming what to add first turns it into
+     * a two-step the learner can actually finish.
+     */
+    case 'SIGN_IN_METHOD_REQUIRED':
+      return t('email.signInRequired');
     default:
       return t('common.notConnected');
   }

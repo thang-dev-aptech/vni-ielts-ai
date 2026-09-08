@@ -92,7 +92,7 @@ it('still signs out when the server actually refuses the token', async () => {
 it('does not tell someone their password is wrong when the server is down', async () => {
   /*
    * `applyError`'s `default` arm mapped every unmapped code to
-   * "Email hoặc mật khẩu không đúng". During an outage that told every visitor
+   * "Số điện thoại, email hoặc mật khẩu không đúng". During an outage that told every visitor
    * their credentials were wrong — so they reset passwords that worked, and
    * then called support.
    */
@@ -108,7 +108,10 @@ it('does not tell someone their password is wrong when the server is down', asyn
 
   open('/login');
 
-  await userEvent.type(await screen.findByLabelText(/Email/), 'dao@example.com');
+  await userEvent.type(
+    await screen.findByLabelText(/số điện thoại hoặc email/i),
+    'dao@example.com',
+  );
   await userEvent.type(screen.getByLabelText(/Mật khẩu/), 'correct-horse-battery');
   await userEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
 
@@ -133,7 +136,7 @@ it('answers an empty sign-in form itself instead of asking the server', async ()
   open('/login');
   await userEvent.click(await screen.findByRole('button', { name: 'Đăng nhập' }));
 
-  expect(await screen.findByText('Vui lòng nhập email.')).toBeInTheDocument();
+  expect(await screen.findByText('Vui lòng nhập số điện thoại hoặc email.')).toBeInTheDocument();
   expect(fetchMock.mock.calls.every(([url]) => !String(url).includes('/auth/login'))).toBe(true);
 });
 

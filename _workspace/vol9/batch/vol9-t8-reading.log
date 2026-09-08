@@ -1,0 +1,18 @@
+source     TEST 8-R.docx
+sandbox    /Users/metacom/Documents/VNI/VNI IELTS AI/Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING
+key        KEY - EXPLAINATION/KEY TEST 8-R.docx (250 characters)
+extracted  23.263 characters, classification RightsCleared
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[100] Start processing HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[100] Sending HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[101] Received HTTP response headers after 2611.5916ms - 200
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[101] End processing HTTP request after 2641.0126ms - 200
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam parse stream opened after headers.
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by gpt-5.4, request chatcmpl-202609031948005225343778268d9d6exnP9aaf, prompt exam-parse-prompt-v7, attempt 1, 9704 in / 9388 out.
+parsed     44.009 characters by OpenAi/gpt-5.4, request chatcmpl-202609031948005225343778268d9d6exnP9aaf
+kept       reading section only
+written    /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t8-reading.json
+foreign parts dropped
+key read   40 entr(ies) covering 40 mark(s)
+key applied /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t8-reading.json
+section    Reading: 40 question(s), 40 auto-scored mark(s)
+publication=not attempted (this tool never publishes)

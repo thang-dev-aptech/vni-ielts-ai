@@ -166,6 +166,7 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 ### AI
 - [`ai/ai-architecture.md`](ai/ai-architecture.md) — evaluation subsystem and ports. Reading/Listening are deterministic; Speaking is UNCONFIRMED
 - [`ai/speaking-pipeline.md`](ai/speaking-pipeline.md) — the expensive path, in detail. **Scope UNCONFIRMED since 2026-08-20** (M-26)
+- [`ai/speaking-ai-implementation-report.md`](ai/speaking-ai-implementation-report.md) — **PROPOSED** implementation-ready synthesis: hybrid evidence pipeline, current-code risks, contracts, calibration gates and post-MVP rollout
 - [`ai/cost-model.md`](ai/cost-model.md) — cost drivers and optimisation levers
 - [`ai/provider-comparison.md`](ai/provider-comparison.md) — **LLM: GPT + Gemini, selected 2026-08-20**. Speech-to-text still open
 - [`ai/output-contracts.md`](ai/output-contracts.md) — structured output schemas and validation rules
@@ -223,11 +224,12 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 | [0010](decisions/0010-documentation-source-of-truth.md) | `docs/` canonical; tool configs point, never duplicate | Accepted |
 | [0011](decisions/0011-mongodb-single-node-replica-set.md) | MongoDB single-node replica set for local/dev | Accepted |
 | [0012](decisions/0012-learner-first-sequencing.md) | Learner-first sequencing | Accepted |
-| [0013](decisions/0013-one-email-one-account-silent-linking.md) | One email, one account; no silent linking | Accepted |
+| [0013](decisions/0013-one-email-one-account-silent-linking.md) | One email, one account; no silent linking | **Superseded** by [0018](decisions/0018-email-as-a-movable-account-label.md) |
 | [0014](decisions/0014-backend-mediated-oidc-handoff-code.md) | Backend-mediated OIDC handoff code | Accepted |
 | [0015](decisions/0015-answer-sheet-closure-protocol.md) | Answer-sheet closure protocol | Accepted |
 | [0016](decisions/0016-object-storage-one-bucket-prefix-per-class.md) | Object storage: one bucket, prefix per class | Accepted |
 | [0017](decisions/0017-exam-version-author-review-import-seams.md) | Nullable `AuthorId`; five review statuses; structured-only HTTP import | Accepted |
+| [0018](decisions/0018-email-as-a-movable-account-label.md) | **The email address is a movable account label, not a permanent identity** — supersedes 0013 | Accepted |
 
 New ADRs: use `/adr` — it handles numbering and format. Template: [`ADR-template.md`](decisions/ADR-template.md).
 

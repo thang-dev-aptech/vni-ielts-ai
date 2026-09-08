@@ -34,8 +34,8 @@ const me = {
  *
  * Not a detail. StrictMode double-invokes effects, and a bug that only appears
  * under double invocation is a bug real users hit in development builds and
- * that behaves differently in production — the worst kind to miss. The email
- * verification page shipped exactly that defect because the test rendered
+ * that behaves differently in production — the worst kind to miss. The old
+ * email verification page shipped exactly that defect because the test rendered
  * <App/> bare while the app renders it wrapped.
  */
 function render(ui: React.ReactElement) {
@@ -104,7 +104,10 @@ describe('a signed-out visitor', () => {
     render(<App />);
 
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText(/^email$/i), 'a@example.com');
+    await user.type(
+      await screen.findByLabelText(/(số điện thoại hoặc email|phone number or email)/i),
+      'a@example.com',
+    );
     await user.type(screen.getByLabelText(/^(mật khẩu|password)$/i), 'mat-khau-du-dai-2026');
     await user.click(screen.getByRole('button', { name: /^(đăng nhập|sign in)$/i, hidden: false }));
 
@@ -128,36 +131,31 @@ describe('a signed-out visitor', () => {
     render(<App />);
 
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText(/^email$/i), 'a@example.com');
+    await user.type(
+      await screen.findByLabelText(/(số điện thoại hoặc email|phone number or email)/i),
+      'a@example.com',
+    );
     await user.type(screen.getByLabelText(/^(mật khẩu|password)$/i), 'mat-khau-du-dai-2026');
     await user.click(screen.getByRole('button', { name: /^(đăng nhập|sign in)$/i, hidden: false }));
 
     await waitFor(() => expect(window.location.pathname).toBe('/'));
   });
 
-  it('reports a rejected verification token instead of spinning forever', async () => {
-    // The regression this pins: the page sat on "verifying" while the API had
-    // already answered 400, because an effect cleanup discarded the result.
-    mockFetch(() =>
-      json({ code: 'VERIFICATION_TOKEN_INVALID', detail: 'no longer valid', status: 400 }, 400),
-    );
-    window.history.pushState({}, '', '/verify-email?token=da-dung-roi');
-
-    render(<App />);
-
-    expect(await screen.findByText(/không còn hiệu lực|no longer valid/i)).toBeInTheDocument();
-    expect(screen.queryByText(/đang xác minh|verifying/i)).not.toBeInTheDocument();
-  });
-
-  it('can reach the verification page without a session', async () => {
-    // The link arrives by email. Requiring a session to open it would strand
-    // anyone who verifies from a different device.
-    mockFetch(() => json({ userId: 'user-1', emailVerified: true }));
+  it('has no verification page left to reach', async () => {
+    /*
+     * <b>Removed with the feature, not merely unlinked.</b> Email verification
+     * went on 08/09/2026, and a route that still rendered would be a page
+     * calling an endpoint the API no longer serves — the kind of thing that
+     * survives because nothing points at it and nothing tests it.
+     */
+    mockFetch(() => json({ code: 'NOT_FOUND', status: 404, title: '', detail: '' }, 404));
     window.history.pushState({}, '', '/verify-email?token=abc');
 
     render(<App />);
 
-    expect(await screen.findByText(/đã được xác minh|has been verified/i)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(screen.queryByText(/đang xác minh|verifying/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/đã được xác minh|has been verified/i)).not.toBeInTheDocument();
   });
 });
 

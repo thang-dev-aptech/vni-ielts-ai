@@ -158,6 +158,11 @@
         }
       ]
     },
+    "bandTableProvenance": {
+      "status": "equated",
+      "source": "Cambridge IELTS 17 Academic, Test 3 — bảng quy đổi điểm (band score conversion) in kèm bộ đề, Cambridge University Press",
+      "note": "Bảng do Cambridge công bố cho các đề trong sách; Cambridge ghi chú là điểm quy đổi gần đúng (approximate). Khai equated ngày 2026-09-08 theo yêu cầu chủ sản phẩm để Reading/Listening hiện band."
+    },
     "answerMatching": {
       "caseSensitive": false,
       "trimWhitespace": true,

@@ -21,7 +21,13 @@ public sealed record ExplanationGenerationRequest(
     string ExpectedAnswer,
     string? LearnerAnswer,
     string? PassageOrTranscript,
-    bool Personalized);
+    bool Personalized,
+    /// <summary>
+    /// The question's options, one per line as <c>A. text</c>, or null when the
+    /// question has none. Without them the model cannot translate a
+    /// multiple-choice item or quote its options as prompt-sourced evidence.
+    /// </summary>
+    string? QuestionOptions = null);
 
 public sealed record ExplanationGenerationResult(
     bool IsSuccess,
@@ -87,4 +93,11 @@ public sealed record PersonalizedExplanationJob(
     int Attempts,
     string? Error,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? CompletedAt);
+    DateTimeOffset? CompletedAt,
+    /// <summary>
+    /// When the current (or last) provider call began. What tells a job that
+    /// is genuinely running apart from one whose process died mid-call and
+    /// left it saying "Running" forever. Null on records written before it
+    /// existed, which then fall back to <see cref="CreatedAt"/>.
+    /// </summary>
+    DateTimeOffset? StartedAt = null);

@@ -259,6 +259,7 @@ function mockApi() {
             shortReason: 'The passage identifies cartography as the relevant field.',
             evidence: ['The History of Cartography'],
             commonMistake: 'Do not answer with the whole sentence.',
+            translation: 'Câu hỏi: lĩnh vực nào được nhắc đến? — Bản đồ học.',
           },
         });
       }
@@ -316,7 +317,7 @@ afterEach(() => {
 });
 
 it('lists the exams and opens a single-skill sitting', async () => {
-  open('/practice');
+  open('/students/practice/workspace');
 
   expect(await screen.findByText('Academic Practice Test 1')).toBeInTheDocument();
 
@@ -340,13 +341,12 @@ it('lists the exams and opens a single-skill sitting', async () => {
   await userEvent.click(within(card).getByRole('button', { name: /Bắt đầu Reading/ }));
 
   // Straight to the paper. Not the dashboard — the learner pressed "bắt đầu".
-  await waitFor(() => expect(window.location.pathname).toBe('/students/session/sit-1'));
+  await waitFor(() => expect(window.location.pathname).toBe('/exam/sit-1'));
 });
 
 it('selects a skill from the address bar, and puts a chosen skill back into it', async () => {
-  // `/practice?skill=writing` is a link someone can send, and it is what the
-  // four cards in "Bạn có thể luyện gì" further down the page point at.
-  open('/practice?skill=writing');
+  // `/students/practice/workspace?skill=writing` selects the skill in the workspace.
+  open('/students/practice/workspace?skill=writing');
 
   const picker = await screen.findByRole('radiogroup', { name: /Chọn kỹ năng/ });
   expect(within(picker).getByRole('radio', { name: /Writing/ })).toHaveAttribute(
@@ -377,7 +377,7 @@ it('says so when an exam cannot be sat as a full test', async () => {
   // session, so this exam cannot be sat in full — and the reader has to be
   // told why the list is shorter than the catalogue, or they go hunting for a
   // setting that does not exist.
-  open('/practice');
+  open('/students/practice/workspace');
 
   // Two pressed-state buttons, not a tablist: there is no tabpanel on this
   // page, and `role="tab"` promised a panel and arrow keys that never existed.
@@ -410,7 +410,7 @@ it('never offers a filter count it cannot deliver', async () => {
   // "General Training" (2 results) and "Dưới 20 phút" still showed 2, then
   // returned nothing. A count that promises N and delivers 0 is worse than no
   // count, because the reader acted on it.
-  open('/practice');
+  open('/students/practice/workspace');
 
   await screen.findByText('Academic Practice Test 1');
 
@@ -430,7 +430,7 @@ it('never offers a filter count it cannot deliver', async () => {
 });
 
 it('gives a sitting no way out of itself', async () => {
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   await screen.findByText('The History of Cartography');
 
@@ -445,7 +445,7 @@ it('gives a sitting no way out of itself', async () => {
 });
 
 it('does not claim an answer is saved until the server says so', async () => {
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
   await screen.findByText('The History of Cartography');
 
   /*
@@ -483,7 +483,7 @@ it('does not claim an answer is saved until the server says so', async () => {
 it('renders the canonical three answers for True/False/Not Given', async () => {
   // The package omits them, because those three responses are what the
   // question type is rather than something an author chooses.
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
   await screen.findByText('The History of Cartography');
 
   for (const option of ['TRUE', 'FALSE', 'NOT GIVEN']) {
@@ -491,37 +491,72 @@ it('renders the canonical three answers for True/False/Not Given', async () => {
   }
 });
 
-it('shows a dash for the overall band until all four skills are marked', async () => {
-  open('/practice/results/sit-1');
+/**
+ * <b>A band that was never awarded is never drawn as a number.</b>
+ *
+ * The default fixture is a single Reading sitting whose exam version has not
+ * had its table equated, so `P-11` withholds the band even though the scorer
+ * computed 4.5. The hero shows an em dash and the reason beside it — never
+ * `0.0`, never a skeleton that reads like a number arriving. → product law L3
+ */
+it('shows a dash, and the reason, when the band table is not verified', async () => {
+  open('/results/sit-1');
 
-  expect(await screen.findByText('Điểm tổng')).toBeInTheDocument();
-  expect(document.querySelector('.result-overall-value')).toHaveTextContent('—');
-  expect(screen.getByText(/chỉ có khi đủ cả bốn kỹ năng/)).toBeInTheDocument();
+  expect(await screen.findByText('Overall Band Score (Reading)')).toBeInTheDocument();
+  expect(document.querySelector('.exs-score-value')).toHaveTextContent('—');
+  expect(screen.getByText(/bảng quy đổi của đề này chưa được xác minh/)).toBeInTheDocument();
 
-  // The marked section says what the answer key actually supports — the count
-  // — and where it came from. An answer-key band and an AI band must never
-  // look interchangeable.
-  const row = screen.getByText('Reading').closest('li')!;
-  expect(within(row).getByText('Đúng 1/2 câu')).toBeInTheDocument();
-  expect(within(row).getByText('Chấm theo đáp án')).toBeInTheDocument();
+  // What the answer key actually supports — the count — is still shown.
+  expect(screen.getByText('1/2')).toBeInTheDocument();
 });
 
-it('shows results under the practice chrome, not the student dashboard', async () => {
-  open('/practice/results/sit-1');
+it('is a standalone page, not one wrapped in the student dashboard', async () => {
+  open('/results/sit-1');
 
-  await screen.findByText('Điểm tổng');
+  await screen.findByText('Overall Band Score (Reading)');
 
-  expect(window.location.pathname).toBe('/practice/results/sit-1');
+  expect(window.location.pathname).toBe('/results/sit-1');
   expect(screen.getByRole('navigation', { name: 'Đường dẫn' })).toBeInTheDocument();
   expect(document.querySelector('.result-page')).not.toBeNull();
   expect(document.querySelector('.dash-main')).toBeNull();
+  expect(document.querySelector('.dash-rail')).toBeNull();
 });
 
-it('sends old result bookmarks to the practice results page', async () => {
+/**
+ * Both addresses the sitting and its result used to have.
+ *
+ * `/exam/:attemptId` and `/results/:attemptId` replaced them on 08/09/2026.
+ * A learner mid-paper with a bookmarked tab, and anyone holding a link to a
+ * result, are exactly the people a redirect exists for.
+ */
+it('sends old sitting and result bookmarks to their new addresses', async () => {
   open('/students/session/sit-1/results');
+  await waitFor(() => expect(window.location.pathname).toBe('/results/sit-1'));
+  expect(await screen.findByText('Overall Band Score (Reading)')).toBeInTheDocument();
+});
 
-  await waitFor(() => expect(window.location.pathname).toBe('/practice/results/sit-1'));
-  expect(await screen.findByText('Điểm tổng')).toBeInTheDocument();
+it('sends the old practice results address to the new one', async () => {
+  open('/practice/results/sit-1');
+  await waitFor(() => expect(window.location.pathname).toBe('/results/sit-1'));
+  expect(await screen.findByText('Overall Band Score (Reading)')).toBeInTheDocument();
+});
+
+it('sends the old sitting address to the new one', async () => {
+  open('/students/session/sit-1');
+  await waitFor(() => expect(window.location.pathname).toBe('/exam/sit-1'));
+  expect(await screen.findByText('The History of Cartography')).toBeInTheDocument();
+});
+
+/**
+ * Luyện đề used to have its own address, `/students/practice/:sessionId` —
+ * `[QUYẾT ĐỊNH]` chủ sản phẩm, 08/09/2026 collapsed it into `/exam/:attemptId`
+ * for every sitting, timed or open-clock. A learner with this bookmarked, or
+ * a link sent before the change, still has to land on the paper.
+ */
+it('sends the old luyện đề address to the new one', async () => {
+  open('/students/practice/sit-1');
+  await waitFor(() => expect(window.location.pathname).toBe('/exam/sit-1'));
+  expect(await screen.findByText('The History of Cartography')).toBeInTheDocument();
 });
 
 /**
@@ -561,7 +596,7 @@ it('withholds Reading and Listening bands until their band tables are verified',
     ],
   };
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
   const readingRow = (await screen.findByText('Reading')).closest('li')!;
   const listeningRow = screen.getByText('Listening').closest('li')!;
@@ -590,17 +625,14 @@ it('shows the Reading band once the exam version marks its table verified', asyn
     sections: [{ ...results.sections[0], bandVerified: true }],
   };
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
-  const row = (await screen.findByText('Reading')).closest('li')!;
+  await screen.findByText('Overall Band Score (Reading)');
 
-  expect(within(row).getByText('4.5')).toBeInTheDocument();
-  // Verified: the band table reason has nothing to explain any more.
-  expect(
-    within(row).queryByText('Band đang ẩn vì bảng quy đổi của đề này chưa được xác minh.'),
-  ).toBeNull();
-  // Reading is still answer-key, never AI — the tag must not flip.
-  expect(within(row).getByText('Chấm theo đáp án')).toBeInTheDocument();
+  // The band, in the hero, where the reference puts it.
+  expect(document.querySelector('.exs-score-value')).toHaveTextContent('4.5');
+  // Verified: the band-table reason has nothing to explain any more.
+  expect(screen.queryByText(/bảng quy đổi của đề này chưa được xác minh/)).toBeNull();
 });
 
 it('submits once however many times the button is pressed', async () => {
@@ -614,7 +646,7 @@ it('submits once however many times the button is pressed', async () => {
    * three carried a different key and the server's idempotency store could not
    * collapse them. That is precisely the mechanism the key exists to defeat.
    */
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
   await screen.findByText('The History of Cartography');
 
   await userEvent.click(screen.getByRole('button', { name: 'Nộp bài' }));
@@ -668,7 +700,7 @@ it('reports a failed submission out loud, not through the autosave chip', async 
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
   await screen.findByText('The History of Cartography');
 
   await confirmSubmit();
@@ -686,7 +718,7 @@ it('names every answer field by its own question', async () => {
    * screen-reader user navigating by form field heard one identical phrase
    * over and over with no way to tell which question they were on.
    */
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
   await screen.findByText('The History of Cartography');
 
   expect(screen.getByRole('textbox', { name: /Câu hỏi 1/ })).toBeInTheDocument();
@@ -702,7 +734,7 @@ it('never lets the browser correct the thing being marked', async () => {
    * letter of every field, so "medicine" arrives as "Medicine" and is marked
    * wrong — the browser corrupting the construct being measured.
    */
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
   await screen.findByText('The History of Cartography');
 
   const field = screen.getByRole('textbox', { name: /Câu hỏi 1/ });
@@ -720,20 +752,25 @@ it('shows what was answered question by question, without the answer key', async
    * The right answers stay off the page on purpose: the key never reaches the
    * client, which is what lets the same paper be sat again. → `A-11`
    */
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
-  const trigger = await screen.findByRole('button', { name: /Xem lại từng câu · Reading/ });
-  expect(trigger).toHaveAttribute('aria-expanded', 'false');
-
-  await userEvent.click(trigger);
+  // The review is the page's own section now, not an accordion to open.
+  await screen.findByText('Chi tiết câu trả lời');
 
   expect(screen.getByText('cartography')).toBeInTheDocument();
-  // A blank answer is named, not rendered as an empty cell.
-  expect(screen.getAllByText('bỏ trống').length).toBeGreaterThan(0);
-  expect(screen.getByText(/không thay đổi điểm đã chấm theo đáp án/)).toBeInTheDocument();
+  // A blank answer is drawn as an absence, and its row still says "Sai".
+  const rows = document.querySelectorAll('.exs-row');
+  expect(rows).toHaveLength(2);
+  expect(rows[0]).toHaveAttribute('data-verdict', 'right');
+  expect(rows[1]).toHaveAttribute('data-verdict', 'blank');
 });
 
-it('requests and shows a post-submit explanation without changing the score', async () => {
+it('opening a row is what asks for its translation and explanation', async () => {
+  /*
+   * `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026: "phần vì sao đúng bỏ luôn — khi
+   * ấn vào xem từng câu sẽ có dịch và giải thích luôn". There is no second
+   * button; expanding the row is the request.
+   */
   resultsPayload = {
     ...results,
     explanationStatuses: [
@@ -741,34 +778,44 @@ it('requests and shows a post-submit explanation without changing the score', as
     ],
   };
 
-  open('/practice/results/sit-1');
-  await userEvent.click(await screen.findByRole('button', { name: /Xem lại từng câu/ }));
+  open('/results/sit-1');
+  await screen.findByText('Chi tiết câu trả lời');
 
-  await userEvent.click(screen.getAllByRole('button', { name: 'Vì sao đúng?' })[0]!);
+  // Expanding one row is what asks for its explanation — the payload does not
+  // carry forty of them, and a reader opens two or three.
+  await userEvent.click(document.querySelectorAll<HTMLElement>('.exs-row-main')[0]!);
+  expect(screen.queryByRole('button', { name: 'Vì sao đúng?' })).toBeNull();
 
   const correctAnswerLabel = await screen.findByText('Đáp án đúng:');
   expect(correctAnswerLabel).toBeInTheDocument();
   expect(within(correctAnswerLabel.closest('p')!).getByText('cartography')).toBeInTheDocument();
   expect(screen.getByText(/identifies cartography/)).toBeInTheDocument();
+  // The translation comes with it, labelled as such.
+  expect(screen.getByText('Dịch')).toBeInTheDocument();
+  expect(screen.getByText(/Bản đồ học/)).toBeInTheDocument();
   expect(explanationCalls).toBe(1);
 
-  const row = screen.getByText('Reading').closest('li')!;
-  expect(within(row).getByText('Đúng 1/2 câu')).toBeInTheDocument();
-  expect(within(row).queryByText('4.5')).toBeNull();
-  expect(screen.getByText(/không thay đổi điểm/)).toBeInTheDocument();
+  // Closing and reopening the row does not ask again.
+  await userEvent.click(document.querySelectorAll<HTMLElement>('.exs-row-main')[0]!);
+  await userEvent.click(document.querySelectorAll<HTMLElement>('.exs-row-main')[0]!);
+  await screen.findByText('Đáp án đúng:');
+  expect(explanationCalls).toBe(1);
+
+  // The band did not move. `P-11` still withholds it on this fixture.
+  expect(document.querySelector('.exs-score-value')).toHaveTextContent('—');
 });
 
 it('says right and wrong with a shape, not only a colour', async () => {
-  open('/practice/results/sit-1');
-  await userEvent.click(await screen.findByRole('button', { name: /Xem lại từng câu/ }));
+  open('/results/sit-1');
+  await screen.findByText('Chi tiết câu trả lời');
 
-  const chips = document.querySelectorAll('.result-q');
-  expect(chips).toHaveLength(2);
-  // The glyph carries the verdict for anyone who cannot separate the two
-  // grounds, and the sr-only line carries it for anyone who sees neither.
-  expect(chips[0]!.textContent).toContain('✓');
-  expect(chips[1]!.textContent).toContain('✕');
-  expect(chips[1]!.textContent).toContain('sai');
+  const rows = document.querySelectorAll('.exs-row');
+  expect(rows).toHaveLength(2);
+
+  // The word is in the row, not only the ground under it — so the verdict
+  // survives the greyscale test and reaches a screen reader unchanged.
+  expect(within(rows[0] as HTMLElement).getByText('Đúng')).toBeInTheDocument();
+  expect(within(rows[1] as HTMLElement).getByText('bỏ trống')).toBeInTheDocument();
 });
 
 /*
@@ -881,7 +928,7 @@ function openGrouped() {
     }),
   );
 
-  return open('/students/session/sit-2');
+  return open('/exam/sit-2');
 }
 
 it('shows the bank of headings above the questions, not only inside them', async () => {
@@ -1094,7 +1141,7 @@ it('shows both Writing task bands rather than an average of them', async () => {
 
   resultsPayload = marked;
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
   expect(await screen.findByText('6.5 · 7.0')).toBeInTheDocument();
 
@@ -1152,7 +1199,7 @@ it('shows the combined Writing band beside the two task bands, once it exists', 
     writingBandReason: null,
   };
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
   await userEvent.click(await screen.findByRole('button', { name: /Xem nhận xét · Writing/ }));
 
@@ -1193,7 +1240,7 @@ it.each([
     writingBandReason: reason,
   };
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
   await userEvent.click(await screen.findByRole('button', { name: /Xem nhận xét · Writing/ }));
 
@@ -1238,7 +1285,7 @@ it('tags a band as AI-advisory from which list it came on, not from the module n
     writingBandReason: null,
   };
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
   const row = (await screen.findByText('Listening')).closest('li')!;
   expect(within(row).getByText('AI chấm · tham khảo')).toBeInTheDocument();
@@ -1250,7 +1297,7 @@ it('tags a band as AI-advisory from which list it came on, not from the module n
  * `QuestionResultView` alone cannot carry, and the essay text Writing has no
  * `QuestionResultView` to hold at all.
  */
-it('shows the passage and the learner\'s own essay text, post-submit', async () => {
+it("shows the passage and the learner's own essay text, post-submit", async () => {
   resultsPayload = {
     ...results,
     mode: 'full',
@@ -1309,12 +1356,14 @@ it('shows the passage and the learner\'s own essay text, post-submit', async () 
             ],
           },
         ],
-        submissions: { 'w-2': 'In my view, funding should be shared between the state and families.' },
+        submissions: {
+          'w-2': 'In my view, funding should be shared between the state and families.',
+        },
       },
     ],
   };
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
   await userEvent.click(await screen.findByRole('button', { name: /Xem lại đề bài · Reading/ }));
   expect(
@@ -1381,12 +1430,14 @@ it('fetches a presigned playback URL on demand and hands it to the player', asyn
     ],
   };
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
   await userEvent.click(await screen.findByRole('button', { name: /Xem lại đề bài · Speaking/ }));
   await userEvent.click(screen.getByRole('button', { name: 'Nghe lại' }));
 
-  await waitFor(() => expect(playbackCalls.some((u) => u.includes('/recordings/sp-1/playback'))).toBe(true));
+  await waitFor(() =>
+    expect(playbackCalls.some((u) => u.includes('/recordings/sp-1/playback'))).toBe(true),
+  );
 
   const player = await screen.findByRole('button', { name: 'Nghe lại' }).catch(() => null);
   // The button is replaced by the player once the URL lands, not left beside it.
@@ -1419,7 +1470,7 @@ it.each([
     explanationStatuses: [],
   };
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
   expect(await screen.findByText(/Writing:/)).toBeInTheDocument();
   expect(screen.getByText(message)).toBeInTheDocument();
@@ -1443,7 +1494,7 @@ it('puts the Speaking pending reason beside its dash', async () => {
     explanationStatuses: [],
   };
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
   const row = (await screen.findByText('Speaking')).closest('li')!;
   expect(within(row).getByText('Chưa chấm')).toBeInTheDocument();
@@ -1487,7 +1538,7 @@ it('drops the pending notice for a skill once its marking arrives', async () => 
 
   resultsPayload = marked;
 
-  open('/practice/results/sit-1');
+  open('/results/sit-1');
 
   expect(await screen.findByText('6.0')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /Kiểm tra lại/ })).toBeNull();
@@ -1563,7 +1614,7 @@ it("takes in another tab's answer without disturbing the one being typed", async
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   const field = await screen.findByRole('textbox');
   await userEvent.type(field, 'cartography');
@@ -1637,7 +1688,7 @@ it('sends only the questions that changed, and a cleared one as null', async () 
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   const field = await screen.findByRole('textbox');
   await userEvent.type(field, 'maps');
@@ -1702,7 +1753,7 @@ it.each([
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   const field = await screen.findByRole('textbox');
   await userEvent.type(field, 'cartography');
@@ -1763,7 +1814,7 @@ it('does not advance when the final save fails', async () => {
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   const field = await screen.findByRole('textbox');
   await userEvent.type(field, 'cartography');
@@ -1833,7 +1884,7 @@ it('does not report a failure when a submit meets its own key still in flight', 
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   await screen.findByRole('textbox');
   await confirmSubmit();
@@ -1851,7 +1902,8 @@ it('does not report a failure when a submit meets its own key still in flight', 
    * after `vi.unstubAllGlobals()` had put the real `fetch` back. → the network
    * gate in `test-setup.ts`
    */
-  await screen.findByRole('heading', { name: 'Academic Practice Test 1', level: 1 });
+  // Landed on the result page: the paper is named under its heading.
+  await screen.findByText('Đề thi: Academic Practice Test 1');
 }, 20_000);
 
 /**
@@ -1910,7 +1962,7 @@ it.each([
       }),
     );
 
-    open('/students/session/sit-1');
+    open('/exam/sit-1');
 
     const field = await screen.findByRole('textbox');
     await userEvent.type(field, 'cartography');
@@ -1928,7 +1980,8 @@ it.each([
      * after `vi.unstubAllGlobals()` had put the real `fetch` back. → the network
      * gate in `test-setup.ts`
      */
-    await screen.findByRole('heading', { name: 'Academic Practice Test 1', level: 1 });
+    // Landed on the result page: the paper is named under its heading.
+    await screen.findByText('Đề thi: Academic Practice Test 1');
   },
   20_000,
 );
@@ -1997,7 +2050,7 @@ it('does not call an in-flight edit saved because an older save came back', asyn
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   const field = await screen.findByRole('textbox');
   await userEvent.type(field, 'first');
@@ -2126,7 +2179,7 @@ it('keeps one autosave in flight at a time however fast the learner types', asyn
     }),
   );
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
 
   const field = await screen.findByRole('textbox');
   await userEvent.type(field, 'abcd');

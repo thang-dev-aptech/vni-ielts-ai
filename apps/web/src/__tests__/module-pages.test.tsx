@@ -119,7 +119,9 @@ it('narrows the library by skill, and says how many are left', async () => {
   await userEvent.click(within(skillGroup).getByRole('radio', { name: 'Writing' }));
 
   const writing = TEST_DOCUMENTS.filter((doc) => doc.skill === 'writing');
-  await waitFor(() => expect(screen.getByRole('status').textContent).toContain(String(writing.length)));
+  await waitFor(() =>
+    expect(screen.getByRole('status').textContent).toContain(String(writing.length)),
+  );
 
   // Card titles are h3. Featured (free + isFeatured) may appear once more as
   // the featured block, so compare the set of visible card titles.

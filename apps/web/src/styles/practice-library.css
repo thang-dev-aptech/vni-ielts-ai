@@ -1,0 +1,1347 @@
+/* ==========================================================================
+   THƯ VIỆN BỘ ĐỀ — /students/practice/categories · /categories/:slug
+                     · /sets/:id · /tests/:id
+   ==========================================================================
+
+   <b>Bốn trang này trước đó không có CSS.</b> Chúng dựng markup bằng một bộ
+   class (`prac-section`, `prac-set-card`, `prac-tile`, `prac-chip`,
+   `prac-module-row`, `dash-page`, và `pager` của component `Pagination`) mà
+   không stylesheet nào trong dự án khai báo — `practice.css` đã bị viết lại
+   thành trang marketing `/practice` v2 và mang theo những khai báo đó đi,
+   `practice-hub.css` thì chỉ phục vụ `/students/practice`. Kết quả: một chuỗi
+   thẻ trần, không lưới, không thẻ, không nút.
+
+   <b>File này giờ là hệ thiết kế của cả khu luyện đề — bốn trang thư viện
+   *và* màn chọn.</b> Nó bắt đầu bằng cách bám theo bảng màu `practice-hub.css`
+   đang dùng, rồi nhận luôn phần đó khi hub được viết lại thành màn chọn
+   (08/09/2026) và stylesheet cũ rút xuống còn mỗi dải "không gian luyện tập".
+   Một hệ màu thứ hai giữa hai màn hình liền kề là lỗi, không phải phong cách.
+   Nên: nền trắng trên slate,
+   nhấn emerald #059669, bo 16px cho thẻ và 10–12px cho control, viền
+   #e2e8f0, hover nâng 3px. Các giá trị hex viết thẳng — cùng lý do file hub
+   viết thẳng: chúng là một hệ đóng cho khu vực luyện đề, còn token
+   `--acc`/`--page` là hệ chung của toàn site và trộn hai hệ vào một thẻ là
+   cách nhanh nhất để không hệ nào còn đúng.
+
+   `.pager` được khai báo ở đây <b>không giới hạn phạm vi</b>, có chủ đích:
+   `Pagination` là component dùng chung (thư viện đề, tài liệu, bài viết,
+   dictation) và hiện không có bất kỳ khai báo nào trong toàn bộ bundle. Một
+   nơi định nghĩa, mọi nơi dùng — đúng như comment trong `module-pages.css` đã
+   chốt khi gỡ pager riêng của trang bài viết.
+   ========================================================================== */
+
+:root {
+  --prac-ink: #0f172a;
+  --prac-ink-2: #334155;
+  --prac-muted: #475569;
+  --prac-muted-2: #64748b;
+  --prac-faint: #94a3b8;
+  --prac-line: #e2e8f0;
+  --prac-line-2: #cbd5e1;
+  --prac-surface: #ffffff;
+  --prac-surface-2: #f8fafc;
+  --prac-brand: #059669;
+  --prac-brand-ink: #047857;
+  --prac-brand-tint: #ecfdf5;
+  --prac-brand-tint-2: #f0fdf4;
+  --prac-brand-line: #86efac;
+  --prac-shadow: 0 1px 3px rgb(15 23 42 / 4%);
+  --prac-shadow-lift: 0 12px 28px -8px rgb(15 23 42 / 12%);
+  --prac-ring: 0 0 0 3px rgb(5 150 105 / 22%);
+  --prac-r-card: 16px;
+  --prac-r-control: 10px;
+}
+
+/* ── Khung trang ─────────────────────────────────────────────────────────
+ *
+ * `.dash-page` là class mà cả năm trang khu học sinh khai báo trong markup và
+ * chưa từng có luật nào. Không có nó, nội dung chạy sát mép trái của
+ * `.shell-body` và trải hết chiều ngang màn hình 27".
+ */
+.dash-page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 32px 64px;
+  box-sizing: border-box;
+  color: var(--prac-ink);
+}
+
+/*
+ * Breadcrumb dùng chung vẽ một dải trắng có viền dưới — đúng cho trang công
+ * khai chạy hết chiều ngang, sai bên trong một trang đã có đệm và nền riêng.
+ * Ở đây nó là một dòng chỉ đường, không phải một dải.
+ */
+.dash-page > .crumbs {
+  margin-bottom: 20px;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.dash-page > .crumbs .container {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}
+
+.dash-page > .crumbs ol {
+  padding: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.dash-page > .crumbs a {
+  color: var(--prac-muted-2);
+  text-decoration: none;
+}
+
+.dash-page > .crumbs a:hover {
+  color: var(--prac-brand);
+  text-decoration: underline;
+}
+
+.dash-page > .crumbs [aria-current='page'] {
+  color: var(--prac-ink);
+  font-weight: 700;
+}
+
+/* ── Liên kết quay lại ───────────────────────────────────────────────────
+ *
+ * `practice.css` đã có `.prac-back-link` với màu xanh dương `--acc`; trong khu
+ * thư viện đề nó phải cùng họ với mọi affordance khác trên trang.
+ */
+.prac-category-page .prac-back-link,
+.prac-set-page .prac-back-link,
+.prac-test-page .prac-back-link {
+  margin-bottom: 14px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 9999px;
+  color: var(--prac-muted);
+  font-size: 13.5px;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.prac-category-page .prac-back-link:hover,
+.prac-set-page .prac-back-link:hover,
+.prac-test-page .prac-back-link:hover {
+  background: var(--prac-brand-tint);
+  color: var(--prac-brand-ink);
+}
+
+.prac-category-page .prac-back-link span,
+.prac-set-page .prac-back-link span,
+.prac-test-page .prac-back-link span {
+  transition: transform 0.15s ease;
+}
+
+.prac-category-page .prac-back-link:hover span,
+.prac-set-page .prac-back-link:hover span,
+.prac-test-page .prac-back-link:hover span {
+  transform: translateX(-3px);
+}
+
+/* ── Đầu trang ───────────────────────────────────────────────────────────
+ *
+ * `.page-head` và `.dash-eyebrow/-greeting/-lead` đã có sẵn trong
+ * `app-shell.css` / `dashboard.css`; ở đây chỉ chỉnh nhịp và màu nhấn cho
+ * khớp hệ emerald của khu luyện đề.
+ */
+.prac-categories-page .page-head,
+.prac-category-page .page-head,
+.prac-set-page .page-head,
+.prac-test-page .page-head {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--prac-line);
+}
+
+.prac-categories-page .dash-eyebrow,
+.prac-category-page .dash-eyebrow,
+.prac-set-page .dash-eyebrow,
+.prac-test-page .dash-eyebrow {
+  color: var(--prac-brand);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.prac-categories-page .page-head-title,
+.prac-category-page .page-head-title,
+.prac-set-page .page-head-title,
+.prac-test-page .page-head-title {
+  color: var(--prac-ink);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.prac-categories-page .dash-lead,
+.prac-category-page .dash-lead,
+.prac-set-page .dash-lead,
+.prac-test-page .dash-lead {
+  max-width: 68ch;
+  color: var(--prac-muted-2);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── Section và thanh công cụ ────────────────────────────────────────────── */
+.prac-section + .prac-section {
+  margin-top: 44px;
+}
+
+.prac-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+/* Mục tiêu của `jumpToSection` sau mỗi lần lật trang: vòng focus mặc định của
+   trình duyệt trên một tiêu đề `tabindex="-1"` trông như lỗi render. */
+.prac-section-head:focus {
+  outline: none;
+}
+
+.prac-section-head:focus-visible {
+  outline: 2px solid var(--prac-brand);
+  outline-offset: 6px;
+  border-radius: 6px;
+}
+
+.prac-section-head h2 {
+  margin: 0;
+  color: var(--prac-ink);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.prac-section-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.prac-result-count {
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: var(--prac-surface-2);
+  color: var(--prac-muted-2);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.prac-toolbar-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Ô tìm kiếm ─────────────────────────────────────────────────────────────
+   Nhãn bọc cả icon lẫn input nên toàn bộ viên thuốc là vùng bấm; `:focus-within`
+   là thứ khiến khung sáng lên khi con trỏ vào ô bên trong. */
+.prac-search-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+  padding: 9px 16px;
+  border: 1.5px solid var(--prac-line);
+  border-radius: 9999px;
+  background: var(--prac-surface);
+  box-shadow: var(--prac-shadow);
+  color: var(--prac-muted-2);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.prac-search-field:focus-within {
+  border-color: #10b981;
+  box-shadow: var(--prac-ring);
+}
+
+.prac-search-field input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--prac-ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.prac-search-field input::placeholder {
+  color: var(--prac-faint);
+}
+
+/* Chrome vẽ một chữ × riêng cho `type="search"`, lệch khỏi mọi thứ khác trên
+   hàng và không theo được màu của khung. */
+.prac-search-field input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+/* Ô sắp xếp ─────────────────────────────────────────────────────────────── */
+.prac-sort-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--prac-line);
+  border-radius: var(--prac-r-control);
+  background: var(--prac-surface);
+  box-shadow: var(--prac-shadow);
+  color: var(--prac-muted);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.prac-sort-field:focus-within {
+  border-color: #10b981;
+  box-shadow: var(--prac-ring);
+}
+
+.prac-sort-field select {
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--prac-ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── Lưới danh mục ("Khám phá theo danh mục") ────────────────────────────── */
+.prac-explore-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.prac-explore-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border: 1px solid var(--prac-line);
+  border-radius: var(--prac-r-card);
+  background: var(--prac-surface);
+  box-shadow: var(--prac-shadow);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.prac-explore-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--prac-line-2);
+  box-shadow: var(--prac-shadow-lift);
+}
+
+.prac-explore-card:focus-visible {
+  outline: 2px solid var(--prac-brand);
+  outline-offset: 3px;
+}
+
+.prac-explore-card h3 {
+  margin: 0 0 6px;
+  color: var(--prac-ink);
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.prac-explore-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+  color: var(--prac-muted);
+  font-size: 13.5px;
+}
+
+.prac-explore-foot .num {
+  color: var(--prac-ink);
+  font-weight: 800;
+}
+
+.prac-explore-go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.prac-explore-card:hover .prac-explore-go {
+  transform: translateX(3px);
+  background: #bbf7d0;
+}
+
+/* ── Ô icon theo tông danh mục ───────────────────────────────────────────
+ *
+ * `categoryTone()` băm slug ra ba tông cố định, nên một danh mục luôn giữ một
+ * màu qua mọi lần vào trang. Ba tông này chỉ tô một ô 44–48px; không mảng lớn
+ * nào trên trang mang màu danh mục.
+ */
+.prac-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  margin-bottom: 14px;
+  border-radius: 12px;
+}
+
+.prac-tile-blue {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.prac-tile-orange {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.prac-tile-green {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* ── Thẻ bộ đề / thẻ đề ──────────────────────────────────────────────────── */
+.prac-set-grid,
+.prac-test-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prac-set-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border: 1px solid var(--prac-line);
+  border-radius: var(--prac-r-card);
+  background: var(--prac-surface);
+  box-shadow: var(--prac-shadow);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.prac-set-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--prac-line-2);
+  box-shadow: var(--prac-shadow-lift);
+}
+
+/*
+ * <b>Cả thẻ là một vùng bấm, và nó vẫn chỉ là một link.</b> Lớp phủ do
+ * `::after` của chính tiêu đề vẽ ra, nên không có anchor rỗng nào thêm vào cây
+ * accessibility và tên của link vẫn đúng là tên bộ đề — điều kiện mà các test
+ * hiện có dựa vào. Tag danh mục và nút "Xem chi tiết" được nâng lên trên lớp
+ * phủ để giữ nguyên đích riêng của chúng.
+ */
+.prac-set-name::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.prac-set-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.prac-set-top .prac-tile {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 0;
+}
+
+/* Thẻ đề bên trong một bộ không có tag danh mục — chỉ còn một dòng tiêu đề,
+   và một dòng canh trên so với ô icon 44px trông như bị lệch. */
+.prac-set-top:not(:has(.prac-set-tag)) {
+  align-items: center;
+}
+
+.prac-set-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.prac-set-tag {
+  position: relative;
+  z-index: 2;
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--prac-muted-2);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prac-set-tag:hover {
+  color: var(--prac-brand);
+  text-decoration: underline;
+}
+
+.prac-set-name {
+  color: var(--prac-ink);
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.prac-set-card:hover .prac-set-name {
+  color: var(--prac-brand-ink);
+}
+
+.prac-set-name:focus-visible {
+  outline: 2px solid var(--prac-brand);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.prac-badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: var(--prac-brand-tint);
+  color: var(--prac-brand);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+/* Chip kỹ năng — màu do `SKILLS` gán inline (đã đo tương phản), nên ở đây chỉ
+   là hình dạng. */
+.prac-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.prac-skills li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.prac-set-count {
+  margin: 0 0 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--prac-line-2);
+  border-top-style: dashed;
+  color: var(--prac-muted);
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.prac-set-cta {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: auto;
+  padding: 10px 16px;
+  border: 1.5px solid var(--prac-line);
+  border-radius: var(--prac-r-control);
+  background: var(--prac-surface);
+  box-sizing: border-box;
+  color: var(--prac-brand);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.prac-set-card:hover .prac-set-cta {
+  border-color: var(--prac-brand-line);
+  background: var(--prac-brand-tint-2);
+  color: var(--prac-brand-ink);
+}
+
+.prac-set-cta span {
+  transition: transform 0.15s ease;
+}
+
+.prac-set-card:hover .prac-set-cta span {
+  transform: translateX(3px);
+}
+
+.prac-set-cta:focus-visible {
+  outline: 2px solid var(--prac-brand);
+  outline-offset: 2px;
+}
+
+/* ── Bộ lọc dạng viên ────────────────────────────────────────────────────── */
+.prac-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.prac-chip {
+  padding: 8px 18px;
+  border: 1px solid var(--prac-line);
+  border-radius: 9999px;
+  background: var(--prac-surface);
+  color: var(--prac-ink-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.prac-chip:hover {
+  border-color: var(--prac-line-2);
+  background: var(--prac-surface-2);
+}
+
+.prac-chip.is-active {
+  border-color: var(--prac-brand);
+  background: var(--prac-brand);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgb(5 150 105 / 25%);
+}
+
+.prac-chip:focus-visible {
+  outline: 2px solid var(--prac-brand);
+  outline-offset: 2px;
+}
+
+/* ── Trạng thái: đang tải · mất kết nối · rỗng ───────────────────────────
+ *
+ * Cả ba trước đây là một dòng `<p>` trần giữa trang trắng. Một khung nét đứt
+ * nói rõ "chỗ này lẽ ra có nội dung" thay vì trông như trang đã render xong.
+ */
+.prac-status {
+  margin: 20px 0 0;
+  padding: 44px 24px;
+  border: 1px dashed var(--prac-line-2);
+  border-radius: var(--prac-r-card);
+  background: var(--prac-surface);
+  color: var(--prac-muted-2);
+  font-size: 14.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ── Trang chi tiết: tiêu đề danh sách ───────────────────────────────────── */
+.prac-set-heading {
+  margin: 0 0 18px;
+  color: var(--prac-ink);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+/* ── Trang chi tiết đề: ba con số ────────────────────────────────────────
+ *
+ * `<dl>` chứ không phải ba `<div>`: đây đúng là ba cặp nhãn–giá trị, và cấu
+ * trúc đó là thứ cho trình đọc màn hình đọc "Câu hỏi, 82" thay vì hai chuỗi
+ * rời nhau. Con số dùng `tabular-nums` để ba cột không nhảy khi đổi đề.
+ */
+.prac-stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  margin: 0 0 32px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--prac-line);
+  border-radius: var(--prac-r-card);
+  background: var(--prac-line);
+  box-shadow: var(--prac-shadow);
+}
+
+.prac-stat {
+  padding: 16px 20px;
+  background: var(--prac-surface);
+}
+
+.prac-stat dt {
+  margin: 0 0 4px;
+  color: var(--prac-muted-2);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.prac-stat dd {
+  margin: 0;
+  color: var(--prac-ink);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Trang chi tiết đề: danh sách kỹ năng ────────────────────────────────── */
+.prac-module-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prac-module-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 1px solid var(--prac-line);
+  border-radius: 14px;
+  background: var(--prac-surface);
+  box-shadow: var(--prac-shadow);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.prac-module-row:hover {
+  border-color: var(--prac-line-2);
+  box-shadow: 0 6px 18px -8px rgb(15 23 42 / 14%);
+}
+
+.prac-module-row .prac-tile {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0;
+  border-radius: 11px;
+}
+
+.prac-module-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.prac-module-body strong {
+  color: var(--prac-ink);
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.prac-module-body span {
+  color: var(--prac-muted-2);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.prac-module-meta {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: var(--prac-surface-2);
+  color: var(--prac-muted);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Trang chi tiết đề: dải hành động ────────────────────────────────────
+ *
+ * Hai nút đứng trơ giữa nền là chỗ dễ bấm nhầm nhất trên toàn luồng — một
+ * trong hai mở bài thi tính giờ. Đặt chúng trong một dải có viền, canh phải,
+ * tách hẳn khỏi danh sách kỹ năng phía trên.
+ */
+.prac-test-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+  padding: 20px 24px;
+  border: 1px solid var(--prac-line);
+  border-radius: var(--prac-r-card);
+  background: var(--prac-surface);
+  box-shadow: var(--prac-shadow);
+}
+
+.prac-test-actions-note {
+  flex: 1 1 320px;
+  min-width: 0;
+  margin: 0;
+  color: var(--prac-muted-2);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.prac-test-actions .btn {
+  min-width: 190px;
+}
+
+/* ── Phân trang (component dùng chung `Pagination`) ─────────────────────── */
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 36px;
+}
+
+.pager-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pager-step,
+.pager-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  border: 1px solid var(--prac-line);
+  border-radius: var(--prac-r-control);
+  background: var(--prac-surface);
+  color: var(--prac-ink-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.pager-step {
+  padding: 0 16px;
+}
+
+.pager-page {
+  width: 38px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pager-step:hover,
+.pager-page:hover {
+  border-color: var(--prac-line-2);
+  background: var(--prac-surface-2);
+}
+
+/*
+ * `aria-disabled`, không phải `disabled` — `Pagination` giữ mọi control trong
+ * tab order qua một lần lật trang có chủ đích. Nên trạng thái "không làm gì"
+ * phải được vẽ ở đây thay vì mượn `:disabled` của trình duyệt.
+ */
+.pager-step[aria-disabled='true'],
+.pager-page[aria-disabled='true'] {
+  cursor: default;
+}
+
+.pager-step[aria-disabled='true'] {
+  opacity: 0.45;
+}
+
+.pager-step[aria-disabled='true']:hover {
+  border-color: var(--prac-line);
+  background: var(--prac-surface);
+}
+
+.pager-page.is-current {
+  border-color: var(--prac-brand);
+  background: var(--prac-brand);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgb(5 150 105 / 25%);
+}
+
+.pager-page.is-current:hover {
+  background: var(--prac-brand);
+}
+
+.pager-gap {
+  padding: 0 4px;
+  color: var(--prac-faint);
+  font-weight: 700;
+}
+
+.pager-step:focus-visible,
+.pager-page:focus-visible {
+  outline: 2px solid var(--prac-brand);
+  outline-offset: 2px;
+}
+
+/* ── Đáp ứng ─────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .dash-page {
+    padding: 20px 24px 56px;
+  }
+
+  .prac-explore-grid,
+  .prac-set-grid,
+  .prac-test-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .dash-page {
+    padding: 16px 16px 48px;
+  }
+
+  .prac-categories-page .page-head-title,
+  .prac-category-page .page-head-title,
+  .prac-set-page .page-head-title,
+  .prac-test-page .page-head-title {
+    font-size: 26px;
+  }
+
+  .prac-section-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .prac-toolbar-tools {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .prac-search-field,
+  .prac-sort-field {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .prac-sort-field select {
+    margin-left: auto;
+  }
+
+  .prac-explore-grid,
+  .prac-set-grid,
+  .prac-test-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ngày · số câu là thông tin, không phải nhãn phụ của tiêu đề — trên một
+     hàng hẹp nó tụt xuống dưới thay vì ép tên kỹ năng xuống hai dòng. */
+  .prac-module-row {
+    flex-wrap: wrap;
+  }
+
+  .prac-module-meta {
+    margin-left: 54px;
+  }
+
+  .prac-test-actions {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .prac-test-actions-note {
+    flex: 1 1 auto;
+  }
+
+  .prac-test-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Hover nâng thẻ và trượt mũi tên là trang trí; với người bật giảm chuyển
+   động chúng không mang thêm thông tin nào. */
+@media (prefers-reduced-motion: reduce) {
+  .prac-explore-card,
+  .prac-set-card,
+  .prac-module-row,
+  .prac-explore-go,
+  .prac-set-cta span,
+  .prac-back-link span {
+    transition: none;
+  }
+
+  .prac-explore-card:hover,
+  .prac-set-card:hover {
+    transform: none;
+  }
+
+  .prac-explore-card:hover .prac-explore-go,
+  .prac-set-card:hover .prac-set-cta span,
+  .prac-back-link:hover span {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   MÀN CHỌN — /students/practice
+   ==========================================================================
+   Hub không còn liệt kê bộ đề (quyết định 08/09/2026); nó hỏi hai câu rồi mở
+   cửa. Hai câu đó phải nhìn ra ngay là *chọn một trong nhiều*, nên chúng là
+   thẻ có trạng thái chọn rõ ràng chứ không phải một hàng nút xám giống nhau.
+   ========================================================================== */
+
+.prac-choice {
+  margin-bottom: 32px;
+}
+
+.prac-choice-heading {
+  margin: 0 0 14px;
+  color: var(--prac-ink);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+/* ── Chọn kỹ năng ────────────────────────────────────────────────────────── */
+.prac-skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.prac-skill-card,
+.prac-mode-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--prac-line);
+  border-radius: 14px;
+  background: var(--prac-surface);
+  box-shadow: var(--prac-shadow);
+  color: var(--prac-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.prac-skill-card:hover,
+.prac-mode-card:hover {
+  border-color: var(--prac-line-2);
+  background: var(--prac-surface-2);
+}
+
+/*
+ * <b>Trạng thái chọn không chỉ là màu.</b> Viền đậm lên, nền ngả emerald và
+ * một vệt đặc bên trái — ba kênh, nên nó sống sót phép thử ảnh xám mà
+ * `docs/ux/DESIGN.md` yêu cầu cho mọi bộ trạng thái.
+ */
+.prac-skill-card.is-active,
+.prac-mode-card.is-active {
+  border-color: var(--prac-brand);
+  background: var(--prac-brand-tint);
+  box-shadow: var(--prac-ring);
+}
+
+.prac-skill-card:focus-visible,
+.prac-mode-card:focus-visible {
+  outline: 2px solid var(--prac-brand);
+  outline-offset: 2px;
+}
+
+.prac-skill-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: var(--prac-surface-2);
+  color: var(--prac-muted);
+}
+
+.prac-skill-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.prac-skill-body strong {
+  color: var(--prac-ink);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.prac-skill-body span {
+  color: var(--prac-muted-2);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* ── Chọn hình thức ─────────────────────────────────────────────────────── */
+/*
+ * Hai lựa chọn, và chúng <b>không</b> giãn hết chiều ngang trang. Một thẻ 610px
+ * cho hai chữ "Thi thử" đọc như một banner chứ không như một nút chọn; trần
+ * 760px giữ cặp thẻ ở đúng kích cỡ của một câu hỏi có hai đáp án.
+ */
+.prac-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  max-width: 760px;
+}
+
+.prac-mode-card {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  position: relative;
+  padding-left: 20px;
+}
+
+/* Vệt trái: kênh thứ ba của trạng thái chọn, và nó cũng phân biệt hai hình
+   thức với nhau khi cả hai đều chưa chọn. */
+.prac-mode-card::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 0;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--prac-line-2);
+  transition: background 0.18s ease;
+}
+
+.prac-mode-card.is-active::before {
+  background: var(--prac-brand);
+}
+
+.prac-mode-title {
+  color: var(--prac-ink);
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.prac-mode-note {
+  color: var(--prac-muted-2);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+/* ── Nút "Tất cả đề" ────────────────────────────────────────────────────── */
+.prac-all-tests-cta {
+  flex-shrink: 0;
+}
+
+.prac-all-tests-cta span {
+  transition: transform 0.15s ease;
+}
+
+.prac-all-tests-cta:hover span {
+  transform: translateX(3px);
+}
+
+/* ==========================================================================
+   BỘ LỌC TRÊN TRANG DANH SÁCH
+   ========================================================================== */
+
+.prac-skill-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  padding: 12px 16px;
+  border: 1px solid var(--prac-line);
+  border-radius: 14px;
+  background: var(--prac-surface);
+  box-shadow: var(--prac-shadow);
+}
+
+.prac-filter-label {
+  margin-right: 4px;
+  color: var(--prac-muted);
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.prac-chip-skill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 14px;
+}
+
+/*
+ * Thanh tóm tắt bộ lọc. Ba bộ lọc nằm ở ba chỗ khác nhau trên trang — kỹ năng
+ * trên cùng, danh mục giữa, ô tìm kiếm bên phải — nên khi kết quả về rỗng thì
+ * không chỗ nào một mình giải thích được tại sao. Dòng này gom cả ba lại và
+ * cho đúng một nút tắt hết.
+ */
+.prac-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 10px 16px;
+  border: 1px solid var(--prac-brand-line);
+  border-radius: var(--prac-r-control);
+  background: var(--prac-brand-tint-2);
+  color: var(--prac-brand-ink);
+  font-size: 13.5px;
+}
+
+.prac-active-filters .prac-filter-label {
+  color: var(--prac-brand-ink);
+}
+
+.prac-filter-pill {
+  padding: 3px 12px;
+  border: 1px solid var(--prac-brand-line);
+  border-radius: 9999px;
+  background: var(--prac-surface);
+  font-weight: 700;
+}
+
+.prac-filter-reset {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--prac-brand-ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.prac-filter-reset:hover {
+  color: #14532d;
+}
+
+.prac-filter-reset:focus-visible {
+  outline: 2px solid var(--prac-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/*
+ * Chip kỹ năng khớp bộ lọc, và dòng kỹ năng khớp trên trang chi tiết đề.
+ * Viền, không phải hue thứ năm — bốn màu kỹ năng đã dùng hết bốn hue và một
+ * màu nữa cho "đang chọn" là chỗ phép thử ảnh xám hỏng.
+ */
+.prac-skills li.is-highlighted {
+  box-shadow: 0 0 0 2px var(--prac-brand);
+}
+
+.prac-module-row.is-highlighted {
+  border-color: var(--prac-brand);
+  box-shadow: var(--prac-ring);
+}
+
+@media (max-width: 720px) {
+  .prac-skill-grid,
+  .prac-mode-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prac-all-tests-cta {
+    width: 100%;
+  }
+
+  .prac-filter-reset {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prac-all-tests-cta:hover span {
+    transform: none;
+  }
+}

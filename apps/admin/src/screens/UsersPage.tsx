@@ -21,6 +21,14 @@ import { listUsers, type AdminUser } from '../lib/adminApi.js';
  * obligation — erasure and portability are data-subject rights with a defined
  * response, not table actions — and that process has not been designed.
  * → `docs/security/privacy-vietnam-pdpl.md`
+ *
+ * <b>The phone number identifies the row; the email is extra.</b> Registration
+ * has collected a phone number and no address since 08/09/2026, so an operator
+ * looking for someone is looking for a number — it belongs next to the name,
+ * not in a column of its own that is empty for older accounts and populated
+ * for newer ones. Email keeps a column because accounts predating the change
+ * have one and nothing else; both render an em dash when absent, because a
+ * table cell reading "null" is how an operator learns to distrust the screen.
  */
 export function UsersPage() {
   const { accessToken } = useAdminAuth();
@@ -71,10 +79,14 @@ export function UsersPage() {
           setSearch(pending);
         }}
       >
+        {/* The server searches name, phone and email together, and normalises
+            a typed number before matching — `0912 345 678` finds the stored
+            `+84912345678`. Naming all three is what tells an operator on a
+            support call that the number in front of them is a usable key. */}
         <input
           type="search"
           className="cms-search"
-          placeholder="Tìm theo email hoặc tên"
+          placeholder="Tìm theo tên, số điện thoại hoặc email"
           value={pending}
           onChange={(e) => setPending(e.target.value)}
         />
@@ -109,14 +121,14 @@ export function UsersPage() {
                   <tr key={row.userId}>
                     <td>
                       <Link to={AdminPaths.user(row.userId)}>{row.displayName}</Link>
-                      <span className="cms-sub num">{row.userId}</span>
+                      {/* The number under the name, where the account id used
+                          to sit. The id identifies a row to the system; the
+                          phone identifies the person to the operator, and only
+                          one of the two fits on the line that gets read. The
+                          id is still on the detail screen. */}
+                      <span className="cms-sub num">{row.phone ?? '—'}</span>
                     </td>
-                    <td>
-                      {row.email}
-                      {!row.emailVerified && (
-                        <span className="cms-badge is-draft">Chưa xác minh</span>
-                      )}
-                    </td>
+                    <td>{row.email ?? <span className="cms-muted">—</span>}</td>
                     <td>
                       <span
                         className={`cms-badge is-${row.status === 'active' ? 'published' : 'draft'}`}

@@ -6,8 +6,15 @@
 // build-time/localhost defaults. A container built from this app's
 // Dockerfile overwrites this exact file at startup with real values read
 // from its own environment; the source file never carries one.
+//
+// `supportZaloUrl` is null rather than '' only to say out loud that it has no
+// fallback: the other three resolve to a working default when empty, and this
+// one resolves to "there is no support channel configured", which the
+// forgot-password page renders as its own sentence. Both values read the same
+// to `getRuntimeConfig()`.
 window.__VNI_RUNTIME_CONFIG__ = {
   apiBaseUrl: '',
   environment: '',
   telemetryEndpoint: '',
+  supportZaloUrl: null,
 };

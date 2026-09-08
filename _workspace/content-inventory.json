@@ -1,0 +1,4634 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-02T03:32:51.825Z",
+  "tool": "scripts/content-inventory.mjs",
+  "root": "/Users/metacom/Documents/VNI/VNI IELTS AI",
+  "baseline": null,
+  "probe": {
+    "status": "available",
+    "tool": "ffprobe",
+    "version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers"
+  },
+  "summary": {
+    "sourcesConfigured": 8,
+    "sourcesPresent": 8,
+    "sourcesAbsent": 0,
+    "files": 171,
+    "bytes": 1507213424,
+    "errors": 0,
+    "ambiguities": 2,
+    "hashChanges": 0
+  },
+  "sources": [
+    {
+      "sourceId": "vol9-real-ielts",
+      "label": "VOL 9 — REAL IELTS (Reading and Listening only)",
+      "present": true,
+      "expectedPath": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS",
+      "resolvedPath": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS",
+      "absenceReason": null,
+      "modules": [
+        {
+          "module": "reading",
+          "testAxis": {
+            "resolved": true
+          },
+          "observations": [],
+          "tests": [
+            {
+              "test": "1",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 1 -R.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 1-R.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "IELTS Reading has no audio. Absent by design, not missing."
+              }
+            },
+            {
+              "test": "2",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 2-R.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KET TEST 2-R.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "IELTS Reading has no audio. Absent by design, not missing."
+              }
+            },
+            {
+              "test": "3",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 3-R.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 3-R.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "IELTS Reading has no audio. Absent by design, not missing."
+              }
+            },
+            {
+              "test": "4",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 4-R.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 4-R.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "IELTS Reading has no audio. Absent by design, not missing."
+              }
+            },
+            {
+              "test": "5",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 5-R.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 5-R.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "IELTS Reading has no audio. Absent by design, not missing."
+              }
+            },
+            {
+              "test": "6",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 6-R.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 6-R.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "IELTS Reading has no audio. Absent by design, not missing."
+              }
+            },
+            {
+              "test": "7",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 7-R.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 7-R.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "IELTS Reading has no audio. Absent by design, not missing."
+              }
+            },
+            {
+              "test": "8",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 8-R.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 8-R.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "IELTS Reading has no audio. Absent by design, not missing."
+              }
+            }
+          ],
+          "audioCardinality": {
+            "observed": [],
+            "consistent": true,
+            "perTest": {}
+          }
+        },
+        {
+          "module": "listening",
+          "testAxis": {
+            "resolved": true
+          },
+          "observations": [
+            {
+              "code": "audio-likely-concatenated",
+              "message": "each test carries exactly one audio file with a median duration of 1557s. That is a whole Listening test in one file rather than one part, so part-level playback needs offsets and the other three quarters of a 1:4 source are not missing.",
+              "evidence": {
+                "filesPerTest": 1,
+                "medianDurationSeconds": 1556.883,
+                "testsMeasured": 8
+              }
+            }
+          ],
+          "tests": [
+            {
+              "test": "1",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 1-L.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 1-L.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 1.mp4"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            },
+            {
+              "test": "2",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 2-L.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 2-L.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 2.mp4"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            },
+            {
+              "test": "3",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 3-L.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 3-L.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 3.mp4"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            },
+            {
+              "test": "4",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 4-L.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 4-L.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 4.mp4"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            },
+            {
+              "test": "5",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 5-L.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 5-L.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 5.mp4"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            },
+            {
+              "test": "6",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 6-L.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 6-L.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 6.mp4"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            },
+            {
+              "test": "7",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 7-L.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 7-L.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 7.mp4"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            },
+            {
+              "test": "8",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 8-L.docx"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 8-L.docx"
+                ],
+                "candidates": []
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 8.mp4"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            }
+          ],
+          "audioCardinality": {
+            "observed": [
+              1
+            ],
+            "consistent": true,
+            "perTest": {
+              "1": 1,
+              "2": 1,
+              "3": 1,
+              "4": 1,
+              "5": 1,
+              "6": 1,
+              "7": 1,
+              "8": 1
+            }
+          }
+        }
+      ],
+      "fileCount": 40,
+      "bytes": 246905358
+    },
+    {
+      "sourceId": "cambridge-16",
+      "label": "Cambridge IELTS 16",
+      "present": true,
+      "expectedPath": "Đề IELTS/Đề CAM/Cam 16",
+      "resolvedPath": "Đề IELTS/Đề CAM/Cam 16",
+      "absenceReason": null,
+      "modules": [
+        {
+          "module": "listening",
+          "testAxis": {
+            "resolved": true
+          },
+          "observations": [],
+          "bookPaper": {
+            "status": "paired",
+            "files": [
+              "Đề IELTS/Đề CAM/Cam 16/Cam 16.pdf"
+            ],
+            "candidates": []
+          },
+          "tests": [
+            {
+              "test": "1",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 16/Cam 16.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 16/Test 1 Part 1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 1 Part 2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 1 Part 3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 1 Part 4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "2",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 16/Cam 16.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 16/Test 2 Part 1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 2 Part 2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 2 Part 3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 2 Part 4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "3",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 16/Cam 16.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 16/Test 3 Part 1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 3 Part 2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 3 Part 3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 3 Part 4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "4",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 16/Cam 16.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 16/Test 4 Part 1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 4 Part 2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 4 Part 3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 16/Test 4 Part 4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            }
+          ],
+          "audioCardinality": {
+            "observed": [
+              4
+            ],
+            "consistent": true,
+            "perTest": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4
+            }
+          }
+        }
+      ],
+      "fileCount": 17,
+      "bytes": 265939223
+    },
+    {
+      "sourceId": "cambridge-17",
+      "label": "Cambridge IELTS 17",
+      "present": true,
+      "expectedPath": "Đề IELTS/Đề CAM/Cam 17",
+      "resolvedPath": "Đề IELTS/Đề CAM/Cam 17",
+      "absenceReason": null,
+      "modules": [
+        {
+          "module": "listening",
+          "testAxis": {
+            "resolved": true
+          },
+          "observations": [],
+          "bookPaper": {
+            "status": "paired",
+            "files": [
+              "Đề IELTS/Đề CAM/Cam 17/Cambridge Ielts 17.pdf"
+            ],
+            "candidates": []
+          },
+          "tests": [
+            {
+              "test": "1",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 17/Cambridge Ielts 17.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t1_audio1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t1_audio2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t1_audio3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t1_audio4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "2",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 17/Cambridge Ielts 17.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t2_audio1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t2_audio2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t2_audio3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t2_audio4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "3",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 17/Cambridge Ielts 17.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t3_audio1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t3_audio2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t3_audio3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t3_audio4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "4",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 17/Cambridge Ielts 17.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t4_audio2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t4_audio3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t4_audio4.mp3",
+                  "Đề IELTS/Đề CAM/Cam 17/IELTS17_t4_audio1.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            }
+          ],
+          "audioCardinality": {
+            "observed": [
+              4
+            ],
+            "consistent": true,
+            "perTest": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4
+            }
+          }
+        }
+      ],
+      "fileCount": 17,
+      "bytes": 115935658
+    },
+    {
+      "sourceId": "cambridge-18",
+      "label": "Cambridge IELTS 18",
+      "present": true,
+      "expectedPath": "Đề IELTS/Đề CAM/Cam 18",
+      "resolvedPath": "Đề IELTS/Đề CAM/Cam 18",
+      "absenceReason": null,
+      "modules": [
+        {
+          "module": "listening",
+          "testAxis": {
+            "resolved": false,
+            "note": "Filenames carry two numbers labelled \"section\" and \"part\". IELTS vocabulary makes that inverted, and nothing in the filename settles which axis is the test. Audio is inventoried but left unassigned until the PDF is read."
+          },
+          "observations": [],
+          "bookPaper": {
+            "status": "paired",
+            "files": [
+              "Đề IELTS/Đề CAM/Cam 18/0. Cambridge 18 (1).pdf"
+            ],
+            "candidates": []
+          },
+          "unassignedAudio": [
+            "Đề IELTS/Đề CAM/Cam 18/18 section1-part1.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section1-part2.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section1-part3.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section1-part4.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section2- part3.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section2- part4.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section2-part1.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section2-part2.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section3 part1.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section3 part2.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section3 part3.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section3 part4.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section4 part1.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section4 part2.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section4 part3.mp3",
+            "Đề IELTS/Đề CAM/Cam 18/18 section4 part4.mp3"
+          ],
+          "tests": [],
+          "audioCardinality": {
+            "observed": [],
+            "consistent": true,
+            "perTest": {}
+          }
+        }
+      ],
+      "fileCount": 17,
+      "bytes": 166611762
+    },
+    {
+      "sourceId": "cambridge-19",
+      "label": "Cambridge IELTS 19",
+      "present": true,
+      "expectedPath": "Đề IELTS/Đề CAM/Cam 19",
+      "resolvedPath": "Đề IELTS/Đề CAM/Cam 19",
+      "absenceReason": null,
+      "modules": [
+        {
+          "module": "listening",
+          "testAxis": {
+            "resolved": true
+          },
+          "observations": [],
+          "bookPaper": {
+            "status": "paired",
+            "files": [
+              "Đề IELTS/Đề CAM/Cam 19/Cambridge 19.pdf"
+            ],
+            "candidates": []
+          },
+          "tests": [
+            {
+              "test": "1",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 19/Cambridge 19.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 19/Test1 Part1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test1 Part2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test1 Part3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test1 Part4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "2",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 19/Cambridge 19.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 19/Test2 Part1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test2 Part2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test2 Part3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test2 Part4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "3",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 19/Cambridge 19.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 19/Test3 Part1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test3 Part2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test3 Part3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test3 Part4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "4",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 19/Cambridge 19.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 19/Test4 Part1.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test4 Part2.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test4 Part3.mp3",
+                  "Đề IELTS/Đề CAM/Cam 19/Test4 Part4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            }
+          ],
+          "audioCardinality": {
+            "observed": [
+              4
+            ],
+            "consistent": true,
+            "perTest": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4
+            }
+          }
+        }
+      ],
+      "fileCount": 17,
+      "bytes": 135731446
+    },
+    {
+      "sourceId": "cambridge-20",
+      "label": "Cambridge IELTS 20",
+      "present": true,
+      "expectedPath": "Đề IELTS/Đề CAM/Cam 20",
+      "resolvedPath": "Đề IELTS/Đề CAM/Cam 20",
+      "absenceReason": null,
+      "modules": [
+        {
+          "module": "listening",
+          "testAxis": {
+            "resolved": true
+          },
+          "observations": [],
+          "bookPaper": {
+            "status": "paired",
+            "files": [
+              "Đề IELTS/Đề CAM/Cam 20/Cambridge IELTS 20 Academic.pdf"
+            ],
+            "candidates": []
+          },
+          "tests": [
+            {
+              "test": "1",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 20/Cambridge IELTS 20 Academic.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T1S1.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T1S2.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T1S3.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T1S4.m4a"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "2",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 20/Cambridge IELTS 20 Academic.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T2S1.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T2S2.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T2S3.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T2S4.m4a"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "3",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 20/Cambridge IELTS 20 Academic.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T3S1.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T3S2.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T3S3.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T3S4.m4a"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            },
+            {
+              "test": "4",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 20/Cambridge IELTS 20 Academic.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T4S1.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T4S2.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T4S3.m4a",
+                  "Đề IELTS/Đề CAM/Cam 20/audio/T4S4.m4a"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            }
+          ],
+          "audioCardinality": {
+            "observed": [
+              4
+            ],
+            "consistent": true,
+            "perTest": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4
+            }
+          }
+        }
+      ],
+      "fileCount": 17,
+      "bytes": 336116552
+    },
+    {
+      "sourceId": "cambridge-21",
+      "label": "Cambridge IELTS 21",
+      "present": true,
+      "expectedPath": "Đề IELTS/Đề CAM/Cam 21",
+      "resolvedPath": "Đề IELTS/Đề CAM/Cam 21",
+      "absenceReason": null,
+      "modules": [
+        {
+          "module": "listening",
+          "testAxis": {
+            "resolved": true
+          },
+          "observations": [
+            {
+              "code": "audio-likely-concatenated",
+              "message": "each test carries exactly one audio file with a median duration of 1771s. That is a whole Listening test in one file rather than one part, so part-level playback needs offsets and the other three quarters of a 1:4 source are not missing.",
+              "evidence": {
+                "filesPerTest": 1,
+                "medianDurationSeconds": 1770.95,
+                "testsMeasured": 4
+              }
+            }
+          ],
+          "bookPaper": {
+            "status": "paired",
+            "files": [
+              "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21.pdf"
+            ],
+            "candidates": []
+          },
+          "tests": [
+            {
+              "test": "1",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21 Audio/Cambridge 21 - Test 1.mp3"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            },
+            {
+              "test": "2",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21 Audio/Cambridge 21 - Test 2.mp3"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            },
+            {
+              "test": "3",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21 Audio/Cambridge 21 - Test 3.mp3"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            },
+            {
+              "test": "4",
+              "paper": {
+                "status": "book-level",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21.pdf"
+                ],
+                "candidates": [],
+                "reason": "One book PDF covers every test in this source."
+              },
+              "key": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "The answer key is printed inside the book PDF, so filesystem key-pairing does not apply to this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21 Audio/Cambridge 21 - Test 4.mp3"
+                ],
+                "candidates": [],
+                "parts": []
+              }
+            }
+          ],
+          "audioCardinality": {
+            "observed": [
+              1
+            ],
+            "consistent": true,
+            "perTest": {
+              "1": 1,
+              "2": 1,
+              "3": 1,
+              "4": 1
+            }
+          }
+        }
+      ],
+      "fileCount": 5,
+      "bytes": 218225748
+    },
+    {
+      "sourceId": "exam1-package",
+      "label": "exam/Exam1 — authored Package Format v1 fixture",
+      "present": true,
+      "expectedPath": "exam/Exam1",
+      "resolvedPath": "exam/Exam1",
+      "absenceReason": null,
+      "modules": [
+        {
+          "module": "reading",
+          "testAxis": {
+            "resolved": true
+          },
+          "observations": [],
+          "bookKey": {
+            "status": "paired",
+            "files": [
+              "exam/Exam1/answer-keys.json"
+            ],
+            "candidates": []
+          },
+          "tests": [
+            {
+              "test": "1",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "exam/Exam1/reading/section.json"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "book-level",
+                "files": [
+                  "exam/Exam1/answer-keys.json"
+                ],
+                "candidates": [],
+                "reason": "One key file covers every test in this source."
+              },
+              "audio": {
+                "status": "not-applicable",
+                "files": [],
+                "candidates": [],
+                "reason": "IELTS Reading has no audio. Absent by design, not missing."
+              }
+            }
+          ],
+          "audioCardinality": {
+            "observed": [],
+            "consistent": true,
+            "perTest": {}
+          }
+        },
+        {
+          "module": "listening",
+          "testAxis": {
+            "resolved": true
+          },
+          "observations": [],
+          "bookKey": {
+            "status": "paired",
+            "files": [
+              "exam/Exam1/answer-keys.json"
+            ],
+            "candidates": []
+          },
+          "tests": [
+            {
+              "test": "1",
+              "paper": {
+                "status": "paired",
+                "files": [
+                  "exam/Exam1/listening/section.json"
+                ],
+                "candidates": []
+              },
+              "key": {
+                "status": "book-level",
+                "files": [
+                  "exam/Exam1/answer-keys.json"
+                ],
+                "candidates": [],
+                "reason": "One key file covers every test in this source."
+              },
+              "audio": {
+                "status": "paired",
+                "files": [
+                  "exam/Exam1/assets/audio/listening-part1.mp3",
+                  "exam/Exam1/assets/audio/listening-part2.mp3",
+                  "exam/Exam1/assets/audio/listening-part3.mp3",
+                  "exam/Exam1/assets/audio/listening-part4.mp3"
+                ],
+                "candidates": [],
+                "parts": [
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ]
+              }
+            }
+          ],
+          "audioCardinality": {
+            "observed": [
+              4
+            ],
+            "consistent": true,
+            "perTest": {
+              "1": 4
+            }
+          }
+        }
+      ],
+      "fileCount": 41,
+      "bytes": 21747677
+    }
+  ],
+  "files": [
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Cam 16.pdf",
+      "module": "listening",
+      "role": "book-paper",
+      "bytes": 37177450,
+      "sha256": "4faa373aea992df56af91adf3744073cff6aa7124cf0c20a7ce9920d8ca00105",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 1 Part 1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 13509423,
+      "sha256": "14f28464ccba263fd58cc682a0d1fc6057098791cafc0e7d5934ab15d807577e",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 422.04,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 1 Part 2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 13344928,
+      "sha256": "22070788bf6fcda0973acaa24310591f31e8eed4134c71ae328d75397fd94db8",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 416.9,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 1 Part 3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 12848938,
+      "sha256": "ffaab825df26528395acf3e33d3f350b3907fe8d7603fcc115c4b1889b5f5e97",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 401.4,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 1 Part 4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 16165558,
+      "sha256": "c649d596104ca5d4499d28f4dc9b7df21df87bf1f9bbb6a47801e9c9751dd372",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 505.045,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 2 Part 1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 12725358,
+      "sha256": "5eefecb7c9bdd2d5572ee72eab6208243ba5e445addd1b8fb99d4f1555c49e4d",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 397.538,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 2 Part 2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 14842083,
+      "sha256": "001f2aa7a880ad696762f971958e42c64b40c5555c01075daf32ec17af9cd2ce",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 463.686,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 2 Part 3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 13323218,
+      "sha256": "67b2d5433e187543e38cea711f00d3dd6e07bd6b074a869f623591695aa10493",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 416.221,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 2 Part 4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 16826878,
+      "sha256": "72bccd5fe33ea3f50958b5656020753b03753a7184f3254fec269c666cf002e8",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 525.711,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 3 Part 1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 15780623,
+      "sha256": "19a9d7978717742cbb4c2073299ffa1ca286a5d53289d3cfb9dd6bd5b4c3a819",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 493.015,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 3 Part 2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 13060193,
+      "sha256": "5426d8a7ca8f8e9e63318812d26c55b203071b4c7981c94ef95dd8f7160550c1",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 408.002,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 3 Part 3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 13153713,
+      "sha256": "95f839630711b584151f90d7f02b2d29c9440783ca14be7e87a793d71b2ed85f",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 410.924,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 3 Part 4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 16468663,
+      "sha256": "39da0cda722db9060d0bc1c8daae471177115af15014e8121b6eb0033ac19beb",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 514.517,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 4 Part 1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 13630498,
+      "sha256": "b6037a56d321eaef2d91e645958b151139f852571d18f1f3eabbb7db4807bfd2",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 425.824,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 4 Part 2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 12313703,
+      "sha256": "b1146d08e26c455ca2e7c3a494c9a854c29d337ad747f0a1b8f5ddd822739c9c",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 384.674,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 4 Part 3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 13056853,
+      "sha256": "7c4c9437730ecd2ecbc66c280fc0857b4eb7560132f3e9a7e7c33e812cc270f5",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 407.898,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-16",
+      "path": "Đề IELTS/Đề CAM/Cam 16/Test 4 Part 4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 17711143,
+      "sha256": "60c45cccbd1ac59b83bd306df28c20c08d8554d9c2c741904e31a0bde77fe195",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 553.344,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/Cambridge Ielts 17.pdf",
+      "module": "listening",
+      "role": "book-paper",
+      "bytes": 2950946,
+      "sha256": "bbb99aa00d8ba08b5b676ec1185eeb4f304b7f81cb86ebe347c313dbda84e16c",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t1_audio1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6631564,
+      "sha256": "17ec074f002d649b64d4e0baec0998d455a6a1931784ed9bdc8a8bb4654c8448",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 414.211,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t1_audio2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6604042,
+      "sha256": "d48d78102986b29028415c12abdc263eda52fa45fa55c409313ebe94a240fdbe",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 412.491,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t1_audio3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7096102,
+      "sha256": "4e838a43ba51b29044bc0cf360162abff09ae940d9aab47ea3793d29c9e24e71",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 443.245,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t1_audio4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7278748,
+      "sha256": "c134309c1582e47757757765afe76df022110192befacd62aa851741351f7f1f",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 454.66,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t2_audio1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7579822,
+      "sha256": "209c2bec9c05418bcc0519bf9f2e32bb005aa194c2a17378f910f5732d196e2f",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 473.477,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t2_audio2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7109446,
+      "sha256": "0f4a04ac68389d511f917a606a6f2c89c3cecd3d684d7c2dd8574c4459d9d344",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 444.079,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t2_audio3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6428485,
+      "sha256": "a989070389f801d0877eb74728659ef3995502c375dc055224188d118afe51d2",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 401.519,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t2_audio4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6938476,
+      "sha256": "c760a2a23e5fdcca82e881649152501976aa053f2d32fcc1a8dda3e57756e0b2",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 433.393,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t3_audio1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6634066,
+      "sha256": "105d6b523cb11a65e40052c4400c55fc9481c1124976603dbcb0dfa5cabcacff",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 414.368,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t3_audio2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7193680,
+      "sha256": "69ef56094a0e7b14112e252570b61f2d224b73521a1fa17032075faf3f428be6",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 449.344,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t3_audio3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7231627,
+      "sha256": "1cd6d1b106f2e2c602ca4b9b12da6defcbf0c7887963af06dc0e0876448db985",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 451.715,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t3_audio4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7775395,
+      "sha256": "7ae867482f215cbb947c5c6229246b24e779a1225aaf9ac9a2cd062796c1d1ca",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 485.701,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t4_audio2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7548953,
+      "sha256": "f81964e2a6319cb3ffbd7af125f38c974fc4b4ba26ca7e67c9db94c0162f9a3f",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 471.549,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t4_audio3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6574863,
+      "sha256": "030d4f798df09563499b3c6469be1888a847e2da89a7aad992174f97d2766d79",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 410.667,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/ELT_IELTS17_t4_audio4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 8239527,
+      "sha256": "2035e8b37c39bcc9ad9504bb27fb750d049e4cd6e91a6f839031ece39c06a1bc",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 514.708,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-17",
+      "path": "Đề IELTS/Đề CAM/Cam 17/IELTS17_t4_audio1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6119916,
+      "sha256": "28803e21b74a65071be9af1b9443d4a1a30c0999edcc0cb22a167ed1f3957f5b",
+      "anomalies": [
+        "irregular-prefix"
+      ],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 382.233,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/0. Cambridge 18 (1).pdf",
+      "module": "listening",
+      "role": "book-paper",
+      "bytes": 53562582,
+      "sha256": "30c8168185c905f236157892a448945155ac0b37a117ded672766174dfa35bf0",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section1-part1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6900820,
+      "sha256": "c97e1b3aec47a05b54da77db01941e3b5064fbf4480d905c0a625310e1c92056",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 431.29,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section1-part2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6369593,
+      "sha256": "8a06d26cbf606f37da5c6aef2c55f6e13bb8db4e59a5bfb30a60b8d85562ec98",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 398.088,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section1-part3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6414733,
+      "sha256": "299268607978510cea86fe2c9a0aac09935c4efd68874868e5e4cb578d33ed29",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 400.909,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section1-part4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 8441835,
+      "sha256": "b5d43130bd1f3bfd569be6eed04e055cc04cd5776cd1545aa1524e738dd1ac9f",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 527.603,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section2- part3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6848575,
+      "sha256": "04bddc6ca1a14877e8e1d4e108bf5e6cd1b835bc6d541c9512f258802fe0320e",
+      "anomalies": [
+        "irregular-whitespace"
+      ],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 428.024,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section2- part4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6815556,
+      "sha256": "9956aada224a2d1e3dd64bdf428aaf4f3da8abda2ac815949574ba571047b1df",
+      "anomalies": [
+        "irregular-whitespace"
+      ],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 425.961,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section2-part1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7501009,
+      "sha256": "db4ddc60106225c83d8c8b102dae447b2f546a387b5406de5a8112ade461b262",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 468.802,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section2-part2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6995696,
+      "sha256": "34d1cfe240f4e2a06888de1419b82c0a81757e4c52a9b2e2648cb20d6addf31b",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 437.219,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section3 part1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7529430,
+      "sha256": "db7734781e43877228e9b5e682e2b8f7175ef08221ac5f955441860104d2661e",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 470.578,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section3 part2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7478857,
+      "sha256": "e363b7e68a0fb4adb8791a9c7c5aa9921d984c207816cf91f279f6fe273ba839",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 467.417,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section3 part3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 5684140,
+      "sha256": "fd994ca01e1f98bf34f7d6c9cf4ef90ebbe32d81db65076c6a98ab5ae86aa0ad",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 355.247,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section3 part4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7355559,
+      "sha256": "c92a622f8c8988f5a7d45d466dbecb9ff7bf9960db4b0083b9a09bf0a287bb34",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 459.711,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section4 part1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7086393,
+      "sha256": "c4ba3cb30b3208acd298cf6a2c31a9fe46414d3fd35472680babd810fdbd5051",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 442.888,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section4 part2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6978142,
+      "sha256": "7758d048fb6b0280f89738cd740f80e3311157ee99c16381e3c3305ab50d564b",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 436.122,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section4 part3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6689750,
+      "sha256": "57096d17d19f60b1db2efa7d10c8d024086a69b8552eb13c02666e184c1eee40",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 418.098,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-18",
+      "path": "Đề IELTS/Đề CAM/Cam 18/18 section4 part4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7959092,
+      "sha256": "f5f5f91b3ed3b542207f2c0516afa73f3757b29dd424292e4c3633a571daef2e",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 497.432,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 1
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Cambridge 19.pdf",
+      "module": "listening",
+      "role": "book-paper",
+      "bytes": 27051076,
+      "sha256": "5c90a5e726950294982f8971a1c15b1ccd74fff6e7d8c040d602116825ad6f38",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test1 Part1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7563057,
+      "sha256": "9297b29a5f03fe7a61220ae4efe1998fe7cfcaae1a2d5d4f3e52b4d41db8753c",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 472.633,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test1 Part2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6996304,
+      "sha256": "a1d2e490e8fa649ab0dce108c0ee4ccb9e173f34fa8288c8961ce4b05c2d9d6a",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 437.211,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test1 Part3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6724631,
+      "sha256": "b43379f7c9d26e6e06dc8e52a9ffa66bb4bfae25823ad83cfe0d845efffac47b",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 420.232,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test1 Part4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6637277,
+      "sha256": "a125a0b8de00cdbae3f877500bd0234afdaec351e007db8764e4116d09175159",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 414.772,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test2 Part1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7711015,
+      "sha256": "87bd934522d3f332a3ce71a1fa55c97d1380ef45a3df981e2baa10e427a01f9b",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 481.881,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test2 Part2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6147011,
+      "sha256": "92eebe7728a829eccd8d030b3dd5ebd8acef18b13c93abec21bc732dbe809229",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 384.131,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test2 Part3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6573330,
+      "sha256": "bd5d682d220405fefb553e8d8419319bbffda84a534043c60560aeb0193217a4",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 410.776,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test2 Part4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6832046,
+      "sha256": "c3a5c6e3c89dde95748eddf6e4a81efe86bfb56591211a04f89cb7c8bd4f557a",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 426.945,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test3 Part1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6339690,
+      "sha256": "97e6fbb34e21eeb1ade85ed22223bd99d449815e89ef374dabddd89620c54e2b",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 396.173,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test3 Part2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 5949735,
+      "sha256": "2581e4ed41c646ea980fa703a3cab1bd3617016b96ff5fb5ac52dd19b93d2e49",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 371.801,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test3 Part3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6755142,
+      "sha256": "e55469b89b9ce0f495eac91af275b394658932079701be0ae28f6c5003b8456e",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 422.139,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test3 Part4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6567478,
+      "sha256": "07fdf245403bdae93d23ed0722c265d8823afe87f74d2b583e2e14e22a302615",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 410.41,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test4 Part1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6483050,
+      "sha256": "6adef56d3145a0d7d49d1c5e08a9e957104ddcef2a95d2a0bb2d0026a89ca2d6",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 405.133,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test4 Part2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6226424,
+      "sha256": "fdcdb59c3e3015eb8d522d3f97e5f7928c1364420c72ed35f2e9c56f293fb168",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 389.094,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test4 Part3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 6870917,
+      "sha256": "001757f60d198e0bd900892a4cc7916b06e34656ae8feeff89d493f3e1d5e948",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 429.375,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-19",
+      "path": "Đề IELTS/Đề CAM/Cam 19/Test4 Part4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 8303263,
+      "sha256": "bccccad08d978375085d5f2f3793693ba2d13e59ab7b11607da9fc8cb3db2a40",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 518.896,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T1S1.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 4237598,
+      "sha256": "e912ed87c4697597a0108cd96aa52772e10739f4e44baf65bd5438a33df7ff12",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 501.319,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T1S2.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 4935001,
+      "sha256": "35e7baadbb23a544ec7a5a91c5d91b50ade3d03b83cf88c08844adda619eb467",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 514.554,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T1S3.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 4730824,
+      "sha256": "1e39513454852ad3b1e33398d77fc09c5870a5bb6a3267501af906284feb7078",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 479.028,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T1S4.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 4291608,
+      "sha256": "be0b0670d8c0c319f4f3c0b61a31586b67854d944cc713fb99729fd3af46eb84",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 472.573,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T2S1.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 3212744,
+      "sha256": "8c0b0821563da09bd9fadd5543f7ef15d091a4a7c13ac0d59b68be246e4893e9",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 408.253,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T2S2.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 3936359,
+      "sha256": "a6486d18b0e99da395ed969c47ed17eb600a26c0715a0ba73b1a7196e31c0f94",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 428.896,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T2S3.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 3703012,
+      "sha256": "94195b59fb813a7331e6a0f3f310d2e5898d8f8c847e4261f604e70ca2f1c52c",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 422.441,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T2S4.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7592388,
+      "sha256": "4961bf01e80566290d5826e2b08c1abc7ce1ec2d48989f7d590b04286dca15fa",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 571.466,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T3S1.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 3616055,
+      "sha256": "2bac4bf39ad2320fe3877a8426b1cafb26b1b46754f6a56b7e1df6b8ecc5443e",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 439.693,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T3S2.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 4092740,
+      "sha256": "7e8cd0fca97da2e36b1561c017a385520b2a4e43d5a6597cdbe6bb391b67a112",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 525.421,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T3S3.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 4299034,
+      "sha256": "7af31bb872672f51b02b3a861a65208561d99c1e2632766b2b93509aa99cb5f1",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 446.566,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T3S4.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 7205184,
+      "sha256": "f78eed8ca867f1282c808b7fd5c2b5da4e0ae209f24b09c5271f50788a557e5b",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 512.998,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T4S1.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 3943502,
+      "sha256": "7190aaab382b2592b16e76619aa24a8f6232d9d38d9642b61b700c6e3ec1c917",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 442.34,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T4S2.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 4648724,
+      "sha256": "d11b2c3bbce95b06bbdbeca8f928ee7e3002367f59a6b89feff6f63256cea092",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 508.494,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T4S3.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 4641883,
+      "sha256": "a87f1b76eded0c00cada5fe63bad024b2602c14485e3294a315a2749072508bc",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 472.735,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/audio/T4S4.m4a",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 4252848,
+      "sha256": "cfccbf2a13be59948248f13fee89b6db2d91153934d268386cc9d5d837e5185b",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 482.743,
+        "codecs": [
+          "audio:aac"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-20",
+      "path": "Đề IELTS/Đề CAM/Cam 20/Cambridge IELTS 20 Academic.pdf",
+      "module": "listening",
+      "role": "book-paper",
+      "bytes": 262777048,
+      "sha256": "b56625c296ace7f638c612ead1420f430d2b5012d9acc161a49e9d88e485e8fd",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "cambridge-21",
+      "path": "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21 Audio/Cambridge 21 - Test 1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 45606680,
+      "sha256": "66b385f8efc554640bcb24088b2031a213277e11ee3056650a03ab9e4fc84655",
+      "anomalies": [
+        "irregular-whitespace"
+      ],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 1856.3,
+        "codecs": [
+          "audio:mp3",
+          "video:png"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-21",
+      "path": "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21 Audio/Cambridge 21 - Test 2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 43317091,
+      "sha256": "5fd7d47a6cfdcc6d43d7da7d5fd285a672bd71b77e61362830114a4a4a9445c4",
+      "anomalies": [
+        "irregular-whitespace"
+      ],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 1760.9,
+        "codecs": [
+          "audio:mp3",
+          "video:png"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-21",
+      "path": "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21 Audio/Cambridge 21 - Test 3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 43799207,
+      "sha256": "52180061c0e84e02dc316226a587be4b89cae5037d592c4cac4ee18c0d2a7158",
+      "anomalies": [
+        "irregular-whitespace"
+      ],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 1781,
+        "codecs": [
+          "audio:mp3",
+          "video:png"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-21",
+      "path": "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21 Audio/Cambridge 21 - Test 4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 41354146,
+      "sha256": "d74c4b167cdfb4298a3ad661166d8bdb4ccba8ed51929bbf2fb62c059dc4208f",
+      "anomalies": [
+        "irregular-whitespace"
+      ],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 1679.1,
+        "codecs": [
+          "audio:mp3",
+          "video:png"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "cambridge-21",
+      "path": "Đề IELTS/Đề CAM/Cam 21/Cambridge IELTS 21.pdf",
+      "module": "listening",
+      "role": "book-paper",
+      "bytes": 44148624,
+      "sha256": "72086a3101919125c0d66c480b34bb55b5447339501bbd2241b5888a2b36af2e",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 1.mp4",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 31014833,
+      "sha256": "655b08e5f2f3bf94706934b318b4910d603f80b1302f647cb6bb68008dc0ac7c",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 1612.766,
+        "codecs": [
+          "audio:aac",
+          "video:h264"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 48000,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 2.mp4",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 34252214,
+      "sha256": "c1ded1f4768d728cef7172b98c700d7590d5238d6aaceca09d07179b2ae6649e",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 1829.633,
+        "codecs": [
+          "audio:aac",
+          "video:h264"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 48000,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 3.mp4",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 32738214,
+      "sha256": "32db3d6ca70994d7b2fca167750b759cc0513a7bffc721fef554775ccedad2c7",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 1705.966,
+        "codecs": [
+          "audio:aac",
+          "video:h264"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 48000,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 4.mp4",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 29129241,
+      "sha256": "37b292606af98c88a596ff2ef18074ee6d30065742e28685b7d3f393ea6dfd2d",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 1598.333,
+        "codecs": [
+          "audio:aac",
+          "video:h264"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 48000,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 5.mp4",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 28445674,
+      "sha256": "88d35eeb71bfb95efd51d2df28c448190663b28c0a93de3b740a28c366fceb81",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 1458.866,
+        "codecs": [
+          "audio:aac",
+          "video:h264"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 48000,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 6.mp4",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 29226370,
+      "sha256": "a0a912bb84145b0a3daefa66923d4f47be825dfad2da3048a82f51e7aa4cf9ae",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 1506.8,
+        "codecs": [
+          "audio:aac",
+          "video:h264"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 48000,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 7.mp4",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 29271858,
+      "sha256": "8b8e8fe8c79f6dd899ca6e71a289ef03402064586c7fb8cf2fbdf883ba23bea1",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 1515.433,
+        "codecs": [
+          "audio:aac",
+          "video:h264"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 48000,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/AUDIO/TEST 8.mp4",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 29090786,
+      "sha256": "bc342761834f86b3b6cf17f853ce935c4ed88d2cb6b460f1b7a8b51cc931ce81",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSeconds": 1506.533,
+        "codecs": [
+          "audio:aac",
+          "video:h264"
+        ],
+        "audio": {
+          "codec": "aac",
+          "sampleRateHz": 48000,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 1-L.docx",
+      "module": "listening",
+      "role": "key",
+      "bytes": 26997,
+      "sha256": "bed0d71982a2d699b7b045c1422a2d0edef62af3f9390378f87e09069ea7b125",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 2-L.docx",
+      "module": "listening",
+      "role": "key",
+      "bytes": 28507,
+      "sha256": "35f204f8a0120e48b6d49da2a8079f659b840048db07469948690604eb6c3367",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 3-L.docx",
+      "module": "listening",
+      "role": "key",
+      "bytes": 27516,
+      "sha256": "d0d630b4ac6b415757a18c288102a79f66eba430271fa9ada8a8c351ee88f2dd",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 4-L.docx",
+      "module": "listening",
+      "role": "key",
+      "bytes": 26384,
+      "sha256": "96d18cb3d54d74dbf8aea4a0e868dd43eadc186000841157bf12753b852a8c1b",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 5-L.docx",
+      "module": "listening",
+      "role": "key",
+      "bytes": 27240,
+      "sha256": "36b6690bbfebcd4a32d8a597ba1aea8e6bf9ecbdf6b93c950b575bc49d38a68b",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 6-L.docx",
+      "module": "listening",
+      "role": "key",
+      "bytes": 27321,
+      "sha256": "70afd4dc397de0ad4bd47fe569c76e30c95ee432cf0c35d938d9185e10a0d2c1",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 7-L.docx",
+      "module": "listening",
+      "role": "key",
+      "bytes": 27017,
+      "sha256": "798046728772cee255bd7c91875cc90bf675bf243fd627d3d7985bac065ea451",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/KEY - TRANSCRIPT/KEY TEST 8-L.docx",
+      "module": "listening",
+      "role": "key",
+      "bytes": 27482,
+      "sha256": "bda7f972f31593ce9aa278f9535b756355fd1d2d199fc56b0ee7440f54a93627",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 1-L.docx",
+      "module": "listening",
+      "role": "paper",
+      "bytes": 272057,
+      "sha256": "443287d2d3b2f9f57d10b95f627fc6f69b8b7da10643d410859eae443720c609",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 2-L.docx",
+      "module": "listening",
+      "role": "paper",
+      "bytes": 23769,
+      "sha256": "c5d6a288d183528692d93be98d58175d387b4eac3a30375a41d578fb239ce7d8",
+      "anomalies": [
+        "size-outlier"
+      ],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 3-L.docx",
+      "module": "listening",
+      "role": "paper",
+      "bytes": 701710,
+      "sha256": "5af42316cb89956f672b18c4ef6d4d3c90b84d42d9c32281a7bbf541ce1fac4d",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 4-L.docx",
+      "module": "listening",
+      "role": "paper",
+      "bytes": 144603,
+      "sha256": "8aac4cdb492c161b964ec2c4a7e9a06819e0c398fda9f24bccabf3fce17a965f",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 5-L.docx",
+      "module": "listening",
+      "role": "paper",
+      "bytes": 341174,
+      "sha256": "175a210e70a0e583c4dbc9537005fe490d5829e50f537b8c9c75a318f4abca85",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 6-L.docx",
+      "module": "listening",
+      "role": "paper",
+      "bytes": 355558,
+      "sha256": "9a3b016bbca6b0e917e2904addda7934bdd329909ee8f54b7dd367e3a9915661",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 7-L.docx",
+      "module": "listening",
+      "role": "paper",
+      "bytes": 424841,
+      "sha256": "f9a272f478cb5e00b0a8a5a8101347b785ad69b3b224254c21d96645f545eec7",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 8-L.docx",
+      "module": "listening",
+      "role": "paper",
+      "bytes": 650102,
+      "sha256": "e7eee760004e035bb7cdc012be4f58788113e4a61b9e026cc4c50b7720d1a243",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KET TEST 2-R.docx",
+      "module": "reading",
+      "role": "key",
+      "bytes": 16035,
+      "sha256": "eb59654cc7ed0eb205efb8f3a19bda876794076b1ad2c4e338b5d79a1865e526",
+      "anomalies": [
+        "misspelled-key-prefix"
+      ],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 1-R.docx",
+      "module": "reading",
+      "role": "key",
+      "bytes": 16491,
+      "sha256": "7f2ae3175e26d8597589cd37d470f474bb381935d66a037d58e0a2b5b923ae7d",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 3-R.docx",
+      "module": "reading",
+      "role": "key",
+      "bytes": 15661,
+      "sha256": "a7bbdab3672237a676b22f02dc0b7c5520ae2c2bab8fbdc0aedfe2018ca0dd22",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 4-R.docx",
+      "module": "reading",
+      "role": "key",
+      "bytes": 15685,
+      "sha256": "e614653ca6f9443680dbc0ebfdb97f8ad8a1eb989ff5b0779bc1adb7042bf122",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 5-R.docx",
+      "module": "reading",
+      "role": "key",
+      "bytes": 15967,
+      "sha256": "34ca2d199422efd6b2aa928230e9103c5ed50cb628f715ac5a0d73671a960fbb",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 6-R.docx",
+      "module": "reading",
+      "role": "key",
+      "bytes": 15814,
+      "sha256": "894e35f89e1f384bf704ea400acf1822e4d24471138e4a238007be57a22e94b9",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 7-R.docx",
+      "module": "reading",
+      "role": "key",
+      "bytes": 15705,
+      "sha256": "d867301ffed475308f415ba3b52aae6b7a34db956ec9fbeb73dda118b7124d49",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/KEY - EXPLAINATION/KEY TEST 8-R.docx",
+      "module": "reading",
+      "role": "key",
+      "bytes": 15692,
+      "sha256": "5be08992e4d092c75b977ad0a2916faaa9ca551313bd6fe56604cec564e9dac4",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 1 -R.docx",
+      "module": "reading",
+      "role": "paper",
+      "bytes": 22506,
+      "sha256": "555e663c9b284135af75dd475edf648f8fa3fbbfcd456a52ab1247e1bc447611",
+      "anomalies": [
+        "irregular-whitespace"
+      ],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 2-R.docx",
+      "module": "reading",
+      "role": "paper",
+      "bytes": 152905,
+      "sha256": "4a4f1c5f2e18f52a5dcc071a8de6f0c0f2864842bf7a327d8d3cfd188ef12e91",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 3-R.docx",
+      "module": "reading",
+      "role": "paper",
+      "bytes": 29303,
+      "sha256": "5b1614d41dfc79a4f4aeb28c393cbcf9738783dce98e053020b415ba55c5ba39",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 4-R.docx",
+      "module": "reading",
+      "role": "paper",
+      "bytes": 30881,
+      "sha256": "5f69dcf0c2ce38ebe227438b603bc4c05aba6b85c1391b41718548518944452d",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 5-R.docx",
+      "module": "reading",
+      "role": "paper",
+      "bytes": 28041,
+      "sha256": "682ce115b44a4bb5c3751905688cbe31c4a7d2157d94efaf781d06f5163c319a",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 6-R.docx",
+      "module": "reading",
+      "role": "paper",
+      "bytes": 31477,
+      "sha256": "d227c11d1b471aaede4f0eda171553928951cb8a9bd7ae0fbb341b73b812612d",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 7-R.docx",
+      "module": "reading",
+      "role": "paper",
+      "bytes": 29251,
+      "sha256": "e2be6a13cb31e2ec8b1a80a3deee039c31d441942a99fefcb34fa93d398abeed",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "vol9-real-ielts",
+      "path": "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING/TEST 8-R.docx",
+      "module": "reading",
+      "role": "paper",
+      "bytes": 152476,
+      "sha256": "89dc3f8078a05a185808b75c39664ccdb8e745207849542be3c0119bcb7b2c2a",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/_source/Full Listening.html",
+      "module": null,
+      "role": "supporting",
+      "bytes": 196432,
+      "sha256": "f96a6a52e647a0e727fad777f0d37dd96cfaa1c134a4530dd23829fc7e714817",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/_source/Full reading.html",
+      "module": null,
+      "role": "supporting",
+      "bytes": 198510,
+      "sha256": "e200286495014b53f44a63099817fbbd3ce611b113d05ac52815382bd4052da7",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/_source/Full Writing.html",
+      "module": null,
+      "role": "supporting",
+      "bytes": 37610,
+      "sha256": "c7c70ddd3ee396f36e290bc38df27360ef050f317697887f33b755db7d6a22ec",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/ANALYSIS.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 9195,
+      "sha256": "dfb28778672a62bc3752ab6398da536efa6a514ecfdc2e91156c5f9cd9e30a8f",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/answer-keys.json",
+      "module": "reading",
+      "role": "book-key",
+      "bytes": 16104,
+      "sha256": "53a0e11038d0c329946aa725a7019b35cf617fd19537bfa35c7550711826387d",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/ASSESSMENT.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 12728,
+      "sha256": "fb80e47a2168292fa04dcadf354fc887d3a9cba5ae000d1bdfca427204364b34",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/assets/audio/listening-part1.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 4779946,
+      "sha256": "9f026296e81ef64bbe61b6109d33f9a490725463ea5fc48815f4050ebccc003b",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 352.292,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/assets/audio/listening-part2.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 5507856,
+      "sha256": "867a6dca9350b1463331d4842f0cbc3276b14d45aeee63ebf50e04b1afe0114d",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 382.291,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/assets/audio/listening-part3.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 5156099,
+      "sha256": "c37d455047a05fcf7baecc5ffac7ca9a8fe691f1855f23b5d87874a554f0d208",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 356.465,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/assets/audio/listening-part4.mp3",
+      "module": "listening",
+      "role": "audio",
+      "bytes": 5092413,
+      "sha256": "a1eb82e89dab0d0f1031ba056522e581aa0f6fdf95a194218238a8ee24e0b6e8",
+      "anomalies": [],
+      "media": {
+        "probed": true,
+        "container": "mp3",
+        "durationSeconds": 381.728,
+        "codecs": [
+          "audio:mp3"
+        ],
+        "audio": {
+          "codec": "mp3",
+          "sampleRateHz": 44100,
+          "channels": 2
+        }
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/assets/images/listening-part2-community-centre-map.jpg",
+      "module": null,
+      "role": "supporting",
+      "bytes": 13444,
+      "sha256": "20e45e2d699287a917d4043b89106c1a2e4707877cb82dae23fc53148854edf2",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/assets/images/writing-task1-chart.jpg",
+      "module": null,
+      "role": "supporting",
+      "bytes": 44464,
+      "sha256": "b6c5eebc3368d66656e447e82b42d62927fb8b8e80d5d595b01225525933d8fc",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/CHANGELOG.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 7685,
+      "sha256": "a20f3bc7b5f124a79d0c793b8da26db7cb56bf43aee4d8a7803e50c3436bcff5",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/exam.json",
+      "module": null,
+      "role": "supporting",
+      "bytes": 5912,
+      "sha256": "963ea4a3face53b69c914f16d30be9771fab5149843d40fe970c2b986496490f",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/listening/answer-key.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 9806,
+      "sha256": "a0e45406d5e1bef085764b494a008053ddccf5953395274cb4ee58841f596cdf",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/listening/listening.html",
+      "module": null,
+      "role": "supporting",
+      "bytes": 220896,
+      "sha256": "aa87b0f38d98f46d43d9f671091628891f896a30e822c40e17b15651c1d94395",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/listening/questions.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 5393,
+      "sha256": "5354c07ca2ccf202c01d03aff15f943a2257bbaeb32e3ad46bf0e0a58727237c",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/listening/section.json",
+      "module": "listening",
+      "role": "paper",
+      "bytes": 31129,
+      "sha256": "d71c1709b45910d76016a7aa154374075371d98c1227bd2dd527c2b1ef4076a2",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/listening/transcripts/part-1.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 5328,
+      "sha256": "d5ed7e908b326f0ab4b4143eb61f952f8b4ae722472c9b3923d4de223403ad26",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/listening/transcripts/part-2.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 5626,
+      "sha256": "d495a1b983da87f74435ab1af48a82e3ccc2b6678cc96ef2a51148cc606d0541",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/listening/transcripts/part-3.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 5793,
+      "sha256": "049299c55fd80fa21f806c35c98a6c8862274a35d0d5fefe583afa28831814ed",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/listening/transcripts/part-4.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 5701,
+      "sha256": "f6868cd1eee86a2a058421f8a7f32428b1aaaa73d7ba6b3d777d0a22eb2df7b4",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/manifest.json",
+      "module": null,
+      "role": "supporting",
+      "bytes": 3903,
+      "sha256": "100845ff65806f1d966d03e9662914a94cca7535079216041b81d53fe539df75",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/reading/answer-key.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 8488,
+      "sha256": "ff0594e18caca9cbddcc99f907c8b6b2752e4b598eb53e4afd6c59d3e1ee0eb4",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/reading/passage-1-leatherback-turtles.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 5376,
+      "sha256": "288e734034d6123aeed872331f746df4e1f3f311624d85f84b54f74f818de6b0",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/reading/passage-2-thoughtful-computing-system.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 5988,
+      "sha256": "da5793e291dc3a4cc40be0a1d51d73583ad950ff1354d43ef495f12dd0a7b786",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/reading/passage-3-irish-elk.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 6755,
+      "sha256": "5f191a2d47a40bead129e3a3d84dd255e3b9bb65e52e64d1ad4addee9a109ea2",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/reading/questions.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 8485,
+      "sha256": "3f6d7008d6df9bd33da9cbf7deb90835107259e1ae52d779dfd7a92fe708c785",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/reading/reading.html",
+      "module": null,
+      "role": "supporting",
+      "bytes": 200221,
+      "sha256": "9d333b78a47d2f8c65c64b4707c228b343634d02b5e7d1f8a9e75d43f29690cd",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/reading/section.json",
+      "module": "reading",
+      "role": "paper",
+      "bytes": 52850,
+      "sha256": "9035a4f44c9e92132ed656a70fe39e7321b2ab3f56bfe358a58caccc7028468e",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/README.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 6109,
+      "sha256": "273ad0c84c81fad862fdfd4673c928755e5c01a6ff521b9fbf81a1bc457c86cd",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/speaking/examiner-script.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 5018,
+      "sha256": "161eb0bd69c206d06e2c271a0ef74677c109f4e4574c717a5d14a4853933acb3",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/speaking/part-1.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 3425,
+      "sha256": "737583c1120f785be0d75c5842f00bd4f14ec37fdf11596f3af2c203c2c560da",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/speaking/part-2.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 6100,
+      "sha256": "8e9ae7ea7d24709cc69cac0543ae55d8907cf047d475cb65f8f91a74391884fc",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/speaking/part-3.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 5312,
+      "sha256": "66d9b4f72217588d4ed4bc2b9427ba2ba41c1674cf028c41e6102339dd3b92a6",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/speaking/README.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 2919,
+      "sha256": "902e59021ed3c3d686bbe5fbef0167f43d907b6e0d7cc59f4e4123ed09825299",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/speaking/section.json",
+      "module": null,
+      "role": "supporting",
+      "bytes": 8575,
+      "sha256": "5575e86de0cc8785723c85bbb54c5c4c166f84ceb0e0c8b787767b4b75f9fd38",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/writing/section.json",
+      "module": null,
+      "role": "supporting",
+      "bytes": 3418,
+      "sha256": "53a7ce60e0ec26771cde9fca0f6d52979b6794b79e6ab4e8ea5ec016d2fad9b3",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/writing/task-1.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 3723,
+      "sha256": "596d5f1bf2af925530bf7bd1a3b8625043fb347ce92f44c51ee836ee207f3e6c",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/writing/task-2.md",
+      "module": null,
+      "role": "supporting",
+      "bytes": 4347,
+      "sha256": "38994e4e0d3cc322b6e10b77958e44cfb57789e9235f238aed43e63421b3d282",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    },
+    {
+      "sourceId": "exam1-package",
+      "path": "exam/Exam1/writing/writing.html",
+      "module": null,
+      "role": "supporting",
+      "bytes": 38595,
+      "sha256": "294d3e2067809faf5933d935a929f43acf73f0c134df48fad9c33de43289ba47",
+      "anomalies": [],
+      "media": {
+        "probed": false,
+        "reason": "not-media"
+      }
+    }
+  ],
+  "problems": [
+    {
+      "severity": "ambiguity",
+      "code": "ambiguous-test-axis",
+      "sourceId": "cambridge-18",
+      "module": "listening",
+      "test": null,
+      "message": "Filenames carry two numbers labelled \"section\" and \"part\". IELTS vocabulary makes that inverted, and nothing in the filename settles which axis is the test. Audio is inventoried but left unassigned until the PDF is read.",
+      "paths": [
+        "Đề IELTS/Đề CAM/Cam 18/18 section1-part1.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section1-part2.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section1-part3.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section1-part4.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section2- part3.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section2- part4.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section2-part1.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section2-part2.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section3 part1.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section3 part2.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section3 part3.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section3 part4.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section4 part1.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section4 part2.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section4 part3.mp3",
+        "Đề IELTS/Đề CAM/Cam 18/18 section4 part4.mp3"
+      ]
+    },
+    {
+      "severity": "ambiguity",
+      "code": "size-outlier",
+      "sourceId": "vol9-real-ielts",
+      "module": "listening",
+      "test": null,
+      "message": "23769 bytes against a listening paper median of 348366 — possibly truncated. Flagged on size alone; the file was not opened.",
+      "paths": [
+        "Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING/TEST 2-L.docx"
+      ]
+    }
+  ]
+}

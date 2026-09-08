@@ -383,7 +383,7 @@ a.nav-link:hover {
 .hero-grid {
   display: grid;
   grid-template-columns: 1.02fr 0.98fr;
-  gap: 50px;
+  gap: 56px;
   align-items: center;
   position: relative;
   z-index: 1;
@@ -411,12 +411,19 @@ a.nav-link:hover {
   line-height: 1.5;
   letter-spacing: 0.02em;
 }
+/*
+ * Line-height and letter-spacing brought to the DESIGN.md hard floor for
+ * headline text — was 1.02 / -0.055em, both past the documented ceiling
+ * (>=1.2 for >=32px text, letter-spacing no tighter than -0.01em). At the
+ * old values the stacked diacritics in "Tiếng", "tiến", "bộ" had no room and
+ * the marks pressed into neighbouring glyphs.
+ */
 .hero-copy h1 {
   margin: 17px 0 18px;
   max-width: 690px;
   font-size: clamp(42px, 5.3vw, 70px);
-  line-height: 1.02;
-  letter-spacing: -0.055em;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   font-weight: 900;
 }
 .hero-copy h1 span,
@@ -434,38 +441,84 @@ a.nav-link:hover {
   margin: 0;
   color: var(--muted);
   font-size: 18px;
+  line-height: 1.6;
   font-weight: 600;
 }
 .hero-ctas {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
   margin-top: 27px;
 }
+/*
+ * Chunky, hard-edged shadow on the two hero buttons only — the treatment the
+ * product owner reinstated on 03/09/2026 ("đổ bóng cứng 0 4px 0 ... dùng như
+ * độ dày vật lý"), scoped here rather than on the shared `.btn` so it does
+ * not ripple into every button on the site.
+ */
+.hero-ctas .btn {
+  border-width: 2px;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+.hero-ctas .btn-primary {
+  border-color: var(--primary-dark);
+  box-shadow: 0 4px 0 var(--primary-dark);
+}
+.hero-ctas .btn-primary:hover {
+  background: var(--primary);
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--primary-dark);
+}
+.hero-ctas .btn-secondary {
+  box-shadow: 0 4px 0 #d9ded8;
+}
+.hero-ctas .btn-secondary:hover {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #d9ded8;
+}
+
+/*
+ * Three facts as icon + text, replacing the border-divided number row.
+ * The icon is the existing `<strong>` glyph ("4", "⏱", "R·L") recoloured
+ * into a circle rather than a new element — content and markup are
+ * unchanged. The tint/ink pairing is the one already measured for
+ * `.contact-icon` in this file (`--green-soft` / `--green-dark`), not a new
+ * colour.
+ */
 .trust-row {
   display: flex;
-  gap: 0;
-  margin-top: 32px;
-  padding-top: 21px;
-  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+  gap: 24px 28px;
+  margin-top: 36px;
   max-width: 610px;
 }
 .trust-item {
-  min-width: 140px;
-  display: grid;
-  gap: 1px;
-}
-.trust-item + .trust-item {
-  padding-left: 22px;
-  border-left: 1px solid var(--line);
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-width: 0;
 }
 .trust-item strong {
-  font-size: 21px;
-  line-height: 1.5;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--green-soft);
+  color: var(--green-dark);
+  font-size: 15px;
   font-weight: 900;
+  line-height: 1;
 }
 /* 12px → 14px, and #7d7d7d measured 4.00. #636363 measures 5.84. */
 .trust-item span {
+  padding-top: 6px;
+  max-width: 160px;
   color: #636363;
   font-size: 14px;
   font-weight: 700;
@@ -479,15 +532,47 @@ a.nav-link:hover {
   align-items: center;
   justify-content: center;
 }
+/*
+ * Two rotated, soft-tint rounded rectangles behind the card — the same
+ * device as the reference mock's `.shape` blocks, using the two hues
+ * already in the hero's own background gradient rather than new colour.
+ * Pure decoration behind an opaque card, so no contrast measurement applies.
+ */
+.hero-visual::before,
+.hero-visual::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  border-radius: 34px;
+  pointer-events: none;
+}
+.hero-visual::before {
+  width: 170px;
+  height: 280px;
+  left: 4%;
+  top: 4%;
+  background: rgba(16, 176, 80, 0.14);
+  transform: rotate(28deg);
+}
+.hero-visual::after {
+  width: 150px;
+  height: 230px;
+  right: 2%;
+  top: 0;
+  background: rgba(32, 112, 176, 0.1);
+  transform: rotate(-26deg);
+}
 .learning-card {
   position: relative;
   z-index: 3;
   width: min(440px, 100%);
   padding: 24px;
   border: 2px solid #d9dfd9;
-  border-radius: 28px;
+  border-radius: 24px;
   background: white;
-  box-shadow: 0 26px 50px rgba(61, 76, 61, 0.14);
+  box-shadow:
+    0 4px 0 rgba(21, 113, 59, 0.08),
+    0 26px 50px rgba(61, 76, 61, 0.14);
 }
 /* Wraps: signed in the pill reads "3/4 kỹ năng đã chấm", which is twice the
    width of "Xem trước". */
@@ -721,7 +806,9 @@ a.nav-link:hover {
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(12px);
   border: 2px solid #e2e8df;
-  box-shadow: 0 16px 36px rgba(25, 40, 28, 0.14);
+  box-shadow:
+    0 4px 0 rgba(22, 91, 49, 0.07),
+    0 16px 36px rgba(25, 40, 28, 0.14);
   white-space: nowrap;
   pointer-events: none;
 }
@@ -1510,7 +1597,6 @@ details p {
   .trust-row {
     margin-inline: auto;
     justify-content: center;
-    text-align: left;
   }
   .hero-visual {
     min-height: 500px;
@@ -1523,6 +1609,13 @@ details p {
    * empty space.
    */
   .floating-card {
+    display: none;
+  }
+  /* Same reasoning as the floating cards above: centred once stacked, these
+     rotated tints end up overlapping the card's own corners rather than the
+     empty space beside it. */
+  .hero-visual::before,
+  .hero-visual::after {
     display: none;
   }
   .article-grid,
@@ -1570,17 +1663,18 @@ details p {
     font-size: 15px;
   }
   .trust-row {
-    gap: 0;
+    gap: 16px 20px;
+    justify-content: flex-start;
+    text-align: left;
   }
   .trust-item {
     min-width: 0;
-    flex: 1;
-  }
-  .trust-item + .trust-item {
-    padding-left: 11px;
+    flex: 1 1 130px;
   }
   .trust-item strong {
-    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
   }
   /* Was 9px. The floor holds at every width — "kỹ năng IELTS" and "phản hồi
      tức thì" both carry stacked diacritics, and a narrow screen is where they

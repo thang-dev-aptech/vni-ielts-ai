@@ -33,9 +33,7 @@ export function projectRunnerParts(session: SessionView): RunnerProjection {
   }
 
   const expected = current.partId;
-  const parts = current.parts.filter(
-    (part) => `${current.module}-part-${part.order}` === expected,
-  );
+  const parts = current.parts.filter((part) => `${current.module}-part-${part.order}` === expected);
 
   return { valid: parts.length === 1, parts };
 }

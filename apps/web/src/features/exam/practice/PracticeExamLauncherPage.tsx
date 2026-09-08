@@ -32,19 +32,10 @@ export function PracticeExamLauncherPage() {
     started.current = true;
     const timing = params.get('timing') === 'open' ? 'open' : 'deadline';
 
-    startSession(
-      accessToken,
-      { examVersionId: examId, mode: 'full', timing },
-      crypto.randomUUID(),
-    )
+    startSession(accessToken, { examVersionId: examId, mode: 'full', timing }, crypto.randomUUID())
       .then((session) => {
         if (!alive.current) return;
-        navigate(
-          timing === 'open'
-            ? Paths.practiceSession(session.sessionId)
-            : Paths.examSession(session.sessionId),
-          { replace: true },
-        );
+        navigate(Paths.examSession(session.sessionId), { replace: true });
       })
       .catch((caught) => {
         if (!alive.current) return;

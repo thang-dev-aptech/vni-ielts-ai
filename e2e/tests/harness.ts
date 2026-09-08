@@ -6,10 +6,12 @@ export const WEB = 'http://localhost:5273';
 /** The four-module synthetic paper used by E2E only (staged in global-setup). */
 export const SYNTHETIC_EXAM = 'VNI Synthetic Practice Test';
 
-const PASSWORD = 'mot-mat-khau-du-dai-2026';
+/** Exported so a spec that drives a real sign-in can pair it with `learner.phone`. */
+export const PASSWORD = 'mot-mat-khau-du-dai-2026';
 
 export interface Learner {
-  email: string;
+  /** The number the account was registered with, in the `09xxxxxxxx` form typed into a form. */
+  phone: string;
   session: {
     accessToken: string;
     accessTokenExpiresAt: string;
@@ -21,6 +23,33 @@ export interface Learner {
 }
 
 const key = () => crypto.randomUUID().replace(/-/g, '');
+
+/**
+ * A Vietnamese mobile number no other run in this database has used.
+ *
+ * <b>`09xxxxxxxx`, not `9xxxxxxxx`.</b> The server normalises to `+84…` and
+ * refuses a bare national number outright: `912345678` could be a Vietnamese
+ * subscriber written without its trunk prefix or the start of something else
+ * entirely, and guessing on a value that identifies an account is how two
+ * people end up sharing one. The leading `0` is what makes it unambiguous, so
+ * the harness sends the form a person would actually type.
+ *
+ * <b>Uniqueness comes from the clock plus a random tail, not from a counter.</b>
+ * Playwright workers are separate processes, so a module-level counter would
+ * restart in each of them and two workers would collide on the first learner
+ * they registered — a 409 in a test about something else entirely. Eight
+ * digits is all the room a ten-digit mobile leaves, so five of them come from
+ * the clock and three from `Math.random`: two registrations collide only if
+ * they land in the same 100-second window *and* draw the same three digits.
+ * Randomness alone would have been a birthday problem against a database that
+ * is not wiped between runs.
+ */
+const uniquePhone = () => {
+  const fromClock = String(Date.now() % 100_000).padStart(5, '0');
+  const fromRandom = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+
+  return `09${fromClock}${fromRandom}`;
+};
 
 /**
  * Registers a learner over the API rather than through the sign-up form.
@@ -35,16 +64,18 @@ const key = () => crypto.randomUUID().replace(/-/g, '');
  * covers registration over HTTP.
  */
 export async function registerLearner(request: APIRequestContext): Promise<Learner> {
-  const email = `e2e.${key()}@example.com`;
+  const phone = uniquePhone();
 
   const response = await request.post(`${API}/api/v1/auth/register`, {
     headers: { 'Idempotency-Key': key() },
-    data: { email, password: PASSWORD, displayName: 'Học viên E2E' },
+    data: { phone, password: PASSWORD, displayName: 'Học viên E2E' },
   });
 
   expect(response.status(), await response.text()).toBe(201);
 
-  return { email, session: (await response.json()).session };
+  // `{ session }` and nothing else — the registration response stopped
+  // carrying a profile alongside it, so a test that wants one asks `/me`.
+  return { phone, session: (await response.json()).session };
 }
 
 /**
@@ -57,6 +88,14 @@ export async function registerLearner(request: APIRequestContext): Promise<Learn
  * cheap page first, seeding, then navigating for real is the sequence that
  * works — and getting it wrong looks exactly like the app ignoring a valid
  * session.
+ *
+ * <b>It never posts to `/auth/login`, and that is why the `{ identifier,
+ * password }` change did not touch it.</b> The session it seeds is the one
+ * `registerLearner` already holds. The login body has its own coverage in the
+ * component suites of both apps; putting it in the path of every spec here
+ * would make a change to the sign-in contract fail twelve tests that are about
+ * races and offline queues. Anything that does want to exercise a real sign-in
+ * sends `{ identifier: learner.phone, password: PASSWORD }` itself.
  */
 export async function signIn(page: Page, learner: Learner, to = '/students/dashboard') {
   await page.goto('/404');

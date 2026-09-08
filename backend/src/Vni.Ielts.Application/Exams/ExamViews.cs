@@ -587,7 +587,8 @@ internal static class ExamViewMapping
                     exp.CorrectAnswer ?? q.CorrectAnswer ?? string.Empty,
                     exp.ShortReason,
                     exp.Evidence,
-                    exp.CommonMistake);
+                    exp.CommonMistake,
+                    exp.Translation);
             }
         }
 

@@ -65,9 +65,11 @@ public sealed class UsageRecorderTests
     public async Task A_new_account_is_granted_the_configured_initial_turns_exactly_once()
     {
         var h = new Harness { Options = { InitialGrantTurns = 10m } };
+        var learner = Domain.Identity.User.Rehydrate(
+            Learner, null, "Hoc vien", null, Domain.Identity.UserStatus.Active, Now, []);
 
-        await h.Sut.AccountCreatedAsync(Learner, default);
-        await h.Sut.AccountCreatedAsync(Learner, default); // a retried request, say
+        await h.Sut.AccountCreatedAsync(learner, default);
+        await h.Sut.AccountCreatedAsync(learner, default); // a retried request, say
 
         var row = Assert.Single(h.Ledger.Written);
         Assert.Equal(UsageActions.AccountCreated, row.Action);
@@ -103,35 +105,42 @@ public sealed class UsageRecorderTests
     }
 
     [Fact]
-    public async Task An_unreferred_accounts_verification_earns_nothing()
+    public async Task An_unreferred_account_earns_nobody_anything()
     {
         var h = new Harness { Options = { ReferralTurns = 1m } };
         var user = Domain.Identity.User.Register(
-            Domain.Identity.Email.Create("hoc.vien@example.com"), "Học viên", Now);
+            Domain.Identity.PhoneNumber.Create("0912345678"), "Hoc vien", Now);
 
-        var earned = await h.Sut.EmailVerifiedAsync(user, default);
+        var earned = await h.Sut.ReferralQualifiedAsync(user, default);
 
         Assert.False(earned);
         Assert.Empty(h.Ledger.Written);
     }
 
     [Fact]
-    public async Task The_referrer_earns_once_when_their_invitee_verifies_even_if_asked_twice()
+    public async Task The_referrer_earns_once_when_their_invitee_registers_even_if_asked_twice()
     {
+        /*
+         * <b>The id is still `referral:{inviteeId}`, and that is deliberate.</b>
+         * Rows written under the old verification gate carry the same id, so an
+         * account that was already paid for cannot be paid for a second time
+         * across the change of trigger. Only the action name moved.
+         */
         var h = new Harness { Options = { ReferralTurns = 1m } };
         var referrerId = new UserId("referrer-1");
         var invitee = Domain.Identity.User.Register(
-            Domain.Identity.Email.Create("invitee@example.com"), "Người được giới thiệu", Now);
+            Domain.Identity.PhoneNumber.Create("0912345678"), "Nguoi duoc gioi thieu", Now);
         invitee.AttributeReferral(referrerId);
 
-        var first = await h.Sut.EmailVerifiedAsync(invitee, default);
-        var second = await h.Sut.EmailVerifiedAsync(invitee, default);
+        var first = await h.Sut.ReferralQualifiedAsync(invitee, default);
+        var second = await h.Sut.ReferralQualifiedAsync(invitee, default);
 
         Assert.True(first);
         Assert.False(second);
         var row = Assert.Single(h.Ledger.Written);
         Assert.Equal(referrerId, row.UserId);
-        Assert.Equal(UsageActions.ReferralVerified, row.Action);
+        Assert.Equal(UsageActions.ReferralQualified, row.Action);
+        Assert.Equal(UsageEntry.ReferralId(invitee.Id), row.Id);
         Assert.Equal(1m, row.Turns);
     }
 

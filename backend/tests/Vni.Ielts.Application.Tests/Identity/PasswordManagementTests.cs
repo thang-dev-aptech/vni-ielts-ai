@@ -6,34 +6,27 @@ using Vni.Ielts.Domain.Identity;
 namespace Vni.Ielts.Application.Tests.Identity;
 
 /// <summary>
-/// Forgetting, resetting and creating a password.
+/// Creating and changing a password while signed in.
 ///
-/// The case that matters most is the one the owner hit on 21/08/2026: an
-/// account created through Google, which has no password row at all. Both
-/// paths here have to create one rather than assume it exists.
+/// <para>
+/// <b>"Forgot my password" is no longer here.</b> Recovery used to be a link
+/// mailed to the account's address; registration takes no address as of
+/// 08/09/2026, so for most accounts there was nowhere to send one. The owner
+/// replaced it with a Zalo contact link and an operator using
+/// <c>POST /admin/users/{id}/password</c>. What remains in this file is the
+/// signed-in path, which is unaffected.
+/// </para>
+///
+/// <para>
+/// The case that matters most is still the one the owner hit on 21/08/2026: an
+/// account created through Google has no password row at all, so this has to
+/// create one rather than assume it exists.
+/// </para>
 /// </summary>
 public sealed class PasswordManagementTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 8, 21, 9, 0, 0, TimeSpan.Zero);
-    private const string Address = "hoc.vien@example.com";
+    private static readonly DateTimeOffset Now = new(2026, 9, 8, 9, 0, 0, TimeSpan.Zero);
     private const string Strong = "mot-mat-khau-du-dai-2026";
-
-    private sealed class FakeResetTokens : IPasswordResetTokens
-    {
-        private readonly Dictionary<string, UserId> _issued = [];
-        public List<UserId> IssuedFor { get; } = [];
-
-        public Task<string> IssueAsync(UserId userId, CancellationToken ct)
-        {
-            var token = $"reset-{_issued.Count + 1}";
-            _issued[token] = userId;
-            IssuedFor.Add(userId);
-            return Task.FromResult(token);
-        }
-
-        public Task<UserId?> RedeemAsync(string token, CancellationToken ct) =>
-            Task.FromResult(_issued.Remove(token, out var id) ? id : (UserId?)null);
-    }
 
     private sealed class Harness
     {
@@ -41,20 +34,16 @@ public sealed class PasswordManagementTests
         public FakeUserIdentityRepository Identities { get; } = new();
         public FakePasswordHasher Hasher { get; } = new();
         public FakeTokenService Sessions { get; } = new();
-        public FakeResetTokens Tokens { get; } = new();
-        public FakeVerificationMessageSender Sender { get; } = new();
 
-        public RequestPasswordReset Request => new(Users, Tokens, Sender);
-        public ResetPassword Reset =>
-            new(Users, Identities, Tokens, Hasher, Sessions, new FixedClock(Now));
         public SetPassword Set => new(Users, Identities, Hasher, Sessions, new FixedClock(Now));
 
         /// <param name="password">Null models an account created through Google.</param>
-        public async Task<User> SeedAsync(string? password, bool verified = true, bool suspended = false)
+        public async Task<User> SeedAsync(string? password, bool suspended = false)
         {
-            var email = Email.Create(Address);
-            var user = User.Register(email, "Học viên", Now);
-            if (verified) user.MarkEmailVerified();
+            var user = password is null
+                ? User.RegisterFromProvider(Email.Create("hoc.vien@example.com"), "Hoc vien", Now)
+                : User.Register(PhoneNumber.Create("0912345678"), "Hoc vien", Now);
+
             if (suspended) user.Suspend();
 
             await Users.AddAsync(user, default);
@@ -62,12 +51,13 @@ public sealed class PasswordManagementTests
             if (password is not null)
             {
                 await Identities.AddAsync(
-                    UserIdentity.ForEmail(user.Id, email, Hasher.Hash(password), Now), default);
+                    UserIdentity.ForPassword(user.Id, Hasher.Hash(password), Now), default);
             }
             else
             {
                 await Identities.AddAsync(
-                    UserIdentity.ForSocial(user.Id, IdentityProvider.Google, "google-sub", Now), default);
+                    UserIdentity.ForSocial(user.Id, IdentityProvider.Google, "google-sub", Now),
+                    default);
             }
 
             return user;
@@ -75,142 +65,14 @@ public sealed class PasswordManagementTests
 
         public string? StoredHash(UserId id) =>
             Identities.ListForUserAsync(id, default).Result
-                .FirstOrDefault(i => i.Provider == IdentityProvider.Email)?.PasswordHash;
+                .FirstOrDefault(i => i.Provider == IdentityProvider.Password)?.PasswordHash;
     }
-
-    // ── Forgetting ─────────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task A_reset_link_is_sent_for_a_real_address()
-    {
-        var h = new Harness();
-        await h.SeedAsync("old-password-here");
-
-        await h.Request.HandleAsync(new RequestPasswordResetCommand(Address), default);
-
-        Assert.Single(h.Sender.Resets);
-    }
-
-    [Fact]
-    public async Task An_account_created_through_Google_can_still_ask_for_one()
-    {
-        // The whole point. Google verified the address, so a link sent there
-        // reaches its owner — this is how someone who only ever pressed the
-        // Google button gains a password.
-        var h = new Harness();
-        await h.SeedAsync(password: null);
-
-        await h.Request.HandleAsync(new RequestPasswordResetCommand(Address), default);
-
-        Assert.Single(h.Sender.Resets);
-    }
-
-    [Theory]
-    [InlineData("khong-ai-dung@example.com")]
-    [InlineData("khong-phai-email")]
-    public async Task An_unknown_address_is_silently_ignored(string address)
-    {
-        // Same outward behaviour as a real one. Anything else is a free
-        // account-enumeration oracle. → threat T4
-        var h = new Harness();
-        await h.SeedAsync("old-password-here");
-
-        await h.Request.HandleAsync(new RequestPasswordResetCommand(address), default);
-
-        Assert.Empty(h.Sender.Resets);
-    }
-
-    [Fact]
-    public async Task A_suspended_account_gets_no_way_back_in()
-    {
-        var h = new Harness();
-        await h.SeedAsync("old-password-here", suspended: true);
-
-        await h.Request.HandleAsync(new RequestPasswordResetCommand(Address), default);
-
-        Assert.Empty(h.Sender.Resets);
-    }
-
-    // ── Resetting ──────────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task A_valid_link_sets_the_password_and_ends_every_session()
-    {
-        // A reset is what someone does when they fear the account is
-        // compromised. Leaving the attacker's session alive makes it theatre.
-        var h = new Harness();
-        var user = await h.SeedAsync("old-password-here");
-        var token = await h.Tokens.IssueAsync(user.Id, default);
-
-        var result = await h.Reset.HandleAsync(new ResetPasswordCommand(token, Strong), default);
-
-        Assert.True(result.IsSuccess);
-        Assert.Equal(h.Hasher.Hash(Strong), h.StoredHash(user.Id));
-        Assert.Contains(user.Id, h.Sessions.RevokedAllFor);
-    }
-
-    [Fact]
-    public async Task Resetting_a_Google_account_creates_the_password_it_never_had()
-    {
-        var h = new Harness();
-        var user = await h.SeedAsync(password: null);
-        var token = await h.Tokens.IssueAsync(user.Id, default);
-
-        var result = await h.Reset.HandleAsync(new ResetPasswordCommand(token, Strong), default);
-
-        Assert.True(result.IsSuccess);
-        Assert.Equal(h.Hasher.Hash(Strong), h.StoredHash(user.Id));
-    }
-
-    [Fact]
-    public async Task Redeeming_a_link_also_verifies_the_address()
-    {
-        // Receiving mail at an address is the same proof verification asks for.
-        var h = new Harness();
-        var user = await h.SeedAsync("old-password-here", verified: false);
-        var token = await h.Tokens.IssueAsync(user.Id, default);
-
-        await h.Reset.HandleAsync(new ResetPasswordCommand(token, Strong), default);
-
-        Assert.True((await h.Users.FindByIdAsync(user.Id, default))!.EmailVerified);
-    }
-
-    [Fact]
-    public async Task A_link_works_once()
-    {
-        var h = new Harness();
-        var user = await h.SeedAsync("old-password-here");
-        var token = await h.Tokens.IssueAsync(user.Id, default);
-
-        Assert.True((await h.Reset.HandleAsync(new ResetPasswordCommand(token, Strong), default)).IsSuccess);
-
-        var replay = await h.Reset.HandleAsync(new ResetPasswordCommand(token, Strong), default);
-        Assert.Equal(ErrorCodes.ResetTokenInvalid, replay.Error.Code);
-    }
-
-    [Fact]
-    public async Task A_weak_password_is_refused_before_the_link_is_spent()
-    {
-        // Order matters: validating after redemption would burn the token and
-        // leave someone with a dead link and the same weak password.
-        var h = new Harness();
-        var user = await h.SeedAsync("old-password-here");
-        var token = await h.Tokens.IssueAsync(user.Id, default);
-
-        var weak = await h.Reset.HandleAsync(new ResetPasswordCommand(token, "123"), default);
-        Assert.Equal(ErrorCodes.PasswordTooWeak, weak.Error.Code);
-
-        var retry = await h.Reset.HandleAsync(new ResetPasswordCommand(token, Strong), default);
-        Assert.True(retry.IsSuccess);
-    }
-
-    // ── Creating and changing while signed in ──────────────────────────────
 
     [Fact]
     public async Task A_Google_account_can_create_a_first_password_with_nothing_to_prove()
     {
-        // There is no current password to ask for, and demanding one would
-        // make this impossible — which is the dead end the owner reported.
+        // There is no current password to ask for, and asking would be asking
+        // for something that does not exist.
         var h = new Harness();
         var user = await h.SeedAsync(password: null);
 
@@ -222,16 +84,37 @@ public sealed class PasswordManagementTests
     }
 
     [Fact]
+    public async Task The_password_row_it_creates_is_keyed_by_the_account()
+    {
+        /*
+         * Not by the address. A Google account may go on to add a phone number
+         * and sign in with either, and one row keyed by account is what makes
+         * that possible without a second row holding a duplicate hash.
+         */
+        var h = new Harness();
+        var user = await h.SeedAsync(password: null);
+
+        await h.Set.HandleAsync(
+            new SetPasswordCommand(user.Id, null, Strong, "fam-here"), default);
+
+        var identity = await h.Identities.FindByProviderAsync(
+            IdentityProvider.Password, user.Id.Value, default);
+
+        Assert.NotNull(identity);
+    }
+
+    [Fact]
     public async Task Changing_an_existing_password_requires_the_current_one()
     {
-        // A stolen access token must not be enough to lock the owner out.
+        // A stolen access token must not be enough to lock the real owner out.
         var h = new Harness();
         var user = await h.SeedAsync("old-password-here");
 
-        var wrong = await h.Set.HandleAsync(
+        var result = await h.Set.HandleAsync(
             new SetPasswordCommand(user.Id, "doan-sai", Strong, "fam-here"), default);
 
-        Assert.Equal(ErrorCodes.CurrentPasswordWrong, wrong.Error.Code);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.CurrentPasswordWrong, result.Error.Code);
         Assert.Equal(h.Hasher.Hash("old-password-here"), h.StoredHash(user.Id));
     }
 
@@ -246,6 +129,32 @@ public sealed class PasswordManagementTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(h.Hasher.Hash(Strong), h.StoredHash(user.Id));
+    }
+
+    [Fact]
+    public async Task A_weak_password_is_refused_before_anything_is_written()
+    {
+        var h = new Harness();
+        var user = await h.SeedAsync("old-password-here");
+
+        var result = await h.Set.HandleAsync(
+            new SetPasswordCommand(user.Id, "old-password-here", "ngan", "fam-here"), default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(h.Hasher.Hash("old-password-here"), h.StoredHash(user.Id));
+    }
+
+    [Fact]
+    public async Task A_suspended_account_cannot_set_one()
+    {
+        var h = new Harness();
+        var user = await h.SeedAsync("old-password-here", suspended: true);
+
+        var result = await h.Set.HandleAsync(
+            new SetPasswordCommand(user.Id, "old-password-here", Strong, "fam-here"), default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.AccountSuspended, result.Error.Code);
     }
 
     [Fact]

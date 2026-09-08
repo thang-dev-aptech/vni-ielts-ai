@@ -119,13 +119,16 @@ export function ProfilePage() {
               a role that never changes and a state the email row states again
               underneath. The separator carries the same meaning at a third of
               the height.
+
+              The second fact used to be the address's verified state. Nothing
+              verifies an address as of 08/09/2026, so the pill would have had
+              to invent one — it says the account is active instead, which is
+              what the page can actually stand behind.
             */}
             <p className="profile-status">
               {t('profile.roleStudent')}
               <span aria-hidden="true"> · </span>
-              <span className={user.emailVerified ? 'is-ok' : 'is-warn'}>
-                {user.emailVerified ? t('profile.statusActive') : t('profile.unverified')}
-              </span>
+              <span className="is-ok">{t('profile.statusActive')}</span>
             </p>
 
             <PersonalInfo />

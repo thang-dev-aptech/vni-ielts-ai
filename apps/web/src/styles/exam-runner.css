@@ -1,0 +1,1645 @@
+/*
+ * The sitting screen — `/exam/:attemptId`.
+ *
+ * <b>This file is a clone of a supplied reference, not a derivation from it.</b>
+ * `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026: two screenshots are the visual source
+ * of truth for the runner and the result page, and where the reference and an
+ * existing component disagree, the component gets a variant rather than the
+ * reference getting reinterpreted. Numbers below were read off the reference at
+ * a 1440px viewport; they are deliberately literal.
+ *
+ * <b>What the reference does not get to overrule.</b> Product law L1 — the
+ * clock never turns red, never blinks, never animates — and product law L2, the
+ * save chip. The reference draws a calm green timer, which is what L1 asks for
+ * anyway; the escalation levels below change size and border, never hue.
+ *
+ * Every colour pair here was measured. The reference's own primary green
+ * (#10b050) carries white text at 2.86:1 and fails AA, which DESIGN.md's own
+ * banner records; `--exr-green` is #06803a, measured 5.05:1 on white, and is
+ * close enough at a glance that the two are hard to tell apart side by side.
+ */
+
+.exr-page {
+  /* Scoped, so nothing here leaks into the dashboard or the CMS. */
+  --exr-page: #f7faf8;
+  --exr-card: #ffffff;
+  --exr-line: #e6ece8;
+  --exr-line-soft: #eef2f0;
+  --exr-ink: #17251d;
+  --exr-ink-2: #3c4a43;
+  --exr-muted: #6b7a72;
+  --exr-green: #06803a; /* 5.05 on #fff — the reference's #10b050 is 2.86 */
+  --exr-green-dark: #045a28;
+  --exr-green-ink: #0b6f36; /* 5.62 on --exr-green-soft */
+  --exr-green-soft: #e8f6ee;
+  --exr-green-line: #c3e7d2;
+  --exr-blue: #2470b4; /* 5.05 on #fff — the instruction line */
+  --exr-red: #b3261e;
+  --exr-red-soft: #fdecea;
+  --exr-top-h: 56px;
+  --exr-foot-h: 68px;
+
+  /*
+   * <b>The page does not scroll; the two panels do.</b> The footer carries the
+   * part map and the submit button, and both have to stay put — a learner who
+   * has to scroll a paper to find "Nộp bài" is one who runs out of time
+   * looking for it. Relaxed below the two-column breakpoint, where a single
+   * column has to scroll like an ordinary page.
+   */
+  height: 100vh;
+  overflow: hidden;
+  /*
+   * A containing block, so nothing absolutely positioned can escape the clip.
+   * Screen-reader-only text is `position: absolute`, and an absolute box with
+   * no positioned ancestor resolves against the initial containing block — it
+   * lands at its static offset in the *document*, not in the pane it belongs
+   * to. Three 1px word-count hints for questions scrolled out of view sat at
+   * y=921 on a 700px-tall window and gave the whole page a scrollbar, which is
+   * exactly the thing this screen must not have.
+   */
+  position: relative;
+  background: var(--exr-page);
+  color: var(--exr-ink);
+  font-family: var(--font);
+  display: flex;
+  flex-direction: column;
+}
+
+.exr-wrap {
+  width: 100%;
+  max-width: 1376px;
+  margin: 0 auto;
+  padding: 0 var(--s-6);
+}
+
+/* ── The bar ─────────────────────────────────────────────────────────────
+ * One header for the whole sitting: the paper and its mode on the left, the
+ * save state, the clock (and, for luyện đề, its controls) and "Trợ giúp" on
+ * the right. The wordmark and the account read-out left on 2026-09-08 at the
+ * owner's request — the space they took is the space the clock now has.
+ * No links: a timed sitting has no way out, and that is enforced by there
+ * being no anchor in the tree rather than by a rule somebody has to remember.
+ */
+.exr-top {
+  background: var(--exr-card);
+  border-bottom: var(--bw-1) solid var(--exr-line);
+  flex: 0 0 auto;
+}
+
+.exr-top-in {
+  min-height: var(--exr-top-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding-top: var(--s-2);
+  padding-bottom: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.exr-top-left {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+  flex: 1 1 320px;
+  flex-wrap: wrap;
+}
+
+.exr-top-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-3);
+  min-width: 0;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+}
+
+.exr-product {
+  font-size: var(--t-16);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--exr-blue);
+}
+
+.exr-help {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  background: none;
+  border: 0;
+  padding: var(--s-2);
+  border-radius: var(--r-md);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-label);
+  color: var(--exr-ink-2);
+  cursor: pointer;
+}
+
+.exr-help:hover {
+  background: var(--exr-line-soft);
+}
+
+.exr-help svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+/* The help panel. A disclosure, not a menu — it says what the sitting rules
+   are and contains nothing that navigates. */
+.exr-help-holder {
+  position: relative;
+}
+
+.exr-help-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--s-2));
+  z-index: 40;
+  width: 320px;
+  background: var(--exr-card);
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-elevation);
+  padding: var(--s-4);
+}
+
+.exr-help-panel h2 {
+  font-size: var(--t-14);
+  font-weight: 700;
+  margin: 0 0 var(--s-2);
+}
+
+.exr-help-panel ul {
+  margin: 0;
+  padding-left: var(--s-4);
+  display: grid;
+  gap: var(--s-2);
+}
+
+.exr-help-panel li {
+  font-size: var(--t-13);
+  line-height: var(--lh-body);
+  color: var(--exr-ink-2);
+}
+
+/* ── Title and chips ─────────────────────────────────────────────────────*/
+.exr-title {
+  margin: 0;
+  font-family: var(--font-display);
+  /* 22px, not the reference's 26: the bar now also carries the clock and
+     its controls, and a 26px title wrapped to two lines at 1440px. */
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: var(--w-display-heavy);
+  letter-spacing: -0.01em;
+  color: var(--exr-ink);
+}
+
+.exr-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-pill);
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  white-space: nowrap;
+}
+
+.exr-chip-mode {
+  background: var(--exr-green-soft);
+  color: var(--exr-green-ink);
+}
+
+.exr-chip-note {
+  background: #f0f3f1;
+  color: #55635c;
+}
+
+/* ── Clock ───────────────────────────────────────────────────────────────
+ * L1: three levels, told apart by size, border weight and a written note.
+ * Never red, never blinking, never animated. Greyscale-safe by construction.
+ */
+.exr-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  height: 42px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-pill);
+  background: var(--exr-card);
+  border: 1.5px solid var(--exr-green-line);
+  color: var(--exr-green-ink);
+}
+
+.exr-clock svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.exr-clock .num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-18);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.exr-clock.level-2 {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.exr-clock.level-3,
+.exr-clock.level-4 {
+  border-width: 2px;
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+  height: 48px;
+}
+
+.exr-clock.level-3 .num,
+.exr-clock.level-4 .num {
+  font-size: var(--t-24);
+}
+
+.exr-clock-note {
+  font-family: var(--font);
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+}
+
+/* Open timing (luyện đề) keeps its own controls beside the read-out. */
+.exr-clock-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.exr-ctl {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  height: 42px;
+  /* The label stays on one line; the row wraps instead. "Dừng đồng hồ" broken
+     over three lines turned a 42px control into a 90px block. */
+  white-space: nowrap;
+  flex: 0 0 auto;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-md);
+  border: var(--bw-1) solid var(--exr-line);
+  background: var(--exr-card);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--exr-ink-2);
+  cursor: pointer;
+}
+
+.exr-ctl:hover:not(:disabled) {
+  border-color: var(--exr-green-line);
+  color: var(--exr-green-ink);
+}
+
+.exr-ctl:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.exr-ctl svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Open-clock controls (luyện đề) ──────────────────────────────────────
+ * Pause, the goal marker and the way out. A countdown renders none of these:
+ * it cannot be paused, carries no goal, and has no way out by design.
+ */
+.exr-top-right .exr-clock-state {
+  flex-basis: 100%;
+  text-align: right;
+}
+
+.exr-clock-state {
+  flex: 1 0 100%;
+  order: 9;
+  margin: var(--s-2) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  justify-content: flex-end;
+  font-size: var(--t-13);
+  color: var(--exr-muted);
+}
+
+.exr-clock-state:empty {
+  display: none;
+}
+
+.exr-target-read {
+  font-weight: var(--w-emph);
+  color: var(--exr-ink-2);
+}
+
+.exr-target-passed {
+  color: var(--warn);
+  font-weight: var(--w-emph);
+}
+
+/* The goal disclosure. A panel owned by a button — see `TargetControl`. */
+.exr-page .prun-target {
+  position: relative;
+}
+
+.exr-page .prun-target-open {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  height: 42px;
+  white-space: nowrap;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-md);
+  border: var(--bw-1) solid var(--exr-line);
+  background: var(--exr-card);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--exr-ink-2);
+  cursor: pointer;
+}
+
+.exr-page .prun-target-open:hover:not(:disabled) {
+  border-color: var(--exr-green-line);
+  color: var(--exr-green-ink);
+}
+
+.exr-page .prun-target-open:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.exr-page .prun-target-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--s-2));
+  z-index: 40;
+  width: 280px;
+  padding: var(--s-4);
+  background: var(--exr-card);
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-elevation);
+  text-align: left;
+}
+
+.exr-page .prun-target-head {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-14);
+  font-weight: 700;
+  color: var(--exr-ink);
+}
+
+.exr-page .prun-target-presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+
+.exr-page .prun-target-preset {
+  height: 36px;
+  border-radius: var(--r-md);
+  border: var(--bw-1) solid var(--exr-line);
+  background: var(--exr-card);
+  font: inherit;
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  color: var(--exr-ink-2);
+  cursor: pointer;
+}
+
+.exr-page .prun-target-preset[aria-pressed='true'] {
+  border-color: var(--exr-green);
+  background: var(--exr-green-soft);
+  color: var(--exr-green-ink);
+}
+
+.exr-page .prun-target-field {
+  display: block;
+  margin-bottom: var(--s-2);
+  font-size: var(--t-13);
+  color: var(--exr-muted);
+}
+
+.exr-page .prun-target-row {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.exr-page .prun-target-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 36px;
+  padding: 0 var(--s-3);
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: var(--r-md);
+  font: inherit;
+  font-size: var(--t-14);
+}
+
+.exr-page .prun-target-apply,
+.exr-page .prun-target-clear {
+  height: 36px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-md);
+  border: var(--bw-1) solid var(--exr-line);
+  background: var(--exr-card);
+  font: inherit;
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  color: var(--exr-ink-2);
+  cursor: pointer;
+}
+
+.exr-page .prun-target-clear {
+  width: 100%;
+  margin-top: var(--s-3);
+}
+
+.exr-page .prun-target-err {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-13);
+  color: var(--exr-red);
+}
+
+/* ── The Full Test strip and the Listening actions bar ───────────────────*/
+.exr-strip {
+  flex: 0 0 auto;
+  padding-bottom: var(--s-3);
+  display: grid;
+  gap: var(--s-3);
+}
+
+.exr-strip:empty {
+  display: none;
+}
+
+/* ── Notices ─────────────────────────────────────────────────────────────*/
+.exr-notices {
+  flex: 0 0 auto;
+  display: grid;
+  gap: var(--s-2);
+  padding-bottom: var(--s-3);
+}
+
+.exr-notice {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  font-size: var(--t-14);
+  line-height: var(--lh-body);
+  background: var(--exr-green-soft);
+  color: var(--exr-green-ink);
+  border: var(--bw-1) solid var(--exr-green-line);
+}
+
+.exr-notice.is-bad {
+  background: var(--exr-red-soft);
+  color: var(--exr-red);
+  border-color: #f3c9c5;
+}
+
+.exr-notice.is-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+  border-color: #f2ddc2;
+}
+
+.exr-notice.is-quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--exr-muted);
+  padding: 0;
+  font-size: var(--t-13);
+}
+
+.exr-state {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding-bottom: var(--s-3);
+  flex: 0 0 auto;
+}
+
+.exr-connection {
+  font-size: var(--t-13);
+  color: var(--exr-muted);
+}
+
+.exr-connection.is-offline {
+  color: var(--warn);
+  font-weight: var(--w-emph);
+}
+
+/* ── Workspace ───────────────────────────────────────────────────────────
+ * Two panels, near enough equal, each scrolling inside itself. The page
+ * itself never scrolls: the footer map has to stay reachable without hunting
+ * for it, which is the whole reason it is a map.
+ */
+.exr-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding-bottom: var(--s-5);
+}
+
+.exr-body-in {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  gap: var(--s-5);
+  align-items: stretch;
+}
+
+.exr-body-in[data-split='reading'],
+.exr-body-in[data-split='writing'] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+}
+
+.exr-body-in[data-split='single'] {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Listening lays itself out — a section rail and a main column. The shell
+   gives it the width and the height and stays out of the way. */
+.exr-body-in[data-split='listening'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.exr-body-in[data-split='listening'] > .lst-body {
+  min-height: 0;
+  overflow-y: auto;
+  position: relative;
+}
+
+.exr-panel {
+  background: var(--exr-card);
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: 20px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* The questions column is a stack of cards rather than one card, so its
+   scrollbar belongs to the column and not to a panel inside it. */
+.exr-questions-col {
+  min-height: 0;
+  overflow-y: auto;
+  position: relative;
+  display: grid;
+  gap: var(--s-5);
+  align-content: start;
+  padding-right: var(--s-1);
+  scrollbar-width: thin;
+}
+
+.exr-panel-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-5) var(--s-5) var(--s-4);
+  border-bottom: var(--bw-1) solid var(--exr-line-soft);
+}
+
+.exr-panel-title {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--exr-ink);
+}
+
+.exr-panel-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  position: relative;
+  padding: var(--s-5);
+  scrollbar-width: thin;
+}
+
+/* Reading body: 15px on a 1.75 rhythm, the reference's proportions. The
+   1.75 sits comfortably above the 1.5 floor Vietnamese needs, and the
+   passage itself is English. */
+.exr-passage-body {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--exr-ink-2);
+}
+
+.exr-passage-body > * + *,
+.exr-passage-body .exam-passage-body > * + * {
+  margin-top: var(--s-4);
+}
+
+.exr-passage-body p,
+.exr-passage-body .exam-passage-body p {
+  margin: 0;
+}
+
+/* `PassageBody` wraps its paragraphs in a div of its own; the size it is given
+   has to reach through it. */
+.exr-passage-body .exam-passage-body {
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+.exr-passage-body h1,
+.exr-passage-body h2,
+.exr-passage-body h3 {
+  margin: 0;
+  font-size: var(--t-16);
+  font-weight: 700;
+  color: var(--exr-ink);
+}
+
+.exr-passage-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.exr-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  border: 0;
+  background: none;
+  padding: var(--s-2);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: var(--t-13);
+  font-weight: var(--w-label);
+  color: var(--exr-muted);
+  cursor: pointer;
+}
+
+.exr-tool:hover,
+.exr-tool[aria-pressed='true'] {
+  background: var(--exr-line-soft);
+  color: var(--exr-ink-2);
+}
+
+.exr-tool svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ── Question cards ──────────────────────────────────────────────────────*/
+.exr-qcard {
+  background: var(--exr-card);
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/*
+ * The part's own card — Listening's audio, a Speaking cue card — sits
+ * directly in the column's grid. Chrome sizes a grid row for an
+ * `overflow: hidden` item at its borders alone (2px) when the column itself
+ * is a scroll container, so the card was there and invisible. It has no
+ * tinted head to clip, so nothing is lost by letting it overflow.
+ */
+.exr-questions-col > .exr-qcard {
+  overflow: visible;
+}
+
+/* `exam.css` styles `.exam-group-head` for the luyện đề list — a bordered
+   chip for the range and a blue rule down the left of the rubric. The card
+   head owns both here, so those are reset rather than inherited. */
+.exr-page .exr-qcard-head {
+  background: #f4faf6;
+  border: 0;
+  border-bottom: var(--bw-1) solid var(--exr-line-soft);
+  border-radius: 0;
+  margin: 0;
+  padding: var(--s-4) var(--s-5);
+  display: block;
+}
+
+.exr-page .exr-qcard-range .exam-group-range {
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font-family: var(--font);
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+.exr-qcard-range {
+  margin: 0;
+  font-size: var(--t-20);
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--exr-ink);
+}
+
+/*
+ * The rubric, word for word and never restyled into a hint.
+ *
+ * "NO MORE THAN THREE WORDS" is a scoring rule stated to the candidate, so it
+ * is shown as authored. The reference draws it in blue; the token used here is
+ * measured at 5.05 on white rather than the reference's lighter blue.
+ */
+.exr-page .exr-qcard-rubric {
+  margin: var(--s-1) 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: var(--w-emph);
+  color: var(--exr-blue);
+}
+
+.exr-qcard-body {
+  padding: var(--s-4) var(--s-5) var(--s-5);
+}
+
+.exr-qcard-caption {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-14);
+  font-weight: 700;
+  color: var(--exr-ink);
+}
+
+/* The TRUE / FALSE / NOT GIVEN legend. Rendered from the question type, which
+   is what defines those three responses — not from an authored string that may
+   or may not be there. */
+.exr-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-4);
+  padding: var(--s-2) var(--s-3);
+  margin: 0 0 var(--s-4);
+  border: var(--bw-1) solid var(--exr-line-soft);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+}
+
+.exr-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--exr-muted);
+}
+
+.exr-legend-key {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 var(--s-2);
+  border-radius: var(--r-sm);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.exr-legend-item[data-key='true'] .exr-legend-key {
+  background: var(--exr-green-soft);
+  color: var(--exr-green-ink);
+}
+
+.exr-legend-item[data-key='false'] .exr-legend-key {
+  background: var(--exr-red-soft);
+  color: var(--exr-red);
+}
+
+.exr-legend-item[data-key='ng'] .exr-legend-key {
+  background: #eef1ef;
+  color: var(--exr-ink);
+}
+
+/* ── The folded passage rail ─────────────────────────────────────────────
+ * "Thu nhỏ" gives the questions the width, and leaves the way back exactly
+ * where the way out was. The passage is never removed from the page.
+ * → DESIGN.md anti-pattern #14
+ */
+.exr-body-in[data-passage='collapsed'][data-split='reading'],
+.exr-body-in[data-passage='collapsed'][data-split='writing'] {
+  grid-template-columns: 60px minmax(0, 1fr);
+}
+
+.exr-passage-panel[data-collapsed='true'] {
+  align-items: center;
+}
+
+.exr-passage-panel[data-collapsed='true'] .exr-panel-head {
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-2);
+  border-bottom: 0;
+  height: 100%;
+  justify-content: flex-start;
+}
+
+.exr-passage-panel[data-collapsed='true'] .exr-panel-title {
+  writing-mode: vertical-rl;
+  font-size: var(--t-14);
+  color: var(--exr-muted);
+  order: 2;
+}
+
+.exr-passage-panel[data-collapsed='true'] .exr-tool span {
+  display: none;
+}
+
+.exr-title-skill {
+  color: inherit;
+}
+
+/* ── One question row ────────────────────────────────────────────────────
+ * A flex row: [number badge][prompt] with the answer field either inside the
+ * prompt (a completion gap), beside it (a verdict strip), or beneath it
+ * indented past the badge (anything with real option text).
+ */
+.exr-page .exam-question-list,
+.exr-page .exam-group-questions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-3);
+}
+
+.exr-page .exam-group-item {
+  list-style: none;
+}
+
+.exr-page .exam-question-list > .exam-group-item + .exam-group-item {
+  margin-top: var(--s-5);
+}
+
+.exr-page .exam-question {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--s-3) var(--s-4);
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.exr-page .exam-question-head {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.exr-page .exam-question-number {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  background: var(--exr-green-soft);
+  color: var(--exr-green-ink);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 700;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.exr-page .exr-prompt,
+.exr-page .exam-question-head p {
+  margin: 0;
+  min-width: 0;
+  font-size: var(--t-14);
+  line-height: 1.7;
+  color: var(--exr-ink-2);
+}
+
+/* The answer field, when it is a sibling of the prompt: full width, indented
+   past the badge so it reads as belonging to the sentence above it. */
+.exr-page .exam-question > .q-text,
+.exr-page .exam-question > .q-choices,
+.exr-page .exam-question > .q-bank,
+.exr-page .exam-question > .q-essay,
+.exr-page .exam-question > .speaking {
+  flex: 1 1 100%;
+  padding-left: 36px;
+}
+
+/* Verdict strip: statement left, the three responses right, on one line. */
+.exr-page .exam-question[data-layout='row'] {
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.exr-page .exam-question[data-layout='row'] > .q-choices {
+  flex: 0 0 auto;
+  padding-left: 0;
+}
+
+.exr-page .exam-question[data-layout='inline'] {
+  align-items: center;
+}
+
+/* The field, sitting in the sentence where the author drew the gap. */
+.exr-page .exr-inline {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.exr-page .exr-inline .q-text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0 var(--s-1);
+  padding: 0;
+}
+
+.exr-page .q-text input[type='text'] {
+  height: 34px;
+  min-width: 150px;
+  max-width: 100%;
+  padding: 0 var(--s-3);
+  border: var(--bw-1) solid #dfe6e2;
+  border-radius: var(--r-sm);
+  background: var(--exr-card);
+  font: inherit;
+  font-size: var(--t-14);
+  color: var(--exr-ink);
+}
+
+.exr-page .q-text input[type='text']::placeholder {
+  color: #a9b3ad;
+}
+
+.exr-page .q-text input[type='text']:focus-visible,
+.exr-page .exam-summary-input:focus-visible {
+  outline: 2px solid var(--exr-green);
+  outline-offset: 1px;
+  border-color: var(--exr-green);
+}
+
+/*
+ * The per-field word cap, for screen readers only.
+ *
+ * The group's rubric right above already states it — "Choose ONE WORD ONLY" —
+ * and repeating "Tối đa 1 từ" beside all seven boxes is the same scoring rule
+ * printed eight times. It stays in the accessible tree because a screen-reader
+ * user reaching field five has not just read the rubric.
+ */
+.exr-page .q-hint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Radio strip — a bare circle and a small label, as drawn.
+ *
+ * `flex-direction` is set explicitly: `exam.css` declares `column` on
+ * `.q-choices` for the luyện đề list, and specificity is resolved per
+ * declaration — a rule that only sets `flex-wrap` leaves that `column`
+ * standing, which stacked the three verdict buttons down the right margin.
+ */
+.exr-page .q-choices {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  align-items: center;
+  margin: 0;
+}
+
+.exr-page .exam-question[data-layout='row'] .q-choices {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: var(--s-4);
+  justify-content: flex-end;
+}
+
+.exr-page .exam-question[data-layout='row'] .q-choice {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: var(--w-emph);
+  letter-spacing: 0.02em;
+  color: var(--exr-muted);
+  white-space: nowrap;
+}
+
+.exr-page .exam-question[data-layout='row'] .q-choice.is-picked {
+  color: var(--exr-green-ink);
+}
+
+.exr-page .q-choice input[type='radio'],
+.exr-page .q-choice input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--exr-green);
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+/* Anything with real option text stacks, and each option is a pressable row —
+   a nine-word option does not fit on a strip. */
+.exr-page .exam-question:not([data-layout='row']) > .q-choices {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--s-2);
+}
+
+.exr-page .exam-question:not([data-layout='row']) > .q-choices > .q-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  white-space: normal;
+  font-size: var(--t-14);
+  line-height: 1.5;
+  color: var(--exr-ink-2);
+  padding: var(--s-3);
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: var(--r-md);
+  background: var(--exr-card);
+  cursor: pointer;
+}
+
+.exr-page .exam-question:not([data-layout='row']) > .q-choices > .q-choice.is-picked {
+  border-color: var(--exr-green-line);
+  background: var(--exr-green-soft);
+  color: var(--exr-green-ink);
+}
+
+/* Summary completion keeps its paragraph; only the gap is restyled. */
+.exr-page .q-choice.is-locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.exr-page .q-select-progress {
+  flex-basis: 100%;
+}
+
+.exr-page .exam-summary {
+  /* A note is authored one line per point; the author's line breaks are the
+     layout. A summary paragraph has none and flows as before. */
+  white-space: pre-line;
+  margin: 0;
+  font-size: var(--t-14);
+  line-height: 2.1;
+  color: var(--exr-ink-2);
+}
+
+.exr-page .exam-summary-gap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0 var(--s-1);
+}
+
+.exr-page .exam-summary-input {
+  height: 32px;
+  min-width: 130px;
+  padding: 0 var(--s-3);
+  border: var(--bw-1) solid #dfe6e2;
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: var(--t-14);
+}
+
+/* The shared answer bank, above the questions it is chosen from. */
+.exr-page .exam-bank {
+  list-style: none;
+  margin: 0 0 var(--s-4);
+  padding: var(--s-3);
+  display: grid;
+  gap: var(--s-2);
+  border: var(--bw-1) solid var(--exr-line-soft);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+}
+
+.exr-page .exam-bank-item {
+  display: flex;
+  gap: var(--s-2);
+  font-size: var(--t-14);
+  line-height: 1.5;
+  color: var(--exr-ink-2);
+}
+
+.exr-page .exam-bank-key {
+  font-weight: 700;
+  color: var(--exr-green-ink);
+  flex: 0 0 auto;
+}
+
+.exr-page .exam-bank-button {
+  display: flex;
+  gap: var(--s-2);
+  width: 100%;
+  text-align: left;
+  padding: var(--s-2) var(--s-3);
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: var(--r-sm);
+  background: var(--exr-card);
+  font: inherit;
+  font-size: var(--t-14);
+  cursor: pointer;
+}
+
+.exr-page .exam-bank-button[aria-pressed='true'] {
+  border-color: var(--exr-green);
+  background: var(--exr-green-soft);
+}
+
+.exr-page .exam-bank-instructions {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-13);
+  color: var(--exr-muted);
+}
+
+.exr-page .q-essay {
+  width: 100%;
+  min-height: 320px;
+  padding: var(--s-4);
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: var(--r-md);
+  font: inherit;
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+  resize: vertical;
+}
+
+.exr-page .word-count {
+  margin: var(--s-2) 0 0;
+  padding-left: 36px;
+  font-size: var(--t-13);
+  color: var(--exr-muted);
+  display: flex;
+  gap: var(--s-2);
+}
+
+.exr-page .word-count.is-short {
+  color: var(--warn);
+}
+
+/* ── Footer: navigator + actions ─────────────────────────────────────────*/
+.exr-foot {
+  flex: 0 0 auto;
+  background: var(--exr-card);
+  border-top: var(--bw-1) solid var(--exr-line);
+}
+
+.exr-foot-in {
+  min-height: var(--exr-foot-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  padding-top: var(--s-2);
+  padding-bottom: var(--s-2);
+}
+
+/* The irreversibility note sits under the actions it is about, right-aligned
+   with them, and inside the footer's own padding so the fixed page height
+   cannot clip it. */
+.exr-foot .exr-notice.is-quiet {
+  padding-bottom: var(--s-2);
+  text-align: right;
+}
+
+.exr-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.exr-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* Nothing in the map shrinks. The row scrolls sideways instead — without
+   this, a narrow window squeezed the thirteen boxes into the same space as
+   "Passage 2 · 0/0" and the two overlapped. */
+.exr-nav > * {
+  flex: 0 0 auto;
+}
+
+.exr-nav-open {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex: 0 0 auto;
+}
+
+.exr-nav-name {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: var(--t-14);
+  font-weight: 700;
+  color: var(--exr-green-ink);
+  white-space: nowrap;
+}
+
+.exr-nav-count {
+  margin-left: var(--s-2);
+  font-size: var(--t-13);
+  font-weight: var(--w-label);
+  color: var(--exr-muted);
+}
+
+.exr-boxes {
+  list-style: none;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin: 0;
+  padding: 0;
+}
+
+.exr-box {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  border: var(--bw-1) solid var(--exr-line);
+  background: var(--exr-card);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  color: var(--exr-ink-2);
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+}
+
+.exr-box:hover {
+  border-color: var(--exr-green-line);
+}
+
+/* Answered means the server took it. Unsaved is a different shape as well as
+   a different ground — L2 forbids one channel. */
+.exr-box[data-state='answered'] {
+  background: var(--exr-green);
+  border-color: var(--exr-green);
+  color: #fff;
+}
+
+.exr-box[data-state='unsaved'] {
+  background: var(--warn-soft);
+  border-color: var(--warn);
+  color: var(--warn);
+  border-style: dashed;
+}
+
+.exr-box[aria-current='true'] {
+  outline: 2px solid var(--exr-green);
+  outline-offset: 1px;
+}
+
+.exr-nav-shut {
+  border: 0;
+  background: none;
+  padding: var(--s-2) 0;
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--exr-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.exr-nav-shut:hover {
+  color: var(--exr-green-ink);
+}
+
+.exr-nav-empty {
+  margin: 0;
+  font-size: var(--t-13);
+  color: var(--exr-muted);
+}
+
+.exr-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex: 0 0 auto;
+}
+
+.exr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: 44px;
+  padding: 0 var(--s-5);
+  border-radius: var(--r-md);
+  border: var(--bw-1) solid var(--exr-line);
+  background: var(--exr-card);
+  font: inherit;
+  font-size: var(--t-13);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--exr-ink-2);
+  cursor: pointer;
+}
+
+.exr-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.exr-btn:hover:not([aria-disabled='true']):not(:disabled) {
+  border-color: var(--exr-green-line);
+  color: var(--exr-green-ink);
+}
+
+.exr-btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.exr-btn-soft {
+  background: var(--exr-green-soft);
+  border-color: var(--exr-green-soft);
+  color: var(--exr-green-ink);
+}
+
+.exr-btn-soft:hover:not([aria-disabled='true']) {
+  background: #ddf0e5;
+  border-color: #ddf0e5;
+}
+
+/* One filled action per view. D-10's hard shadow reads as thickness, not as
+   elevation — it is the only shadow on this screen. */
+.exr-btn-primary {
+  background: var(--exr-green);
+  border-color: var(--exr-green);
+  color: #fff;
+  box-shadow: var(--shadow-press-primary);
+}
+
+.exr-btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(2px);
+  box-shadow: var(--shadow-press-primary-hover);
+}
+
+.exr-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ── Mobile pane switch ──────────────────────────────────────────────────*/
+.exr-tabs {
+  display: none;
+  gap: var(--s-2);
+  padding-bottom: var(--s-3);
+}
+
+.exr-tabs button {
+  flex: 1 1 0;
+  height: 40px;
+  border-radius: var(--r-md);
+  border: var(--bw-1) solid var(--exr-line);
+  background: var(--exr-card);
+  font: inherit;
+  font-size: var(--t-14);
+  font-weight: var(--w-emph);
+  color: var(--exr-ink-2);
+  cursor: pointer;
+}
+
+.exr-tabs button[aria-pressed='true'] {
+  background: var(--exr-green-soft);
+  border-color: var(--exr-green-line);
+  color: var(--exr-green-ink);
+}
+
+.exr-sheet-trigger {
+  display: none;
+}
+
+/* ── Fallbacks ───────────────────────────────────────────────────────────*/
+.exr-fallback {
+  flex: 1 1 auto;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: var(--s-3);
+  padding: var(--s-8) var(--s-5);
+}
+
+.exr-fallback h1 {
+  margin: 0;
+  font-size: var(--t-24);
+  font-weight: 800;
+}
+
+.exr-fallback p {
+  margin: 0;
+  color: var(--exr-muted);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────
+ * Desktop is the reference and is not compromised for any of this: every rule
+ * below is inside a max-width query.
+ *
+ * The passage is never `display: none` on a phone — it moves behind a tab.
+ * DESIGN.md anti-pattern #14.
+ */
+@media (max-width: 1180px) {
+  .exr-page {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .exr-body {
+    overflow: visible;
+  }
+
+  .exr-body-in[data-split='reading'],
+  .exr-body-in[data-split='writing'],
+  .exr-body-in[data-passage='collapsed'][data-split='reading'],
+  .exr-body-in[data-passage='collapsed'][data-split='writing'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .exr-panel,
+  .exr-questions-col {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .exr-panel-scroll {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 900px) {
+  .exr-page {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .exr-wrap {
+    padding: 0 var(--s-4);
+  }
+
+  .exr-tabs {
+    display: flex;
+  }
+
+  .exr-body-in[data-mobile-pane='passage'] .exr-questions-col,
+  .exr-body-in[data-mobile-pane='questions'] .exr-passage-panel {
+    display: none;
+  }
+
+  .exr-title {
+    font-size: var(--t-20);
+  }
+
+  .exr-help span {
+    display: none;
+  }
+
+  .exr-top-right .exr-clock-state {
+    text-align: left;
+  }
+
+  .exr-foot-in {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-3);
+  }
+
+  .exr-actions {
+    justify-content: flex-end;
+  }
+
+  /* Thirteen boxes do not fit a phone footer; the map moves into a sheet. */
+  .exr-boxes {
+    display: none;
+  }
+
+  .exr-sheet-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    height: 36px;
+    padding: 0 var(--s-3);
+    border-radius: var(--r-md);
+    border: var(--bw-1) solid var(--exr-line);
+    background: var(--exr-card);
+    font: inherit;
+    font-size: var(--t-13);
+    font-weight: var(--w-emph);
+    color: var(--exr-ink-2);
+    cursor: pointer;
+  }
+}
+
+.exr-sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(23, 22, 26, 0.32);
+  display: grid;
+  place-items: end stretch;
+}
+
+.exr-sheet {
+  background: var(--exr-card);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding: var(--s-4);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.exr-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+
+.exr-sheet-head h3 {
+  margin: 0;
+  font-size: var(--t-16);
+  font-weight: 700;
+}
+
+.exr-sheet-close {
+  border: 0;
+  background: none;
+  font-size: var(--t-18);
+  line-height: 1;
+  padding: var(--s-2);
+  cursor: pointer;
+  color: var(--exr-muted);
+}
+
+.exr-sheet .exr-boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+  gap: var(--s-2);
+}

@@ -6,23 +6,23 @@ namespace Vni.Ielts.Application.Identity;
 /// <summary>
 /// How this account can be signed in to.
 /// </summary>
+/// <param name="Email">
+/// Null for every account that registered with a phone number, which is all of
+/// them since 08/09/2026. The profile shows an empty field, not a placeholder.
+/// </param>
 /// <param name="Providers">
-/// Lower-case provider keys — <c>email</c>, <c>google</c>. The client uses
+/// Lower-case provider keys — <c>password</c>, <c>google</c>. The client uses
 /// this to say true things: a person who only ever used Google has no password
 /// to change, and telling them to "enter your current password" is asking for
 /// something that does not exist.
 /// </param>
 /// <param name="HasPassword">
-/// Whether an email identity with a password hash exists. Not the same as
-/// <c>Providers</c> containing <c>email</c>: linking a provider into an
-/// unverified account clears its password and leaves the row behind.
-/// → ADR-0013
+/// Whether a password identity carrying a hash exists.
 /// </param>
 public sealed record MyAccount(
     UserId UserId,
     string DisplayName,
     string? Email,
-    bool EmailVerified,
     string? Phone,
     IReadOnlyCollection<string> Providers,
     bool HasPassword);
@@ -32,8 +32,8 @@ public sealed record MyAccount(
 ///
 /// <para>
 /// <b>This one reads the database, unlike the rest of <c>/me</c>.</b> Display
-/// name, verification and permissions all travel in the token and cost
-/// nothing; which providers are linked does not, and cannot — a provider
+/// name and permissions travel in the token and cost nothing; which providers
+/// are linked does not, and cannot — a provider
 /// linked five minutes ago must show immediately, not fifteen minutes later
 /// when the access token rolls over.
 /// </para>
@@ -56,10 +56,9 @@ public sealed class GetMyAccount(IUserRepository users, IUserIdentityRepository 
         return new MyAccount(
             user.Id,
             user.DisplayName,
-            user.Email.Value,
-            user.EmailVerified,
+            user.Email?.Value,
             user.Phone?.Value,
             [.. linked.Select(i => i.Provider.ToString().ToLowerInvariant()).Distinct()],
-            linked.Any(i => i.Provider == IdentityProvider.Email && i.PasswordHash is not null));
+            linked.Any(i => i.PasswordHash is not null));
     }
 }

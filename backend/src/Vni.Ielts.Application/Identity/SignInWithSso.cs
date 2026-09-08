@@ -109,13 +109,13 @@ public sealed record SsoCallbackResult(string HandoffCode, string? ReturnTo);
 /// and mint the one-time handoff code.
 ///
 /// <para>
-/// <b>This class holds the M-1 decision.</b> One email is one account: a
-/// social sign-in on a matching address links to the existing account rather
-/// than creating a second one, silently, with no confirmation screen — but
-/// only when the provider vouches for the address. The full reasoning,
-/// including the takeover this would otherwise open in both directions, is in
-/// ADR-0013 and threat T1. Do not relax either condition here without
-/// superseding that ADR.
+/// <b>This class holds the address-moves-the-account decision.</b> The address
+/// a provider vouches for identifies the account that currently holds it — not
+/// the account that first claimed it. Change your address in the profile and
+/// the account follows you; sign in again at the address you left behind and
+/// you get a new, empty account, because nobody holds it any more. That is the
+/// owner's instruction of 08/09/2026 and it reverses `AU-7`. The full
+/// reasoning, and what it costs, is in ADR-0018.
 /// </para>
 /// </summary>
 public sealed class SignInWithSso(
@@ -124,7 +124,6 @@ public sealed class SignInWithSso(
     IUserRepository users,
     IUserIdentityRepository identities,
     IRoleRepository roles,
-    ITokenService tokens,
     IHandoffCodeStore handoffCodes,
     IClock clock,
     Usage.UsageRecorder? usage = null)
@@ -174,9 +173,25 @@ public sealed class SignInWithSso(
     private async Task<Result<User>> ResolveUserAsync(
         IExternalIdentityProvider provider, ExternalIdentity external, CancellationToken ct)
     {
-        // 1 · Already linked. The ordinary case after the first sign-in, and
-        //     the only one that does not care about the email address at all —
-        //     which is the point of keying on the provider's subject.
+        /*
+         * <b>The address is parsed first, before the link is looked at.</b>
+         * The stale-link check below compares it against the account's stored
+         * address, and "no address was asserted" must not read as "the address
+         * changed" — that would delete a perfectly good link and then fail the
+         * sign-in with SSO_EMAIL_MISSING, leaving the person permanently unable
+         * to get back in.
+         */
+        var asserted = Email.TryCreate(external.Email, out var email);
+
+        /*
+         * Only an address the provider stands behind can move an account or
+         * claim one. `AssertsEmailVerification` is false for Facebook by
+         * design, and without this condition a provider that vouches for
+         * nothing could be used to unlink somebody else's Google account.
+         */
+        var vouched = asserted && provider.AssertsEmailVerification && external.EmailVerified;
+
+        // 1 · Already linked — the ordinary case after the first sign-in.
         var known = await identities.FindByProviderAsync(external.Provider, external.Subject, ct);
         if (known is not null)
         {
@@ -189,12 +204,26 @@ public sealed class SignInWithSso(
                     ErrorCodes.SsoExchangeFailed, "Sign-in could not be completed.");
             }
 
-            return CanSignIn(linked);
+            if (!IsStale(linked, vouched, email))
+                return CanSignIn(linked);
+
+            /*
+             * The account this subject used to be has moved to another address.
+             * Dropping the link is what frees the old one: the next sign-in
+             * falls through to step 3 and starts a fresh account, which is
+             * exactly what the owner asked for.
+             *
+             * Done lazily, here, rather than eagerly when the address changes —
+             * that would need the provider's address stored on the identity row
+             * and a migration to backfill it, for the same outcome.
+             */
+            await identities.RemoveAsync(known.Id, ct);
         }
 
-        // 2 · A new identity, so an address is required. A provider that
-        //     sends none leaves nothing to link and nothing to create from.
-        if (!Email.TryCreate(external.Email, out var email))
+        // 2 · A new or newly-freed subject, so an address is required. A
+        //     provider that sends none leaves nothing to link and nothing to
+        //     create from.
+        if (!asserted)
         {
             return Error.Validation(
                 ErrorCodes.SsoEmailMissing,
@@ -203,42 +232,73 @@ public sealed class SignInWithSso(
 
         var existing = await users.FindByEmailAsync(email, ct);
 
-        // 3 · No account with that address: create one.
+        // 3 · Nobody holds that address: create an account for it.
         if (existing is null)
-            return await CreateAsync(external, email, ct);
+            return await CreateAsync(external, email, vouched, ct);
 
-        // 4 · An account exists. This is the M-1 branch.
-        if (!provider.AssertsEmailVerification || !external.EmailVerified)
+        // 4 · Somebody holds it.
+        if (!vouched)
         {
             // The provider will not vouch for the address, so a match proves
-            // nothing. Linking here is exactly threat T1. → ADR-0013
+            // nothing. Linking here would be plain account takeover.
             return Error.Conflict(
                 ErrorCodes.IdentityLinkRequired,
-                "An account already uses this email address. Sign in with your password first, "
-                + "then link this provider from your profile.");
+                "This account signs in with a password. Please sign in with your phone number "
+                + "or email address and your password.");
         }
 
         var allowed = CanSignIn(existing);
         if (!allowed.IsSuccess)
             return allowed;
 
-        await LinkAsync(existing, external, ct);
+        /*
+         * <b>An account that already has a password is refused, not taken
+         * over.</b> Previously the provider-verified address won outright: the
+         * existing account's password hash was cleared and its sessions
+         * revoked, on the reasoning that an unverified address was only ever a
+         * claim. There is no verification any more, so that branch would fire
+         * on every link — including the ordinary case of a learner who
+         * registered with a phone, added their own Gmail, and pressed the
+         * Google button. Destroying their password for that is indefensible.
+         *
+         * Refusing is safe in both directions and costs nothing: the owner's
+         * intended route for such an account is the password itself, and the
+         * message says so. → ADR-0018, threat T1
+         */
+        if (await HasPasswordAsync(existing.Id, ct))
+        {
+            return Error.Conflict(
+                ErrorCodes.IdentityLinkRequired,
+                "This account signs in with a password. Please sign in with your phone number "
+                + "or email address and your password.");
+        }
+
+        await AttachAsync(existing, external, clock.UtcNow, ct);
         return existing;
     }
 
+    /// <summary>
+    /// Whether this link points at an account that has since moved elsewhere.
+    ///
+    /// <para>
+    /// Deliberately conservative: a link is only ever dropped when the provider
+    /// vouched for a usable address <i>and</i> the account carries an address of
+    /// its own that differs from it. An account whose address was cleared keeps
+    /// its link, because the alternative is that emptying a profile field
+    /// silently detaches the only way the person signs in.
+    /// </para>
+    /// </summary>
+    private static bool IsStale(User linked, bool vouched, Email asserted) =>
+        vouched && linked.Email is { } held && held != asserted;
+
+    private async Task<bool> HasPasswordAsync(UserId userId, CancellationToken ct) =>
+        (await identities.ListForUserAsync(userId, ct)).Any(i => i.PasswordHash is not null);
+
     private async Task<Result<User>> CreateAsync(
-        ExternalIdentity external, Email email, CancellationToken ct)
+        ExternalIdentity external, Email email, bool vouched, CancellationToken ct)
     {
         var now = clock.UtcNow;
-        var user = User.Register(email, DisplayNameFor(external, email), now);
-
-        // A provider-verified address is verified here too. That is what makes
-        // social sign-up worth having: the account arrives past the gate that
-        // entitlement accrual and referral confirmation wait on (T4, T13).
-        // An unverified one does not, and the account carries the same
-        // unverified state an email registration would.
-        if (external.EmailVerified)
-            user.MarkEmailVerified();
+        var user = User.RegisterFromProvider(email, DisplayNameFor(external, email), now);
 
         var learner = await roles.FindByNameAsync(SystemRoles.Learner, ct);
         if (learner is not null)
@@ -247,7 +307,6 @@ public sealed class SignInWithSso(
         try
         {
             await users.AddAsync(user, ct);
-            if (usage is not null) await usage.AccountCreatedAsync(user.Id, ct);
         }
         catch (DuplicateEmailException)
         {
@@ -263,12 +322,40 @@ public sealed class SignInWithSso(
             if (!allowed.IsSuccess)
                 return allowed;
 
-            await LinkAsync(winner, external, ct);
+            if (!vouched || await HasPasswordAsync(winner.Id, ct))
+            {
+                return Error.Conflict(
+                    ErrorCodes.IdentityLinkRequired,
+                    "This account signs in with a password. Please sign in with your phone number "
+                    + "or email address and your password.");
+            }
+
+            await AttachAsync(winner, external, now, ct);
             return winner;
         }
 
         var attached = await AttachAsync(user, external, now, ct);
-        return attached ?? user;
+        if (attached is not null)
+            return attached;
+
+        /*
+         * <b>Recorded after the link is attached, and keyed on the provider
+         * subject rather than the account.</b>
+         *
+         * Both halves matter. Recording before the link meant a lost attach
+         * race left a stranded account holding a welcome grant — unreachable
+         * today, and an ordinary path once an address can be freed.
+         *
+         * And keying on the subject is what closes the loop the freeing itself
+         * opens: change address, sign in again, get a brand-new account, repeat.
+         * With `grant:{userId}` every turn of that loop is a fresh id and a
+         * fresh grant, from one Google account, forever. The subject does not
+         * change, so the ledger pays it once. → threat T4
+         */
+        if (usage is not null)
+            await usage.AccountCreatedFromProviderAsync(user, external.Provider, external.Subject, ct);
+
+        return user;
     }
 
     /// <summary>
@@ -303,57 +390,6 @@ public sealed class SignInWithSso(
 
             return await users.FindByIdAsync(winner.UserId, ct);
         }
-    }
-
-    /// <summary>
-    /// Attaches the provider to an existing account — and evicts a squatter if
-    /// there is one.
-    ///
-    /// <para>
-    /// The eviction is the half that is easy to leave out. Registration creates
-    /// a <c>User</c> before the address is proven, so anyone can register an
-    /// address they do not own, set a password, and wait for the real owner to
-    /// arrive through Google. Marking the address verified without removing
-    /// that password would leave the squatter holding a working credential on
-    /// the merged account. → ADR-0013, threat T1
-    /// </para>
-    /// </summary>
-    private async Task LinkAsync(User user, ExternalIdentity external, CancellationToken ct)
-    {
-        await AttachAsync(user, external, clock.UtcNow, ct);
-
-        if (user.EmailVerified)
-            return;
-
-        user.MarkEmailVerified();
-
-        // The display name comes from the provider too, and only here.
-        //
-        // An account that never proved its address was set up by someone who
-        // may not be the person now signing in — and they chose the name on
-        // it. Leaving it in place means the real owner inherits a name a
-        // stranger picked, which at best is confusing and at worst is abuse
-        // aimed at whoever eventually claims the address. On a verified
-        // account the name is the person's own and is never touched.
-        var provided = external.DisplayName?.Trim();
-        if (!string.IsNullOrEmpty(provided))
-            user.Rename(provided.Length > 100 ? provided[..100] : provided);
-
-        await users.SaveAsync(user, ct);
-
-        foreach (var identity in await identities.ListForUserAsync(user.Id, ct))
-        {
-            if (identity.Provider != IdentityProvider.Email || identity.PasswordHash is null)
-                continue;
-
-            identity.ClearPassword();
-            await identities.SaveAsync(identity, ct);
-        }
-
-        // Anything already signed in on that password loses its session. The
-        // legitimate user is unaffected: they are arriving now, through the
-        // provider, and their token pair has not been issued yet.
-        await tokens.RevokeAllForUserAsync(user.Id, ct);
     }
 
     private static Result<User> CanSignIn(User user) =>

@@ -1,0 +1,1453 @@
+{
+  "formatVersion": "1.0",
+  "title": "VOL 9 \u2014 Test 3 (Reading \u002B Listening)",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "NEW UNDERSTANDING OF GIRAFFES IN THE WILD",
+          "body": "NEW UNDERSTANDING OF GIRAFFES IN THE WILD\nEven as the tallest animals on Earth, giraffes can be easy to overlook. Despite being a favorite in zoos, until recently almost nobody studied giraffes in the wild. \u0027When I first became interested in giraffes in 2008 and started looking through the scientific literature, I was really surprised to see how little had been done,\u0027 said Megan Strauss, an animal researcher at the University of Minnesota, USA. All that is changing fast, as a growing number of researchers seek to understand the biology and complex behavior of this graceful giant in its native habitat.\nGiraffes, found throughout sub-Saharan Africa, are currently classified as a single species with up to nine varieties that differ by features like head shape and whether the fur on their legs is plain or patterned. The giraffe is not listed as endangered, but researchers point to evidence that in the past 15 years, the population has fallen some 40 percent.\nRecent studies have allowed researchers new insights into giraffes\u0027 social structures. Groups of female giraffes, for example, have been found to form close friendships that can last for years. \u0027We\u0027re just at the beginnings of trying to understand this kind of behavior,\u0027 Dr Strauss said. Female giraffes can live 20 years or more, and it makes sense they might rely on each other for clues to the best feeding grounds, help with taking care of their young, or the reduction of stress, by staying in groups.\nMother giraffes have displayed signs of grief after losing their young, known as calves, to lions. Dr Strauss described one case in which a mother spent four days at the place where a lion had eaten her calf, refusing food, and often in the company of two other adult females. Giraffe calves are extremely vulnerable to predators, and though mothers will fight valiantly to keep their young alive \u2014 kicking forward and backward \u2014 half of all calves are killed in their first year of life.\nMale giraffes, known as bulls, generally become more important with age, and older bulls display that dominance physically and behaviorally: as their neck muscles grow, the male\u0027s posture becomes prouder and more vertical. Recent observations show young bulls, when left on their own, mimicking their elders: head held high and neck puffed out. But should a dominant older bull come into view, the younger males instantly try to make themselves look small and innocent.\nThe younger bulls have reason to fear their elders. Clashes have been witnessed between adults when each bull repeatedly \u0027necks\u0027 the other, using his massive neck to slam his head against his rival. One bull somehow survived with a broken neck.\n\nPhysical features of giraffes: study findings\nThe skin of a giraffe is mostly gray. The coat has dark patches separated by light hair, which serves as camouflage, allowing them to blend in with the light and shade patterns of the acacia trees from which they feed. Grazing giraffes are hard to see even a few meters away.\nResearch indicates that giraffes also have excellent sight, can see in color and over great distances, which helps them to spot lions and keep track of each other. In addition, a giraffe\u0027s extraordinary mouth has lips and tongue that can together grasp a branch and then pluck away the leaves while avoiding thorns, almost as humans would grab with their hands. Each day, a giraffe consumes about 30 kilograms of leaves, shoots and vines, all digested in its four-chambered stomach.\nA giraffe can stand more than six meters tall, with its neck accounting for roughly a third of its height and its legs the same. The giraffe\u0027s long neck is due to the length of the vertebrae, not the number of vertebrae. The growth of the neck largely takes place during early childhood, as giraffe mothers would have a difficult time giving birth to young with longer necks. The giraffe\u0027s head and neck are held up by large muscles attached to the lower spine.\nRecent studies show that the greatest challenge to the giraffe\u0027s cardiovascular system is how to both pump blood very high and retrieve it from far below. The outside of a giraffe\u0027s veins are extremely thick, to prevent blood leaking into surrounding tissue. Other adaptations in the cardiovascular system allow the giraffe to bend over for a drink of water, and then raise its head again quickly without fainting.\nResearchers were also surprised to find that a giraffe does not have an unusually large heart. It is half a percent of body mass, the same as in a mouse. Moreover, the amount of blood pumped into circulation is modest, proportionally lower than it is in humans. That could help explain why giraffes rarely run for very long: enough oxygen cannot be delivered to their muscles fast enough for them to keep running. Or maybe the giraffes are worried about tripping over their own feet. This is because signals from the nerves travel at about the same speed in giraffes as in rats or other mammals. Given the greater distance they have to travel in the giraffe to reach the brain, it is possible the giraffe faces real challenges in reacting quickly to a rock beneath its hoof or a bite to its ankle.\nNew understanding of this wonderful animal sheds light on both its physiology and its behavior. Researchers hope to use this knowledge to increase their ability to work with preservation, as its habitat is reduced and the giraffe becomes scarcer.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "true-false-notgiven",
+              "prompt": "The amount of research on giraffes in their natural environment has increased lately.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "true-false-notgiven",
+              "prompt": "Megan Strauss disapproves of keeping giraffes in zoos.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "true-false-notgiven",
+              "prompt": "The number of giraffes in Africa has nearly doubled.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "true-false-notgiven",
+              "prompt": "Female giraffes tend to live longer than males.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "true-false-notgiven",
+              "prompt": "Mother giraffes sometimes use their legs to defend their young.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "true-false-notgiven",
+              "prompt": "Younger bulls hold their necks higher in the presence of more powerful males.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "true-false-notgiven",
+              "prompt": "Male giraffes have been observed fighting.",
+              "group": {
+                "id": "r-tfng-1-7",
+                "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "8",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Physical features",
+                "text": "Physical features\nStudy findings\nSkin/Coat\nProvides [8] when standing near trees\nEyes\nLet them look out for lions\nMouth\nCan be used like [9] to get leaves\nNeck\nAbout equal in length to the legs\nLength develops in childhood to provide an easier [10] for mothers\nCardiovascular system\nExtra strong [11] keep blood from spilling into other tissue\n[12]\nNormal size for such a large animal\nNerves\nSlower reaction time because [13] need to go farther to the brain"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "camouflage"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "9",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Physical features",
+                "text": "Physical features\nStudy findings\nSkin/Coat\nProvides [8] when standing near trees\nEyes\nLet them look out for lions\nMouth\nCan be used like [9] to get leaves\nNeck\nAbout equal in length to the legs\nLength develops in childhood to provide an easier [10] for mothers\nCardiovascular system\nExtra strong [11] keep blood from spilling into other tissue\n[12]\nNormal size for such a large animal\nNerves\nSlower reaction time because [13] need to go farther to the brain"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "hands"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "10",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Physical features",
+                "text": "Physical features\nStudy findings\nSkin/Coat\nProvides [8] when standing near trees\nEyes\nLet them look out for lions\nMouth\nCan be used like [9] to get leaves\nNeck\nAbout equal in length to the legs\nLength develops in childhood to provide an easier [10] for mothers\nCardiovascular system\nExtra strong [11] keep blood from spilling into other tissue\n[12]\nNormal size for such a large animal\nNerves\nSlower reaction time because [13] need to go farther to the brain"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "birth"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "completion",
+              "prompt": "11",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Physical features",
+                "text": "Physical features\nStudy findings\nSkin/Coat\nProvides [8] when standing near trees\nEyes\nLet them look out for lions\nMouth\nCan be used like [9] to get leaves\nNeck\nAbout equal in length to the legs\nLength develops in childhood to provide an easier [10] for mothers\nCardiovascular system\nExtra strong [11] keep blood from spilling into other tissue\n[12]\nNormal size for such a large animal\nNerves\nSlower reaction time because [13] need to go farther to the brain"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "veins"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "completion",
+              "prompt": "12",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Physical features",
+                "text": "Physical features\nStudy findings\nSkin/Coat\nProvides [8] when standing near trees\nEyes\nLet them look out for lions\nMouth\nCan be used like [9] to get leaves\nNeck\nAbout equal in length to the legs\nLength develops in childhood to provide an easier [10] for mothers\nCardiovascular system\nExtra strong [11] keep blood from spilling into other tissue\n[12]\nNormal size for such a large animal\nNerves\nSlower reaction time because [13] need to go farther to the brain"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "heart"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "completion",
+              "prompt": "13",
+              "group": {
+                "id": "r-table-8-13",
+                "instruction": "Complete the table below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Physical features",
+                "text": "Physical features\nStudy findings\nSkin/Coat\nProvides [8] when standing near trees\nEyes\nLet them look out for lions\nMouth\nCan be used like [9] to get leaves\nNeck\nAbout equal in length to the legs\nLength develops in childhood to provide an easier [10] for mothers\nCardiovascular system\nExtra strong [11] keep blood from spilling into other tissue\n[12]\nNormal size for such a large animal\nNerves\nSlower reaction time because [13] need to go farther to the brain"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "signals"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Healthy buildings, productive people",
+          "body": "Healthy buildings, productive people\nIndoor building can influence our thinking, behavior and health\n\n14___________\nHave you felt tired at your desk lately? According to new research, some often overlooked environmental factors within buildings \u2013 the degree or type of ventilation, airborne contaminants, lighting and noise levels, for example \u2013 can play a surprisingly large role in how good or bad you feel, and even how well you think. It is estimated that we spend more than 90 percent of our time inside, but builders in general have paid little attention to the health aspects of indoor spaces, instead focusing on superficial design features and on meeting minimum environmental standards to keep costs down.\n\n15___________\nResearchers at Harvard University in the US looked at the effects of indoor air quality on workers\u0027 cognitive performance \u2013 important both for health and for companies\u0027 bottom lines, says Joseph Allen, assistant professor of environmental health and principal investigator of the studies. \u2018The true cost of running our buildings should take into account the health and productivity of people in those buildings,\u2019 Allen says. In fact, an analysis by the team showed that the cost of making alterations that could boost cognitive performance significantly was minuscule compared with the related increase in productivity \u2013 about $40 per person, per year, compared with a $6,500 increase in employee productivity.\n\n16___________\nThe team\u0027s first study, published in Environmental Health Perspectives, was conducted at the Syracuse Center of Excellence, a US research organization devoted to studying and developing sustainability. The center houses a laboratory that allows researchers to test a wide range of indoor air quality factors using sophisticated ventilation. Each day, the indoor environment was controlled with a ventilation system which included small amounts of carbon dioxide and volatile organic compounds, or VOCs \u2013 the toxic by-products of office supplies commonly found in the workplace. The office workers were blinded to the conditions. For six days over two weeks, 24 office workers with administrative, technical, professional or managerial jobs came to the lab and performed their regular work under minimal supervision, as well as participating in an hour and a half of cognitive testing at the end of the day. The cognitive tasks used in the study had participants respond to online scenarios that mimic real-life situations, such as running a city as a mayor. The findings are remarkable for showing in a well-controlled study, that indoor air quality can significantly lower cognitive performance in buildings that would otherwise meet current building standards, notes environmental psychologist Craig Zimring, director of Georgia Tech University\u0027s SimTigrate Design Lab in the US. \u2018If these findings are replicated in other labs and in real-world work environments,\u2019 he says, \u2018they could lead to designs that provide much more outside air through mechanical ventilation or operable windows, for example\u2019 \u2013 in turn, promoting better health and performance.\n\n17___________\nIn a second study, reported in Building and Environment, the Harvard-Syracuse team moved from the lab to the real world. Using the same methodology, they compared test scores of 109 people working in 10 buildings \u2013 about 12 people per site \u2013 in two buildings in each of five cities. When the team examined the buildings for differences, they found that certified buildings had lower humidity levels and brighter light than the non-certified buildings. That said, the differences in humidity and lighting didn\u0027t entirely explain the differing cognitive function scores of people on the job. This has led researchers to believe that other factors, such as how someone feels about their working environment, may also play a part, notes Harvard research fellow Piers MacNaughton, who led the study.\n\n18___________\nA recently constructed building on the Washington University campus in St. Louis, US, is providing another opportunity to examine how green building design can affect health and behavior. Hillman Hall was designed with the highest environmental and energy standards available, as well as design elements intended to foster more collaboration and physical activity, says Amy Eyler, associate professor and assistant dean for public health at the Brown School at Washington University. The design includes easy access to stairways, plenty of natural light, generous spaces for collaboration, desks that allow people to sit or stand up, and inviting places to walk. Unlike traditional hallways designed as long corridors with private offices to either side, for example, these hallways include classrooms, offices and spaces to sit, so they are multi-use \u2013 \u2018you have many reasons to walk them,\u2019 says Eyler. To test how the building might affect people\u0027s behavior, Eyler conducted a pre-test before people moved in, and a post-test one year later. Her team collected data on the three main features the designers were attempting to foster: physical activity, collaboration and sustainable practices. Results showed that people were more likely to take part in spontaneous collaborations in the new space than in the older ones, and to be physically active.\n\n19___________\nLike other researchers in this growing field, Eyler sees multidisciplinary collaboration as the key to success. Administrators, public health faculty and architects worked together to create a building that captured the university\u0027s vision for a space that fosters collegial work and health for faculty, staff and students \u2013 a shared goal evidenced by the fact that the architecture firm that designed the building also funded part of the research. \u2018Complex projects like this one need teams of people with varied backgrounds and expertise in order to solve them,\u2019 Eyler says.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 14___________.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The effects of a new environmentally friendly building on the people who work there"
+                },
+                {
+                  "key": "ii",
+                  "text": "The ability of well \u2013 designed workplaces to attract the best staff"
+                },
+                {
+                  "key": "iii",
+                  "text": "The assessment of workplaces in several locations"
+                },
+                {
+                  "key": "iv",
+                  "text": "The low priority given to making buildings healthy for users"
+                },
+                {
+                  "key": "v",
+                  "text": "Achieving design efficiency by involving a range of specialists"
+                },
+                {
+                  "key": "vi",
+                  "text": "Workers were assessed outside of their usual workplaces"
+                },
+                {
+                  "key": "vii",
+                  "text": "Workplace changes based on worker feeback"
+                },
+                {
+                  "key": "viii",
+                  "text": "The financial benefits of efficient workplaces"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "iv"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 15___________.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The effects of a new environmentally friendly building on the people who work there"
+                },
+                {
+                  "key": "ii",
+                  "text": "The ability of well \u2013 designed workplaces to attract the best staff"
+                },
+                {
+                  "key": "iii",
+                  "text": "The assessment of workplaces in several locations"
+                },
+                {
+                  "key": "iv",
+                  "text": "The low priority given to making buildings healthy for users"
+                },
+                {
+                  "key": "v",
+                  "text": "Achieving design efficiency by involving a range of specialists"
+                },
+                {
+                  "key": "vi",
+                  "text": "Workers were assessed outside of their usual workplaces"
+                },
+                {
+                  "key": "vii",
+                  "text": "Workplace changes based on worker feeback"
+                },
+                {
+                  "key": "viii",
+                  "text": "The financial benefits of efficient workplaces"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "viii"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 16___________.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The effects of a new environmentally friendly building on the people who work there"
+                },
+                {
+                  "key": "ii",
+                  "text": "The ability of well \u2013 designed workplaces to attract the best staff"
+                },
+                {
+                  "key": "iii",
+                  "text": "The assessment of workplaces in several locations"
+                },
+                {
+                  "key": "iv",
+                  "text": "The low priority given to making buildings healthy for users"
+                },
+                {
+                  "key": "v",
+                  "text": "Achieving design efficiency by involving a range of specialists"
+                },
+                {
+                  "key": "vi",
+                  "text": "Workers were assessed outside of their usual workplaces"
+                },
+                {
+                  "key": "vii",
+                  "text": "Workplace changes based on worker feeback"
+                },
+                {
+                  "key": "viii",
+                  "text": "The financial benefits of efficient workplaces"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "ii"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 17___________.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The effects of a new environmentally friendly building on the people who work there"
+                },
+                {
+                  "key": "ii",
+                  "text": "The ability of well \u2013 designed workplaces to attract the best staff"
+                },
+                {
+                  "key": "iii",
+                  "text": "The assessment of workplaces in several locations"
+                },
+                {
+                  "key": "iv",
+                  "text": "The low priority given to making buildings healthy for users"
+                },
+                {
+                  "key": "v",
+                  "text": "Achieving design efficiency by involving a range of specialists"
+                },
+                {
+                  "key": "vi",
+                  "text": "Workers were assessed outside of their usual workplaces"
+                },
+                {
+                  "key": "vii",
+                  "text": "Workplace changes based on worker feeback"
+                },
+                {
+                  "key": "viii",
+                  "text": "The financial benefits of efficient workplaces"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "iii"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 18___________.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The effects of a new environmentally friendly building on the people who work there"
+                },
+                {
+                  "key": "ii",
+                  "text": "The ability of well \u2013 designed workplaces to attract the best staff"
+                },
+                {
+                  "key": "iii",
+                  "text": "The assessment of workplaces in several locations"
+                },
+                {
+                  "key": "iv",
+                  "text": "The low priority given to making buildings healthy for users"
+                },
+                {
+                  "key": "v",
+                  "text": "Achieving design efficiency by involving a range of specialists"
+                },
+                {
+                  "key": "vi",
+                  "text": "Workers were assessed outside of their usual workplaces"
+                },
+                {
+                  "key": "vii",
+                  "text": "Workplace changes based on worker feeback"
+                },
+                {
+                  "key": "viii",
+                  "text": "The financial benefits of efficient workplaces"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "i"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Choose the correct heading for paragraph 19___________.",
+              "options": [
+                {
+                  "key": "i",
+                  "text": "The effects of a new environmentally friendly building on the people who work there"
+                },
+                {
+                  "key": "ii",
+                  "text": "The ability of well \u2013 designed workplaces to attract the best staff"
+                },
+                {
+                  "key": "iii",
+                  "text": "The assessment of workplaces in several locations"
+                },
+                {
+                  "key": "iv",
+                  "text": "The low priority given to making buildings healthy for users"
+                },
+                {
+                  "key": "v",
+                  "text": "Achieving design efficiency by involving a range of specialists"
+                },
+                {
+                  "key": "vi",
+                  "text": "Workers were assessed outside of their usual workplaces"
+                },
+                {
+                  "key": "vii",
+                  "text": "Workplace changes based on worker feeback"
+                },
+                {
+                  "key": "viii",
+                  "text": "The financial benefits of efficient workplaces"
+                }
+              ],
+              "group": {
+                "id": "r-headings-14-19",
+                "instruction": "Reading Passage 2 has seven paragraphs.\nChoose the correct heading for each paragraph from the list of headings below."
+              },
+              "answerKey": {
+                "accepted": [
+                  "v"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "Further investigations will result in improved wellbeing and efficiency.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Joseph Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "Craig Zimring"
+                },
+                {
+                  "key": "C",
+                  "text": "Piers MacNaughton"
+                },
+                {
+                  "key": "D",
+                  "text": "Amy Eyler"
+                }
+              ],
+              "group": {
+                "id": "r-researchers-20-23",
+                "instruction": "Look at the following statements (Questions 20-23) and the list of researchers below.\nMatch each statement with the correct researcher, A, B, C, or D.\nChoose the correct letter, A, B, C, or D, in boxes 20-23.\nNB    You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "matching",
+              "prompt": "A person\u0027s opinion of their workspace may influence how well they perform at work.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Joseph Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "Craig Zimring"
+                },
+                {
+                  "key": "C",
+                  "text": "Piers MacNaughton"
+                },
+                {
+                  "key": "D",
+                  "text": "Amy Eyler"
+                }
+              ],
+              "group": {
+                "id": "r-researchers-20-23",
+                "instruction": "Look at the following statements (Questions 20-23) and the list of researchers below.\nMatch each statement with the correct researcher, A, B, C, or D.\nChoose the correct letter, A, B, C, or D, in boxes 20-23.\nNB    You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "matching",
+              "prompt": "The design of a workplace can have an impact on how much staff work with their colleagues.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Joseph Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "Craig Zimring"
+                },
+                {
+                  "key": "C",
+                  "text": "Piers MacNaughton"
+                },
+                {
+                  "key": "D",
+                  "text": "Amy Eyler"
+                }
+              ],
+              "group": {
+                "id": "r-researchers-20-23",
+                "instruction": "Look at the following statements (Questions 20-23) and the list of researchers below.\nMatch each statement with the correct researcher, A, B, C, or D.\nChoose the correct letter, A, B, C, or D, in boxes 20-23.\nNB    You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "matching",
+              "prompt": "A worker\u0027s mental capacity may be considerably reduced due to their working environment.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Joseph Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "Craig Zimring"
+                },
+                {
+                  "key": "C",
+                  "text": "Piers MacNaughton"
+                },
+                {
+                  "key": "D",
+                  "text": "Amy Eyler"
+                }
+              ],
+              "group": {
+                "id": "r-researchers-20-23",
+                "instruction": "Look at the following statements (Questions 20-23) and the list of researchers below.\nMatch each statement with the correct researcher, A, B, C, or D.\nChoose the correct letter, A, B, C, or D, in boxes 20-23.\nNB    You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "24",
+              "group": {
+                "id": "r-summary-24-26",
+                "instruction": "Complete the summary below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Harvard study published in Environmental Health Perspectives",
+                "text": "Harvard study published in Environmental Health Perspectives\nAllen\u0027s first study was done at the Syracuse Center, which focuses on researching [24]. In this study, a complex ventilation system was used to control the airflow in the simulated workplace. All staff carried out normal duties during the day without much supervision. Later in the day participants were assessed as they [25] performed tasks which required them to play a role, for example acting as [26] while dealing with practical problems."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "sustainability"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "completion",
+              "prompt": "25",
+              "group": {
+                "id": "r-summary-24-26",
+                "instruction": "Complete the summary below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Harvard study published in Environmental Health Perspectives",
+                "text": "Harvard study published in Environmental Health Perspectives\nAllen\u0027s first study was done at the Syracuse Center, which focuses on researching [24]. In this study, a complex ventilation system was used to control the airflow in the simulated workplace. All staff carried out normal duties during the day without much supervision. Later in the day participants were assessed as they [25] performed tasks which required them to play a role, for example acting as [26] while dealing with practical problems."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "supervision"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "completion",
+              "prompt": "26",
+              "group": {
+                "id": "r-summary-24-26",
+                "instruction": "Complete the summary below.\nWrite ONE WORD ONLY from the passage for each answer.",
+                "title": "Harvard study published in Environmental Health Perspectives",
+                "text": "Harvard study published in Environmental Health Perspectives\nAllen\u0027s first study was done at the Syracuse Center, which focuses on researching [24]. In this study, a complex ventilation system was used to control the airflow in the simulated workplace. All staff carried out normal duties during the day without much supervision. Later in the day participants were assessed as they [25] performed tasks which required them to play a role, for example acting as [26] while dealing with practical problems."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "mayor"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Child\u2019s Play in Medieval England",
+          "body": "Child\u2019s Play in Medieval England\nProfessor Nicholas Orme investigates childhood in the Middle Ages\nA \u2018Play up! Play up! And play the game!\u2019 The ringing chorus of Sir Henry Newbolt\u2019s celebrated cricket poem Vita\u00EFLampada (1908) sums up views about play in 19th- and early 20th-century Britain. Children\u2019s play was important, and adults should regulate and direct it. Games promoted endurance, self-discipline and team spirit \u2013 qualities needed for the health of society and government. Newbolt was one in a long line of people who thought in this way. The notion that children\u2019s play should be used for educational and social purposes goes back at least to the ancient Greeks and the toys and games of medieval England tell us much about how adults then saw childhood. But they also reveal a good deal about children themselves, and cast light on what has recently become a controversial issue.\nB Forty years ago, the French historian Philippe Ari\u00E8s argued, in Centuries of Childhood, that childhood in the Middle Ages did not exist in its modern sense. Children were regarded by adults with relatively little affection and followed a way of life not very different from that of their elders. More recent historians have disputed this, pointing to plentiful signs of parental affection and arguing that childhood, by its very nature, must always have been much the same.\nC In this debate play is crucial. Did adults encourage it? If so, did they see it as recreational (by providing toys, for example) or as educational (making children play in particular ways)? Did children play as their elders told them, or did they invent their own games, away from adults and even against their wishes? These questions can be answered from a rich body of evidence including actual toys of the period, pictures of children\u2019s activities in contemporary manuscripts and literary sources such as religious works and dictionaries. We know not only how medieval English children played but what their elders thought on the subject.\nD We know, for example, that adults gave children toys from infancy onwards. In 1398 the writer John Trevisa describes babies playing with \u2018a child\u2019s brooch\u2019, an object similar in function to the bright plastic toys given to babies today to bite and handle. William Horman, 16th-century author of a Latin textbook, talks of buying a rattle to stop a baby crying. Indeed, by 1300 it appears there was a toy industry in England. Boys\u2019 toys often took military forms, such as the two metal soldiers of that date, found in London, and made from a mould. Girls had dolls, known before the 17th century as \u2018poppets\u2019 or puppets, commercially manufactured, imported and, in 1582, taxed at a halfpenny each. Not that children were by any means dependent on things that were bought for them. Gerald of Wales recalls how he and his brothers built towns, palaces, churches and monasteries from sand at Manorbier Castle in about 1150 (perhaps on the nearby beach).\nE Active games were universal. In his English-to-Latin dictionary of 1440, a mysterious recluse known as Geoffrey mentions children playing \u2018tennis\u2019 and swinging on what he calls a \u2018totter\u2019 or \u2018merrytotter\u2019. Children chased each other, swam and played ball games. Boys in the later Middle Ages shot arrows with bows and archery is an example of a sport encouraged by adults, who wanted boys to grow up to play their part in what was, for most men, a warrior society.\nF However, by no means all children\u2019s military activity was directed by adults. In 1400, six months after King Richard II had been overthrown by Henry IV, the children of London gathered together and chose themselves kings. Adam of Usk tells us they congregated \u2018in thousands \u2026 and made war upon each other \u2026 whereby many died\u2019. The new king had to order their parents and masters to stop them.\nG This willingness of children to take the initiative in play, not just to wait for adults to direct them, is evident in the way they observed the calendar. Medieval life was regulated by light, weather, crops and the Church\u2019s cycle of fasts and festivals. Children shared in the adult round of religious festivals, but had their own observances as well, semi-detached from their elders. In the 1200s, the priest Thomas Docking remarked that in spring a child \u2018follows the ploughman; in autumn he accompanies the grape-gatherers\u2019. In 1518, the poet Alexander Barclay records children playing with tops in March, looking for fruit in summer and making footballs by filling pigs\u2019 bladders with dried peas in autumn.\nH It is clear from this evidence that the relationship between adults and children in medieval society was, in major respects, a modern one. Parents took an indulgent interest in their children, providing them with toys and giving them time to play. Children played in a wide variety of ways \u2013 imaginatively, skilfully, athletically and violently \u2013 developing their minds, bodies and social skills. Adults tried at times to direct play \u2013 partly to keep children in order, partly to give them skills for adult life \u2013 but children gravitated to one another and formed a culture of their own. We can answer Ari\u00E8s\u2019s thesis, then, with a resounding \u2018No!\u2019. Childhood has always been much the same.",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "economic evidence for play in medieval England",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-27-31",
+                "instruction": "Reading Passage 3 has eight paragraphs, A\u2013H.\nWhich paragraph contains the following information?\nChoose the correct letter, A\u2013H, in boxes 27\u201331."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "an example of how children created their own toys",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-27-31",
+                "instruction": "Reading Passage 3 has eight paragraphs, A\u2013H.\nWhich paragraph contains the following information?\nChoose the correct letter, A\u2013H, in boxes 27\u201331."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "an example of warlike play approved by grown-ups",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-27-31",
+                "instruction": "Reading Passage 3 has eight paragraphs, A\u2013H.\nWhich paragraph contains the following information?\nChoose the correct letter, A\u2013H, in boxes 27\u201331."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "a political event mirrored in children\u2019s play",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-27-31",
+                "instruction": "Reading Passage 3 has eight paragraphs, A\u2013H.\nWhich paragraph contains the following information?\nChoose the correct letter, A\u2013H, in boxes 27\u201331."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "the origin of an academic debate about medieval life",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-27-31",
+                "instruction": "Reading Passage 3 has eight paragraphs, A\u2013H.\nWhich paragraph contains the following information?\nChoose the correct letter, A\u2013H, in boxes 27\u201331."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "matching",
+              "prompt": "1400:_________",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "invention of cricket"
+                },
+                {
+                  "key": "B",
+                  "text": "children picking grapes"
+                },
+                {
+                  "key": "C",
+                  "text": "poem about value of games"
+                },
+                {
+                  "key": "D",
+                  "text": "early toy manufacturing in England"
+                },
+                {
+                  "key": "E",
+                  "text": "puppets first imported into England"
+                },
+                {
+                  "key": "F",
+                  "text": "dolls taxed in England"
+                },
+                {
+                  "key": "G",
+                  "text": "death of Adam of Usk"
+                },
+                {
+                  "key": "H",
+                  "text": "children playing tennis"
+                },
+                {
+                  "key": "I",
+                  "text": "children\u2019s gang warfare"
+                },
+                {
+                  "key": "J",
+                  "text": "a description of seasonal activities"
+                }
+              ],
+              "group": {
+                "id": "r-events-32-35",
+                "instruction": "Look at the following dates (Questions 32\u201335) and the list of events below.\nMatch each date with the correct event, A\u2013J.\nChoose the correct letter, A\u2013J, in boxes 32\u201335."
+              },
+              "answerKey": {
+                "accepted": [
+                  "I"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "matching",
+              "prompt": "1518:_________",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "invention of cricket"
+                },
+                {
+                  "key": "B",
+                  "text": "children picking grapes"
+                },
+                {
+                  "key": "C",
+                  "text": "poem about value of games"
+                },
+                {
+                  "key": "D",
+                  "text": "early toy manufacturing in England"
+                },
+                {
+                  "key": "E",
+                  "text": "puppets first imported into England"
+                },
+                {
+                  "key": "F",
+                  "text": "dolls taxed in England"
+                },
+                {
+                  "key": "G",
+                  "text": "death of Adam of Usk"
+                },
+                {
+                  "key": "H",
+                  "text": "children playing tennis"
+                },
+                {
+                  "key": "I",
+                  "text": "children\u2019s gang warfare"
+                },
+                {
+                  "key": "J",
+                  "text": "a description of seasonal activities"
+                }
+              ],
+              "group": {
+                "id": "r-events-32-35",
+                "instruction": "Look at the following dates (Questions 32\u201335) and the list of events below.\nMatch each date with the correct event, A\u2013J.\nChoose the correct letter, A\u2013J, in boxes 32\u201335."
+              },
+              "answerKey": {
+                "accepted": [
+                  "J"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "matching",
+              "prompt": "1582:_________",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "invention of cricket"
+                },
+                {
+                  "key": "B",
+                  "text": "children picking grapes"
+                },
+                {
+                  "key": "C",
+                  "text": "poem about value of games"
+                },
+                {
+                  "key": "D",
+                  "text": "early toy manufacturing in England"
+                },
+                {
+                  "key": "E",
+                  "text": "puppets first imported into England"
+                },
+                {
+                  "key": "F",
+                  "text": "dolls taxed in England"
+                },
+                {
+                  "key": "G",
+                  "text": "death of Adam of Usk"
+                },
+                {
+                  "key": "H",
+                  "text": "children playing tennis"
+                },
+                {
+                  "key": "I",
+                  "text": "children\u2019s gang warfare"
+                },
+                {
+                  "key": "J",
+                  "text": "a description of seasonal activities"
+                }
+              ],
+              "group": {
+                "id": "r-events-32-35",
+                "instruction": "Look at the following dates (Questions 32\u201335) and the list of events below.\nMatch each date with the correct event, A\u2013J.\nChoose the correct letter, A\u2013J, in boxes 32\u201335."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "matching",
+              "prompt": "1908:_________",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "invention of cricket"
+                },
+                {
+                  "key": "B",
+                  "text": "children picking grapes"
+                },
+                {
+                  "key": "C",
+                  "text": "poem about value of games"
+                },
+                {
+                  "key": "D",
+                  "text": "early toy manufacturing in England"
+                },
+                {
+                  "key": "E",
+                  "text": "puppets first imported into England"
+                },
+                {
+                  "key": "F",
+                  "text": "dolls taxed in England"
+                },
+                {
+                  "key": "G",
+                  "text": "death of Adam of Usk"
+                },
+                {
+                  "key": "H",
+                  "text": "children playing tennis"
+                },
+                {
+                  "key": "I",
+                  "text": "children\u2019s gang warfare"
+                },
+                {
+                  "key": "J",
+                  "text": "a description of seasonal activities"
+                }
+              ],
+              "group": {
+                "id": "r-events-32-35",
+                "instruction": "Look at the following dates (Questions 32\u201335) and the list of events below.\nMatch each date with the correct event, A\u2013J.\nChoose the correct letter, A\u2013J, in boxes 32\u201335."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "yes-no-notgiven",
+              "prompt": "Little is known about adult attitudes to children\u2019s play in the Middle Ages.",
+              "group": {
+                "id": "r-ynng-36-40",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "yes-no-notgiven",
+              "prompt": "Most toys were imported into England before 1300.",
+              "group": {
+                "id": "r-ynng-36-40",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "yes-no-notgiven",
+              "prompt": "Medieval children celebrated the seasons in their own ways.",
+              "group": {
+                "id": "r-ynng-36-40",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "yes-no-notgiven",
+              "prompt": "Medieval children made presents for their parents on special occasions.",
+              "group": {
+                "id": "r-ynng-36-40",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this."
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "yes-no-notgiven",
+              "prompt": "Parents and children in the Middle Ages behaved much as they do today.",
+              "group": {
+                "id": "r-ynng-36-40",
+                "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

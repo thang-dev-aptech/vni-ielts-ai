@@ -30,6 +30,24 @@ export interface RuntimeConfig {
   environment: string;
   /** Where traces/metrics go. Empty means nothing is wired yet — a configured seam, not a default vendor. */
   telemetryEndpoint: string;
+  /**
+   * Where a locked-out learner is told to ask for help — a Zalo chat, in
+   * practice, because that is what VNI's support desk actually answers.
+   *
+   * <b>`null` when unset, not `''`, and the difference is the whole point.</b>
+   * Registration stopped collecting an email on 08/09/2026, so there is no
+   * self-service password reset: the forgot-password page has nothing to offer
+   * but a human. `null` means "no channel is configured", and the page must
+   * then say so plainly rather than render a link to nowhere. The other three
+   * fields fall back to a working default; this one cannot — inventing a
+   * support address is worse than admitting there is none.
+   *
+   * <b>Whatever is here is rendered to a signed-out visitor.</b> That makes it
+   * the one runtime value an operator can turn into a phishing primitive, so
+   * the entrypoint refuses anything that is not an `https://` URL before it
+   * ever reaches the bundle. → `apps/web/docker-entrypoint.d/40-vni-runtime-config.sh`
+   */
+  supportZaloUrl: string | null;
 }
 
 declare global {
@@ -45,5 +63,30 @@ export function getRuntimeConfig(): RuntimeConfig {
     apiBaseUrl: injected?.apiBaseUrl || import.meta.env['VITE_API_BASE'] || 'http://localhost:5099',
     environment: injected?.environment || (import.meta.env.DEV ? 'development' : 'production'),
     telemetryEndpoint: injected?.telemetryEndpoint || '',
+    supportZaloUrl: httpsOrNull(injected?.supportZaloUrl),
   };
+}
+
+/**
+ * <b>The second of two checks, deliberately, not a duplicate of the first.</b>
+ *
+ * The entrypoint validates the operator's environment variable before it
+ * writes `env-config.js`, which covers the container. It does not cover the
+ * checked-in `public/env-config.js` a dev server hands out, a hand-edited file
+ * in a running container, or any future writer of this global — and this
+ * function is the one path every consumer goes through. A `javascript:` or
+ * `data:` value that reached an `href` on the signed-out forgot-password page
+ * would be script execution on our own origin, so the reader refuses it here
+ * as well and the page sees `null`: no channel configured, which it already
+ * has to render for the unset case.
+ */
+function httpsOrNull(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  try {
+    return new URL(value).protocol === 'https:' ? value : null;
+  } catch {
+    // Not a URL at all — a bare `zalo.me/vni`, or a typo.
+    return null;
+  }
 }

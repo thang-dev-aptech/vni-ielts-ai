@@ -32,30 +32,6 @@
         ]
       }
     },
-    "/api/v1/public/exam-catalogue": {
-      "get": {
-        "tags": [
-          "Exams"
-        ],
-        "summary": "Published exam metadata for the practice shelf; no content",
-        "operationId": "ListPublicExamCatalogue",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PublicExamCatalogueView"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
-          }
-        }
-      }
-    },
     "/api/v1/practice-units": {
       "get": {
         "tags": [
@@ -151,7 +127,7 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Register with an email address and password",
+        "summary": "Register with a phone number and password",
         "operationId": "Register",
         "requestBody": {
           "content": {
@@ -178,7 +154,7 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Sign in with an email address and password",
+        "summary": "Sign in with a phone number or email address and a password",
         "operationId": "Login",
         "requestBody": {
           "content": {
@@ -212,87 +188,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RefreshRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "429": {
-            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
-          }
-        }
-      }
-    },
-    "/api/v1/auth/verify": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Redeem an email verification token",
-        "operationId": "VerifyEmail",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/VerifyEmailRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "429": {
-            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
-          }
-        }
-      }
-    },
-    "/api/v1/auth/forgot-password": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Send a password reset link, if the address has an account",
-        "operationId": "ForgotPassword",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ForgotPasswordRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "429": {
-            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
-          }
-        }
-      }
-    },
-    "/api/v1/auth/reset-password": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Redeem a reset link and set a new password",
-        "operationId": "ResetPassword",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ResetPasswordRequest"
               }
             }
           },
@@ -512,7 +407,7 @@
         "tags": [
           "Identity"
         ],
-        "summary": "Correct an email address that has not been verified yet",
+        "summary": "Set, change or remove this account\u0027s email address",
         "operationId": "ChangeEmail",
         "requestBody": {
           "content": {
@@ -554,66 +449,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SetPhoneRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "401": {
-            "description": "No token, or one this API will not accept."
-          },
-          "429": {
-            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      }
-    },
-    "/api/v1/me/verify-email/resend": {
-      "post": {
-        "tags": [
-          "Identity"
-        ],
-        "summary": "Send the email verification message again",
-        "operationId": "ResendVerification",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "401": {
-            "description": "No token, or one this API will not accept."
-          },
-          "429": {
-            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      }
-    },
-    "/api/v1/me/verify-email": {
-      "post": {
-        "tags": [
-          "Identity"
-        ],
-        "summary": "Verify this account\u0027s email with the six-digit code we sent",
-        "operationId": "ConfirmEmailCode",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ConfirmEmailCodeRequest"
               }
             }
           },
@@ -2339,6 +2174,51 @@
         ]
       }
     },
+    "/api/v1/admin/users/{userId}/password": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Set a new password for an account that cannot sign in",
+        "operationId": "AdminResetUserPassword",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetUserPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/library/documents": {
       "get": {
         "tags": [
@@ -3492,7 +3372,10 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3674,17 +3557,6 @@
           }
         }
       },
-      "ConfirmEmailCodeRequest": {
-        "required": [
-          "code"
-        ],
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string"
-          }
-        }
-      },
       "CriterionAssessmentView": {
         "required": [
           "criterion",
@@ -3839,70 +3711,13 @@
           }
         }
       },
-      "ExamCatalogueItem": {
-        "required": [
-          "examVersionId",
-          "title",
-          "variant",
-          "modules",
-          "moduleSequence",
-          "description",
-          "availableModes",
-          "difficultyLabel",
-          "requiresAdvisoryLabel"
-        ],
-        "type": "object",
-        "properties": {
-          "examVersionId": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "variant": {
-            "type": "string"
-          },
-          "modules": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ModuleSummary"
-            }
-          },
-          "moduleSequence": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "description": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "availableModes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "difficultyLabel": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "requiresAdvisoryLabel": {
-            "type": "boolean"
-          }
-        }
-      },
       "ExplanationContentView": {
         "required": [
           "correctAnswer",
           "shortReason",
           "evidence",
-          "commonMistake"
+          "commonMistake",
+          "translation"
         ],
         "type": "object",
         "properties": {
@@ -3923,17 +3738,12 @@
               "null",
               "string"
             ]
-          }
-        }
-      },
-      "ForgotPasswordRequest": {
-        "required": [
-          "email"
-        ],
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
+          },
+          "translation": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4245,12 +4055,12 @@
       },
       "LoginRequest": {
         "required": [
-          "email",
+          "identifier",
           "password"
         ],
         "type": "object",
         "properties": {
-          "email": {
+          "identifier": {
             "type": "string"
           },
           "password": {
@@ -4288,27 +4098,6 @@
               "null",
               "string"
             ]
-          }
-        }
-      },
-      "ModuleSummary": {
-        "required": [
-          "module",
-          "questionCount",
-          "durationSeconds"
-        ],
-        "type": "object",
-        "properties": {
-          "module": {
-            "type": "string"
-          },
-          "questionCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "durationSeconds": {
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
@@ -4524,20 +4313,6 @@
           }
         }
       },
-      "PublicExamCatalogueView": {
-        "required": [
-          "exams"
-        ],
-        "type": "object",
-        "properties": {
-          "exams": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ExamCatalogueItem"
-            }
-          }
-        }
-      },
       "QuestionExplanationStatusView": {
         "required": [
           "questionId",
@@ -4747,13 +4522,13 @@
       },
       "RegisterRequest": {
         "required": [
-          "email",
+          "phone",
           "password",
           "displayName"
         ],
         "type": "object",
         "properties": {
-          "email": {
+          "phone": {
             "type": "string"
           },
           "password": {
@@ -4770,16 +4545,12 @@
           }
         }
       },
-      "ResetPasswordRequest": {
+      "ResetUserPasswordRequest": {
         "required": [
-          "token",
           "newPassword"
         ],
         "type": "object",
         "properties": {
-          "token": {
-            "type": "string"
-          },
           "newPassword": {
             "type": "string"
           }
@@ -5433,17 +5204,6 @@
             "items": {
               "$ref": "#/components/schemas/UsageEntryView"
             }
-          }
-        }
-      },
-      "VerifyEmailRequest": {
-        "required": [
-          "token"
-        ],
-        "type": "object",
-        "properties": {
-          "token": {
-            "type": "string"
           }
         }
       }

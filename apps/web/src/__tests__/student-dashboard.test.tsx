@@ -152,50 +152,32 @@ it('renders the 6 D-4 blocks in order and directs practice through Bước tiế
 
   // 5. Kết quả gần đây (RecentSittings)
   expect(screen.getByRole('heading', { name: 'Buổi gần đây' })).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /Xem tất cả/ })).toHaveAttribute('href', '/students/progress');
+  expect(screen.getByRole('link', { name: /Xem tất cả/ })).toHaveAttribute(
+    'href',
+    '/students/progress',
+  );
 
   // 6. Tài nguyên (compact row of 3 text links)
   const res = screen.getByRole('region', { name: 'Tài nguyên' });
-  expect(within(res).getByRole('link', { name: 'Nghe chép chính tả' })).toHaveAttribute('href', '/dictation');
+  expect(within(res).getByRole('link', { name: 'Nghe chép chính tả' })).toHaveAttribute(
+    'href',
+    '/dictation',
+  );
   expect(within(res).getByRole('link', { name: 'Tài liệu' })).toHaveAttribute('href', '/documents');
   expect(within(res).getByRole('link', { name: 'Bài viết' })).toHaveAttribute('href', '/articles');
 });
 
-it('allows dismissing the email verification notice for the session only', async () => {
-  // D-4: Email verification notice is dismissible for the session only
-  sessionStorage.clear();
-  signedIn();
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url.includes('/api/v1/me/sessions')) return json({ sessions: [] });
-      if (url.includes('/api/v1/me/coaching')) return json(coaching);
-      if (url.includes('/api/v1/me/activity')) return json(activity);
-      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
-      if (url.includes('/api/v1/me')) return json({ ...me, emailVerified: false });
-      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
-      if (url.includes('/api/v1/sessions')) return json({ sittings: [] });
-      return json({ code: 'NOT_FOUND', status: 404, title: '', detail: '' }, 404);
-    }),
-  );
+it('shows no email-verification notice, because there is nothing to verify', async () => {
+  /*
+   * The banner is gone with the feature. It used to read *"Một số tính năng
+   * sẽ mở sau khi bạn xác minh email"* — describing a restriction that never
+   * existed in the code — and after 08/09/2026 there is no address on a fresh
+   * account to nag anybody about either.
+   */
+  await openDashboard();
 
-  window.history.pushState({}, '', '/students/dashboard');
-  render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  );
-
-  await screen.findByRole('heading', { name: /Xin chào/ });
-  const alert = screen.getByRole('status');
-  expect(alert).toHaveTextContent(/chưa được xác minh/i);
-
-  const closeBtn = within(alert).getByRole('button', { name: 'Đóng' });
-  await userEvent.click(closeBtn);
-
+  expect(screen.queryByText(/xác minh/i)).toBeNull();
   expect(document.querySelector('.dash-alert')).toBeNull();
-  expect(sessionStorage.getItem('vni.emailVerifyDismissed')).toBe('true');
 });
 
 it('states no score, count, or balance it does not have', async () => {
@@ -289,11 +271,15 @@ it('links to the profile once, from the rail, and nowhere in the body', async ()
 
   const sidebar = screen.getByRole('navigation', { name: 'Dành cho học sinh' });
   const links = within(sidebar).getAllByRole('link');
-  expect(links.filter((a) => a.getAttribute('href')?.startsWith('/students/profile'))).toHaveLength(1);
+  expect(links.filter((a) => a.getAttribute('href')?.startsWith('/students/profile'))).toHaveLength(
+    1,
+  );
 
   const dash = document.querySelector('.dash');
   const inBody = [...(dash?.querySelectorAll('a') ?? [])];
-  expect(inBody.filter((a) => a.getAttribute('href')?.startsWith('/students/profile'))).toHaveLength(0);
+  expect(
+    inBody.filter((a) => a.getAttribute('href')?.startsWith('/students/profile')),
+  ).toHaveLength(0);
 });
 
 it('opens the navigation drawer from the hamburger and closes it three ways', async () => {
@@ -421,7 +407,9 @@ it('uses server coaching advice for Bước tiếp theo and falls back honestly'
 
   const nextStep = document.querySelector('.dash-next-step');
   expect(nextStep).not.toBeNull();
-  expect(within(nextStep as HTMLElement).getByText(/Bắt đầu với Reading hoặc Listening/)).toBeInTheDocument();
+  expect(
+    within(nextStep as HTMLElement).getByText(/Bắt đầu với Reading hoặc Listening/),
+  ).toBeInTheDocument();
 });
 
 it('caps recent sittings at 5 on the dashboard and links to /progress for all', async () => {

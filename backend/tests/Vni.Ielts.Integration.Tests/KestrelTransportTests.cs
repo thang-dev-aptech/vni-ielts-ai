@@ -81,7 +81,7 @@ public sealed class KestrelTransportTests(KestrelExamAppFactory app)
         {
             Content = JsonContent.Create(new
             {
-                email = $"thu.am.{Guid.NewGuid():n}@example.com",
+                phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}",
                 password = Password,
                 displayName = "Học viên",
             }),

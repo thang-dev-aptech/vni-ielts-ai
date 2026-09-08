@@ -34,7 +34,7 @@ test.describe('offline', () => {
     const learner = await registerLearner(request);
     const sitting = await startFullTest(request, learner.session.accessToken);
 
-    await signIn(page, learner, `/students/session/${sitting.sessionId}`);
+    await signIn(page, learner, `/exam/${sitting.sessionId}`);
 
     const answer = page.getByRole('textbox', { name: /What did the survey team measure/ });
     await expect(answer).toBeVisible();
@@ -91,7 +91,7 @@ test.describe('offline', () => {
     const learner = await registerLearner(request);
     const sitting = await startFullTest(request, learner.session.accessToken);
 
-    await signIn(page, learner, `/students/session/${sitting.sessionId}`);
+    await signIn(page, learner, `/exam/${sitting.sessionId}`);
 
     const answer = page.getByRole('textbox', { name: /What did the survey team measure/ });
     await expect(answer).toBeVisible();

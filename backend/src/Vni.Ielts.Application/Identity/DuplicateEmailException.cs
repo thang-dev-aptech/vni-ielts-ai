@@ -15,6 +15,23 @@ public sealed class DuplicateEmailException(string email, Exception? inner = nul
 }
 
 /// <summary>
+/// A unique-index violation on the phone number.
+///
+/// <para>
+/// Separate from <see cref="DuplicateEmailException"/> because the two produce
+/// different messages and the caller cannot tell them apart from the driver
+/// error alone. They used to share a type, which meant a duplicate *number*
+/// was reported to the learner as "that email address is already registered" —
+/// on a form that has no email field.
+/// </para>
+/// </summary>
+public sealed class DuplicatePhoneException(string phone, Exception? inner = null)
+    : Exception($"An account already exists for '{phone}'.", inner)
+{
+    public string Phone { get; } = phone;
+}
+
+/// <summary>
 /// A unique-index violation on <c>(provider, providerUserId)</c>.
 ///
 /// <para>

@@ -130,7 +130,8 @@ way to sit a **timed** single-skill paper, which is what that bar means today.
 
 So a single-skill card offers both: **Luyện đề** (filled) opens a sitting with `timing: "open"` and
 navigates to `/students/practice/:sessionId`; **Bắt đầu** opens one with `timing: "deadline"` and
-navigates to the existing `/students/session/:sessionId`. A **full-test card offers only the second
+navigates to `/exam/:attemptId` (was `/students/session/:sessionId` until 08/09/2026; the old
+address redirects). A **full-test card offers only the second
 one** — a full-test luyện đề sitting would need a section-chaining rule nobody has written, and
 half-building one is worse than not offering it. → `B-13`, `G-11`
 

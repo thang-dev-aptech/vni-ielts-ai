@@ -34,8 +34,8 @@ Deprecation: mark in OpenAPI, respond with a `Deprecation` header, and support a
 ## Resources
 
 ```
-POST   /api/v1/auth/register
-POST   /api/v1/auth/login
+POST   /api/v1/auth/register        {phone, password, displayName, referralCode?}
+POST   /api/v1/auth/login           {identifier, password}   identifier = phone OR email
 POST   /api/v1/auth/social
 POST   /api/v1/auth/refresh
 POST   /api/v1/auth/logout
@@ -57,12 +57,21 @@ GET    /api/v1/me
 GET    /api/v1/me/entitlement
 GET    /api/v1/me/referral-code
 
+POST   /api/v1/admin/users/{userId}/password    operator password reset
 POST   /api/v1/admin/packages
 GET    /api/v1/admin/packages/{packageId}
 POST   /api/v1/admin/exams/{examId}/versions/{version}/publish
 GET    /api/v1/admin/evaluations
 POST   /api/v1/admin/evaluations/{evaluationId}/rerun
 ```
+
+**Three notes on the auth surface, corrected 2026-09-08.**
+
+- **Registration takes a phone number, never an address.** `User.Email` starts null; the learner adds an address later from their profile if they want one. The phone number is unique and is the primary handle. → `AU-9`
+- **Login takes one `identifier` field**, not an `email` field. The server routes on whether it contains `@`. A client that keeps two separate inputs is guessing at something the server decides.
+- **There is no email verification and no password-reset email.** `/auth/verify`, `/auth/forgot-password`, `/auth/reset-password`, `/me/verify-email` and `/me/verify-email/resend` are all removed. Forgotten passwords go through a Zalo contact link and `POST /api/v1/admin/users/{userId}/password`, which requires `user.reset-password`, refuses a self-reset, revokes the target's sessions and writes `AuditAction.UserPasswordReset`. → `AU-10`, [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
+
+> **`contracts/openapi/v1.json` is behind this** as of 2026-09-08: it still declares the five removed paths, still shapes `RegisterRequest`/`LoginRequest` around `email`, and does not yet carry the admin password-reset path. The generated `packages/api-client` inherits that. The list above is the API as built; the contract is the slice that has not landed.
 
 Sessions are addressed at the root (`/sessions/{id}`) rather than nested under the exam, because a client holding a session ID should not need to remember which exam produced it.
 

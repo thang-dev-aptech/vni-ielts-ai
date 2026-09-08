@@ -48,7 +48,6 @@ public sealed class SecretContractTests
      */
     private const string JwtSigningKey = "FAKE-NOT-A-REAL-KEY-jwt-signing-000000000000";
     private const string GoogleClientSecret = "FAKE-NOT-A-REAL-KEY-google-client-secret-01";
-    private const string SmtpPassword = "FAKE-NOT-A-REAL-KEY-smtp-password-02";
     private const string StorageSecretKey = "FAKE-NOT-A-REAL-KEY-object-storage-03";
     private const string OpenAiApiKey = "FAKE-NOT-A-REAL-KEY-openai-04";
     private const string GeminiApiKey = "FAKE-NOT-A-REAL-KEY-gemini-05";
@@ -59,7 +58,6 @@ public sealed class SecretContractTests
     [
         ("Jwt:SigningKey", JwtSigningKey),
         ("Sso:Google:ClientSecret", GoogleClientSecret),
-        ("Email:Password", SmtpPassword),
         ("ObjectStorage:SecretKey", StorageSecretKey),
         ("Ai:OpenAi:ApiKey", OpenAiApiKey),
         ("Ai:Gemini:ApiKey", GeminiApiKey),
@@ -421,8 +419,6 @@ public sealed class SecretContractTests
             $"mongodb://vni:{MongoPassword}@db.internal:27017/?replicaSet=rs0";
         config["Jwt:SigningKey"] = JwtSigningKey;
         config["Sso:Google:ClientSecret"] = GoogleClientSecret;
-        config["Email:Username"] = "smtp-user";
-        config["Email:Password"] = SmtpPassword;
         config["ObjectStorage:SecretKey"] = StorageSecretKey;
         config["Ai:OpenAi:ApiKey"] = OpenAiApiKey;
         config["Ai:OpenAi:Model"] = "gpt-5.5";
@@ -447,10 +443,6 @@ public sealed class SecretContractTests
         ["ObjectStorage:ServiceUrl"] = "https://storage.example.com",
         ["ObjectStorage:AccessKey"] = "object-storage-access-key",
         ["ObjectStorage:SecretKey"] = "object-storage-secret-key",
-        ["Email:Host"] = "smtp.example.com",
-        ["Email:Port"] = "587",
-        ["Email:FromAddress"] = "no-reply@example.com",
-        ["Email:ClientBaseUrl"] = "https://learn.example.com",
         ["Api:ShutdownTimeoutSeconds"] = "30",
     };
 

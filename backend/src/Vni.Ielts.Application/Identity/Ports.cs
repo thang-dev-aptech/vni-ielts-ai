@@ -33,6 +33,14 @@ public interface IUserRepository
         string? search, int skip, int take, CancellationToken ct);
     Task<User?> FindByEmailAsync(Email email, CancellationToken ct);
     Task<bool> EmailExistsAsync(Email email, CancellationToken ct);
+
+    /// <summary>
+    /// The other half of sign-in. Registration takes a number and no address,
+    /// so for most accounts this is the only lookup that can find them.
+    /// </summary>
+    Task<User?> FindByPhoneAsync(PhoneNumber phone, CancellationToken ct);
+    Task<bool> PhoneExistsAsync(PhoneNumber phone, CancellationToken ct);
+
     Task AddAsync(User user, CancellationToken ct);
     Task SaveAsync(User user, CancellationToken ct);
 }
@@ -44,6 +52,18 @@ public interface IUserIdentityRepository
     Task<IReadOnlyList<UserIdentity>> ListForUserAsync(UserId userId, CancellationToken ct);
     Task AddAsync(UserIdentity identity, CancellationToken ct);
     Task SaveAsync(UserIdentity identity, CancellationToken ct);
+
+    /// <summary>
+    /// Drops one link.
+    ///
+    /// <para>
+    /// Exists for exactly one situation: a social identity whose account no
+    /// longer carries the address the provider vouches for. The address has
+    /// moved on and the link is stale, so it is removed and the next sign-in
+    /// at that address starts a fresh account. → ADR-0018
+    /// </para>
+    /// </summary>
+    Task RemoveAsync(UserIdentityId id, CancellationToken ct);
 }
 
 public interface IRoleRepository

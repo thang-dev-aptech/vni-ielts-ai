@@ -1,0 +1,169 @@
+/*
+ * The Listening transport — `listening/ListeningAudioPlayer`.
+ *
+ * <b>This file used to hold a whole second layout for Listening</b>: a
+ * section rail, a tip card, an actions bar and a bottom bar of its own. All
+ * of it left on 2026-09-08 when the owner asked for every skill to share one
+ * chrome (`ExamShell`, `QuestionList`, `ExamFooter`). What survives is the
+ * one piece that was genuinely about Listening: the audio transport.
+ */
+
+/* ── Audio player ───────────────────────────────────────────────────────── */
+
+.lst-player {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  background: var(--sunk);
+  border: var(--bw-1) solid var(--line-2);
+  border-radius: var(--r-lg);
+  flex-wrap: wrap;
+}
+
+.lst-audio-failed {
+  border-radius: var(--r-lg);
+}
+
+.lst-player-play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: none;
+  color: #fff;
+  background: var(--primary);
+  box-shadow: var(--shadow-press-primary);
+  cursor: pointer;
+}
+
+.lst-player-play:disabled {
+  background: var(--muted);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.lst-player-body {
+  flex: 1 1 220px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.lst-player-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-2);
+  font-size: var(--t-13);
+  color: var(--muted);
+}
+
+.lst-player-time {
+  color: var(--ink-2);
+  font-weight: var(--w-label);
+}
+
+.lst-player-progress,
+.lst-player-progress-track {
+  width: 100%;
+}
+
+.lst-player-progress-track {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--line);
+  overflow: hidden;
+}
+
+.lst-player-progress-fill {
+  height: 100%;
+  background: var(--acc);
+}
+
+.lst-player-volume {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  flex-shrink: 0;
+}
+
+.lst-player-volume-icon {
+  display: inline-flex;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.lst-player-volume-icon.is-muted {
+  color: var(--bad);
+}
+
+.lst-player-volume-range {
+  width: 72px;
+}
+
+.lst-player-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.lst-player-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: var(--bw-1) solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.lst-player-menu-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--s-2));
+  z-index: 5;
+  min-width: 160px;
+  padding: var(--s-3);
+  background: var(--card);
+  border: var(--bw-1) solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-elevation);
+}
+
+.lst-player-menu-head {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  color: var(--muted);
+}
+
+.lst-player-menu-speeds {
+  display: flex;
+  gap: var(--s-1);
+}
+
+.lst-player-speed {
+  flex: 1;
+  padding: var(--s-1) var(--s-2);
+  border: var(--bw-1) solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  cursor: pointer;
+  font-size: var(--t-13);
+}
+
+.lst-player-speed.is-active {
+  background: var(--acc-soft);
+  border-color: var(--acc-line);
+  color: var(--acc-700);
+  font-weight: var(--w-emph);
+}

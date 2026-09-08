@@ -39,17 +39,28 @@ internal sealed class JwtTokenService(
             new(JwtRegisteredClaimNames.Sub, user.Id.Value),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("n")),
             new("name", user.DisplayName),
-            // The address, so an audit entry can name the actor without a
-            // lookup — and stay readable after that account is renamed or
-            // deleted. A display name is user-editable and makes a poor
-            // record of who did something.
-            new("email", user.Email.Value),
-            new("email_verified", user.EmailVerified ? "true" : "false"),
             // The family this token belongs to. Without it the session list
             // cannot say which entry is the device asking, and would offer
             // "sign out this device" on the one you are holding.
             new("fam", familyId),
         };
+
+        /*
+         * A stable handle, so an audit entry can name the actor without a
+         * lookup — and stay readable after that account is renamed or deleted.
+         *
+         * <b>Both are conditional now, and both have to be here.</b> An account
+         * registered with a phone number has no address at all, so an
+         * unconditional email claim is a null dereference on every token it
+         * issues. And falling back to the display name instead would put a
+         * user-editable field in the audit log, which is precisely the record
+         * that must not be rewritable by the person it names.
+         */
+        if (user.Email is { } address)
+            claims.Add(new Claim("email", address.Value));
+
+        if (user.Phone is { } phone)
+            claims.Add(new Claim("phone", phone.Value));
 
         // Permissions travel in the token so the API does not hit the database
         // on every request. The cost of that choice is real and worth stating:

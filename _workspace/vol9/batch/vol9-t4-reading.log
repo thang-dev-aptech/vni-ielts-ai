@@ -1,0 +1,20 @@
+source     TEST 4-R.docx
+sandbox    /Users/metacom/Documents/VNI/VNI IELTS AI/Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING
+key        KEY - EXPLAINATION/KEY TEST 4-R.docx (242 characters)
+extracted  23.361 characters, classification RightsCleared
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[100] Start processing HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[100] Sending HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[101] Received HTTP response headers after 2803.0347ms - 200
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[101] End processing HTTP request after 2832.9881ms - 200
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam parse stream opened after headers.
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by gpt-5.4, request chatcmpl-202609031906239840082928268d9d6Pdf1E93y, prompt exam-parse-prompt-v7, attempt 1, 10037 in / 7774 out.
+parsed     33.641 characters by OpenAi/gpt-5.4, request chatcmpl-202609031906239840082928268d9d6Pdf1E93y
+kept       reading section only
+written    /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t4-reading.json
+foreign parts dropped
+key read   40 entr(ies) covering 40 mark(s)
+key applied /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t4-reading.json
+question groups repaired
+  warning QUESTION_GROUP_SPLIT /sections/0/parts/1: Question group 'r-p2-14-19' mixed 6 different option banks; each question now has its own group id so the shared rubric survives and the identical-bank rule does not fire.
+section    Reading: 40 question(s), 40 auto-scored mark(s)
+publication=not attempted (this tool never publishes)

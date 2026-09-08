@@ -164,11 +164,20 @@ export function QuestionInput({
             assign(event.dataTransfer.getData('text/plain'));
           }}
         >
+          {/*
+            The answer as a person reads it: drop "A. go" here and the box says
+            "go". `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026. A bank whose options
+            are bare letters — a map's A–J — has nothing but the letter to show,
+            so the letter stays. The key is still what is saved and marked; the
+            select below keeps both halves for anyone who wants them.
+          */}
           {current === null
             ? selectedOption === null
               ? t('exam.dropAnswer')
               : t('exam.assignAnswer', { key: selectedOption.key })
-            : `${current.key} — ${current.text}`}
+            : current.text === current.key
+              ? current.key
+              : current.text}
         </button>
         <span className="sr-only" id={`${name}-bank-state`} aria-live="polite">
           {current === null ? t('exam.dropAnswer') : `${current.key} — ${current.text}`}
@@ -229,32 +238,63 @@ export function QuestionInput({
 
   if (question.type === 'multiple-select') {
     const picked = new Set((value ?? '').split(MULTI_SEPARATOR).filter(Boolean));
+    /*
+     * How many picks the paper asks for.
+     *
+     * <b>Read off the answer sheet, not off the prompt.</b> "Choose TWO
+     * letters" occupies two numbered lines on a real sheet, and the server
+     * publishes exactly those lines as `slots` — so the count is the paper's
+     * own, and this file never parses English for a number. A question with
+     * one slot (or none, from an older server) has no cap this component can
+     * honestly apply, and applies none.
+     *
+     * <b>Full means the rest lock, not that the picks freeze.</b> `[QUYẾT
+     * ĐỊNH]` chủ sản phẩm 08/09/2026: *"chọn 2 trong 5 đáp án thì chọn 2 đáp
+     * án xong sẽ không cho chọn nữa"*. A picked box can still be unticked,
+     * which is what re-opens the others — a candidate changing their mind
+     * must not have to clear everything to move one letter.
+     */
+    const capacity = (question.slots?.length ?? 0) > 1 ? question.slots.length : null;
+    const full = capacity !== null && picked.size >= capacity;
 
     return (
-      <div className="q-choices" role="group" {...naming}>
-        {question.options.map((option) => (
-          <label
-            className={`q-choice${picked.has(option.key) ? ' is-picked' : ''}`}
-            key={option.key}
-          >
-            <input
-              type="checkbox"
-              checked={picked.has(option.key)}
-              disabled={disabled}
-              onChange={() => {
-                const next = new Set(picked);
-                if (next.has(option.key)) next.delete(option.key);
-                else next.add(option.key);
-                // Sorted, so the same set of picks is always the same string
-                // and the marker never sees two spellings of one answer.
-                onChange(next.size === 0 ? null : [...next].sort().join(MULTI_SEPARATOR));
-              }}
-            />
-            <span>
-              <b>{option.key}</b> {option.text}
-            </span>
-          </label>
-        ))}
+      <div className="q-choices" role="group" {...naming} data-full={full ? 'true' : undefined}>
+        {question.options.map((option) => {
+          const isPicked = picked.has(option.key);
+          const locked = full && !isPicked;
+
+          return (
+            <label
+              className={`q-choice${isPicked ? ' is-picked' : ''}${locked ? ' is-locked' : ''}`}
+              key={option.key}
+            >
+              <input
+                type="checkbox"
+                checked={isPicked}
+                disabled={disabled || locked}
+                onChange={() => {
+                  const next = new Set(picked);
+                  if (next.has(option.key)) next.delete(option.key);
+                  else if (capacity !== null && next.size >= capacity) return;
+                  else next.add(option.key);
+                  // Sorted, so the same set of picks is always the same string
+                  // and the marker never sees two spellings of one answer.
+                  onChange(next.size === 0 ? null : [...next].sort().join(MULTI_SEPARATOR));
+                }}
+              />
+              <span>
+                <b>{option.key}</b> {option.text}
+              </span>
+            </label>
+          );
+        })}
+        {capacity !== null && (
+          /* The count in words as well as in locked boxes — a locked box on
+             its own reads as broken, not as full. */
+          <span className="q-hint q-select-progress" role="status">
+            {t('exam.selectProgress', { picked: picked.size, total: capacity })}
+          </span>
+        )}
       </div>
     );
   }

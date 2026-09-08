@@ -79,7 +79,9 @@ export function PassageToolbar({
           type="button"
           className={`passage-tool-btn highlighter-btn${highlighterActive ? ' is-active' : ''}`}
           aria-pressed={highlighterActive}
-          aria-label={highlighterActive ? 'Đang bật tô sáng (chọn văn bản để tô)' : 'Bật công cụ tô sáng'}
+          aria-label={
+            highlighterActive ? 'Đang bật tô sáng (chọn văn bản để tô)' : 'Bật công cụ tô sáng'
+          }
           title="Bật/Tắt tô sáng"
           onClick={onToggleHighlighter}
         >

@@ -2,21 +2,18 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from '
 import { AuthProvider } from './features/auth/AuthContext.js';
 import { AuthPage } from './features/auth/AuthPage.js';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage.js';
-import { ResetPasswordPage } from './features/auth/ResetPasswordPage.js';
 import { SsoCallbackPage } from './features/auth/SsoCallbackPage.js';
-import { VerifyEmailPage } from './features/auth/VerifyEmailPage.js';
-import { AppShell } from './features/chrome/AppShell.js';
 import { DashboardShell } from './features/chrome/DashboardShell.js';
 import { DictationPage } from './features/dictation/DictationPage.js';
 import { DictationSetPage } from './features/dictation/DictationSetPage.js';
 import { ExamResultsPage } from './features/exam/ExamResultsPage.js';
 import { ExamRunnerPage } from './features/exam/ExamRunnerPage.js';
-import { PracticeRunnerPage } from './features/exam/practice-runner/PracticeRunnerPage.js';
 import { PracticeCategoriesPage } from './features/exam/practice/PracticeCategoriesPage.js';
 import { PracticeCategoryDetailPage } from './features/exam/practice/PracticeCategoryDetailPage.js';
 import { PracticeExamLauncherPage } from './features/exam/practice/PracticeExamLauncherPage.js';
 import { PracticeSetDetailPage } from './features/exam/practice/PracticeSetDetailPage.js';
 import { PracticeTestDetailPage } from './features/exam/practice/PracticeTestDetailPage.js';
+import { PracticeWorkspace } from './features/exam/practice/PracticeWorkspace.js';
 import { PracticePage } from './features/exam/PracticePage.js';
 import { PublicShell } from './features/chrome/PublicShell.js';
 import { ArticlePage } from './features/articles/ArticlePage.js';
@@ -24,7 +21,6 @@ import { ArticlesPage } from './features/articles/ArticlesPage.js';
 import { DocumentsPage } from './features/library/DocumentsPage.js';
 import { ProgressPage } from './features/student/ProgressPage.js';
 import { StudentDashboardPage } from './features/student/StudentDashboardPage.js';
-import { StudentPracticeHubPage } from './features/student/StudentPracticeHubPage.js';
 import { LandingPage } from './features/landing/LandingPage.js';
 import { ProfilePage } from './features/profile/ProfilePage.js';
 import { I18nProvider } from './i18n/index.js';
@@ -47,6 +43,18 @@ import { RequireAnonymous, RequireAuth } from './routes/RequireAuth.js';
 function LegacyResultsRedirect() {
   const { sessionId = '' } = useParams();
   return <Navigate to={Paths.examResults(sessionId)} replace />;
+}
+
+/**
+ * `/students/session/:sessionId` → `/exam/:attemptId`, 08/09/2026.
+ *
+ * The sitting moved to a top-level address. A learner mid-paper who reloads a
+ * bookmarked tab is the exact person this redirect exists for, so it lands on
+ * the runner rather than on the 404.
+ */
+function LegacyExamRedirect() {
+  const { sessionId = '' } = useParams();
+  return <Navigate to={Paths.examSession(sessionId)} replace />;
 }
 
 /**
@@ -100,11 +108,16 @@ export function App() {
               </Route>
 
               {/*
-                The four modules: the landing chrome for a visitor, the student
-                chrome for a learner who is signed in. Same routes, same pages;
-                only the frame changes. → `AppShell`
+                The four modules: public chrome, always — regardless of sign-in
+                state. `[QUYẾT ĐỊNH]` chủ sản phẩm, 04/09/2026 had these switch
+                to the student dashboard's chrome once signed in (`AppShell`,
+                since removed); reversed by a later instruction in this same
+                session, which is the more recent statement and so wins per
+                `docs/README.md` § Source precedence. `/students/practice` is
+                the separate, additional dashboard-chrome address for a
+                signed-in learner — this group is not it.
               */}
-              <Route element={<AppShell />}>
+              <Route element={<PublicShell />}>
                 <Route path={Paths.practice} element={<PracticePage />} />
                 <Route path={Paths.dictation} element={<DictationPage />} />
                 {/* The library lists; this one is the exercise. Split on 24/08
@@ -131,12 +144,19 @@ export function App() {
               */}
               <Route path={Paths.ssoCallback} element={<SsoCallbackPage />} />
 
-              {/* Outside every guard. Someone following a reset link from
-                  their mailbox may or may not have a session open, and the
-                  link has to work either way — being bounced to the sign-in
-                  form is exactly what they could not get past. */}
+              {/*
+                Outside every guard, and it must stay that way. This page is
+                reached by someone who cannot sign in; bouncing them to the
+                sign-in form is exactly the wall they could not get past.
+
+                `/reset-password` and `/verify-email` were removed with their
+                endpoints on 08/09/2026 — registration takes a phone number and
+                sends no mail, so there is no link for either page to land. They
+                get no redirect: a stale link from an old mail is better served
+                by the 404, which carries the site navigation, than by a page
+                that would silently do nothing.
+              */}
               <Route path={Paths.forgotPassword} element={<ForgotPasswordPage />} />
-              <Route path={Paths.resetPassword} element={<ResetPasswordPage />} />
 
               <Route element={<RequireAuth />}>
                 {/*
@@ -153,34 +173,40 @@ export function App() {
                 </Route>
 
                 {/*
-                  Results wear the same chrome as `/practice` — header and
-                  footer — not the dashboard sidebar. Finishing a paper is
-                  still that paper, not a jump into "trang học sinh".
-                */}
-                <Route element={<DashboardShell />}>
-                  <Route path={Paths.examResultsPattern} element={<ExamResultsPage />} />
-                  <Route
-                    path="/students/session/:sessionId/results"
-                    element={<LegacyResultsRedirect />}
-                  />
-                </Route>
+                  The sitting and the result it produced: two standalone pages,
+                  neither of them inside `DashboardShell`. `[QUYẾT ĐỊNH]` chủ
+                  sản phẩm 08/09/2026.
 
-                {/*
-                  Outside every shell. An exam in progress has no navigation
-                  and no way out by design — making that a property of the
-                  route rather than a flag inside a layout means no later edit
-                  to the shell can put an escape hatch on a timed exam.
+                  The runner has no navigation and no way out by design —
+                  making that a property of the route rather than a flag inside
+                  a layout means no later edit to a shell can put an escape
+                  hatch on a timed exam. The result page carries its own header
+                  and breadcrumb: it is the end of the paper, not a page of the
+                  student area.
                   → DESIGN.md § Chrome trong / ngoài phiên thi
                 */}
                 <Route path={Paths.examSessionPattern} element={<ExamRunnerPage />} />
+                <Route path={Paths.examResultsPattern} element={<ExamResultsPage />} />
+
+                {/* The addresses those two used to have. */}
+                <Route path="/students/session/:sessionId" element={<LegacyExamRedirect />} />
+                <Route
+                  path="/students/session/:sessionId/results"
+                  element={<LegacyResultsRedirect />}
+                />
+                <Route path="/practice/results/:sessionId" element={<LegacyResultsRedirect />} />
 
                 {/*
-                  Luyện đề — the same rule, a different runner. Two routes
-                  rather than one route with a flag, because the timed runner
-                  and the open-ended one have different failure rules and only
-                  one of them may ever refuse a write for being late. → `E-20`
+                  Luyện đề used to have its own address, `/students/practice/
+                  :sessionId` — two routes for one runner. `[QUYẾT ĐỊNH]` chủ
+                  sản phẩm, 08/09/2026: một địa chỉ duy nhất cho mọi phiên làm
+                  bài, bất kể đồng hồ đếm ngược hay đếm lên. The clock's own
+                  failure rules still branch inside the runner on the server's
+                  `deadlineAt`, never on the URL — collapsing the address does
+                  not collapse that distinction. The old address still works,
+                  it just lands here first.
                 */}
-                <Route path={Paths.practiceSessionPattern} element={<PracticeRunnerPage />} />
+                <Route path="/students/practice/:sessionId" element={<LegacyExamRedirect />} />
 
                 {/*
                   The thin launcher behind the test-detail page's "start"
@@ -188,23 +214,39 @@ export function App() {
                   runner above. Outside every shell for the same reason the
                   runners are: nothing here is a screen a learner reads.
                 */}
-                <Route path={Paths.studentsPracticeExamPattern} element={<PracticeExamLauncherPage />} />
+                <Route
+                  path={Paths.studentsPracticeExamPattern}
+                  element={<PracticeExamLauncherPage />}
+                />
 
                 {/*
-                  The practice hub and its categories → sets → tests
-                  hierarchy — additional depth for a signed-in learner,
-                  alongside (not instead of) the public `/practice`
-                  catalogue. → students-practice-hub plan, 08/09/2026
+                  The practice workspace — skill tabs with a matching
+                  single-skill grid right under them — plus its
+                  categories → sets → tests hierarchy for browsing by test
+                  set, additional depth for a signed-in learner alongside
+                  (not instead of) the public `/practice` catalogue.
+                  `/students/practice/workspace` is kept as an alias: it is
+                  the same screen, reachable at the address it grew up at.
                 */}
                 <Route element={<DashboardShell />}>
-                  <Route path={Paths.studentsPractice} element={<StudentPracticeHubPage />} />
-                  <Route path={Paths.studentsPracticeCategories} element={<PracticeCategoriesPage />} />
+                  <Route path={Paths.studentsPractice} element={<PracticeWorkspace />} />
+                  <Route path="/students/practice/workspace" element={<PracticeWorkspace />} />
+                  <Route
+                    path={Paths.studentsPracticeCategories}
+                    element={<PracticeCategoriesPage />}
+                  />
                   <Route
                     path={Paths.studentsPracticeCategoryPattern}
                     element={<PracticeCategoryDetailPage />}
                   />
-                  <Route path={Paths.studentsPracticeSetPattern} element={<PracticeSetDetailPage />} />
-                  <Route path={Paths.studentsPracticeTestPattern} element={<PracticeTestDetailPage />} />
+                  <Route
+                    path={Paths.studentsPracticeSetPattern}
+                    element={<PracticeSetDetailPage />}
+                  />
+                  <Route
+                    path={Paths.studentsPracticeTestPattern}
+                    element={<PracticeTestDetailPage />}
+                  />
                 </Route>
 
                 {/* Profile keeps the landing header: it is reached from the
@@ -229,11 +271,6 @@ export function App() {
                 path="/students/dictation"
                 element={<Navigate to={Paths.dictation} replace />}
               />
-
-              {/* Reachable either way: someone clicking a link from their
-                  inbox may or may not have a session open. It renders the
-                  shared auth shell itself, so it needs no layout route. */}
-              <Route path={Paths.verifyEmail} element={<VerifyEmailPage />} />
 
               {/*
                 <b>404 wears the real header and footer.</b> It used to sit

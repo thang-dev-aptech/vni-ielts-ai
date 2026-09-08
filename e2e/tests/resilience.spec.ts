@@ -41,10 +41,10 @@ test.describe('resilience', () => {
     const learner = await registerLearner(request);
     const sitting = await startFullTest(request, learner.session.accessToken);
 
-    await signIn(page, learner, `/students/session/${sitting.sessionId}`);
+    await signIn(page, learner, `/exam/${sitting.sessionId}`);
     await expect(page.getByRole('textbox', { name: READING_Q1 })).toBeVisible();
 
-    const clock = page.locator('.exam-clock .num');
+    const clock = page.locator('.exr-clock .num, .exam-clock .num');
     await expect(clock).not.toHaveText('--:--');
 
     // Chromium's own suspension, not a simulation of one.
@@ -93,7 +93,7 @@ test.describe('resilience', () => {
     const learner = await registerLearner(request);
     const sitting = await startFullTest(request, learner.session.accessToken);
 
-    await signIn(page, learner, `/students/session/${sitting.sessionId}`);
+    await signIn(page, learner, `/exam/${sitting.sessionId}`);
     await expect(page.getByRole('textbox', { name: READING_Q1 })).toBeVisible();
 
     let inFlight = 0;

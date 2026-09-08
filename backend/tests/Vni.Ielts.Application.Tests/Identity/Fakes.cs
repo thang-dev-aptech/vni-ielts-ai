@@ -23,20 +23,52 @@ internal sealed class FakeUserRepository : IUserRepository
     public Task<bool> EmailExistsAsync(Email email, CancellationToken ct) =>
         Task.FromResult(_byId.Values.Any(u => u.Email == email));
 
+    public Task<User?> FindByPhoneAsync(PhoneNumber phone, CancellationToken ct) =>
+        Task.FromResult(_byId.Values.FirstOrDefault(u => u.Phone == phone));
+
+    public Task<bool> PhoneExistsAsync(PhoneNumber phone, CancellationToken ct) =>
+        Task.FromResult(_byId.Values.Any(u => u.Phone == phone));
+
     /// <summary>
-    /// Set to make the next <see cref="AddAsync"/> lose the unique-index race,
-    /// which is the only way to exercise the concurrent-signup path. The flag
-    /// clears itself so the retry inside the handler succeeds, exactly as the
-    /// real index behaves once the winner has committed.
+    /// Set to make the next <see cref="AddAsync"/> lose the unique-index race
+    /// on the address, which is the only way to exercise the concurrent-signup
+    /// path. The flag clears itself so the retry inside the handler succeeds,
+    /// exactly as the real index behaves once the winner has committed.
     /// </summary>
     public bool ThrowDuplicateOnNextAdd { get; set; }
+
+    /// <summary>The same, for the phone index — the one registration hits.</summary>
+    public bool ThrowDuplicatePhoneOnNextAdd { get; set; }
+
+    /// <summary>
+    /// And the same two for <see cref="SaveAsync"/>.
+    ///
+    /// <para>
+    /// Worth having separately: <c>SetPhone</c> and <c>ChangeEmail</c> reach
+    /// the index through a replace, not an insert, and the real repository
+    /// translated nothing on that path until 08/09/2026 — so the catch blocks
+    /// around it had never once been exercised.
+    /// </para>
+    ///
+    /// <para>
+    /// Which index was violated is set by the caller rather than guessed from
+    /// the document: an account can hold both a number and an address, so
+    /// inferring it here would make the fake decide the very thing the test is
+    /// checking the handler distinguishes.
+    /// </para>
+    /// </summary>
+    public bool ThrowDuplicateEmailOnNextSave { get; set; }
+
+    /// <inheritdoc cref="ThrowDuplicateEmailOnNextSave"/>
+    public bool ThrowDuplicatePhoneOnNextSave { get; set; }
 
     public Task<(IReadOnlyList<User> Users, long Total)> ListAsync(
         string? search, int skip, int take, CancellationToken ct)
     {
         var matches = _byId.Values
             .Where(u => string.IsNullOrWhiteSpace(search)
-                || u.Email.Value.Contains(search, StringComparison.OrdinalIgnoreCase)
+                || (u.Email?.Value.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (u.Phone?.Value.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
                 || u.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -46,10 +78,16 @@ internal sealed class FakeUserRepository : IUserRepository
 
     public Task AddAsync(User user, CancellationToken ct)
     {
+        if (ThrowDuplicatePhoneOnNextAdd)
+        {
+            ThrowDuplicatePhoneOnNextAdd = false;
+            throw new DuplicatePhoneException(user.Phone?.Value ?? string.Empty);
+        }
+
         if (ThrowDuplicateOnNextAdd)
         {
             ThrowDuplicateOnNextAdd = false;
-            throw new DuplicateEmailException(user.Email.Value);
+            throw new DuplicateEmailException(user.Email?.Value ?? string.Empty);
         }
 
         _byId[user.Id.Value] = user;
@@ -58,6 +96,18 @@ internal sealed class FakeUserRepository : IUserRepository
 
     public Task SaveAsync(User user, CancellationToken ct)
     {
+        if (ThrowDuplicateEmailOnNextSave)
+        {
+            ThrowDuplicateEmailOnNextSave = false;
+            throw new DuplicateEmailException(user.Email?.Value ?? string.Empty);
+        }
+
+        if (ThrowDuplicatePhoneOnNextSave)
+        {
+            ThrowDuplicatePhoneOnNextSave = false;
+            throw new DuplicatePhoneException(user.Phone?.Value ?? string.Empty);
+        }
+
         _byId[user.Id.Value] = user;
         return Task.CompletedTask;
     }
@@ -99,7 +149,18 @@ internal sealed class FakeUserIdentityRepository : IUserIdentityRepository
         return Task.CompletedTask;
     }
 
-    public Task SaveAsync(UserIdentity identity, CancellationToken ct) => Task.CompletedTask;
+    public Task SaveAsync(UserIdentity identity, CancellationToken ct)
+    {
+        var index = _all.FindIndex(i => i.Id == identity.Id);
+        if (index >= 0) _all[index] = identity;
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveAsync(UserIdentityId id, CancellationToken ct)
+    {
+        _all.RemoveAll(i => i.Id == id);
+        return Task.CompletedTask;
+    }
 }
 
 internal sealed class FakeRoleRepository : IRoleRepository
@@ -194,42 +255,6 @@ internal sealed class FakeTokenService : ITokenService
     {
         RevokedAllFor.Add(userId);
         return Task.CompletedTask;
-    }
-}
-
-/// <summary>
-/// A mail sender whose delivery answer is set per test.
-///
-/// <para>
-/// <b><see cref="Delivery"/> defaults to <c>Sent</c>, and the tests that
-/// matter set it to <c>NotSent</c>.</b> The only sender that exists in the
-/// product today writes the link to a log and sends nothing, so
-/// <c>NotSent</c> is not an exotic branch — it is production-as-configured,
-/// and the reason every use case here reports what happened instead of
-/// letting a caller assume.
-/// </para>
-/// </summary>
-internal sealed class FakeVerificationMessageSender : IVerificationMessageSender
-{
-    public MessageDelivery Delivery { get; set; } = MessageDelivery.Sent;
-
-    public List<(string Address, string Token)> Verifications { get; } = [];
-    public List<(string Address, string Token)> Resets { get; } = [];
-
-    /// <summary>Addresses a verification message was sent to, in order.</summary>
-    public List<string> SentTo => [.. Verifications.Select(v => v.Address)];
-
-    public Task<MessageDelivery> SendAsync(Email address, string token, CancellationToken ct)
-    {
-        Verifications.Add((address.Value, token));
-        return Task.FromResult(Delivery);
-    }
-
-    public Task<MessageDelivery> SendPasswordResetAsync(
-        Email address, string token, CancellationToken ct)
-    {
-        Resets.Add((address.Value, token));
-        return Task.FromResult(Delivery);
     }
 }
 
@@ -337,6 +362,14 @@ internal sealed class FakeHandoffCodeStore : IHandoffCodeStore
         return Task.FromResult(code);
     }
 
+    /// <summary>
+    /// Reads without spending, so a test can assert <i>which account</i> a
+    /// callback resolved to. Consuming would make the assertion itself change
+    /// the state under test.
+    /// </summary>
+    public Task<UserId?> ResolveAsync(string code) =>
+        Task.FromResult(_codes.TryGetValue(code, out var id) ? id : (UserId?)null);
+
     public Task<UserId?> ConsumeAsync(string code, CancellationToken ct) =>
         Task.FromResult(_codes.Remove(code, out var userId) ? userId : (UserId?)null);
 }
@@ -355,20 +388,27 @@ internal sealed class FakeLoginThrottle : ILoginThrottle
 
     public IReadOnlyDictionary<string, int> Failures => _failures;
 
-    public Task<bool> IsLockedAsync(string email, CancellationToken ct) =>
-        Task.FromResult(_failures.GetValueOrDefault(Key(email)) >= MaxFailures);
+    public Task<bool> IsLockedAsync(string handle, CancellationToken ct) =>
+        Task.FromResult(_failures.GetValueOrDefault(Key(handle)) >= MaxFailures);
 
-    public Task RecordFailureAsync(string email, CancellationToken ct)
+    public Task RecordFailureAsync(string handle, CancellationToken ct)
     {
-        _failures[Key(email)] = _failures.GetValueOrDefault(Key(email)) + 1;
+        _failures[Key(handle)] = _failures.GetValueOrDefault(Key(handle)) + 1;
         return Task.CompletedTask;
     }
 
-    public Task ClearAsync(string email, CancellationToken ct)
+    public Task ClearAsync(string handle, CancellationToken ct)
     {
-        _failures.Remove(Key(email));
+        _failures.Remove(Key(handle));
         return Task.CompletedTask;
     }
 
-    private static string Key(string email) => email.Trim().ToLowerInvariant();
+    /// <summary>
+    /// <b>Trim and lower-case only — deliberately no phone normalisation.</b>
+    /// The real store does exactly this, so the counter is only per-account if
+    /// the caller normalises before it gets here. Doing it in the fake too
+    /// would hide the bug where four spellings of one number become four
+    /// independent budgets of ten guesses.
+    /// </summary>
+    private static string Key(string handle) => handle.Trim().ToLowerInvariant();
 }

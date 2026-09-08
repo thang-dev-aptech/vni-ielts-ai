@@ -72,25 +72,23 @@ export const Paths = {
    * An exam surface has no sidebar, no account menu and no link out — that is
    * a property of the route, not a conditional render, so no future edit to
    * the shell can accidentally put an escape hatch on a timed exam.
-   */
-  examSession: (sessionId: string) => `/students/session/${sessionId}`,
-  examSessionPattern: '/students/session/:sessionId',
-
-  /**
-   * A luyện đề sitting in progress — `E-20`.
    *
-   * <b>Its own address, not a query flag on `examSession`.</b> The two runners
-   * are different pages: one counts down against a server deadline and refuses
-   * a late write, the other counts up against a stopwatch the learner can stop
-   * and has no late. A `?mode=` on one route would put practice branches
-   * through the timed runner, which is the file where an accidental change
-   * costs somebody a real exam.
+   * <b>Top level, and one segment deep.</b> `[QUYẾT ĐỊNH]` chủ sản phẩm,
+   * 08/09/2026: the sitting and its result are `/exam/:attemptId` and
+   * `/results/:attemptId`, standalone pages rather than branches of
+   * `/students`. It was `/students/session/:sessionId`, which read as a page
+   * of the student area — the one area this screen is deliberately outside
+   * of. `/students/session/…` keeps working via the legacy redirect in
+   * `App.tsx`.
    *
-   * Under `/students/` and outside every shell, for the same reason
-   * `examSession` is: a sitting has no sidebar and no link out.
+   * <b>The one address for every sitting, timed or open-clock.</b> `[QUYẾT
+   * ĐỊNH]` chủ sản phẩm, 08/09/2026: luyện đề used to live at its own
+   * `/students/practice/:sessionId` — that address now redirects here (see
+   * `App.tsx`). The runner still branches internally on the server's own
+   * `deadlineAt`, never on which URL got it there.
    */
-  practiceSession: (sessionId: string) => `/students/practice/${sessionId}`,
-  practiceSessionPattern: '/students/practice/:sessionId',
+  examSession: (attemptId: string) => `/exam/${attemptId}`,
+  examSessionPattern: '/exam/:attemptId',
 
   /**
    * The practice hub, and the categories → sets → tests hierarchy beneath it.
@@ -101,11 +99,11 @@ export const Paths = {
    * already signed in and wants to browse by series rather than by skill;
    * it does not replace `/practice`, and nothing here re-gates it.
    *
-   * <b>Shares its first two segments with `practiceSessionPattern` above,
-   * and that is safe.</b> React Router ranks a literal segment
-   * (`categories`, `sets`, `tests`, `exam`) above a dynamic one
-   * (`:sessionId`) at the same depth, so `/students/practice/categories`
-   * can never be swallowed by `/students/practice/:sessionId` — proven in
+   * <b>Shares its first two segments with the legacy `/students/practice/:sessionId`
+   * redirect (see `App.tsx`), and that is safe.</b> React Router ranks a
+   * literal segment (`categories`, `sets`, `tests`, `exam`) above a dynamic
+   * one (`:sessionId`) at the same depth, so `/students/practice/categories`
+   * can never be swallowed by that redirect — proven in
    * `students-practice-routing.test.tsx`.
    */
   studentsPractice: '/students/practice',
@@ -121,9 +119,9 @@ export const Paths = {
    * Turns a catalogue pick into a running sitting. Not a page a learner
    * reads — it creates a session via the same `startSession` call
    * `PracticeWorkspace` uses, then replaces itself with the real runner
-   * address (`practiceSession`/`examSession`). The runner itself stays keyed
-   * by `sessionId`, unchanged; this route exists only so the test detail
-   * page has a stable address to link to before a session exists.
+   * address, `examSession`. The runner itself stays keyed by `sessionId`,
+   * unchanged; this route exists only so the test detail page has a stable
+   * address to link to before a session exists.
    */
   studentsPracticeExam: (examId: string) => `/students/practice/exam/${examId}`,
   studentsPracticeExamPattern: '/students/practice/exam/:examId',
@@ -131,15 +129,15 @@ export const Paths = {
   /**
    * What a sitting produced.
    *
-   * <b>A page of its own, under `/practice`, not under `/students`.</b> The
-   * results used to render inside the dashboard shell — sidebar, "Trang học
-   * sinh", a different header — so finishing a paper felt like leaving the
-   * module. The catalogue is `/practice`; the paper is a sitting; the score
-   * is still that paper. Same chrome as the catalogue (site header and
-   * footer). The runner stays fullscreen with no nav, on purpose.
+   * <b>A standalone page, outside every shell.</b> `[QUYẾT ĐỊNH]` chủ sản
+   * phẩm, 08/09/2026: `/results/:attemptId`, with no `DashboardShell` around
+   * it — the result is the end of the paper, and it carries its own header and
+   * its own breadcrumb rather than the student sidebar. It was
+   * `/practice/results/:sessionId` inside the dashboard shell; that address
+   * keeps working via the legacy redirect in `App.tsx`.
    */
-  examResults: (sessionId: string) => `/practice/results/${sessionId}`,
-  examResultsPattern: '/practice/results/:sessionId',
+  examResults: (attemptId: string) => `/results/${attemptId}`,
+  examResultsPattern: '/results/:attemptId',
 
   /**
    * Tài liệu — the document library, as a page of its own.
@@ -166,10 +164,18 @@ export const Paths = {
 
   signIn: '/login',
   signUp: '/register',
-  verifyEmail: '/verify-email',
+
+  /**
+   * Where a locked-out learner is sent for help.
+   *
+   * <b>It no longer starts a reset, and there is no `/reset-password` or
+   * `/verify-email` beside it any more.</b> Registration takes a phone number
+   * as of 08/09/2026, so no account has an address to mail a link to; the page
+   * hands over a support channel instead and makes no request at all. The two
+   * deleted addresses are deliberately left without a redirect — an old link
+   * lands on the 404, which at least carries the site navigation.
+   */
   forgotPassword: '/forgot-password',
-  /** Where the reset email's link lands. Carries `?token=`. */
-  resetPassword: '/reset-password',
 
   /**
    * Account & security profile ("Tài khoản & bảo mật").

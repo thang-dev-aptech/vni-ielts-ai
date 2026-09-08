@@ -26,7 +26,15 @@ import '../../styles/app-shell.css';
 
 /**
  * The student area's own chrome: sidebar left, content right, no marketing nav.
- * D-1 chốt 2026-09-04: DashboardShell wraps every signed-in page outside a sitting.
+ *
+ * Wraps the dedicated `/students/*` dashboard pages (overview, progress,
+ * profile, the practice workspace and its bộ đề library) plus the exam
+ * runner and results. It does **not** wrap `/practice`, `/dictation`,
+ * `/documents` or `/articles` — those four keep the public chrome
+ * (`PublicShell`) regardless of sign-in state. `D-1` (04/09/2026) briefly had
+ * those four switch to this shell once signed in, dispatched by an `AppShell`
+ * component; a later instruction reversed that, and per `docs/README.md`
+ * § Source precedence the more recent statement wins.
  */
 
 const COLLAPSED_KEY = 'vni.studentRail.collapsed';
@@ -83,13 +91,9 @@ const GROUPS: NavGroup[] = [
 
 function getPageTitleKey(pathname: string): StringKey {
   if (pathname === Paths.dashboard) return 'dash.nav.overview';
-  if (pathname === Paths.practice || pathname.startsWith(Paths.practice + '/')) return 'dash.nav.practice';
   if (pathname === Paths.studentsPractice || pathname.startsWith(Paths.studentsPractice + '/'))
     return 'dash.nav.practice';
   if (pathname === Paths.progress) return 'dash.nav.progress';
-  if (pathname === Paths.dictation || pathname.startsWith(Paths.dictation + '/')) return 'dash.nav.dictation';
-  if (pathname === Paths.documents || pathname.startsWith(Paths.documents + '/')) return 'dash.nav.documents';
-  if (pathname === Paths.articles || pathname.startsWith(Paths.articles + '/')) return 'dash.nav.articles';
   if (pathname === Paths.profile) return 'dash.nav.profile';
   if (pathname.includes('/results')) return 'title.results';
   return 'dash.nav.overview';
@@ -262,15 +266,7 @@ export function DashboardShell() {
                   const label = t(key);
                   const current =
                     to !== undefined &&
-                    (pathname === to ||
-                      (to !== Paths.dashboard && pathname.startsWith(to + '/')) ||
-                      // `/practice` itself still renders inside this shell for a
-                      // signed-in visitor (AppShell dispatches by auth status),
-                      // and `/practice/results/:id` is a third address for the
-                      // same module — both keep highlighting "Luyện 4 kỹ năng"
-                      // now that the nav item's own `to` points at the hub.
-                      (to === Paths.studentsPractice &&
-                        (pathname === Paths.practice || pathname.startsWith(Paths.practice + '/'))));
+                    (pathname === to || (to !== Paths.dashboard && pathname.startsWith(to + '/')));
                   const body = (
                     <>
                       <Icon size={18} />

@@ -4,131 +4,21 @@ using Vni.Ielts.Domain.Identity;
 
 namespace Vni.Ielts.Application.Identity;
 
-public sealed record RequestPasswordResetCommand(string Email);
-
-/// <summary>
-/// "I forgot my password."
-///
-/// <para>
-/// <b>Always reports success.</b> An unknown address, an address with no
-/// password identity, and a real one all return the same answer, because the
-/// alternative turns this endpoint into a free account-enumeration oracle —
-/// and unlike registration, nothing here needs to tell the caller anything.
-/// Rate limiting is the control that matters. → threat T4
-/// </para>
-///
-/// <para>
-/// <b>It works for an account created through Google.</b> That account has an
-/// address Google already verified, so a link sent there reaches its owner —
-/// which is precisely how someone who only ever used Google gains a password
-/// without anyone having to trust an unverified claim.
-/// </para>
-/// </summary>
-public sealed class RequestPasswordReset(
-    IUserRepository users,
-    IPasswordResetTokens tokens,
-    IVerificationMessageSender sender)
-{
-    public async Task HandleAsync(RequestPasswordResetCommand command, CancellationToken ct)
-    {
-        if (!Email.TryCreate(command.Email, out var email)) return;
-
-        var user = await users.FindByEmailAsync(email, ct);
-
-        // A suspended account does not get a way back in by email.
-        if (user is null || !user.CanAuthenticate) return;
-
-        await sender.SendPasswordResetAsync(email, await tokens.IssueAsync(user.Id, ct), ct);
-    }
-}
-
-public sealed record ResetPasswordCommand(string Token, string NewPassword);
-
-/// <summary>
-/// Redeems a reset link and sets the password.
-///
-/// <para>
-/// <b>Every other session ends.</b> A reset is what someone does when they
-/// think their account is compromised, and leaving the attacker's session
-/// alive would make the reset theatre. The person doing it is not signed in
-/// here — they are following a link from their mailbox — so there is no
-/// current session to preserve. → threat T5
-/// </para>
-///
-/// <para>
-/// <b>It creates the email identity if there is not one.</b> An account made
-/// through Google has no password row at all; without this, "forgot password"
-/// would succeed and change nothing.
-/// </para>
-/// </summary>
-public sealed class ResetPassword(
-    IUserRepository users,
-    IUserIdentityRepository identities,
-    IPasswordResetTokens tokens,
-    IPasswordHasher hasher,
-    ITokenService sessions,
-    IClock clock)
-{
-    public async Task<Result<UserId>> HandleAsync(ResetPasswordCommand command, CancellationToken ct)
-    {
-        var password = PasswordPolicy.Validate(command.NewPassword);
-        if (!password.IsSuccess) return password.Error;
-
-        var userId = await tokens.RedeemAsync(command.Token, ct);
-        if (userId is null)
-        {
-            return Error.Validation(
-                ErrorCodes.ResetTokenInvalid,
-                "This link is no longer valid. Request a new one.");
-        }
-
-        var user = await users.FindByIdAsync(userId.Value, ct);
-        if (user is null || !user.CanAuthenticate)
-            return Error.Validation(ErrorCodes.ResetTokenInvalid, "This link is no longer valid.");
-
-        await SetOnEmailIdentityAsync(identities, hasher, clock, user, password.Value!, ct);
-
-        // Redeeming a link proves the mailbox, which is the same proof
-        // verification asks for. Someone who reset their password has
-        // demonstrably received mail at that address.
-        if (!user.EmailVerified)
-        {
-            user.MarkEmailVerified();
-            await users.SaveAsync(user, ct);
-        }
-
-        await sessions.RevokeAllForUserAsync(user.Id, ct);
-
-        return user.Id;
-    }
-
-    /// <summary>
-    /// Writes the hash onto the account's email identity, creating that
-    /// identity when the account has never had one.
-    /// </summary>
-    internal static async Task SetOnEmailIdentityAsync(
-        IUserIdentityRepository identities,
-        IPasswordHasher hasher,
-        IClock clock,
-        User user,
-        string password,
-        CancellationToken ct)
-    {
-        var hash = hasher.Hash(password);
-        var existing = (await identities.ListForUserAsync(user.Id, ct))
-            .FirstOrDefault(i => i.Provider == IdentityProvider.Email);
-
-        if (existing is null)
-        {
-            await identities.AddAsync(
-                UserIdentity.ForEmail(user.Id, user.Email, hash, clock.UtcNow), ct);
-            return;
-        }
-
-        existing.SetPasswordHash(hash);
-        await identities.SaveAsync(existing, ct);
-    }
-}
+/*
+ * <b>"Forgot my password" no longer lives here, and that is a product
+ * decision rather than an omission.</b>
+ *
+ * Recovery used to be a link mailed to the account's address. Registration
+ * takes no address any more, so for most accounts there is nowhere to send
+ * one — and the owner chose the replacement outright on 08/09/2026: a Zalo
+ * contact link on the sign-in page, and an operator who sets a new password
+ * from the CMS. The endpoint that used to be here would have been a button
+ * that silently did nothing for every phone-registered learner.
+ *
+ * What that costs is written down rather than hidden: an operator who can set
+ * a password can sign in as that person, so the act carries its own permission
+ * key and its own audit action. → PermissionKeys.UserResetPassword, ADR-0018
+ */
 
 public sealed record SetPasswordCommand(
     UserId UserId, string? CurrentPassword, string NewPassword, string? CurrentFamilyId);
@@ -162,7 +52,7 @@ public sealed class SetPassword(
             return Error.Forbidden(ErrorCodes.AccountSuspended, "This account has been suspended.");
 
         var existing = (await identities.ListForUserAsync(user.Id, ct))
-            .FirstOrDefault(i => i.Provider == IdentityProvider.Email);
+            .FirstOrDefault(i => i.Provider == IdentityProvider.Password);
 
         if (existing?.PasswordHash is not null)
         {
@@ -174,8 +64,7 @@ public sealed class SetPassword(
             }
         }
 
-        await ResetPassword.SetOnEmailIdentityAsync(
-            identities, hasher, clock, user, password.Value!, ct);
+        await PasswordIdentity.SetAsync(identities, hasher, clock, user, password.Value!, ct);
 
         // Other devices go; this one stays. Someone setting a password from
         // their own profile page should not be signed out of the page they are
@@ -184,5 +73,41 @@ public sealed class SetPassword(
         await sessions.RevokeAllExceptAsync(user.Id, command.CurrentFamilyId ?? string.Empty, ct);
 
         return true;
+    }
+}
+
+/// <summary>
+/// Writes a password hash onto the account's single password identity,
+/// creating that identity when the account has never had one.
+///
+/// <para>
+/// <b>One row per account, keyed by account id.</b> It used to be keyed by the
+/// email address, which meant an account signing in with both a phone number
+/// and an address would need two rows carrying the same hash — two places to
+/// update, and one of them eventually missed. → UserIdentity.ProviderUserId
+/// </para>
+/// </summary>
+public static class PasswordIdentity
+{
+    public static async Task SetAsync(
+        IUserIdentityRepository identities,
+        IPasswordHasher hasher,
+        IClock clock,
+        User user,
+        string password,
+        CancellationToken ct)
+    {
+        var hash = hasher.Hash(password);
+        var existing = (await identities.ListForUserAsync(user.Id, ct))
+            .FirstOrDefault(i => i.Provider == IdentityProvider.Password);
+
+        if (existing is null)
+        {
+            await identities.AddAsync(UserIdentity.ForPassword(user.Id, hash, clock.UtcNow), ct);
+            return;
+        }
+
+        existing.SetPasswordHash(hash);
+        await identities.SaveAsync(existing, ct);
     }
 }

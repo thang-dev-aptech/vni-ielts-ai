@@ -197,7 +197,9 @@ An internal token currency. The concepts are confirmed; **no amounts and no char
 
 > **06/09/2026 — `P-14`…`P-17` settle how the MVP treats this.** Usage is *recorded* in an append-only
 > ledger and never blocks (`P-14`); a new account is granted **10 turns** (`P-15`); turns are earned by daily
-> login and by a referral whose invitee verifies their email — not by sharing (`P-16`); nothing is sold
+> login and by a referral whose invitee **registers** — not by sharing, and since 08/09/2026 no longer
+> gated on that invitee verifying an email address, because verification no longer exists (`P-16`,
+> `AU-10`); nothing is sold
 > (`P-17`). `T-4` stays `UNCONFIRMED` for every amount other than the 10-turn grant, and `B-5a`/`B-5b`
 > (what is charged, how much) stay open — the ledger records, it does not price.
 
@@ -270,7 +272,7 @@ are `CONFIRMED`.
 | P-13 | **The rubric is a four-criterion framework; it does not claim to be official IELTS marking.** Every Writing band carries the label "AI · tham khảo" | CONFIRMED | Owner decision 06/09/2026 |
 | P-14 | **Token, stage 1: record only, never block.** No atomic deduction, no out-of-turns screen — but the record is a ledger, not a counter | CONFIRMED | Owner decision 06/09/2026 |
 | P-15 | **10 free turns for a new account.** Shown and counted down; at zero the learner can still use everything | CONFIRMED | Owner decision 06/09/2026 |
-| P-16 | **Earn turns by daily login and by referral link.** A bare share cannot be verified; the reward is per registration through the link, granted when the invitee verifies their email | CONFIRMED | Owner decision 06/09/2026 |
+| P-16 | **Earn turns by daily login and by referral link.** A bare share cannot be verified; the reward is per registration through the link. ~~granted when the invitee verifies their email~~ — **that trigger is `[SUPERSEDED 2026-09-08]` by `AU-10`: the reward is paid at registration**, because email verification no longer exists. The anti-fraud control is the **unique phone number**, not a proven mailbox | CONFIRMED | Owner decision 06/09/2026; the trigger superseded by owner decision 08/09/2026 — *"như vậy sẽ không cần tính năng verify nữa bỏ luôn"* → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md) |
 | P-17 | **Nothing is sold yet.** Payment gateway, invoices and refunds are out of the MVP entirely | CONFIRMED | Owner decision 06/09/2026 |
 | P-18 | **Exam import is a ZIP with four skill folders** `reading/ listening/ writing/ speaking/`. The folder name determines the skill; a missing folder means a partial package, which the schema already allows | CONFIRMED | Owner decision 06/09/2026 |
 | P-19 | **A missing transcript is a warning, and the admin decides.** Findings split into blocking and warning; overriding a warning records who, and why, in the audit log | CONFIRMED | Owner decision 06/09/2026 |
@@ -291,7 +293,7 @@ are `CONFIRMED`.
 | `H-8b` Task weighting | Closed by `P-12` |
 | `H-8a` descriptor source | Closed by `P-13` |
 | `M-53` which exam files may be published | Closed by `P-21` |
-| `M-27` share verification | Narrowed by `P-16`: reward on referral registration verified by email, never on the share itself |
+| `M-27` share verification | Narrowed by `P-16`: reward on referral **registration**, never on the share itself. The *"verified by email"* half is `[SUPERSEDED 2026-09-08]` by `AU-10` — the reward is paid at registration and the anti-fraud control is the unique phone number |
 | Overall band of a three-skill mock | **Still open** `[BUSINESS DECISION]` — three skills do not make an IELTS overall band; until decided the API returns no overall band for a mock (`G-11`) |
 
 ---
@@ -300,14 +302,16 @@ are `CONFIRMED`.
 
 | ID | Requirement |
 |---|---|
-| AU-1 | Email authentication |
+| AU-1 | ~~Email authentication~~ **`[SUPERSEDED 2026-09-08]` by `AU-9`.** Registration collects a full name, a **phone number** and a password — no address. Sign-in takes **one identifier** that may be a phone number or an email address → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md) |
 | AU-2 | Google SSO |
 | AU-3 | Facebook SSO |
 | AU-4 | Backend provides centralised authentication and authorisation |
 | AU-5 | Do not over-engineer before requirements are finalised |
 | AU-6 | The identity layer must accommodate **multiple** SSO providers without rework — do not hard-wire a single provider (owner brief 2026-08-20) |
-| AU-7 | **One email address is one account.** A social sign-in on an address that already has an account links to it rather than creating a second one — *"sẽ là 2 tài khoàn chung luôn nếu cùng gmail chỉ khác phương thức đăng nhập thôi"* (chủ sản phẩm, 21/08/2026). Silent only where the provider verifies the address → [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md) |
+| AU-7 | ~~**One email address is one account.**~~ **`[SUPERSEDED 2026-09-08]` by `AU-9` — reversed, not narrowed.** The 21/08 decision was *"sẽ là 2 tài khoàn chung luôn nếu cùng gmail chỉ khác phương thức đăng nhập thôi"* (chủ sản phẩm, 21/08/2026), and it made the address a permanent account key. The address is now **optional, nullable and movable**: it identifies whichever account holds it *at the time*, and changing it frees the old address. Kept here because the audit trail is the point → [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md), superseded by [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md) |
 | AU-8 | **Google is the only social provider in scope.** Facebook and Microsoft are deferred until the product is polished — *"trước mắt chỉ làm cho google thôi mấy phần khác bỏ hoàn thiện mượt app rồi bổ sung thêm"* (chủ sản phẩm, 21/08/2026). This supersedes the earlier same-day instruction to build Facebook alongside Google |
+| AU-9 | **The email address is a movable account label, not a permanent identity.** Registration asks for *"Họ và tên, số điện thoại, mật khẩu, nhập lại mật khẩu"* and nothing else; the profile's email field starts empty. Changing the address **moves the account onto it** and frees the old one, so a Google sign-in at the freed address creates a **brand-new account** and a sign-in at the new address returns to the migrated one. The **phone number is unique** and is the primary handle | CONFIRMED | Owner decision 08/09/2026 (verbatim): *"register chỉ cần điền : Họ và tên, số điện thoại, mật khẩu, nhập lại mật khẩu -> tạo xong ở profile phần email bỏ trống -> như vậy sẽ không cần tính năng verify nữa bỏ luôn"* and *"nếu user login bằng google ... user đổi email thành nguyendoanthang16@gmail.com -> thì dữ liệu ... sẽ được chuyển ... và bây giờ nếu login bằng ngdthang.dev@gmail.com sẽ là 1 tài khoản mới"* → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md) |
+| AU-10 | **Email verification is removed entirely**, and so is the mail infrastructure behind it — the six-digit code, the legacy `/auth/verify` link, `User.EmailVerified`, the `email_verified` JWT claim, the SMTP sender and the boot gate that required it. **Forgotten passwords are an operator action**: a Zalo contact link, then `POST /api/v1/admin/users/{userId}/password` gated on `user.reset-password` and audited as `UserPasswordReset`. There is deliberately **no profile "link Google" feature** — adding an address already yields address + password sign-in | CONFIRMED | Owner decision 08/09/2026: *"như vậy sẽ không cần tính năng verify nữa bỏ luôn"*. `M-46` (six-digit code) and `M-45` become historical → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md) |
 
 ## Admin CMS
 

@@ -2,12 +2,7 @@ import 'fake-indexeddb/auto';
 
 import { IDBFactory } from 'fake-indexeddb';
 import { afterEach, beforeEach, expect, it } from 'vitest';
-import {
-  forgetDraft,
-  loadDraft,
-  rememberDraft,
-  resetDraftConnection,
-} from './recordingDraft.js';
+import { forgetDraft, loadDraft, rememberDraft, resetDraftConnection } from './recordingDraft.js';
 
 /**
  * Against a real IndexedDB implementation, not a stub of one. Same reason as

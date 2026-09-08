@@ -146,7 +146,7 @@ public sealed class CompleteSsoSignInTests
     {
         var users = new FakeUserRepository();
         var codes = new FakeHandoffCodeStore();
-        var user = User.Register(Email.Create("hoc.vien@example.com"), "Học viên", Now);
+        var user = User.RegisterFromProvider(Email.Create("hoc.vien@example.com"), "Học viên", Now);
         if (suspended) user.Suspend();
         await users.AddAsync(user, default);
 

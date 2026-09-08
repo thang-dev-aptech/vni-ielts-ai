@@ -1,0 +1,1239 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 16 \u2014 Test 3",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "Roman shipbuilding and navigation",
+          "body": "Roman shipbuilding and navigation\n\nShipbuilding today is based on science and ships are built using computers and sophisticated\ntools. Shipbuilding in ancient Rome, however, was more of an art relying on estimation, inherited\ntechniques and personal experience. The Romans were not traditionally sailors but mostly land-\nbased people, who learned to build ships from the people that they conquered, namely the Greeks\nand the Egyptians.\nThere are a few surviving written documents that give descriptions and representations of ancient\nRoman ships, including the sails and rigging. Excavated vessels also provide some clues about\nancient shipbuilding techniques. Studies of these have taught us that ancient Roman shipbuilders\nbuilt the outer hull first, then proceeded with the frame and the rest of the ship. Planks used to\nbuild the outer hull were initially sewn together. Starting from the 6th century BCE, they were\nfixed using a method called mortise and tenon, whereby one plank locked into another without\nthe need for stitching. Then in the first centuries of the current era, Mediterranean shipbuilders\nshifted to another shipbuilding method, still in use today, which consisted of building the frame\nfirst and then proceeding with the hull and the other components of the ship. This method was\nmore systematic and dramatically shortened ship construction times. The ancient Romans built\nlarge merchant ships and warships whose size and technology were unequalled until the 16th\ncentury CE.\nWarships were built to be lightweight and very speedy. They had to be able to sail near the coast,\nwhich is why they had no ballast or excess load and were built with a long, narrow hull. They did\nnot sink when damaged and often would lie crippled on the sea\u2019s surface following naval battles.\nThey had a bronze battering ram, which was used to pierce the timber hulls or break the oars of\nenemy vessels. Warships used both wind (sails) and human power (oarsmen) and were therefore\nvery fast. Eventually, Rome\u2019s navy became the largest and most powerful in the Mediterranean,\nand the Romans had control over what they therefore called Mare Nostrum meaning \u2018our sea\u2019.\nThere were many kinds of warship. The \u2018trireme\u2019 was the dominant warship from the 7th to 4th\ncentury BCE. It had rowers in the top, middle and lower levels, and approximately 50 rowers in\neach bank. The rowers at the bottom had the most uncomfortable position as they were under the\nother rowers and were exposed to the water entering through the oar-holes. It is worth noting that\ncontrary to popular perception, rowers were not slaves but mostly Roman citizens enrolled in the\nmilitary. The trireme was superseded by larger ships with even more rowers.\nMerchant ships were built to transport lots of cargo over long distances and at a reasonable cost.\nThey had a wider hull, double planking and a solid interior for added stability. Unlike warships,\ntheir V-shaped hull was deep underwater, meaning that they could not sail too close to the coast.\nThey usually had two huge side rudders located off the stern and controlled by a small tiller bar\nconnected to a system of cables. They had from one to three masts with large square sails and a\nsmall triangular sail at the bow. Just like warships, merchant ships used oarsmen, but coordinating\nthe hundreds of rowers in both types of ship was not an easy task. In order to assist them, music\nwould be played on an instrument, and oars would then keep time with this.\nThe cargo on merchant ships included raw materials (e.g. iron bars, copper, marble and granite),\nand agricultural products (e.g. grain from Egypt\u2019s Nile valley). During the Empire, Rome was a\nhuge city by ancient standards of about one million inhabitants. Goods from all over the world\nwould come to the city through the port of Pozzuoli situated west of the bay of Naples in Italy and\nthrough the gigantic port of Ostia situated at the mouth of the Tiber River. Large merchant ships\nwould approach the destination port and, just like today, be intercepted by a number of towboats\nthat would drag them to the quay.\nThe time of travel along the many sailing routes could vary widely. Navigation in ancient\nRome did not rely on sophisticated instruments such as compasses but on experience, local\nknowledge and observation of natural phenomena. In conditions of good visibility, seamen in the\nMediterranean often had the mainland or islands in sight, which greatly facilitated navigation. They\nsailed by noting their position relative to a succession of recognisable landmarks. When weather\nconditions were not good or where land was no longer visible, Roman mariners estimated directions\nfrom the pole star or, with less accuracy, from the Sun at noon. They also estimated directions\nrelative to the wind and swell. Overall, shipping in ancient Roman times resembled shipping\ntoday with large vessels regularly crossing the seas and bringing supplies from their Empire.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "true-false-notgiven",
+              "prompt": "The Romans\u2019 shipbuilding skills were passed on to the Greeks and the Egyptians.",
+              "group": {
+                "id": "r-tfng-1-5",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1\u20145 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "true-false-notgiven",
+              "prompt": "Skilled craftsmen were needed for the mortise and tenon method of fixing planks.",
+              "group": {
+                "id": "r-tfng-1-5",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1\u20145 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "true-false-notgiven",
+              "prompt": "The later practice used by Mediterranean shipbuilders involved building the hull\nbefore the frame.",
+              "group": {
+                "id": "r-tfng-1-5",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1\u20145 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "true-false-notgiven",
+              "prompt": "The Romans called the Mediterranean Sea Mare Nostrum because they dominated\nits use.",
+              "group": {
+                "id": "r-tfng-1-5",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1\u20145 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "true-false-notgiven",
+              "prompt": "Most rowers on ships were people from the Roman army.",
+              "group": {
+                "id": "r-tfng-1-5",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\n\nIn boxes 1\u20145 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "r-summary-6-13",
+                "instruction": "Complete the summary below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 6-13 on your answer sheet.",
+                "title": "Warships and merchant ships",
+                "text": "Warships were designed so that they Were [6] ou... ANd moved\nquickly. They often remained afloat after battles and were able to sail close to land as\nthey lacked any additional weight. A battering ram Made OF [7] occccscsssssscssssssssssssenestnstene\nwas included in the design for attacking and damaging the timber and oars of\nenemy ships. Warships, such as the \u2018trireme\u2019, had rowers on three different\n[8] Unlike warships, merchant ships had a broad Q .....scessscsecseeeennununen that lay far\nbelow the surface of the sea. Merchant ships were steered through the water with\nthe help of large rudders and a tiller bar. They had both square and [10] ............\nsails. On merchant ships and wWarShiDS, [11] ou... Was used to\nensure rowers moved their oars in and out of the water at the same time.\nQuantities of agricultural QOOdS SUCH AS [12] occu Were transported\nby merchant ships to two main ports in Italy. The ships were pulled to the shore by\n[13] cession \u002B When the weather was clear and they could see islands\nor land, sailors used landmarks that they knew to help them navigate their route."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "lightweight"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "r-summary-6-13",
+                "instruction": "Complete the summary below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 6-13 on your answer sheet.",
+                "title": "Warships and merchant ships",
+                "text": "Warships were designed so that they Were [6] ou... ANd moved\nquickly. They often remained afloat after battles and were able to sail close to land as\nthey lacked any additional weight. A battering ram Made OF [7] occccscsssssscssssssssssssenestnstene\nwas included in the design for attacking and damaging the timber and oars of\nenemy ships. Warships, such as the \u2018trireme\u2019, had rowers on three different\n[8] Unlike warships, merchant ships had a broad Q .....scessscsecseeeennununen that lay far\nbelow the surface of the sea. Merchant ships were steered through the water with\nthe help of large rudders and a tiller bar. They had both square and [10] ............\nsails. On merchant ships and wWarShiDS, [11] ou... Was used to\nensure rowers moved their oars in and out of the water at the same time.\nQuantities of agricultural QOOdS SUCH AS [12] occu Were transported\nby merchant ships to two main ports in Italy. The ships were pulled to the shore by\n[13] cession \u002B When the weather was clear and they could see islands\nor land, sailors used landmarks that they knew to help them navigate their route."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "bronze"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "r-summary-6-13",
+                "instruction": "Complete the summary below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 6-13 on your answer sheet.",
+                "title": "Warships and merchant ships",
+                "text": "Warships were designed so that they Were [6] ou... ANd moved\nquickly. They often remained afloat after battles and were able to sail close to land as\nthey lacked any additional weight. A battering ram Made OF [7] occccscsssssscssssssssssssenestnstene\nwas included in the design for attacking and damaging the timber and oars of\nenemy ships. Warships, such as the \u2018trireme\u2019, had rowers on three different\n[8] Unlike warships, merchant ships had a broad Q .....scessscsecseeeennununen that lay far\nbelow the surface of the sea. Merchant ships were steered through the water with\nthe help of large rudders and a tiller bar. They had both square and [10] ............\nsails. On merchant ships and wWarShiDS, [11] ou... Was used to\nensure rowers moved their oars in and out of the water at the same time.\nQuantities of agricultural QOOdS SUCH AS [12] occu Were transported\nby merchant ships to two main ports in Italy. The ships were pulled to the shore by\n[13] cession \u002B When the weather was clear and they could see islands\nor land, sailors used landmarks that they knew to help them navigate their route."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "levels"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "r-summary-6-13",
+                "instruction": "Complete the summary below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 6-13 on your answer sheet.",
+                "title": "Warships and merchant ships",
+                "text": "Warships were designed so that they Were [6] ou... ANd moved\nquickly. They often remained afloat after battles and were able to sail close to land as\nthey lacked any additional weight. A battering ram Made OF [7] occccscsssssscssssssssssssenestnstene\nwas included in the design for attacking and damaging the timber and oars of\nenemy ships. Warships, such as the \u2018trireme\u2019, had rowers on three different\n[8] Unlike warships, merchant ships had a broad Q .....scessscsecseeeennununen that lay far\nbelow the surface of the sea. Merchant ships were steered through the water with\nthe help of large rudders and a tiller bar. They had both square and [10] ............\nsails. On merchant ships and wWarShiDS, [11] ou... Was used to\nensure rowers moved their oars in and out of the water at the same time.\nQuantities of agricultural QOOdS SUCH AS [12] occu Were transported\nby merchant ships to two main ports in Italy. The ships were pulled to the shore by\n[13] cession \u002B When the weather was clear and they could see islands\nor land, sailors used landmarks that they knew to help them navigate their route."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "triangular"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "completion",
+              "prompt": "Question 11",
+              "group": {
+                "id": "r-summary-6-13",
+                "instruction": "Complete the summary below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 6-13 on your answer sheet.",
+                "title": "Warships and merchant ships",
+                "text": "Warships were designed so that they Were [6] ou... ANd moved\nquickly. They often remained afloat after battles and were able to sail close to land as\nthey lacked any additional weight. A battering ram Made OF [7] occccscsssssscssssssssssssenestnstene\nwas included in the design for attacking and damaging the timber and oars of\nenemy ships. Warships, such as the \u2018trireme\u2019, had rowers on three different\n[8] Unlike warships, merchant ships had a broad Q .....scessscsecseeeennununen that lay far\nbelow the surface of the sea. Merchant ships were steered through the water with\nthe help of large rudders and a tiller bar. They had both square and [10] ............\nsails. On merchant ships and wWarShiDS, [11] ou... Was used to\nensure rowers moved their oars in and out of the water at the same time.\nQuantities of agricultural QOOdS SUCH AS [12] occu Were transported\nby merchant ships to two main ports in Italy. The ships were pulled to the shore by\n[13] cession \u002B When the weather was clear and they could see islands\nor land, sailors used landmarks that they knew to help them navigate their route."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "music"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "completion",
+              "prompt": "Question 12",
+              "group": {
+                "id": "r-summary-6-13",
+                "instruction": "Complete the summary below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 6-13 on your answer sheet.",
+                "title": "Warships and merchant ships",
+                "text": "Warships were designed so that they Were [6] ou... ANd moved\nquickly. They often remained afloat after battles and were able to sail close to land as\nthey lacked any additional weight. A battering ram Made OF [7] occccscsssssscssssssssssssenestnstene\nwas included in the design for attacking and damaging the timber and oars of\nenemy ships. Warships, such as the \u2018trireme\u2019, had rowers on three different\n[8] Unlike warships, merchant ships had a broad Q .....scessscsecseeeennununen that lay far\nbelow the surface of the sea. Merchant ships were steered through the water with\nthe help of large rudders and a tiller bar. They had both square and [10] ............\nsails. On merchant ships and wWarShiDS, [11] ou... Was used to\nensure rowers moved their oars in and out of the water at the same time.\nQuantities of agricultural QOOdS SUCH AS [12] occu Were transported\nby merchant ships to two main ports in Italy. The ships were pulled to the shore by\n[13] cession \u002B When the weather was clear and they could see islands\nor land, sailors used landmarks that they knew to help them navigate their route."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "grain"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "completion",
+              "prompt": "Question 13",
+              "group": {
+                "id": "r-summary-6-13",
+                "instruction": "Complete the summary below.\n\nChoose ONE WORD ONLY from the passage for each answer.\n\nWrite your answers in boxes 6-13 on your answer sheet.",
+                "title": "Warships and merchant ships",
+                "text": "Warships were designed so that they Were [6] ou... ANd moved\nquickly. They often remained afloat after battles and were able to sail close to land as\nthey lacked any additional weight. A battering ram Made OF [7] occccscsssssscssssssssssssenestnstene\nwas included in the design for attacking and damaging the timber and oars of\nenemy ships. Warships, such as the \u2018trireme\u2019, had rowers on three different\n[8] Unlike warships, merchant ships had a broad Q .....scessscsecseeeennununen that lay far\nbelow the surface of the sea. Merchant ships were steered through the water with\nthe help of large rudders and a tiller bar. They had both square and [10] ............\nsails. On merchant ships and wWarShiDS, [11] ou... Was used to\nensure rowers moved their oars in and out of the water at the same time.\nQuantities of agricultural QOOdS SUCH AS [12] occu Were transported\nby merchant ships to two main ports in Italy. The ships were pulled to the shore by\n[13] cession \u002B When the weather was clear and they could see islands\nor land, sailors used landmarks that they knew to help them navigate their route."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "towboats"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Climate change reveals ancient artefacts in Norway\u2019s glaciers",
+          "body": "Climate change reveals ancient artefacts in Norway\u2019s glaciers\n\nA Well above the treeline in Norway\u2019s highest mountains, ancient fields of ice are shrinking\nas Earth\u2019s climate warms. As the ice has vanished, it has been giving up the treasures it has\npreserved in cold storage for the last 6,000 years \u2014 items such as ancient arrows and skis\nfrom Viking Age* traders. And those artefacts have provided archaeologists with some\nsurprising insights into how ancient Norwegians made their livings.\n\nB Organic materials like textiles and hides are relatively rare finds at archaeological sites.\nThis is because unless they\u2019re protected from the microorganisms that cause decay, they\ntend not to last long. Extreme cold is one reliable way to keep artefacts relatively fresh\nfor a few thousand years, but once thawed out, these materials experience degradation\nrelatively swiftly.\n\nWith climate change shrinking ice cover around the world, glacial archaeologists need to\nrace the clock to find newly revealed artefacts, preserve them, and study them. If something\nfragile dries and is windblown it might very soon be lost to science, or an arrow might\n\nbe exposed and then covered again by the next snow and remain well-preserved. The\nunpredictability means that glacial archaeologists have to be systematic in their approach\n\nto fieldwork.\n\nC Over a nine-year period, a team of archaeologists, which included Lars Pilo of Oppland\nCounty Council, Norway, and James Barrett of the McDonald Institute for Archaeological\nResearch, surveyed patches of ice in Oppland, an area of south-central Norway that is home\nto some of the country\u2019s highest mountains. Reindeer once congregated on these icy patches\nin the later summer months to escape biting insects, and from the late Stone Age**, hunters\nfollowed. In addition, trade routes threaded through the mountain passes of Oppland, linking\nsettlements in Norway to the rest of Europe.\n\nThe slow but steady movement of glaciers tends to destroy anything at their bases, so the\nteam focused on stationary patches of ice, mostly above 1,400 metres. That ice is found\namid fields of frost-weathered boulders, fallen rocks, and exposed bedrock that for nine\nmonths of the year is buried beneath snow.\n\n\u2018Fieldwork is hard work \u2014 hiking with all our equipment, often camping on permafrost \u2014\nbut very rewarding. You\u2019re rescuing the archaeology, bringing the melting ice to wider\nattention, discovering a unique environmental history and really connecting with the natural\nenvironment,\u2019 says Barrett.\n\nD_ At the edges of the contracting ice patches, archaeologists found more than 2,000\nartefacts, which formed a material record that ran from 4,000 BCE to the beginnings of the\nRenaissance in the 14th century. Many of the artefacts are associated with hunting. Hunters\nwould have easily misplaced arrows and they often discarded broken bows rather than take\nthem all the way home. Other items could have been used by hunters traversing the high\nmountain passes of Oppland: all-purpose items like tools, skis, and horse tack.\n\nE _ Barrett\u2019s team radiocarbon-dated 153 of the artefacts and compared those dates to the timing\nof major environmental changes in the region \u2014 such as periods of cooling or warming \u2014 and\nmajor social and economic shifts \u2014 such as the growth of farming settlements and the spread\nof international trade networks leading up to the Viking Age. They found that some periods\nhad produced lots of artefacts, which indicates that people had been pretty active in the\nmountains during those times. But there were few or no signs of activity during other periods.\n\nF What was surprising, according to Barrett, was the timing of these periods. Oppland\u2019s\nmountains present daunting terrain and in periods of extreme cold, glaciers could block the\nhigher mountain passes and make travel in the upper reaches of the mountains extremely\ndifficult. Archaeologists assumed people would stick to lower elevations during a time\nlike the Late Antique Little Ice Age, a short period of deeper-than-usual cold from about\n536-600 CE. But it turned out that hunters kept regularly venturing into the mountains\neven when the climate turned cold, based on the amount of stuff they had apparently\ndropped there.\n\n\u2018Remarkably, though, the finds from the ice may have continued through this period,\nperhaps suggesting that the importance of mountain hunting increased to supplement\nfailing agricultural harvests in times of low temperatures,\u2019 says Barrett. A colder turn in the\nScandinavian climate would likely have meant widespread crop failures, so more people\nwould have depended on hunting to make up for those losses.\n\nG Many of the artefacts Barrett\u2019s team recovered date from the beginning of the Viking Age,\nthe 700s through to the 900s CE. Trade networks connecting Scandinavia with Europe and\nthe Middle East were expanding around this time. Although we usually think of ships when\nwe think of Scandinavian expansion, these recent discoveries show that plenty of goods\ntravelled on overland routes, like the mountain passes of Oppland. And growing Norwegian\ntowns, along with export markets, would have created a booming demand for hides to fight\noff the cold, as well as antlers to make useful things like combs. Business must have been\ngood for hunters.\n\nH \u2014 Norway\u2019s mountains are probably still hiding a lot of history \u2014 and prehistory \u2014 in remote\nice patches. When Barrett\u2019s team looked at the dates for their sample of 153 artefacts,\nthey noticed a gap with almost no artefacts from about 3,800 to 2,200 BCE. In fact,\narchaeological finds from that period are rare all over Norway. The researchers say that\ncould be because many of those artefacts have already disintegrated or are still frozen in the\n\nice. That means archaeologists could be extracting some of those artefacts from retreating\nice in years to come.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "an explanation for weapons being left behind in the mountains",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-19",
+                "instruction": "Reading Passage 2 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 14-19 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "areference to the physical difficulties involved in an archaeological expedition",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-19",
+                "instruction": "Reading Passage 2 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 14-19 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "an explanation of why less food may have been available",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-19",
+                "instruction": "Reading Passage 2 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 14-19 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "areference to the possibility of future archaeological discoveries",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-19",
+                "instruction": "Reading Passage 2 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 14-19 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "examples of items that would have been traded",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-19",
+                "instruction": "Reading Passage 2 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 14-19 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "areference to the pressure archaeologists are under to work quickly",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-19",
+                "instruction": "Reading Passage 2 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 14-19 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "completion",
+              "prompt": "Question 20",
+              "group": {
+                "id": "r-summary-20-22",
+                "instruction": "Complete the summary below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 20-22 on your answer sheet.",
+                "title": "Interesting finds at an archaeological site",
+                "text": "Organic materials such as animal skins and textiles are not discovered very often at\narchaeological sites. They have little protection AgaiNst [20] un ecesesssesemseeenennenneenene 9\nwhich means that they decay relatively quickly. But this is not always the case.\nIf temperatures are low enough, fragile artefacts can be preserved for thousands\nof years.\nA team of archaeologists have been working in the mountains in Oppland in Norway\nto recover artefacts revealed by shrinking ice cover. In the past, there were trade\nroutes through these MOUNTAINS AN [21] ..... essen Gathered there in\nthe summer months to avoid being attacked by [22] Qu... cesses ON LOWEr\nground. The people who used these mountains left things behind and it is those\nobjects that are of interest to archaeologists."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "= microorganisms",
+                  "micro-organisms"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "Question 21",
+              "group": {
+                "id": "r-summary-20-22",
+                "instruction": "Complete the summary below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 20-22 on your answer sheet.",
+                "title": "Interesting finds at an archaeological site",
+                "text": "Organic materials such as animal skins and textiles are not discovered very often at\narchaeological sites. They have little protection AgaiNst [20] un ecesesssesemseeenennenneenene 9\nwhich means that they decay relatively quickly. But this is not always the case.\nIf temperatures are low enough, fragile artefacts can be preserved for thousands\nof years.\nA team of archaeologists have been working in the mountains in Oppland in Norway\nto recover artefacts revealed by shrinking ice cover. In the past, there were trade\nroutes through these MOUNTAINS AN [21] ..... essen Gathered there in\nthe summer months to avoid being attacked by [22] Qu... cesses ON LOWEr\nground. The people who used these mountains left things behind and it is those\nobjects that are of interest to archaeologists."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "reindeer"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "Question 22",
+              "group": {
+                "id": "r-summary-20-22",
+                "instruction": "Complete the summary below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 20-22 on your answer sheet.",
+                "title": "Interesting finds at an archaeological site",
+                "text": "Organic materials such as animal skins and textiles are not discovered very often at\narchaeological sites. They have little protection AgaiNst [20] un ecesesssesemseeenennenneenene 9\nwhich means that they decay relatively quickly. But this is not always the case.\nIf temperatures are low enough, fragile artefacts can be preserved for thousands\nof years.\nA team of archaeologists have been working in the mountains in Oppland in Norway\nto recover artefacts revealed by shrinking ice cover. In the past, there were trade\nroutes through these MOUNTAINS AN [21] ..... essen Gathered there in\nthe summer months to avoid being attacked by [22] Qu... cesses ON LOWEr\nground. The people who used these mountains left things behind and it is those\nobjects that are of interest to archaeologists."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "insects"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "multiple-select",
+              "prompt": "Which TWO of the following statements does the writer make about the discoveries of\nBarrett\u2019s team?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Artefacts found in the higher mountain passes were limited to\nskiing equipment."
+                },
+                {
+                  "key": "B",
+                  "text": "Hunters went into the mountains even during periods of extreme cold."
+                },
+                {
+                  "key": "C",
+                  "text": "The number of artefacts from certain time periods was relatively low."
+                },
+                {
+                  "key": "D",
+                  "text": "Radiocarbon dating of artefacts produced some unreliable results."
+                },
+                {
+                  "key": "E",
+                  "text": "More artefacts were found in Oppland than at any other mountain site."
+                }
+              ],
+              "marks": 2,
+              "group": {
+                "id": "r-mc-23-24",
+                "instruction": "Choose TWO letters, A-E.\nWrite the correct letters in boxes 23 and 24 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "C"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "multiple-select",
+              "prompt": "Which TWO of the following statements does the writer make about the Viking Age?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Hunters at this time benefited from an increased demand for goods."
+                },
+                {
+                  "key": "B",
+                  "text": "The beginning of the period saw the greatest growth in the wealth of Vikings."
+                },
+                {
+                  "key": "C",
+                  "text": "Vikings did not rely on ships alone to transport goods."
+                },
+                {
+                  "key": "D",
+                  "text": "Norwegian towns at this time attracted traders from around the world."
+                },
+                {
+                  "key": "E",
+                  "text": "Vikings were primarily interested in their trading links with the Middle East."
+                }
+              ],
+              "marks": 2,
+              "group": {
+                "id": "r-mc-25-26",
+                "instruction": "Choose TWO letters, A-E.\nWrite the correct letters in boxes 25 and 26 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "C"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "Plant \u2018thermometer\u2019 triggers springtime growth by\nmeasuring night-time heat",
+          "body": "Plant \u2018thermometer\u2019 triggers springtime growth by\nmeasuring night-time heat\n\nA photoreceptor molecule in plant cells has been found to have a second job\nas a thermometer after dark \u2014 allowing plants to read seasonal temperature\nchanges. Scientists say the discovery could help breed crops that are more\nresilient to the temperatures expected to result from climate change\n\nA An international team of scientists led by the University of Cambridge has\ndiscovered that the \u2018thermometer\u2019 molecule in plants enables them to develop\naccording to seasonal temperature changes. Researchers have revealed that\nmolecules called phytochromes \u2014 used by plants to detect light during the day \u2014\nactually change their function in darkness to become cellular temperature gauges\nthat measure the heat of the night.\nThe new findings, published in the journal Science, show that phytochromes control\ngenetic switches in response to temperature as well as light to dictate plant development.\n\nB_ Atnight, these molecules change states, and the pace at which they change is\n\u2018directly proportional to temperature\u2019, say scientists, who compare phytochromes\nto mercury in a thermometer. The warmer it is, the faster the molecular change \u2014\nstimulating plant growth.\n\nC Farmers and gardeners have known for hundreds of years how responsive plants are\nto temperature: warm winters cause many trees and flowers to bud early, something\nhumans have long used to predict weather and harvest times for the coming year. The\nlatest research pinpoints for the first time a molecular mechanism in plants that reacts\nto temperature \u2014 often triggering the buds of spring we long to see at the end of winter.\n\nD With weather and temperatures set to become ever more unpredictable due to\nclimate change, researchers say the discovery that this light-sensing molecule also\nfunctions as the internal thermometer in plant cells could help us breed tougher\ncrops. \u2018It is estimated that agricultural yields will need to double by 2050, but\nclimate change is a major threat to achieving this. Key crops such as wheat and rice\nare sensitive to high temperatures. Thermal stress reduces crop yields by around\n10% for every one degree increase in temperature,\u2019 says lead researcher Dr Philip\nWigge from Cambridge\u2019s Sainsbury Laboratory. \u2018Discovering the molecules that\nallow plants to sense temperature has the potential to accelerate the breeding of\ncrops resilient to thermal stress and climate change.\u2019\n\nE In their active state, phytochrome molecules bind themselves to DNA to restrict\nplant growth. During the day, sunlight activates the molecules, slowing down\ngrowth. Ifa plant finds itself in shade, phytochromes are quickly inactivated \u2014\nenabling it to grow faster to find sunlight again. This is how plants compete to\nescape each other\u2019s shade. \u2018Light-driven changes to phytochrome activity occur very\nfast, in less than a second, says Wigge.\n\nAt night, however, it\u2019s a different story. Instead of a rapid deactivation following\nsundown, the molecules gradually change from their active to inactive state. This is\ncalled \u2018dark reversion\u2019. \u2018Just as mercury rises in a thermometer, the rate at which\nphytochromes revert to their inactive state during the night is a direct measure of\ntemperature,\u2019 says Wigge.\n\nF \u2018The lower the temperature, the slower the rate at which phytochromes revert to\ninactivity, so the molecules spend more time in their active, growth-suppressing\nstate. This is why plants are slower to grow in winter. Warm temperatures accelerate\ndark reversion, so that phytochromes rapidly reach an inactive state and detach\nthemselves from the plant\u2019s DNA \u2014 allowing genes to be expressed and plant growth\nto resume.\u2019 Wigge believes phytochrome thermo-sensing evolved at a later stage,\nand co-opted the biological network already used for light-based growth during the\ndowntime of night.\n\nG Some plants mainly use day length as an indicator of the season. Other species, such\nas daffodils, have considerable temperature sensitivity, and can flower months in\nadvance during a warm winter. In fact, the discovery of the dual role of phytochromes\nprovides the science behind a well-known rhyme long used to predict the coming\nseason: oak before ash we\u2019ll have a splash, ash before oak we\u2019re in for a soak.\n\nWigge explains: \u2018Oak trees rely much more on temperature, likely using\nphytochromes as thermometers to dictate development, whereas ash trees rely on\nmeasuring day length to determine their seasonal timing. A warmer spring, and\nconsequently a higher likeliness of a hot summer, will result in oak leafing before\nash. A cold spring will see the opposite. As the British know only too well, a colder\nsummer is likely to be a rain-soaked one.\u2019\n\nH__ The new findings are the culmination of twelve years of research involving scientists\nfrom Germany, Argentina and the US, as well as the Cambridge team. The work was\ndone in a model system, using a mustard plant called Arabidopsis, but Wigge says\nthe phytochrome genes necessary for temperature sensing are found in crop plants as\nwell. \u2018Recent advances in plant genetics now mean that scientists are able to rapidly\nidentify the genes controlling these processes in crop plants, and even alter their\nactivity using precise molecular \u201Cscalpels\u201D,\u2019 adds Wigge. \u2018Cambridge is uniquely\nwell-positioned to do this kind of research as we have outstanding collaborators\nnearby who work on more applied aspects of plant biology, and can help us transfer\nthis new knowledge into the field.\u2019",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "true-false-notgiven",
+              "prompt": "The Cambridge scientists\u2019 discovery of the \u2018thermometer molecule\u2019 caused surprise\namong other scientists.",
+              "group": {
+                "id": "r-tfng-27-32",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-32 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "true-false-notgiven",
+              "prompt": "The target for agricultural production by 2050 could be missed.",
+              "group": {
+                "id": "r-tfng-27-32",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-32 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "true-false-notgiven",
+              "prompt": "Wheat and rice suffer from a rise in temperatures.",
+              "group": {
+                "id": "r-tfng-27-32",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-32 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "true-false-notgiven",
+              "prompt": "It may be possible to develop crops that require less water.",
+              "group": {
+                "id": "r-tfng-27-32",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-32 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "true-false-notgiven",
+              "prompt": "Plants grow faster in sunlight than in shade.",
+              "group": {
+                "id": "r-tfng-27-32",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-32 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "true-false-notgiven",
+              "prompt": "Phytochromes change their state at the same speed day and night.",
+              "group": {
+                "id": "r-tfng-27-32",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 3?\nIn boxes 27-32 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "matching",
+              "prompt": "mention of specialists who can make use of the research findings",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-33-37",
+                "instruction": "Reading Passage 3 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 33-37 on your answer sheet."
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "matching",
+              "prompt": "areference to a potential benefit of the research findings",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-33-37",
+                "instruction": "Reading Passage 3 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 33-37 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "matching",
+              "prompt": "scientific support for a traditional saying",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-33-37",
+                "instruction": "Reading Passage 3 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 33-37 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "matching",
+              "prompt": "areference to people traditionally making plans based on plant behaviour",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-33-37",
+                "instruction": "Reading Passage 3 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 33-37 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "matching",
+              "prompt": "areference to where the research has been reported",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "r-para-33-37",
+                "instruction": "Reading Passage 3 has eight sections, A-H.\nWhich section contains the following information?\nWrite the correct letter, A-H, in boxes 33-37 on your answer sheet."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "r-sent-38-40",
+                "instruction": "Complete the sentences below.\nChoose NO MORE THAN TWO WORDS from the passage for each answer.\nWrite your answers in boxes 38-40 on your answer sheet.",
+                "text": "[38] Daffodils are likely to flower early in FESPONSE tO o..ecccsostsnttsnitinntunene Weather,\n[39] If ash trees come into leaf before oak trees, the Weather iN oceccssssusssueusussisnee\nwill probably be wet.\n[40] The research was carried out using a particular SPECIES OF ccccscscsssnssstitusitititieieee \u00AB"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "warm (winter)"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "r-sent-38-40",
+                "instruction": "Complete the sentences below.\nChoose NO MORE THAN TWO WORDS from the passage for each answer.\nWrite your answers in boxes 38-40 on your answer sheet.",
+                "text": "[38] Daffodils are likely to flower early in FESPONSE tO o..ecccsostsnttsnitinntunene Weather,\n[39] If ash trees come into leaf before oak trees, the Weather iN oceccssssusssueusussisnee\nwill probably be wet.\n[40] The research was carried out using a particular SPECIES OF ccccscscsssnssstitusitititieieee \u00AB"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "summer"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "r-sent-38-40",
+                "instruction": "Complete the sentences below.\nChoose NO MORE THAN TWO WORDS from the passage for each answer.\nWrite your answers in boxes 38-40 on your answer sheet.",
+                "text": "[38] Daffodils are likely to flower early in FESPONSE tO o..ecccsostsnttsnitinntunene Weather,\n[39] If ash trees come into leaf before oak trees, the Weather iN oceccssssusssueusussisnee\nwill probably be wet.\n[40] The research was carried out using a particular SPECIES OF ccccscscsssnssstitusitititieieee \u00AB"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "mustard plant(s)",
+                  "mustard"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

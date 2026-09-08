@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  buildPracticeHierarchy,
-  findCategory,
-  findSet,
-  locateTest,
-} from './practiceHierarchy.js';
+import { buildPracticeHierarchy, findCategory, findSet, locateTest } from './practiceHierarchy.js';
 import type { ExamCatalogueItem } from '../examApi.js';
 
 function item(examVersionId: string, title: string): ExamCatalogueItem {

@@ -4,6 +4,29 @@ using Vni.Ielts.Domain.Identity;
 
 namespace Vni.Ielts.Application.Identity;
 
+/// <summary>
+/// Shared by the two profile mutators: whether this account has a social
+/// identity to fall back on.
+///
+/// <para>
+/// The entity enforces "an account must keep a way in" but cannot see the
+/// identity table, and must not reach for it — CLAUDE.md rule 7, enforced by
+/// the architecture tests. So the use case reads the one fact and passes it in.
+/// </para>
+/// </summary>
+internal static class SignInMethods
+{
+    public static async Task<bool> HasLinkedProviderAsync(
+        IUserIdentityRepository identities, UserId userId, CancellationToken ct) =>
+        (await identities.ListForUserAsync(userId, ct))
+            .Any(i => i.Provider is not IdentityProvider.Password);
+
+    public static readonly Error Required = Error.Conflict(
+        ErrorCodes.SignInMethodRequired,
+        "Your account needs at least one way to sign in. Add a phone number or an email "
+        + "address before removing this one.");
+}
+
 public sealed record SetPhoneCommand(UserId UserId, string? Phone);
 
 /// <summary>
@@ -13,20 +36,33 @@ public sealed record SetPhoneCommand(UserId UserId, string? Phone);
 /// <b>Nothing is verified, and nothing pretends to be.</b> There is no OTP
 /// here because whether a number must be proven has not been decided — and
 /// inventing a verification flow would be inventing the policy behind it.
-/// An empty value clears the number, which is the only way back out for
-/// someone who typed the wrong one.
+/// </para>
+///
+/// <para>
+/// <b>It is unique, though.</b> The number is a sign-in handle now, so two
+/// accounts sharing one would make "sign in with your phone number" ambiguous.
+/// An empty value still clears it — but only while the account keeps another
+/// way in.
 /// </para>
 /// </summary>
-public sealed class SetPhone(IUserRepository users)
+public sealed class SetPhone(IUserRepository users, IUserIdentityRepository identities)
 {
     public async Task<Result<string?>> HandleAsync(SetPhoneCommand command, CancellationToken ct)
     {
         var user = await users.FindByIdAsync(command.UserId, ct);
         if (user is null) return Error.NotFound(ErrorCodes.NotFound, "Account not found.");
 
+        // Read once and pass the real answer down. The entity refuses to leave
+        // the account with no way in and cannot see the identity table itself;
+        // handing it a hard-coded `true` would satisfy the compiler and quietly
+        // disable the guard.
+        var hasLinked = await SignInMethods.HasLinkedProviderAsync(identities, user.Id, ct);
+
         if (string.IsNullOrWhiteSpace(command.Phone))
         {
-            user.SetPhone(null);
+            if (user.Email is null && !hasLinked) return SignInMethods.Required;
+
+            user.SetPhone(null, hasLinked);
             await users.SaveAsync(user, ct);
             return (string?)null;
         }
@@ -37,69 +73,91 @@ public sealed class SetPhone(IUserRepository users)
                 ErrorCodes.PhoneInvalid, "That does not look like a phone number.");
         }
 
-        user.SetPhone(phone);
-        await users.SaveAsync(user, ct);
+        if (user.Phone == phone)
+            return phone.Value;
+
+        if (await users.PhoneExistsAsync(phone, ct))
+        {
+            return Error.Conflict(
+                ErrorCodes.PhoneAlreadyRegistered, "That phone number is already registered.");
+        }
+
+        user.SetPhone(phone, hasLinked);
+
+        try
+        {
+            await users.SaveAsync(user, ct);
+        }
+        catch (DuplicatePhoneException)
+        {
+            // Lost the race against another account claiming the number. The
+            // unique index is what enforces it; the check above is a courtesy
+            // that produces a clean message.
+            return Error.Conflict(
+                ErrorCodes.PhoneAlreadyRegistered, "That phone number is already registered.");
+        }
 
         return phone.Value;
     }
 }
 
-public sealed record ChangeEmailCommand(UserId UserId, string Email);
+public sealed record ChangeEmailCommand(UserId UserId, string? Email);
+
+/// <summary>The address as stored, or null once it has been removed.</summary>
+public sealed record ChangeEmailResult(string? Email);
 
 /// <summary>
-/// The address as stored, and what became of the verification message sent to
-/// it. The second half is not decoration: the screen that shows the new
-/// address is the same screen that would otherwise claim a mail is on its way.
-/// </summary>
-public sealed record ChangeEmailResult(string Email, MessageDelivery VerificationMessage);
-
-/// <summary>
-/// Corrects an address that has not been verified yet.
+/// Sets, changes or removes the account's address.
 ///
 /// <para>
-/// <b>Only while it is unverified.</b> Someone who typed `gmial.com` has no
-/// other way out — the link that would fix it goes to the address that is
-/// wrong. Once the address is proven it becomes the account's route back in,
-/// and letting a stolen session move it to another mailbox would hand the
-/// account over permanently.
+/// <b>The address moves the account, and that is the point.</b>
+/// `[QUYẾT ĐỊNH]` chủ sản phẩm, 08/09/2026: <i>"user đổi email thành
+/// nguyendoanthang16@gmail.com → thì dữ liệu của ngdthang.dev@gmail.com sẽ được
+/// chuyển thành của nguyendoanthang16@gmail.com và bây giờ nếu login bằng
+/// ngdthang.dev@gmail.com sẽ là 1 tài khoản mới"</i>. Nothing is copied and
+/// nothing is migrated: the account keeps its id, its sittings and its ledger,
+/// and simply answers to a different address. The old one becomes unclaimed.
+/// → ADR-0018
 /// </para>
 ///
 /// <para>
-/// <b>It writes the address in two places, and both are required.</b> The
-/// email identity is keyed by the address itself — that is what password
-/// sign-in looks up — so updating only <c>User.Email</c> leaves an account
-/// that displays the new address and cannot be signed in to at either one.
+/// <b>There is no verified lock any more.</b> The address used to freeze once
+/// proven, because it was the account's route back in. Verification is gone and
+/// the owner asked for the opposite behaviour, so the lock went with it — the
+/// consequences for a stolen session are recorded in the threat model rather
+/// than papered over here.
+/// </para>
+///
+/// <para>
+/// <b>It writes one place now.</b> The password row is keyed by account id, so
+/// unlike before there is no second copy of the address to keep in step.
 /// </para>
 /// </summary>
-public sealed class ChangeEmail(
-    IUserRepository users,
-    IUserIdentityRepository identities,
-    IEmailVerificationTokens tokens,
-    IVerificationMessageSender sender)
+public sealed class ChangeEmail(IUserRepository users, IUserIdentityRepository identities)
 {
     public async Task<Result<ChangeEmailResult>> HandleAsync(
         ChangeEmailCommand command, CancellationToken ct)
     {
-        if (!Email.TryCreate(command.Email, out var email))
-            return Error.Validation(ErrorCodes.EmailInvalid, "That is not a valid email address.");
-
         var user = await users.FindByIdAsync(command.UserId, ct);
         if (user is null) return Error.NotFound(ErrorCodes.NotFound, "Account not found.");
 
-        if (user.EmailVerified)
+        // See SetPhone: read the real answer rather than asserting one.
+        var hasLinked = await SignInMethods.HasLinkedProviderAsync(identities, user.Id, ct);
+
+        if (string.IsNullOrWhiteSpace(command.Email))
         {
-            return Error.Conflict(
-                ErrorCodes.EmailLocked,
-                "This address has been verified and can no longer be changed.");
+            if (user.Phone is null && !hasLinked) return SignInMethods.Required;
+
+            user.ChangeEmail(null, hasLinked);
+            await users.SaveAsync(user, ct);
+            return new ChangeEmailResult(null);
         }
 
+        if (!Email.TryCreate(command.Email, out var email))
+            return Error.Validation(ErrorCodes.EmailInvalid, "That is not a valid email address.");
+
         if (user.Email == email)
-        {
-            // Not an error, and not worth a second verification mail either —
-            // so nothing was sent, and the result says so rather than letting
-            // the screen infer one from a success.
-            return new ChangeEmailResult(email.Value, MessageDelivery.NotSent);
-        }
+            return new ChangeEmailResult(email.Value);
 
         if (await users.EmailExistsAsync(email, ct))
         {
@@ -107,10 +165,7 @@ public sealed class ChangeEmail(
                 ErrorCodes.EmailAlreadyRegistered, "That email address is already registered.");
         }
 
-        var emailIdentity = (await identities.ListForUserAsync(user.Id, ct))
-            .FirstOrDefault(i => i.Provider == IdentityProvider.Email);
-
-        user.ChangeEmail(email);
+        user.ChangeEmail(email, hasLinked);
 
         try
         {
@@ -125,132 +180,6 @@ public sealed class ChangeEmail(
                 ErrorCodes.EmailAlreadyRegistered, "That email address is already registered.");
         }
 
-        if (emailIdentity is not null)
-        {
-            emailIdentity.ChangeEmailAddress(email);
-            await identities.SaveAsync(emailIdentity, ct);
-        }
-
-        // Straight to the new address — the whole point of the change is that
-        // the old one could not receive anything.
-        var delivery = await sender.SendAsync(email, await tokens.IssueCodeAsync(user.Id, ct), ct);
-
-        return new ChangeEmailResult(email.Value, delivery);
-    }
-}
-
-public sealed record ResendVerificationCommand(UserId UserId);
-
-/// <summary>What the resend actually did.</summary>
-/// <param name="AlreadyVerified">
-/// True when there was nothing to send because the address is already proven.
-/// A success, not a failure.
-/// </param>
-/// <param name="VerificationMessage">
-/// What became of the message. The button that triggered this is the one place
-/// a learner is told an email is coming, so it is the one place a wrong answer
-/// here is visible as a lie.
-/// </param>
-public sealed record ResendVerificationResult(
-    bool AlreadyVerified, MessageDelivery VerificationMessage);
-
-/// <summary>
-/// Sends the verification email again.
-///
-/// <para>
-/// Exists because the first one is easy to miss and there was no way to ask
-/// for another — an account could sit unverified forever with the profile
-/// showing "chưa xác minh" and offering nothing to do about it.
-/// </para>
-///
-/// <para>
-/// <b>Already-verified is a success, not an error.</b> Someone who presses it
-/// twice, or who verified in another tab, has nothing to fix; reporting a
-/// failure would send them looking for a problem that does not exist. No
-/// second mail goes out either.
-/// </para>
-/// </summary>
-public sealed class ResendVerification(
-    IUserRepository users,
-    IEmailVerificationTokens tokens,
-    IVerificationMessageSender sender)
-{
-    public async Task<Result<ResendVerificationResult>> HandleAsync(
-        ResendVerificationCommand command, CancellationToken ct)
-    {
-        var user = await users.FindByIdAsync(command.UserId, ct);
-        if (user is null) return Error.NotFound(ErrorCodes.NotFound, "Account not found.");
-
-        if (!user.CanAuthenticate)
-            return Error.Forbidden(ErrorCodes.AccountSuspended, "This account has been suspended.");
-
-        if (user.EmailVerified)
-            return new ResendVerificationResult(AlreadyVerified: true, MessageDelivery.NotSent);
-
-        var delivery = await sender.SendAsync(user.Email, await tokens.IssueCodeAsync(user.Id, ct), ct);
-        return new ResendVerificationResult(AlreadyVerified: false, delivery);
-    }
-}
-
-public sealed record ConfirmEmailCodeCommand(UserId UserId, string Code);
-
-/// <summary>
-/// Turns a six-digit code into a verified address.
-///
-/// <b>`[QUYẾT ĐỊNH]` chủ sản phẩm, 28/08/2026: xác minh bằng mã 6 số.</b> The
-/// learner is already signed in and already on their profile page — the owner's
-/// own decision of 27/08 put verification there — so a link would open in
-/// whatever browser the mail app chose, usually an in-app webview with no
-/// session, and verify an account in a window the learner never sees again.
-///
-/// <b>Authenticated, and that is what makes six digits safe.</b> The account is
-/// known from the token rather than found from the code, so the attempt cap is
-/// per account and nobody can spray a guess across every account at once. Five
-/// wrong answers kills the code.
-/// → <see cref="IEmailVerificationTokens.RedeemCodeAsync"/>
-/// </summary>
-public sealed class ConfirmEmailCode(
-    IUserRepository users,
-    IEmailVerificationTokens tokens,
-    Usage.UsageRecorder? usage = null)
-{
-    public async Task<Result<CodeRedemption>> HandleAsync(
-        ConfirmEmailCodeCommand command, CancellationToken ct)
-    {
-        var user = await users.FindByIdAsync(command.UserId, ct);
-        if (user is null) return Error.NotFound(ErrorCodes.NotFound, "Account not found.");
-
-        if (!user.CanAuthenticate)
-            return Error.Forbidden(ErrorCodes.AccountSuspended, "This account has been suspended.");
-
-        /*
-         * <b>Already verified is a success, not an error.</b> Somebody pressing
-         * the button twice, or opening the page on a second device, has nothing
-         * to fix — and an error would send them looking for a problem that is
-         * not there.
-         */
-        if (user.EmailVerified) return CodeRedemption.Verified;
-
-        /*
-         * <b>The shape is checked before the store is asked.</b> Not for
-         * safety — the store compares a hash and would refuse anything wrong —
-         * but so that a stray space or a pasted line does not spend one of the
-         * five attempts that make this mechanism work.
-         */
-        var code = command.Code?.Trim() ?? string.Empty;
-
-        if (code.Length != 6 || !code.All(char.IsAsciiDigit))
-            return CodeRedemption.Incorrect;
-
-        var outcome = await tokens.RedeemCodeAsync(command.UserId, code, ct);
-
-        if (outcome is not CodeRedemption.Verified) return outcome;
-
-        user.MarkEmailVerified();
-        await users.SaveAsync(user, ct);
-
-        if (usage is not null) await usage.EmailVerifiedAsync(user, ct);
-
-        return CodeRedemption.Verified;
+        return new ChangeEmailResult(email.Value);
     }
 }

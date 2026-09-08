@@ -11,29 +11,46 @@ import { useAdminAuth } from '../lib/AdminAuth.js';
  * happens next: an account with no CMS permission is signed in and shown 1.2,
  * not refused at the form.
  *
- * <b>The refusal message does not say which half was wrong.</b> "Email hoặc
- * mật khẩu không đúng" for both cases: distinguishing them turns the form into
- * a way to test whether an address has an account here.
+ * <b>One field, and the server decides what was typed.</b> Since 08/09/2026 an
+ * account is reached by phone number or by email address, so the field takes
+ * either and sends it as `identifier`. It used to be `type="email" required`
+ * on a form with no `noValidate`, which meant the browser refused to submit a
+ * phone number at all — no request, no error text, just a native bubble in the
+ * browser's language saying the value was not an address. An operator whose
+ * account has a phone and no email could not sign in, and nothing in the page
+ * said why. `type="text"` plus `noValidate` is how `apps/web` handles the same
+ * field, and the emptiness check below is what replaces `required`: the app's
+ * own sentence, in the app's language, without a round trip.
+ *
+ * <b>The refusal message does not say which half was wrong.</b> "Số điện thoại
+ * hoặc mật khẩu không đúng" for both cases: distinguishing them turns the form
+ * into a way to test whether a number or an address has an account here.
  */
 export function SignInPage() {
   const { signIn } = useAdminAuth();
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+
+    if (identifier.trim() === '' || password === '') {
+      setError('Nhập số điện thoại (hoặc email) và mật khẩu.');
+      return;
+    }
+
     setBusy(true);
     setError(null);
 
     try {
-      await signIn(email, password);
+      await signIn(identifier.trim(), password);
     } catch (caught) {
       setError(
         caught instanceof ApiError
-          ? 'Email hoặc mật khẩu không đúng.'
+          ? 'Số điện thoại hoặc mật khẩu không đúng.'
           : 'Không kết nối được máy chủ.',
       );
       setBusy(false);
@@ -42,7 +59,7 @@ export function SignInPage() {
 
   return (
     <div className="cms-auth">
-      <form className="cms-auth-card" onSubmit={(e) => void submit(e)}>
+      <form className="cms-auth-card" onSubmit={(e) => void submit(e)} noValidate>
         <img src="/favicon-192.png" alt="" aria-hidden="true" />
         <h1>Quản trị VNI IELTS AI</h1>
         <p>Đăng nhập bằng tài khoản đã được cấp quyền quản trị.</p>
@@ -54,13 +71,12 @@ export function SignInPage() {
         )}
 
         <label className="cms-field">
-          <span>Email</span>
+          <span>Số điện thoại hoặc email</span>
           <input
-            type="email"
+            type="text"
             autoComplete="username"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
           />
         </label>
 
@@ -69,7 +85,6 @@ export function SignInPage() {
           <input
             type="password"
             autoComplete="current-password"
-            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

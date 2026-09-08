@@ -1,9 +1,18 @@
 # ADR-0013 — One email is one account: silent linking on a provider-verified address
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR-0018](0018-email-as-a-movable-account-label.md)
 - **Date:** 2026-08-21
+- **Superseded:** 2026-09-08
 - **Deciders:** Product owner (the linking policy) · solution architect (the safety condition)
 - **Related:** `M-1` in [`../requirements/assumptions-and-open-questions.md`](../requirements/assumptions-and-open-questions.md) · `T1` in [`../security/threat-model.md`](../security/threat-model.md) · `AU-2`/`AU-3`/`AU-6` in [`../requirements/confirmed.md`](../requirements/confirmed.md) · [ADR-0014](0014-backend-mediated-oidc-handoff-code.md)
+
+> **`[SUPERSEDED 2026-09-08]` — kept as the record of what was decided on 2026-08-21 and why.**
+> The owner removed the email address from registration on 08/09/2026, which removed the premise this
+> ADR rests on: an address is now optional, nullable, editable, and identifies only whichever account
+> currently holds it. Every rule below that depends on *verification* — the silent-link condition, and
+> especially the branch that clears the password of an account that never verified its address — is no
+> longer in the code. Do not implement anything from this file.
+> → [ADR-0018](0018-email-as-a-movable-account-label.md)
 
 ## Context
 

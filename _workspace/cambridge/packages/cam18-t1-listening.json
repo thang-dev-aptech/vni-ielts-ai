@@ -1,0 +1,1164 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 18 \u2014 Test 1",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Transport survey",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Postcode",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn\u0027t own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "6C"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Date of bus journey",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn\u0027t own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "24 (th) April"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Reason for trip: Shopping and visit to the",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn\u0027t own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "dentist"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Travelled by bus because cost of",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn\u0027t own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "parking"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Got on bus at",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn\u0027t own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Claxby"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Complaints about bus service: bus today was",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn\u0027t own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "late"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "frequency of buses in the",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn\u0027t own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "evening"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Goes to the",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn\u0027t own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "supermarket"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Dislikes travelling by bike in the city centre because of the",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn\u0027t own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "pollution"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Doesn\u0027t own a bike because of a lack of",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Transport survey",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Transport survey\nName: Sadie Jones\nYear of birth: 1991\nPostcode: [1]\nTravelling by bus\nDate of bus journey: [2]\nReason for trip: Shopping and visit to the [3]\nTravelled by bus because cost of [4] was too high\nGot on bus at [5] Street\nComplaints about bus service: bus today was [6]\n- frequency of buses in the [7]\nTravelling by car\n- Goes to the [8] by car\nTravelling by bicycle\n- Dislikes travelling by bike in the city centre because of the [9]\nDoesn\u0027t own a bike because of a lack of [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "storage"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Becoming a volunteer for ACE",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "Why does the speaker apologise about the seats?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They are too small."
+                },
+                {
+                  "key": "B",
+                  "text": "There are not enough of them."
+                },
+                {
+                  "key": "C",
+                  "text": "Some of them are very close together."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "What does the speaker say about the age of volunteers?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The age of volunteers is less important than other factors."
+                },
+                {
+                  "key": "B",
+                  "text": "Young volunteers are less reliable than older ones."
+                },
+                {
+                  "key": "C",
+                  "text": "Most volunteers are about 60 years old."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "What does the speaker say about training?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It is continuous."
+                },
+                {
+                  "key": "B",
+                  "text": "It is conducted by a manager."
+                },
+                {
+                  "key": "C",
+                  "text": "It takes place online."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-select",
+              "prompt": "Which TWO issues does the speaker ask the audience to consider before they apply to be volunteers?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "their financial situation"
+                },
+                {
+                  "key": "B",
+                  "text": "their level of commitment"
+                },
+                {
+                  "key": "C",
+                  "text": "their work experience"
+                },
+                {
+                  "key": "D",
+                  "text": "their ambition"
+                },
+                {
+                  "key": "E",
+                  "text": "their availability"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Fundraising",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "experience on stage"
+                },
+                {
+                  "key": "B",
+                  "text": "original, new ideas"
+                },
+                {
+                  "key": "C",
+                  "text": "parenting skills"
+                },
+                {
+                  "key": "D",
+                  "text": "an understanding of food and diet"
+                },
+                {
+                  "key": "E",
+                  "text": "retail experience"
+                },
+                {
+                  "key": "F",
+                  "text": "a good memory"
+                },
+                {
+                  "key": "G",
+                  "text": "a good level of fitness"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What does the speaker suggest would be helpful for each of the following areas of voluntary work? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 16-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Litter collection",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "experience on stage"
+                },
+                {
+                  "key": "B",
+                  "text": "original, new ideas"
+                },
+                {
+                  "key": "C",
+                  "text": "parenting skills"
+                },
+                {
+                  "key": "D",
+                  "text": "an understanding of food and diet"
+                },
+                {
+                  "key": "E",
+                  "text": "retail experience"
+                },
+                {
+                  "key": "F",
+                  "text": "a good memory"
+                },
+                {
+                  "key": "G",
+                  "text": "a good level of fitness"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What does the speaker suggest would be helpful for each of the following areas of voluntary work? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 16-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "\u2018Playmates\u2019",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "experience on stage"
+                },
+                {
+                  "key": "B",
+                  "text": "original, new ideas"
+                },
+                {
+                  "key": "C",
+                  "text": "parenting skills"
+                },
+                {
+                  "key": "D",
+                  "text": "an understanding of food and diet"
+                },
+                {
+                  "key": "E",
+                  "text": "retail experience"
+                },
+                {
+                  "key": "F",
+                  "text": "a good memory"
+                },
+                {
+                  "key": "G",
+                  "text": "a good level of fitness"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What does the speaker suggest would be helpful for each of the following areas of voluntary work? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 16-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Story club",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "experience on stage"
+                },
+                {
+                  "key": "B",
+                  "text": "original, new ideas"
+                },
+                {
+                  "key": "C",
+                  "text": "parenting skills"
+                },
+                {
+                  "key": "D",
+                  "text": "an understanding of food and diet"
+                },
+                {
+                  "key": "E",
+                  "text": "retail experience"
+                },
+                {
+                  "key": "F",
+                  "text": "a good memory"
+                },
+                {
+                  "key": "G",
+                  "text": "a good level of fitness"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What does the speaker suggest would be helpful for each of the following areas of voluntary work? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 16-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "First aid",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "experience on stage"
+                },
+                {
+                  "key": "B",
+                  "text": "original, new ideas"
+                },
+                {
+                  "key": "C",
+                  "text": "parenting skills"
+                },
+                {
+                  "key": "D",
+                  "text": "an understanding of food and diet"
+                },
+                {
+                  "key": "E",
+                  "text": "retail experience"
+                },
+                {
+                  "key": "F",
+                  "text": "a good memory"
+                },
+                {
+                  "key": "G",
+                  "text": "a good level of fitness"
+                }
+              ],
+              "group": {
+                "id": "l-s2-16-20",
+                "instruction": "What does the speaker suggest would be helpful for each of the following areas of voluntary work? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 16-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Talk on jobs in fashion design",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "What problem did Chantal have at the start of the talk?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Her view of the speaker was blocked."
+                },
+                {
+                  "key": "B",
+                  "text": "She was unable to find an empty seat."
+                },
+                {
+                  "key": "C",
+                  "text": "The students next to her were talking."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "What were Hugo and Chantal surprised to hear about the job market?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It has become more competitive than it used to be."
+                },
+                {
+                  "key": "B",
+                  "text": "There is more variety in it than they had realised."
+                },
+                {
+                  "key": "C",
+                  "text": "Some areas of it are more exciting than others."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "Hugo and Chantal agree that the speaker\u2019s message was",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "unfair to them at times."
+                },
+                {
+                  "key": "B",
+                  "text": "hard for them to follow."
+                },
+                {
+                  "key": "C",
+                  "text": "critical of the industry."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "What do Hugo and Chantal criticise about their school careers advice?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "when they received the advice"
+                },
+                {
+                  "key": "B",
+                  "text": "how much advice was given"
+                },
+                {
+                  "key": "C",
+                  "text": "who gave the advice"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "multiple-choice",
+              "prompt": "When discussing their future, Hugo and Chantal disagree on",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "which is the best career in fashion."
+                },
+                {
+                  "key": "B",
+                  "text": "when to choose a career in fashion."
+                },
+                {
+                  "key": "C",
+                  "text": "why they would like a career in fashion."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "multiple-choice",
+              "prompt": "How does Hugo feel about being an unpaid assistant?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "He is realistic about the practice."
+                },
+                {
+                  "key": "B",
+                  "text": "He feels the practice is dishonest."
+                },
+                {
+                  "key": "C",
+                  "text": "He thinks others want to change the practice."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "multiple-select",
+              "prompt": "Which TWO mistakes did the speaker admit she made in her first job?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "being dishonest to her employer"
+                },
+                {
+                  "key": "B",
+                  "text": "paying too much attention to how she looked"
+                },
+                {
+                  "key": "C",
+                  "text": "expecting to become well known"
+                },
+                {
+                  "key": "D",
+                  "text": "trying to earn a lot of money"
+                },
+                {
+                  "key": "E",
+                  "text": "openly disliking her client"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "multiple-select",
+              "prompt": "Which TWO pieces of retail information do Hugo and Chantal agree would be useful?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the reasons people return fashion items"
+                },
+                {
+                  "key": "B",
+                  "text": "how much time people have to shop for clothes"
+                },
+                {
+                  "key": "C",
+                  "text": "fashion designs people want but can\u2019t find"
+                },
+                {
+                  "key": "D",
+                  "text": "the best time of year for fashion buying"
+                },
+                {
+                  "key": "E",
+                  "text": "the most popular fashion sizes"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "C"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Elephant translocation",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "damage to",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants\u0027 [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fences"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "a suitable group of elephants from the same",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants\u0027 [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "family"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "vets and park staff made use of",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants\u0027 [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "helicopters"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "this process had to be completed quickly to reduce",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants\u0027 [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "stress"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "elephants had to be turned on their",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants\u0027 [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "sides"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "elephants\u0027",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants\u0027 [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "breathing"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "data including the size of their tusks and",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants\u0027 [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "feet"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "opportunities",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants\u0027 [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "employment"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "a reduction in the number of poachers and",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants\u0027 [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "weapons 5"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "an increase in",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Elephant translocation",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Elephant translocation\nReasons for overpopulation at Majete National Park\n- strict enforcement of anti-poaching laws\n- successful breeding\nProblems caused by elephant overpopulation\n- greater competition, causing hunger for elephants\n- damage to [31] in the park\nThe translocation process\n- a suitable group of elephants from the same [32] was selected\n- vets and park staff made use of [33] to help guide the elephants into an open plain\n- elephants were immobilised with tranquilisers\n- this process had to be completed quickly to reduce [34]\n- elephants had to be turned on their [35] to avoid damage to their lungs\n- elephants\u0027 [36] had to be monitored constantly\n- tracking devices were fitted to the matriarchs\n- data including the size of their tusks and [37] was taken\n- elephants were taken by truck to their new reserve\nAdvantages of translocation at Nkhotakota Wildlife Park\n- [38] opportunities\n- a reduction in the number of poachers and [39]\n- an example of conservation that other parks can follow\n- an increase in [40] as a contributor to GDP"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tourism"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

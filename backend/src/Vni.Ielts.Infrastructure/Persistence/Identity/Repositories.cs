@@ -23,6 +23,15 @@ internal sealed class MongoUserRepository(MongoContext ctx) : IUserRepository
     public async Task<bool> EmailExistsAsync(Email email, CancellationToken ct) =>
         await ctx.Users.Find(u => u.Email == email.Value).AnyAsync(ct);
 
+    public async Task<User?> FindByPhoneAsync(PhoneNumber phone, CancellationToken ct)
+    {
+        var doc = await ctx.Users.Find(u => u.Phone == phone.Value).FirstOrDefaultAsync(ct);
+        return doc?.ToDomain();
+    }
+
+    public async Task<bool> PhoneExistsAsync(PhoneNumber phone, CancellationToken ct) =>
+        await ctx.Users.Find(u => u.Phone == phone.Value).AnyAsync(ct);
+
     /// <summary>
     /// A page of accounts for the CMS.
     ///
@@ -42,11 +51,25 @@ internal sealed class MongoUserRepository(MongoContext ctx) : IUserRepository
             // classic way to hang one.
             var pattern = System.Text.RegularExpressions.Regex.Escape(search.Trim());
 
+            /*
+             * The phone number is searched too, and it has to be: an account
+             * registered since 08/09/2026 may have no address at all, so a
+             * learner ringing support can only be found by name or number.
+             * Searching the stored form means the operator has to type it the
+             * way it is stored, so the typed text is normalised first when it
+             * looks like a number — `0912 345 678` finds `+84912345678`.
+             */
+            var phonePattern = PhoneNumber.TryCreate(search, out var typed)
+                ? System.Text.RegularExpressions.Regex.Escape(typed.Value)
+                : pattern;
+
             filter = Builders<UserDocument>.Filter.Or(
                 Builders<UserDocument>.Filter.Regex(
                     u => u.Email, new BsonRegularExpression(pattern, "i")),
                 Builders<UserDocument>.Filter.Regex(
-                    u => u.DisplayName, new BsonRegularExpression(pattern, "i")));
+                    u => u.DisplayName, new BsonRegularExpression(pattern, "i")),
+                Builders<UserDocument>.Filter.Regex(
+                    u => u.Phone, new BsonRegularExpression(phonePattern, "i")));
         }
 
         var total = await ctx.Users.CountDocumentsAsync(filter, cancellationToken: ct);
@@ -79,16 +102,68 @@ internal sealed class MongoUserRepository(MongoContext ctx) : IUserRepository
         }
         catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
         {
-            throw new DuplicateEmailException(user.Email.Value, e);
+            throw Duplicate(user, e);
         }
     }
 
-    public Task SaveAsync(User user, CancellationToken ct) =>
-        ctx.Users.ReplaceOneAsync(
-            u => u.Id == user.Id.Value,
-            user.ToDocument(),
-            new ReplaceOptions { IsUpsert = false },
-            ct);
+    /// <summary>
+    /// Replaces, translating a unique-index violation the same way
+    /// <see cref="AddAsync"/> does.
+    ///
+    /// <para>
+    /// <b>It used to translate nothing, and that was already a bug.</b>
+    /// <c>ChangeEmail</c> has always carried a <c>catch
+    /// (DuplicateEmailException)</c> around this call for the race where two
+    /// accounts claim one address at once — and the driver exception sailed
+    /// straight past it as a 500. Adding the phone index makes the same hole
+    /// reachable from the ordinary "set my number" path, so it is fixed here
+    /// rather than worked around at each call site.
+    /// </para>
+    /// </summary>
+    public async Task SaveAsync(User user, CancellationToken ct)
+    {
+        try
+        {
+            await ctx.Users.ReplaceOneAsync(
+                u => u.Id == user.Id.Value,
+                user.ToDocument(),
+                new ReplaceOptions { IsUpsert = false },
+                ct);
+        }
+        catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            throw Duplicate(user, e);
+        }
+    }
+
+    /// <summary>
+    /// Works out <i>which</i> unique index was violated.
+    ///
+    /// <para>
+    /// <b>There are three on this collection</b> — address, number and referral
+    /// code — and the driver reports them all identically. Assuming the address
+    /// meant a learner registering with a number already in use was told "that
+    /// email address is already registered", on a form with no email field. The
+    /// index name is in the write error's message; matching on it is the only
+    /// thing that distinguishes them.
+    /// </para>
+    /// </summary>
+    private static Exception Duplicate(User user, MongoWriteException e)
+    {
+        var message = e.WriteError?.Message ?? string.Empty;
+
+        if (message.Contains(MongoContext.PhoneIndexName, StringComparison.Ordinal))
+            return new DuplicatePhoneException(user.Phone?.Value ?? string.Empty, e);
+
+        if (message.Contains(MongoContext.EmailIndexName, StringComparison.Ordinal))
+            return new DuplicateEmailException(user.Email?.Value ?? string.Empty, e);
+
+        // A referral-code collision, or an index added later. Neither is
+        // something a caller can fix by changing what they typed, so it stays
+        // an unhandled failure rather than being reported as a duplicate
+        // address the account does not have.
+        return e;
+    }
 }
 
 internal sealed class MongoUserIdentityRepository(MongoContext ctx) : IUserIdentityRepository
@@ -128,6 +203,9 @@ internal sealed class MongoUserIdentityRepository(MongoContext ctx) : IUserIdent
     public Task SaveAsync(UserIdentity identity, CancellationToken ct) =>
         ctx.UserIdentities.ReplaceOneAsync(
             i => i.Id == identity.Id.Value, identity.ToDocument(), cancellationToken: ct);
+
+    public Task RemoveAsync(UserIdentityId id, CancellationToken ct) =>
+        ctx.UserIdentities.DeleteOneAsync(i => i.Id == id.Value, ct);
 }
 
 internal sealed class MongoRoleRepository(MongoContext ctx) : IRoleRepository

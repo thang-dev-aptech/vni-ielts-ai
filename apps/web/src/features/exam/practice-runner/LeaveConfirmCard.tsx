@@ -49,7 +49,8 @@ export function LeaveConfirmCard({
     return () => document.removeEventListener('keydown', onKey);
   }, [onCancel]);
 
-  const unsettled = save === 'pending' || save === 'sending' || save === 'queued' || save === 'failed';
+  const unsettled =
+    save === 'pending' || save === 'sending' || save === 'queued' || save === 'failed';
 
   return (
     <div className="prun-scrim">
@@ -73,12 +74,7 @@ export function LeaveConfirmCard({
           </p>
         )}
         <div className="prun-card-actions">
-          <button
-            type="button"
-            className="prun-card-cancel"
-            ref={cancel}
-            onClick={onCancel}
-          >
+          <button type="button" className="prun-card-cancel" ref={cancel} onClick={onCancel}>
             {t('common.cancel')}
           </button>
           <button type="button" className="exam-submit" onClick={onLeave}>

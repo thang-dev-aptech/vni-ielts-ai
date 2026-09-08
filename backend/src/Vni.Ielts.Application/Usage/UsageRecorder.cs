@@ -41,13 +41,46 @@ public sealed class UsageRecorder(
     IExamSessionRepository sessions,
     IClock clock)
 {
-    /// <summary>The welcome allowance, once per account. Id <c>grant:{userId}</c>. → `P-15`</summary>
-    public Task AccountCreatedAsync(UserId userId, CancellationToken ct) =>
-        SafeAppend(
+    /// <summary>
+    /// A new account, registered with a phone number: the welcome allowance,
+    /// plus the referral credit if somebody's link brought them here.
+    ///
+    /// <para>
+    /// <b>Takes the <see cref="User"/> rather than an id because the referral
+    /// is now settled here.</b> It used to be settled when the invitee verified
+    /// their address; there is no such moment any more, so the owner moved the
+    /// credit to registration (08/09/2026). What stops the obvious farm is no
+    /// longer a verified mailbox but a unique phone number — a real cost per
+    /// account rather than a free one. → `P-16`, threat T13, ADR-0018
+    /// </para>
+    /// </summary>
+    public async Task AccountCreatedAsync(User user, CancellationToken ct)
+    {
+        await SafeAppend(
             UsageEntry.Grant(
-                UsageEntry.GrantId(userId), userId, clock.UtcNow, UsageActions.AccountCreated,
+                UsageEntry.GrantId(user.Id), user.Id, clock.UtcNow, UsageActions.AccountCreated,
                 options.InitialGrantTurns),
             ct);
+
+        await ReferralQualifiedAsync(user, ct);
+    }
+
+    /// <summary>
+    /// The same, for an account a social provider created — but the welcome
+    /// allowance is keyed on the provider subject.
+    /// See <see cref="UsageEntry.ProviderGrantId"/> for why.
+    /// </summary>
+    public async Task AccountCreatedFromProviderAsync(
+        User user, IdentityProvider provider, string subject, CancellationToken ct)
+    {
+        await SafeAppend(
+            UsageEntry.Grant(
+                UsageEntry.ProviderGrantId(provider.ToString(), subject), user.Id, clock.UtcNow,
+                UsageActions.AccountCreated, options.InitialGrantTurns),
+            ct);
+
+        await ReferralQualifiedAsync(user, ct);
+    }
 
     /// <summary>
     /// The first activity of a calendar day. Id <c>daily:{userId}:{day}</c>,
@@ -62,19 +95,27 @@ public sealed class UsageRecorder(
             ct);
 
     /// <summary>
-    /// The invitee has just verified their address for the first time. Pays
-    /// the <i>referrer</i>, once per invitee — the id is
-    /// <c>referral:{inviteeId}</c>, so two verification paths or a retried
-    /// request cannot pay twice. Nothing happens for an account nobody
-    /// referred. → `P-16`, threat T13
+    /// An invitee has completed registration. Pays the <i>referrer</i>, once
+    /// per invitee — the id is <c>referral:{inviteeId}</c>, so a retried
+    /// request cannot pay twice, and rows written under the old
+    /// verification gate keep that same id and still block a second payment.
+    /// Nothing happens for an account nobody referred. → `P-16`, threat T13
+    ///
+    /// <para>
+    /// <b>Deliberately not named for verification any more.</b> Leaving a
+    /// method called <c>EmailVerifiedAsync</c> in place would be the quiet way
+    /// "paid once proven" turns into "paid on signup" the day somebody sets
+    /// <c>Usage:ReferralTurns</c> above zero believing the old gate still
+    /// exists. It does not; the gate is the unique phone number.
+    /// </para>
     /// </summary>
-    public Task<bool> EmailVerifiedAsync(User invitee, CancellationToken ct)
+    public Task<bool> ReferralQualifiedAsync(User invitee, CancellationToken ct)
     {
         if (invitee.ReferredByUserId is not { } referrer) return Task.FromResult(false);
 
         return SafeAppend(
             UsageEntry.Earn(
-                UsageEntry.ReferralId(invitee.Id), referrer, clock.UtcNow, UsageActions.ReferralVerified,
+                UsageEntry.ReferralId(invitee.Id), referrer, clock.UtcNow, UsageActions.ReferralQualified,
                 options.ReferralTurns),
             ct);
     }

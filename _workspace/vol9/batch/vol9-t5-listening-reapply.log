@@ -1,0 +1,12 @@
+key read   38 entr(ies) covering 40 mark(s)
+foreign parts dropped
+written    _workspace/vol9/packages/vol9-t5-listening.json
+answer key applied with warnings
+  warning ANSWER_KEY_TYPE_MISMATCH /sections/0/parts/1/questions/4: Question 15 is typed "labelling" but prints options, and the key says "I". The answer was read as the option key "I". The type is probably wrong and the question will render as a text box rather than a choice.
+  warning ANSWER_KEY_TYPE_MISMATCH /sections/0/parts/1/questions/5: Question 16 is typed "labelling" but prints options, and the key says "B". The answer was read as the option key "B". The type is probably wrong and the question will render as a text box rather than a choice.
+  warning ANSWER_KEY_TYPE_MISMATCH /sections/0/parts/1/questions/6: Question 17 is typed "labelling" but prints options, and the key says "H". The answer was read as the option key "H". The type is probably wrong and the question will render as a text box rather than a choice.
+  warning ANSWER_KEY_TYPE_MISMATCH /sections/0/parts/1/questions/7: Question 18 is typed "labelling" but prints options, and the key says "E". The answer was read as the option key "E". The type is probably wrong and the question will render as a text box rather than a choice.
+  warning ANSWER_KEY_TYPE_MISMATCH /sections/0/parts/1/questions/8: Question 19 is typed "labelling" but prints options, and the key says "F". The answer was read as the option key "F". The type is probably wrong and the question will render as a text box rather than a choice.
+  warning ANSWER_KEY_TYPE_MISMATCH /sections/0/parts/1/questions/9: Question 20 is typed "labelling" but prints options, and the key says "J". The answer was read as the option key "J". The type is probably wrong and the question will render as a text box rather than a choice.
+section    Listening: 38 question(s), 40 auto-scored mark(s)
+publication=not attempted (this tool never publishes)

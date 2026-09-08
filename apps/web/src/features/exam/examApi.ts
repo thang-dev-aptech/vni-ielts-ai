@@ -227,9 +227,17 @@ export interface SectionResultView {
 
 export interface ExplanationContentView {
   correctAnswer: string;
+  /** Vietnamese — why the key is right, written for the learner. */
   shortReason: string;
   evidence: string[];
   commonMistake: string | null;
+  /**
+   * Vietnamese translation of the question (and its options) plus the
+   * meaning of the evidence. Optional on the wire so a server that predates
+   * it is still readable during a rolling deploy; absent is drawn as nothing,
+   * never as an invented sentence.
+   */
+  translation?: string | null;
 }
 
 export interface QuestionResultView {

@@ -89,7 +89,12 @@ public sealed class SsoFlowTests(SsoAppFactory app) : IClassFixture<SsoAppFactor
 
         var body = await meResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(session.GetProperty("userId").GetString(), body.GetProperty("userId").GetString());
-        Assert.True(body.GetProperty("emailVerified").GetBoolean());
+
+        // The account a provider creates carries the address it vouched for and
+        // no phone number — the mirror of a registration, which carries a
+        // number and no address.
+        Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("email").GetString()));
+        Assert.Equal(JsonValueKind.Null, body.GetProperty("phone").ValueKind);
 
         // 5 · The handoff code is spent.
         var replay = await client.PostAsJsonAsync(

@@ -12,7 +12,6 @@ import { FacebookIcon, YouTubeIcon, ZaloIcon } from './BrandIcons.js';
 import { Contact } from './contact.js';
 import { HeroPanel } from './HeroPanel.js';
 import { StudentsSection } from './StudentsSection.js';
-import { useReveal } from './useReveal.js';
 import '../../styles/landing.css';
 
 /**
@@ -54,7 +53,26 @@ import '../../styles/landing.css';
 export function LandingPage() {
   const { t } = useI18n();
   usePageTitle(t('title.landing'));
-  useReveal();
+
+  /*
+   * <b>Reveal-on-scroll is switched off on this page, 08/09/2026.</b>
+   *
+   * `[QUYẾT ĐỊNH]` chủ sản phẩm: the front page is about to be redesigned, and
+   * the redesign starts from a screenshot of the whole page. `useReveal` arms
+   * `.reveal-armed`, which sets `opacity: 0` on every `[data-reveal]` until the
+   * block scrolls into view — so a full-page capture comes back with most of
+   * the page blank, and a scroll-and-stitch capture comes back with sections
+   * caught mid-fade. Neither is something a designer can work from.
+   *
+   * Not calling the hook is the whole switch: every reveal rule in
+   * `landing.css` is scoped under `.reveal-armed`, and the markup is authored
+   * visible, so without the class the page renders in its final state. The
+   * `data-reveal` attributes below stay in place and are inert — putting the
+   * effect back is restoring this one line, not re-marking the sections.
+   *
+   * Scope is this page only. `/articles`, `/documents` and `/dictation` still
+   * call `useReveal`; turn them off the same way when they reach the redesign.
+   */
   const { status } = useAuth();
 
   /**

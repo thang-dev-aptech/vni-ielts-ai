@@ -1,0 +1,1179 @@
+{
+  "formatVersion": "1.0",
+  "title": "VOL 9 \u2014 Test 3 (Reading \u002B Listening)",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "SECTION 1",
+          "body": "SECTION 1\nRead the text and answer questions 1\u201310\nQuestions 1\u20138\nChoose the correct answer.\nExample\nThe man wants to visit the centre with\na friends\nrelative\ncolleagues\n1 The centre has enough accommodation for\n18 people.\n20 people.\n38 people.\n2 The meeting room is currently\nunavailable.\nflooded.\nbooked.\n3 Visitors must tell the centre in advance if they want to\nuse the centre\u2019s kitchen.\nhave meals cooked for them.\neat at restaurants outside.\n4 All visitors on the of the farm can\nget information about organic farming.\nhelp to feed the animals.\nwatch a tractor demonstration.\n5 On the survival course, people have to\nlearn to use map.\nfind their own food.\nrun through woodland.\n6 From the centre, it is easy to walk to\nExmoor National Park.\nthe beach.\na cycling rout.\n7 If the weather is bad visitors can go to a\ncinema.\ntheatre.\nmuseum.\n8 Groups who wish to stay at the centre must pay\npart of the cost in advance.\nall of the cost in advance.\nall of the cost on arrival.\nQuestions 9\u201310\nComplete the notes below.\nWrite ONE WORD AND/ OR NUMBERS for each answer. \nAddress:        Winsham Farm\n                       Rd    9______________\n                       near Sherbone 10______________",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "multiple-choice",
+              "prompt": "The centre has enough accommodation for",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "18 people."
+                },
+                {
+                  "key": "B",
+                  "text": "20 people."
+                },
+                {
+                  "key": "C",
+                  "text": "38 people."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "multiple-choice",
+              "prompt": "The meeting room is currently",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "unavailable."
+                },
+                {
+                  "key": "B",
+                  "text": "flooded."
+                },
+                {
+                  "key": "C",
+                  "text": "booked."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "multiple-choice",
+              "prompt": "Visitors must tell the centre in advance if they want to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "use the centre\u2019s kitchen."
+                },
+                {
+                  "key": "B",
+                  "text": "have meals cooked for them."
+                },
+                {
+                  "key": "C",
+                  "text": "eat at restaurants outside."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "multiple-choice",
+              "prompt": "All visitors on the of the farm can",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "get information about organic farming."
+                },
+                {
+                  "key": "B",
+                  "text": "help to feed the animals."
+                },
+                {
+                  "key": "C",
+                  "text": "watch a tractor demonstration."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "multiple-choice",
+              "prompt": "On the survival course, people have to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "learn to use map."
+                },
+                {
+                  "key": "B",
+                  "text": "find their own food."
+                },
+                {
+                  "key": "C",
+                  "text": "run through woodland."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "multiple-choice",
+              "prompt": "From the centre, it is easy to walk to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Exmoor National Park."
+                },
+                {
+                  "key": "B",
+                  "text": "the beach."
+                },
+                {
+                  "key": "C",
+                  "text": "a cycling rout."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "multiple-choice",
+              "prompt": "If the weather is bad visitors can go to a",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "cinema."
+                },
+                {
+                  "key": "B",
+                  "text": "theatre."
+                },
+                {
+                  "key": "C",
+                  "text": "museum."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "multiple-choice",
+              "prompt": "Groups who wish to stay at the centre must pay",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "part of the cost in advance."
+                },
+                {
+                  "key": "B",
+                  "text": "all of the cost in advance."
+                },
+                {
+                  "key": "C",
+                  "text": "all of the cost on arrival."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "r-s1-9-10",
+                "instruction": "Write ONE WORD AND/ OR NUMBERS for each answer.",
+                "text": "Address:        Winsham Farm\n                       Rd    9______________\n                       near Sherbone 10______________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Cotehele"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "r-s1-9-10",
+                "instruction": "Write ONE WORD AND/ OR NUMBERS for each answer.",
+                "text": "Address:        Winsham Farm\n                       Rd    9______________\n                       near Sherbone 10______________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "SH121LQ"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "SECTION 2",
+          "body": "SECTION 2\nRead the text and answer questions 11\u201320\nQuestions 11\u201316\nComplete the table below.\nWrite NO MORE THAN THREE WORDS AND/ OR A NUMBER for each answer.\n\n\n\nVacation Job\nMain Advantage\nMain Disadvantage\nRecommendation\nStocktaking\n11______________\ntiring\n12______________\nOffice work\nair-conditioning\n13______________\nchoose a 14______________\n\ntheme park attendant\n15______________\nrude customers\n16______________\n \n\n\n\n\n\n\nQuestions 17\u201320\nChoose the correct answer.\n17 Peter learned about the job\nfrom a college friend.\non the computer.\nfrom a student job centre.\n18 Peter mainly enjoyed the job because it was\neasy.\nchallenging.\nunusual.\n19 The job\u2019s most interesting aspect was\nlearning about the environment.\nworking with children.\ncaring for the animals.\n20 Peter has decided that next vacation he\nwon\u2019t take a job.\nwill work at the zoo.\nwill work elsewhere.",
+          "questions": [
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "completion",
+              "prompt": "Question 11",
+              "group": {
+                "id": "r-s2-11-16",
+                "instruction": "Write NO MORE THAN THREE WORDS AND/ OR A NUMBER for each answer.",
+                "text": "Vacation Job\nMain Advantage\nMain Disadvantage\nRecommendation\nStocktaking\n11______________\ntiring\n12______________\nOffice work\nair-conditioning\n13______________\nchoose a 14______________\n\ntheme park attendant\n15______________\nrude customers\n16______________"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "travelling"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "completion",
+              "prompt": "Question 12",
+              "group": {
+                "id": "r-s2-11-16",
+                "instruction": "Write NO MORE THAN THREE WORDS AND/ OR A NUMBER for each answer.",
+                "text": "Vacation Job\nMain Advantage\nMain Disadvantage\nRecommendation\nStocktaking\n11______________\ntiring\n12______________\nOffice work\nair-conditioning\n13______________\nchoose a 14______________\n\ntheme park attendant\n15______________\nrude customers\n16______________"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "get good shoes"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "completion",
+              "prompt": "Question 13",
+              "group": {
+                "id": "r-s2-11-16",
+                "instruction": "Write NO MORE THAN THREE WORDS AND/ OR A NUMBER for each answer.",
+                "text": "Vacation Job\nMain Advantage\nMain Disadvantage\nRecommendation\nStocktaking\n11______________\ntiring\n12______________\nOffice work\nair-conditioning\n13______________\nchoose a 14______________\n\ntheme park attendant\n15______________\nrude customers\n16______________"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "wearing formal clothes"
+                ]
+              }
+            },
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "completion",
+              "prompt": "Question 14",
+              "group": {
+                "id": "r-s2-11-16",
+                "instruction": "Write NO MORE THAN THREE WORDS AND/ OR A NUMBER for each answer.",
+                "text": "Vacation Job\nMain Advantage\nMain Disadvantage\nRecommendation\nStocktaking\n11______________\ntiring\n12______________\nOffice work\nair-conditioning\n13______________\nchoose a 14______________\n\ntheme park attendant\n15______________\nrude customers\n16______________"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "large office"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "completion",
+              "prompt": "Question 15",
+              "group": {
+                "id": "r-s2-11-16",
+                "instruction": "Write NO MORE THAN THREE WORDS AND/ OR A NUMBER for each answer.",
+                "text": "Vacation Job\nMain Advantage\nMain Disadvantage\nRecommendation\nStocktaking\n11______________\ntiring\n12______________\nOffice work\nair-conditioning\n13______________\nchoose a 14______________\n\ntheme park attendant\n15______________\nrude customers\n16______________"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "good pay"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "completion",
+              "prompt": "Question 16",
+              "group": {
+                "id": "r-s2-11-16",
+                "instruction": "Write NO MORE THAN THREE WORDS AND/ OR A NUMBER for each answer.",
+                "text": "Vacation Job\nMain Advantage\nMain Disadvantage\nRecommendation\nStocktaking\n11______________\ntiring\n12______________\nOffice work\nair-conditioning\n13______________\nchoose a 14______________\n\ntheme park attendant\n15______________\nrude customers\n16______________"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "live nearby"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "multiple-choice",
+              "prompt": "Peter learned about the job",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "from a college friend."
+                },
+                {
+                  "key": "B",
+                  "text": "on the computer."
+                },
+                {
+                  "key": "C",
+                  "text": "from a student job centre."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "multiple-choice",
+              "prompt": "Peter mainly enjoyed the job because it was",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "easy."
+                },
+                {
+                  "key": "B",
+                  "text": "challenging."
+                },
+                {
+                  "key": "C",
+                  "text": "unusual."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "multiple-choice",
+              "prompt": "The job\u2019s most interesting aspect was",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "learning about the environment."
+                },
+                {
+                  "key": "B",
+                  "text": "working with children."
+                },
+                {
+                  "key": "C",
+                  "text": "caring for the animals."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "multiple-choice",
+              "prompt": "Peter has decided that next vacation he",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "won\u2019t take a job."
+                },
+                {
+                  "key": "B",
+                  "text": "will work at the zoo."
+                },
+                {
+                  "key": "C",
+                  "text": "will work elsewhere."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "SECTION 3",
+          "body": "SECTION 3\nRead the text and answer questions 21\u201330\nQuestions 21\u201326\nChoose the correct answer.\nVoice training for drama students\n21 Ed is giving the voice coaching workshop in order to get\na new job.\na qualification.\na promotion.\n22 According to Fiona, the seating pattern that Ed chooses\nshould be illustrated visually.\nhas to be explained in detail.\nis not particularly important.\n23 Fiona and Ed agree that in the first activity, the students\nmay feel uncomfortable.\nlike to make group contact.\nmust focus on themselves.\n24 Fiona and Ed agree that in the second activity, Ed should\ninsist which students work together.\ntell students to prepare a speech.\ninclude a focus on breath control.\n25 What does Fiona suggest about working in a big space?\nIt could be outside or inside.\nIt is best to go to somewhere like a park.\nIt is useful for getting actors to shout.\n26 What does Fiona think of Ed\u0027s selection of texts?\nIt should include more classical texts.\nIt needs to focus on a single emotion.\nIt has to cover a wider range.\nQuestions 27\u201330\nWhat disadvantage do the speakers identify for each of the following textbooks?\nChoose FOUR correct answers, A-G, next to questions 27-30.\nDisadvantages\nA too expensive\nB too limited\nC prejudiced\nD unrealistic\nE out of date\nF too detailed\nG unavailable\nTextbooks\nVocal Instruction 27____________\nImprove Your Accent 28___________\nActors\u0027 Handbook 29___________\nConfident Voice Delivery 30___________",
+          "questions": [
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "Ed is giving the voice coaching workshop in order to get",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a new job."
+                },
+                {
+                  "key": "B",
+                  "text": "a qualification."
+                },
+                {
+                  "key": "C",
+                  "text": "a promotion."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "According to Fiona, the seating pattern that Ed chooses",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "should be illustrated visually."
+                },
+                {
+                  "key": "B",
+                  "text": "has to be explained in detail."
+                },
+                {
+                  "key": "C",
+                  "text": "is not particularly important."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "Fiona and Ed agree that in the first activity, the students",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "may feel uncomfortable."
+                },
+                {
+                  "key": "B",
+                  "text": "like to make group contact."
+                },
+                {
+                  "key": "C",
+                  "text": "must focus on themselves."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "Fiona and Ed agree that in the second activity, Ed should",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "insist which students work together."
+                },
+                {
+                  "key": "B",
+                  "text": "tell students to prepare a speech."
+                },
+                {
+                  "key": "C",
+                  "text": "include a focus on breath control."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "multiple-choice",
+              "prompt": "What does Fiona suggest about working in a big space?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It could be outside or inside."
+                },
+                {
+                  "key": "B",
+                  "text": "It is best to go to somewhere like a park."
+                },
+                {
+                  "key": "C",
+                  "text": "It is useful for getting actors to shout."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "multiple-choice",
+              "prompt": "What does Fiona think of Ed\u0027s selection of texts?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It should include more classical texts."
+                },
+                {
+                  "key": "B",
+                  "text": "It needs to focus on a single emotion."
+                },
+                {
+                  "key": "C",
+                  "text": "It has to cover a wider range."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Vocal Instruction",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "too expensive"
+                },
+                {
+                  "key": "B",
+                  "text": "too limited"
+                },
+                {
+                  "key": "C",
+                  "text": "prejudiced"
+                },
+                {
+                  "key": "D",
+                  "text": "unrealistic"
+                },
+                {
+                  "key": "E",
+                  "text": "out of date"
+                },
+                {
+                  "key": "F",
+                  "text": "too detailed"
+                },
+                {
+                  "key": "G",
+                  "text": "unavailable"
+                }
+              ],
+              "group": {
+                "id": "r-s3-27-30",
+                "instruction": "What disadvantage do the speakers identify for each of the following textbooks? Choose FOUR correct answers, A-G, next to questions 27-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Improve Your Accent",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "too expensive"
+                },
+                {
+                  "key": "B",
+                  "text": "too limited"
+                },
+                {
+                  "key": "C",
+                  "text": "prejudiced"
+                },
+                {
+                  "key": "D",
+                  "text": "unrealistic"
+                },
+                {
+                  "key": "E",
+                  "text": "out of date"
+                },
+                {
+                  "key": "F",
+                  "text": "too detailed"
+                },
+                {
+                  "key": "G",
+                  "text": "unavailable"
+                }
+              ],
+              "group": {
+                "id": "r-s3-27-30",
+                "instruction": "What disadvantage do the speakers identify for each of the following textbooks? Choose FOUR correct answers, A-G, next to questions 27-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Actors\u0027 Handbook",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "too expensive"
+                },
+                {
+                  "key": "B",
+                  "text": "too limited"
+                },
+                {
+                  "key": "C",
+                  "text": "prejudiced"
+                },
+                {
+                  "key": "D",
+                  "text": "unrealistic"
+                },
+                {
+                  "key": "E",
+                  "text": "out of date"
+                },
+                {
+                  "key": "F",
+                  "text": "too detailed"
+                },
+                {
+                  "key": "G",
+                  "text": "unavailable"
+                }
+              ],
+              "group": {
+                "id": "r-s3-27-30",
+                "instruction": "What disadvantage do the speakers identify for each of the following textbooks? Choose FOUR correct answers, A-G, next to questions 27-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Confident Voice Delivery",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "too expensive"
+                },
+                {
+                  "key": "B",
+                  "text": "too limited"
+                },
+                {
+                  "key": "C",
+                  "text": "prejudiced"
+                },
+                {
+                  "key": "D",
+                  "text": "unrealistic"
+                },
+                {
+                  "key": "E",
+                  "text": "out of date"
+                },
+                {
+                  "key": "F",
+                  "text": "too detailed"
+                },
+                {
+                  "key": "G",
+                  "text": "unavailable"
+                }
+              ],
+              "group": {
+                "id": "r-s3-27-30",
+                "instruction": "What disadvantage do the speakers identify for each of the following textbooks? Choose FOUR correct answers, A-G, next to questions 27-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "SECTION 4",
+          "body": "SECTION 4\nRead the text and answer questions 31\u201340\nQuestions 31\u201340\nComplete the notes below.\nWrite ONE WORD ONLY for each answer.\nFood Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________",
+          "questions": [
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "r-s4-31-40",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Food Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "ingredients"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "r-s4-31-40",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Food Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "stored"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "r-s4-31-40",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Food Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "temperature"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "r-s4-31-40",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Food Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "organic"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "r-s4-31-40",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Food Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "image"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "r-s4-31-40",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Food Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "information"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "r-s4-31-40",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Food Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "sales"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "r-s4-31-40",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Food Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "entertainment"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "r-s4-31-40",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Food Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "nutritions"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "r-s4-31-40",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Food Safety Standards\nRisk assessment\nScientists have to consider potential problems with:\n\u2022 the product\u0027s 31___________ (could they attract harmful bacteria?)\n\u2022 method of preparation (will it eliminate harmful micro-organisms?)\n\u2022 how products are 32___________and distributed\n\u2022 supermarkets (e.g. changes in 33___________ affecting the condition of frozen food\n\u2022 end-users (how is food usually handled in the home?)\nFactors affecting food consumption\nLegislation\nConsumer attitudes\n\u2022 e.g. dislike of additives \u2192 growth of the 34___________ food market in Australia\nThe food industry\n\u2022 supermarkets may use price or 35___________ as their selling strategy (but the main concern is profitability)\nThe mass media\n\u2022 now the main source of 36___________for many\n\u2022 negative effect because not objective:\nconcern for 37___________\nnews is now a form of 38___________ which can mislead the public\n\u2022 few programmes deal with food safety or 39___________\nPersonal opinion\nImportance of education: as with benefits of exercise, many children can influence their 40___________"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "parents"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

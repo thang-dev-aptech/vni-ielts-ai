@@ -291,7 +291,7 @@ it('opens luyện đề from its own control, and asks the server for an open cl
    * other would answer an open business question from a control built to mean
    * something else — and would leave no way to sit a timed single-skill paper.
    */
-  open('/practice');
+  open('/students/practice/workspace');
 
   await screen.findByText('Academic Practice Test 1');
   const card = document.querySelector('.prac-card') as HTMLElement;
@@ -306,12 +306,13 @@ it('opens luyện đề from its own control, and asks the server for an open cl
   expect(calls.starts[0]?.body.timing).toBe('open');
   expect(calls.starts[0]?.body.mode).toBe('single');
 
-  // Its own route. The timed runner never sees a practice branch.
-  await waitFor(() => expect(window.location.pathname).toBe('/students/practice/sit-1'));
+  // One address for every sitting now — the runner branches on the
+  // server's own `deadlineAt`, never on which URL got it there.
+  await waitFor(() => expect(window.location.pathname).toBe('/exam/sit-1'));
 });
 
 it('still opens thi thử on the deadlined runner, with the deadline timing', async () => {
-  open('/practice');
+  open('/students/practice/workspace');
 
   await screen.findByText('Academic Practice Test 1');
   const card = document.querySelector('.prac-card') as HTMLElement;
@@ -320,7 +321,7 @@ it('still opens thi thử on the deadlined runner, with the deadline timing', as
 
   await waitFor(() => expect(calls.starts).toHaveLength(1));
   expect(calls.starts[0]?.body.timing).toBe('deadline');
-  await waitFor(() => expect(window.location.pathname).toBe('/students/session/sit-1'));
+  await waitFor(() => expect(window.location.pathname).toBe('/exam/sit-1'));
 });
 
 it('counts up from the server, and never draws a countdown', async () => {
@@ -328,11 +329,12 @@ it('counts up from the server, and never draws a countdown', async () => {
 
   await screen.findByText('The History of Cartography');
 
-  const header = document.querySelector('.prun-bar') as HTMLElement;
-  expect(within(header).getByText('Reading')).toBeInTheDocument();
-  expect(within(header).getByText('Phần 1')).toBeInTheDocument();
-  expect(within(header).getByText('Academic Practice Test 1')).toBeInTheDocument();
-  expect(header.querySelector('.prun-skill-icon svg')).toBeInTheDocument();
+  // One chrome for both timings since 08/09/2026 — the heading names the
+  // paper and the skill, and the footer names the part.
+  const heading = screen.getByRole('heading', { level: 1 });
+  expect(heading).toHaveTextContent('Academic Practice Test 1');
+  expect(heading).toHaveTextContent('Reading');
+  expect(screen.getByRole('button', { name: 'Section sau' })).toBeInTheDocument();
 
   // 125 seconds of work, as the server measured it.
   const clock = screen.getByRole('timer');
@@ -364,37 +366,43 @@ it('keeps mock timing on the deadline-only runner with no practice controls', as
     },
   });
 
-  open('/students/session/sit-1');
+  open('/exam/sit-1');
   await screen.findByText('The History of Cartography');
 
-  expect(screen.getByRole('timer')).toHaveClass('exam-clock');
+  // The timed sitting draws its own chrome (`ExamShell`, cloned from the
+  // reference screenshot) rather than luyện đề's. What matters here is
+  // unchanged: it is a countdown, and none of the practice controls exist.
+  expect(screen.getByRole('timer')).toHaveClass('exr-clock');
   expect(screen.queryByRole('button', { name: /Dừng đồng hồ|Chạy tiếp/ })).toBeNull();
   expect(screen.queryByRole('button', { name: /Mốc mục tiêu/ })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Thoát' })).toBeNull();
   expect(document.querySelector('.prun-clock')).toBeNull();
+  expect(document.querySelector('.prun-bar')).toBeNull();
+  expect(document.querySelector('.exr-clock-controls')).toBeNull();
 });
 
 it('keeps a stable semantic shell and confirms before leaving it', async () => {
   open('/students/practice/sit-1');
   await screen.findByText('The History of Cartography');
 
-  expect(document.querySelector('.prun-page > header')).toBeInTheDocument();
-  expect(document.querySelector('.prun-page > main')).toBeInTheDocument();
-  expect(document.querySelector('.prun-page > footer')).toBeInTheDocument();
+  expect(document.querySelector('.exr-page > .exr-top')).toBeInTheDocument();
+  expect(document.querySelector('.exr-page > main')).toBeInTheDocument();
+  expect(document.querySelector('.exr-page > footer')).toBeInTheDocument();
   expect(screen.getByText('Đã kết nối')).toBeInTheDocument();
 
   // There is still no link that can leave on one accidental click. Exit is a
   // button and the recoverable action receives focus in the confirmation.
-  expect(document.querySelectorAll('.prun-page a')).toHaveLength(0);
+  expect(document.querySelectorAll('.exr-page a')).toHaveLength(0);
   expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
 
   await userEvent.click(screen.getByRole('button', { name: 'Thoát' }));
   const card = await screen.findByRole('dialog', { name: 'Thoát khỏi bài đang làm?' });
   expect(document.activeElement).toBe(within(card).getByRole('button', { name: 'Huỷ' }));
-  expect(window.location.pathname).toBe('/students/practice/sit-1');
+  expect(window.location.pathname).toBe('/exam/sit-1');
 
   await userEvent.click(within(card).getByRole('button', { name: 'Huỷ' }));
   expect(screen.queryByRole('dialog', { name: 'Thoát khỏi bài đang làm?' })).toBeNull();
-  expect(window.location.pathname).toBe('/students/practice/sit-1');
+  expect(window.location.pathname).toBe('/exam/sit-1');
 
   await userEvent.click(screen.getByRole('button', { name: 'Thoát' }));
   await userEvent.click(
@@ -414,8 +422,8 @@ it('states connection loss without removing the runner shell', async () => {
   });
 
   expect(await screen.findByText('Mất kết nối')).toBeInTheDocument();
-  expect(document.querySelector('.prun-page > main')).toBeInTheDocument();
-  expect(document.querySelector('.prun-page > footer')).toBeInTheDocument();
+  expect(document.querySelector('.exr-page > main')).toBeInTheDocument();
+  expect(document.querySelector('.exr-page > footer')).toBeInTheDocument();
 });
 
 it('renders only the server-owned current part from a projected session', async () => {
@@ -437,7 +445,7 @@ it('renders only the server-owned current part from a projected session', async 
 
   expect(screen.queryByText('Wayfinding')).toBeNull();
   expect(screen.queryByRole('textbox', { name: /Câu hỏi 3/ })).toBeNull();
-  expect(document.querySelectorAll('.prun-box')).toHaveLength(2);
+  expect(document.querySelectorAll('.exr-box')).toHaveLength(2);
 });
 
 it('fails closed when the session part does not match its projection', async () => {
@@ -496,7 +504,7 @@ it('sets a target time through the server and states it in words', async () => {
    * its value tells a screen-reader user nothing about what is set.
    */
   await waitFor(() =>
-    expect(document.querySelector('.prun-target-read')).toHaveTextContent('Mục tiêu 40:00'),
+    expect(document.querySelector('.exr-target-read')).toHaveTextContent('Mục tiêu 40:00'),
   );
   expect(
     within(screen.getByRole('button', { name: /Mốc mục tiêu/ })).getByText('Mục tiêu 40:00'),
@@ -533,7 +541,7 @@ it('never ticks a box green for an answer the server has not taken', async () =>
 
   await userEvent.type(screen.getByRole('textbox', { name: /Câu hỏi 1/ }), 'cartography');
 
-  const box = () => document.querySelector('.prun-box') as HTMLElement;
+  const box = () => document.querySelector('.exr-box') as HTMLElement;
 
   // Typed, and the request has not even been made yet.
   expect(box().dataset.state).toBe('unsaved');
@@ -541,24 +549,27 @@ it('never ticks a box green for an answer the server has not taken', async () =>
   await until(() => calls.answers.length === 1);
   expect(calls.answers).toHaveLength(1);
   expect(box().dataset.state).toBe('unsaved');
-  expect(box().querySelector('svg path')).toBeNull();
 
   releaseSave?.();
 
   await waitFor(() => expect(box().dataset.state).toBe('answered'));
-  // Only the confirmed state carries a tick.
-  expect(box().querySelector('svg path')).not.toBeNull();
+  /*
+    Colour is not the only channel. The reference draws a box as a number on a
+    ground, so the second channel is the wording: every state spells itself
+    out for a screen reader, and `unsaved` additionally carries a dashed edge
+    that survives the greyscale test. → product law L2
+  */
   expect(box().textContent).toContain('đã trả lời, đã lưu');
 });
 
 it('shows the open section as boxes and every other section as a count', async () => {
   // `E-23`, verbatim: the section being worked shows one box per question; a
-  // section not yet worked shows "Section 2 · 0/10".
+  // a part not yet worked shows "Passage 2 · 0/10".
   open('/students/practice/sit-1');
   await screen.findByText('The History of Cartography');
 
-  expect(document.querySelectorAll('.prun-box')).toHaveLength(2);
-  expect(screen.getByRole('button', { name: 'Section 2 · 0/1' })).toBeInTheDocument();
+  expect(document.querySelectorAll('.exr-box')).toHaveLength(2);
+  expect(screen.getByRole('button', { name: 'Passage 2 · 0/1' })).toBeInTheDocument();
 
   // Prev is disabled at the first part; Next is not, because part 2 is open —
   // the server opens a module's parts together.
@@ -569,7 +580,7 @@ it('shows the open section as boxes and every other section as a count', async (
   await userEvent.click(screen.getByRole('button', { name: 'Section sau' }));
 
   expect(await screen.findByText('Wayfinding')).toBeInTheDocument();
-  expect(document.querySelectorAll('.prun-box')).toHaveLength(1);
+  expect(document.querySelectorAll('.exr-box')).toHaveLength(1);
   expect(screen.getByRole('button', { name: 'Section trước' })).toHaveAttribute(
     'aria-disabled',
     'false',
@@ -612,11 +623,11 @@ it('numbers, counts and focuses the footer by response slot rather than question
   await screen.findByText('The History of Cartography');
 
   // Negative proof: one question with two marks is 2/2, never 1/1.
-  const collapsed = screen.getByRole('button', { name: 'Section 2 · 2/2' });
-  expect(screen.queryByRole('button', { name: 'Section 2 · 1/1' })).toBeNull();
+  const collapsed = screen.getByRole('button', { name: 'Passage 2 · 2/2' });
+  expect(screen.queryByRole('button', { name: 'Passage 2 · 1/1' })).toBeNull();
   await userEvent.click(collapsed);
 
-  const boxes = document.querySelectorAll<HTMLElement>('.prun-box');
+  const boxes = document.querySelectorAll<HTMLElement>('.exr-box');
   expect(boxes).toHaveLength(2);
   expect(boxes[0]).toHaveTextContent('17');
   expect(boxes[1]).toHaveTextContent('18');
@@ -650,8 +661,8 @@ it('names an empty section rather than drawing zero boxes', async () => {
 
   open('/students/practice/sit-1');
 
-  expect(await screen.findByText('Section 1 chưa có câu hỏi nào')).toBeInTheDocument();
-  expect(document.querySelectorAll('.prun-box')).toHaveLength(0);
+  expect(await screen.findByText('Passage 1 chưa có câu hỏi nào')).toBeInTheDocument();
+  expect(document.querySelectorAll('.exr-box')).toHaveLength(0);
 });
 
 it('confirms a submit in a card, with Cancel holding the keyboard', async () => {
@@ -702,7 +713,7 @@ it('submits once the card is confirmed, and only then', async () => {
   await userEvent.click(within(card).getByRole('button', { name: 'Nộp bài' }));
 
   await waitFor(() => expect(calls.submits).toBe(1));
-  await waitFor(() => expect(window.location.pathname).toBe('/practice/results/sit-1'));
+  await waitFor(() => expect(window.location.pathname).toBe('/results/sit-1'));
 
   // <b>Not just the address — the page behind it.</b> Asserting the pathname
   // and returning left the results page mounting after the test had ended, so
@@ -710,7 +721,8 @@ it('submits once the card is confirmed, and only then', async () => {
   // had already put the real `fetch` back. That call went to whatever was
   // listening on localhost:5099, and a real 401 from it renewed the token of
   // whichever test ran next. → the network gate in `test-setup.ts`
-  await screen.findByRole('heading', { name: 'Academic Practice Test 1', level: 1 });
+  // Landed on the result page: the paper is named under its heading.
+  await screen.findByText('Đề thi: Academic Practice Test 1');
 });
 
 it('keeps the card open and keeps the answers when a submit fails', async () => {
@@ -731,7 +743,7 @@ it('keeps the card open and keeps the answers when a submit fails', async () => 
   // exactly as it did, with no evidence anything went wrong.
   expect(await within(card).findByRole('alert')).toHaveTextContent(/Không nộp được bài/);
   expect(screen.getByRole('dialog')).toBeInTheDocument();
-  expect(window.location.pathname).toBe('/students/practice/sit-1');
+  expect(window.location.pathname).toBe('/exam/sit-1');
   expect(screen.getByRole('textbox', { name: /Câu hỏi 1/ })).toBeInTheDocument();
 });
 
@@ -741,7 +753,7 @@ it('splits Reading into a passage pane and a question pane', async () => {
   open('/students/practice/sit-1');
   await screen.findByText('The History of Cartography');
 
-  const body = document.querySelector('.prun-body') as HTMLElement;
+  const body = document.querySelector('.exr-body-in') as HTMLElement;
   expect(body.dataset.split).toBe('reading');
 
   const passage = screen.getByRole('region', { name: 'Bài đọc' });
@@ -773,7 +785,8 @@ it('restores both Reading pane scroll positions for each part', async () => {
   open('/students/practice/sit-1');
   await screen.findByText('The History of Cartography');
 
-  const passage = screen.getByRole('region', { name: 'Bài đọc' });
+  // The panel is the labelled region; the box that scrolls is inside it.
+  const passage = document.querySelector('.exr-panel-scroll') as HTMLElement;
   const questions = screen.getByRole('region', { name: 'Câu hỏi' });
   passage.scrollTop = 240;
   questions.scrollTop = 120;
@@ -880,7 +893,13 @@ it('does not expose seek when the resolved mock policy is one-pass', async () =>
   open('/students/practice/sit-1');
 
   await screen.findByRole('button', { name: 'Phát' });
-  expect(screen.queryByRole('slider')).toBeNull();
+  /*
+   * The seek slider specifically, not "any slider" — the Listening
+   * transport also carries a volume slider, which is orthogonal to the
+   * once/no-seek policy this test is about. Muting or turning the audio
+   * down does not let a candidate rewind or skip ahead.
+   */
+  expect(screen.queryByRole('slider', { name: 'Tua audio' })).toBeNull();
   expect(screen.getByText('Audio chỉ phát một lần, không tua được.')).toBeInTheDocument();
 });
 
@@ -949,7 +968,7 @@ it('moves the keyboard to the question a footer box points at', async () => {
   open('/students/practice/sit-1');
   await screen.findByText('The History of Cartography');
 
-  const boxes = document.querySelectorAll<HTMLElement>('.prun-box');
+  const boxes = document.querySelectorAll<HTMLElement>('.exr-box');
   await userEvent.click(boxes[1] as HTMLElement);
 
   expect(document.activeElement).toBe(screen.getByRole('textbox', { name: /Câu hỏi 2/ }));

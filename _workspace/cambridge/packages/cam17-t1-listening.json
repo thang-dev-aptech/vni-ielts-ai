@@ -1,0 +1,1181 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 17 \u2014 Test 1 Listening",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Buckworth Conservation Group",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Buckworth Conservation Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Buckworth Conservation Group\nRegular activities\nBeach\n\u2022    making sure the beach does not have [1]                    on it\n\u2022    no [2]\nNature reserve\n\u2022    maintaining paths\n\u2022    nesting boxes for birds installed\n\u2022    next task is taking action to attract [3]               to the place\n\u2022    identifying types of [4]\n\u2022    building a new [5]\n\nForthcoming events\nSaturday\n\u2022    meet at Dunsmore Beach car park\n\u2022    walk across the sands and reach the [6]\n\u2022    take a picnic\n\u2022    wear appropriate [7]\n\nWoodwork session\n\u2022    suitable for [8]                    to participate in\n\u2022    making [9]                       out of wood\n\u2022    17th, from 10 a.m. to 3 p.m.\n\u2022    cost of session (no camping): [10] \u00A3"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "litter"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Buckworth Conservation Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Buckworth Conservation Group\nRegular activities\nBeach\n\u2022    making sure the beach does not have [1]                    on it\n\u2022    no [2]\nNature reserve\n\u2022    maintaining paths\n\u2022    nesting boxes for birds installed\n\u2022    next task is taking action to attract [3]               to the place\n\u2022    identifying types of [4]\n\u2022    building a new [5]\n\nForthcoming events\nSaturday\n\u2022    meet at Dunsmore Beach car park\n\u2022    walk across the sands and reach the [6]\n\u2022    take a picnic\n\u2022    wear appropriate [7]\n\nWoodwork session\n\u2022    suitable for [8]                    to participate in\n\u2022    making [9]                       out of wood\n\u2022    17th, from 10 a.m. to 3 p.m.\n\u2022    cost of session (no camping): [10] \u00A3"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "dogs"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Buckworth Conservation Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Buckworth Conservation Group\nRegular activities\nBeach\n\u2022    making sure the beach does not have [1]                    on it\n\u2022    no [2]\nNature reserve\n\u2022    maintaining paths\n\u2022    nesting boxes for birds installed\n\u2022    next task is taking action to attract [3]               to the place\n\u2022    identifying types of [4]\n\u2022    building a new [5]\n\nForthcoming events\nSaturday\n\u2022    meet at Dunsmore Beach car park\n\u2022    walk across the sands and reach the [6]\n\u2022    take a picnic\n\u2022    wear appropriate [7]\n\nWoodwork session\n\u2022    suitable for [8]                    to participate in\n\u2022    making [9]                       out of wood\n\u2022    17th, from 10 a.m. to 3 p.m.\n\u2022    cost of session (no camping): [10] \u00A3"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "insects"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Buckworth Conservation Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Buckworth Conservation Group\nRegular activities\nBeach\n\u2022    making sure the beach does not have [1]                    on it\n\u2022    no [2]\nNature reserve\n\u2022    maintaining paths\n\u2022    nesting boxes for birds installed\n\u2022    next task is taking action to attract [3]               to the place\n\u2022    identifying types of [4]\n\u2022    building a new [5]\n\nForthcoming events\nSaturday\n\u2022    meet at Dunsmore Beach car park\n\u2022    walk across the sands and reach the [6]\n\u2022    take a picnic\n\u2022    wear appropriate [7]\n\nWoodwork session\n\u2022    suitable for [8]                    to participate in\n\u2022    making [9]                       out of wood\n\u2022    17th, from 10 a.m. to 3 p.m.\n\u2022    cost of session (no camping): [10] \u00A3"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "butterflies"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Buckworth Conservation Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Buckworth Conservation Group\nRegular activities\nBeach\n\u2022    making sure the beach does not have [1]                    on it\n\u2022    no [2]\nNature reserve\n\u2022    maintaining paths\n\u2022    nesting boxes for birds installed\n\u2022    next task is taking action to attract [3]               to the place\n\u2022    identifying types of [4]\n\u2022    building a new [5]\n\nForthcoming events\nSaturday\n\u2022    meet at Dunsmore Beach car park\n\u2022    walk across the sands and reach the [6]\n\u2022    take a picnic\n\u2022    wear appropriate [7]\n\nWoodwork session\n\u2022    suitable for [8]                    to participate in\n\u2022    making [9]                       out of wood\n\u2022    17th, from 10 a.m. to 3 p.m.\n\u2022    cost of session (no camping): [10] \u00A3"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "wall"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Buckworth Conservation Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Buckworth Conservation Group\nRegular activities\nBeach\n\u2022    making sure the beach does not have [1]                    on it\n\u2022    no [2]\nNature reserve\n\u2022    maintaining paths\n\u2022    nesting boxes for birds installed\n\u2022    next task is taking action to attract [3]               to the place\n\u2022    identifying types of [4]\n\u2022    building a new [5]\n\nForthcoming events\nSaturday\n\u2022    meet at Dunsmore Beach car park\n\u2022    walk across the sands and reach the [6]\n\u2022    take a picnic\n\u2022    wear appropriate [7]\n\nWoodwork session\n\u2022    suitable for [8]                    to participate in\n\u2022    making [9]                       out of wood\n\u2022    17th, from 10 a.m. to 3 p.m.\n\u2022    cost of session (no camping): [10] \u00A3"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "island"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Buckworth Conservation Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Buckworth Conservation Group\nRegular activities\nBeach\n\u2022    making sure the beach does not have [1]                    on it\n\u2022    no [2]\nNature reserve\n\u2022    maintaining paths\n\u2022    nesting boxes for birds installed\n\u2022    next task is taking action to attract [3]               to the place\n\u2022    identifying types of [4]\n\u2022    building a new [5]\n\nForthcoming events\nSaturday\n\u2022    meet at Dunsmore Beach car park\n\u2022    walk across the sands and reach the [6]\n\u2022    take a picnic\n\u2022    wear appropriate [7]\n\nWoodwork session\n\u2022    suitable for [8]                    to participate in\n\u2022    making [9]                       out of wood\n\u2022    17th, from 10 a.m. to 3 p.m.\n\u2022    cost of session (no camping): [10] \u00A3"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "boots"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Buckworth Conservation Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Buckworth Conservation Group\nRegular activities\nBeach\n\u2022    making sure the beach does not have [1]                    on it\n\u2022    no [2]\nNature reserve\n\u2022    maintaining paths\n\u2022    nesting boxes for birds installed\n\u2022    next task is taking action to attract [3]               to the place\n\u2022    identifying types of [4]\n\u2022    building a new [5]\n\nForthcoming events\nSaturday\n\u2022    meet at Dunsmore Beach car park\n\u2022    walk across the sands and reach the [6]\n\u2022    take a picnic\n\u2022    wear appropriate [7]\n\nWoodwork session\n\u2022    suitable for [8]                    to participate in\n\u2022    making [9]                       out of wood\n\u2022    17th, from 10 a.m. to 3 p.m.\n\u2022    cost of session (no camping): [10] \u00A3"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "beginners"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Buckworth Conservation Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Buckworth Conservation Group\nRegular activities\nBeach\n\u2022    making sure the beach does not have [1]                    on it\n\u2022    no [2]\nNature reserve\n\u2022    maintaining paths\n\u2022    nesting boxes for birds installed\n\u2022    next task is taking action to attract [3]               to the place\n\u2022    identifying types of [4]\n\u2022    building a new [5]\n\nForthcoming events\nSaturday\n\u2022    meet at Dunsmore Beach car park\n\u2022    walk across the sands and reach the [6]\n\u2022    take a picnic\n\u2022    wear appropriate [7]\n\nWoodwork session\n\u2022    suitable for [8]                    to participate in\n\u2022    making [9]                       out of wood\n\u2022    17th, from 10 a.m. to 3 p.m.\n\u2022    cost of session (no camping): [10] \u00A3"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "spoons"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Buckworth Conservation Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Buckworth Conservation Group\nRegular activities\nBeach\n\u2022    making sure the beach does not have [1]                    on it\n\u2022    no [2]\nNature reserve\n\u2022    maintaining paths\n\u2022    nesting boxes for birds installed\n\u2022    next task is taking action to attract [3]               to the place\n\u2022    identifying types of [4]\n\u2022    building a new [5]\n\nForthcoming events\nSaturday\n\u2022    meet at Dunsmore Beach car park\n\u2022    walk across the sands and reach the [6]\n\u2022    take a picnic\n\u2022    wear appropriate [7]\n\nWoodwork session\n\u2022    suitable for [8]                    to participate in\n\u2022    making [9]                       out of wood\n\u2022    17th, from 10 a.m. to 3 p.m.\n\u2022    cost of session (no camping): [10] \u00A3"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "35",
+                  "thirty five"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Boat trip round Tasmania",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "What is the maximum number of people who can stand on each side of the boat?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "9"
+                },
+                {
+                  "key": "B",
+                  "text": "15"
+                },
+                {
+                  "key": "C",
+                  "text": "18"
+                }
+              ],
+              "group": {
+                "id": "l-s2-11-14-11",
+                "instruction": "Choose the correct letter, A, B or C."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "What colour are the tour boats?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "dark red"
+                },
+                {
+                  "key": "B",
+                  "text": "jet black"
+                },
+                {
+                  "key": "C",
+                  "text": "light green"
+                }
+              ],
+              "group": {
+                "id": "l-s2-11-14-12",
+                "instruction": "Choose the correct letter, A, B or C."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "Which lunchbox is suitable for someone who doesn\u2019t eat meat or fish?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Lunchbox 1"
+                },
+                {
+                  "key": "B",
+                  "text": "Lunchbox 2"
+                },
+                {
+                  "key": "C",
+                  "text": "Lunchbox 3"
+                }
+              ],
+              "group": {
+                "id": "l-s2-11-14-13",
+                "instruction": "Choose the correct letter, A, B or C."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "What should people do with their litter?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "take it home"
+                },
+                {
+                  "key": "B",
+                  "text": "hand it to a member of staff"
+                },
+                {
+                  "key": "C",
+                  "text": "put it in the bins provided on the boat"
+                }
+              ],
+              "group": {
+                "id": "l-s2-11-14-14",
+                "instruction": "Choose the correct letter, A, B or C."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "multiple-select",
+              "prompt": "Which TWO features of the lighthouse does Lou mention?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "why it was built"
+                },
+                {
+                  "key": "B",
+                  "text": "who built it"
+                },
+                {
+                  "key": "C",
+                  "text": "how long it took to build"
+                },
+                {
+                  "key": "D",
+                  "text": "who staffed it"
+                },
+                {
+                  "key": "E",
+                  "text": "what it was built with"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-16",
+                "instruction": "Choose TWO letters, A\u2013E."
+              },
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "D"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "multiple-select",
+              "prompt": "Which TWO types of creature might come close to the boat?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "sea eagles"
+                },
+                {
+                  "key": "B",
+                  "text": "fur seals"
+                },
+                {
+                  "key": "C",
+                  "text": "dolphins"
+                },
+                {
+                  "key": "D",
+                  "text": "whales"
+                },
+                {
+                  "key": "E",
+                  "text": "penguins"
+                }
+              ],
+              "group": {
+                "id": "l-s2-17-18",
+                "instruction": "Choose TWO letters, A\u2013E."
+              },
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "C"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "multiple-select",
+              "prompt": "Which TWO points does Lou make about the caves?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Only large tourist boats can visit them."
+                },
+                {
+                  "key": "B",
+                  "text": "The entrances to them are often blocked."
+                },
+                {
+                  "key": "C",
+                  "text": "It is too dangerous for individuals to go near them."
+                },
+                {
+                  "key": "D",
+                  "text": "Someone will explain what is inside them."
+                },
+                {
+                  "key": "E",
+                  "text": "They cannot be reached on foot."
+                }
+              ],
+              "group": {
+                "id": "l-s2-19-20",
+                "instruction": "Choose TWO letters, A\u2013E."
+              },
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "D",
+                    "E"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Work experience for veterinary science students",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "What problem did both Diana and Tim have when arranging their work experience?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "making initial contact with suitable farms"
+                },
+                {
+                  "key": "B",
+                  "text": "organising transport to and from the farm"
+                },
+                {
+                  "key": "C",
+                  "text": "finding a placement for the required length of time"
+                }
+              ],
+              "group": {
+                "id": "l-s3-21-26-21",
+                "instruction": "Choose the correct letter, A, B or C."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "Tim was pleased to be able to help",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a lamb that had a broken leg."
+                },
+                {
+                  "key": "B",
+                  "text": "a sheep that was having difficulty giving birth."
+                },
+                {
+                  "key": "C",
+                  "text": "a newly born lamb that was having trouble feeding."
+                }
+              ],
+              "group": {
+                "id": "l-s3-21-26-22",
+                "instruction": "Choose the correct letter, A, B or C."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "Diana says the sheep on her farm",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "were of various different varieties."
+                },
+                {
+                  "key": "B",
+                  "text": "were mainly reared for their meat."
+                },
+                {
+                  "key": "C",
+                  "text": "had better quality wool than sheep on the hills."
+                }
+              ],
+              "group": {
+                "id": "l-s3-21-26-23",
+                "instruction": "Choose the correct letter, A, B or C."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "What did the students learn about adding supplements to chicken feed?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "These should only be given if specially needed."
+                },
+                {
+                  "key": "B",
+                  "text": "It is worth paying extra for the most effective ones."
+                },
+                {
+                  "key": "C",
+                  "text": "The amount given at one time should be limited."
+                }
+              ],
+              "group": {
+                "id": "l-s3-21-26-24",
+                "instruction": "Choose the correct letter, A, B or C."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "multiple-choice",
+              "prompt": "What happened when Diana was working with dairy cows?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "She identified some cows incorrectly."
+                },
+                {
+                  "key": "B",
+                  "text": "She accidentally threw some milk away."
+                },
+                {
+                  "key": "C",
+                  "text": "She made a mistake when storing milk."
+                }
+              ],
+              "group": {
+                "id": "l-s3-21-26-25",
+                "instruction": "Choose the correct letter, A, B or C."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "multiple-choice",
+              "prompt": "What did both farmers mention about vets and farming?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Vets are failing to cope with some aspects of animal health."
+                },
+                {
+                  "key": "B",
+                  "text": "There needs to be a fundamental change in the training of vets."
+                },
+                {
+                  "key": "C",
+                  "text": "Some jobs could be done by the farmer rather than by a vet."
+                }
+              ],
+              "group": {
+                "id": "l-s3-21-26-26",
+                "instruction": "Choose the correct letter, A, B or C."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Medical terminology",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Tim found this easier than expected."
+                },
+                {
+                  "key": "B",
+                  "text": "Tim thought this was not very clearly organised."
+                },
+                {
+                  "key": "C",
+                  "text": "Diana may do some further study on this."
+                },
+                {
+                  "key": "D",
+                  "text": "They both found the reading required for this was difficult."
+                },
+                {
+                  "key": "E",
+                  "text": "Tim was shocked at something he learned on this module."
+                },
+                {
+                  "key": "F",
+                  "text": "They were both surprised how little is known about some aspects of this."
+                }
+              ],
+              "group": {
+                "id": "l-s3-27-30",
+                "instruction": "Choose FOUR answers from the box and write the correct letter, A\u2013F, next to questions 27\u201330."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Diet and nutrition",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Tim found this easier than expected."
+                },
+                {
+                  "key": "B",
+                  "text": "Tim thought this was not very clearly organised."
+                },
+                {
+                  "key": "C",
+                  "text": "Diana may do some further study on this."
+                },
+                {
+                  "key": "D",
+                  "text": "They both found the reading required for this was difficult."
+                },
+                {
+                  "key": "E",
+                  "text": "Tim was shocked at something he learned on this module."
+                },
+                {
+                  "key": "F",
+                  "text": "They were both surprised how little is known about some aspects of this."
+                }
+              ],
+              "group": {
+                "id": "l-s3-27-30",
+                "instruction": "Choose FOUR answers from the box and write the correct letter, A\u2013F, next to questions 27\u201330."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Animal disease",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Tim found this easier than expected."
+                },
+                {
+                  "key": "B",
+                  "text": "Tim thought this was not very clearly organised."
+                },
+                {
+                  "key": "C",
+                  "text": "Diana may do some further study on this."
+                },
+                {
+                  "key": "D",
+                  "text": "They both found the reading required for this was difficult."
+                },
+                {
+                  "key": "E",
+                  "text": "Tim was shocked at something he learned on this module."
+                },
+                {
+                  "key": "F",
+                  "text": "They were both surprised how little is known about some aspects of this."
+                }
+              ],
+              "group": {
+                "id": "l-s3-27-30",
+                "instruction": "Choose FOUR answers from the box and write the correct letter, A\u2013F, next to questions 27\u201330."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Wildlife medication",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Tim found this easier than expected."
+                },
+                {
+                  "key": "B",
+                  "text": "Tim thought this was not very clearly organised."
+                },
+                {
+                  "key": "C",
+                  "text": "Diana may do some further study on this."
+                },
+                {
+                  "key": "D",
+                  "text": "They both found the reading required for this was difficult."
+                },
+                {
+                  "key": "E",
+                  "text": "Tim was shocked at something he learned on this module."
+                },
+                {
+                  "key": "F",
+                  "text": "They were both surprised how little is known about some aspects of this."
+                }
+              ],
+              "group": {
+                "id": "l-s3-27-30",
+                "instruction": "Choose FOUR answers from the box and write the correct letter, A\u2013F, next to questions 27\u201330."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Labyrinths",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Labyrinths",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Labyrinths\nDefinition\n\u2022   a winding spiral path leading to a central area\n\nLabyrinths compared with mazes\n\u2022   Mazes are a type of [31]\n    \u2212\t[32]                    is needed to navigate through a maze\n    \u2212\tthe word \u2018maze\u2019 is derived from a word meaning a feeling of [33]\n\u2022   Labyrinths represent a journey through life\n    \u2212\tthey have frequently been used in [34]                        and prayer\n\nEarly examples of the labyrinth spiral\n  Ancient carvings on [35]\n\u2022\t                                            have been found across\n      many cultures\n\u2022   The Pima, a Native American tribe, wove the symbol on baskets\n\u2022   Ancient Greeks used the symbol on [36]\n\nWalking labyrinths\n\u2022\tThe largest surviving example of a turf labyrinth once had a big\n       [37]                    at its centre\n\nLabyrinths nowadays\n\u2022\tBelieved to have a beneficial impact on mental and physical health,\n      e.g., walking a maze can reduce a person\u2019s [38]                    rate\n\u2022   Used in medical and health and fitness settings and also prisons\n\u2022   Popular with patients, visitors and staff in hospitals\n    \u2212\tpatients who can\u2019t walk can use \u2018finger labyrinths\u2019 made from [39]\n    \u2212\tresearch has shown that Alzheimer\u2019s sufferers experience\n       less [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "puzzle"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Labyrinths",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Labyrinths\nDefinition\n\u2022   a winding spiral path leading to a central area\n\nLabyrinths compared with mazes\n\u2022   Mazes are a type of [31]\n    \u2212\t[32]                    is needed to navigate through a maze\n    \u2212\tthe word \u2018maze\u2019 is derived from a word meaning a feeling of [33]\n\u2022   Labyrinths represent a journey through life\n    \u2212\tthey have frequently been used in [34]                        and prayer\n\nEarly examples of the labyrinth spiral\n  Ancient carvings on [35]\n\u2022\t                                            have been found across\n      many cultures\n\u2022   The Pima, a Native American tribe, wove the symbol on baskets\n\u2022   Ancient Greeks used the symbol on [36]\n\nWalking labyrinths\n\u2022\tThe largest surviving example of a turf labyrinth once had a big\n       [37]                    at its centre\n\nLabyrinths nowadays\n\u2022\tBelieved to have a beneficial impact on mental and physical health,\n      e.g., walking a maze can reduce a person\u2019s [38]                    rate\n\u2022   Used in medical and health and fitness settings and also prisons\n\u2022   Popular with patients, visitors and staff in hospitals\n    \u2212\tpatients who can\u2019t walk can use \u2018finger labyrinths\u2019 made from [39]\n    \u2212\tresearch has shown that Alzheimer\u2019s sufferers experience\n       less [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "logic"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Labyrinths",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Labyrinths\nDefinition\n\u2022   a winding spiral path leading to a central area\n\nLabyrinths compared with mazes\n\u2022   Mazes are a type of [31]\n    \u2212\t[32]                    is needed to navigate through a maze\n    \u2212\tthe word \u2018maze\u2019 is derived from a word meaning a feeling of [33]\n\u2022   Labyrinths represent a journey through life\n    \u2212\tthey have frequently been used in [34]                        and prayer\n\nEarly examples of the labyrinth spiral\n  Ancient carvings on [35]\n\u2022\t                                            have been found across\n      many cultures\n\u2022   The Pima, a Native American tribe, wove the symbol on baskets\n\u2022   Ancient Greeks used the symbol on [36]\n\nWalking labyrinths\n\u2022\tThe largest surviving example of a turf labyrinth once had a big\n       [37]                    at its centre\n\nLabyrinths nowadays\n\u2022\tBelieved to have a beneficial impact on mental and physical health,\n      e.g., walking a maze can reduce a person\u2019s [38]                    rate\n\u2022   Used in medical and health and fitness settings and also prisons\n\u2022   Popular with patients, visitors and staff in hospitals\n    \u2212\tpatients who can\u2019t walk can use \u2018finger labyrinths\u2019 made from [39]\n    \u2212\tresearch has shown that Alzheimer\u2019s sufferers experience\n       less [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "confusion"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Labyrinths",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Labyrinths\nDefinition\n\u2022   a winding spiral path leading to a central area\n\nLabyrinths compared with mazes\n\u2022   Mazes are a type of [31]\n    \u2212\t[32]                    is needed to navigate through a maze\n    \u2212\tthe word \u2018maze\u2019 is derived from a word meaning a feeling of [33]\n\u2022   Labyrinths represent a journey through life\n    \u2212\tthey have frequently been used in [34]                        and prayer\n\nEarly examples of the labyrinth spiral\n  Ancient carvings on [35]\n\u2022\t                                            have been found across\n      many cultures\n\u2022   The Pima, a Native American tribe, wove the symbol on baskets\n\u2022   Ancient Greeks used the symbol on [36]\n\nWalking labyrinths\n\u2022\tThe largest surviving example of a turf labyrinth once had a big\n       [37]                    at its centre\n\nLabyrinths nowadays\n\u2022\tBelieved to have a beneficial impact on mental and physical health,\n      e.g., walking a maze can reduce a person\u2019s [38]                    rate\n\u2022   Used in medical and health and fitness settings and also prisons\n\u2022   Popular with patients, visitors and staff in hospitals\n    \u2212\tpatients who can\u2019t walk can use \u2018finger labyrinths\u2019 made from [39]\n    \u2212\tresearch has shown that Alzheimer\u2019s sufferers experience\n       less [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "meditation"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Labyrinths",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Labyrinths\nDefinition\n\u2022   a winding spiral path leading to a central area\n\nLabyrinths compared with mazes\n\u2022   Mazes are a type of [31]\n    \u2212\t[32]                    is needed to navigate through a maze\n    \u2212\tthe word \u2018maze\u2019 is derived from a word meaning a feeling of [33]\n\u2022   Labyrinths represent a journey through life\n    \u2212\tthey have frequently been used in [34]                        and prayer\n\nEarly examples of the labyrinth spiral\n  Ancient carvings on [35]\n\u2022\t                                            have been found across\n      many cultures\n\u2022   The Pima, a Native American tribe, wove the symbol on baskets\n\u2022   Ancient Greeks used the symbol on [36]\n\nWalking labyrinths\n\u2022\tThe largest surviving example of a turf labyrinth once had a big\n       [37]                    at its centre\n\nLabyrinths nowadays\n\u2022\tBelieved to have a beneficial impact on mental and physical health,\n      e.g., walking a maze can reduce a person\u2019s [38]                    rate\n\u2022   Used in medical and health and fitness settings and also prisons\n\u2022   Popular with patients, visitors and staff in hospitals\n    \u2212\tpatients who can\u2019t walk can use \u2018finger labyrinths\u2019 made from [39]\n    \u2212\tresearch has shown that Alzheimer\u2019s sufferers experience\n       less [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "stone"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Labyrinths",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Labyrinths\nDefinition\n\u2022   a winding spiral path leading to a central area\n\nLabyrinths compared with mazes\n\u2022   Mazes are a type of [31]\n    \u2212\t[32]                    is needed to navigate through a maze\n    \u2212\tthe word \u2018maze\u2019 is derived from a word meaning a feeling of [33]\n\u2022   Labyrinths represent a journey through life\n    \u2212\tthey have frequently been used in [34]                        and prayer\n\nEarly examples of the labyrinth spiral\n  Ancient carvings on [35]\n\u2022\t                                            have been found across\n      many cultures\n\u2022   The Pima, a Native American tribe, wove the symbol on baskets\n\u2022   Ancient Greeks used the symbol on [36]\n\nWalking labyrinths\n\u2022\tThe largest surviving example of a turf labyrinth once had a big\n       [37]                    at its centre\n\nLabyrinths nowadays\n\u2022\tBelieved to have a beneficial impact on mental and physical health,\n      e.g., walking a maze can reduce a person\u2019s [38]                    rate\n\u2022   Used in medical and health and fitness settings and also prisons\n\u2022   Popular with patients, visitors and staff in hospitals\n    \u2212\tpatients who can\u2019t walk can use \u2018finger labyrinths\u2019 made from [39]\n    \u2212\tresearch has shown that Alzheimer\u2019s sufferers experience\n       less [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "coins"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Labyrinths",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Labyrinths\nDefinition\n\u2022   a winding spiral path leading to a central area\n\nLabyrinths compared with mazes\n\u2022   Mazes are a type of [31]\n    \u2212\t[32]                    is needed to navigate through a maze\n    \u2212\tthe word \u2018maze\u2019 is derived from a word meaning a feeling of [33]\n\u2022   Labyrinths represent a journey through life\n    \u2212\tthey have frequently been used in [34]                        and prayer\n\nEarly examples of the labyrinth spiral\n  Ancient carvings on [35]\n\u2022\t                                            have been found across\n      many cultures\n\u2022   The Pima, a Native American tribe, wove the symbol on baskets\n\u2022   Ancient Greeks used the symbol on [36]\n\nWalking labyrinths\n\u2022\tThe largest surviving example of a turf labyrinth once had a big\n       [37]                    at its centre\n\nLabyrinths nowadays\n\u2022\tBelieved to have a beneficial impact on mental and physical health,\n      e.g., walking a maze can reduce a person\u2019s [38]                    rate\n\u2022   Used in medical and health and fitness settings and also prisons\n\u2022   Popular with patients, visitors and staff in hospitals\n    \u2212\tpatients who can\u2019t walk can use \u2018finger labyrinths\u2019 made from [39]\n    \u2212\tresearch has shown that Alzheimer\u2019s sufferers experience\n       less [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tree"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Labyrinths",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Labyrinths\nDefinition\n\u2022   a winding spiral path leading to a central area\n\nLabyrinths compared with mazes\n\u2022   Mazes are a type of [31]\n    \u2212\t[32]                    is needed to navigate through a maze\n    \u2212\tthe word \u2018maze\u2019 is derived from a word meaning a feeling of [33]\n\u2022   Labyrinths represent a journey through life\n    \u2212\tthey have frequently been used in [34]                        and prayer\n\nEarly examples of the labyrinth spiral\n  Ancient carvings on [35]\n\u2022\t                                            have been found across\n      many cultures\n\u2022   The Pima, a Native American tribe, wove the symbol on baskets\n\u2022   Ancient Greeks used the symbol on [36]\n\nWalking labyrinths\n\u2022\tThe largest surviving example of a turf labyrinth once had a big\n       [37]                    at its centre\n\nLabyrinths nowadays\n\u2022\tBelieved to have a beneficial impact on mental and physical health,\n      e.g., walking a maze can reduce a person\u2019s [38]                    rate\n\u2022   Used in medical and health and fitness settings and also prisons\n\u2022   Popular with patients, visitors and staff in hospitals\n    \u2212\tpatients who can\u2019t walk can use \u2018finger labyrinths\u2019 made from [39]\n    \u2212\tresearch has shown that Alzheimer\u2019s sufferers experience\n       less [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "breathing"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Labyrinths",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Labyrinths\nDefinition\n\u2022   a winding spiral path leading to a central area\n\nLabyrinths compared with mazes\n\u2022   Mazes are a type of [31]\n    \u2212\t[32]                    is needed to navigate through a maze\n    \u2212\tthe word \u2018maze\u2019 is derived from a word meaning a feeling of [33]\n\u2022   Labyrinths represent a journey through life\n    \u2212\tthey have frequently been used in [34]                        and prayer\n\nEarly examples of the labyrinth spiral\n  Ancient carvings on [35]\n\u2022\t                                            have been found across\n      many cultures\n\u2022   The Pima, a Native American tribe, wove the symbol on baskets\n\u2022   Ancient Greeks used the symbol on [36]\n\nWalking labyrinths\n\u2022\tThe largest surviving example of a turf labyrinth once had a big\n       [37]                    at its centre\n\nLabyrinths nowadays\n\u2022\tBelieved to have a beneficial impact on mental and physical health,\n      e.g., walking a maze can reduce a person\u2019s [38]                    rate\n\u2022   Used in medical and health and fitness settings and also prisons\n\u2022   Popular with patients, visitors and staff in hospitals\n    \u2212\tpatients who can\u2019t walk can use \u2018finger labyrinths\u2019 made from [39]\n    \u2212\tresearch has shown that Alzheimer\u2019s sufferers experience\n       less [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "paper"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Labyrinths",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Labyrinths\nDefinition\n\u2022   a winding spiral path leading to a central area\n\nLabyrinths compared with mazes\n\u2022   Mazes are a type of [31]\n    \u2212\t[32]                    is needed to navigate through a maze\n    \u2212\tthe word \u2018maze\u2019 is derived from a word meaning a feeling of [33]\n\u2022   Labyrinths represent a journey through life\n    \u2212\tthey have frequently been used in [34]                        and prayer\n\nEarly examples of the labyrinth spiral\n  Ancient carvings on [35]\n\u2022\t                                            have been found across\n      many cultures\n\u2022   The Pima, a Native American tribe, wove the symbol on baskets\n\u2022   Ancient Greeks used the symbol on [36]\n\nWalking labyrinths\n\u2022\tThe largest surviving example of a turf labyrinth once had a big\n       [37]                    at its centre\n\nLabyrinths nowadays\n\u2022\tBelieved to have a beneficial impact on mental and physical health,\n      e.g., walking a maze can reduce a person\u2019s [38]                    rate\n\u2022   Used in medical and health and fitness settings and also prisons\n\u2022   Popular with patients, visitors and staff in hospitals\n    \u2212\tpatients who can\u2019t walk can use \u2018finger labyrinths\u2019 made from [39]\n    \u2212\tresearch has shown that Alzheimer\u2019s sufferers experience\n       less [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "anxiety"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

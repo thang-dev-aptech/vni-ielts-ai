@@ -1,0 +1,1360 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 19 \u2014 Test 1",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Hinchingbrooke Country Park",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-p1-1-10",
+                "title": "Hinchingbrooke Country Park",
+                "instruction": "Complete the notes below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Hinchingbrooke Country Park\nThe park\nArea: [1]\nHabitats: wetland, grassland and woodland\nWetland: lakes, ponds and a [2]\nWildlife includes birds, insects and animals\nSubjects studied in educational visits include\nScience: Children look at [3] about plants, etc.\nGeography: includes learning to use a [4] and compass\nHistory: changes in land use\nLeisure and tourism: mostly concentrates on the Park\u0027s [5]\nMusic: Children make [6] with natural materials, and experiment\nwith rhythm and speed.\nBenefits of outdoor educational visits\nThey give children a feeling of [7] that they may not have elsewhere.\nChildren learn new [8] and gain self-confidence.\nPractical issues\nCost per child: [9]\nAdults, such as [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "69",
+                  "sixty-nine"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-p1-1-10",
+                "title": "Hinchingbrooke Country Park",
+                "instruction": "Complete the notes below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Hinchingbrooke Country Park\nThe park\nArea: [1]\nHabitats: wetland, grassland and woodland\nWetland: lakes, ponds and a [2]\nWildlife includes birds, insects and animals\nSubjects studied in educational visits include\nScience: Children look at [3] about plants, etc.\nGeography: includes learning to use a [4] and compass\nHistory: changes in land use\nLeisure and tourism: mostly concentrates on the Park\u0027s [5]\nMusic: Children make [6] with natural materials, and experiment\nwith rhythm and speed.\nBenefits of outdoor educational visits\nThey give children a feeling of [7] that they may not have elsewhere.\nChildren learn new [8] and gain self-confidence.\nPractical issues\nCost per child: [9]\nAdults, such as [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "stream"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-p1-1-10",
+                "title": "Hinchingbrooke Country Park",
+                "instruction": "Complete the notes below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Hinchingbrooke Country Park\nThe park\nArea: [1]\nHabitats: wetland, grassland and woodland\nWetland: lakes, ponds and a [2]\nWildlife includes birds, insects and animals\nSubjects studied in educational visits include\nScience: Children look at [3] about plants, etc.\nGeography: includes learning to use a [4] and compass\nHistory: changes in land use\nLeisure and tourism: mostly concentrates on the Park\u0027s [5]\nMusic: Children make [6] with natural materials, and experiment\nwith rhythm and speed.\nBenefits of outdoor educational visits\nThey give children a feeling of [7] that they may not have elsewhere.\nChildren learn new [8] and gain self-confidence.\nPractical issues\nCost per child: [9]\nAdults, such as [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "data"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-p1-1-10",
+                "title": "Hinchingbrooke Country Park",
+                "instruction": "Complete the notes below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Hinchingbrooke Country Park\nThe park\nArea: [1]\nHabitats: wetland, grassland and woodland\nWetland: lakes, ponds and a [2]\nWildlife includes birds, insects and animals\nSubjects studied in educational visits include\nScience: Children look at [3] about plants, etc.\nGeography: includes learning to use a [4] and compass\nHistory: changes in land use\nLeisure and tourism: mostly concentrates on the Park\u0027s [5]\nMusic: Children make [6] with natural materials, and experiment\nwith rhythm and speed.\nBenefits of outdoor educational visits\nThey give children a feeling of [7] that they may not have elsewhere.\nChildren learn new [8] and gain self-confidence.\nPractical issues\nCost per child: [9]\nAdults, such as [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "map"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-p1-1-10",
+                "title": "Hinchingbrooke Country Park",
+                "instruction": "Complete the notes below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Hinchingbrooke Country Park\nThe park\nArea: [1]\nHabitats: wetland, grassland and woodland\nWetland: lakes, ponds and a [2]\nWildlife includes birds, insects and animals\nSubjects studied in educational visits include\nScience: Children look at [3] about plants, etc.\nGeography: includes learning to use a [4] and compass\nHistory: changes in land use\nLeisure and tourism: mostly concentrates on the Park\u0027s [5]\nMusic: Children make [6] with natural materials, and experiment\nwith rhythm and speed.\nBenefits of outdoor educational visits\nThey give children a feeling of [7] that they may not have elsewhere.\nChildren learn new [8] and gain self-confidence.\nPractical issues\nCost per child: [9]\nAdults, such as [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "visitors"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-p1-1-10",
+                "title": "Hinchingbrooke Country Park",
+                "instruction": "Complete the notes below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Hinchingbrooke Country Park\nThe park\nArea: [1]\nHabitats: wetland, grassland and woodland\nWetland: lakes, ponds and a [2]\nWildlife includes birds, insects and animals\nSubjects studied in educational visits include\nScience: Children look at [3] about plants, etc.\nGeography: includes learning to use a [4] and compass\nHistory: changes in land use\nLeisure and tourism: mostly concentrates on the Park\u0027s [5]\nMusic: Children make [6] with natural materials, and experiment\nwith rhythm and speed.\nBenefits of outdoor educational visits\nThey give children a feeling of [7] that they may not have elsewhere.\nChildren learn new [8] and gain self-confidence.\nPractical issues\nCost per child: [9]\nAdults, such as [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "sounds"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-p1-1-10",
+                "title": "Hinchingbrooke Country Park",
+                "instruction": "Complete the notes below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Hinchingbrooke Country Park\nThe park\nArea: [1]\nHabitats: wetland, grassland and woodland\nWetland: lakes, ponds and a [2]\nWildlife includes birds, insects and animals\nSubjects studied in educational visits include\nScience: Children look at [3] about plants, etc.\nGeography: includes learning to use a [4] and compass\nHistory: changes in land use\nLeisure and tourism: mostly concentrates on the Park\u0027s [5]\nMusic: Children make [6] with natural materials, and experiment\nwith rhythm and speed.\nBenefits of outdoor educational visits\nThey give children a feeling of [7] that they may not have elsewhere.\nChildren learn new [8] and gain self-confidence.\nPractical issues\nCost per child: [9]\nAdults, such as [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "freedom"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-p1-1-10",
+                "title": "Hinchingbrooke Country Park",
+                "instruction": "Complete the notes below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Hinchingbrooke Country Park\nThe park\nArea: [1]\nHabitats: wetland, grassland and woodland\nWetland: lakes, ponds and a [2]\nWildlife includes birds, insects and animals\nSubjects studied in educational visits include\nScience: Children look at [3] about plants, etc.\nGeography: includes learning to use a [4] and compass\nHistory: changes in land use\nLeisure and tourism: mostly concentrates on the Park\u0027s [5]\nMusic: Children make [6] with natural materials, and experiment\nwith rhythm and speed.\nBenefits of outdoor educational visits\nThey give children a feeling of [7] that they may not have elsewhere.\nChildren learn new [8] and gain self-confidence.\nPractical issues\nCost per child: [9]\nAdults, such as [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "\u00A9 skills"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-p1-1-10",
+                "title": "Hinchingbrooke Country Park",
+                "instruction": "Complete the notes below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Hinchingbrooke Country Park\nThe park\nArea: [1]\nHabitats: wetland, grassland and woodland\nWetland: lakes, ponds and a [2]\nWildlife includes birds, insects and animals\nSubjects studied in educational visits include\nScience: Children look at [3] about plants, etc.\nGeography: includes learning to use a [4] and compass\nHistory: changes in land use\nLeisure and tourism: mostly concentrates on the Park\u0027s [5]\nMusic: Children make [6] with natural materials, and experiment\nwith rhythm and speed.\nBenefits of outdoor educational visits\nThey give children a feeling of [7] that they may not have elsewhere.\nChildren learn new [8] and gain self-confidence.\nPractical issues\nCost per child: [9]\nAdults, such as [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "4.95"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-p1-1-10",
+                "title": "Hinchingbrooke Country Park",
+                "instruction": "Complete the notes below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Hinchingbrooke Country Park\nThe park\nArea: [1]\nHabitats: wetland, grassland and woodland\nWetland: lakes, ponds and a [2]\nWildlife includes birds, insects and animals\nSubjects studied in educational visits include\nScience: Children look at [3] about plants, etc.\nGeography: includes learning to use a [4] and compass\nHistory: changes in land use\nLeisure and tourism: mostly concentrates on the Park\u0027s [5]\nMusic: Children make [6] with natural materials, and experiment\nwith rhythm and speed.\nBenefits of outdoor educational visits\nThey give children a feeling of [7] that they may not have elsewhere.\nChildren learn new [8] and gain self-confidence.\nPractical issues\nCost per child: [9]\nAdults, such as [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "leaders"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Stanthorpe Twinning Association",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "During the visit to Malatte, in France, members especially enjoyed",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "going to a theme park."
+                },
+                {
+                  "key": "B",
+                  "text": "experiencing a river trip."
+                },
+                {
+                  "key": "C",
+                  "text": "visiting a cheese factory."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "What will happen in Stanthorpe to mark the 25th anniversary of the Twinning Association?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Atree will be planted."
+                },
+                {
+                  "key": "B",
+                  "text": "Agarden seat will be bought."
+                },
+                {
+                  "key": "C",
+                  "text": "A footbridge will be built."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "Which event raised most funds this year?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the film show"
+                },
+                {
+                  "key": "B",
+                  "text": "the pancake evening"
+                },
+                {
+                  "key": "C",
+                  "text": "the cookery demonstration"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "For the first evening with the French visitors host families are advised to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "take them for a walk round the town."
+                },
+                {
+                  "key": "B",
+                  "text": "goto a local restaurant."
+                },
+                {
+                  "key": "C",
+                  "text": "have a meal at home."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "On Saturday evening there will be the chance to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "listen to a concert."
+                },
+                {
+                  "key": "B",
+                  "text": "watch a match."
+                },
+                {
+                  "key": "C",
+                  "text": "take part in a competition."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "labelling",
+              "prompt": "Farm shop",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "l-p2-16-20",
+                "instruction": "Label the map below.\nWrite the correct letter, A-H, next to Questions 16-20.",
+                "title": "Farley House"
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "labelling",
+              "prompt": "Disabled entry",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "l-p2-16-20",
+                "instruction": "Label the map below.\nWrite the correct letter, A-H, next to Questions 16-20.",
+                "title": "Farley House"
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "labelling",
+              "prompt": "Adventure playground",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "l-p2-16-20",
+                "instruction": "Label the map below.\nWrite the correct letter, A-H, next to Questions 16-20.",
+                "title": "Farley House"
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "labelling",
+              "prompt": "Kitchen gardens",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "l-p2-16-20",
+                "instruction": "Label the map below.\nWrite the correct letter, A-H, next to Questions 16-20.",
+                "title": "Farley House"
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "labelling",
+              "prompt": "The Temple of the Four Winds",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                }
+              ],
+              "group": {
+                "id": "l-p2-16-20",
+                "instruction": "Label the map below.\nWrite the correct letter, A-H, next to Questions 16-20.",
+                "title": "Farley House"
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-select",
+              "prompt": "Which TWO things did Colin find most satisfying about his bread reuse project?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "receiving support from local restaurants"
+                },
+                {
+                  "key": "B",
+                  "text": "finding a good way to prevent waste"
+                },
+                {
+                  "key": "C",
+                  "text": "overcoming problems in a basic process"
+                },
+                {
+                  "key": "D",
+                  "text": "experimenting with designs and colours"
+                },
+                {
+                  "key": "E",
+                  "text": "learning how to apply 3-D printing"
+                }
+              ],
+              "marks": 2,
+              "group": {
+                "id": "l-p3-21-22",
+                "instruction": "Choose TWO letters, A-E."
+              },
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "D"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-select",
+              "prompt": "Which TWO ways do the students agree that touch-sensitive sensors for food labels could be developed in future?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "for use on medical products"
+                },
+                {
+                  "key": "B",
+                  "text": "to show that food is no longer fit to eat"
+                },
+                {
+                  "key": "C",
+                  "text": "for use with drinks as well as foods"
+                },
+                {
+                  "key": "D",
+                  "text": "to provide applications for blind people"
+                },
+                {
+                  "key": "E",
+                  "text": "to indicate the weight of certain foods"
+                }
+              ],
+              "marks": 2,
+              "group": {
+                "id": "l-p3-23-24",
+                "instruction": "Choose TWO letters, A-E."
+              },
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "Use of local products",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "This is only relevant to young people."
+                },
+                {
+                  "key": "B",
+                  "text": "This may have disappointing results."
+                },
+                {
+                  "key": "C",
+                  "text": "This already seems to be widespread."
+                },
+                {
+                  "key": "D",
+                  "text": "Retailers should do more to encourage this."
+                },
+                {
+                  "key": "E",
+                  "text": "More financial support is needed for this."
+                },
+                {
+                  "key": "F",
+                  "text": "Most people know little about this."
+                },
+                {
+                  "key": "G",
+                  "text": "There should be stricter regulations about this."
+                },
+                {
+                  "key": "H",
+                  "text": "This could be dangerous."
+                }
+              ],
+              "group": {
+                "id": "l-p3-25-30",
+                "instruction": "What is the students\u2019 opinion about each of the following food trends?\nChoose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30.",
+                "title": "Opinions"
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "Reduction in unnecessary packaging",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "This is only relevant to young people."
+                },
+                {
+                  "key": "B",
+                  "text": "This may have disappointing results."
+                },
+                {
+                  "key": "C",
+                  "text": "This already seems to be widespread."
+                },
+                {
+                  "key": "D",
+                  "text": "Retailers should do more to encourage this."
+                },
+                {
+                  "key": "E",
+                  "text": "More financial support is needed for this."
+                },
+                {
+                  "key": "F",
+                  "text": "Most people know little about this."
+                },
+                {
+                  "key": "G",
+                  "text": "There should be stricter regulations about this."
+                },
+                {
+                  "key": "H",
+                  "text": "This could be dangerous."
+                }
+              ],
+              "group": {
+                "id": "l-p3-25-30",
+                "instruction": "What is the students\u2019 opinion about each of the following food trends?\nChoose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30.",
+                "title": "Opinions"
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Gluten-free and lactose-free food",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "This is only relevant to young people."
+                },
+                {
+                  "key": "B",
+                  "text": "This may have disappointing results."
+                },
+                {
+                  "key": "C",
+                  "text": "This already seems to be widespread."
+                },
+                {
+                  "key": "D",
+                  "text": "Retailers should do more to encourage this."
+                },
+                {
+                  "key": "E",
+                  "text": "More financial support is needed for this."
+                },
+                {
+                  "key": "F",
+                  "text": "Most people know little about this."
+                },
+                {
+                  "key": "G",
+                  "text": "There should be stricter regulations about this."
+                },
+                {
+                  "key": "H",
+                  "text": "This could be dangerous."
+                }
+              ],
+              "group": {
+                "id": "l-p3-25-30",
+                "instruction": "What is the students\u2019 opinion about each of the following food trends?\nChoose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30.",
+                "title": "Opinions"
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Use of branded products related to celebrity chefs",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "This is only relevant to young people."
+                },
+                {
+                  "key": "B",
+                  "text": "This may have disappointing results."
+                },
+                {
+                  "key": "C",
+                  "text": "This already seems to be widespread."
+                },
+                {
+                  "key": "D",
+                  "text": "Retailers should do more to encourage this."
+                },
+                {
+                  "key": "E",
+                  "text": "More financial support is needed for this."
+                },
+                {
+                  "key": "F",
+                  "text": "Most people know little about this."
+                },
+                {
+                  "key": "G",
+                  "text": "There should be stricter regulations about this."
+                },
+                {
+                  "key": "H",
+                  "text": "This could be dangerous."
+                }
+              ],
+              "group": {
+                "id": "l-p3-25-30",
+                "instruction": "What is the students\u2019 opinion about each of the following food trends?\nChoose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30.",
+                "title": "Opinions"
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Development of \u2018ghost kitchens\u2019 for takeaway food",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "This is only relevant to young people."
+                },
+                {
+                  "key": "B",
+                  "text": "This may have disappointing results."
+                },
+                {
+                  "key": "C",
+                  "text": "This already seems to be widespread."
+                },
+                {
+                  "key": "D",
+                  "text": "Retailers should do more to encourage this."
+                },
+                {
+                  "key": "E",
+                  "text": "More financial support is needed for this."
+                },
+                {
+                  "key": "F",
+                  "text": "Most people know little about this."
+                },
+                {
+                  "key": "G",
+                  "text": "There should be stricter regulations about this."
+                },
+                {
+                  "key": "H",
+                  "text": "This could be dangerous."
+                }
+              ],
+              "group": {
+                "id": "l-p3-25-30",
+                "instruction": "What is the students\u2019 opinion about each of the following food trends?\nChoose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30.",
+                "title": "Opinions"
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Use of mushrooms for common health concerns",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "This is only relevant to young people."
+                },
+                {
+                  "key": "B",
+                  "text": "This may have disappointing results."
+                },
+                {
+                  "key": "C",
+                  "text": "This already seems to be widespread."
+                },
+                {
+                  "key": "D",
+                  "text": "Retailers should do more to encourage this."
+                },
+                {
+                  "key": "E",
+                  "text": "More financial support is needed for this."
+                },
+                {
+                  "key": "F",
+                  "text": "Most people know little about this."
+                },
+                {
+                  "key": "G",
+                  "text": "There should be stricter regulations about this."
+                },
+                {
+                  "key": "H",
+                  "text": "This could be dangerous."
+                }
+              ],
+              "group": {
+                "id": "l-p3-25-30",
+                "instruction": "What is the students\u2019 opinion about each of the following food trends?\nChoose SIX answers from the box and write the correct letter, A-H, next to Questions 25-30.",
+                "title": "Opinions"
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "C\u00E9ide Fields",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "C\u00E9ide Fields",
+                "instruction": "Complete the notes below.\nWrite ONE WORD ONLY for each answer.",
+                "text": "C\u00E9ide Fields\n\u2022 \u2014 an important Neolithic archaeological site in the northwest of Ireland\nDiscovery\n\u2022 In the 1930s, a local teacher realised that stones beneath the bog surface\nwere once [31]\n\u2022 His [32] became an archaeologist and undertook an\ninvestigation of the site:\n\u2014 a traditional method used by local people to dig for [33]\nwas used to identify where stones were located\n\u2014 carbon dating later proved the site was Neolithic.\n\u2022 Items are well preserved in the bog because of a lack of [34]\nNeolithic farmers\n\u2022 \u2014 Houses were [35] in shape and had a hole in the roof.\n\u2022 \u2014 Neolithic innovations include:\n\u2014 cooking indoors\n\u2014 pots used for storage and to make [36]\n\u2022 Each field at C\u00E9ide was large enough to support a big [37]\n\u2022 \u2014 The fields were probably used to restrict the grazing of animals \u2014 no\nevidence of structures to house them during [38]\nReasons for the decline in farming\n\u2022 A decline in [39] quality\n\u2022 An increase in [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "walls"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "C\u00E9ide Fields",
+                "instruction": "Complete the notes below.\nWrite ONE WORD ONLY for each answer.",
+                "text": "C\u00E9ide Fields\n\u2022 \u2014 an important Neolithic archaeological site in the northwest of Ireland\nDiscovery\n\u2022 In the 1930s, a local teacher realised that stones beneath the bog surface\nwere once [31]\n\u2022 His [32] became an archaeologist and undertook an\ninvestigation of the site:\n\u2014 a traditional method used by local people to dig for [33]\nwas used to identify where stones were located\n\u2014 carbon dating later proved the site was Neolithic.\n\u2022 Items are well preserved in the bog because of a lack of [34]\nNeolithic farmers\n\u2022 \u2014 Houses were [35] in shape and had a hole in the roof.\n\u2022 \u2014 Neolithic innovations include:\n\u2014 cooking indoors\n\u2014 pots used for storage and to make [36]\n\u2022 Each field at C\u00E9ide was large enough to support a big [37]\n\u2022 \u2014 The fields were probably used to restrict the grazing of animals \u2014 no\nevidence of structures to house them during [38]\nReasons for the decline in farming\n\u2022 A decline in [39] quality\n\u2022 An increase in [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "son"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "C\u00E9ide Fields",
+                "instruction": "Complete the notes below.\nWrite ONE WORD ONLY for each answer.",
+                "text": "C\u00E9ide Fields\n\u2022 \u2014 an important Neolithic archaeological site in the northwest of Ireland\nDiscovery\n\u2022 In the 1930s, a local teacher realised that stones beneath the bog surface\nwere once [31]\n\u2022 His [32] became an archaeologist and undertook an\ninvestigation of the site:\n\u2014 a traditional method used by local people to dig for [33]\nwas used to identify where stones were located\n\u2014 carbon dating later proved the site was Neolithic.\n\u2022 Items are well preserved in the bog because of a lack of [34]\nNeolithic farmers\n\u2022 \u2014 Houses were [35] in shape and had a hole in the roof.\n\u2022 \u2014 Neolithic innovations include:\n\u2014 cooking indoors\n\u2014 pots used for storage and to make [36]\n\u2022 Each field at C\u00E9ide was large enough to support a big [37]\n\u2022 \u2014 The fields were probably used to restrict the grazing of animals \u2014 no\nevidence of structures to house them during [38]\nReasons for the decline in farming\n\u2022 A decline in [39] quality\n\u2022 An increase in [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fuel"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "C\u00E9ide Fields",
+                "instruction": "Complete the notes below.\nWrite ONE WORD ONLY for each answer.",
+                "text": "C\u00E9ide Fields\n\u2022 \u2014 an important Neolithic archaeological site in the northwest of Ireland\nDiscovery\n\u2022 In the 1930s, a local teacher realised that stones beneath the bog surface\nwere once [31]\n\u2022 His [32] became an archaeologist and undertook an\ninvestigation of the site:\n\u2014 a traditional method used by local people to dig for [33]\nwas used to identify where stones were located\n\u2014 carbon dating later proved the site was Neolithic.\n\u2022 Items are well preserved in the bog because of a lack of [34]\nNeolithic farmers\n\u2022 \u2014 Houses were [35] in shape and had a hole in the roof.\n\u2022 \u2014 Neolithic innovations include:\n\u2014 cooking indoors\n\u2014 pots used for storage and to make [36]\n\u2022 Each field at C\u00E9ide was large enough to support a big [37]\n\u2022 \u2014 The fields were probably used to restrict the grazing of animals \u2014 no\nevidence of structures to house them during [38]\nReasons for the decline in farming\n\u2022 A decline in [39] quality\n\u2022 An increase in [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "oxygen"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "C\u00E9ide Fields",
+                "instruction": "Complete the notes below.\nWrite ONE WORD ONLY for each answer.",
+                "text": "C\u00E9ide Fields\n\u2022 \u2014 an important Neolithic archaeological site in the northwest of Ireland\nDiscovery\n\u2022 In the 1930s, a local teacher realised that stones beneath the bog surface\nwere once [31]\n\u2022 His [32] became an archaeologist and undertook an\ninvestigation of the site:\n\u2014 a traditional method used by local people to dig for [33]\nwas used to identify where stones were located\n\u2014 carbon dating later proved the site was Neolithic.\n\u2022 Items are well preserved in the bog because of a lack of [34]\nNeolithic farmers\n\u2022 \u2014 Houses were [35] in shape and had a hole in the roof.\n\u2022 \u2014 Neolithic innovations include:\n\u2014 cooking indoors\n\u2014 pots used for storage and to make [36]\n\u2022 Each field at C\u00E9ide was large enough to support a big [37]\n\u2022 \u2014 The fields were probably used to restrict the grazing of animals \u2014 no\nevidence of structures to house them during [38]\nReasons for the decline in farming\n\u2022 A decline in [39] quality\n\u2022 An increase in [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "rectangular"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "C\u00E9ide Fields",
+                "instruction": "Complete the notes below.\nWrite ONE WORD ONLY for each answer.",
+                "text": "C\u00E9ide Fields\n\u2022 \u2014 an important Neolithic archaeological site in the northwest of Ireland\nDiscovery\n\u2022 In the 1930s, a local teacher realised that stones beneath the bog surface\nwere once [31]\n\u2022 His [32] became an archaeologist and undertook an\ninvestigation of the site:\n\u2014 a traditional method used by local people to dig for [33]\nwas used to identify where stones were located\n\u2014 carbon dating later proved the site was Neolithic.\n\u2022 Items are well preserved in the bog because of a lack of [34]\nNeolithic farmers\n\u2022 \u2014 Houses were [35] in shape and had a hole in the roof.\n\u2022 \u2014 Neolithic innovations include:\n\u2014 cooking indoors\n\u2014 pots used for storage and to make [36]\n\u2022 Each field at C\u00E9ide was large enough to support a big [37]\n\u2022 \u2014 The fields were probably used to restrict the grazing of animals \u2014 no\nevidence of structures to house them during [38]\nReasons for the decline in farming\n\u2022 A decline in [39] quality\n\u2022 An increase in [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "lamps"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "C\u00E9ide Fields",
+                "instruction": "Complete the notes below.\nWrite ONE WORD ONLY for each answer.",
+                "text": "C\u00E9ide Fields\n\u2022 \u2014 an important Neolithic archaeological site in the northwest of Ireland\nDiscovery\n\u2022 In the 1930s, a local teacher realised that stones beneath the bog surface\nwere once [31]\n\u2022 His [32] became an archaeologist and undertook an\ninvestigation of the site:\n\u2014 a traditional method used by local people to dig for [33]\nwas used to identify where stones were located\n\u2014 carbon dating later proved the site was Neolithic.\n\u2022 Items are well preserved in the bog because of a lack of [34]\nNeolithic farmers\n\u2022 \u2014 Houses were [35] in shape and had a hole in the roof.\n\u2022 \u2014 Neolithic innovations include:\n\u2014 cooking indoors\n\u2014 pots used for storage and to make [36]\n\u2022 Each field at C\u00E9ide was large enough to support a big [37]\n\u2022 \u2014 The fields were probably used to restrict the grazing of animals \u2014 no\nevidence of structures to house them during [38]\nReasons for the decline in farming\n\u2022 A decline in [39] quality\n\u2022 An increase in [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "family"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "C\u00E9ide Fields",
+                "instruction": "Complete the notes below.\nWrite ONE WORD ONLY for each answer.",
+                "text": "C\u00E9ide Fields\n\u2022 \u2014 an important Neolithic archaeological site in the northwest of Ireland\nDiscovery\n\u2022 In the 1930s, a local teacher realised that stones beneath the bog surface\nwere once [31]\n\u2022 His [32] became an archaeologist and undertook an\ninvestigation of the site:\n\u2014 a traditional method used by local people to dig for [33]\nwas used to identify where stones were located\n\u2014 carbon dating later proved the site was Neolithic.\n\u2022 Items are well preserved in the bog because of a lack of [34]\nNeolithic farmers\n\u2022 \u2014 Houses were [35] in shape and had a hole in the roof.\n\u2022 \u2014 Neolithic innovations include:\n\u2014 cooking indoors\n\u2014 pots used for storage and to make [36]\n\u2022 Each field at C\u00E9ide was large enough to support a big [37]\n\u2022 \u2014 The fields were probably used to restrict the grazing of animals \u2014 no\nevidence of structures to house them during [38]\nReasons for the decline in farming\n\u2022 A decline in [39] quality\n\u2022 An increase in [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "winter"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "C\u00E9ide Fields",
+                "instruction": "Complete the notes below.\nWrite ONE WORD ONLY for each answer.",
+                "text": "C\u00E9ide Fields\n\u2022 \u2014 an important Neolithic archaeological site in the northwest of Ireland\nDiscovery\n\u2022 In the 1930s, a local teacher realised that stones beneath the bog surface\nwere once [31]\n\u2022 His [32] became an archaeologist and undertook an\ninvestigation of the site:\n\u2014 a traditional method used by local people to dig for [33]\nwas used to identify where stones were located\n\u2014 carbon dating later proved the site was Neolithic.\n\u2022 Items are well preserved in the bog because of a lack of [34]\nNeolithic farmers\n\u2022 \u2014 Houses were [35] in shape and had a hole in the roof.\n\u2022 \u2014 Neolithic innovations include:\n\u2014 cooking indoors\n\u2014 pots used for storage and to make [36]\n\u2022 Each field at C\u00E9ide was large enough to support a big [37]\n\u2022 \u2014 The fields were probably used to restrict the grazing of animals \u2014 no\nevidence of structures to house them during [38]\nReasons for the decline in farming\n\u2022 A decline in [39] quality\n\u2022 An increase in [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "soil"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "C\u00E9ide Fields",
+                "instruction": "Complete the notes below.\nWrite ONE WORD ONLY for each answer.",
+                "text": "C\u00E9ide Fields\n\u2022 \u2014 an important Neolithic archaeological site in the northwest of Ireland\nDiscovery\n\u2022 In the 1930s, a local teacher realised that stones beneath the bog surface\nwere once [31]\n\u2022 His [32] became an archaeologist and undertook an\ninvestigation of the site:\n\u2014 a traditional method used by local people to dig for [33]\nwas used to identify where stones were located\n\u2014 carbon dating later proved the site was Neolithic.\n\u2022 Items are well preserved in the bog because of a lack of [34]\nNeolithic farmers\n\u2022 \u2014 Houses were [35] in shape and had a hole in the roof.\n\u2022 \u2014 Neolithic innovations include:\n\u2014 cooking indoors\n\u2014 pots used for storage and to make [36]\n\u2022 Each field at C\u00E9ide was large enough to support a big [37]\n\u2022 \u2014 The fields were probably used to restrict the grazing of animals \u2014 no\nevidence of structures to house them during [38]\nReasons for the decline in farming\n\u2022 A decline in [39] quality\n\u2022 An increase in [40]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "rain"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

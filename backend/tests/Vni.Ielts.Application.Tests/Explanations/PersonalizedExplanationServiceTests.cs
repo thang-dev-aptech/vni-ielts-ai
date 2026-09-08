@@ -34,6 +34,174 @@ public sealed class PersonalizedExplanationServiceTests
     Assert.Equal(1, generator.CallCount);
   }
 
+  [Fact]
+  public async Task Translation_from_the_provider_reaches_the_view()
+  {
+    var generator = new CountingGenerator();
+    var store = new InMemoryPersonalizedExplanationStore();
+    var version = ReadingVersion();
+    var session = SubmittedSession(version);
+    var service = BuildService(generator, store, version, session);
+
+    var view = await service.RequestAsync(
+        new RequestPersonalizedExplanationCommand(session.UserId, session.Id, "q1", "op-1"),
+        default);
+
+    Assert.Equal("ready", view.State);
+    Assert.Equal("Câu hỏi: chọn một.", view.Explanation!.Translation);
+  }
+
+  [Fact]
+  public async Task The_request_carries_the_question_options_to_the_generator()
+  {
+    var generator = new CountingGenerator();
+    var store = new InMemoryPersonalizedExplanationStore();
+    var version = ReadingVersion(withOptions: true);
+    var session = SubmittedSession(version);
+    var service = BuildService(generator, store, version, session);
+
+    await service.RequestAsync(
+        new RequestPersonalizedExplanationCommand(session.UserId, session.Id, "q1", "op-1"),
+        default);
+
+    Assert.Equal("A. Alpha\nB. Beta", generator.LastRequest!.QuestionOptions);
+  }
+
+  /// <summary>
+  /// Past the cap the service returns the failed job without another provider
+  /// call, so the reason must say the cap was reached rather than invite a
+  /// retry the server will never run.
+  /// </summary>
+  [Fact]
+  public async Task After_the_attempt_cap_the_reason_says_so_and_no_provider_call_is_made()
+  {
+    var generator = new CountingGenerator { Fails = true };
+    var store = new InMemoryPersonalizedExplanationStore();
+    var version = ReadingVersion();
+    var session = SubmittedSession(version);
+    var service = BuildService(generator, store, version, session);
+
+    PersonalizedExplanationView? first = null;
+    for (var i = 0; i < PersonalizedExplanationService.MaxAttempts; i++)
+    {
+      var view = await service.RequestAsync(
+          new RequestPersonalizedExplanationCommand(session.UserId, session.Id, "q1", "op-1"),
+          default);
+      Assert.Equal("failed", view.State);
+      Assert.Equal(i + 1, view.Attempts);
+      first ??= view;
+    }
+
+    Assert.Equal(PersonalizedExplanationService.MaxAttempts, generator.CallCount);
+
+    var capped = await service.RequestAsync(
+        new RequestPersonalizedExplanationCommand(session.UserId, session.Id, "q1", "op-1"),
+        default);
+
+    Assert.Equal("failed", capped.State);
+    Assert.Equal(PersonalizedExplanationService.MaxAttempts, capped.Attempts);
+    Assert.Equal(PersonalizedExplanationService.MaxAttempts, generator.CallCount);
+    Assert.Equal("Đã thử 3 lần nhưng chưa tạo được giải thích cho câu này.", capped.Reason);
+
+    // Under the cap the message still invites a retry.
+    Assert.Contains("thử lại", first!.Reason);
+  }
+
+  [Fact]
+  public async Task A_job_left_running_by_a_dead_process_is_run_again_after_the_stale_window()
+  {
+    var generator = new CountingGenerator();
+    var store = new InMemoryPersonalizedExplanationStore();
+    var version = ReadingVersion();
+    var session = SubmittedSession(version);
+    var clock = new FixedClock();
+    var service = new PersonalizedExplanationService(
+        new FixedCatalogue(version), new FixedSessions(session),
+        new FixedAnswers(new Dictionary<string, string?> { ["q1"] = "A" }),
+        store, generator, clock);
+
+    var hash = ExplanationAnswerHash.Compute("A");
+    var dead = new PersonalizedExplanationJob(
+        "op-dead", session.Id, version.Id, "q1", hash,
+        ExplanationJobState.Running, null, null, Attempts: 1, null,
+        clock.UtcNow - TimeSpan.FromMinutes(1), null,
+        StartedAt: clock.UtcNow - TimeSpan.FromMinutes(1));
+    Assert.True(await store.TryInsertAsync(dead, default));
+
+    // Within the window it is believed to be busy and left alone.
+    var busy = await service.RequestAsync(
+        new RequestPersonalizedExplanationCommand(session.UserId, session.Id, "q1", "op-dead"),
+        default);
+    Assert.Equal("running", busy.State);
+    Assert.Equal(0, generator.CallCount);
+
+    // Past it, it is dead, and the request runs it.
+    clock.UtcNow += PersonalizedExplanationService.StaleRunningAfter + TimeSpan.FromSeconds(1);
+    var revived = await service.RequestAsync(
+        new RequestPersonalizedExplanationCommand(session.UserId, session.Id, "q1", "op-dead"),
+        default);
+    Assert.Equal("ready", revived.State);
+    Assert.Equal(2, revived.Attempts);
+    Assert.Equal(1, generator.CallCount);
+  }
+
+  [Fact]
+  public async Task An_aborted_request_does_not_leave_the_job_running()
+  {
+    var generator = new CountingGenerator { HonoursCancellation = true };
+    var store = new InMemoryPersonalizedExplanationStore();
+    var version = ReadingVersion();
+    var session = SubmittedSession(version);
+    var service = BuildService(generator, store, version, session);
+
+    using var aborted = new CancellationTokenSource();
+    aborted.Cancel();
+
+    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.RequestAsync(
+        new RequestPersonalizedExplanationCommand(session.UserId, session.Id, "q1", "op-1"),
+        aborted.Token));
+
+    var job = await store.FindByOperationAsync("op-1", default);
+    Assert.NotNull(job);
+    Assert.Equal(ExplanationJobState.Failed, job!.State);
+    Assert.Equal("EXPLANATION_REQUEST_ABORTED", job.Error);
+
+    // And the next request simply tries again.
+    var retried = await service.RequestAsync(
+        new RequestPersonalizedExplanationCommand(session.UserId, session.Id, "q1", "op-1"),
+        default);
+    Assert.Equal("ready", retried.State);
+  }
+
+  [Fact]
+  public void Statuses_pick_one_job_per_question_preferring_ready_then_newest()
+  {
+    var version = ReadingVersion();
+    var session = SubmittedSession(version);
+    var t0 = DateTimeOffset.UtcNow;
+    PersonalizedExplanationJob Job(string op, ExplanationJobState state, int attempts, DateTimeOffset at) =>
+        new(op, session.Id, version.Id, "q1", "hash-" + op, state, null, null, attempts, null, at, null, at);
+
+    // Two failed jobs and one ready one for the same question: ready wins.
+    var statuses = PersonalizedExplanationService.ProjectStatuses(version,
+    [
+      Job("op-1", ExplanationJobState.Failed, 3, t0),
+      Job("op-2", ExplanationJobState.Ready, 1, t0 - TimeSpan.FromMinutes(5)),
+      Job("op-3", ExplanationJobState.Failed, 1, t0 + TimeSpan.FromMinutes(1)),
+    ]);
+    var q1 = Assert.Single(statuses, s => s.QuestionId == "q1");
+    Assert.Equal("ready", q1.State);
+
+    // No ready job: the newest one is what the learner is waiting on.
+    statuses = PersonalizedExplanationService.ProjectStatuses(version,
+    [
+      Job("op-1", ExplanationJobState.Failed, 3, t0),
+      Job("op-3", ExplanationJobState.Running, 1, t0 + TimeSpan.FromMinutes(1)),
+    ]);
+    q1 = Assert.Single(statuses, s => s.QuestionId == "q1");
+    Assert.Equal("running", q1.State);
+  }
+
   private static PersonalizedExplanationService BuildService(
       CountingGenerator generator,
       InMemoryPersonalizedExplanationStore store,
@@ -49,10 +217,13 @@ public sealed class PersonalizedExplanationServiceTests
         new FixedClock());
   }
 
-  private static ExamVersion ReadingVersion()
+  private static ExamVersion ReadingVersion(bool withOptions = false)
   {
+    IReadOnlyList<QuestionOption> options = withOptions
+        ? [new QuestionOption("A", "Alpha"), new QuestionOption("B", "Beta")]
+        : [];
     var question = new Question(
-        "q1", 1, QuestionType.MultipleChoice, "Pick one", [], null,
+        "q1", 1, QuestionType.MultipleChoice, "Pick one", options, null,
         new AnswerKey([new AcceptedAnswer("B", null, null)], null));
 
     var part = new SectionPart(
@@ -84,18 +255,27 @@ public sealed class PersonalizedExplanationServiceTests
   private sealed class CountingGenerator : IReadingListeningExplanationGenerator
   {
     public int CallCount { get; private set; }
+    public bool Fails { get; init; }
+    public bool HonoursCancellation { get; init; }
+    public ExplanationGenerationRequest? LastRequest { get; private set; }
 
     public Task<ExplanationGenerationResult> GenerateAsync(
         ExplanationGenerationRequest request, CancellationToken ct)
     {
       CallCount++;
+      LastRequest = request;
+      if (HonoursCancellation) ct.ThrowIfCancellationRequested();
+      if (Fails)
+        return Task.FromResult(new ExplanationGenerationResult(false, null, null, "EXPLANATION_PROVIDER_FAILED"));
+
       return Task.FromResult(new ExplanationGenerationResult(
           true,
           """
           {
             "correctAnswer": "B",
             "shortReason": "Because the text says so.",
-            "evidence": ["sample passage evidence"]
+            "evidence": ["sample passage evidence"],
+            "translation": "Câu hỏi: chọn một."
           }
           """,
           new ExplanationProviderMetadata("test", "fixture", "v1", "req-1"),
@@ -196,6 +376,6 @@ public sealed class PersonalizedExplanationServiceTests
 
   private sealed class FixedClock : IClock
   {
-    public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
+    public DateTimeOffset UtcNow { get; set; } = DateTimeOffset.UtcNow;
   }
 }

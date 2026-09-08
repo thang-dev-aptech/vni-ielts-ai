@@ -1,0 +1,1339 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 18 \u2014 Test 4",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Job details from employment agency",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Job details from employment agency",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Role [1]\nLocation Fordham [2] Centre\n[3] Road, Fordham\nWork involves\n\u2022 dealing with enquiries\n\u2022 making [4] and reorganising them\n\u2022 maintaining the internal [5]\n\u2022 general administration\nRequirements\n\u2022 [6] (essential)\n\u2022 a calm and [7] manner\n\u2022 good IT skills\nOther information\n\u2022 [8] job \u2014 further opportunities may be available\n\u2022 hours: 7.45 a.m. to [9] p.m. Monday to Friday\n\u2022 [10] is available onsite"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "receptionist"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Job details from employment agency",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Role [1]\nLocation Fordham [2] Centre\n[3] Road, Fordham\nWork involves\n\u2022 dealing with enquiries\n\u2022 making [4] and reorganising them\n\u2022 maintaining the internal [5]\n\u2022 general administration\nRequirements\n\u2022 [6] (essential)\n\u2022 a calm and [7] manner\n\u2022 good IT skills\nOther information\n\u2022 [8] job \u2014 further opportunities may be available\n\u2022 hours: 7.45 a.m. to [9] p.m. Monday to Friday\n\u2022 [10] is available onsite"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Medical"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Job details from employment agency",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Role [1]\nLocation Fordham [2] Centre\n[3] Road, Fordham\nWork involves\n\u2022 dealing with enquiries\n\u2022 making [4] and reorganising them\n\u2022 maintaining the internal [5]\n\u2022 general administration\nRequirements\n\u2022 [6] (essential)\n\u2022 a calm and [7] manner\n\u2022 good IT skills\nOther information\n\u2022 [8] job \u2014 further opportunities may be available\n\u2022 hours: 7.45 a.m. to [9] p.m. Monday to Friday\n\u2022 [10] is available onsite"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Chastons"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Job details from employment agency",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Role [1]\nLocation Fordham [2] Centre\n[3] Road, Fordham\nWork involves\n\u2022 dealing with enquiries\n\u2022 making [4] and reorganising them\n\u2022 maintaining the internal [5]\n\u2022 general administration\nRequirements\n\u2022 [6] (essential)\n\u2022 a calm and [7] manner\n\u2022 good IT skills\nOther information\n\u2022 [8] job \u2014 further opportunities may be available\n\u2022 hours: 7.45 a.m. to [9] p.m. Monday to Friday\n\u2022 [10] is available onsite"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "appointments"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Job details from employment agency",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Role [1]\nLocation Fordham [2] Centre\n[3] Road, Fordham\nWork involves\n\u2022 dealing with enquiries\n\u2022 making [4] and reorganising them\n\u2022 maintaining the internal [5]\n\u2022 general administration\nRequirements\n\u2022 [6] (essential)\n\u2022 a calm and [7] manner\n\u2022 good IT skills\nOther information\n\u2022 [8] job \u2014 further opportunities may be available\n\u2022 hours: 7.45 a.m. to [9] p.m. Monday to Friday\n\u2022 [10] is available onsite"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "database"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Job details from employment agency",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Role [1]\nLocation Fordham [2] Centre\n[3] Road, Fordham\nWork involves\n\u2022 dealing with enquiries\n\u2022 making [4] and reorganising them\n\u2022 maintaining the internal [5]\n\u2022 general administration\nRequirements\n\u2022 [6] (essential)\n\u2022 a calm and [7] manner\n\u2022 good IT skills\nOther information\n\u2022 [8] job \u2014 further opportunities may be available\n\u2022 hours: 7.45 a.m. to [9] p.m. Monday to Friday\n\u2022 [10] is available onsite"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "experience"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Job details from employment agency",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Role [1]\nLocation Fordham [2] Centre\n[3] Road, Fordham\nWork involves\n\u2022 dealing with enquiries\n\u2022 making [4] and reorganising them\n\u2022 maintaining the internal [5]\n\u2022 general administration\nRequirements\n\u2022 [6] (essential)\n\u2022 a calm and [7] manner\n\u2022 good IT skills\nOther information\n\u2022 [8] job \u2014 further opportunities may be available\n\u2022 hours: 7.45 a.m. to [9] p.m. Monday to Friday\n\u2022 [10] is available onsite"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "confident"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Job details from employment agency",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Role [1]\nLocation Fordham [2] Centre\n[3] Road, Fordham\nWork involves\n\u2022 dealing with enquiries\n\u2022 making [4] and reorganising them\n\u2022 maintaining the internal [5]\n\u2022 general administration\nRequirements\n\u2022 [6] (essential)\n\u2022 a calm and [7] manner\n\u2022 good IT skills\nOther information\n\u2022 [8] job \u2014 further opportunities may be available\n\u2022 hours: 7.45 a.m. to [9] p.m. Monday to Friday\n\u2022 [10] is available onsite"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "temporary"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Job details from employment agency",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Role [1]\nLocation Fordham [2] Centre\n[3] Road, Fordham\nWork involves\n\u2022 dealing with enquiries\n\u2022 making [4] and reorganising them\n\u2022 maintaining the internal [5]\n\u2022 general administration\nRequirements\n\u2022 [6] (essential)\n\u2022 a calm and [7] manner\n\u2022 good IT skills\nOther information\n\u2022 [8] job \u2014 further opportunities may be available\n\u2022 hours: 7.45 a.m. to [9] p.m. Monday to Friday\n\u2022 [10] is available onsite"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "1.15"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Job details from employment agency",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Role [1]\nLocation Fordham [2] Centre\n[3] Road, Fordham\nWork involves\n\u2022 dealing with enquiries\n\u2022 making [4] and reorganising them\n\u2022 maintaining the internal [5]\n\u2022 general administration\nRequirements\n\u2022 [6] (essential)\n\u2022 a calm and [7] manner\n\u2022 good IT skills\nOther information\n\u2022 [8] job \u2014 further opportunities may be available\n\u2022 hours: 7.45 a.m. to [9] p.m. Monday to Friday\n\u2022 [10] is available onsite"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "parking"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Museum visit",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "The museum building was originally",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a factory."
+                },
+                {
+                  "key": "B",
+                  "text": "a private home."
+                },
+                {
+                  "key": "C",
+                  "text": "a hall of residence."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "The university uses part of the museum building as",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "teaching rooms."
+                },
+                {
+                  "key": "B",
+                  "text": "a research library."
+                },
+                {
+                  "key": "C",
+                  "text": "administration offices."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "What does the guide say about the entrance fee?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Visitors decide whether or not they wish to pay."
+                },
+                {
+                  "key": "B",
+                  "text": "Only children and students receive a discount."
+                },
+                {
+                  "key": "C",
+                  "text": "The museum charges extra for special exhibitions."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "What are visitors advised to leave in the cloakroom?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "cameras"
+                },
+                {
+                  "key": "B",
+                  "text": "coats"
+                },
+                {
+                  "key": "C",
+                  "text": "bags"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "Four Seasons",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Parents must supervise their children."
+                },
+                {
+                  "key": "B",
+                  "text": "There are new things to see."
+                },
+                {
+                  "key": "C",
+                  "text": "It is closed today."
+                },
+                {
+                  "key": "D",
+                  "text": "This is only for school groups."
+                },
+                {
+                  "key": "E",
+                  "text": "There is a quiz for visitors."
+                },
+                {
+                  "key": "F",
+                  "text": "It features something created by students."
+                },
+                {
+                  "key": "G",
+                  "text": "An expert is here today."
+                },
+                {
+                  "key": "H",
+                  "text": "There is a one-way system."
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does the speaker give about each of the following areas of the museum? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Farmhouse Kitchen",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Parents must supervise their children."
+                },
+                {
+                  "key": "B",
+                  "text": "There are new things to see."
+                },
+                {
+                  "key": "C",
+                  "text": "It is closed today."
+                },
+                {
+                  "key": "D",
+                  "text": "This is only for school groups."
+                },
+                {
+                  "key": "E",
+                  "text": "There is a quiz for visitors."
+                },
+                {
+                  "key": "F",
+                  "text": "It features something created by students."
+                },
+                {
+                  "key": "G",
+                  "text": "An expert is here today."
+                },
+                {
+                  "key": "H",
+                  "text": "There is a one-way system."
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does the speaker give about each of the following areas of the museum? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "A Year on the Farm",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Parents must supervise their children."
+                },
+                {
+                  "key": "B",
+                  "text": "There are new things to see."
+                },
+                {
+                  "key": "C",
+                  "text": "It is closed today."
+                },
+                {
+                  "key": "D",
+                  "text": "This is only for school groups."
+                },
+                {
+                  "key": "E",
+                  "text": "There is a quiz for visitors."
+                },
+                {
+                  "key": "F",
+                  "text": "It features something created by students."
+                },
+                {
+                  "key": "G",
+                  "text": "An expert is here today."
+                },
+                {
+                  "key": "H",
+                  "text": "There is a one-way system."
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does the speaker give about each of the following areas of the museum? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Wagon Walk",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Parents must supervise their children."
+                },
+                {
+                  "key": "B",
+                  "text": "There are new things to see."
+                },
+                {
+                  "key": "C",
+                  "text": "It is closed today."
+                },
+                {
+                  "key": "D",
+                  "text": "This is only for school groups."
+                },
+                {
+                  "key": "E",
+                  "text": "There is a quiz for visitors."
+                },
+                {
+                  "key": "F",
+                  "text": "It features something created by students."
+                },
+                {
+                  "key": "G",
+                  "text": "An expert is here today."
+                },
+                {
+                  "key": "H",
+                  "text": "There is a one-way system."
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does the speaker give about each of the following areas of the museum? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Bees are Magic",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Parents must supervise their children."
+                },
+                {
+                  "key": "B",
+                  "text": "There are new things to see."
+                },
+                {
+                  "key": "C",
+                  "text": "It is closed today."
+                },
+                {
+                  "key": "D",
+                  "text": "This is only for school groups."
+                },
+                {
+                  "key": "E",
+                  "text": "There is a quiz for visitors."
+                },
+                {
+                  "key": "F",
+                  "text": "It features something created by students."
+                },
+                {
+                  "key": "G",
+                  "text": "An expert is here today."
+                },
+                {
+                  "key": "H",
+                  "text": "There is a one-way system."
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does the speaker give about each of the following areas of the museum? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "The Pond",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Parents must supervise their children."
+                },
+                {
+                  "key": "B",
+                  "text": "There are new things to see."
+                },
+                {
+                  "key": "C",
+                  "text": "It is closed today."
+                },
+                {
+                  "key": "D",
+                  "text": "This is only for school groups."
+                },
+                {
+                  "key": "E",
+                  "text": "There is a quiz for visitors."
+                },
+                {
+                  "key": "F",
+                  "text": "It features something created by students."
+                },
+                {
+                  "key": "G",
+                  "text": "An expert is here today."
+                },
+                {
+                  "key": "H",
+                  "text": "There is a one-way system."
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does the speaker give about each of the following areas of the museum? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Origami video discussion",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-select",
+              "prompt": "Which TWO educational skills were shown in the video of children doing origami?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "solving problems"
+                },
+                {
+                  "key": "B",
+                  "text": "following instructions"
+                },
+                {
+                  "key": "C",
+                  "text": "working cooperatively"
+                },
+                {
+                  "key": "D",
+                  "text": "learning through play"
+                },
+                {
+                  "key": "E",
+                  "text": "developing hand-eye coordination"
+                }
+              ],
+              "group": {
+                "id": "l-s3-21-22",
+                "instruction": "Choose TWO letters, A-E."
+              },
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "D"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "matching",
+              "prompt": "Sid",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "demonstrated independence"
+                },
+                {
+                  "key": "B",
+                  "text": "asked for teacher support"
+                },
+                {
+                  "key": "C",
+                  "text": "developed a competitive attitude"
+                },
+                {
+                  "key": "D",
+                  "text": "seemed to find the activity calming"
+                },
+                {
+                  "key": "E",
+                  "text": "seemed pleased with the results"
+                },
+                {
+                  "key": "F",
+                  "text": "seemed confused"
+                },
+                {
+                  "key": "G",
+                  "text": "seemed to find the activity easy"
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which comment do the students make about each of the following children in the video? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 23-27."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "matching",
+              "prompt": "Jack",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "demonstrated independence"
+                },
+                {
+                  "key": "B",
+                  "text": "asked for teacher support"
+                },
+                {
+                  "key": "C",
+                  "text": "developed a competitive attitude"
+                },
+                {
+                  "key": "D",
+                  "text": "seemed to find the activity calming"
+                },
+                {
+                  "key": "E",
+                  "text": "seemed pleased with the results"
+                },
+                {
+                  "key": "F",
+                  "text": "seemed confused"
+                },
+                {
+                  "key": "G",
+                  "text": "seemed to find the activity easy"
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which comment do the students make about each of the following children in the video? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 23-27."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "Naomi",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "demonstrated independence"
+                },
+                {
+                  "key": "B",
+                  "text": "asked for teacher support"
+                },
+                {
+                  "key": "C",
+                  "text": "developed a competitive attitude"
+                },
+                {
+                  "key": "D",
+                  "text": "seemed to find the activity calming"
+                },
+                {
+                  "key": "E",
+                  "text": "seemed pleased with the results"
+                },
+                {
+                  "key": "F",
+                  "text": "seemed confused"
+                },
+                {
+                  "key": "G",
+                  "text": "seemed to find the activity easy"
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which comment do the students make about each of the following children in the video? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 23-27."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "Anya",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "demonstrated independence"
+                },
+                {
+                  "key": "B",
+                  "text": "asked for teacher support"
+                },
+                {
+                  "key": "C",
+                  "text": "developed a competitive attitude"
+                },
+                {
+                  "key": "D",
+                  "text": "seemed to find the activity calming"
+                },
+                {
+                  "key": "E",
+                  "text": "seemed pleased with the results"
+                },
+                {
+                  "key": "F",
+                  "text": "seemed confused"
+                },
+                {
+                  "key": "G",
+                  "text": "seemed to find the activity easy"
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which comment do the students make about each of the following children in the video? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 23-27."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Zara",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "demonstrated independence"
+                },
+                {
+                  "key": "B",
+                  "text": "asked for teacher support"
+                },
+                {
+                  "key": "C",
+                  "text": "developed a competitive attitude"
+                },
+                {
+                  "key": "D",
+                  "text": "seemed to find the activity calming"
+                },
+                {
+                  "key": "E",
+                  "text": "seemed pleased with the results"
+                },
+                {
+                  "key": "F",
+                  "text": "seemed confused"
+                },
+                {
+                  "key": "G",
+                  "text": "seemed to find the activity easy"
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which comment do the students make about each of the following children in the video? Choose FIVE answers from the box and write the correct letter, A-G, next to Questions 23-27."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "multiple-choice",
+              "prompt": "Before starting an origami activity in class, the students think it is important for the teacher to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "make models that demonstrate the different stages."
+                },
+                {
+                  "key": "B",
+                  "text": "check children understand the terminology involved."
+                },
+                {
+                  "key": "C",
+                  "text": "tell children not to worry if they find the activity difficult."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "The students agree that some teachers might be unwilling to use origami in class because",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "they may not think that crafts are important."
+                },
+                {
+                  "key": "B",
+                  "text": "they may not have the necessary skills."
+                },
+                {
+                  "key": "C",
+                  "text": "they may worry that it will take up too much time."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "Why do the students decide to use origami in their maths teaching practice?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "to correct a particular misunderstanding"
+                },
+                {
+                  "key": "B",
+                  "text": "to set a challenge"
+                },
+                {
+                  "key": "C",
+                  "text": "to introduce a new concept"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Victor Hugo",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Victor Hugo",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "His novel, Les Mis\u00E9rables\n\u2022 It has been adapted for theatre and cinema.\n\u2022 We know more about its overall [31] than about its author.\nHis early career\n\u2022 In Paris, his career was successful and he led the Romantic movement.\n\u2022 He spoke publicly about social issues, such as [32] and education.\n\u2022 Napoleon III disliked his views and exiled him.\nHis exile from France\n\u2022 Victor Hugo had to live elsewhere in [33].\n\u2022 He used his income from the sale of some [34] he had written to buy a house on Guernsey.\nHis house on Guernsey\n\u2022 Victor Hugo lived in this house until the end of the Empire in France.\n\u2022 The ground floor contains portraits, [35] and tapestries that he valued.\n\u2022 He bought cheap [36] made of wood and turned this into beautiful wall carvings.\n\u2022 The first floor consists of furnished areas with wallpaper and [37] that have a Chinese design.\n\u2022 The library still contains many of his favourite books.\n\u2022 He wrote in a room at the top of the house that had a view of the [38].\n\u2022 He entertained other writers as well as poor [39] in his house.\n\u2022 Victor Hugo\u0027s [40] gave ownership of the house to the city of Paris in 1927."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "plot"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Victor Hugo",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "His novel, Les Mis\u00E9rables\n\u2022 It has been adapted for theatre and cinema.\n\u2022 We know more about its overall [31] than about its author.\nHis early career\n\u2022 In Paris, his career was successful and he led the Romantic movement.\n\u2022 He spoke publicly about social issues, such as [32] and education.\n\u2022 Napoleon III disliked his views and exiled him.\nHis exile from France\n\u2022 Victor Hugo had to live elsewhere in [33].\n\u2022 He used his income from the sale of some [34] he had written to buy a house on Guernsey.\nHis house on Guernsey\n\u2022 Victor Hugo lived in this house until the end of the Empire in France.\n\u2022 The ground floor contains portraits, [35] and tapestries that he valued.\n\u2022 He bought cheap [36] made of wood and turned this into beautiful wall carvings.\n\u2022 The first floor consists of furnished areas with wallpaper and [37] that have a Chinese design.\n\u2022 The library still contains many of his favourite books.\n\u2022 He wrote in a room at the top of the house that had a view of the [38].\n\u2022 He entertained other writers as well as poor [39] in his house.\n\u2022 Victor Hugo\u0027s [40] gave ownership of the house to the city of Paris in 1927."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "poverty ."
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Victor Hugo",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "His novel, Les Mis\u00E9rables\n\u2022 It has been adapted for theatre and cinema.\n\u2022 We know more about its overall [31] than about its author.\nHis early career\n\u2022 In Paris, his career was successful and he led the Romantic movement.\n\u2022 He spoke publicly about social issues, such as [32] and education.\n\u2022 Napoleon III disliked his views and exiled him.\nHis exile from France\n\u2022 Victor Hugo had to live elsewhere in [33].\n\u2022 He used his income from the sale of some [34] he had written to buy a house on Guernsey.\nHis house on Guernsey\n\u2022 Victor Hugo lived in this house until the end of the Empire in France.\n\u2022 The ground floor contains portraits, [35] and tapestries that he valued.\n\u2022 He bought cheap [36] made of wood and turned this into beautiful wall carvings.\n\u2022 The first floor consists of furnished areas with wallpaper and [37] that have a Chinese design.\n\u2022 The library still contains many of his favourite books.\n\u2022 He wrote in a room at the top of the house that had a view of the [38].\n\u2022 He entertained other writers as well as poor [39] in his house.\n\u2022 Victor Hugo\u0027s [40] gave ownership of the house to the city of Paris in 1927."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Europe"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Victor Hugo",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "His novel, Les Mis\u00E9rables\n\u2022 It has been adapted for theatre and cinema.\n\u2022 We know more about its overall [31] than about its author.\nHis early career\n\u2022 In Paris, his career was successful and he led the Romantic movement.\n\u2022 He spoke publicly about social issues, such as [32] and education.\n\u2022 Napoleon III disliked his views and exiled him.\nHis exile from France\n\u2022 Victor Hugo had to live elsewhere in [33].\n\u2022 He used his income from the sale of some [34] he had written to buy a house on Guernsey.\nHis house on Guernsey\n\u2022 Victor Hugo lived in this house until the end of the Empire in France.\n\u2022 The ground floor contains portraits, [35] and tapestries that he valued.\n\u2022 He bought cheap [36] made of wood and turned this into beautiful wall carvings.\n\u2022 The first floor consists of furnished areas with wallpaper and [37] that have a Chinese design.\n\u2022 The library still contains many of his favourite books.\n\u2022 He wrote in a room at the top of the house that had a view of the [38].\n\u2022 He entertained other writers as well as poor [39] in his house.\n\u2022 Victor Hugo\u0027s [40] gave ownership of the house to the city of Paris in 1927."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "poetry"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Victor Hugo",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "His novel, Les Mis\u00E9rables\n\u2022 It has been adapted for theatre and cinema.\n\u2022 We know more about its overall [31] than about its author.\nHis early career\n\u2022 In Paris, his career was successful and he led the Romantic movement.\n\u2022 He spoke publicly about social issues, such as [32] and education.\n\u2022 Napoleon III disliked his views and exiled him.\nHis exile from France\n\u2022 Victor Hugo had to live elsewhere in [33].\n\u2022 He used his income from the sale of some [34] he had written to buy a house on Guernsey.\nHis house on Guernsey\n\u2022 Victor Hugo lived in this house until the end of the Empire in France.\n\u2022 The ground floor contains portraits, [35] and tapestries that he valued.\n\u2022 He bought cheap [36] made of wood and turned this into beautiful wall carvings.\n\u2022 The first floor consists of furnished areas with wallpaper and [37] that have a Chinese design.\n\u2022 The library still contains many of his favourite books.\n\u2022 He wrote in a room at the top of the house that had a view of the [38].\n\u2022 He entertained other writers as well as poor [39] in his house.\n\u2022 Victor Hugo\u0027s [40] gave ownership of the house to the city of Paris in 1927."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "drawings"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Victor Hugo",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "His novel, Les Mis\u00E9rables\n\u2022 It has been adapted for theatre and cinema.\n\u2022 We know more about its overall [31] than about its author.\nHis early career\n\u2022 In Paris, his career was successful and he led the Romantic movement.\n\u2022 He spoke publicly about social issues, such as [32] and education.\n\u2022 Napoleon III disliked his views and exiled him.\nHis exile from France\n\u2022 Victor Hugo had to live elsewhere in [33].\n\u2022 He used his income from the sale of some [34] he had written to buy a house on Guernsey.\nHis house on Guernsey\n\u2022 Victor Hugo lived in this house until the end of the Empire in France.\n\u2022 The ground floor contains portraits, [35] and tapestries that he valued.\n\u2022 He bought cheap [36] made of wood and turned this into beautiful wall carvings.\n\u2022 The first floor consists of furnished areas with wallpaper and [37] that have a Chinese design.\n\u2022 The library still contains many of his favourite books.\n\u2022 He wrote in a room at the top of the house that had a view of the [38].\n\u2022 He entertained other writers as well as poor [39] in his house.\n\u2022 Victor Hugo\u0027s [40] gave ownership of the house to the city of Paris in 1927."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "furniture"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Victor Hugo",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "His novel, Les Mis\u00E9rables\n\u2022 It has been adapted for theatre and cinema.\n\u2022 We know more about its overall [31] than about its author.\nHis early career\n\u2022 In Paris, his career was successful and he led the Romantic movement.\n\u2022 He spoke publicly about social issues, such as [32] and education.\n\u2022 Napoleon III disliked his views and exiled him.\nHis exile from France\n\u2022 Victor Hugo had to live elsewhere in [33].\n\u2022 He used his income from the sale of some [34] he had written to buy a house on Guernsey.\nHis house on Guernsey\n\u2022 Victor Hugo lived in this house until the end of the Empire in France.\n\u2022 The ground floor contains portraits, [35] and tapestries that he valued.\n\u2022 He bought cheap [36] made of wood and turned this into beautiful wall carvings.\n\u2022 The first floor consists of furnished areas with wallpaper and [37] that have a Chinese design.\n\u2022 The library still contains many of his favourite books.\n\u2022 He wrote in a room at the top of the house that had a view of the [38].\n\u2022 He entertained other writers as well as poor [39] in his house.\n\u2022 Victor Hugo\u0027s [40] gave ownership of the house to the city of Paris in 1927."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "lamps"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Victor Hugo",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "His novel, Les Mis\u00E9rables\n\u2022 It has been adapted for theatre and cinema.\n\u2022 We know more about its overall [31] than about its author.\nHis early career\n\u2022 In Paris, his career was successful and he led the Romantic movement.\n\u2022 He spoke publicly about social issues, such as [32] and education.\n\u2022 Napoleon III disliked his views and exiled him.\nHis exile from France\n\u2022 Victor Hugo had to live elsewhere in [33].\n\u2022 He used his income from the sale of some [34] he had written to buy a house on Guernsey.\nHis house on Guernsey\n\u2022 Victor Hugo lived in this house until the end of the Empire in France.\n\u2022 The ground floor contains portraits, [35] and tapestries that he valued.\n\u2022 He bought cheap [36] made of wood and turned this into beautiful wall carvings.\n\u2022 The first floor consists of furnished areas with wallpaper and [37] that have a Chinese design.\n\u2022 The library still contains many of his favourite books.\n\u2022 He wrote in a room at the top of the house that had a view of the [38].\n\u2022 He entertained other writers as well as poor [39] in his house.\n\u2022 Victor Hugo\u0027s [40] gave ownership of the house to the city of Paris in 1927."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "harbour",
+                  "harbor : ;"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Victor Hugo",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "His novel, Les Mis\u00E9rables\n\u2022 It has been adapted for theatre and cinema.\n\u2022 We know more about its overall [31] than about its author.\nHis early career\n\u2022 In Paris, his career was successful and he led the Romantic movement.\n\u2022 He spoke publicly about social issues, such as [32] and education.\n\u2022 Napoleon III disliked his views and exiled him.\nHis exile from France\n\u2022 Victor Hugo had to live elsewhere in [33].\n\u2022 He used his income from the sale of some [34] he had written to buy a house on Guernsey.\nHis house on Guernsey\n\u2022 Victor Hugo lived in this house until the end of the Empire in France.\n\u2022 The ground floor contains portraits, [35] and tapestries that he valued.\n\u2022 He bought cheap [36] made of wood and turned this into beautiful wall carvings.\n\u2022 The first floor consists of furnished areas with wallpaper and [37] that have a Chinese design.\n\u2022 The library still contains many of his favourite books.\n\u2022 He wrote in a room at the top of the house that had a view of the [38].\n\u2022 He entertained other writers as well as poor [39] in his house.\n\u2022 Victor Hugo\u0027s [40] gave ownership of the house to the city of Paris in 1927."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "children"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Victor Hugo",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "His novel, Les Mis\u00E9rables\n\u2022 It has been adapted for theatre and cinema.\n\u2022 We know more about its overall [31] than about its author.\nHis early career\n\u2022 In Paris, his career was successful and he led the Romantic movement.\n\u2022 He spoke publicly about social issues, such as [32] and education.\n\u2022 Napoleon III disliked his views and exiled him.\nHis exile from France\n\u2022 Victor Hugo had to live elsewhere in [33].\n\u2022 He used his income from the sale of some [34] he had written to buy a house on Guernsey.\nHis house on Guernsey\n\u2022 Victor Hugo lived in this house until the end of the Empire in France.\n\u2022 The ground floor contains portraits, [35] and tapestries that he valued.\n\u2022 He bought cheap [36] made of wood and turned this into beautiful wall carvings.\n\u2022 The first floor consists of furnished areas with wallpaper and [37] that have a Chinese design.\n\u2022 The library still contains many of his favourite books.\n\u2022 He wrote in a room at the top of the house that had a view of the [38].\n\u2022 He entertained other writers as well as poor [39] in his house.\n\u2022 Victor Hugo\u0027s [40] gave ownership of the house to the city of Paris in 1927."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "relatives"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

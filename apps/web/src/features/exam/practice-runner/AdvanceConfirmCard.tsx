@@ -104,8 +104,8 @@ export function AdvanceConfirmCard({
         </h2>
 
         <p className="prun-card-summary" id={bodyId}>
-          Đã trả lời <span className="num">{answered}</span>/{total} ·{' '}
-          Chưa trả lời <span className="num">{unanswered}</span> ·{' '}
+          Đã trả lời <span className="num">{answered}</span>/{total} · Chưa trả lời{' '}
+          <span className="num">{unanswered}</span> ·{' '}
           <span className="advance-save-status">{saveStatusText}</span>
         </p>
 

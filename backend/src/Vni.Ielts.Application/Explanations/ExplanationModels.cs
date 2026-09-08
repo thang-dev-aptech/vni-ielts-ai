@@ -13,7 +13,8 @@ public sealed record ValidatedExplanation(
     string CorrectAnswer,
     string ShortReason,
     IReadOnlyList<string> Evidence,
-    string? CommonMistake);
+    string? CommonMistake,
+    string? Translation = null);
 
 /// <summary>Wire shape the provider must return. No band field exists.</summary>
 public sealed class ExplanationProviderOutput
@@ -29,6 +30,13 @@ public sealed class ExplanationProviderOutput
 
     [JsonPropertyName("commonMistake")]
     public string? CommonMistake { get; init; }
+
+    /// <summary>
+    /// Vietnamese rendering of the question (and its options) plus the meaning
+    /// of the key evidence. Optional — an older recorded fixture omits it.
+    /// </summary>
+    [JsonPropertyName("translation")]
+    public string? Translation { get; init; }
 }
 
 public sealed record ExplanationValidationResult(

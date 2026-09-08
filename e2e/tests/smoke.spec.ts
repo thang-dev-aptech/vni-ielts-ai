@@ -19,7 +19,7 @@ test('the app loads, a learner signs in, and a Full Test opens on Reading', asyn
   const sitting = await startFullTest(request, learner.session.accessToken);
   expect(sitting.current.module).toBe('reading');
 
-  await signIn(page, learner, `/students/session/${sitting.sessionId}`);
+  await signIn(page, learner, `/exam/${sitting.sessionId}`);
 
   // The passage and its first question, drawn from the paper the API served.
   await expect(page.getByText('Surveying the Lower Delta')).toBeVisible();

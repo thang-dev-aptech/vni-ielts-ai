@@ -1,0 +1,1382 @@
+{
+  "formatVersion": "1.0",
+  "title": "VOL 9 \u2014 Test 2 (Reading \u002B Listening)",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Poppy Reserve",
+          "body": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "The poppies will be at their best at the end of the 1 \u2026\u2026\u2026\u2026..",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve\n\u2022 The poppies will be at their best at the end of the 1 \u2026\u2026\u2026\u2026..   .\n\u2022 The poppies on the hills are 2 \u2026\u2026\u2026\u2026. in colour.\nThe reserve is located to the 3 \u2026\u2026\u2026\u2026\u2026.  of Lakeside.\n\u2022 The best time for photography is mid-afternoon.\n\u2022 Wear 4 \u2026\u2026\u2026.. because of rattlesnakes.\n\u2022 The reserve is a 5 \u2026\u2026\u2026\u2026. park."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "month"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "The poppies on the hills are 2 \u2026\u2026\u2026\u2026. in colour.",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve\n\u2022 The poppies will be at their best at the end of the 1 \u2026\u2026\u2026\u2026..   .\n\u2022 The poppies on the hills are 2 \u2026\u2026\u2026\u2026. in colour.\nThe reserve is located to the 3 \u2026\u2026\u2026\u2026\u2026.  of Lakeside.\n\u2022 The best time for photography is mid-afternoon.\n\u2022 Wear 4 \u2026\u2026\u2026.. because of rattlesnakes.\n\u2022 The reserve is a 5 \u2026\u2026\u2026\u2026. park."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "orange"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "The reserve is located to the 3 \u2026\u2026\u2026\u2026\u2026.  of Lakeside.",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve\n\u2022 The poppies will be at their best at the end of the 1 \u2026\u2026\u2026\u2026..   .\n\u2022 The poppies on the hills are 2 \u2026\u2026\u2026\u2026. in colour.\nThe reserve is located to the 3 \u2026\u2026\u2026\u2026\u2026.  of Lakeside.\n\u2022 The best time for photography is mid-afternoon.\n\u2022 Wear 4 \u2026\u2026\u2026.. because of rattlesnakes.\n\u2022 The reserve is a 5 \u2026\u2026\u2026\u2026. park."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "east"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Wear 4 \u2026\u2026\u2026.. because of rattlesnakes.",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve\n\u2022 The poppies will be at their best at the end of the 1 \u2026\u2026\u2026\u2026..   .\n\u2022 The poppies on the hills are 2 \u2026\u2026\u2026\u2026. in colour.\nThe reserve is located to the 3 \u2026\u2026\u2026\u2026\u2026.  of Lakeside.\n\u2022 The best time for photography is mid-afternoon.\n\u2022 Wear 4 \u2026\u2026\u2026.. because of rattlesnakes.\n\u2022 The reserve is a 5 \u2026\u2026\u2026\u2026. park."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "trousers"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "The reserve is a 5 \u2026\u2026\u2026\u2026. park.",
+              "group": {
+                "id": "r-notes-1-5",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Poppy Reserve\nAlmond Valley Poppy Reserve is a nature reserve\n\u2022 The poppies will be at their best at the end of the 1 \u2026\u2026\u2026\u2026..   .\n\u2022 The poppies on the hills are 2 \u2026\u2026\u2026\u2026. in colour.\nThe reserve is located to the 3 \u2026\u2026\u2026\u2026\u2026.  of Lakeside.\n\u2022 The best time for photography is mid-afternoon.\n\u2022 Wear 4 \u2026\u2026\u2026.. because of rattlesnakes.\n\u2022 The reserve is a 5 \u2026\u2026\u2026\u2026. park."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "state"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "The 6 \u2026\u2026.. tour",
+              "group": {
+                "id": "r-table-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tour\nStart time\nDuration\nHighlights\nPhotography\nThe 6 \u2026\u2026.. tour\nEvery hour from 7:30 a.m.\n30 minutes\nViewpoints, film and the  7 \u2026\u2026...\nPanoramic pictures\nThe wildflower tour\nEvery two hours from 8:00 a.m.\n8 \u2026\u2026\u2026\nPoppy, cream cup, and stage\nClose- up tips\nThe wildlife tour\n9 \u2026\u2026\u2026 a.m. or 7:00 p.m.\n1.5 hours\nCoyote, quail, roadrunners\nBring tripod and a 10 \u2026\u2026.. lens"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "general"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Viewpoints, film and the  7 \u2026\u2026...",
+              "group": {
+                "id": "r-table-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tour\nStart time\nDuration\nHighlights\nPhotography\nThe 6 \u2026\u2026.. tour\nEvery hour from 7:30 a.m.\n30 minutes\nViewpoints, film and the  7 \u2026\u2026...\nPanoramic pictures\nThe wildflower tour\nEvery two hours from 8:00 a.m.\n8 \u2026\u2026\u2026\nPoppy, cream cup, and stage\nClose- up tips\nThe wildlife tour\n9 \u2026\u2026\u2026 a.m. or 7:00 p.m.\n1.5 hours\nCoyote, quail, roadrunners\nBring tripod and a 10 \u2026\u2026.. lens"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "museum"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "8 \u2026\u2026\u2026",
+              "group": {
+                "id": "r-table-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tour\nStart time\nDuration\nHighlights\nPhotography\nThe 6 \u2026\u2026.. tour\nEvery hour from 7:30 a.m.\n30 minutes\nViewpoints, film and the  7 \u2026\u2026...\nPanoramic pictures\nThe wildflower tour\nEvery two hours from 8:00 a.m.\n8 \u2026\u2026\u2026\nPoppy, cream cup, and stage\nClose- up tips\nThe wildlife tour\n9 \u2026\u2026\u2026 a.m. or 7:00 p.m.\n1.5 hours\nCoyote, quail, roadrunners\nBring tripod and a 10 \u2026\u2026.. lens"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "one hour,1 hour"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "9 \u2026\u2026\u2026 a.m. or 7:00 p.m.",
+              "group": {
+                "id": "r-table-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tour\nStart time\nDuration\nHighlights\nPhotography\nThe 6 \u2026\u2026.. tour\nEvery hour from 7:30 a.m.\n30 minutes\nViewpoints, film and the  7 \u2026\u2026...\nPanoramic pictures\nThe wildflower tour\nEvery two hours from 8:00 a.m.\n8 \u2026\u2026\u2026\nPoppy, cream cup, and stage\nClose- up tips\nThe wildlife tour\n9 \u2026\u2026\u2026 a.m. or 7:00 p.m.\n1.5 hours\nCoyote, quail, roadrunners\nBring tripod and a 10 \u2026\u2026.. lens"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "5.30,5:30"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Bring tripod and a 10 \u2026\u2026.. lens",
+              "group": {
+                "id": "r-table-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Tour\nStart time\nDuration\nHighlights\nPhotography\nThe 6 \u2026\u2026.. tour\nEvery hour from 7:30 a.m.\n30 minutes\nViewpoints, film and the  7 \u2026\u2026...\nPanoramic pictures\nThe wildflower tour\nEvery two hours from 8:00 a.m.\n8 \u2026\u2026\u2026\nPoppy, cream cup, and stage\nClose- up tips\nThe wildlife tour\n9 \u2026\u2026\u2026 a.m. or 7:00 p.m.\n1.5 hours\nCoyote, quail, roadrunners\nBring tripod and a 10 \u2026\u2026.. lens"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "zoom"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Re-creating life in an Iron Age village",
+          "body": "Re-creating life in an Iron Age village",
+          "questions": [
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "Jim says that in the Iron Age village",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "he is sometimes cold at night."
+                },
+                {
+                  "key": "B",
+                  "text": "he always gets up early."
+                },
+                {
+                  "key": "C",
+                  "text": "he has time to himself."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "What does Jim say about the food they eat in the village?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It takes time to prepare."
+                },
+                {
+                  "key": "B",
+                  "text": "It is difficult to get used to."
+                },
+                {
+                  "key": "C",
+                  "text": "It has to be eaten quickly."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "Jim says that at the evening meal",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "they are sometimes too tired to eat."
+                },
+                {
+                  "key": "B",
+                  "text": "they mainly have fruit and berries."
+                },
+                {
+                  "key": "C",
+                  "text": "they talk about what they\u0027ve done."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "The most important job for the blacksmiths is",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "to mend broken tools and implements."
+                },
+                {
+                  "key": "B",
+                  "text": "to maintain a good source of heat."
+                },
+                {
+                  "key": "C",
+                  "text": "to collect sufficient firewood."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "Jim likes the fact that in the village, people",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "do varied activities."
+                },
+                {
+                  "key": "B",
+                  "text": "share their knowledge."
+                },
+                {
+                  "key": "C",
+                  "text": "get a lot of exercise."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Mark centre of planned house with a 16 \u2026\u2026\u2026\u2026",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bone"
+                },
+                {
+                  "key": "B",
+                  "text": "different"
+                },
+                {
+                  "key": "C",
+                  "text": "equal"
+                },
+                {
+                  "key": "D",
+                  "text": "elm"
+                },
+                {
+                  "key": "E",
+                  "text": "hazel"
+                },
+                {
+                  "key": "F",
+                  "text": "iron"
+                },
+                {
+                  "key": "G",
+                  "text": "peg"
+                },
+                {
+                  "key": "H",
+                  "text": "roof"
+                },
+                {
+                  "key": "I",
+                  "text": "scaffold"
+                }
+              ],
+              "group": {
+                "id": "r-flowchart-16-20",
+                "instruction": "Choose FIVE correct answers from the box, A-I, next to questions 16-20.",
+                "text": "MAKING AN IRON AGE ROUNDHOUSE\nMark centre of planned house with a 16 \u2026\u2026\u2026\u2026\n\u2193\nMark out circle for outer boundary\n\u2193\nDig ground using tools made from 17 \u2026\u2026\u2026..\n\u2193\nInsert wall posts (Iron Age builders preferred wood from oak trees)\n\u2193\nSlot more stakes into upright posts\n\u2193\nInsert centre post and build a wooden 18 \u2026\u2026\u2026\u2026  around it\n\u2193\nAdd main supporting beams and ring beams\n\u2193\nComplete roof framework using 19 \u2026\u2026\u2026\u2026  wood rods\n\u2193\nCover roof with reed bundles of 20 \u2026\u2026\u2026\u2026 lengths\n\u2193\nDaub with mixture of clay, dung and straw"
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Dig ground using tools made from 17 \u2026\u2026\u2026..",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bone"
+                },
+                {
+                  "key": "B",
+                  "text": "different"
+                },
+                {
+                  "key": "C",
+                  "text": "equal"
+                },
+                {
+                  "key": "D",
+                  "text": "elm"
+                },
+                {
+                  "key": "E",
+                  "text": "hazel"
+                },
+                {
+                  "key": "F",
+                  "text": "iron"
+                },
+                {
+                  "key": "G",
+                  "text": "peg"
+                },
+                {
+                  "key": "H",
+                  "text": "roof"
+                },
+                {
+                  "key": "I",
+                  "text": "scaffold"
+                }
+              ],
+              "group": {
+                "id": "r-flowchart-16-20",
+                "instruction": "Choose FIVE correct answers from the box, A-I, next to questions 16-20.",
+                "text": "MAKING AN IRON AGE ROUNDHOUSE\nMark centre of planned house with a 16 \u2026\u2026\u2026\u2026\n\u2193\nMark out circle for outer boundary\n\u2193\nDig ground using tools made from 17 \u2026\u2026\u2026..\n\u2193\nInsert wall posts (Iron Age builders preferred wood from oak trees)\n\u2193\nSlot more stakes into upright posts\n\u2193\nInsert centre post and build a wooden 18 \u2026\u2026\u2026\u2026  around it\n\u2193\nAdd main supporting beams and ring beams\n\u2193\nComplete roof framework using 19 \u2026\u2026\u2026\u2026  wood rods\n\u2193\nCover roof with reed bundles of 20 \u2026\u2026\u2026\u2026 lengths\n\u2193\nDaub with mixture of clay, dung and straw"
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Insert centre post and build a wooden 18 \u2026\u2026\u2026\u2026  around it",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bone"
+                },
+                {
+                  "key": "B",
+                  "text": "different"
+                },
+                {
+                  "key": "C",
+                  "text": "equal"
+                },
+                {
+                  "key": "D",
+                  "text": "elm"
+                },
+                {
+                  "key": "E",
+                  "text": "hazel"
+                },
+                {
+                  "key": "F",
+                  "text": "iron"
+                },
+                {
+                  "key": "G",
+                  "text": "peg"
+                },
+                {
+                  "key": "H",
+                  "text": "roof"
+                },
+                {
+                  "key": "I",
+                  "text": "scaffold"
+                }
+              ],
+              "group": {
+                "id": "r-flowchart-16-20",
+                "instruction": "Choose FIVE correct answers from the box, A-I, next to questions 16-20.",
+                "text": "MAKING AN IRON AGE ROUNDHOUSE\nMark centre of planned house with a 16 \u2026\u2026\u2026\u2026\n\u2193\nMark out circle for outer boundary\n\u2193\nDig ground using tools made from 17 \u2026\u2026\u2026..\n\u2193\nInsert wall posts (Iron Age builders preferred wood from oak trees)\n\u2193\nSlot more stakes into upright posts\n\u2193\nInsert centre post and build a wooden 18 \u2026\u2026\u2026\u2026  around it\n\u2193\nAdd main supporting beams and ring beams\n\u2193\nComplete roof framework using 19 \u2026\u2026\u2026\u2026  wood rods\n\u2193\nCover roof with reed bundles of 20 \u2026\u2026\u2026\u2026 lengths\n\u2193\nDaub with mixture of clay, dung and straw"
+              },
+              "answerKey": {
+                "accepted": [
+                  "I"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Complete roof framework using 19 \u2026\u2026\u2026\u2026  wood rods",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bone"
+                },
+                {
+                  "key": "B",
+                  "text": "different"
+                },
+                {
+                  "key": "C",
+                  "text": "equal"
+                },
+                {
+                  "key": "D",
+                  "text": "elm"
+                },
+                {
+                  "key": "E",
+                  "text": "hazel"
+                },
+                {
+                  "key": "F",
+                  "text": "iron"
+                },
+                {
+                  "key": "G",
+                  "text": "peg"
+                },
+                {
+                  "key": "H",
+                  "text": "roof"
+                },
+                {
+                  "key": "I",
+                  "text": "scaffold"
+                }
+              ],
+              "group": {
+                "id": "r-flowchart-16-20",
+                "instruction": "Choose FIVE correct answers from the box, A-I, next to questions 16-20.",
+                "text": "MAKING AN IRON AGE ROUNDHOUSE\nMark centre of planned house with a 16 \u2026\u2026\u2026\u2026\n\u2193\nMark out circle for outer boundary\n\u2193\nDig ground using tools made from 17 \u2026\u2026\u2026..\n\u2193\nInsert wall posts (Iron Age builders preferred wood from oak trees)\n\u2193\nSlot more stakes into upright posts\n\u2193\nInsert centre post and build a wooden 18 \u2026\u2026\u2026\u2026  around it\n\u2193\nAdd main supporting beams and ring beams\n\u2193\nComplete roof framework using 19 \u2026\u2026\u2026\u2026  wood rods\n\u2193\nCover roof with reed bundles of 20 \u2026\u2026\u2026\u2026 lengths\n\u2193\nDaub with mixture of clay, dung and straw"
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "Cover roof with reed bundles of 20 \u2026\u2026\u2026\u2026 lengths",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "bone"
+                },
+                {
+                  "key": "B",
+                  "text": "different"
+                },
+                {
+                  "key": "C",
+                  "text": "equal"
+                },
+                {
+                  "key": "D",
+                  "text": "elm"
+                },
+                {
+                  "key": "E",
+                  "text": "hazel"
+                },
+                {
+                  "key": "F",
+                  "text": "iron"
+                },
+                {
+                  "key": "G",
+                  "text": "peg"
+                },
+                {
+                  "key": "H",
+                  "text": "roof"
+                },
+                {
+                  "key": "I",
+                  "text": "scaffold"
+                }
+              ],
+              "group": {
+                "id": "r-flowchart-16-20",
+                "instruction": "Choose FIVE correct answers from the box, A-I, next to questions 16-20.",
+                "text": "MAKING AN IRON AGE ROUNDHOUSE\nMark centre of planned house with a 16 \u2026\u2026\u2026\u2026\n\u2193\nMark out circle for outer boundary\n\u2193\nDig ground using tools made from 17 \u2026\u2026\u2026..\n\u2193\nInsert wall posts (Iron Age builders preferred wood from oak trees)\n\u2193\nSlot more stakes into upright posts\n\u2193\nInsert centre post and build a wooden 18 \u2026\u2026\u2026\u2026  around it\n\u2193\nAdd main supporting beams and ring beams\n\u2193\nComplete roof framework using 19 \u2026\u2026\u2026\u2026  wood rods\n\u2193\nCover roof with reed bundles of 20 \u2026\u2026\u2026\u2026 lengths\n\u2193\nDaub with mixture of clay, dung and straw"
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Presentation on how jobs might change in the future",
+          "body": "Presentation on how jobs might change in the future",
+          "questions": [
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "What do the students find surprising about the way that complaints were dealt with at the call centre?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the way that customers responded to it"
+                },
+                {
+                  "key": "B",
+                  "text": "the employees\u2019s lack of enthusiasm for it"
+                },
+                {
+                  "key": "C",
+                  "text": "the kind of questions employees were obliged to ask"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "What does Emma say about the report by Jerry Kaplan?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It shows how machines will respond to human needs."
+                },
+                {
+                  "key": "B",
+                  "text": "It emphasises the variety of roles that machines will have."
+                },
+                {
+                  "key": "C",
+                  "text": "It explains the limitations of machines."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "What is Nick\u0027s reaction to the article The Human Cloud?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "He agrees that companies should focus on making savings."
+                },
+                {
+                  "key": "B",
+                  "text": "He supports the concept of greater flexibility for employees."
+                },
+                {
+                  "key": "C",
+                  "text": "He approves of businesses spending more on recruiting experts."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "What do the students agree about the use of technology to collect information about employees?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Cameras are an effective means of maintaining security."
+                },
+                {
+                  "key": "B",
+                  "text": "Sometimes productivity is more important than individual privacy."
+                },
+                {
+                  "key": "C",
+                  "text": "Employees may object to certain types of monitoring."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "Introduction 25 \u2026\u2026\u2026\u2026..",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 \u2026\u2026\u2026\u2026..\nResearcher profiles 26 \u2026\u2026\u2026\u2026.\nSection on automation 27 \u2026\u2026\u2026\u2026\nSection on workplace structure 28 \u2026\u2026\u2026\u2026.\nSection on tracking technology 29 \u2026\u2026\u2026\u2026..\nInterview with company manager 30 \u2026\u2026\u2026\u2026"
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "Researcher profiles 26 \u2026\u2026\u2026\u2026.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 \u2026\u2026\u2026\u2026..\nResearcher profiles 26 \u2026\u2026\u2026\u2026.\nSection on automation 27 \u2026\u2026\u2026\u2026\nSection on workplace structure 28 \u2026\u2026\u2026\u2026.\nSection on tracking technology 29 \u2026\u2026\u2026\u2026..\nInterview with company manager 30 \u2026\u2026\u2026\u2026"
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Section on automation 27 \u2026\u2026\u2026\u2026",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 \u2026\u2026\u2026\u2026..\nResearcher profiles 26 \u2026\u2026\u2026\u2026.\nSection on automation 27 \u2026\u2026\u2026\u2026\nSection on workplace structure 28 \u2026\u2026\u2026\u2026.\nSection on tracking technology 29 \u2026\u2026\u2026\u2026..\nInterview with company manager 30 \u2026\u2026\u2026\u2026"
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Section on workplace structure 28 \u2026\u2026\u2026\u2026.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 \u2026\u2026\u2026\u2026..\nResearcher profiles 26 \u2026\u2026\u2026\u2026.\nSection on automation 27 \u2026\u2026\u2026\u2026\nSection on workplace structure 28 \u2026\u2026\u2026\u2026.\nSection on tracking technology 29 \u2026\u2026\u2026\u2026..\nInterview with company manager 30 \u2026\u2026\u2026\u2026"
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Section on tracking technology 29 \u2026\u2026\u2026\u2026..",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 \u2026\u2026\u2026\u2026..\nResearcher profiles 26 \u2026\u2026\u2026\u2026.\nSection on automation 27 \u2026\u2026\u2026\u2026\nSection on workplace structure 28 \u2026\u2026\u2026\u2026.\nSection on tracking technology 29 \u2026\u2026\u2026\u2026..\nInterview with company manager 30 \u2026\u2026\u2026\u2026"
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Interview with company manager 30 \u2026\u2026\u2026\u2026",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "at which point of the presentation it should come"
+                },
+                {
+                  "key": "B",
+                  "text": "whether it should be removed completely"
+                },
+                {
+                  "key": "C",
+                  "text": "whether it is clear enough"
+                },
+                {
+                  "key": "D",
+                  "text": "if it needs to be completely re-written"
+                },
+                {
+                  "key": "E",
+                  "text": "if visuals will help or not"
+                },
+                {
+                  "key": "F",
+                  "text": "if the information needs to be checked"
+                },
+                {
+                  "key": "G",
+                  "text": "which further examples should be included"
+                },
+                {
+                  "key": "H",
+                  "text": "which of them will present it"
+                }
+              ],
+              "group": {
+                "id": "r-issues-25-30",
+                "instruction": "What issue do Emma and Nick discuss for each aspect of the presentation? Choose SIX correct answers, A-H, next to questions 25-30.",
+                "text": "Issues\nAspects of the presentation\nIntroduction 25 \u2026\u2026\u2026\u2026..\nResearcher profiles 26 \u2026\u2026\u2026\u2026.\nSection on automation 27 \u2026\u2026\u2026\u2026\nSection on workplace structure 28 \u2026\u2026\u2026\u2026.\nSection on tracking technology 29 \u2026\u2026\u2026\u2026..\nInterview with company manager 30 \u2026\u2026\u2026\u2026"
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "HEALTH ON THE NIGHT SHIFT",
+          "body": "HEALTH ON THE NIGHT SHIFT",
+          "questions": [
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n\u2022    in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services\n\u2022    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 \u2026\u2026\u2026\u2026    \n\u2022    regulates daily life\n\u2022    connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026   \n\u2022    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n\u2022    impossible to get enough sleep during daytime\nC  34 \u2026\u2026\u2026\u2026.   \n\u2022    different working/sleeping times, \u2018dislocation\u2019\nEffects:\nA    Physical\n\u2022    higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems \n\u2022    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n\u2022    most common: 36 \u2026\u2026\u2026\u2026\u2026.    \n\u2022     37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...   \nC    Social\nNight shift work can lead to:\n\u2022    destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..     \n\u2022    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "the number of"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "A  32 \u2026\u2026\u2026\u2026",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n\u2022    in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services\n\u2022    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 \u2026\u2026\u2026\u2026    \n\u2022    regulates daily life\n\u2022    connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026   \n\u2022    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n\u2022    impossible to get enough sleep during daytime\nC  34 \u2026\u2026\u2026\u2026.   \n\u2022    different working/sleeping times, \u2018dislocation\u2019\nEffects:\nA    Physical\n\u2022    higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems \n\u2022    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n\u2022    most common: 36 \u2026\u2026\u2026\u2026\u2026.    \n\u2022     37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...   \nC    Social\nNight shift work can lead to:\n\u2022    destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..     \n\u2022    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "internal clock,the internal clock"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n\u2022    in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services\n\u2022    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 \u2026\u2026\u2026\u2026    \n\u2022    regulates daily life\n\u2022    connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026   \n\u2022    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n\u2022    impossible to get enough sleep during daytime\nC  34 \u2026\u2026\u2026\u2026.   \n\u2022    different working/sleeping times, \u2018dislocation\u2019\nEffects:\nA    Physical\n\u2022    higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems \n\u2022    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n\u2022    most common: 36 \u2026\u2026\u2026\u2026\u2026.    \n\u2022     37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...   \nC    Social\nNight shift work can lead to:\n\u2022    destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..     \n\u2022    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "light and dark"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "C  34 \u2026\u2026\u2026\u2026.",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n\u2022    in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services\n\u2022    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 \u2026\u2026\u2026\u2026    \n\u2022    regulates daily life\n\u2022    connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026   \n\u2022    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n\u2022    impossible to get enough sleep during daytime\nC  34 \u2026\u2026\u2026\u2026.   \n\u2022    different working/sleeping times, \u2018dislocation\u2019\nEffects:\nA    Physical\n\u2022    higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems \n\u2022    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n\u2022    most common: 36 \u2026\u2026\u2026\u2026\u2026.    \n\u2022     37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...   \nC    Social\nNight shift work can lead to:\n\u2022    destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..     \n\u2022    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "unsocial hours"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n\u2022    in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services\n\u2022    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 \u2026\u2026\u2026\u2026    \n\u2022    regulates daily life\n\u2022    connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026   \n\u2022    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n\u2022    impossible to get enough sleep during daytime\nC  34 \u2026\u2026\u2026\u2026.   \n\u2022    different working/sleeping times, \u2018dislocation\u2019\nEffects:\nA    Physical\n\u2022    higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems \n\u2022    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n\u2022    most common: 36 \u2026\u2026\u2026\u2026\u2026.    \n\u2022     37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...   \nC    Social\nNight shift work can lead to:\n\u2022    destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..     \n\u2022    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "stomach"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "most common: 36 \u2026\u2026\u2026\u2026\u2026.",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n\u2022    in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services\n\u2022    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 \u2026\u2026\u2026\u2026    \n\u2022    regulates daily life\n\u2022    connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026   \n\u2022    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n\u2022    impossible to get enough sleep during daytime\nC  34 \u2026\u2026\u2026\u2026.   \n\u2022    different working/sleeping times, \u2018dislocation\u2019\nEffects:\nA    Physical\n\u2022    higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems \n\u2022    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n\u2022    most common: 36 \u2026\u2026\u2026\u2026\u2026.    \n\u2022     37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...   \nC    Social\nNight shift work can lead to:\n\u2022    destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..     \n\u2022    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "depression"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n\u2022    in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services\n\u2022    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 \u2026\u2026\u2026\u2026    \n\u2022    regulates daily life\n\u2022    connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026   \n\u2022    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n\u2022    impossible to get enough sleep during daytime\nC  34 \u2026\u2026\u2026\u2026.   \n\u2022    different working/sleeping times, \u2018dislocation\u2019\nEffects:\nA    Physical\n\u2022    higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems \n\u2022    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n\u2022    most common: 36 \u2026\u2026\u2026\u2026\u2026.    \n\u2022     37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...   \nC    Social\nNight shift work can lead to:\n\u2022    destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..     \n\u2022    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "mental abilities"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "which regulate our 38 \u2026\u2026\u2026\u2026...",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n\u2022    in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services\n\u2022    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 \u2026\u2026\u2026\u2026    \n\u2022    regulates daily life\n\u2022    connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026   \n\u2022    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n\u2022    impossible to get enough sleep during daytime\nC  34 \u2026\u2026\u2026\u2026.   \n\u2022    different working/sleeping times, \u2018dislocation\u2019\nEffects:\nA    Physical\n\u2022    higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems \n\u2022    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n\u2022    most common: 36 \u2026\u2026\u2026\u2026\u2026.    \n\u2022     37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...   \nC    Social\nNight shift work can lead to:\n\u2022    destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..     \n\u2022    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "performance"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n\u2022    in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services\n\u2022    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 \u2026\u2026\u2026\u2026    \n\u2022    regulates daily life\n\u2022    connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026   \n\u2022    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n\u2022    impossible to get enough sleep during daytime\nC  34 \u2026\u2026\u2026\u2026.   \n\u2022    different working/sleeping times, \u2018dislocation\u2019\nEffects:\nA    Physical\n\u2022    higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems \n\u2022    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n\u2022    most common: 36 \u2026\u2026\u2026\u2026\u2026.    \n\u2022     37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...   \nC    Social\nNight shift work can lead to:\n\u2022    destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..     \n\u2022    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "family life"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "e.g. 40 \u2026\u2026\u2026\u2026..",
+              "group": {
+                "id": "r-notes-31-40",
+                "instruction": "Write NO MORE THAN THREE WORDS for each answer.",
+                "text": "HEALTH ON THE NIGHT SHIFT\nBackground:\n\u2022    in number of night workers because of 31 \u2026\u2026\u2026\u2026. 24-hour shopping/services\n\u2022    need to examine effects of changing work and sleep habits US and British research found these lead to health problems\nMain Causes:\nA  32 \u2026\u2026\u2026\u2026    \n\u2022    regulates daily life\n\u2022    connected to behavioural patterns and cycles of 33 \u2026\u2026\u2026\u2026   \n\u2022    programmes us to be awake and asleep at certain times\nB    Sleep Debt\n\u2022    impossible to get enough sleep during daytime\nC  34 \u2026\u2026\u2026\u2026.   \n\u2022    different working/sleeping times, \u2018dislocation\u2019\nEffects:\nA    Physical\n\u2022    higher incidence of heart and  35 \u2026\u2026\u2026\u2026\u2026\u2026  problems \n\u2022    more minor illnesses, suggesting that immunity of shift workers is affected\nB    Psychological\n\u2022    most common: 36 \u2026\u2026\u2026\u2026\u2026.    \n\u2022     37 \u2026\u2026\u2026\u2026\u2026\u2026 affected, e.g. decision-making, planning, which regulate our 38 \u2026\u2026\u2026\u2026...   \nC    Social\nNight shift work can lead to:\n\u2022    destruction of  39 \u2026\u2026\u2026\u2026. and other relationships, e.g. 40 \u2026\u2026\u2026\u2026..     \n\u2022    eventually, for individuals: social isolation"
+              },
+              "constraints": {
+                "maxWords": 3
+              },
+              "answerKey": {
+                "accepted": [
+                  "peer group"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

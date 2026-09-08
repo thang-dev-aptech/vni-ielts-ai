@@ -36,7 +36,7 @@ namespace Vni.Ielts.Integration.Tests.Contracts;
 /// stays in the Mongo-specific tests, because a Postgres implementation would
 /// rightly fail it while being perfectly correct.
 ///
-/// <b>Every test isolates itself by unique email rather than by truncating.</b>
+/// <b>Every test isolates itself by a unique handle rather than by truncating.</b>
 /// A contract suite that wipes the store cannot run against a shared database,
 /// and demanding a private one is a requirement on the provider that has
 /// nothing to do with the contract.
@@ -58,12 +58,27 @@ public abstract class UserRepositoryContract
     private static Email UniqueEmail() =>
         Email.Create($"contract-{Guid.NewGuid():n}@example.com");
 
+    /// <summary>
+    /// A number no other test is using.
+    ///
+    /// <para>
+    /// Nine digits behind the `09` trunk prefix, drawn at random rather than
+    /// from a counter, because these tests run against a shared database and a
+    /// counter would collide across runs — and a collision on a unique index
+    /// reads as a failed assertion about the contract rather than as the test
+    /// fixture's own doing.
+    /// </para>
+    /// </summary>
+    private static PhoneNumber UniquePhone() =>
+        PhoneNumber.Create($"09{Random.Shared.NextInt64(0, 100_000_000):D8}");
+
     private static readonly DateTimeOffset At =
-        new(2026, 8, 28, 9, 0, 0, TimeSpan.Zero);
+        new(2026, 9, 8, 9, 0, 0, TimeSpan.Zero);
 
     private async Task<User> AddOneAsync(string displayName = "Contract Fixture")
     {
-        var user = User.Register(UniqueEmail(), displayName, At);
+        var user = User.Register(UniquePhone(), displayName, At);
+        user.ChangeEmail(UniqueEmail(), hasLinkedProvider: false);
         await Repository.AddAsync(user, default);
         return user;
     }
@@ -80,6 +95,7 @@ public abstract class UserRepositoryContract
         Assert.NotNull(found);
         Assert.Equal(user.Id, found.Id);
         Assert.Equal(user.Email, found.Email);
+        Assert.Equal(user.Phone, found.Phone);
     }
 
     [SkippableFact]
@@ -89,7 +105,22 @@ public abstract class UserRepositoryContract
 
         var user = await AddOneAsync();
 
-        var found = await Repository.FindByEmailAsync(user.Email, default);
+        var found = await Repository.FindByEmailAsync(user.Email!.Value, default);
+
+        Assert.NotNull(found);
+        Assert.Equal(user.Id, found.Id);
+    }
+
+    [SkippableFact]
+    public async Task An_added_user_is_found_by_its_phone()
+    {
+        // The lookup most accounts actually depend on: registration collects a
+        // number and no address, so this is the only handle they have.
+        Skip.IfNot(ProviderAvailable, ProviderSkipReason);
+
+        var user = await AddOneAsync();
+
+        var found = await Repository.FindByPhoneAsync(user.Phone!.Value, default);
 
         Assert.NotNull(found);
         Assert.Equal(user.Id, found.Id);
@@ -105,6 +136,7 @@ public abstract class UserRepositoryContract
 
         Assert.Null(await Repository.FindByIdAsync(UserId.New(), default));
         Assert.Null(await Repository.FindByEmailAsync(UniqueEmail(), default));
+        Assert.Null(await Repository.FindByPhoneAsync(UniquePhone(), default));
     }
 
     [SkippableFact]
@@ -115,9 +147,24 @@ public abstract class UserRepositoryContract
         var email = UniqueEmail();
         Assert.False(await Repository.EmailExistsAsync(email, default));
 
-        await Repository.AddAsync(User.Register(email, "Contract Fixture", At), default);
+        var user = User.Register(UniquePhone(), "Contract Fixture", At);
+        user.ChangeEmail(email, hasLinkedProvider: false);
+        await Repository.AddAsync(user, default);
 
         Assert.True(await Repository.EmailExistsAsync(email, default));
+    }
+
+    [SkippableFact]
+    public async Task PhoneExists_answers_true_only_after_the_account_is_added()
+    {
+        Skip.IfNot(ProviderAvailable, ProviderSkipReason);
+
+        var phone = UniquePhone();
+        Assert.False(await Repository.PhoneExistsAsync(phone, default));
+
+        await Repository.AddAsync(User.Register(phone, "Contract Fixture", At), default);
+
+        Assert.True(await Repository.PhoneExistsAsync(phone, default));
     }
 
     [SkippableFact]
@@ -131,10 +178,87 @@ public abstract class UserRepositoryContract
         Skip.IfNot(ProviderAvailable, ProviderSkipReason);
 
         var email = UniqueEmail();
-        await Repository.AddAsync(User.Register(email, "First", At), default);
+
+        var first = User.Register(UniquePhone(), "First", At);
+        first.ChangeEmail(email, hasLinkedProvider: false);
+        await Repository.AddAsync(first, default);
+
+        var second = User.Register(UniquePhone(), "Second", At);
+        second.ChangeEmail(email, hasLinkedProvider: false);
 
         await Assert.ThrowsAsync<DuplicateEmailException>(
-            () => Repository.AddAsync(User.Register(email, "Second", At), default));
+            () => Repository.AddAsync(second, default));
+    }
+
+    [SkippableFact]
+    public async Task A_second_account_on_the_same_phone_is_refused_as_a_duplicate()
+    {
+        // Same promise as the address, and now the one registration actually
+        // hits — <b>and the exception type has to differ</b>, or a learner
+        // whose number is taken is told their email address is registered on a
+        // form that has no email field.
+        Skip.IfNot(ProviderAvailable, ProviderSkipReason);
+
+        var phone = UniquePhone();
+        await Repository.AddAsync(User.Register(phone, "First", At), default);
+
+        await Assert.ThrowsAsync<DuplicatePhoneException>(
+            () => Repository.AddAsync(User.Register(phone, "Second", At), default));
+    }
+
+    [SkippableFact]
+    public async Task Moving_a_phone_onto_an_account_that_already_has_it_is_refused_as_a_duplicate()
+    {
+        /*
+         * <b>The replace path, which translated nothing until 08/09/2026.</b>
+         * The insert path has always turned a duplicate key into a domain
+         * exception; `SaveAsync` did not, so a race between two profile edits
+         * surfaced as a raw driver error and a 500. `ChangeEmail` even carried
+         * a catch for it that could never fire.
+         */
+        Skip.IfNot(ProviderAvailable, ProviderSkipReason);
+
+        var taken = UniquePhone();
+        await Repository.AddAsync(User.Register(taken, "Holder", At), default);
+
+        var other = await AddOneAsync("Mover");
+        other.SetPhone(taken, hasLinkedProvider: false);
+
+        await Assert.ThrowsAsync<DuplicatePhoneException>(
+            () => Repository.SaveAsync(other, default));
+    }
+
+    [SkippableFact]
+    public async Task Two_accounts_with_no_email_can_both_exist()
+    {
+        /*
+         * <b>The sparse-versus-partial trap, pinned.</b> Registration creates
+         * accounts with no address, and a *sparse* unique index only skips
+         * documents where the field is MISSING — not where it is present and
+         * null. One dropped `[BsonIgnoreIfNull]` and the mapper writes
+         * `email: null`, at which point the second address-less account in the
+         * system collides with the first and registration stops working for
+         * everyone. The index is declared partial on `{ email: {$type:
+         * "string"} }` so it survives that; this test is what notices if
+         * either guard is removed.
+         */
+        Skip.IfNot(ProviderAvailable, ProviderSkipReason);
+
+        await Repository.AddAsync(User.Register(UniquePhone(), "No address one", At), default);
+        await Repository.AddAsync(User.Register(UniquePhone(), "No address two", At), default);
+    }
+
+    [SkippableFact]
+    public async Task Two_accounts_with_no_phone_can_both_exist()
+    {
+        // The mirror case: accounts created through a social provider carry an
+        // address and no number.
+        Skip.IfNot(ProviderAvailable, ProviderSkipReason);
+
+        await Repository.AddAsync(
+            User.RegisterFromProvider(UniqueEmail(), "No number one", At), default);
+        await Repository.AddAsync(
+            User.RegisterFromProvider(UniqueEmail(), "No number two", At), default);
     }
 
     [SkippableFact]
@@ -154,7 +278,7 @@ public abstract class UserRepositoryContract
         // insert would leave two, and every later lookup would return an
         // arbitrary one of them.
         var (matches, total) = await Repository.ListAsync(
-            user.Email.Value, skip: 0, take: 10, default);
+            user.Email!.Value.Value, skip: 0, take: 10, default);
         Assert.Equal(1, total);
         Assert.Single(matches);
     }
@@ -168,15 +292,14 @@ public abstract class UserRepositoryContract
         Skip.IfNot(ProviderAvailable, ProviderSkipReason);
 
         var user = await AddOneAsync("Round Trip");
-        user.MarkEmailVerified();
-        user.SetPhone(PhoneNumber.Create("0912345678"));
+        user.SetPhone(UniquePhone(), hasLinkedProvider: false);
         user.Suspend();
         await Repository.SaveAsync(user, default);
 
         var found = await Repository.FindByIdAsync(user.Id, default);
 
         Assert.NotNull(found);
-        Assert.True(found.EmailVerified);
+        Assert.Equal(user.Email, found.Email);
         Assert.Equal(user.Phone, found.Phone);
         Assert.Equal(UserStatus.Suspended, found.Status);
         Assert.False(found.CanAuthenticate);

@@ -105,7 +105,7 @@ public sealed class RedactionTests
         {
             Content = JsonContent.Create(new
             {
-                email = $"redaction-{Guid.NewGuid():n}@example.com",
+                phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}",
                 password = Password,
                 displayName = $"{ApiKeyInContent} {ConnectionStringInContent}",
             }),
@@ -213,7 +213,7 @@ public sealed class RedactionTests
         {
             Content = JsonContent.Create(new
             {
-                email = $"{marker}@example.com",
+                phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}",
                 password = "Password123!Aa",
                 displayName = marker,
             }),

@@ -208,7 +208,7 @@ afterEach(() => {
  * does not change, and the position does.
  */
 it('advances a Full Test to the next skill in the same session', async () => {
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
 
   await screen.findByText('reading phần một');
 
@@ -229,7 +229,7 @@ it('advances a Full Test to the next skill in the same session', async () => {
 
   // Same route, same sitting. Not a navigation to the results screen, which is
   // where `/submit` used to take them after one skill of four.
-  expect(window.location.pathname).toBe('/students/session/sit-full');
+  expect(window.location.pathname).toBe('/exam/sit-full');
   expect(advanceKeys).toHaveLength(1);
 
   // And the header says where in the run they are, from the server's
@@ -245,7 +245,7 @@ it('advances a Full Test to the next skill in the same session', async () => {
  */
 it('submits rather than advancing on the last skill of a Full Test', async () => {
   sessionPayload = fullSession('speaking', ['reading', 'listening', 'writing']);
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
 
   await screen.findByText('speaking phần một');
 
@@ -264,7 +264,7 @@ it('submits rather than advancing on the last skill of a Full Test', async () =>
  */
 it('never offers a Full Test advance inside a single-skill sitting', async () => {
   sessionPayload = { ...fullSession('reading', []), sessionId: 'sit-one', mode: 'single' };
-  open('/students/session/sit-one');
+  open('/exam/sit-one');
 
   await screen.findByText('reading phần một');
 
@@ -284,7 +284,7 @@ it('never offers a Full Test advance inside a single-skill sitting', async () =>
  * section twice, and the second one would carry its own deadline.
  */
 it('advances once however many times Tiếp theo is pressed', async () => {
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
   await screen.findByText('reading phần một');
 
   const next = screen.getByRole('button', { name: 'Tiếp theo' });
@@ -317,7 +317,7 @@ it('advances once however many times Tiếp theo is pressed', async () => {
  */
 it('names the step that failed rather than reporting a submission that never happened', async () => {
   advanceStatus = 500;
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
   await screen.findByText('reading phần một');
 
   await userEvent.click(screen.getByRole('button', { name: 'Tiếp theo' }));
@@ -340,7 +340,7 @@ it('names the step that failed rather than reporting a submission that never hap
  */
 it('carries no expiry latch from one section into the next', async () => {
   sessionPayload = fullSession('reading', [], true);
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
 
   await screen.findByText('reading phần một');
   await waitFor(() => expect(screen.getByRole('textbox', { name: /Câu hỏi 1/ })).toBeDisabled());
@@ -380,14 +380,14 @@ it('sends a sitting that is already closed to its results instead of offering a 
   advanceProblem = { code: 'SESSION_NOT_IN_PROGRESS', title: 'This sitting is Expired.' };
   resultsPayload = { ...readingResults, sessionId: 'sit-full', mode: 'full' };
 
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
   await screen.findByText('reading phần một');
 
   await userEvent.click(screen.getByRole('button', { name: 'Tiếp theo' }));
   const confirm = await screen.findByRole('button', { name: /Hoàn thành.*sang/ });
   await userEvent.click(confirm);
 
-  await waitFor(() => expect(window.location.pathname).toBe('/practice/results/sit-full'));
+  await waitFor(() => expect(window.location.pathname).toBe('/results/sit-full'));
   expect(screen.queryByText(/Không chuyển được/)).toBeNull();
 });
 
@@ -404,26 +404,28 @@ it('sends a sitting that is already closed to its results instead of offering a 
  * in a screenshot.
  */
 it('gives each part its own scroll position in the passage pane', async () => {
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
   await screen.findByText('reading phần một');
 
-  const pane = document.querySelector('.prun-passage') as HTMLElement;
+  const pane = document.querySelector('.exr-passage-panel .exr-panel-scroll') as HTMLElement;
   pane.scrollTop = 420;
 
+  // "Passage", not "Section": Reading's parts are passages, and the footer
+  // now says what the paper says. → `partLabelKey`
   const parts = screen.getByRole('group', { name: /Bản đồ câu hỏi theo section/ });
-  await userEvent.click(within(parts).getByRole('button', { name: /Section 2/ }));
+  await userEvent.click(within(parts).getByRole('button', { name: /Passage 2/ }));
 
   // A part opened for the first time starts at its own beginning.
   expect(screen.getByText('reading phần hai')).toBeInTheDocument();
   expect(pane.scrollTop).toBe(0);
 
   pane.scrollTop = 90;
-  await userEvent.click(within(parts).getByRole('button', { name: /Section 1/ }));
+  await userEvent.click(within(parts).getByRole('button', { name: /Passage 1/ }));
 
   // And a part returned to is where it was left.
   expect(pane.scrollTop).toBe(420);
 
-  await userEvent.click(within(parts).getByRole('button', { name: /Section 2/ }));
+  await userEvent.click(within(parts).getByRole('button', { name: /Passage 2/ }));
   expect(pane.scrollTop).toBe(90);
 });
 
@@ -481,7 +483,7 @@ function speakingSession(timing: { part: number; prepSeconds: number; responseSe
  */
 it('states the preparation and speaking budget before the recorder starts', async () => {
   sessionPayload = speakingSession([{ part: 2, prepSeconds: 60, responseSeconds: 120 }]);
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
 
   await screen.findByText('Describe a time you concentrated hard.');
 
@@ -508,7 +510,7 @@ it('states the preparation and speaking budget before the recorder starts', asyn
  */
 it('refuses to invent a budget for a part the exam version carries no timing for', async () => {
   sessionPayload = speakingSession([]);
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
 
   await screen.findByText('Describe a time you concentrated hard.');
 
@@ -553,7 +555,7 @@ const readingResults = {
  */
 it('offers a new test in the skill just sat, and never a next skill', async () => {
   resultsPayload = readingResults;
-  open('/practice/results/sit-one');
+  open('/results/sit-one');
 
   const again = await screen.findByRole('link', { name: 'Làm đề mới' });
 
@@ -569,11 +571,12 @@ it('offers a new test in the skill just sat, and never a next skill', async () =
 /** A Full Test's ending is not a new single-skill paper. */
 it('does not offer a single-skill new test at the end of a Full Test', async () => {
   resultsPayload = { ...readingResults, mode: 'full' };
-  open('/practice/results/sit-full');
+  open('/results/sit-full');
 
+  // A Full Test's hero carries the overall band, not one skill's.
   await screen.findByText('Điểm tổng');
 
-  expect(screen.queryByRole('link', { name: 'Làm đề mới' })).toBeNull();
+  expect(screen.queryByRole('link', { name: /Làm đề mới/ })).toBeNull();
   expect(screen.getByRole('link', { name: /Về danh sách đề/ })).toBeInTheDocument();
 });
 
@@ -591,7 +594,7 @@ it('does not offer a single-skill new test at the end of a Full Test', async () 
  */
 it('explains an unmarked sitting instead of rendering an empty page', async () => {
   resultsPayload = { ...readingResults, sections: [], markings: [] };
-  open('/practice/results/sit-one');
+  open('/results/sit-one');
 
   expect(await screen.findByText('Chưa có kết quả nào cho buổi này')).toBeInTheDocument();
   expect(screen.getByText(/đang chờ xử lý hoặc chờ cấu hình chấm/)).toBeInTheDocument();
@@ -602,5 +605,5 @@ it('explains an unmarked sitting instead of rendering an empty page', async () =
 
   // And never a zero standing in for a band that was never awarded. → L3
   expect(screen.queryByText('0.0')).toBeNull();
-  expect(document.querySelector('.result-overall-value')).toHaveTextContent('—');
+  expect(document.querySelector('.exs-score-value')).toHaveTextContent('—');
 });

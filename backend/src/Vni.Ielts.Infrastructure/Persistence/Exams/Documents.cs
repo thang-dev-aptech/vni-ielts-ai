@@ -426,6 +426,10 @@ internal sealed class QuestionExplanationDocument
     [BsonElement("commonMistake")]
     [BsonIgnoreIfNull]
     public string? CommonMistake { get; set; }
+
+    [BsonElement("translation")]
+    [BsonIgnoreIfNull]
+    public string? Translation { get; set; }
 }
 
 [BsonIgnoreExtraElements]

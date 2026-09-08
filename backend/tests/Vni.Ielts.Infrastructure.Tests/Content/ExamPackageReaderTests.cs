@@ -695,4 +695,22 @@ public sealed class ExamPackageReaderTests
         Assert.Contains(result.Findings, f => f.Code == "FORMAT_PROFILE_PART_COUNT");
         Assert.Contains(result.Findings, f => f.Code == "FORMAT_PROFILE_SLOT_COUNT");
     }
+
+    [Fact]
+    public void Explanation_translation_is_read_when_present_and_null_when_absent()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["sections"]![0]!["parts"]![0]!["questions"]![0]!["explanation"]!["translation"] =
+            "Cả hai đều được nêu trong bài. Bằng chứng: \"Evidence here.\" nghĩa là bằng chứng ở đây.";
+
+        var withTranslation = Read(root.ToJsonString());
+        Assert.True(withTranslation.IsValid, string.Join("; ", withTranslation.Findings.Select(f => f.Message)));
+        Assert.Equal(
+            "Cả hai đều được nêu trong bài. Bằng chứng: \"Evidence here.\" nghĩa là bằng chứng ở đây.",
+            withTranslation.Version!.Sections[0].Questions.Single().Explanation!.Translation);
+
+        var without = Read(ValidV2Json());
+        Assert.True(without.IsValid);
+        Assert.Null(without.Version!.Sections[0].Questions.Single().Explanation!.Translation);
+    }
 }

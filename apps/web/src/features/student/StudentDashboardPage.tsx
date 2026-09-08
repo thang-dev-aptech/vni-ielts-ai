@@ -11,7 +11,7 @@ import { InProgressPanel, RecentSittings, StatStrip } from './DashboardState.js'
 import { GoalCoachingPanel } from '../learning/GoalCoachingPanel.js';
 import { StreakPanel } from '../learning/StreakPanel.js';
 import { getCoachingAdvice, type Coaching } from '../learning/learningApi.js';
-import { CloseIcon, SparkIcon } from './StudentIcons.js';
+import { SparkIcon } from './StudentIcons.js';
 import '../../styles/dashboard.css';
 import { usePageTitle } from '../../routes/usePageTitle.js';
 import { useAlive } from '../../lib/useAlive.js';
@@ -34,8 +34,10 @@ import { useAlive } from '../../lib/useAlive.js';
  *
  * The four equal skill cards with a repeated "Vào luyện" button are removed;
  * the skill entry point is D-5 on /practice.
- * Email verification: one dismissible inline notice under the top bar,
- * dismissed for the session only, returns next session until verified.
+ * <b>The email-verification notice is gone, not hidden.</b> Registration takes
+ * a phone number as of 08/09/2026 and no address is verified anywhere, so the
+ * banner had nothing left to be true about — and a dismissible nag pointing at
+ * a profile control that no longer exists is worse than silence.
  */
 export function StudentDashboardPage() {
   const { user, accessToken } = useAuth();
@@ -45,21 +47,6 @@ export function StudentDashboardPage() {
 
   const [sittings, setSittings] = useState<SittingSummary[] | null>(null);
   const [coaching, setCoaching] = useState<Coaching | null>(null);
-  const [emailDismissed, setEmailDismissed] = useState(() => {
-    try {
-      return sessionStorage.getItem('vni.emailVerifyDismissed') === 'true';
-    } catch {
-      return false;
-    }
-  });
-
-  const handleDismissEmail = () => {
-    try {
-      sessionStorage.setItem('vni.emailVerifyDismissed', 'true');
-    } catch {}
-    setEmailDismissed(true);
-  };
-
   const load = useCallback(async () => {
     if (accessToken === null) return;
 
@@ -95,24 +82,6 @@ export function StudentDashboardPage() {
           </h1>
           <p className="dash-lead">{t('dash.lead')}</p>
         </header>
-
-        {/* D-4: Email verification notice - dismissible for session only */}
-        {!user.emailVerified && !emailDismissed && (
-          <div className="dash-alert" role="status">
-            <div className="dash-alert-content">
-              <strong>{t('home.unverifiedTitle')}. </strong>
-              {t('home.unverifiedBody')} <Link to={Paths.profile}>{t('home.unverifiedAction')}</Link>
-            </div>
-            <button
-              type="button"
-              className="dash-alert-close"
-              onClick={handleDismissEmail}
-              aria-label={t('common.close')}
-            >
-              <CloseIcon size={16} />
-            </button>
-          </div>
-        )}
 
         {/* D-4: 8/4 grid on desktop, 1 column on mobile */}
         <div className="dash-columns">

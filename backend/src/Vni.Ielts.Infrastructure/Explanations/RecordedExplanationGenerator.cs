@@ -55,7 +55,8 @@ public sealed class RecordedExplanationGenerator : IReadingListeningExplanationG
               "correctAnswer": "{{request.ExpectedAnswer}}",
               "shortReason": "The answer follows from the text.",
               "evidence": {{evidence}},
-              "commonMistake": "Choosing a distractor from the same paragraph."
+              "commonMistake": "Choosing a distractor from the same paragraph.",
+              "translation": "Câu hỏi: đáp án nào đúng theo bài đọc? Bằng chứng: đoạn văn nêu rõ ý này."
             }
             """;
     }

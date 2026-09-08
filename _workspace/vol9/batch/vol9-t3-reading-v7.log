@@ -1,0 +1,18 @@
+source     TEST 3-R.docx
+sandbox    Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING
+key        KEY - EXPLAINATION/KEY TEST 3-R.docx (242 characters)
+extracted  21.529 characters, classification RightsCleared
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[100] Start processing HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[100] Sending HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[101] Received HTTP response headers after 2862.9623ms - 200
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[101] End processing HTTP request after 2891.0072ms - 200
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam parse stream opened after headers.
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by gpt-5.4, request chatcmpl-202609031913027478121048268d9d6v92CnyJ6, prompt exam-parse-prompt-v7, attempt 1, 9723 in / 9489 out.
+parsed     41.729 characters by OpenAi/gpt-5.4, request chatcmpl-202609031913027478121048268d9d6v92CnyJ6
+kept       reading section only
+written    _workspace/vol9/packages/vol9-t3-reading.json
+foreign parts dropped
+key read   39 entr(ies) covering 39 mark(s)
+answer key refused
+  error ANSWER_KEY_COVERAGE /sections/0/parts/2/questions/13: Question 40 has no answer in the key. The key document may be short, or an entry before this one may have been read as covering fewer marks than it does — which shifts every answer after it.
+The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.

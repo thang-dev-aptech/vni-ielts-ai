@@ -21,7 +21,7 @@ export function PageHead({
   actions?: ReactNode;
 }) {
   return (
-    <header className="dash-head page-head">
+    <header className="page-head">
       <div className="page-head-copy">
         <p className="dash-eyebrow">{eyebrow}</p>
         <h1 className="dash-greeting page-head-title">{title}</h1>

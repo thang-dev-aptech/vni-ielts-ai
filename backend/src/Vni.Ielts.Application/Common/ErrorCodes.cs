@@ -14,6 +14,13 @@ public static class ErrorCodes
     public const string EmailInvalid = "EMAIL_INVALID";
     public const string PasswordTooWeak = "PASSWORD_TOO_WEAK";
     public const string EmailAlreadyRegistered = "EMAIL_ALREADY_REGISTERED";
+
+    /// <summary>
+    /// The number is the handle registration asks for, so this is the conflict
+    /// a new learner actually meets — the email one now only appears when
+    /// somebody adds an address to their profile.
+    /// </summary>
+    public const string PhoneAlreadyRegistered = "PHONE_ALREADY_REGISTERED";
     public const string InvalidCredentials = "INVALID_CREDENTIALS";
     public const string AccountSuspended = "ACCOUNT_SUSPENDED";
 
@@ -26,8 +33,6 @@ public static class ErrorCodes
     /// be told why the right password has stopped working.
     /// </summary>
     public const string TooManyAttempts = "TOO_MANY_ATTEMPTS";
-    public const string EmailNotVerified = "EMAIL_NOT_VERIFIED";
-    public const string VerificationTokenInvalid = "VERIFICATION_TOKEN_INVALID";
     public const string RefreshTokenInvalid = "REFRESH_TOKEN_INVALID";
 
     // ── Exams and sittings ───────────────────────────────────────────────
@@ -196,11 +201,15 @@ public static class ErrorCodes
     public const string PhoneInvalid = "PHONE_INVALID";
 
     /// <summary>
-    /// An attempt to change an address that has already been verified. It is
-    /// the account's route back in, and a stolen session must not be able to
-    /// move it somewhere else.
+    /// A profile edit that would leave the account with nothing anyone could
+    /// type to reach it — no address, no number, and no linked provider.
+    ///
+    /// <b>Refused rather than warned about</b>, because the account keeps its
+    /// sittings, its recordings and its obligations under PDPL while having no
+    /// door: there is no later step at which this becomes recoverable without
+    /// an operator.
     /// </summary>
-    public const string EmailLocked = "EMAIL_LOCKED";
+    public const string SignInMethodRequired = "SIGN_IN_METHOD_REQUIRED";
 
     public const string NotFound = "NOT_FOUND";
     public const string Forbidden = "FORBIDDEN";

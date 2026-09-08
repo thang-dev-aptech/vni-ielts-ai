@@ -1,229 +1,227 @@
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Identity;
-using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Identity;
 
 namespace Vni.Ielts.Application.Tests.Identity;
 
 /// <summary>
-/// Correcting an address that has not been verified yet.
+/// Setting, changing and removing the account's address.
 ///
 /// <para>
-/// Two rules carry the weight. It is locked once verified, because a verified
-/// address is the account's route back in. And it must be written in
-/// <b>both</b> places — the account and the identity that password sign-in is
-/// keyed by — or the account keeps working right up until someone tries to
-/// sign in.
+/// <b>The lock is gone, and these tests are what says so deliberately.</b> The
+/// address used to freeze the moment it was verified, because it was the
+/// account's route back in. Verification no longer exists and the owner asked
+/// for the opposite behaviour on 08/09/2026: changing the address moves the
+/// account onto it. What replaces the lock is a narrower guarantee — the
+/// account may never be left with nothing anyone can type to reach it.
+/// → ADR-0018
 /// </para>
 /// </summary>
 public sealed class ChangeEmailTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 8, 21, 9, 0, 0, TimeSpan.Zero);
-    private const string Typo = "hoc.vien@gmial.com";
-    private const string Fixed = "hoc.vien@gmail.com";
-
-    private sealed class FakeTokens : IEmailVerificationTokens
-    {
-        public List<UserId> Issued { get; } = [];
-
-        public Task<string> IssueAsync(UserId userId, CancellationToken ct)
-        {
-            Issued.Add(userId);
-            return Task.FromResult("token");
-        }
-
-        public Task<UserId?> RedeemAsync(string token, CancellationToken ct) =>
-            Task.FromResult<UserId?>(null);
-
-        /*
-         * <b>The code flow is modelled, not stubbed to succeed.</b> A fake that
-         * returned `Verified` for anything would let every test above it pass
-         * while the attempt cap — the thing that makes six digits safe — did
-         * not exist.
-         */
-        public string? OutstandingCode { get; private set; }
-
-        public int Attempts { get; private set; }
-
-        public Task<string> IssueCodeAsync(UserId userId, CancellationToken ct)
-        {
-            Issued.Add(userId);
-            OutstandingCode = "123456";
-            Attempts = 0;
-            return Task.FromResult(OutstandingCode);
-        }
-
-        public Task<CodeRedemption> RedeemCodeAsync(
-            UserId userId, string code, CancellationToken ct)
-        {
-            if (OutstandingCode is null) return Task.FromResult(CodeRedemption.Expired);
-            if (Attempts >= 5) return Task.FromResult(CodeRedemption.TooManyAttempts);
-
-            Attempts++;
-
-            if (code != OutstandingCode)
-            {
-                return Task.FromResult(
-                    Attempts >= 5 ? CodeRedemption.TooManyAttempts : CodeRedemption.Incorrect);
-            }
-
-            OutstandingCode = null;
-            return Task.FromResult(CodeRedemption.Verified);
-        }
-    }
+    private static readonly DateTimeOffset Now = new(2026, 9, 8, 9, 0, 0, TimeSpan.Zero);
 
     private sealed class Harness
     {
         public FakeUserRepository Users { get; } = new();
         public FakeUserIdentityRepository Identities { get; } = new();
-        public FakePasswordHasher Hasher { get; } = new();
-        public FakeTokens Tokens { get; } = new();
-        public FakeVerificationMessageSender Sender { get; } = new();
 
-        public ChangeEmail Sut => new(Users, Identities, Tokens, Sender);
+        public ChangeEmail Sut => new(Users, Identities);
 
-        public async Task<User> SeedAsync(string address = Typo, bool verified = false)
+        /// <summary>An ordinary account: registered with a number, no address yet.</summary>
+        public async Task<User> WithPhoneAsync(string phone = "0912345678")
         {
-            var email = Email.Create(address);
-            var user = User.Register(email, "Học viên", Now);
-            if (verified) user.MarkEmailVerified();
-
+            var user = User.Register(PhoneNumber.Create(phone), "Hoc vien", Now);
             await Users.AddAsync(user, default);
-            await Identities.AddAsync(
-                UserIdentity.ForEmail(user.Id, email, Hasher.Hash("mat-khau-du-dai-2026"), Now), default);
-
+            await Identities.AddAsync(UserIdentity.ForPassword(user.Id, "hash", Now), default);
             return user;
         }
 
-        public string? IdentityAddress(UserId id) =>
-            Identities.ListForUserAsync(id, default).Result
-                .FirstOrDefault(i => i.Provider == IdentityProvider.Email)?.ProviderUserId;
+        /// <summary>An account created through Google: an address and nothing else.</summary>
+        public async Task<User> FromProviderAsync(string email = "cu@example.com")
+        {
+            var user = User.RegisterFromProvider(Email.Create(email), "Hoc vien", Now);
+            await Users.AddAsync(user, default);
+            await Identities.AddAsync(
+                UserIdentity.ForSocial(user.Id, IdentityProvider.Google, "sub-1", Now), default);
+            return user;
+        }
     }
 
     [Fact]
-    public async Task A_typo_can_be_corrected_while_it_is_still_only_a_claim()
+    public async Task An_account_registered_with_a_number_can_add_an_address()
     {
+        // The profile field starts empty; filling it in is the ordinary path,
+        // and it is also how that account gains a second way to sign in.
         var h = new Harness();
-        var user = await h.SeedAsync();
+        var user = await h.WithPhoneAsync();
 
-        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Fixed), default);
+        var result = await h.Sut.HandleAsync(
+            new ChangeEmailCommand(user.Id, "toi@example.com"), default);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(Fixed, (await h.Users.FindByIdAsync(user.Id, default))!.Email.Value);
+        Assert.Equal("toi@example.com", result.Value!.Email);
+
+        var stored = await h.Users.FindByIdAsync(user.Id, default);
+        Assert.Equal("toi@example.com", stored!.Email!.Value.Value);
     }
 
     [Fact]
-    public async Task The_identity_password_sign_in_uses_moves_with_it()
+    public async Task An_address_that_was_already_set_can_still_be_changed()
     {
-        // The failure this pins is silent: change only User.Email and the
-        // profile shows the new address while password sign-in works at
-        // neither the old one nor the new one.
+        /*
+         * This is the owner's scenario, from the account's side: the data does
+         * not move, the label does. Nothing is copied and no new account
+         * appears — the same id keeps its sittings and its ledger and simply
+         * answers to a different address afterwards.
+         */
         var h = new Harness();
-        var user = await h.SeedAsync();
+        var user = await h.FromProviderAsync("ngdthang.dev@example.com");
 
-        await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Fixed), default);
-
-        Assert.Equal(Fixed, h.IdentityAddress(user.Id));
-        Assert.NotNull(await h.Identities.FindByProviderAsync(IdentityProvider.Email, Fixed, default));
-        Assert.Null(await h.Identities.FindByProviderAsync(IdentityProvider.Email, Typo, default));
-    }
-
-    [Fact]
-    public async Task The_verification_link_goes_to_the_new_address()
-    {
-        // Sending it to the old one would be sending it to the address that
-        // could not receive anything, which is the reason for the change.
-        var h = new Harness();
-        var user = await h.SeedAsync();
-
-        await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Fixed), default);
-
-        Assert.Equal([Fixed], h.Sender.SentTo);
-    }
-
-    [Fact]
-    public async Task The_result_says_whether_the_link_actually_went_anywhere()
-    {
-        // The screen that renders the corrected address is the screen that
-        // would otherwise tell the learner to go and look in it.
-        var h = new Harness();
-        h.Sender.Delivery = MessageDelivery.NotSent;
-        var user = await h.SeedAsync();
-
-        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Fixed), default);
+        var result = await h.Sut.HandleAsync(
+            new ChangeEmailCommand(user.Id, "nguyendoanthang16@example.com"), default);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(Fixed, result.Value!.Email);
-        Assert.Equal(MessageDelivery.NotSent, result.Value.VerificationMessage);
+
+        var stored = await h.Users.FindByIdAsync(user.Id, default);
+        Assert.Equal(user.Id, stored!.Id);
+        Assert.Equal("nguyendoanthang16@example.com", stored.Email!.Value.Value);
     }
 
     [Fact]
-    public async Task Re_submitting_the_same_address_reports_no_message()
+    public async Task The_address_is_normalised_so_two_spellings_are_one_account()
     {
-        // Nothing was sent, so the result must not let a caller infer one from
-        // the success. This is the case where a `bool sent = true` set beside
-        // every happy path would quietly be wrong.
         var h = new Harness();
-        var user = await h.SeedAsync();
+        var user = await h.WithPhoneAsync();
 
-        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Typo), default);
+        await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, "  Toi@Example.COM "), default);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(MessageDelivery.NotSent, result.Value!.VerificationMessage);
-    }
-
-    [Fact]
-    public async Task A_verified_address_is_locked()
-    {
-        // It is the account's route back in. A stolen session must not be able
-        // to move it to somebody else's mailbox.
-        var h = new Harness();
-        var user = await h.SeedAsync(verified: true);
-
-        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Fixed), default);
-
-        Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorCodes.EmailLocked, result.Error.Code);
-        Assert.Equal(Typo, (await h.Users.FindByIdAsync(user.Id, default))!.Email.Value);
-        Assert.Empty(h.Sender.SentTo);
+        var stored = await h.Users.FindByIdAsync(user.Id, default);
+        Assert.Equal("toi@example.com", stored!.Email!.Value.Value);
     }
 
     [Fact]
     public async Task An_address_someone_else_already_has_is_refused()
     {
         var h = new Harness();
-        await h.SeedAsync(Fixed);
-        var user = await h.SeedAsync(Typo);
+        await h.FromProviderAsync("da.co@example.com");
+        var user = await h.WithPhoneAsync();
 
-        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Fixed), default);
+        var result = await h.Sut.HandleAsync(
+            new ChangeEmailCommand(user.Id, "da.co@example.com"), default);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorCodes.EmailAlreadyRegistered, result.Error.Code);
     }
 
     [Fact]
-    public async Task Re_submitting_the_same_address_costs_nothing()
+    public async Task Losing_the_unique_index_race_reads_as_the_same_conflict()
     {
-        // No second verification mail for someone who pressed save twice.
+        /*
+         * <b>This path had never been exercised.</b> The catch around the save
+         * has been in the handler all along, but the repository translated
+         * nothing on the replace path, so a real race surfaced as a 500 and
+         * sailed straight past it. → MongoUserRepository.SaveAsync
+         */
         var h = new Harness();
-        var user = await h.SeedAsync();
+        var user = await h.WithPhoneAsync();
+        h.Users.ThrowDuplicateEmailOnNextSave = true;
 
-        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, Typo), default);
+        var result = await h.Sut.HandleAsync(
+            new ChangeEmailCommand(user.Id, "toi@example.com"), default);
 
-        Assert.True(result.IsSuccess);
-        Assert.Empty(h.Sender.SentTo);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.EmailAlreadyRegistered, result.Error.Code);
     }
 
-    [Theory]
-    [InlineData("khong-phai-email")]
-    [InlineData("")]
-    public async Task A_malformed_address_is_refused(string address)
+    [Fact]
+    public async Task Resubmitting_the_same_address_is_a_success_that_changes_nothing()
     {
         var h = new Harness();
-        var user = await h.SeedAsync();
+        var user = await h.FromProviderAsync("toi@example.com");
 
-        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, address), default);
+        var result = await h.Sut.HandleAsync(
+            new ChangeEmailCommand(user.Id, "toi@example.com"), default);
 
+        Assert.True(result.IsSuccess);
+        Assert.Equal("toi@example.com", result.Value!.Email);
+    }
+
+    [Fact]
+    public async Task An_address_can_be_removed_while_the_account_keeps_its_number()
+    {
+        var h = new Harness();
+        var user = await h.WithPhoneAsync();
+        await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, "toi@example.com"), default);
+
+        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, null), default);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.Email);
+
+        var stored = await h.Users.FindByIdAsync(user.Id, default);
+        Assert.Null(stored!.Email);
+    }
+
+    [Fact]
+    public async Task An_account_whose_only_handle_is_its_address_cannot_clear_it()
+    {
+        /*
+         * A Google account has no number and no password. Clearing its address
+         * would leave a row holding sittings, recordings and PDPL obligations
+         * with no door at all — and it looks like an ordinary profile edit
+         * right up until the session expires.
+         */
+        var h = new Harness();
+        var user = User.RegisterFromProvider(Email.Create("toi@example.com"), "Hoc vien", Now);
+        await h.Users.AddAsync(user, default);
+
+        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, ""), default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.SignInMethodRequired, result.Error.Code);
+
+        var stored = await h.Users.FindByIdAsync(user.Id, default);
+        Assert.Equal("toi@example.com", stored!.Email!.Value.Value);
+    }
+
+    [Fact]
+    public async Task The_guard_counts_a_linked_provider_as_a_handle()
+    {
+        // Same account, but with Google attached: the link is a way back in,
+        // so clearing the address is allowed.
+        var h = new Harness();
+        var user = await h.FromProviderAsync("toi@example.com");
+
+        var result = await h.Sut.HandleAsync(new ChangeEmailCommand(user.Id, ""), default);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.Email);
+    }
+
+    [Fact]
+    public async Task A_malformed_address_is_refused()
+    {
+        var h = new Harness();
+        var user = await h.WithPhoneAsync();
+
+        var result = await h.Sut.HandleAsync(
+            new ChangeEmailCommand(user.Id, "khong-phai-email"), default);
+
+        Assert.False(result.IsSuccess);
         Assert.Equal(ErrorCodes.EmailInvalid, result.Error.Code);
+    }
+
+    [Fact]
+    public async Task An_account_that_does_not_exist_is_a_not_found()
+    {
+        var h = new Harness();
+
+        var result = await h.Sut.HandleAsync(
+            new ChangeEmailCommand(new Vni.Ielts.Domain.Common.UserId("nobody"), "toi@example.com"),
+            default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.NotFound, result.Error.Code);
     }
 }

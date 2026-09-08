@@ -25,6 +25,27 @@
   overflow-x: hidden;
 }
 
+/*
+ * A sitting fills the window and does not scroll it.
+ *
+ * <b>The footer is why.</b> It carries the part map and "Nộp bài"; a learner
+ * who has to scroll a paper to find the submit button is one who runs out of
+ * time looking for it. The panes below scroll inside themselves instead.
+ *
+ * <b>Scoped to the splits that have panes.</b> Listening's open-clock chrome
+ * (`data-split="listening"`) is a single flowing column that is meant to
+ * scroll like an ordinary page, so pinning it would clip it.
+ */
+.prun-page:has(.prun-body[data-split='reading']),
+.prun-page:has(.prun-body[data-split='writing']),
+.prun-page:has(.prun-body[data-split='single']) {
+  height: 100vh;
+  overflow: hidden;
+  /* A containing block, so nothing absolutely positioned escapes the clip and
+     lengthens the document from outside the panes. */
+  position: relative;
+}
+
 /* ── Header ─────────────────────────────────────────────────────────────── */
 
 .prun-bar {
@@ -158,8 +179,12 @@
 }
 
 @keyframes saveChipSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .save-chip-spin {
@@ -502,7 +527,17 @@
 .prun-pane {
   min-width: 0;
   min-height: 0;
-  max-height: calc(100vh - var(--s-8) - var(--s-8));
+  /*
+   * Bounded by the flex chain, not by a hand-computed viewport sum.
+   *
+   * This was `max-height: calc(100vh - 144px)`, and 144px was less than the
+   * chrome actually above and below it — header, connection line, notices,
+   * body padding and the footer come to well over that. So each pane was
+   * allowed to be taller than the room it had, `.prun-body` grew past the
+   * window, and the whole sitting scrolled with the header sliding off the
+   * top. `min-height: 0` plus a pinned page is what makes the pane fit.
+   */
+  max-height: none;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: var(--s-5);
@@ -1347,7 +1382,9 @@
   color: #fff;
   border: 1px solid var(--primary);
   font-weight: var(--w-display);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .rec-start:hover:not(:disabled) {

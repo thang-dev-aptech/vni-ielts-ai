@@ -115,21 +115,34 @@ Branch on `code`, never on `title` or `detail` — those are human-facing and wi
 | `SSO_STATE_INVALID` | `?error=` | Expired (over 10 minutes), already used, or a stale tab | "Phiên đăng nhập đã hết hạn. Vui lòng thử lại." |
 | `SSO_EXCHANGE_FAILED` | `?error=` | The provider refused, or returned something that failed validation | "Không kết nối được với Google. Vui lòng thử lại." |
 | `SSO_EMAIL_MISSING` | `?error=` | The provider shared no email address | "Nhà cung cấp không chia sẻ email. Hãy đăng ký bằng email." |
-| `IDENTITY_LINK_REQUIRED` | `?error=` | The address already has an account, from a provider that does not verify addresses | "Email này đã có tài khoản. Hãy đăng nhập bằng mật khẩu trước." |
+| `IDENTITY_LINK_REQUIRED` | `?error=` | The address already has an account **that holds a password** — or the provider does not vouch for addresses at all | "Tài khoản này đăng nhập bằng mật khẩu. Hãy đăng nhập bằng số điện thoại hoặc email kèm mật khẩu." |
 | `ACCOUNT_SUSPENDED` | `?error=` and `403` | The account is suspended | Same wording the password login already uses |
 | `SSO_HANDOFF_INVALID` | `401` | The code was spent, expired, or never existed | "Phiên đăng nhập đã hết hạn. Vui lòng thử lại." |
 | `SSO_PROVIDER_UNKNOWN` | `404` | Provider not configured | Should be unreachable if step 1 is respected |
 | `RATE_LIMITED` | `429` | Carries `Retry-After` | Reuse the existing rate-limit message |
 
-`IDENTITY_LINK_REQUIRED` is **unreachable with Google** — Google verifies addresses, so a matching address links silently and the visitor simply lands signed in. It becomes reachable if Facebook ships. Build the branch; do not expect to see it in testing.
+> **Corrected 2026-09-08.** This paragraph used to say `IDENTITY_LINK_REQUIRED` is *"unreachable with Google"*. **It is now reachable with Google, and it is the common case**: any account holding a password is refused rather than linked. Do not treat this branch as dead surface — it is the first thing a learner who registered with a phone and later added their Gmail will hit.
 
 ---
 
 ## What to expect when the email already has an account
 
-Nothing visible. `M-1` was decided on 2026-08-21: **one email is one account**. Someone who registered with a password and later presses "Sign in with Google" lands in their existing account with their history intact, with no confirmation screen.
+**Rewritten 2026-09-08. The previous version of this section is false.** It said linking is silent and invisible, and that an account which had never verified its address would have its password silently disabled. Neither happens any more. → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md), superseding [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md)
 
-One consequence worth knowing when testing: if that existing account had **never verified its email**, linking silently disables its password. That is deliberate — it evicts anyone who registered an address they did not own. → [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md)
+The address identifies **whichever account currently holds it**, and there are four outcomes:
+
+| The address the provider asserts | What happens | What the client sees |
+|---|---|---|
+| Nobody holds it | A **new account** is created and linked | Signed in, empty history |
+| Held by an account **with a password** | **Refused.** Nothing is linked, nothing is cleared | `IDENTITY_LINK_REQUIRED` — tell them to sign in with their phone number or address plus their password |
+| Held by an account with **no password** (created by this provider, or by another) | Linked silently | Signed in, history intact |
+| The provider **does not vouch** for addresses (Facebook) | Refused regardless | `IDENTITY_LINK_REQUIRED` |
+
+**And a link can go stale.** If the account this provider subject belongs to has since changed its address, the link is dropped at sign-in and the flow falls into row 1 — so the visitor gets a **brand-new, empty account**, not their old one. That is the owner's decision of 08/09/2026, not a bug: the address moved and took the account with it. Signing in at the *new* address returns to the migrated account.
+
+**There is no "link Google" affordance in the profile, and none is coming.** Adding an address to the profile already makes the account reachable by address + password. The client must not build a linking screen.
+
+**Password recovery is not an email flow.** `/auth/forgot-password` and `/auth/reset-password` are gone. The client shows a Zalo contact link (`supportZaloUrl` in the runtime config, https-only); an operator performs the reset. As of 2026-09-08 the runtime config carries the value and **no screen reads it yet**.
 
 ---
 
@@ -138,5 +151,7 @@ One consequence worth knowing when testing: if that existing account had **never
 Development runs a **stub provider**. `Sso:EnableStubProvider` is already `true` in `appsettings.Development.json`, and it refuses to start outside Development.
 
 It behaves exactly like the real thing — same endpoints, same redirects, same errors — except that the "provider" immediately redirects back and always returns the same account (`stub.learner@example.com`, verified). The entire client flow can be built and tested against it before anyone registers a Google OAuth client.
+
+Because the stub always returns the same address, driving it twice exercises row 3 above, not row 1. To see the freed-address behaviour, change that account's address in the profile first and sign in again — the link goes stale and a second account appears.
 
 Run the API (`dotnet run --project backend/src/Vni.Ielts.Api`, port 5099) and press the Google button.

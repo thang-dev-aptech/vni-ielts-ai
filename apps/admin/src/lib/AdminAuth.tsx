@@ -38,7 +38,8 @@ interface AdminAuthState {
   /** True when the account holds at least one CMS permission beyond `exam.read`. */
   isOperator: boolean;
   can: (permission: string) => boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  /** The typed value goes through as `identifier` — a phone number or an email address; the server decides which. */
+  signIn: (identifier: string, password: string) => Promise<void>;
   signOut: () => void;
 }
 
@@ -121,7 +122,8 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       accessToken: session?.accessToken ?? null,
       isOperator: operatorOf(user),
       can: (permission) => (user?.permissions ?? []).includes(permission),
-      signIn: async (email, password) => void (await adopt(await apiLogin(email, password))),
+      signIn: async (identifier, password) =>
+        void (await adopt(await apiLogin(identifier, password))),
       signOut,
     }),
     [adopt, session, signOut, status, user],

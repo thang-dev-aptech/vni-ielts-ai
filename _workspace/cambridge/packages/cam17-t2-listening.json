@@ -1,0 +1,1338 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 17 \u2014 Test 2 Listening",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Opportunities for voluntary work in Southoe village",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n\u2022 Help with [1] books (times to be arranged)\n\u2022 Help needed to keep [2] of books up to date\n\u2022 Library is in the [3] Room in the village hall\n\nLunch club\n\u2022 Help by providing [4]\n\u2022 Help with hobbies such as [5]\n\nHelp for individuals needed next week\n\u2022 Taking Mrs Carroll to [6]\n\u2022 Work in the [7] at Mr Selsbury\u2019s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "collecting"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n\u2022 Help with [1] books (times to be arranged)\n\u2022 Help needed to keep [2] of books up to date\n\u2022 Library is in the [3] Room in the village hall\n\nLunch club\n\u2022 Help by providing [4]\n\u2022 Help with hobbies such as [5]\n\nHelp for individuals needed next week\n\u2022 Taking Mrs Carroll to [6]\n\u2022 Work in the [7] at Mr Selsbury\u2019s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "records"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n\u2022 Help with [1] books (times to be arranged)\n\u2022 Help needed to keep [2] of books up to date\n\u2022 Library is in the [3] Room in the village hall\n\nLunch club\n\u2022 Help by providing [4]\n\u2022 Help with hobbies such as [5]\n\nHelp for individuals needed next week\n\u2022 Taking Mrs Carroll to [6]\n\u2022 Work in the [7] at Mr Selsbury\u2019s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "West"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n\u2022 Help with [1] books (times to be arranged)\n\u2022 Help needed to keep [2] of books up to date\n\u2022 Library is in the [3] Room in the village hall\n\nLunch club\n\u2022 Help by providing [4]\n\u2022 Help with hobbies such as [5]\n\nHelp for individuals needed next week\n\u2022 Taking Mrs Carroll to [6]\n\u2022 Work in the [7] at Mr Selsbury\u2019s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "transport"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n\u2022 Help with [1] books (times to be arranged)\n\u2022 Help needed to keep [2] of books up to date\n\u2022 Library is in the [3] Room in the village hall\n\nLunch club\n\u2022 Help by providing [4]\n\u2022 Help with hobbies such as [5]\n\nHelp for individuals needed next week\n\u2022 Taking Mrs Carroll to [6]\n\u2022 Work in the [7] at Mr Selsbury\u2019s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "art"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n\u2022 Help with [1] books (times to be arranged)\n\u2022 Help needed to keep [2] of books up to date\n\u2022 Library is in the [3] Room in the village hall\n\nLunch club\n\u2022 Help by providing [4]\n\u2022 Help with hobbies such as [5]\n\nHelp for individuals needed next week\n\u2022 Taking Mrs Carroll to [6]\n\u2022 Work in the [7] at Mr Selsbury\u2019s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "hospital"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-1-7",
+                "title": "Opportunities for voluntary work in Southoe village",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Opportunities for voluntary work in Southoe village\n\nLibrary\n\u2022 Help with [1] books (times to be arranged)\n\u2022 Help needed to keep [2] of books up to date\n\u2022 Library is in the [3] Room in the village hall\n\nLunch club\n\u2022 Help by providing [4]\n\u2022 Help with hobbies such as [5]\n\nHelp for individuals needed next week\n\u2022 Taking Mrs Carroll to [6]\n\u2022 Work in the [7] at Mr Selsbury\u2019s house"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "garden"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-8-10",
+                "title": "Village social events",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Village social events\n\nDate       Event                      Location        Help needed\n19 Oct [8]                              Village hall    providing refreshments\n18 Nov dance                           Village hall       checking [9]\n31 Dec New Year\u2019s Eve party            Mountfort Hotel designing the [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "quiz"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-8-10",
+                "title": "Village social events",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Village social events\n\nDate       Event                      Location        Help needed\n19 Oct [8]                              Village hall    providing refreshments\n18 Nov dance                           Village hall       checking [9]\n31 Dec New Year\u2019s Eve party            Mountfort Hotel designing the [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tickets"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-8-10",
+                "title": "Village social events",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Village social events\n\nDate       Event                      Location        Help needed\n19 Oct [8]                              Village hall    providing refreshments\n18 Nov dance                           Village hall       checking [9]\n31 Dec New Year\u2019s Eve party            Mountfort Hotel designing the [10]"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "poster"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Oniton Hall",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "Many past owners made changes to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the gardens."
+                },
+                {
+                  "key": "B",
+                  "text": "the house."
+                },
+                {
+                  "key": "C",
+                  "text": "the farm."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "Sir Edward Downes built Oniton Hall because he wanted",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a place for discussing politics."
+                },
+                {
+                  "key": "B",
+                  "text": "a place to display his wealth."
+                },
+                {
+                  "key": "C",
+                  "text": "a place for artists and writers."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "Visitors can learn about the work of servants in the past from",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "audio guides."
+                },
+                {
+                  "key": "B",
+                  "text": "photographs."
+                },
+                {
+                  "key": "C",
+                  "text": "people in costume."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "What is new for children at Oniton Hall?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "clothes for dressing up"
+                },
+                {
+                  "key": "B",
+                  "text": "mini tractors"
+                },
+                {
+                  "key": "C",
+                  "text": "the adventure playground"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "dairy",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A\u2013H, next to Questions 15\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "large barn",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A\u2013H, next to Questions 15\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "small barn",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A\u2013H, next to Questions 15\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "stables",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A\u2013H, next to Questions 15\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "shed",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A\u2013H, next to Questions 15\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "parkland",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "shopping"
+                },
+                {
+                  "key": "B",
+                  "text": "watching cows being milked"
+                },
+                {
+                  "key": "C",
+                  "text": "seeing old farming equipment"
+                },
+                {
+                  "key": "D",
+                  "text": "eating and drinking"
+                },
+                {
+                  "key": "E",
+                  "text": "starting a trip"
+                },
+                {
+                  "key": "F",
+                  "text": "seeing rare breeds of animals"
+                },
+                {
+                  "key": "G",
+                  "text": "helping to look after animals"
+                },
+                {
+                  "key": "H",
+                  "text": "using farming tools"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "Which activity is offered at each of the following locations on the farm? Choose SIX answers from the box and write the correct letter, A\u2013H, next to Questions 15\u201320."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Romeo and Juliet",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-select",
+              "prompt": "Which TWO things do the students agree they need to include in their reviews of Romeo and Juliet?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "analysis of the text"
+                },
+                {
+                  "key": "B",
+                  "text": "a summary of the plot"
+                },
+                {
+                  "key": "C",
+                  "text": "a description of the theatre"
+                },
+                {
+                  "key": "D",
+                  "text": "a personal reaction"
+                },
+                {
+                  "key": "E",
+                  "text": "a reference to particular scenes"
+                }
+              ],
+              "group": {
+                "id": "l-s3-21-22",
+                "instruction": "Choose TWO letters, A\u2013E."
+              },
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "D",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "matching",
+              "prompt": "the set",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They both expected this to be more traditional."
+                },
+                {
+                  "key": "B",
+                  "text": "They both thought this was original."
+                },
+                {
+                  "key": "C",
+                  "text": "They agree this created the right atmosphere."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree this was a major strength."
+                },
+                {
+                  "key": "E",
+                  "text": "They were both disappointed by this."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about why this was an issue."
+                },
+                {
+                  "key": "G",
+                  "text": "They disagree about how this could be improved."
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which opinion do the speakers give about each of the following aspects of The Emporium\u2019s production of Romeo and Juliet? Choose FIVE answers from the box and write the correct letter, A\u2013G, next to Questions 23\u201327."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "matching",
+              "prompt": "the lighting",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They both expected this to be more traditional."
+                },
+                {
+                  "key": "B",
+                  "text": "They both thought this was original."
+                },
+                {
+                  "key": "C",
+                  "text": "They agree this created the right atmosphere."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree this was a major strength."
+                },
+                {
+                  "key": "E",
+                  "text": "They were both disappointed by this."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about why this was an issue."
+                },
+                {
+                  "key": "G",
+                  "text": "They disagree about how this could be improved."
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which opinion do the speakers give about each of the following aspects of The Emporium\u2019s production of Romeo and Juliet? Choose FIVE answers from the box and write the correct letter, A\u2013G, next to Questions 23\u201327."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "the costume design",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They both expected this to be more traditional."
+                },
+                {
+                  "key": "B",
+                  "text": "They both thought this was original."
+                },
+                {
+                  "key": "C",
+                  "text": "They agree this created the right atmosphere."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree this was a major strength."
+                },
+                {
+                  "key": "E",
+                  "text": "They were both disappointed by this."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about why this was an issue."
+                },
+                {
+                  "key": "G",
+                  "text": "They disagree about how this could be improved."
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which opinion do the speakers give about each of the following aspects of The Emporium\u2019s production of Romeo and Juliet? Choose FIVE answers from the box and write the correct letter, A\u2013G, next to Questions 23\u201327."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "the music",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They both expected this to be more traditional."
+                },
+                {
+                  "key": "B",
+                  "text": "They both thought this was original."
+                },
+                {
+                  "key": "C",
+                  "text": "They agree this created the right atmosphere."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree this was a major strength."
+                },
+                {
+                  "key": "E",
+                  "text": "They were both disappointed by this."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about why this was an issue."
+                },
+                {
+                  "key": "G",
+                  "text": "They disagree about how this could be improved."
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which opinion do the speakers give about each of the following aspects of The Emporium\u2019s production of Romeo and Juliet? Choose FIVE answers from the box and write the correct letter, A\u2013G, next to Questions 23\u201327."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "the actors\u2019 delivery",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They both expected this to be more traditional."
+                },
+                {
+                  "key": "B",
+                  "text": "They both thought this was original."
+                },
+                {
+                  "key": "C",
+                  "text": "They agree this created the right atmosphere."
+                },
+                {
+                  "key": "D",
+                  "text": "They agree this was a major strength."
+                },
+                {
+                  "key": "E",
+                  "text": "They were both disappointed by this."
+                },
+                {
+                  "key": "F",
+                  "text": "They disagree about why this was an issue."
+                },
+                {
+                  "key": "G",
+                  "text": "They disagree about how this could be improved."
+                }
+              ],
+              "group": {
+                "id": "l-s3-23-27",
+                "instruction": "Which opinion do the speakers give about each of the following aspects of The Emporium\u2019s production of Romeo and Juliet? Choose FIVE answers from the box and write the correct letter, A\u2013G, next to Questions 23\u201327."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "multiple-choice",
+              "prompt": "The students think the story of Romeo and Juliet is still relevant for young people today because",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "it illustrates how easily conflict can start."
+                },
+                {
+                  "key": "B",
+                  "text": "it deals with problems that families experience."
+                },
+                {
+                  "key": "C",
+                  "text": "it teaches them about relationships."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "The students found watching Romeo and Juliet in another language",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "frustrating."
+                },
+                {
+                  "key": "B",
+                  "text": "demanding."
+                },
+                {
+                  "key": "C",
+                  "text": "moving."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "Why do the students think Shakespeare\u2019s plays have such international appeal?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The stories are exciting."
+                },
+                {
+                  "key": "B",
+                  "text": "There are recognisable characters."
+                },
+                {
+                  "key": "C",
+                  "text": "They can be interpreted in many ways."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "The impact of digital technology on the Icelandic language",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n\u2022 has approximately [31] speakers\n\u2022 has a [32] that is still growing\n\u2022 has not changed a lot over the last thousand years\n\u2022 has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n\u2022 are big users of digital technology, such as [34]\n\u2022 are becoming [35] very quickly\n\u2022 are having discussions using only English while they are in the [36] at school\n\u2022 are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n\u2022 write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n\u2022 has set up a fund to support the production of more digital content in the language\n\u2022 believes that Icelandic has a secure future\n\u2022 is worried that young Icelanders may lose their [39] as Icelanders\n\u2022 is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "321,000"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n\u2022 has approximately [31] speakers\n\u2022 has a [32] that is still growing\n\u2022 has not changed a lot over the last thousand years\n\u2022 has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n\u2022 are big users of digital technology, such as [34]\n\u2022 are becoming [35] very quickly\n\u2022 are having discussions using only English while they are in the [36] at school\n\u2022 are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n\u2022 write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n\u2022 has set up a fund to support the production of more digital content in the language\n\u2022 believes that Icelandic has a secure future\n\u2022 is worried that young Icelanders may lose their [39] as Icelanders\n\u2022 is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "vocabulary"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n\u2022 has approximately [31] speakers\n\u2022 has a [32] that is still growing\n\u2022 has not changed a lot over the last thousand years\n\u2022 has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n\u2022 are big users of digital technology, such as [34]\n\u2022 are becoming [35] very quickly\n\u2022 are having discussions using only English while they are in the [36] at school\n\u2022 are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n\u2022 write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n\u2022 has set up a fund to support the production of more digital content in the language\n\u2022 believes that Icelandic has a secure future\n\u2022 is worried that young Icelanders may lose their [39] as Icelanders\n\u2022 is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "podcast"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n\u2022 has approximately [31] speakers\n\u2022 has a [32] that is still growing\n\u2022 has not changed a lot over the last thousand years\n\u2022 has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n\u2022 are big users of digital technology, such as [34]\n\u2022 are becoming [35] very quickly\n\u2022 are having discussions using only English while they are in the [36] at school\n\u2022 are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n\u2022 write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n\u2022 has set up a fund to support the production of more digital content in the language\n\u2022 believes that Icelandic has a secure future\n\u2022 is worried that young Icelanders may lose their [39] as Icelanders\n\u2022 is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "smartphones"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n\u2022 has approximately [31] speakers\n\u2022 has a [32] that is still growing\n\u2022 has not changed a lot over the last thousand years\n\u2022 has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n\u2022 are big users of digital technology, such as [34]\n\u2022 are becoming [35] very quickly\n\u2022 are having discussions using only English while they are in the [36] at school\n\u2022 are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n\u2022 write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n\u2022 has set up a fund to support the production of more digital content in the language\n\u2022 believes that Icelandic has a secure future\n\u2022 is worried that young Icelanders may lose their [39] as Icelanders\n\u2022 is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "bilingual"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n\u2022 has approximately [31] speakers\n\u2022 has a [32] that is still growing\n\u2022 has not changed a lot over the last thousand years\n\u2022 has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n\u2022 are big users of digital technology, such as [34]\n\u2022 are becoming [35] very quickly\n\u2022 are having discussions using only English while they are in the [36] at school\n\u2022 are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n\u2022 write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n\u2022 has set up a fund to support the production of more digital content in the language\n\u2022 believes that Icelandic has a secure future\n\u2022 is worried that young Icelanders may lose their [39] as Icelanders\n\u2022 is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "playground"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n\u2022 has approximately [31] speakers\n\u2022 has a [32] that is still growing\n\u2022 has not changed a lot over the last thousand years\n\u2022 has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n\u2022 are big users of digital technology, such as [34]\n\u2022 are becoming [35] very quickly\n\u2022 are having discussions using only English while they are in the [36] at school\n\u2022 are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n\u2022 write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n\u2022 has set up a fund to support the production of more digital content in the language\n\u2022 believes that Icelandic has a secure future\n\u2022 is worried that young Icelanders may lose their [39] as Icelanders\n\u2022 is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "picture"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n\u2022 has approximately [31] speakers\n\u2022 has a [32] that is still growing\n\u2022 has not changed a lot over the last thousand years\n\u2022 has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n\u2022 are big users of digital technology, such as [34]\n\u2022 are becoming [35] very quickly\n\u2022 are having discussions using only English while they are in the [36] at school\n\u2022 are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n\u2022 write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n\u2022 has set up a fund to support the production of more digital content in the language\n\u2022 believes that Icelandic has a secure future\n\u2022 is worried that young Icelanders may lose their [39] as Icelanders\n\u2022 is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "grammar"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n\u2022 has approximately [31] speakers\n\u2022 has a [32] that is still growing\n\u2022 has not changed a lot over the last thousand years\n\u2022 has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n\u2022 are big users of digital technology, such as [34]\n\u2022 are becoming [35] very quickly\n\u2022 are having discussions using only English while they are in the [36] at school\n\u2022 are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n\u2022 write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n\u2022 has set up a fund to support the production of more digital content in the language\n\u2022 believes that Icelandic has a secure future\n\u2022 is worried that young Icelanders may lose their [39] as Icelanders\n\u2022 is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "identity"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "The impact of digital technology on the Icelandic language",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The impact of digital technology on the Icelandic language\n\nThe Icelandic language\n\u2022 has approximately [31] speakers\n\u2022 has a [32] that is still growing\n\u2022 has not changed a lot over the last thousand years\n\u2022 has its own words for computer-based concepts, such as web browser and [33]\n\nYoung speakers\n\u2022 are big users of digital technology, such as [34]\n\u2022 are becoming [35] very quickly\n\u2022 are having discussions using only English while they are in the [36] at school\n\u2022 are better able to identify the content of a [37] in English than Icelandic\n\nTechnology and internet companies\n\u2022 write very little in Icelandic because of the small number of speakers and because of how complicated its [38] is\n\nThe Icelandic government\n\u2022 has set up a fund to support the production of more digital content in the language\n\u2022 believes that Icelandic has a secure future\n\u2022 is worried that young Icelanders may lose their [39] as Icelanders\n\u2022 is worried about the consequences of children not being [40] in either Icelandic or English"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fluent"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

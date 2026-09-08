@@ -58,7 +58,9 @@ export function FullTestReadinessModal({
       }
 
       if (event.key !== 'Tab' || card.current === null) return;
-      const controls = [...card.current.querySelectorAll<HTMLElement>('button:not([disabled]), [tabindex="0"]')];
+      const controls = [
+        ...card.current.querySelectorAll<HTMLElement>('button:not([disabled]), [tabindex="0"]'),
+      ];
       const first = controls[0];
       const last = controls[controls.length - 1];
       if (first === undefined || last === undefined) return;
@@ -79,7 +81,12 @@ export function FullTestReadinessModal({
   if (!isOpen || item === null) return null;
 
   return (
-    <div className="work-modal-scrim" onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
+    <div
+      className="work-modal-scrim"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
+    >
       <div
         className="work-modal-card readiness-card"
         role="dialog"
@@ -120,10 +127,7 @@ export function FullTestReadinessModal({
                   return (
                     <li key={part.module} className="readiness-step-item">
                       <span className="readiness-step-num">{index + 1}</span>
-                      <span
-                        className="readiness-step-name"
-                        style={{ color: skill.ink }}
-                      >
+                      <span className="readiness-step-name" style={{ color: skill.ink }}>
                         {skill.name}
                       </span>
                       <span className="readiness-step-min">
@@ -155,16 +159,20 @@ export function FullTestReadinessModal({
           <h3 className="readiness-section-title">Lưu ý trước khi bắt đầu:</h3>
           <ul className="readiness-rule-list">
             <li>
-              <strong>Tai nghe &amp; Micro:</strong> Yêu cầu kết nối tai nghe và bật quyền micro để làm bài Listening &amp; Speaking.
+              <strong>Tai nghe &amp; Micro:</strong> Yêu cầu kết nối tai nghe và bật quyền micro để
+              làm bài Listening &amp; Speaking.
             </li>
             <li>
-              <strong>Tự động lưu:</strong> Toàn bộ đáp án của bạn được lưu tự động liên tục lên hệ thống.
+              <strong>Tự động lưu:</strong> Toàn bộ đáp án của bạn được lưu tự động liên tục lên hệ
+              thống.
             </li>
             <li>
-              <strong>Đồng hồ chạy trên máy chủ:</strong> Thời gian thi không dừng lại kể cả khi bạn bị ngắt kết nối mạng.
+              <strong>Đồng hồ chạy trên máy chủ:</strong> Thời gian thi không dừng lại kể cả khi bạn
+              bị ngắt kết nối mạng.
             </li>
             <li>
-              <strong>Không quay lại:</strong> Sau khi hoàn thành và chuyển sang kỹ năng tiếp theo, bạn không thể quay lại sửa bài kỹ năng trước.
+              <strong>Không quay lại:</strong> Sau khi hoàn thành và chuyển sang kỹ năng tiếp theo,
+              bạn không thể quay lại sửa bài kỹ năng trước.
             </li>
           </ul>
         </div>

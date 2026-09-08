@@ -1,0 +1,1191 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 18 \u2014 Test 2",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Working at Milo\u2019s Restaurants",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-p1-1-5",
+                "title": "Working at Milo\u2019s Restaurants",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "training"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-p1-1-5",
+                "title": "Working at Milo\u2019s Restaurants",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "discount"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-p1-1-5",
+                "title": "Working at Milo\u2019s Restaurants",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "taxi"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-p1-1-5",
+                "title": "Working at Milo\u2019s Restaurants",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "service"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-p1-1-5",
+                "title": "Working at Milo\u2019s Restaurants",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "English"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-p1-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 4
+              },
+              "answerKey": {
+                "accepted": [
+                  "Wivenhoe"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-p1-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 4
+              },
+              "answerKey": {
+                "accepted": [
+                  "equipment"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-p1-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 4
+              },
+              "answerKey": {
+                "accepted": [
+                  "9.75"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-p1-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 4
+              },
+              "answerKey": {
+                "accepted": [
+                  "deliveries"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-p1-6-10",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer."
+              },
+              "constraints": {
+                "maxWords": 4
+              },
+              "answerKey": {
+                "accepted": [
+                  "Sunday"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Housing development",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-select",
+              "prompt": "What are the TWO main reasons why this site has been chosen for the housing development?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It has suitable geographical features."
+                },
+                {
+                  "key": "B",
+                  "text": "There is easy access to local facilities."
+                },
+                {
+                  "key": "C",
+                  "text": "It has good connections with the airport."
+                },
+                {
+                  "key": "D",
+                  "text": "The land is of little agricultural value."
+                },
+                {
+                  "key": "E",
+                  "text": "It will be convenient for workers."
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-select",
+              "prompt": "Which TWO aspects of the planned housing development have people given positive feedback about?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the facilities for cyclists"
+                },
+                {
+                  "key": "B",
+                  "text": "the impact on the environment"
+                },
+                {
+                  "key": "C",
+                  "text": "the encouragement of good relations between residents"
+                },
+                {
+                  "key": "D",
+                  "text": "the low cost of all the accommodation"
+                },
+                {
+                  "key": "E",
+                  "text": "the rural location"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "C"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "School",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "instruction": "Label the map below.\nWrite the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Sports centre",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "instruction": "Label the map below.\nWrite the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Community centre",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "instruction": "Label the map below.\nWrite the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Supermarket",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "instruction": "Label the map below.\nWrite the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "Playground",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                },
+                {
+                  "key": "G",
+                  "text": "G"
+                },
+                {
+                  "key": "H",
+                  "text": "H"
+                },
+                {
+                  "key": "I",
+                  "text": "I"
+                }
+              ],
+              "group": {
+                "id": "l-map-15-20",
+                "instruction": "Label the map below.\nWrite the correct letter, A-I, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Laki eruption",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "Why do the students think the Laki eruption of 1783 is so important?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It was the most severe eruption in modern times."
+                },
+                {
+                  "key": "B",
+                  "text": "It led to the formal study of volcanoes."
+                },
+                {
+                  "key": "C",
+                  "text": "It had a profound effect on society."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "What surprised Adam about observations made at the time?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the number of places producing them"
+                },
+                {
+                  "key": "B",
+                  "text": "the contradictions in them"
+                },
+                {
+                  "key": "C",
+                  "text": "the lack of scientific data to support them"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "According to Michelle, what did the contemporary sources say about the Laki haze?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "People thought it was similar to ordinary fog."
+                },
+                {
+                  "key": "B",
+                  "text": "It was associated with health issues."
+                },
+                {
+                  "key": "C",
+                  "text": "It completely blocked out the sun for weeks."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "Adam corrects Michelle when she claims that Benjamin Franklin",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "came to the wrong conclusion about the cause of the haze."
+                },
+                {
+                  "key": "B",
+                  "text": "was the first to identify the reason for the haze."
+                },
+                {
+                  "key": "C",
+                  "text": "supported the opinions of other observers about the haze."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "multiple-select",
+              "prompt": "Which TWO issues following the Laki eruption surprised the students?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "how widespread the effects were"
+                },
+                {
+                  "key": "B",
+                  "text": "how long-lasting the effects were"
+                },
+                {
+                  "key": "C",
+                  "text": "the number of deaths it caused"
+                },
+                {
+                  "key": "D",
+                  "text": "the speed at which the volcanic ash cloud spread"
+                },
+                {
+                  "key": "E",
+                  "text": "how people ignored the warning signs"
+                }
+              ],
+              "marks": 2
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Iceland",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "This country suffered the most severe loss of life."
+                },
+                {
+                  "key": "B",
+                  "text": "The impact on agriculture was predictable."
+                },
+                {
+                  "key": "C",
+                  "text": "There was a significant increase in deaths of young people."
+                },
+                {
+                  "key": "D",
+                  "text": "Animals suffered from a sickness."
+                },
+                {
+                  "key": "E",
+                  "text": "This country saw the highest rise in food prices in the world."
+                },
+                {
+                  "key": "F",
+                  "text": "It caused a particularly harsh winter."
+                }
+              ],
+              "group": {
+                "id": "l-countries-27-30",
+                "instruction": "What comment do the students make about the impact of the Laki eruption on the following countries?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 27-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "Questions 28",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "This country suffered the most severe loss of life."
+                },
+                {
+                  "key": "B",
+                  "text": "The impact on agriculture was predictable."
+                },
+                {
+                  "key": "C",
+                  "text": "There was a significant increase in deaths of young people."
+                },
+                {
+                  "key": "D",
+                  "text": "Animals suffered from a sickness."
+                },
+                {
+                  "key": "E",
+                  "text": "This country saw the highest rise in food prices in the world."
+                },
+                {
+                  "key": "F",
+                  "text": "It caused a particularly harsh winter."
+                }
+              ],
+              "group": {
+                "id": "l-countries-27-30",
+                "instruction": "What comment do the students make about the impact of the Laki eruption on the following countries?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 27-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "Questions 29",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "This country suffered the most severe loss of life."
+                },
+                {
+                  "key": "B",
+                  "text": "The impact on agriculture was predictable."
+                },
+                {
+                  "key": "C",
+                  "text": "There was a significant increase in deaths of young people."
+                },
+                {
+                  "key": "D",
+                  "text": "Animals suffered from a sickness."
+                },
+                {
+                  "key": "E",
+                  "text": "This country saw the highest rise in food prices in the world."
+                },
+                {
+                  "key": "F",
+                  "text": "It caused a particularly harsh winter."
+                }
+              ],
+              "group": {
+                "id": "l-countries-27-30",
+                "instruction": "What comment do the students make about the impact of the Laki eruption on the following countries?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 27-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Questions 30",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "This country suffered the most severe loss of life."
+                },
+                {
+                  "key": "B",
+                  "text": "The impact on agriculture was predictable."
+                },
+                {
+                  "key": "C",
+                  "text": "There was a significant increase in deaths of young people."
+                },
+                {
+                  "key": "D",
+                  "text": "Animals suffered from a sickness."
+                },
+                {
+                  "key": "E",
+                  "text": "This country saw the highest rise in food prices in the world."
+                },
+                {
+                  "key": "F",
+                  "text": "It caused a particularly harsh winter."
+                }
+              ],
+              "group": {
+                "id": "l-countries-27-30",
+                "instruction": "What comment do the students make about the impact of the Laki eruption on the following countries?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 27-30."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Pockets",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "Pockets",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "convenient"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "Pockets",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "suits"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "Pockets",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tailor"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "Pockets",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "visible"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "Pockets",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "\u2014 siring(s)"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "Pockets",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "waist(s)"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "Pockets",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "perfume"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "Pockets",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "image"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-p4-31-40",
+                "title": "Pockets",
+                "instruction": "Write ONE WORD ONLY for each answer."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "handbag"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

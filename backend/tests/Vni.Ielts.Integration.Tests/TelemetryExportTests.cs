@@ -132,7 +132,7 @@ public sealed class TelemetryExportTests
             "/api/v1/auth/register",
             new
             {
-                email = $"otel-{Guid.NewGuid():n}@example.com",
+                phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}",
                 password = "Password123!Aa",
                 displayName = "Telemetry Fixture",
             });

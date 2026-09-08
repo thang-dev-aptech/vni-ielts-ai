@@ -72,7 +72,15 @@ function runningSitting() {
           cueCard: null,
           minWords: null,
           questions: [
-            { id: 'r-1', order: 1, type: 'short-answer', prompt: 'Câu hỏi 1', options: [], maxWords: 2, group: null },
+            {
+              id: 'r-1',
+              order: 1,
+              type: 'short-answer',
+              prompt: 'Câu hỏi 1',
+              options: [],
+              maxWords: 2,
+              group: null,
+            },
           ],
         },
       ],
@@ -164,10 +172,10 @@ it('the exam launcher creates a session and hands off to the deadline runner', a
     </StrictMode>,
   );
 
-  await waitFor(() => expect(window.location.pathname).toBe('/students/session/sit-new-1'));
+  await waitFor(() => expect(window.location.pathname).toBe('/exam/sit-new-1'));
 });
 
-it('/students/practice renders the hub, not a redirect to /practice', async () => {
+it('/students/practice renders the workspace directly, not a selection screen', async () => {
   signedIn();
   window.history.pushState({}, '', '/students/practice');
   render(
@@ -176,12 +184,85 @@ it('/students/practice renders the hub, not a redirect to /practice', async () =
     </StrictMode>,
   );
 
-  await screen.findByRole('heading', { name: 'Luyện 4 kỹ năng' });
+  /*
+   * `/students/practice` briefly split (08/09/2026) into a "chọn" screen
+   * whose skill tabs led nowhere until "Tất cả đề" was pressed. Corrected the
+   * same day: the tabs and their matching single-skill grid live on one
+   * screen, and only the bộ đề (test-set) library sits behind an explicit
+   * button — never a second, implicit door into it.
+   */
+  await screen.findByRole('heading', { name: 'Luyện 4 kỹ năng', level: 1 });
   expect(window.location.pathname).toBe('/students/practice');
-  expect(screen.getByRole('link', { name: 'Xem bộ đề' })).toHaveAttribute(
+  expect(screen.getByRole('radiogroup', { name: /Chọn kỹ năng/ })).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: 'Khám phá bộ đề' })).not.toBeInTheDocument();
+});
+
+it('the workspace carries the chosen skill into the "Xem tất cả bộ đề" link', async () => {
+  signedIn();
+  window.history.pushState({}, '', '/students/practice');
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+
+  await screen.findByRole('heading', { name: 'Luyện 4 kỹ năng', level: 1 });
+
+  // The workspace always has a skill selected — it defaults to Reading — so
+  // the library link is never bare; a skill tab and the "bộ đề" library it
+  // points at must agree on what is currently chosen.
+  expect(screen.getByRole('link', { name: /Xem tất cả bộ đề/ })).toHaveAttribute(
+    'href',
+    '/students/practice/categories?skill=reading',
+  );
+
+  await userEvent.click(screen.getByRole('radio', { name: /Listening/ }));
+
+  expect(screen.getByRole('link', { name: /Xem tất cả bộ đề/ })).toHaveAttribute(
+    'href',
+    '/students/practice/categories?skill=listening',
+  );
+
+  // Full Test sits every skill in one paper — a bộ đề is not scoped to one
+  // skill, so switching to it drops the filter rather than carrying a skill
+  // that no longer means anything into the library.
+  await userEvent.click(screen.getByRole('button', { name: 'Thi thử full' }));
+  expect(screen.getByRole('link', { name: /Xem tất cả bộ đề/ })).toHaveAttribute(
     'href',
     '/students/practice/categories',
   );
+});
+
+it('the library reads ?skill= and hides sets that do not cover it', async () => {
+  const exams = [
+    {
+      examVersionId: 'cam17-1',
+      title: 'Cambridge IELTS 17 — Test 1',
+      variant: 'academic',
+      description: null,
+      moduleSequence: ['reading'],
+      modules: [{ module: 'reading', questionCount: 40, durationSeconds: 3600 }],
+    },
+  ];
+  signedIn((url) => {
+    if (url.includes('/api/v1/exams')) return json({ exams });
+    return undefined;
+  });
+
+  window.history.pushState({}, '', '/students/practice/categories?skill=writing');
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+
+  // The only set is Reading-only, so filtering by Writing must empty the grid
+  // and say which filter did it — not show every set as if nothing was chosen.
+  expect(await screen.findByText('Không có bộ đề nào chứa kỹ năng đã chọn.')).toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Cambridge IELTS 17' })).toBeNull();
+
+  await userEvent.click(screen.getByRole('button', { name: 'Đặt lại bộ lọc' }));
+  expect(await screen.findByRole('link', { name: 'Cambridge IELTS 17' })).toBeInTheDocument();
 });
 
 it('walks category → set → test → exam → runner end to end', async () => {
@@ -222,5 +303,5 @@ it('walks category → set → test → exam → runner end to end', async () =>
   await waitFor(() => expect(window.location.pathname).toBe('/students/practice/tests/cam17-1'));
 
   await userEvent.click(await screen.findByRole('link', { name: 'Bắt đầu Thi thử' }));
-  await waitFor(() => expect(window.location.pathname).toBe('/students/session/sit-new-1'));
+  await waitFor(() => expect(window.location.pathname).toBe('/exam/sit-new-1'));
 });

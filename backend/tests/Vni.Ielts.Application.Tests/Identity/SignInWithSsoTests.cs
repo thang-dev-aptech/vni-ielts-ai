@@ -1,27 +1,36 @@
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Identity;
-using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Identity;
 
 namespace Vni.Ielts.Application.Tests.Identity;
 
 /// <summary>
-/// The M-1 decision, as tests.
+/// Social sign-in, after the 08/09/2026 owner decision.
 ///
 /// <para>
-/// The owner's decision was short — *one email is one account* — and most of
-/// this file exists because that sentence has two dangerous edges. Linking on
-/// an address the provider will not vouch for is threat <c>T1</c> forwards;
-/// linking into an account that never verified its own address is the same
-/// threat backwards, and it is the one that is easy to build without noticing.
-/// Both have a named test here, and neither should be deleted without
-/// superseding ADR-0013.
+/// <b>The address identifies whichever account currently holds it.</b>
+/// <i>"user đổi email thành nguyendoanthang16@gmail.com → thì dữ liệu của
+/// ngdthang.dev@gmail.com sẽ được chuyển thành của nguyendoanthang16@gmail.com
+/// và bây giờ nếu login bằng ngdthang.dev@gmail.com sẽ là 1 tài khoản mới"</i>.
+/// That reverses <c>AU-7</c> and supersedes ADR-0013; the three tests under
+/// "moving an address" are the ones that say so, and they should not be
+/// deleted without superseding ADR-0018 in turn.
+/// </para>
+///
+/// <para>
+/// Most of the rest of this file guards the edges of that rule. Dropping a link
+/// is destructive and irreversible, so it happens only when a vouching provider
+/// asserts a usable address that differs from the one the account holds — three
+/// conditions, three named tests. And an account that has a password is refused
+/// rather than taken over, which is the half that replaced ADR-0013's squatter
+/// eviction.
 /// </para>
 /// </summary>
 public sealed class SignInWithSsoTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 8, 21, 9, 0, 0, TimeSpan.Zero);
-    private const string Address = "hoc.vien@example.com";
+    private static readonly DateTimeOffset Now = new(2026, 9, 8, 9, 0, 0, TimeSpan.Zero);
+    private const string Address = "ngdthang.dev@example.com";
+    private const string Moved = "nguyendoanthang16@example.com";
     private const string Subject = "google-subject-1";
 
     private sealed class Harness
@@ -29,13 +38,12 @@ public sealed class SignInWithSsoTests
         public FakeUserRepository Users { get; } = new();
         public FakeUserIdentityRepository Identities { get; } = new();
         public FakeRoleRepository Roles { get; } = new();
-        public FakeTokenService Tokens { get; } = new();
-        public FakeSsoStateStore States { get; } = new();
         public FakeHandoffCodeStore Handoffs { get; } = new();
+        public FakeSsoStateStore States { get; } = new();
         public FakeExternalIdentityProvider Provider { get; init; } = new();
 
         public SignInWithSso Sut => new(
-            new FakeProviderRegistry(Provider), States, Users, Identities, Roles, Tokens, Handoffs,
+            new FakeProviderRegistry(Provider), States, Users, Identities, Roles, Handoffs,
             new FixedClock(Now));
 
         /// <summary>Puts a live state in the store and returns the callback command.</summary>
@@ -52,31 +60,36 @@ public sealed class SignInWithSsoTests
             return new SsoCallbackCommand(Provider.Key, code, state, providerError);
         }
 
-        public async Task<User> SeedUserAsync(bool emailVerified, bool suspended = false,
-                                              string? passwordHash = "fake:old-password")
+        /// <summary>An account holding an address, optionally with a password.</summary>
+        public async Task<User> SeedUserAsync(
+            string address = Address, bool suspended = false,
+            string? passwordHash = "fake:old-password")
         {
-            var email = Email.Create(Address);
-            var user = User.Register(email, "Học viên", Now);
-            if (emailVerified) user.MarkEmailVerified();
+            var user = User.RegisterFromProvider(Email.Create(address), "Hoc vien", Now);
             if (suspended) user.Suspend();
 
             await Users.AddAsync(user, default);
             if (passwordHash is not null)
-                await Identities.AddAsync(UserIdentity.ForEmail(user.Id, email, passwordHash, Now), default);
+                await Identities.AddAsync(UserIdentity.ForPassword(user.Id, passwordHash, Now), default);
 
             return user;
         }
+
+        /// <summary>Attaches the provider link this subject would have after a first sign-in.</summary>
+        public Task LinkAsync(User user, string subject = Subject) =>
+            Identities.AddAsync(
+                UserIdentity.ForSocial(user.Id, Provider.Provider, subject, Now), default);
     }
 
     private static ExternalIdentity Identity(
         bool emailVerified = true, string? email = Address, string subject = Subject,
         IdentityProvider provider = IdentityProvider.Google) =>
-        new(provider, subject, email, emailVerified, "Học Viên Google");
+        new(provider, subject, email, emailVerified, "Hoc Vien Google");
 
     // ── Creating an account ────────────────────────────────────────────────
 
     [Fact]
-    public async Task Unknown_identity_and_unknown_email_creates_an_account()
+    public async Task Unknown_identity_and_unknown_address_creates_an_account()
     {
         var h = new Harness();
         h.Provider.Result = Identity();
@@ -89,6 +102,7 @@ public sealed class SignInWithSsoTests
         var created = await h.Users.FindByEmailAsync(Email.Create(Address), default);
         Assert.NotNull(created);
         Assert.Single(created!.RoleIds);
+        Assert.Null(created.Phone);
 
         var identity = await h.Identities.FindByProviderAsync(IdentityProvider.Google, Subject, default);
         Assert.NotNull(identity);
@@ -96,195 +110,206 @@ public sealed class SignInWithSsoTests
     }
 
     [Fact]
-    public async Task A_provider_verified_address_arrives_already_verified()
+    public async Task A_known_identity_signs_straight_in()
     {
-        // This is what makes social sign-up worth having: the account starts
-        // past the gate entitlement accrual waits on. → T4
         var h = new Harness();
-        h.Provider.Result = Identity(emailVerified: true);
+        var user = await h.SeedUserAsync(passwordHash: null);
+        await h.LinkAsync(user);
+        h.Provider.Result = Identity();
 
-        await h.Sut.HandleAsync(await h.ArmAsync(), default);
+        var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
 
-        var created = await h.Users.FindByEmailAsync(Email.Create(Address), default);
-        Assert.True(created!.EmailVerified);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(user.Id, await h.Handoffs.ResolveAsync(result.Value!.HandoffCode));
+    }
+
+    // ── Moving an address ──────────────────────────────────────────────────
+
+    [Fact]
+    public async Task A_provider_that_now_asserts_a_different_address_does_not_sign_into_the_old_account()
+    {
+        /*
+         * The account moved to a new address; this subject still points at it.
+         * Signing in with the address it left behind must not land back in it,
+         * because that address is no longer what identifies this account.
+         */
+        var h = new Harness();
+        var user = await h.SeedUserAsync(passwordHash: null);
+        await h.LinkAsync(user);
+
+        // The learner changes their address in the profile.
+        user.ChangeEmail(Email.Create(Moved), hasLinkedProvider: true);
+        await h.Users.SaveAsync(user, default);
+
+        // …and then signs in with Google, which still asserts the old address.
+        h.Provider.Result = Identity(email: Address);
+        var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotEqual(user.Id, await h.Handoffs.ResolveAsync(result.Value!.HandoffCode));
     }
 
     [Fact]
-    public async Task An_unverified_address_creates_an_unverified_account()
+    public async Task Signing_in_with_the_freed_address_creates_a_new_account()
     {
+        var h = new Harness();
+        var user = await h.SeedUserAsync(passwordHash: null);
+        await h.LinkAsync(user);
+        user.ChangeEmail(Email.Create(Moved), hasLinkedProvider: true);
+        await h.Users.SaveAsync(user, default);
+
+        h.Provider.Result = Identity(email: Address);
+        var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
+
+        var fresh = await h.Users.FindByEmailAsync(Email.Create(Address), default);
+        Assert.NotNull(fresh);
+        Assert.NotEqual(user.Id, fresh!.Id);
+        Assert.Equal(fresh.Id, await h.Handoffs.ResolveAsync(result.Value!.HandoffCode));
+
+        // And the account that moved is untouched — same id, new address.
+        var moved = await h.Users.FindByIdAsync(user.Id, default);
+        Assert.Equal(Moved, moved!.Email!.Value.Value);
+    }
+
+    [Fact]
+    public async Task Signing_in_at_the_new_address_returns_to_the_migrated_account()
+    {
+        // The other half of the owner's scenario, and the one that makes the
+        // change survivable: the learner's own data is still reachable.
+        var h = new Harness();
+        var user = await h.SeedUserAsync(passwordHash: null);
+        await h.LinkAsync(user);
+        user.ChangeEmail(Email.Create(Moved), hasLinkedProvider: true);
+        await h.Users.SaveAsync(user, default);
+
+        // A different Google account — a new subject — at the new address.
+        h.Provider.Result = Identity(email: Moved, subject: "google-subject-2");
+        var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(user.Id, await h.Handoffs.ResolveAsync(result.Value!.HandoffCode));
+    }
+
+    // ── The three conditions on dropping a link ────────────────────────────
+
+    [Fact]
+    public async Task A_provider_that_does_not_vouch_cannot_unlink_an_identity()
+    {
+        /*
+         * <b>Otherwise changing your address at a non-vouching provider is an
+         * unlink primitive.</b> Facebook never asserts that an address is
+         * verified, so a claim from it proves nothing — and acting on it would
+         * let an unverified assertion detach a link the account depends on.
+         */
         var h = new Harness { Provider = new FakeExternalIdentityProvider(IdentityProvider.Facebook, false) };
-        h.Provider.Result = Identity(emailVerified: false, provider: IdentityProvider.Facebook);
+        var user = await h.SeedUserAsync(passwordHash: null);
+        await h.LinkAsync(user);
 
-        await h.Sut.HandleAsync(await h.ArmAsync(), default);
+        h.Provider.Result = Identity(
+            email: "khac@example.com", provider: IdentityProvider.Facebook);
 
-        var created = await h.Users.FindByEmailAsync(Email.Create(Address), default);
-        Assert.False(created!.EmailVerified);
+        var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(user.Id, await h.Handoffs.ResolveAsync(result.Value!.HandoffCode));
+        Assert.NotNull(
+            await h.Identities.FindByProviderAsync(IdentityProvider.Facebook, Subject, default));
     }
 
     [Fact]
-    public async Task A_concurrent_signup_for_the_same_address_links_instead_of_failing()
+    public async Task A_provider_that_shares_no_address_does_not_destroy_the_existing_link()
     {
+        /*
+         * <b>Ordering bug, and a permanent one.</b> "No address asserted" is
+         * trivially different from the address the account holds, so a
+         * stale-check that ran before the address was parsed would drop the
+         * link and *then* fail the sign-in with SSO_EMAIL_MISSING — leaving
+         * the person unable to get back in, ever.
+         */
         var h = new Harness();
+        var user = await h.SeedUserAsync(passwordHash: null);
+        await h.LinkAsync(user);
+
+        h.Provider.Result = Identity(email: null);
+        var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(user.Id, await h.Handoffs.ResolveAsync(result.Value!.HandoffCode));
+        Assert.NotNull(
+            await h.Identities.FindByProviderAsync(IdentityProvider.Google, Subject, default));
+    }
+
+    [Fact]
+    public async Task An_account_that_cleared_its_address_keeps_its_link()
+    {
+        // Null is not "a different address". Treating it as one would mean
+        // emptying a profile field silently detaches the provider the person
+        // signs in with, and mints them a second account on the next attempt.
+        var h = new Harness();
+        var user = await h.SeedUserAsync(passwordHash: null);
+        await h.LinkAsync(user);
+        user.ChangeEmail(null, hasLinkedProvider: true);
+        await h.Users.SaveAsync(user, default);
+
         h.Provider.Result = Identity();
-        var winner = await h.SeedUserAsync(emailVerified: true, passwordHash: null);
-        h.Users.ThrowDuplicateOnNextAdd = true;
-
         var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
 
         Assert.True(result.IsSuccess);
-        var identity = await h.Identities.FindByProviderAsync(IdentityProvider.Google, Subject, default);
-        Assert.Equal(winner.Id, identity!.UserId);
+        Assert.Equal(user.Id, await h.Handoffs.ResolveAsync(result.Value!.HandoffCode));
     }
 
-    [Fact]
-    public async Task Losing_the_race_to_link_an_identity_still_signs_in()
-    {
-        // Two tabs finishing at the same instant. The unique index rejects the
-        // second insert, and the person on that request is signed in anyway —
-        // they are, after all, exactly who they said they were.
-        var h = new Harness();
-        h.Provider.Result = Identity();
-
-        var winner = await h.SeedUserAsync(emailVerified: true, passwordHash: null);
-        h.Identities.LoseNextAddTo =
-            UserIdentity.ForSocial(winner.Id, IdentityProvider.Google, Subject, Now);
-        h.Users.ThrowDuplicateOnNextAdd = true;
-
-        var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
-
-        Assert.True(result.IsSuccess);
-        Assert.Single(await h.Identities.ListForUserAsync(winner.Id, default));
-    }
-
-    // ── Signing in again ───────────────────────────────────────────────────
+    // ── Linking into an account that already exists ────────────────────────
 
     [Fact]
-    public async Task A_known_identity_signs_in_without_creating_anything()
+    public async Task A_matching_address_links_to_an_account_that_has_no_password()
     {
         var h = new Harness();
-        var user = await h.SeedUserAsync(emailVerified: true, passwordHash: null);
-        await h.Identities.AddAsync(
-            UserIdentity.ForSocial(user.Id, IdentityProvider.Google, Subject, Now), default);
-        h.Provider.Result = Identity();
-
-        var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
-
-        Assert.True(result.IsSuccess);
-        Assert.Single(await h.Identities.ListForUserAsync(user.Id, default));
-    }
-
-    [Fact]
-    public async Task A_known_identity_signs_in_even_if_the_address_changed_at_the_provider()
-    {
-        // Keying on the subject rather than the address is what makes this
-        // work; keying on email would strand the account.
-        var h = new Harness();
-        var user = await h.SeedUserAsync(emailVerified: true, passwordHash: null);
-        await h.Identities.AddAsync(
-            UserIdentity.ForSocial(user.Id, IdentityProvider.Google, Subject, Now), default);
-        h.Provider.Result = Identity(email: "moi@example.com");
-
-        var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
-
-        Assert.True(result.IsSuccess);
-        Assert.Null(await h.Users.FindByEmailAsync(Email.Create("moi@example.com"), default));
-    }
-
-    // ── The M-1 branch ─────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task A_matching_address_links_to_the_existing_account()
-    {
-        var h = new Harness();
-        var user = await h.SeedUserAsync(emailVerified: true);
+        var user = await h.SeedUserAsync(passwordHash: null);
         h.Provider.Result = Identity();
 
         var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
 
         Assert.True(result.IsSuccess);
-        var identities = await h.Identities.ListForUserAsync(user.Id, default);
-        Assert.Equal(2, identities.Count);
-        Assert.Single(identities, i => i.Provider == IdentityProvider.Google);
+        Assert.Equal(user.Id, await h.Handoffs.ResolveAsync(result.Value!.HandoffCode));
+
+        var linked = await h.Identities.FindByProviderAsync(IdentityProvider.Google, Subject, default);
+        Assert.Equal(user.Id, linked!.UserId);
     }
 
     [Fact]
-    public async Task Linking_to_a_verified_account_leaves_its_password_alone()
+    public async Task An_account_with_a_password_is_refused_rather_than_having_it_cleared()
     {
+        /*
+         * <b>This replaced ADR-0013's squatter eviction, and the difference
+         * matters.</b> That branch cleared the existing account's password and
+         * revoked its sessions, on the reasoning that an unverified address was
+         * only ever a claim. Nothing is verified any more, so the same branch
+         * would now fire on the ordinary case: a learner who registered with a
+         * phone number, added their own address, and pressed the Google button.
+         * Destroying their password for that is indefensible, and refusing
+         * costs them nothing — the password is the route the owner intends
+         * them to use.
+         */
         var h = new Harness();
-        var user = await h.SeedUserAsync(emailVerified: true);
-        h.Provider.Result = Identity();
-
-        await h.Sut.HandleAsync(await h.ArmAsync(), default);
-
-        var email = (await h.Identities.ListForUserAsync(user.Id, default))
-            .Single(i => i.Provider == IdentityProvider.Email);
-        Assert.Equal("fake:old-password", email.PasswordHash);
-        Assert.Empty(h.Tokens.RevokedAllFor);
-    }
-
-    [Fact]
-    public async Task Linking_to_an_unverified_account_evicts_whoever_set_its_password()
-    {
-        // The squatter case, and the reason ADR-0013 could not simply say
-        // "link on matching email". Registration creates the account before
-        // the address is proven, so an attacker registers the victim's address
-        // and waits. Marking it verified without removing the password would
-        // hand them the merged account.
-        var h = new Harness();
-        var user = await h.SeedUserAsync(emailVerified: false);
+        var user = await h.SeedUserAsync(passwordHash: "fake:their-own-password");
         h.Provider.Result = Identity();
 
         var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
 
-        Assert.True(result.IsSuccess);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.IdentityLinkRequired, result.Error.Code);
 
-        var refreshed = await h.Users.FindByIdAsync(user.Id, default);
-        Assert.True(refreshed!.EmailVerified);
-
-        var email = (await h.Identities.ListForUserAsync(user.Id, default))
-            .Single(i => i.Provider == IdentityProvider.Email);
-        Assert.Null(email.PasswordHash);
-
-        Assert.Contains(user.Id, h.Tokens.RevokedAllFor);
-    }
-
-    [Fact]
-    public async Task Eviction_also_takes_back_the_display_name()
-    {
-        // Whoever registered the unproven address chose the name on it. The
-        // person who actually owns the address should not inherit it.
-        var h = new Harness();
-        var user = await h.SeedUserAsync(emailVerified: false);
-        h.Provider.Result = Identity();
-
-        await h.Sut.HandleAsync(await h.ArmAsync(), default);
-
-        var refreshed = await h.Users.FindByIdAsync(user.Id, default);
-        Assert.Equal("Học Viên Google", refreshed!.DisplayName);
-    }
-
-    [Fact]
-    public async Task Linking_to_a_verified_account_leaves_its_display_name_alone()
-    {
-        // The opposite case, and the reason the rename is not unconditional:
-        // on a proven account the name is the person's own.
-        var h = new Harness();
-        var user = await h.SeedUserAsync(emailVerified: true);
-        h.Provider.Result = Identity();
-
-        await h.Sut.HandleAsync(await h.ArmAsync(), default);
-
-        var refreshed = await h.Users.FindByIdAsync(user.Id, default);
-        Assert.Equal("Học viên", refreshed!.DisplayName);
+        var identity = Assert.Single(await h.Identities.ListForUserAsync(user.Id, default));
+        Assert.Equal("fake:their-own-password", identity.PasswordHash);
     }
 
     [Fact]
     public async Task A_provider_that_does_not_vouch_for_the_address_cannot_link()
     {
-        // Facebook returns an address and asserts nothing about it. Linking on
-        // that is threat T1 with no mitigation at all.
+        // Linking on an address nobody stands behind is threat T1 with no
+        // mitigation at all.
         var h = new Harness { Provider = new FakeExternalIdentityProvider(IdentityProvider.Facebook, false) };
-        await h.SeedUserAsync(emailVerified: true);
+        await h.SeedUserAsync();
         h.Provider.Result = Identity(provider: IdentityProvider.Facebook, emailVerified: true);
 
         var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
@@ -297,7 +322,7 @@ public sealed class SignInWithSsoTests
     public async Task A_vouching_provider_that_reports_the_address_unverified_cannot_link()
     {
         var h = new Harness();
-        await h.SeedUserAsync(emailVerified: true);
+        await h.SeedUserAsync();
         h.Provider.Result = Identity(emailVerified: false);
 
         var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
@@ -310,7 +335,7 @@ public sealed class SignInWithSsoTests
     public async Task A_refused_link_changes_nothing()
     {
         var h = new Harness();
-        var user = await h.SeedUserAsync(emailVerified: true);
+        var user = await h.SeedUserAsync();
         h.Provider.Result = Identity(emailVerified: false);
 
         await h.Sut.HandleAsync(await h.ArmAsync(), default);
@@ -324,7 +349,7 @@ public sealed class SignInWithSsoTests
     public async Task A_suspended_account_cannot_be_linked_into()
     {
         var h = new Harness();
-        await h.SeedUserAsync(emailVerified: true, suspended: true);
+        await h.SeedUserAsync(suspended: true, passwordHash: null);
         h.Provider.Result = Identity();
 
         var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
@@ -337,9 +362,8 @@ public sealed class SignInWithSsoTests
     public async Task A_suspended_account_cannot_sign_in_through_a_linked_identity()
     {
         var h = new Harness();
-        var user = await h.SeedUserAsync(emailVerified: true, suspended: true, passwordHash: null);
-        await h.Identities.AddAsync(
-            UserIdentity.ForSocial(user.Id, IdentityProvider.Google, Subject, Now), default);
+        var user = await h.SeedUserAsync(suspended: true, passwordHash: null);
+        await h.LinkAsync(user);
         h.Provider.Result = Identity();
 
         var result = await h.Sut.HandleAsync(await h.ArmAsync(), default);
@@ -349,7 +373,7 @@ public sealed class SignInWithSsoTests
     }
 
     [Fact]
-    public async Task A_provider_that_shares_no_address_is_refused()
+    public async Task A_provider_that_shares_no_address_on_a_first_sign_in_is_refused()
     {
         var h = new Harness { Provider = new FakeExternalIdentityProvider(IdentityProvider.Facebook, false) };
         h.Provider.Result = Identity(email: null, provider: IdentityProvider.Facebook);
@@ -442,7 +466,7 @@ public sealed class SignInWithSsoTests
 
         var sut = new SignInWithSso(
             new FakeProviderRegistry(google, facebook), states, h.Users, h.Identities, h.Roles,
-            h.Tokens, h.Handoffs, new FixedClock(Now));
+            h.Handoffs, new FixedClock(Now));
 
         var result = await sut.HandleAsync(
             new SsoCallbackCommand("google", "code", "cross", null), default);

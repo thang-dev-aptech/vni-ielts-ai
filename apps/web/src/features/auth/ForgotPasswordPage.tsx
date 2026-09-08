@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react';
-import { forgotPassword } from '../../lib/session.js';
+import { getRuntimeConfig } from '@vni/auth';
 import { useI18n } from '../../i18n/index.js';
+import { Contact } from '../landing/contact.js';
 import { AuthSimple } from './AuthSimple.js';
 import '../../styles/auth.css';
 import { usePageTitle } from '../../routes/usePageTitle.js';
@@ -8,77 +8,80 @@ import { usePageTitle } from '../../routes/usePageTitle.js';
 /**
  * "I forgot my password."
  *
- * <b>The confirmation never says whether the address exists.</b> Same words,
- * same delay, whether or not there is an account — anything else turns this
- * into a free way to discover who has one, and nobody legitimate needs the
- * answer: they are about to go and look in their mailbox either way.
- * → threat T4
+ * <b>This page makes no request, and that is the design rather than an
+ * omission.</b> Registration stopped collecting an email address on
+ * 08/09/2026, so there is no mailbox to send a reset link to and
+ * `POST /auth/forgot-password` no longer exists. What is left is a person at
+ * the centre — and the one thing this screen must do is hand the visitor a way
+ * to reach one.
  *
- * <b>It works for an account created through Google.</b> That address was
- * verified by Google, so a link sent to it reaches its owner — which is how
- * someone who only ever pressed the Google button ends up with a password
- * without anyone trusting an unverified claim.
+ * <b>It is reached exactly when the visitor cannot sign in.</b> So every part
+ * of it has to work with no session, no network round trip and nothing to
+ * wait for: a form that posts into a deleted endpoint would spin, fail, and
+ * leave someone who is already locked out reading a network error.
+ *
+ * <b>The channel comes from runtime configuration, never from this file.</b>
+ * A deployment that has not been given a support URL must say so plainly
+ * rather than render a link to nowhere — a dead link on the page a locked-out
+ * learner reaches is the exact place a dead end costs an account. → `G-11`,
+ * `packages/auth/src/runtimeConfig.ts`
  */
 export function ForgotPasswordPage() {
   const { t } = useI18n();
   usePageTitle(t('title.forgotPassword'));
-  const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
-  const [busy, setBusy] = useState(false);
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setBusy(true);
-
-    try {
-      await forgotPassword(email);
-    } catch {
-      // Deliberately swallowed. A network failure and a rejected address must
-      // not be distinguishable here either, and the message below is true
-      // whatever happened: if it did not send, nothing arrives, which is what
-      // "if that address has an account" already allows for.
-    } finally {
-      setSent(true);
-      setBusy(false);
-    }
-  }
 
   /*
-   * The success view is a different screen, not a message added to this one.
-   * A `role="status"` that is *mounted with its text already in it* is not
-   * reliably announced by NVDA, JAWS or VoiceOver — live regions announce
-   * changes to a region that was already there. Moving focus to the new
-   * heading says it in a way every reader gets, and it also puts the keyboard
-   * somewhere sensible instead of on `<body>`.
+   * Read per render rather than once at module load: the value comes from a
+   * script tag a container rewrites at start-up, and reading it here keeps
+   * this page honest under a test that sets the global after import.
+   *
+   * `getRuntimeConfig` has already refused anything that is not an `https://`
+   * URL, so what arrives is either a safe absolute URL or null. Nothing here
+   * re-validates it, because a second, differently-worded check is how the
+   * two drift.
    */
-  if (sent) {
-    return (
-      <AuthSimple title={t('password.forgotTitle')} focusOnMount>
-        <p>{t('password.forgotSent')}</p>
-      </AuthSimple>
-    );
-  }
+  const { supportZaloUrl } = getRuntimeConfig();
 
   return (
     <AuthSimple title={t('password.forgotTitle')}>
-      <form onSubmit={(e) => void submit(e)}>
-        <p>{t('password.forgotLead')}</p>
+      <p>{t('password.forgotLead')}</p>
 
-        <label className="password-field">
-          <span>{t('common.email')}</span>
-          <input
-            type="email"
-            autoComplete="email"
-            value={email}
-            required
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
+      {supportZaloUrl === null ? (
+        /*
+         * <b>No channel configured, and the page says so.</b> The hotline
+         * below is the same public number the site footer carries, so this is
+         * still a real next step rather than an apology — a locked-out learner
+         * with no way forward is the failure this whole page exists to avoid.
+         */
+        <p className="support-fallback">
+          {t('password.forgotNoChannel')}{' '}
+          <a href={Contact.phoneHref}>{Contact.phoneDisplay}</a>
+        </p>
+      ) : (
+        <a
+          className="password-submit support-zalo"
+          href={supportZaloUrl}
+          /*
+           * A new tab, because the visitor may need this page's instructions
+           * beside the chat. `noopener noreferrer` because the opened page
+           * gets a handle on this window otherwise — and this is a page we
+           * hand to somebody in a hurry to get back into their account.
+           */
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t('password.forgotZalo')}
+        </a>
+      )}
 
-        <button className="password-submit" type="submit" aria-busy={busy}>
-          {busy ? t('password.saving') : t('password.forgotSubmit')}
-        </button>
-      </form>
+      {/*
+        What to write in the message. Support cannot act on "tôi quên mật
+        khẩu" from an unknown Zalo account, so the page asks for the number
+        the account was registered with up front — otherwise the first reply
+        is always the same question and the learner waits a second round trip
+        to a human.
+      */}
+      <p className="support-what-to-say">{t('password.forgotWhatToSay')}</p>
     </AuthSimple>
   );
 }

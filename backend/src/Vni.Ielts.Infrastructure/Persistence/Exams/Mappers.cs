@@ -107,7 +107,8 @@ internal static class ExamMappers
                     {
                         text.Append(explanation.CorrectAnswer).Append('~')
                             .Append(explanation.ShortReason).Append('~')
-                            .Append(explanation.CommonMistake).Append('~');
+                            .Append(explanation.CommonMistake).Append('~')
+                            .Append(explanation.Translation).Append('~');
                         foreach (var evidence in explanation.Evidence) text.Append(evidence).Append('!');
                     }
 
@@ -271,6 +272,7 @@ internal static class ExamMappers
                         ShortReason = explanation.ShortReason,
                         Evidence = [.. explanation.Evidence],
                         CommonMistake = explanation.CommonMistake,
+                        Translation = explanation.Translation,
                     }
                     : null,
             }),
@@ -392,7 +394,7 @@ internal static class ExamMappers
                 slots,
                 q.Explanation is { } explanation
                     ? new QuestionExplanation(explanation.CorrectAnswer, explanation.ShortReason,
-                        [.. explanation.Evidence], explanation.CommonMistake)
+                        [.. explanation.Evidence], explanation.CommonMistake, explanation.Translation)
                     : null));
         }
 

@@ -1,0 +1,87 @@
+[run ] vol9-t2-reading (01:41:25)
+[FAIL] vol9-t2-reading (01:44:06) — see _workspace/vol9/batch/vol9-t2-reading.log
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 38, which the paper does not contain. Key text: "A".
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 39, which the paper does not contain. Key text: "A".
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 40, which the paper does not contain. Key text: "B".
+       The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.
+[run ] vol9-t2-listening (01:44:06)
+[FAIL] vol9-t2-listening (01:53:27) — see _workspace/vol9/batch/vol9-t2-listening.log
+       info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by deepseek-ai/deepseek-v4-pro-0813, request chatcmpl-ae4b01f7-d76d-4bed-8c7a-ebf6e291cbdc, prompt e
+       parsed     50.275 characters by OpenAi/deepseek-ai/deepseek-v4-pro-0813, request chatcmpl-ae4b01f7-d76d-4bed-8c7a-ebf6e291cbdc
+       keep-module refused: the package had no listening section to keep
+       raw output written to /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t2-listening.json
+[hold] vol9 test 2: not both modules ready
+[run ] vol9-t3-reading (01:53:27)
+[FAIL] vol9-t3-reading (01:56:21) — see _workspace/vol9/batch/vol9-t3-reading.log
+       foreign parts dropped
+       package refused
+         error ANSWER_KEY_NOT_IN_SOURCE /sections: The package carries 40 answer key(s) and no answer key document was supplied with the source. They were produced by the model rather than read from t
+         (40 question(s) affected; the draft is on disk for inspection.)
+[run ] vol9-t3-listening (01:56:21)
+[FAIL] vol9-t3-listening (02:06:22) — see _workspace/vol9/batch/vol9-t3-listening.log
+       info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by deepseek-ai/deepseek-v4-pro-0813, request chatcmpl-48fef92f-93ca-47b4-8ba4-f0cc861e3046, prompt e
+       parsed     36.655 characters by OpenAi/deepseek-ai/deepseek-v4-pro-0813, request chatcmpl-48fef92f-93ca-47b4-8ba4-f0cc861e3046
+       keep-module refused: the package had no listening section to keep
+       raw output written to /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t3-listening.json
+[hold] vol9 test 3: not both modules ready
+[run ] vol9-t4-reading (02:06:22)
+[ ok ] vol9-t4-reading (02:08:46) section    Reading: 40 question(s), 40 auto-scored mark(s) 
+[run ] vol9-t4-listening (02:08:46)
+[FAIL] vol9-t4-listening (02:15:45) — see _workspace/vol9/batch/vol9-t4-listening.log
+       info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by deepseek-ai/deepseek-v4-pro-0813, request chatcmpl-ca2f1d2e-4268-4d02-8372-c559cc0199fe, prompt e
+       parsed     34.284 characters by OpenAi/deepseek-ai/deepseek-v4-pro-0813, request chatcmpl-ca2f1d2e-4268-4d02-8372-c559cc0199fe
+       keep-module refused: the package had no listening section to keep
+       raw output written to /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t4-listening.json
+[hold] vol9 test 4: not both modules ready
+[run ] vol9-t5-reading (02:15:45)
+[FAIL] vol9-t5-reading (02:18:28) — see _workspace/vol9/batch/vol9-t5-reading.log
+       answer key refused
+         warning ANSWER_KEY_FOLDED_CHOICE /sections/0/parts/1/questions: Questions 25–26 were 2 separate choice items sharing a prompt; folded into one multiple-select so the key "C, D" can land on a 
+         error ANSWER_KEY_TYPE_MISMATCH /sections/0/parts/1/questions/2: Question 16 is matching and the key says "ix", which is not one of the options printed on it.
+       The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.
+[run ] vol9-t5-listening (02:18:28)
+[FAIL] vol9-t5-listening (02:29:10) — see _workspace/vol9/batch/vol9-t5-listening.log
+       info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by deepseek-ai/deepseek-v4-pro-0813, request chatcmpl-078c4a47-505a-4110-8eb5-03865a36b394, prompt e
+       parsed     43.841 characters by OpenAi/deepseek-ai/deepseek-v4-pro-0813, request chatcmpl-078c4a47-505a-4110-8eb5-03865a36b394
+       keep-module refused: the package had no listening section to keep
+       raw output written to /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t5-listening.json
+[hold] vol9 test 5: not both modules ready
+[run ] vol9-t6-reading (02:29:10)
+[FAIL] vol9-t6-reading (02:32:14) — see _workspace/vol9/batch/vol9-t6-reading.log
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 35, which the paper does not contain. Key text: "C".
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 36, which the paper does not contain. Key text: "B".
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 37, which the paper does not contain. Key text: "A".
+       The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.
+[run ] vol9-t6-listening (02:32:14)
+[run ] vol9-t5-reading (02:33:58)
+[FAIL] vol9-t5-reading (02:36:49) — see _workspace/vol9/batch/vol9-t5-reading.log
+       answer key refused
+         warning ANSWER_KEY_FOLDED_CHOICE /sections/0/parts/1/questions: Questions 25–26 were 2 separate choice items sharing a prompt; folded into one multiple-select so the key "C, D" can land on a 
+         error ANSWER_KEY_TYPE_MISMATCH /sections/0/parts/1/questions/2: Question 16 is matching and the key says "ix", which is not one of the options printed on it.
+       The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.
+[skip] vol9-t5-listening already validated
+[hold] vol9 test 5: not both modules ready
+[run ] vol9-t6-reading (02:36:49)
+[ ok ] vol9-t6-reading (02:39:56) section    Reading: 40 question(s), 40 auto-scored mark(s) 
+[run ] vol9-t6-listening (02:39:56)
+[ ok ] vol9-t6-listening (02:42:29) section    Listening: 40 question(s), 40 auto-scored mark(s) 
+[fix ] wrote fixtures/exams/vol9-test-6.json
+[run ] vol9-t7-reading (02:42:29)
+[ ok ] vol9-t7-reading (02:45:21) section    Reading: 40 question(s), 40 auto-scored mark(s) 
+[run ] vol9-t7-listening (02:45:21)
+[FAIL] vol9-t7-listening (02:47:59) — see _workspace/vol9/batch/vol9-t7-listening.log
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 38, which the paper does not contain. Key text: "contact".
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 39, which the paper does not contain. Key text: "shape".
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 40, which the paper does not contain. Key text: "big".
+       The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.
+[hold] vol9 test 7: not both modules ready
+[run ] vol9-t8-reading (02:47:59)
+[ ok ] vol9-t8-reading (02:50:52) section    Reading: 40 question(s), 40 auto-scored mark(s) 
+[run ] vol9-t8-listening (02:50:52)
+[FAIL] vol9-t8-listening (02:51:59) — see _workspace/vol9/batch/vol9-t8-listening.log
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 38, which the paper does not contain. Key text: "dark blue".
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 39, which the paper does not contain. Key text: "herds".
+         error ANSWER_KEY_COVERAGE /sections: The key answers question 40, which the paper does not contain. Key text: "guides".
+       The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.
+[hold] vol9 test 8: not both modules ready
+batch finished 02:51:59

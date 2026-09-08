@@ -26,16 +26,31 @@ internal sealed class UserDocument
     [BsonId]
     public string Id { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Absent until the learner adds one — registration asks for a number, not
+    /// an address.
+    ///
+    /// <para>
+    /// <b><c>[BsonIgnoreIfNull]</c> is load-bearing, not tidiness.</b> Written
+    /// as an explicit <c>null</c> it would still be a present field, and the
+    /// unique index would then treat every address-less account as colliding
+    /// with the last one. The index is declared <c>partial</c> on
+    /// <c>{ email: { $type: "string" } }</c> so it survives this attribute
+    /// being removed, but both guards are cheap and losing either is silent.
+    /// </para>
+    /// </summary>
     [BsonElement("email")]
-    public string Email { get; set; } = string.Empty;
-
-    [BsonElement("emailVerified")]
-    public bool EmailVerified { get; set; }
+    [BsonIgnoreIfNull]
+    public string? Email { get; set; }
 
     [BsonElement("displayName")]
     public string DisplayName { get; set; } = string.Empty;
 
-    /// <summary>Normalised to `+84…`. Absent until the learner adds one.</summary>
+    /// <summary>
+    /// Normalised to `+84…`. The handle most accounts sign in with, and unique
+    /// across the collection. See <see cref="Email"/> on why it may be absent
+    /// but must never be an explicit null.
+    /// </summary>
     [BsonElement("phone")]
     [BsonIgnoreIfNull]
     public string? Phone { get; set; }

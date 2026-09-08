@@ -4,14 +4,27 @@ using Vni.Ielts.Domain.Identity;
 
 namespace Vni.Ielts.Application.Identity;
 
-public sealed record LoginCommand(string Email, string Password);
+public sealed record LoginCommand(string Identifier, string Password);
 
 public sealed record LoginResult(TokenPair Tokens, UserId UserId, string DisplayName);
 
 /// <summary>
-/// Email and password sign-in.
+/// Sign-in with a password, against either handle.
 ///
-/// <b>Every failure path returns the same error.</b> Unknown address, wrong
+/// <b>One box, two kinds of handle.</b> `[QUYẾT ĐỊNH]` chủ sản phẩm,
+/// 08/09/2026. Accounts registered since the change have a phone number and no
+/// address; accounts made before it, accounts created through Google that later
+/// set a password, and every operator account in the CMS have an address and no
+/// number. A single field that accepts both is what keeps all of them working
+/// without asking anyone which kind of account they have.
+///
+/// <b>The account is resolved before the credential.</b> The password row is
+/// keyed by account id, not by a handle, so this looks the <c>User</c> up by
+/// whichever handle was typed and then reads their one password row. The old
+/// shape — look the identity up *by the address* — is what forced the address
+/// to be stored twice, and made changing it break sign-in silently.
+///
+/// <b>Every failure path returns the same error.</b> Unknown handle, wrong
 /// password, an account that exists but only has a Google identity — all of
 /// them produce <c>INVALID_CREDENTIALS</c>. Distinguishing them turns the
 /// login endpoint into an account-enumeration oracle, and the distinction
@@ -21,10 +34,10 @@ public sealed record LoginResult(TokenPair Tokens, UserId UserId, string Display
 /// whose access was withdrawn needs to know that is what happened rather than
 /// resetting a password that was never wrong.
 ///
-/// <b>Bounded guessing.</b> Ten consecutive failures for one address lock it
+/// <b>Bounded guessing.</b> Ten consecutive failures for one handle lock it
 /// for fifteen minutes. The HTTP rate limiter cannot do this job — it
 /// partitions on IP and has to stay loose because of carrier NAT, and
-/// credential stuffing spreads a few guesses per account across many addresses
+/// credential stuffing spreads a few guesses per account across many accounts
 /// precisely to stay under such a limit. → threats T4, T5
 /// </summary>
 public sealed class LoginWithPassword(
@@ -36,51 +49,60 @@ public sealed class LoginWithPassword(
     ILoginThrottle throttle)
 {
     private static readonly Error Invalid = Error.Unauthorized(
-        ErrorCodes.InvalidCredentials, "Email address or password is incorrect.");
+        ErrorCodes.InvalidCredentials, "Phone number, email address or password is incorrect.");
 
     private static readonly Error Locked = Error.TooManyRequests(
         ErrorCodes.TooManyAttempts,
-        "Too many failed sign-in attempts for this address. Try again in a few minutes.");
+        "Too many failed sign-in attempts for this account. Try again in a few minutes.");
 
     public async Task<Result<LoginResult>> HandleAsync(LoginCommand command, CancellationToken ct)
     {
-        // Before the hash, deliberately: under an attack the point is to stop
-        // spending an Argon2id derivation per guess. The check keys on the
-        // submitted address whether or not it exists, so it cannot become an
-        // account-existence oracle — every address locks the same way.
-        if (await throttle.IsLockedAsync(command.Email ?? string.Empty, ct)) return Locked;
+        /*
+         * <b>Normalised before the lock is checked, not after.</b> The throttle
+         * keys on whatever string it is handed, and a phone number has four
+         * common spellings — `0912345678`, `+84912345678`, `091 234 5678`,
+         * `(091) 234-5678`. Keyed raw, those are four independent counters for
+         * one account, so ten attempts becomes forty. Normalising is cheap
+         * enough to stay in front of the Argon2id derivation, which is the
+         * ordering this check exists for.
+         */
+        var handle = Normalise(command.Identifier);
 
-        if (!Email.TryCreate(command.Email, out var email))
+        // Keys on the submitted handle whether or not it exists, so it cannot
+        // become an account-existence oracle — every handle locks the same way.
+        if (await throttle.IsLockedAsync(handle.Key, ct)) return Locked;
+
+        var user = handle.Kind switch
         {
-            // Still burn a hash. Returning early on a malformed address makes
-            // the response measurably faster than a real attempt, which is a
-            // timing oracle for "is this address shaped like one you store".
-            hasher.Verify(command.Password ?? string.Empty, _dummyHash.Value);
-            return Invalid;
-        }
+            HandleKind.Email => await users.FindByEmailAsync(handle.Email, ct),
+            HandleKind.Phone => await users.FindByPhoneAsync(handle.Phone, ct),
+            _ => null,
+        };
 
-        var identity = await identities.FindByProviderAsync(IdentityProvider.Email, email.Value, ct);
+        var identity = user is null
+            ? null
+            : (await identities.ListForUserAsync(user.Id, ct))
+                .FirstOrDefault(i => i.PasswordHash is not null);
 
-        if (identity?.PasswordHash is null)
+        if (user is null || identity?.PasswordHash is null)
         {
-            // Covers three cases that must stay indistinguishable: no such
-            // account, an account with only a social identity, and an email
-            // identity somehow missing its hash.
+            /*
+             * Still burn a hash. Returning early makes the response measurably
+             * faster than a real attempt, which is a timing oracle for "is this
+             * handle one you store". Covers four cases that must stay
+             * indistinguishable: a handle that is not even shaped like one, no
+             * such account, an account with only a social identity, and a
+             * password row somehow missing its hash.
+             */
             hasher.Verify(command.Password ?? string.Empty, _dummyHash.Value);
-            await throttle.RecordFailureAsync(email.Value, ct);
+            if (handle.Kind is not HandleKind.Unusable)
+                await throttle.RecordFailureAsync(handle.Key, ct);
             return Invalid;
         }
 
         if (!hasher.Verify(command.Password ?? string.Empty, identity.PasswordHash))
         {
-            await throttle.RecordFailureAsync(email.Value, ct);
-            return Invalid;
-        }
-
-        var user = await users.FindByIdAsync(identity.UserId, ct);
-        if (user is null)
-        {
-            await throttle.RecordFailureAsync(email.Value, ct);
+            await throttle.RecordFailureAsync(handle.Key, ct);
             return Invalid;
         }
 
@@ -91,12 +113,48 @@ public sealed class LoginWithPassword(
         // account returns above without clearing, so an attacker cannot use a
         // correct password on a locked-out suspended account to reset the
         // counter.
-        await throttle.ClearAsync(email.Value, ct);
+        await throttle.ClearAsync(handle.Key, ct);
 
         var granted = await permissions.ResolveAsync(user, ct);
         var pair = await tokens.IssueAsync(user, granted, familyId: null, ct);
 
         return new LoginResult(pair, user.Id, user.DisplayName);
+    }
+
+    private enum HandleKind { Unusable, Email, Phone }
+
+    private readonly record struct Handle(HandleKind Kind, Email Email, PhoneNumber Phone, string Key);
+
+    /// <summary>
+    /// Works out which kind of handle was typed, and what to key the throttle on.
+    ///
+    /// <para>
+    /// An `@` decides it. Nothing else can: a phone number never contains one,
+    /// and an address always does. Trying the phone parser first would let
+    /// `0912345678@example.com` be read as a number.
+    /// </para>
+    ///
+    /// <para>
+    /// An unusable handle still gets a key — the trimmed lower-cased text — so
+    /// that garbage cannot be used to probe timing for free. It just does not
+    /// count as a failure, because there is no account it could belong to and
+    /// counting it would let anyone lock a queue of nonsense keys.
+    /// </para>
+    /// </summary>
+    private static Handle Normalise(string? raw)
+    {
+        var typed = (raw ?? string.Empty).Trim();
+
+        if (typed.Contains('@'))
+        {
+            return Email.TryCreate(typed, out var email)
+                ? new Handle(HandleKind.Email, email, default, email.Value)
+                : new Handle(HandleKind.Unusable, default, default, typed.ToLowerInvariant());
+        }
+
+        return PhoneNumber.TryCreate(typed, out var phone)
+            ? new Handle(HandleKind.Phone, default, phone, phone.Value)
+            : new Handle(HandleKind.Unusable, default, default, typed.ToLowerInvariant());
     }
 
     /// <summary>

@@ -1,0 +1,1142 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 19 \u2014 Test 2",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Guitar Group",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: \u201CThe Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "Mathieson"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: \u201CThe Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "beginners"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: \u201CThe Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "college"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: \u201CThe Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "New"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: \u201CThe Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "11",
+                  "eleven (am)"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-6",
+                "title": "Guitar Group",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Guitar Group\nCoordinator: Gary [1]\nLevel: [2]\nPlace: [3]\n[4] Street\nFirst floor, Room 1347\nTime: Thursday MOrning at [5]\nRecommended website: \u201CThe Perfect [6]"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "_ instrument"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-7-10",
+                "title": "A typical 45-minute guitar lesson",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "A typical 45-minute guitar lesson\n| Time | Activity | Notes\nusing an app or b\n7 : \u0022 ,\n. . . keeping time while the teacher\n10 minutes strumming chords using our thumbs is 8\n. . often listening to a\n15 minutes playing songs\nD  crniasmnmsamnscnmmgay OL a SONG\nlaying together, then\nplaying single notes and simple tunes ng OS"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "ear"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-7-10",
+                "title": "A typical 45-minute guitar lesson",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "A typical 45-minute guitar lesson\n| Time | Activity | Notes\nusing an app or b\n7 : \u0022 ,\n. . . keeping time while the teacher\n10 minutes strumming chords using our thumbs is 8\n. . often listening to a\n15 minutes playing songs\nD  crniasmnmsamnscnmmgay OL a SONG\nlaying together, then\nplaying single notes and simple tunes ng OS"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "clapping"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-7-10",
+                "title": "A typical 45-minute guitar lesson",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "A typical 45-minute guitar lesson\n| Time | Activity | Notes\nusing an app or b\n7 : \u0022 ,\n. . . keeping time while the teacher\n10 minutes strumming chords using our thumbs is 8\n. . often listening to a\n15 minutes playing songs\nD  crniasmnmsamnscnmmgay OL a SONG\nlaying together, then\nplaying single notes and simple tunes ng OS"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "recording"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-7-10",
+                "title": "A typical 45-minute guitar lesson",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "A typical 45-minute guitar lesson\n| Time | Activity | Notes\nusing an app or b\n7 : \u0022 ,\n. . . keeping time while the teacher\n10 minutes strumming chords using our thumbs is 8\n. . often listening to a\n15 minutes playing songs\nD  crniasmnmsamnscnmmgay OL a SONG\nlaying together, then\nplaying single notes and simple tunes ng OS"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "alone"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Working as a lifeboat volunteer",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-choice",
+              "prompt": "11. What made David leave London and move to Northsea?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "He was eager to develop a hobby."
+                },
+                {
+                  "key": "B",
+                  "text": "He wanted to work shorter hours."
+                },
+                {
+                  "key": "C",
+                  "text": "He found his job in website design unsatisfying."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-12",
+              "order": 12,
+              "type": "multiple-choice",
+              "prompt": "12. The Lifeboat Institution in Northsea was built with money provided by",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "a local organisation."
+                },
+                {
+                  "key": "B",
+                  "text": "a local resident."
+                },
+                {
+                  "key": "C",
+                  "text": "the local council."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-13",
+              "order": 13,
+              "type": "multiple-choice",
+              "prompt": "13 In his health assessment, the doctor was concerned about the fact that David",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "might be colour blind."
+                },
+                {
+                  "key": "B",
+                  "text": "was rather short-sighted."
+                },
+                {
+                  "key": "C",
+                  "text": "had undergone eye surgery."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-14",
+              "order": 14,
+              "type": "multiple-choice",
+              "prompt": "14 After arriving at the lifeboat station, they aim to launch the boat within",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "five minutes."
+                },
+                {
+                  "key": "B",
+                  "text": "six to eight minutes."
+                },
+                {
+                  "key": "C",
+                  "text": "eight and a half minutes."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "multiple-choice",
+              "prompt": "15 Asa \u2018helmsman\u2019, David has the responsibility of deciding",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "whowill be the members of his crew."
+                },
+                {
+                  "key": "B",
+                  "text": "what equipment it will be necessary to take."
+                },
+                {
+                  "key": "C",
+                  "text": "if the lifeboat should be launched."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "multiple-choice",
+              "prompt": "16 As well as going out on the lifeboat, David",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "gives talks on safety at sea."
+                },
+                {
+                  "key": "B",
+                  "text": "helps with fundraising."
+                },
+                {
+                  "key": "C",
+                  "text": "recruits new volunteers."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "multiple-select",
+              "prompt": "Which TWO things does David say about the lifeboat volunteer training?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The residential course developed his leadership skills."
+                },
+                {
+                  "key": "B",
+                  "text": "The training in use of ropes and knots was quite brief."
+                },
+                {
+                  "key": "C",
+                  "text": "The training exercises have built up his mental strength."
+                },
+                {
+                  "key": "D",
+                  "text": "The casualty care activities were particularly challenging for him."
+                },
+                {
+                  "key": "E",
+                  "text": "The wave tank activities provided practice in survival techniques."
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "C",
+                    "E"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "multiple-select",
+              "prompt": "Which TWO things does David find most motivating about the work he does?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "working as part of a team"
+                },
+                {
+                  "key": "B",
+                  "text": "experiences when working in winter"
+                },
+                {
+                  "key": "C",
+                  "text": "being thanked by those he has helped"
+                },
+                {
+                  "key": "D",
+                  "text": "the fact that it keeps him fit"
+                },
+                {
+                  "key": "E",
+                  "text": "the chance to develop new equipment"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "B"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Recycling footwear",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-choice",
+              "prompt": "21 At first, Don thought the topic of recycling footwear might be too",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "limited in scope."
+                },
+                {
+                  "key": "B",
+                  "text": "hard to research."
+                },
+                {
+                  "key": "C",
+                  "text": "boring for listeners."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-22",
+              "order": 22,
+              "type": "multiple-choice",
+              "prompt": "22 When discussing trainers, Bella and Don disagree about",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "how popular they are among young people."
+                },
+                {
+                  "key": "B",
+                  "text": "how suitable they are for school."
+                },
+                {
+                  "key": "C",
+                  "text": "how quickly they wear out."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-23",
+              "order": 23,
+              "type": "multiple-choice",
+              "prompt": "23 Bella says that she sometimes recycles shoes because",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "they no longer fit."
+                },
+                {
+                  "key": "B",
+                  "text": "she no longer likes them."
+                },
+                {
+                  "key": "C",
+                  "text": "they are no longer in fashion."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-24",
+              "order": 24,
+              "type": "multiple-choice",
+              "prompt": "24 What did the article say that confused Don?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Public consumption of footwear has risen."
+                },
+                {
+                  "key": "B",
+                  "text": "Less footwear is recycled now than in the past."
+                },
+                {
+                  "key": "C",
+                  "text": "People dispose of more footwear than they used to."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "matching",
+              "prompt": "the high-heeled shoes",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "one shoe was missing"
+                },
+                {
+                  "key": "B",
+                  "text": "the colour of one shoe had faded"
+                },
+                {
+                  "key": "C",
+                  "text": "one shoe had a hole in it"
+                },
+                {
+                  "key": "D",
+                  "text": "the shoes were brand new"
+                },
+                {
+                  "key": "E",
+                  "text": "the shoes were too dirty"
+                },
+                {
+                  "key": "F",
+                  "text": "the stitching on the shoes was broken"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-28",
+                "instruction": "What reasons did the recycling manager give for rejecting footwear, according to the students?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 25-28."
+              },
+              "answerKey": {
+                "accepted": [
+                  "E"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "matching",
+              "prompt": "the ankle boots",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "one shoe was missing"
+                },
+                {
+                  "key": "B",
+                  "text": "the colour of one shoe had faded"
+                },
+                {
+                  "key": "C",
+                  "text": "one shoe had a hole in it"
+                },
+                {
+                  "key": "D",
+                  "text": "the shoes were brand new"
+                },
+                {
+                  "key": "E",
+                  "text": "the shoes were too dirty"
+                },
+                {
+                  "key": "F",
+                  "text": "the stitching on the shoes was broken"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-28",
+                "instruction": "What reasons did the recycling manager give for rejecting footwear, according to the students?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 25-28."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "the baby shoes",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "one shoe was missing"
+                },
+                {
+                  "key": "B",
+                  "text": "the colour of one shoe had faded"
+                },
+                {
+                  "key": "C",
+                  "text": "one shoe had a hole in it"
+                },
+                {
+                  "key": "D",
+                  "text": "the shoes were brand new"
+                },
+                {
+                  "key": "E",
+                  "text": "the shoes were too dirty"
+                },
+                {
+                  "key": "F",
+                  "text": "the stitching on the shoes was broken"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-28",
+                "instruction": "What reasons did the recycling manager give for rejecting footwear, according to the students?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 25-28."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "the trainers",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "one shoe was missing"
+                },
+                {
+                  "key": "B",
+                  "text": "the colour of one shoe had faded"
+                },
+                {
+                  "key": "C",
+                  "text": "one shoe had a hole in it"
+                },
+                {
+                  "key": "D",
+                  "text": "the shoes were brand new"
+                },
+                {
+                  "key": "E",
+                  "text": "the shoes were too dirty"
+                },
+                {
+                  "key": "F",
+                  "text": "the stitching on the shoes was broken"
+                }
+              ],
+              "group": {
+                "id": "l-s3-25-28",
+                "instruction": "What reasons did the recycling manager give for rejecting footwear, according to the students?\nChoose FOUR answers from the box and write the correct letter, A-F, next to Questions 25-28."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "29 Why did the project to make \u2018new\u2019 shoes out of old shoes fail?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "People believed the \u2018new\u2019 pairs of shoes were unhygienic."
+                },
+                {
+                  "key": "B",
+                  "text": "There were not enough good parts to use in the old shoes."
+                },
+                {
+                  "key": "C",
+                  "text": "The shoes in the \u2018new\u2019 pairs were not completely alike."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "30 Bella and Don agree that they can present their topic",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "from anew angle."
+                },
+                {
+                  "key": "B",
+                  "text": "with relevant images."
+                },
+                {
+                  "key": "C",
+                  "text": "ina straightforward way."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Tardigrades",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05\u20141.2 millimetres long\ne also known as water \u2018bears\u2019 (due to How they [31]) AN\n\u2018moss piglets\u2019\n\nPhysical appearance\n\n\u00A9 BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n\u00A9 C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne \u2014 often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne \u2014_Indry conditions, they roll into a ball called a \u2018tun\u2019.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, \u20AC.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese \u002B"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "move"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05\u20141.2 millimetres long\ne also known as water \u2018bears\u2019 (due to How they [31]) AN\n\u2018moss piglets\u2019\n\nPhysical appearance\n\n\u00A9 BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n\u00A9 C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne \u2014 often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne \u2014_Indry conditions, they roll into a ball called a \u2018tun\u2019.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, \u20AC.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese \u002B"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "short"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05\u20141.2 millimetres long\ne also known as water \u2018bears\u2019 (due to How they [31]) AN\n\u2018moss piglets\u2019\n\nPhysical appearance\n\n\u00A9 BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n\u00A9 C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne \u2014 often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne \u2014_Indry conditions, they roll into a ball called a \u2018tun\u2019.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, \u20AC.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese \u002B"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "discs"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05\u20141.2 millimetres long\ne also known as water \u2018bears\u2019 (due to How they [31]) AN\n\u2018moss piglets\u2019\n\nPhysical appearance\n\n\u00A9 BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n\u00A9 C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne \u2014 often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne \u2014_Indry conditions, they roll into a ball called a \u2018tun\u2019.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, \u20AC.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese \u002B"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "oxygen"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05\u20141.2 millimetres long\ne also known as water \u2018bears\u2019 (due to How they [31]) AN\n\u2018moss piglets\u2019\n\nPhysical appearance\n\n\u00A9 BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n\u00A9 C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne \u2014 often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne \u2014_Indry conditions, they roll into a ball called a \u2018tun\u2019.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, \u20AC.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese \u002B"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tube"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05\u20141.2 millimetres long\ne also known as water \u2018bears\u2019 (due to How they [31]) AN\n\u2018moss piglets\u2019\n\nPhysical appearance\n\n\u00A9 BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n\u00A9 C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne \u2014 often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne \u2014_Indry conditions, they roll into a ball called a \u2018tun\u2019.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, \u20AC.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese \u002B"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "temperatures"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05\u20141.2 millimetres long\ne also known as water \u2018bears\u2019 (due to How they [31]) AN\n\u2018moss piglets\u2019\n\nPhysical appearance\n\n\u00A9 BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n\u00A9 C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne \u2014 often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne \u2014_Indry conditions, they roll into a ball called a \u2018tun\u2019.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, \u20AC.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese \u002B"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "protein"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05\u20141.2 millimetres long\ne also known as water \u2018bears\u2019 (due to How they [31]) AN\n\u2018moss piglets\u2019\n\nPhysical appearance\n\n\u00A9 BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n\u00A9 C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne \u2014 often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne \u2014_Indry conditions, they roll into a ball called a \u2018tun\u2019.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, \u20AC.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese \u002B"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "space"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05\u20141.2 millimetres long\ne also known as water \u2018bears\u2019 (due to How they [31]) AN\n\u2018moss piglets\u2019\n\nPhysical appearance\n\n\u00A9 BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n\u00A9 C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne \u2014 often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne \u2014_Indry conditions, they roll into a ball called a \u2018tun\u2019.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, \u20AC.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese \u002B"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "seaweed"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Tardigrades",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Tardigrades\n\ne more than 1,000 species, 0.05\u20141.2 millimetres long\ne also known as water \u2018bears\u2019 (due to How they [31]) AN\n\u2018moss piglets\u2019\n\nPhysical appearance\n\n\u00A9 BD orveccssssssssnneeenenenee FOUN body and four pairs of legs\n\n\u00A9 C1AWS OF [33]... eessesesnnenenenee FOF Gripping\n\ne absence of respiratory organs\n\ne body filled with a liquid that CarrieS DOH [34] ese ANG blood\n\ne ~=mouth shaped like a [35] ose With teeth called stylets\n\nHabitat\n\ne \u2014 often found at the bottom of a lake or on plants\n\ne very resilient and can exist iN very IOW OF AIGN [36] occ\n\nCryptobiosis\n\ne \u2014_Indry conditions, they roll into a ball called a \u2018tun\u2019.\n\ne __ They stay alive with a much lower metabolism than usual.\n\ne A type Of [37] oes eNSUreS their DNA is not damaged.\n\ne Research is underway to find out how many days they can stay\n\nALIVE ATS DS [38]\n\nFeeding\n\ne consume liquids, \u20AC.g., those fOUNd IN MOSS OF [39] wees\n\ne may eat other tardigrades\n\nConservation status\n\ne = They are not considered to De [40] on ecsssssssesssneeese \u002B"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "endangered"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

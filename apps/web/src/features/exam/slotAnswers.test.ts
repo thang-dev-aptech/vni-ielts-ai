@@ -31,7 +31,23 @@ describe('slotAnswers', () => {
 
   it('collapses slot values back to a pipe-separated question answer', () => {
     const answers = collapseSlotValuesToQuestions(
-      { parts: [{ order: 1, kind: 'passage', title: null, body: null, audioKey: null, imageKey: null, taskNumber: null, partNumber: null, cueCard: null, minWords: null, questions: [multi] }] },
+      {
+        parts: [
+          {
+            order: 1,
+            kind: 'passage',
+            title: null,
+            body: null,
+            audioKey: null,
+            imageKey: null,
+            taskNumber: null,
+            partNumber: null,
+            cueCard: null,
+            minWords: null,
+            questions: [multi],
+          },
+        ],
+      },
       { 'slot-17': 'A', 'slot-18': 'D' },
     );
 
@@ -40,7 +56,23 @@ describe('slotAnswers', () => {
 
   it('expands legacy question-keyed sequences onto each slot', () => {
     const normalized = normalizeStoredSequences(
-      { parts: [{ order: 1, kind: 'passage', title: null, body: null, audioKey: null, imageKey: null, taskNumber: null, partNumber: null, cueCard: null, minWords: null, questions: [multi] }] },
+      {
+        parts: [
+          {
+            order: 1,
+            kind: 'passage',
+            title: null,
+            body: null,
+            audioKey: null,
+            imageKey: null,
+            taskNumber: null,
+            partNumber: null,
+            cueCard: null,
+            minWords: null,
+            questions: [multi],
+          },
+        ],
+      },
       { 'r-multi': 9 },
     );
 

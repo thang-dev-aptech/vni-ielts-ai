@@ -30,14 +30,7 @@ import { forgetDraft, loadDraft, rememberDraft } from './recordingDraft.js';
  * permission is requested before either timer starts.
  */
 
-type Phase =
-  | 'idle'
-  | 'preparing'
-  | 'recording'
-  | 'uploading'
-  | 'queued'
-  | 'stored'
-  | 'failed';
+type Phase = 'idle' | 'preparing' | 'recording' | 'uploading' | 'queued' | 'stored' | 'failed';
 
 /**
  * Why a recording could not start or could not land.
@@ -95,9 +88,7 @@ export function SpeakingRecorder({
    */
   const lastBlob = useRef<Blob | null>(null);
 
-  const captureRef = useRef<SpeakingAudioCapture>(
-    captureProp ?? createSpeakingAudioCapture(),
-  );
+  const captureRef = useRef<SpeakingAudioCapture>(captureProp ?? createSpeakingAudioCapture());
   const ticker = useRef<ReturnType<typeof setInterval> | null>(null);
   const meterRaf = useRef<number | null>(null);
   const audioCtx = useRef<AudioContext | null>(null);
@@ -229,9 +220,7 @@ export function SpeakingRecorder({
           ? 'ogg'
           : 'webm';
       const contentType =
-        blob.type.startsWith('audio/') && blob.type.length > 0
-          ? blob.type
-          : `audio/${extension}`;
+        blob.type.startsWith('audio/') && blob.type.length > 0 ? blob.type : `audio/${extension}`;
 
       try {
         if (typeof navigator !== 'undefined' && navigator.onLine === false) {

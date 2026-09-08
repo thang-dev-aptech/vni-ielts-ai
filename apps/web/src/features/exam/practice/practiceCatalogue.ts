@@ -167,10 +167,12 @@ export function toFullItems(exams: ExamCatalogueItem[]): {
       module: null,
       // In sitting order from the version's sequence profile.
       modules: sequence.filter((m) => modules.includes(m)),
-      parts: sequence.filter((m) => modules.includes(m)).map((m) => ({
-        module: m,
-        minutes: Math.round(exam.modules.find((one) => one.module === m)!.durationSeconds / 60),
-      })),
+      parts: sequence
+        .filter((m) => modules.includes(m))
+        .map((m) => ({
+          module: m,
+          minutes: Math.round(exam.modules.find((one) => one.module === m)!.durationSeconds / 60),
+        })),
       questionCount: exam.modules.reduce((sum, m) => sum + m.questionCount, 0),
       durationSeconds: exam.modules.reduce((sum, m) => sum + m.durationSeconds, 0),
     });

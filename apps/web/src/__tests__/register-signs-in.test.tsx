@@ -1,27 +1,25 @@
 import { StrictMode } from 'react';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
 
 /**
- * Registering, after the 27/08/2026 owner decision.
+ * Registering, after the 08/09/2026 owner decision.
  *
- * <b>`[QUYẾT ĐỊNH]` chủ sản phẩm, 27/08/2026:</b> *"tạo tài khoản với email
- * pass cho login như bình thường nhưng sẽ xác minh ở trang hồ sơ học sinh sau
- * cũng được"* — create the account with an email and a password, sign in as
- * normal, verify later from the profile page.
+ * <b>`[QUYẾT ĐỊNH]` chủ sản phẩm, 08/09/2026:</b> *"register chỉ cần điền: Họ
+ * và tên, số điện thoại, mật khẩu, nhập lại mật khẩu → tạo xong ở profile phần
+ * email bỏ trống → như vậy sẽ không cần tính năng verify nữa bỏ luôn"*.
  *
- * <b>What these tests actually pin is the dead end that used to be here.</b>
- * Registering succeeded, returned no session, and swapped the form for a panel
- * saying a verification link had been sent — with one button, back to the
- * sign-in tab. Every part of that was locally reasonable and the sum was a new
- * learner standing outside the product, retyping credentials they had entered
- * ninety seconds earlier, waiting on an email that no environment sends.
- *
- * The three properties below are the ones a future edit could plausibly
- * reverse one at a time: the session is adopted, the landing is inside the
- * app, and nothing anywhere claims a mail is on its way.
+ * <b>What these tests pin is the dead end that used to be here.</b> Registering
+ * once succeeded, returned no session, and swapped the form for a panel saying
+ * a verification link had been sent — with one button, back to the sign-in tab.
+ * Every part of that was locally reasonable and the sum was a new learner
+ * standing outside the product, retyping credentials they had entered ninety
+ * seconds earlier, waiting on an email that no environment sent. There is no
+ * verification at all now, so the failure mode cannot return the same way —
+ * but the properties worth keeping are the same: the session is adopted, the
+ * landing is inside the app, and nothing claims a message is on its way.
  */
 
 const session = {
@@ -36,11 +34,10 @@ const session = {
 const me = {
   userId: 'user-9',
   displayName: 'Nguyễn Thắng',
-  email: 'ngdthang.dev@gmail.com',
-  emailVerified: false,
-  phone: null,
+  email: null,
+  phone: '+84912345678',
   permissions: ['exam.read'],
-  providers: ['email'],
+  providers: ['password'],
   hasPassword: true,
 };
 
@@ -59,15 +56,13 @@ function json(body: unknown, status = 200): Response {
  * signs the learner out in the middle of the test and re-renders the sign-in
  * page — a failure that reads as flakiness and is not.
  */
-function mockApi(verificationEmailSent = false) {
+function mockApi() {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
 
-      if (url.includes('/auth/register')) {
-        return json({ session, emailVerified: false, verificationEmailSent }, 201);
-      }
+      if (url.includes('/auth/register')) return json({ session }, 201);
       if (url.includes('/auth/refresh')) return json(session);
       if (url.includes('/api/v1/me/sessions')) return json({ sessions: [] });
       if (url.includes('/api/v1/me')) return json(me);
@@ -87,17 +82,16 @@ function open(path: string) {
   );
 }
 
-async function fillRegistration() {
+async function fillRegistration(password = 'mot-mat-khau-du-dai-2026', confirm = password) {
   const user = userEvent.setup();
   fireEvent.change(await screen.findByLabelText(/họ và tên/i), {
     target: { value: 'Nguyễn Thắng' },
   });
-  fireEvent.change(screen.getByLabelText(/^email$/i), {
-    target: { value: 'ngdthang.dev@gmail.com' },
+  fireEvent.change(screen.getByLabelText(/số điện thoại/i), {
+    target: { value: '0912345678' },
   });
-  fireEvent.change(screen.getByLabelText(/^mật khẩu$/i), {
-    target: { value: 'mot-mat-khau-du-dai-2026' },
-  });
+  fireEvent.change(screen.getByLabelText(/^mật khẩu$/i), { target: { value: password } });
+  fireEvent.change(screen.getByLabelText(/nhập lại mật khẩu/i), { target: { value: confirm } });
   await user.click(screen.getByRole('button', { name: /tạo tài khoản/i }));
   return user;
 }
@@ -154,42 +148,47 @@ it('never parks the new account on a "check your email" screen', async () => {
   expect(screen.queryByRole('button', { name: /^đăng nhập$/i })).toBeNull();
 });
 
-it('does not claim a verification email was sent when none was', async () => {
-  // The server answers `verificationEmailSent: false` in every environment
-  // configured today, because no email provider is wired. A screen that says
-  // otherwise sends the learner to an empty inbox. → `M-45`
-  mockApi(false);
+it('asks for a number and a password, and never for an email address', async () => {
+  // The owner's instruction, as a property of the form rather than a string:
+  // four fields, and the address is not one of them.
+  mockApi();
+  open('/register');
+
+  await screen.findByLabelText(/họ và tên/i);
+  expect(screen.getByLabelText(/số điện thoại/i)).toBeInTheDocument();
+  expect(screen.getByLabelText(/^mật khẩu$/i)).toBeInTheDocument();
+  expect(screen.getByLabelText(/nhập lại mật khẩu/i)).toBeInTheDocument();
+  expect(screen.queryByLabelText(/^email$/i)).toBeNull();
+});
+
+it('refuses a mismatched confirmation without asking the server', async () => {
+  /*
+   * <b>The confirm box is the client's job and nothing else's.</b> The server
+   * takes one password and has nothing to compare, so a mismatch that reached
+   * it would create the account with whichever value was typed first. Sending
+   * the request at all is the bug; the assertion is on the absence of the
+   * call, not on the message.
+   */
+  mockApi();
+  open('/register');
+  await fillRegistration('mot-mat-khau-du-dai-2026', 'go-nham-o-duoi-2026');
+
+  await waitFor(() => expect(screen.getByText(/chưa khớp/i)).toBeInTheDocument());
+
+  const fetchMock = globalThis.fetch as unknown as { mock: { calls: unknown[][] } };
+  expect(fetchMock.mock.calls.some((call) => String(call[0]).includes('/auth/register'))).toBe(
+    false,
+  );
+});
+
+it('says nothing anywhere about an email being sent', async () => {
+  // There is no message to send and no address to send it to. A screen that
+  // says otherwise points the learner at an empty inbox.
+  mockApi();
   open('/register');
   await fillRegistration();
 
   await waitFor(() => expect(window.location.pathname).toBe('/'));
 
-  expect(document.body.textContent).not.toMatch(/đã gửi/i);
-});
-
-it('tells an unverified learner where to verify, and does not claim they are blocked', async () => {
-  /*
-   * The other half of the owner's instruction: verification is surfaced on the
-   * student's own pages, and it is an invitation rather than a gate.
-   *
-   * The banner used to read *"Một số tính năng sẽ mở sau khi bạn xác minh
-   * email"* — describing a restriction that exists nowhere in the code. What
-   * an unverified account may not do is `M-45`, and it is the owner's to
-   * answer; until then the screen must not answer it for them.
-   */
-  mockApi();
-  // Straight to the dashboard as an already-signed-in unverified learner —
-  // the state the previous test leaves someone in, reached without retyping
-  // the form.
-  localStorage.setItem('vni.session', JSON.stringify(session));
-  open('/students/dashboard');
-
-  const banner = await screen.findByText(/email chưa được xác minh/i);
-  const alert = banner.closest('div') as HTMLElement;
-
-  expect(alert.textContent).not.toMatch(/mở sau khi|sẽ mở|tính năng/i);
-  expect(within(alert).getByRole('link', { name: /xác minh ở trang hồ sơ/i })).toHaveAttribute(
-    'href',
-    '/students/profile',
-  );
+  expect(document.body.textContent).not.toMatch(/đã gửi|hộp thư|xác minh/i);
 });

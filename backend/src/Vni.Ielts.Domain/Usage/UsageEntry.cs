@@ -30,7 +30,19 @@ public static class UsageActions
 {
     public const string AccountCreated = "account.created";
     public const string DailyLogin = "login.daily";
+    /// <summary>
+    /// Historical. Paid when an invitee proved their address, back when there
+    /// was an address to prove. Kept because the ledger is append-only and
+    /// rows carrying it must still read. → ADR-0018
+    /// </summary>
     public const string ReferralVerified = "referral.verified";
+
+    /// <summary>
+    /// What replaced it: the invitee finished registering. The gate moved
+    /// because verification no longer exists; the control that stops a
+    /// self-referral farm is now the unique phone number. → `P-16`, threat T13
+    /// </summary>
+    public const string ReferralQualified = "referral.qualified";
     public const string SessionOpened = "session.opened";
     public const string WritingMarked = "writing.marked";
     public const string ExplanationGenerated = "explanation.generated";
@@ -122,6 +134,22 @@ public sealed class UsageEntry
     public decimal? CostEstimate { get; }
 
     public static string GrantId(UserId userId) => $"grant:{userId.Value}";
+
+    /// <summary>
+    /// The welcome allowance for an account a social provider created, keyed on
+    /// the provider subject instead of the account.
+    ///
+    /// <para>
+    /// <b>Because the account is no longer the thing that happens once.</b>
+    /// Changing an address frees the old one, and signing in at it again mints
+    /// a fresh account — legitimately. Keyed on the account id, every turn of
+    /// that loop is a new id and another grant, indefinitely, from a single
+    /// Google login. The subject is the part that does not change.
+    /// → threat T4, ADR-0018
+    /// </para>
+    /// </summary>
+    public static string ProviderGrantId(string provider, string subject) =>
+        $"grant:sso:{provider.ToLowerInvariant()}:{subject}";
 
     public static string DailyId(UserId userId, DateOnly day) =>
         $"daily:{userId.Value}:{day:yyyy-MM-dd}";

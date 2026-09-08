@@ -627,7 +627,8 @@
             ]
           }
         },
-        "commonMistake": { "type": "string", "maxLength": 1000 }
+        "commonMistake": { "type": "string", "maxLength": 1000 },
+        "translation": { "type": "string", "maxLength": 4000 }
       }
     },
 

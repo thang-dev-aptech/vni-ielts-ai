@@ -77,7 +77,7 @@ public sealed class FullSittingJourneyTests(ExamAppFactory app) : IClassFixture<
         {
             Content = JsonContent.Create(new
             {
-                email = $"hanh.trinh.{Guid.NewGuid():n}@example.com",
+                phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}",
                 password = Password,
                 displayName = "Học viên",
             }),
@@ -712,7 +712,7 @@ public sealed class MarkingQueuedOnSubmitTests(RubricConfiguredAppFactory app)
         {
             Content = JsonContent.Create(new
             {
-                email = $"cham.bai.{Guid.NewGuid():n}@example.com",
+                phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}",
                 password = Password,
                 displayName = "Học viên",
             }),

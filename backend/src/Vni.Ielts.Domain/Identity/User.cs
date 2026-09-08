@@ -22,8 +22,7 @@ public sealed class User
 {
     private User(
         UserId id,
-        Email email,
-        bool emailVerified,
+        Email? email,
         string displayName,
         PhoneNumber? phone,
         UserStatus status,
@@ -34,7 +33,6 @@ public sealed class User
     {
         Id = id;
         Email = email;
-        EmailVerified = emailVerified;
         DisplayName = displayName;
         Phone = phone;
         Status = status;
@@ -47,17 +45,40 @@ public sealed class User
     private readonly HashSet<RoleId> _roleIds;
 
     public UserId Id { get; }
-    public Email Email { get; private set; }
-    public bool EmailVerified { get; private set; }
+
+    /// <summary>
+    /// The account's address, or null.
+    ///
+    /// <para>
+    /// <b>Null is the ordinary state, not an edge case.</b> Registration asks
+    /// for a name, a phone number and a password — no address — so every
+    /// account created that way starts here with nothing, and the profile shows
+    /// an empty field until the learner chooses to fill it.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>It identifies the account while it is set, and it can move.</b> A
+    /// social sign-in resolves to whichever account currently holds the address
+    /// the provider vouches for. Change the address and the account goes with
+    /// it, leaving the old one unclaimed for whoever signs in with it next.
+    /// That is the owner's decision of 08/09/2026 and it is the opposite of
+    /// what <c>AU-7</c> used to say. → ADR-0018
+    /// </para>
+    /// </summary>
+    public Email? Email { get; private set; }
+
     public string DisplayName { get; private set; }
 
     /// <summary>
-    /// A contact number the learner typed. Null until they add one.
+    /// The learner's number. Set at registration, and the handle most accounts
+    /// sign in with.
     ///
     /// <b>Self-declared.</b> Nothing proves it, and nothing here pretends
-    /// otherwise — see <see cref="PhoneNumber"/>.
+    /// otherwise — see <see cref="PhoneNumber"/>. What the product does rely on
+    /// is that it is *unique*, which the repository's index enforces.
     /// </summary>
     public PhoneNumber? Phone { get; private set; }
+
     public UserStatus Status { get; private set; }
     public DateTimeOffset CreatedAt { get; }
 
@@ -73,8 +94,8 @@ public sealed class User
 
     /// <summary>
     /// Who brought this learner in, if anyone. Set once at registration and
-    /// never changed — the reward it drives is paid when this account verifies
-    /// its address, and the attribution must not be able to move after that.
+    /// never changed — the reward it drives is paid when this account is
+    /// created, and the attribution must not be able to move after that.
     /// → `P-16`, threat T13
     /// </summary>
     public UserId? ReferredByUserId { get; private set; }
@@ -86,7 +107,37 @@ public sealed class User
     /// </summary>
     public bool CanAuthenticate => Status == UserStatus.Active;
 
-    public static User Register(Email email, string displayName, DateTimeOffset now)
+    /// <summary>
+    /// Something a person can type into the sign-in box and reach this account
+    /// with. A password on its own is not one — there has to be a handle in
+    /// front of it. → <see cref="EnsureSignInMethodRemains"/>
+    /// </summary>
+    public bool HasTypedHandle => Email is not null || Phone is not null;
+
+    /// <summary>Registration: a name, a number, and a password held elsewhere.</summary>
+    public static User Register(PhoneNumber phone, string displayName, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+            throw new ArgumentException("Display name is required.", nameof(displayName));
+
+        return new User(
+            UserId.New(),
+            email: null,
+            displayName.Trim(),
+            phone,
+            UserStatus.Active,
+            now,
+            [],
+            Identity.ReferralCode.Generate(),
+            referredByUserId: null);
+    }
+
+    /// <summary>
+    /// The account a social sign-in creates: an address from the provider, no
+    /// number and no password. Its only way back in is the provider link, which
+    /// is why <see cref="EnsureSignInMethodRemains"/> has to count that link.
+    /// </summary>
+    public static User RegisterFromProvider(Email email, string displayName, DateTimeOffset now)
     {
         if (string.IsNullOrWhiteSpace(displayName))
             throw new ArgumentException("Display name is required.", nameof(displayName));
@@ -94,7 +145,6 @@ public sealed class User
         return new User(
             UserId.New(),
             email,
-            emailVerified: false,
             displayName.Trim(),
             phone: null,
             UserStatus.Active,
@@ -107,8 +157,7 @@ public sealed class User
     /// <summary>Rehydration from storage. Infrastructure only.</summary>
     public static User Rehydrate(
         UserId id,
-        Email email,
-        bool emailVerified,
+        Email? email,
         string displayName,
         PhoneNumber? phone,
         UserStatus status,
@@ -116,7 +165,7 @@ public sealed class User
         IReadOnlyCollection<RoleId> roleIds,
         string? referralCode = null,
         UserId? referredByUserId = null) =>
-        new(id, email, emailVerified, displayName, phone, status, createdAt, roleIds, referralCode,
+        new(id, email, displayName, phone, status, createdAt, roleIds, referralCode,
             referredByUserId);
 
     /// <summary>
@@ -146,44 +195,64 @@ public sealed class User
     }
 
     /// <summary>
-    /// Verification is what turns an address from a claim into a fact. Several
-    /// things wait on it: entitlement accrual (threat T4, so bulk-created
-    /// accounts cannot farm rewards) and referral attribution confirmation
-    /// (threat T13, so self-referral with disposable addresses does not pay).
-    /// </summary>
-    public void MarkEmailVerified() => EmailVerified = true;
-
-    /// <summary>
-    /// Corrects the address, while it is still only a claim.
+    /// Sets, changes or clears the address. Null removes it.
     ///
     /// <para>
-    /// <b>Locked the moment it is verified, and that is the whole rule.</b>
-    /// An unverified address is a typo waiting to be fixed — someone who wrote
-    /// `gmial.com` cannot receive the link that would let them fix it any
-    /// other way. A verified one is a proven fact and the account's route back
-    /// in: letting it change silently would let anyone holding a stolen
-    /// session move the account to their own mailbox and keep it.
-    /// </para>
-    ///
-    /// <para>
-    /// Throwing rather than returning false: reaching here on a verified
-    /// account is a defect in the caller, not an outcome to be reported to a
-    /// user. The use case refuses it first, with a message.
+    /// <b>There is no lock any more, and that is the decision, not an
+    /// oversight.</b> The address used to freeze the moment it was verified,
+    /// on the reasoning that a proven address is the account's route back in
+    /// and a stolen session must not be able to move it to another mailbox.
+    /// Verification is gone, so there is nothing left to freeze on — and the
+    /// owner asked for the opposite behaviour outright: changing the address
+    /// moves the account to it. → ADR-0018
     /// </para>
     /// </summary>
-    public void ChangeEmail(Email email)
+    /// <param name="hasLinkedProvider">
+    /// Whether a social identity is attached. The entity cannot see the
+    /// identity table and must not reach for it (CLAUDE.md rule 7), so the
+    /// caller supplies the one fact the invariant needs.
+    /// </param>
+    public void ChangeEmail(Email? email, bool hasLinkedProvider)
     {
-        if (EmailVerified)
-        {
-            throw new InvalidOperationException(
-                "A verified email address cannot be changed. → User.ChangeEmail");
-        }
-
+        EnsureSignInMethodRemains(email, Phone, hasLinkedProvider);
         Email = email;
     }
 
     /// <summary>Sets or clears the contact number. Null removes it.</summary>
-    public void SetPhone(PhoneNumber? phone) => Phone = phone;
+    /// <param name="hasLinkedProvider">See <see cref="ChangeEmail"/>.</param>
+    public void SetPhone(PhoneNumber? phone, bool hasLinkedProvider)
+    {
+        EnsureSignInMethodRemains(Email, phone, hasLinkedProvider);
+        Phone = phone;
+    }
+
+    /// <summary>
+    /// Refuses a change that would leave nobody — including the account holder
+    /// — able to reach this account again.
+    ///
+    /// <para>
+    /// Worth stating plainly because the failure is silent and permanent: an
+    /// account with no address, no number and no linked provider still holds
+    /// its sittings and its recordings, still counts under PDPL, and has no
+    /// door. Clearing the last handle is the easy way to produce one, and it
+    /// looks like an ordinary profile edit right up until the session expires.
+    /// </para>
+    ///
+    /// <para>
+    /// Throwing rather than returning false: reaching here is a defect in the
+    /// caller. The use case refuses first, with a message a person can act on.
+    /// </para>
+    /// </summary>
+    private static void EnsureSignInMethodRemains(
+        Email? email, PhoneNumber? phone, bool hasLinkedProvider)
+    {
+        if (email is null && phone is null && !hasLinkedProvider)
+        {
+            throw new InvalidOperationException(
+                "An account must keep at least one way to sign in. "
+                + "→ User.EnsureSignInMethodRemains");
+        }
+    }
 
     public void Suspend() => Status = UserStatus.Suspended;
 

@@ -1,0 +1,1121 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 16 \u2014 Test 3",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Junior Cycle Camp",
+          "questions": [
+            {
+              "id": "l-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Question 1",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Junior Cycle Camp",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The course focuses on skills and safety.\nCharlie would be placed in Level 5.\nFirst of all, children at this level are taken to practise in [1]\nInstructors\n[2] wear [3] shirts.\n[4] required and training is given.\nClasses\nThe size of the classes is limited.\nThere are quiet times during the morning for a [5] or a game.\nClasses are held even if there is [6]\nWhat to bring\na change of clothing\n[7]\nshoes (not sandals)\n[8]\nDay 1\nCharlie should arrive at 9.20 am on the first day.\nBefore the class, his [9] will be checked.\nHe should then go to the [10] to meet his class instructor.\nCost\nThe course costs $[11] per week."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "park"
+                ]
+              }
+            },
+            {
+              "id": "l-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Question 2",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Junior Cycle Camp",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The course focuses on skills and safety.\nCharlie would be placed in Level 5.\nFirst of all, children at this level are taken to practise in [1]\nInstructors\n[2] wear [3] shirts.\n[4] required and training is given.\nClasses\nThe size of the classes is limited.\nThere are quiet times during the morning for a [5] or a game.\nClasses are held even if there is [6]\nWhat to bring\na change of clothing\n[7]\nshoes (not sandals)\n[8]\nDay 1\nCharlie should arrive at 9.20 am on the first day.\nBefore the class, his [9] will be checked.\nHe should then go to the [10] to meet his class instructor.\nCost\nThe course costs $[11] per week."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "blue"
+                ]
+              }
+            },
+            {
+              "id": "l-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Question 3",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Junior Cycle Camp",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The course focuses on skills and safety.\nCharlie would be placed in Level 5.\nFirst of all, children at this level are taken to practise in [1]\nInstructors\n[2] wear [3] shirts.\n[4] required and training is given.\nClasses\nThe size of the classes is limited.\nThere are quiet times during the morning for a [5] or a game.\nClasses are held even if there is [6]\nWhat to bring\na change of clothing\n[7]\nshoes (not sandals)\n[8]\nDay 1\nCharlie should arrive at 9.20 am on the first day.\nBefore the class, his [9] will be checked.\nHe should then go to the [10] to meet his class instructor.\nCost\nThe course costs $[11] per week."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "reference"
+                ]
+              }
+            },
+            {
+              "id": "l-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Question 4",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Junior Cycle Camp",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The course focuses on skills and safety.\nCharlie would be placed in Level 5.\nFirst of all, children at this level are taken to practise in [1]\nInstructors\n[2] wear [3] shirts.\n[4] required and training is given.\nClasses\nThe size of the classes is limited.\nThere are quiet times during the morning for a [5] or a game.\nClasses are held even if there is [6]\nWhat to bring\na change of clothing\n[7]\nshoes (not sandals)\n[8]\nDay 1\nCharlie should arrive at 9.20 am on the first day.\nBefore the class, his [9] will be checked.\nHe should then go to the [10] to meet his class instructor.\nCost\nThe course costs $[11] per week."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "story"
+                ]
+              }
+            },
+            {
+              "id": "l-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Question 5",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Junior Cycle Camp",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The course focuses on skills and safety.\nCharlie would be placed in Level 5.\nFirst of all, children at this level are taken to practise in [1]\nInstructors\n[2] wear [3] shirts.\n[4] required and training is given.\nClasses\nThe size of the classes is limited.\nThere are quiet times during the morning for a [5] or a game.\nClasses are held even if there is [6]\nWhat to bring\na change of clothing\n[7]\nshoes (not sandals)\n[8]\nDay 1\nCharlie should arrive at 9.20 am on the first day.\nBefore the class, his [9] will be checked.\nHe should then go to the [10] to meet his class instructor.\nCost\nThe course costs $[11] per week."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "rain"
+                ]
+              }
+            },
+            {
+              "id": "l-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Question 6",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Junior Cycle Camp",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The course focuses on skills and safety.\nCharlie would be placed in Level 5.\nFirst of all, children at this level are taken to practise in [1]\nInstructors\n[2] wear [3] shirts.\n[4] required and training is given.\nClasses\nThe size of the classes is limited.\nThere are quiet times during the morning for a [5] or a game.\nClasses are held even if there is [6]\nWhat to bring\na change of clothing\n[7]\nshoes (not sandals)\n[8]\nDay 1\nCharlie should arrive at 9.20 am on the first day.\nBefore the class, his [9] will be checked.\nHe should then go to the [10] to meet his class instructor.\nCost\nThe course costs $[11] per week."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "snack"
+                ]
+              }
+            },
+            {
+              "id": "l-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Question 7",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Junior Cycle Camp",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The course focuses on skills and safety.\nCharlie would be placed in Level 5.\nFirst of all, children at this level are taken to practise in [1]\nInstructors\n[2] wear [3] shirts.\n[4] required and training is given.\nClasses\nThe size of the classes is limited.\nThere are quiet times during the morning for a [5] or a game.\nClasses are held even if there is [6]\nWhat to bring\na change of clothing\n[7]\nshoes (not sandals)\n[8]\nDay 1\nCharlie should arrive at 9.20 am on the first day.\nBefore the class, his [9] will be checked.\nHe should then go to the [10] to meet his class instructor.\nCost\nThe course costs $[11] per week."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "medication"
+                ]
+              }
+            },
+            {
+              "id": "l-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "Question 8",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Junior Cycle Camp",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The course focuses on skills and safety.\nCharlie would be placed in Level 5.\nFirst of all, children at this level are taken to practise in [1]\nInstructors\n[2] wear [3] shirts.\n[4] required and training is given.\nClasses\nThe size of the classes is limited.\nThere are quiet times during the morning for a [5] or a game.\nClasses are held even if there is [6]\nWhat to bring\na change of clothing\n[7]\nshoes (not sandals)\n[8]\nDay 1\nCharlie should arrive at 9.20 am on the first day.\nBefore the class, his [9] will be checked.\nHe should then go to the [10] to meet his class instructor.\nCost\nThe course costs $[11] per week."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "helmet"
+                ]
+              }
+            },
+            {
+              "id": "l-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "Question 9",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Junior Cycle Camp",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The course focuses on skills and safety.\nCharlie would be placed in Level 5.\nFirst of all, children at this level are taken to practise in [1]\nInstructors\n[2] wear [3] shirts.\n[4] required and training is given.\nClasses\nThe size of the classes is limited.\nThere are quiet times during the morning for a [5] or a game.\nClasses are held even if there is [6]\nWhat to bring\na change of clothing\n[7]\nshoes (not sandals)\n[8]\nDay 1\nCharlie should arrive at 9.20 am on the first day.\nBefore the class, his [9] will be checked.\nHe should then go to the [10] to meet his class instructor.\nCost\nThe course costs $[11] per week."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "tent"
+                ]
+              }
+            },
+            {
+              "id": "l-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Question 10",
+              "group": {
+                "id": "l-s1-1-10",
+                "title": "Junior Cycle Camp",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "The course focuses on skills and safety.\nCharlie would be placed in Level 5.\nFirst of all, children at this level are taken to practise in [1]\nInstructors\n[2] wear [3] shirts.\n[4] required and training is given.\nClasses\nThe size of the classes is limited.\nThere are quiet times during the morning for a [5] or a game.\nClasses are held even if there is [6]\nWhat to bring\na change of clothing\n[7]\nshoes (not sandals)\n[8]\nDay 1\nCharlie should arrive at 9.20 am on the first day.\nBefore the class, his [9] will be checked.\nHe should then go to the [10] to meet his class instructor.\nCost\nThe course costs $[11] per week."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "199"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Agriculture and Horticulture Sectors",
+          "questions": [
+            {
+              "id": "l-11",
+              "order": 11,
+              "type": "multiple-select",
+              "prompt": "According to Megan, what are the TWO main advantages of working in the agriculture and horticulture sectors?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the active lifestyle"
+                },
+                {
+                  "key": "B",
+                  "text": "the above-average salaries"
+                },
+                {
+                  "key": "C",
+                  "text": "the flexible working opportunities"
+                },
+                {
+                  "key": "D",
+                  "text": "the opportunities for overseas travel"
+                },
+                {
+                  "key": "E",
+                  "text": "the chance to be in a natural environment"
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "C"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "Fresh food commercial manager",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "not a permanent job"
+                },
+                {
+                  "key": "B",
+                  "text": "involves leading a team"
+                },
+                {
+                  "key": "C",
+                  "text": "experience not essential"
+                },
+                {
+                  "key": "D",
+                  "text": "intensive work but also fun"
+                },
+                {
+                  "key": "E",
+                  "text": "chance to earn more through overtime"
+                },
+                {
+                  "key": "F",
+                  "text": "chance for rapid promotion"
+                },
+                {
+                  "key": "G",
+                  "text": "accommodation available"
+                },
+                {
+                  "key": "H",
+                  "text": "local travel involved"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does Megan give about each of the following job opportunities? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "l-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "Agronomist",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "not a permanent job"
+                },
+                {
+                  "key": "B",
+                  "text": "involves leading a team"
+                },
+                {
+                  "key": "C",
+                  "text": "experience not essential"
+                },
+                {
+                  "key": "D",
+                  "text": "intensive work but also fun"
+                },
+                {
+                  "key": "E",
+                  "text": "chance to earn more through overtime"
+                },
+                {
+                  "key": "F",
+                  "text": "chance for rapid promotion"
+                },
+                {
+                  "key": "G",
+                  "text": "accommodation available"
+                },
+                {
+                  "key": "H",
+                  "text": "local travel involved"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does Megan give about each of the following job opportunities? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "l-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "Fresh produce buyer",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "not a permanent job"
+                },
+                {
+                  "key": "B",
+                  "text": "involves leading a team"
+                },
+                {
+                  "key": "C",
+                  "text": "experience not essential"
+                },
+                {
+                  "key": "D",
+                  "text": "intensive work but also fun"
+                },
+                {
+                  "key": "E",
+                  "text": "chance to earn more through overtime"
+                },
+                {
+                  "key": "F",
+                  "text": "chance for rapid promotion"
+                },
+                {
+                  "key": "G",
+                  "text": "accommodation available"
+                },
+                {
+                  "key": "H",
+                  "text": "local travel involved"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does Megan give about each of the following job opportunities? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "Garden centre sales manager",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "not a permanent job"
+                },
+                {
+                  "key": "B",
+                  "text": "involves leading a team"
+                },
+                {
+                  "key": "C",
+                  "text": "experience not essential"
+                },
+                {
+                  "key": "D",
+                  "text": "intensive work but also fun"
+                },
+                {
+                  "key": "E",
+                  "text": "chance to earn more through overtime"
+                },
+                {
+                  "key": "F",
+                  "text": "chance for rapid promotion"
+                },
+                {
+                  "key": "G",
+                  "text": "accommodation available"
+                },
+                {
+                  "key": "H",
+                  "text": "local travel involved"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does Megan give about each of the following job opportunities? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "l-19",
+              "order": 19,
+              "type": "matching",
+              "prompt": "Tree technician",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "not a permanent job"
+                },
+                {
+                  "key": "B",
+                  "text": "involves leading a team"
+                },
+                {
+                  "key": "C",
+                  "text": "experience not essential"
+                },
+                {
+                  "key": "D",
+                  "text": "intensive work but also fun"
+                },
+                {
+                  "key": "E",
+                  "text": "chance to earn more through overtime"
+                },
+                {
+                  "key": "F",
+                  "text": "chance for rapid promotion"
+                },
+                {
+                  "key": "G",
+                  "text": "accommodation available"
+                },
+                {
+                  "key": "H",
+                  "text": "local travel involved"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does Megan give about each of the following job opportunities? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-20",
+              "order": 20,
+              "type": "matching",
+              "prompt": "Farm worker",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "not a permanent job"
+                },
+                {
+                  "key": "B",
+                  "text": "involves leading a team"
+                },
+                {
+                  "key": "C",
+                  "text": "experience not essential"
+                },
+                {
+                  "key": "D",
+                  "text": "intensive work but also fun"
+                },
+                {
+                  "key": "E",
+                  "text": "chance to earn more through overtime"
+                },
+                {
+                  "key": "F",
+                  "text": "chance for rapid promotion"
+                },
+                {
+                  "key": "G",
+                  "text": "accommodation available"
+                },
+                {
+                  "key": "H",
+                  "text": "local travel involved"
+                }
+              ],
+              "group": {
+                "id": "l-s2-15-20",
+                "instruction": "What information does Megan give about each of the following job opportunities? Choose SIX answers from the box and write the correct letter, A-H, next to Questions 15-20."
+              },
+              "answerKey": {
+                "accepted": [
+                  "G"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Artificial Sweeteners and Nutrition",
+          "questions": [
+            {
+              "id": "l-21",
+              "order": 21,
+              "type": "multiple-select",
+              "prompt": "Which TWO points does Adam make about his experiment on artificial sweeteners?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The results were what he had predicted."
+                },
+                {
+                  "key": "B",
+                  "text": "The experiment was simple to set up."
+                },
+                {
+                  "key": "C",
+                  "text": "A large sample of people was tested."
+                },
+                {
+                  "key": "D",
+                  "text": "The subjects were unaware of what they were drinking."
+                },
+                {
+                  "key": "E",
+                  "text": "The test was repeated several times for each person."
+                }
+              ],
+              "marks": 2,
+              "answerKey": {
+                "accepted": [
+                  [
+                    "C",
+                    "D"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "l-25",
+              "order": 25,
+              "type": "multiple-choice",
+              "prompt": "Adam suggests that restaurants could reduce obesity if their menus",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "offered fewer options."
+                },
+                {
+                  "key": "B",
+                  "text": "had more low-calorie foods."
+                },
+                {
+                  "key": "C",
+                  "text": "were organised in a particular way."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "l-26",
+              "order": 26,
+              "type": "multiple-choice",
+              "prompt": "The students agree that food manufacturers deliberately",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "make calorie counts hard to understand."
+                },
+                {
+                  "key": "B",
+                  "text": "fail to provide accurate calorie counts."
+                },
+                {
+                  "key": "C",
+                  "text": "use ineffective methods to reduce calories."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-27",
+              "order": 27,
+              "type": "multiple-choice",
+              "prompt": "What does Rosie say about levels of exercise in England?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "The amount recommended is much too low."
+                },
+                {
+                  "key": "B",
+                  "text": "Most people overestimate how much they do."
+                },
+                {
+                  "key": "C",
+                  "text": "Women now exercise more than they used to."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "l-28",
+              "order": 28,
+              "type": "multiple-choice",
+              "prompt": "Adam refers to the location and width of stairs in a train station to illustrate",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "practical changes that can influence people\u2019s behaviour."
+                },
+                {
+                  "key": "B",
+                  "text": "methods of helping people who have mobility problems."
+                },
+                {
+                  "key": "C",
+                  "text": "ways of preventing accidents by controlling crowd movement."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-29",
+              "order": 29,
+              "type": "multiple-choice",
+              "prompt": "What do the students agree about including reference to exercise in their presentation?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They should probably leave it out."
+                },
+                {
+                  "key": "B",
+                  "text": "They need to do more research on it."
+                },
+                {
+                  "key": "C",
+                  "text": "They should discuss this with their tutor."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "l-30",
+              "order": 30,
+              "type": "multiple-choice",
+              "prompt": "What are the students going to do next for their presentation?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "prepare some slides for it"
+                },
+                {
+                  "key": "B",
+                  "text": "find out how long they have for it"
+                },
+                {
+                  "key": "C",
+                  "text": "decide on its content and organisation"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Hand Knitting",
+          "questions": [
+            {
+              "id": "l-31",
+              "order": 31,
+              "type": "completion",
+              "prompt": "Question 31",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Hand knitting",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Interest in knitting\nKnitting has a long history around the world.\nWe imagine someone like a [31] knitting.\nA [32] ago, knitting was expected to disappear.\nThe number of knitting classes is now increasing.\nPeople are buying more [33] for knitting nowadays.\nBenefits of knitting\ngives support in times of [34] difficulty\nrequires only [35] skills and little money to start\nreduces stress in a busy life\nEarly knitting\nThe origins are not known.\nFindings show early knitted items to be [36] in shape.\nThe first needles were made of natural materials such as wood and [37].\nEarly yarns felt [38] to touch.\nWool became the most popular yarn for spinning.\nGeographical areas had their own [39] of knitting.\nEveryday tasks like looking after [40] were done while knitting."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "grandmother"
+                ]
+              }
+            },
+            {
+              "id": "l-32",
+              "order": 32,
+              "type": "completion",
+              "prompt": "Question 32",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Hand knitting",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Interest in knitting\nKnitting has a long history around the world.\nWe imagine someone like a [31] knitting.\nA [32] ago, knitting was expected to disappear.\nThe number of knitting classes is now increasing.\nPeople are buying more [33] for knitting nowadays.\nBenefits of knitting\ngives support in times of [34] difficulty\nrequires only [35] skills and little money to start\nreduces stress in a busy life\nEarly knitting\nThe origins are not known.\nFindings show early knitted items to be [36] in shape.\nThe first needles were made of natural materials such as wood and [37].\nEarly yarns felt [38] to touch.\nWool became the most popular yarn for spinning.\nGeographical areas had their own [39] of knitting.\nEveryday tasks like looking after [40] were done while knitting."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "decade"
+                ]
+              }
+            },
+            {
+              "id": "l-33",
+              "order": 33,
+              "type": "completion",
+              "prompt": "Question 33",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Hand knitting",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Interest in knitting\nKnitting has a long history around the world.\nWe imagine someone like a [31] knitting.\nA [32] ago, knitting was expected to disappear.\nThe number of knitting classes is now increasing.\nPeople are buying more [33] for knitting nowadays.\nBenefits of knitting\ngives support in times of [34] difficulty\nrequires only [35] skills and little money to start\nreduces stress in a busy life\nEarly knitting\nThe origins are not known.\nFindings show early knitted items to be [36] in shape.\nThe first needles were made of natural materials such as wood and [37].\nEarly yarns felt [38] to touch.\nWool became the most popular yarn for spinning.\nGeographical areas had their own [39] of knitting.\nEveryday tasks like looking after [40] were done while knitting."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "equipment"
+                ]
+              }
+            },
+            {
+              "id": "l-34",
+              "order": 34,
+              "type": "completion",
+              "prompt": "Question 34",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Hand knitting",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Interest in knitting\nKnitting has a long history around the world.\nWe imagine someone like a [31] knitting.\nA [32] ago, knitting was expected to disappear.\nThe number of knitting classes is now increasing.\nPeople are buying more [33] for knitting nowadays.\nBenefits of knitting\ngives support in times of [34] difficulty\nrequires only [35] skills and little money to start\nreduces stress in a busy life\nEarly knitting\nThe origins are not known.\nFindings show early knitted items to be [36] in shape.\nThe first needles were made of natural materials such as wood and [37].\nEarly yarns felt [38] to touch.\nWool became the most popular yarn for spinning.\nGeographical areas had their own [39] of knitting.\nEveryday tasks like looking after [40] were done while knitting."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "economic"
+                ]
+              }
+            },
+            {
+              "id": "l-35",
+              "order": 35,
+              "type": "completion",
+              "prompt": "Question 35",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Hand knitting",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Interest in knitting\nKnitting has a long history around the world.\nWe imagine someone like a [31] knitting.\nA [32] ago, knitting was expected to disappear.\nThe number of knitting classes is now increasing.\nPeople are buying more [33] for knitting nowadays.\nBenefits of knitting\ngives support in times of [34] difficulty\nrequires only [35] skills and little money to start\nreduces stress in a busy life\nEarly knitting\nThe origins are not known.\nFindings show early knitted items to be [36] in shape.\nThe first needles were made of natural materials such as wood and [37].\nEarly yarns felt [38] to touch.\nWool became the most popular yarn for spinning.\nGeographical areas had their own [39] of knitting.\nEveryday tasks like looking after [40] were done while knitting."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "basic"
+                ]
+              }
+            },
+            {
+              "id": "l-36",
+              "order": 36,
+              "type": "completion",
+              "prompt": "Question 36",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Hand knitting",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Interest in knitting\nKnitting has a long history around the world.\nWe imagine someone like a [31] knitting.\nA [32] ago, knitting was expected to disappear.\nThe number of knitting classes is now increasing.\nPeople are buying more [33] for knitting nowadays.\nBenefits of knitting\ngives support in times of [34] difficulty\nrequires only [35] skills and little money to start\nreduces stress in a busy life\nEarly knitting\nThe origins are not known.\nFindings show early knitted items to be [36] in shape.\nThe first needles were made of natural materials such as wood and [37].\nEarly yarns felt [38] to touch.\nWool became the most popular yarn for spinning.\nGeographical areas had their own [39] of knitting.\nEveryday tasks like looking after [40] were done while knitting."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "round"
+                ]
+              }
+            },
+            {
+              "id": "l-37",
+              "order": 37,
+              "type": "completion",
+              "prompt": "Question 37",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Hand knitting",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Interest in knitting\nKnitting has a long history around the world.\nWe imagine someone like a [31] knitting.\nA [32] ago, knitting was expected to disappear.\nThe number of knitting classes is now increasing.\nPeople are buying more [33] for knitting nowadays.\nBenefits of knitting\ngives support in times of [34] difficulty\nrequires only [35] skills and little money to start\nreduces stress in a busy life\nEarly knitting\nThe origins are not known.\nFindings show early knitted items to be [36] in shape.\nThe first needles were made of natural materials such as wood and [37].\nEarly yarns felt [38] to touch.\nWool became the most popular yarn for spinning.\nGeographical areas had their own [39] of knitting.\nEveryday tasks like looking after [40] were done while knitting."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "bone"
+                ]
+              }
+            },
+            {
+              "id": "l-38",
+              "order": 38,
+              "type": "completion",
+              "prompt": "Question 38",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Hand knitting",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Interest in knitting\nKnitting has a long history around the world.\nWe imagine someone like a [31] knitting.\nA [32] ago, knitting was expected to disappear.\nThe number of knitting classes is now increasing.\nPeople are buying more [33] for knitting nowadays.\nBenefits of knitting\ngives support in times of [34] difficulty\nrequires only [35] skills and little money to start\nreduces stress in a busy life\nEarly knitting\nThe origins are not known.\nFindings show early knitted items to be [36] in shape.\nThe first needles were made of natural materials such as wood and [37].\nEarly yarns felt [38] to touch.\nWool became the most popular yarn for spinning.\nGeographical areas had their own [39] of knitting.\nEveryday tasks like looking after [40] were done while knitting."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "rough"
+                ]
+              }
+            },
+            {
+              "id": "l-39",
+              "order": 39,
+              "type": "completion",
+              "prompt": "Question 39",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Hand knitting",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Interest in knitting\nKnitting has a long history around the world.\nWe imagine someone like a [31] knitting.\nA [32] ago, knitting was expected to disappear.\nThe number of knitting classes is now increasing.\nPeople are buying more [33] for knitting nowadays.\nBenefits of knitting\ngives support in times of [34] difficulty\nrequires only [35] skills and little money to start\nreduces stress in a busy life\nEarly knitting\nThe origins are not known.\nFindings show early knitted items to be [36] in shape.\nThe first needles were made of natural materials such as wood and [37].\nEarly yarns felt [38] to touch.\nWool became the most popular yarn for spinning.\nGeographical areas had their own [39] of knitting.\nEveryday tasks like looking after [40] were done while knitting."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "style"
+                ]
+              }
+            },
+            {
+              "id": "l-40",
+              "order": 40,
+              "type": "completion",
+              "prompt": "Question 40",
+              "group": {
+                "id": "l-s4-31-40",
+                "title": "Hand knitting",
+                "instruction": "Write ONE WORD ONLY for each answer.",
+                "text": "Interest in knitting\nKnitting has a long history around the world.\nWe imagine someone like a [31] knitting.\nA [32] ago, knitting was expected to disappear.\nThe number of knitting classes is now increasing.\nPeople are buying more [33] for knitting nowadays.\nBenefits of knitting\ngives support in times of [34] difficulty\nrequires only [35] skills and little money to start\nreduces stress in a busy life\nEarly knitting\nThe origins are not known.\nFindings show early knitted items to be [36] in shape.\nThe first needles were made of natural materials such as wood and [37].\nEarly yarns felt [38] to touch.\nWool became the most popular yarn for spinning.\nGeographical areas had their own [39] of knitting.\nEveryday tasks like looking after [40] were done while knitting."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "sheep"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1235 @@
+{
+  "formatVersion": "1.0",
+  "title": "VOL 9 \u2014 Test 4 (Reading \u002B Listening)",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "listening",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "recording",
+          "title": "Weekend Course Booking",
+          "body": "Weekend Course Booking\nBooking for: a guitar workshop\nStart date: 1_____________\nCourse code: 2_____________\nPrevious course attended: Editing 3_____________\nName: Nick 4_____________\nAddress: 27 Hawthorn 5_____________ Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: 6_____________\nDietary requests: no 7_____________\nOne-to-one lesson selected: 8_____________ guitar\nFirst heard about us from: a 9_____________\nAdditional request: would like 10_____________ if possible",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "Start date",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "July 18th"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "Course code",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Q1632"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "Previous course attended: Editing",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "photographs"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "Name: Nick",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Poskitt"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "Address: 27 Hawthorn",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "way"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "Occupation",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "engineer"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "Dietary requests: no",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "fish"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "completion",
+              "prompt": "One-to-one lesson selected:",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "blues"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "completion",
+              "prompt": "First heard about us from: a",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "magazine"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "completion",
+              "prompt": "Additional request: would like",
+              "group": {
+                "id": "r-form-1-10",
+                "title": "Weekend Course Booking",
+                "instruction": "Write ONE WORD AND/OR A NUMBER for each answer.",
+                "text": "Booking for: a guitar workshop\nStart date: [1]\nCourse code: [2]\nPrevious course attended: Editing [3]\nName: Nick [4]\nAddress: 27 Hawthorn [5] Bristol, BS4 2QG\nContact number: 07707 438 297\nAge: 26\nOccupation: [6]\nDietary requests: no [7]\nOne-to-one lesson selected: [8] guitar\nFirst heard about us from: a [9]\nAdditional request: would like [10] if possible"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "parking"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "recording",
+          "title": "Denford Festival",
+          "body": "What is the main attraction in each of the following areas of the festival?\nChoose FIVE correct answers, A-G, next to questions 11-15.\nAttractions\nA talks about gardening\nB live music\nC an art exhibition\nD a children\u0027s playground\nE evening entertainment\nF a competition for adults\nG vegetable market\n\nAreas of the festival\nBridge Street 11_____________\nKing\u0027s Park 12_____________\nOakvale School 13_____________\nGreen Road 14_____________\nSun Lane 15_____________\n\nChoose the correct answer.\nDenford Festival\n16 What does Sam say about the festival tickets?\nThey allow you to get into all the festival events.\nThey are more expensive to buy on the day.\nThey have nearly all been sold.\n17 On the last night of the festival, visitors will be able to\ntake part in a dance.\ngo to a theatre performance.\nwatch some fireworks.\n18 What will be provided for international visitors?\ndiscounts on accommodation.\ntours of the local area.\na guide written in different languages.\n19 What information is given about car park A?\nIt is bigger than car park B.\nIt is closer to town than car park B.\nIt will close earlier than car park B.\n20 What change have the organisers made to the programme this year?\nreplacing the programme with an app\nreducing the number of programmes printed\nintroducing a charge for the programmes",
+          "questions": [
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "matching",
+              "prompt": "Bridge Street",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "talks about gardening"
+                },
+                {
+                  "key": "B",
+                  "text": "live music"
+                },
+                {
+                  "key": "C",
+                  "text": "an art exhibition"
+                },
+                {
+                  "key": "D",
+                  "text": "a children\u0027s playground"
+                },
+                {
+                  "key": "E",
+                  "text": "evening entertainment"
+                },
+                {
+                  "key": "F",
+                  "text": "a competition for adults"
+                },
+                {
+                  "key": "G",
+                  "text": "vegetable market"
+                }
+              ],
+              "group": {
+                "id": "r-attractions-11-15",
+                "instruction": "What is the main attraction in each of the following areas of the festival? Choose FIVE correct answers, A-G, next to questions 11-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "matching",
+              "prompt": "King\u0027s Park",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "talks about gardening"
+                },
+                {
+                  "key": "B",
+                  "text": "live music"
+                },
+                {
+                  "key": "C",
+                  "text": "an art exhibition"
+                },
+                {
+                  "key": "D",
+                  "text": "a children\u0027s playground"
+                },
+                {
+                  "key": "E",
+                  "text": "evening entertainment"
+                },
+                {
+                  "key": "F",
+                  "text": "a competition for adults"
+                },
+                {
+                  "key": "G",
+                  "text": "vegetable market"
+                }
+              ],
+              "group": {
+                "id": "r-attractions-11-15",
+                "instruction": "What is the main attraction in each of the following areas of the festival? Choose FIVE correct answers, A-G, next to questions 11-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "matching",
+              "prompt": "Oakvale School",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "talks about gardening"
+                },
+                {
+                  "key": "B",
+                  "text": "live music"
+                },
+                {
+                  "key": "C",
+                  "text": "an art exhibition"
+                },
+                {
+                  "key": "D",
+                  "text": "a children\u0027s playground"
+                },
+                {
+                  "key": "E",
+                  "text": "evening entertainment"
+                },
+                {
+                  "key": "F",
+                  "text": "a competition for adults"
+                },
+                {
+                  "key": "G",
+                  "text": "vegetable market"
+                }
+              ],
+              "group": {
+                "id": "r-attractions-11-15",
+                "instruction": "What is the main attraction in each of the following areas of the festival? Choose FIVE correct answers, A-G, next to questions 11-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "Green Road",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "talks about gardening"
+                },
+                {
+                  "key": "B",
+                  "text": "live music"
+                },
+                {
+                  "key": "C",
+                  "text": "an art exhibition"
+                },
+                {
+                  "key": "D",
+                  "text": "a children\u0027s playground"
+                },
+                {
+                  "key": "E",
+                  "text": "evening entertainment"
+                },
+                {
+                  "key": "F",
+                  "text": "a competition for adults"
+                },
+                {
+                  "key": "G",
+                  "text": "vegetable market"
+                }
+              ],
+              "group": {
+                "id": "r-attractions-11-15",
+                "instruction": "What is the main attraction in each of the following areas of the festival? Choose FIVE correct answers, A-G, next to questions 11-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "Sun Lane",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "talks about gardening"
+                },
+                {
+                  "key": "B",
+                  "text": "live music"
+                },
+                {
+                  "key": "C",
+                  "text": "an art exhibition"
+                },
+                {
+                  "key": "D",
+                  "text": "a children\u0027s playground"
+                },
+                {
+                  "key": "E",
+                  "text": "evening entertainment"
+                },
+                {
+                  "key": "F",
+                  "text": "a competition for adults"
+                },
+                {
+                  "key": "G",
+                  "text": "vegetable market"
+                }
+              ],
+              "group": {
+                "id": "r-attractions-11-15",
+                "instruction": "What is the main attraction in each of the following areas of the festival? Choose FIVE correct answers, A-G, next to questions 11-15."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "multiple-choice",
+              "prompt": "What does Sam say about the festival tickets?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "They allow you to get into all the festival events."
+                },
+                {
+                  "key": "B",
+                  "text": "They are more expensive to buy on the day."
+                },
+                {
+                  "key": "C",
+                  "text": "They have nearly all been sold."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "multiple-choice",
+              "prompt": "On the last night of the festival, visitors will be able to",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "take part in a dance."
+                },
+                {
+                  "key": "B",
+                  "text": "go to a theatre performance."
+                },
+                {
+                  "key": "C",
+                  "text": "watch some fireworks."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "multiple-choice",
+              "prompt": "What will be provided for international visitors?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "discounts on accommodation."
+                },
+                {
+                  "key": "B",
+                  "text": "tours of the local area."
+                },
+                {
+                  "key": "C",
+                  "text": "a guide written in different languages."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "multiple-choice",
+              "prompt": "What information is given about car park A?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It is bigger than car park B."
+                },
+                {
+                  "key": "B",
+                  "text": "It is closer to town than car park B."
+                },
+                {
+                  "key": "C",
+                  "text": "It will close earlier than car park B."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "multiple-choice",
+              "prompt": "What change have the organisers made to the programme this year?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "replacing the programme with an app"
+                },
+                {
+                  "key": "B",
+                  "text": "reducing the number of programmes printed"
+                },
+                {
+                  "key": "C",
+                  "text": "introducing a charge for the programmes"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "recording",
+          "title": "Action Research Course for Practising Teachers",
+          "body": "Action Research Course for Practising Teachers\nCourse leader: Alan Cumner\n(get his recent book called \u002721_____________\u0027)\nCourse objectives: to develop skills in:\n\u25CF using different research techniques\n\u25CF researching as part of a 22_____________\n\u25CF 23_____________ (in a collaborative culture)\n\nCourse Components\nObservational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. 24_____________ of pupils\nWriting a 25_____________\nUsed to improve skill of reflection\n\n26_____________\nTry out on fellow students (in classroom 27_____________)\n\nNon-observational techniques\nAdditional information\nAnalysing 28_____________\nUse statistics based on own students\nUsing questionnaires\nUse the 29_____________ to find respondents\nUsing 30_____________\nOwn choice of respondents",
+          "questions": [
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "get his recent book called",
+              "group": {
+                "id": "r-course-21-23",
+                "title": "Action Research Course for Practising Teachers",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Course leader: Alan Cumner\n(get his recent book called \u0027[21]\u0027)\nCourse objectives: to develop skills in:\n\u25CF using different research techniques\n\u25CF researching as part of a [22]\n\u25CF [23] (in a collaborative culture)"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "professional learning"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "researching as part of a",
+              "group": {
+                "id": "r-course-21-23",
+                "title": "Action Research Course for Practising Teachers",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Course leader: Alan Cumner\n(get his recent book called \u0027[21]\u0027)\nCourse objectives: to develop skills in:\n\u25CF using different research techniques\n\u25CF researching as part of a [22]\n\u25CF [23] (in a collaborative culture)"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "team"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "completion",
+              "prompt": "in a collaborative culture",
+              "group": {
+                "id": "r-course-21-23",
+                "title": "Action Research Course for Practising Teachers",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Course leader: Alan Cumner\n(get his recent book called \u0027[21]\u0027)\nCourse objectives: to develop skills in:\n\u25CF using different research techniques\n\u25CF researching as part of a [22]\n\u25CF [23] (in a collaborative culture)"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "presenting results"
+                ]
+              }
+            },
+            {
+              "id": "r-24",
+              "order": 24,
+              "type": "completion",
+              "prompt": "To record aspects of lesson, e.g.",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "behaviour"
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "completion",
+              "prompt": "Writing a",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "diary"
+                ]
+              }
+            },
+            {
+              "id": "r-26",
+              "order": 26,
+              "type": "completion",
+              "prompt": "Observational technique",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "video recording"
+                ]
+              }
+            },
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "completion",
+              "prompt": "in classroom",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "simulation"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "completion",
+              "prompt": "Analysing",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "test results"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "completion",
+              "prompt": "Use the",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "internet"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "completion",
+              "prompt": "Using",
+              "group": {
+                "id": "r-components-24-30",
+                "title": "Course Components",
+                "instruction": "Write NO MORE THAN TWO WORDS for each answer.",
+                "text": "Observational techniques\nAdditional information\nUsing observation checklists\nTo record aspects of lesson, e.g. [24] of pupils\nWriting a [25]\nUsed to improve skill of reflection\n\n[26]\nTry out on fellow students (in classroom [27])\n\nNon-observational techniques\nAdditional information\nAnalysing [28]\nUse statistics based on own students\nUsing questionnaires\nUse the [29] to find respondents\nUsing [30]\nOwn choice of respondents"
+              },
+              "constraints": {
+                "maxWords": 2
+              },
+              "answerKey": {
+                "accepted": [
+                  "interviews"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "recording",
+          "title": "Digital Technology and Theorists",
+          "body": "What impact does Marc Prensky believe that digital technology has had on young people?\nIt has altered their thinking patterns.\nIt has harmed their physical development.\nIt has limited their brain capacity.\n\nDigital immigrants tend to access computers\nusing their native language.\nless efficiently than young people.\nfor less important information.\n\nWhat example is given of having a \u0027digital accent\u0027?\nhaving less effective typing skills\ndoing things the old-fashioned way\nbeing unable to understand instructions\n\nWhich theorist makes each of the following points?\nChoose the correct letter, A, B or C, next to questions 34-40.\nTheorists\nA Allen\nB James\nC Vander\nPoints made\n34 Current teaching methods don\u0027t work.\n35 Many students don\u0027t understand computers.\n36 Computer technology doesn\u0027t interest all students.\n37 Students can still learn the traditional way.\n38 Students still need to learn research skills.\n39 We should use computer games to teach.\n40 Computers can\u0027t replace educators.",
+          "questions": [
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "multiple-choice",
+              "prompt": "What impact does Marc Prensky believe that digital technology has had on young people?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "It has altered their thinking patterns."
+                },
+                {
+                  "key": "B",
+                  "text": "It has harmed their physical development."
+                },
+                {
+                  "key": "C",
+                  "text": "It has limited their brain capacity."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "multiple-choice",
+              "prompt": "Digital immigrants tend to access computers",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "using their native language."
+                },
+                {
+                  "key": "B",
+                  "text": "less efficiently than young people."
+                },
+                {
+                  "key": "C",
+                  "text": "for less important information."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "multiple-choice",
+              "prompt": "What example is given of having a \u0027digital accent\u0027?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "having less effective typing skills"
+                },
+                {
+                  "key": "B",
+                  "text": "doing things the old-fashioned way"
+                },
+                {
+                  "key": "C",
+                  "text": "being unable to understand instructions"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "matching",
+              "prompt": "Current teaching methods don\u0027t work.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "matching",
+              "prompt": "Many students don\u0027t understand computers.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "matching",
+              "prompt": "Computer technology doesn\u0027t interest all students.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "matching",
+              "prompt": "Students can still learn the traditional way.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "matching",
+              "prompt": "Students still need to learn research skills.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "matching",
+              "prompt": "We should use computer games to teach.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "matching",
+              "prompt": "Computers can\u0027t replace educators.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Allen"
+                },
+                {
+                  "key": "B",
+                  "text": "James"
+                },
+                {
+                  "key": "C",
+                  "text": "Vander"
+                }
+              ],
+              "group": {
+                "id": "r-theorists-34-40",
+                "instruction": "Which theorist makes each of the following points? Choose the correct letter, A, B or C, next to questions 34-40."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

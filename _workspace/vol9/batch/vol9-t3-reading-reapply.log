@@ -1,0 +1,17 @@
+key read   39 entr(ies) covering 39 mark(s)
+foreign parts dropped
+model answers  26 existing answerKey(s) removed before the key document is applied
+written    _workspace/vol9/packages/vol9-t3-reading.json
+answer key refused
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 28, which the paper does not contain. Key text: "G".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 29, which the paper does not contain. Key text: "E".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 30, which the paper does not contain. Key text: "F".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 31, which the paper does not contain. Key text: "B".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 32, which the paper does not contain. Key text: "I".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 33, which the paper does not contain. Key text: "J".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 34, which the paper does not contain. Key text: "F".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 35, which the paper does not contain. Key text: "C".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 36, which the paper does not contain. Key text: "NO".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 37, which the paper does not contain. Key text: "NOT GIVEN".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 38, which the paper does not contain. Key text: "YES".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 39, which the paper does not contain. Key text: "NOT GIVEN".

@@ -14,6 +14,8 @@ public static class ExplanationOutputValidator
         "band", "score", "sectionBand", "criteria", "rawScore", "isCorrect",
     };
 
+    private static readonly char[] SurroundingQuotes = ['"', '\'', '“', '”', '‘', '’'];
+
     public static ExplanationValidationResult Validate(
         string rawJson,
         string expectedAnswer,
@@ -33,9 +35,15 @@ public static class ExplanationOutputValidator
             return Refuse("EXPLANATION_MALFORMED_JSON");
         }
 
-        if (parsed is null
-            || string.IsNullOrWhiteSpace(parsed.ShortReason)
-            || parsed.Evidence is not { Count: > 0 })
+        if (parsed is null || string.IsNullOrWhiteSpace(parsed.ShortReason))
+            return Refuse("EXPLANATION_SCHEMA_INVALID");
+
+        // With a passage or transcript to quote from, an explanation without a
+        // quote is not an explanation. Without one — a question whose part has
+        // no body or transcript — there is nothing to quote, so an empty array
+        // is the honest answer and refusing it would fail every such question.
+        var sourceAvailable = HasSource(source);
+        if (sourceAvailable && parsed.Evidence is not { Count: > 0 })
             return Refuse("EXPLANATION_SCHEMA_INVALID");
 
         if (string.IsNullOrWhiteSpace(parsed.CorrectAnswer))
@@ -45,7 +53,7 @@ public static class ExplanationOutputValidator
             return Refuse("EXPLANATION_ANSWER_MISMATCH");
 
         var evidence = new List<string>();
-        foreach (var item in parsed.Evidence)
+        foreach (var item in parsed.Evidence ?? [])
         {
             var check = EvidenceSafetyValidator.ValidateItem(item, module, source);
             if (!check.IsValid)
@@ -60,9 +68,16 @@ public static class ExplanationOutputValidator
                 parsed.CorrectAnswer.Trim(),
                 parsed.ShortReason.Trim(),
                 evidence,
-                string.IsNullOrWhiteSpace(parsed.CommonMistake) ? null : parsed.CommonMistake.Trim()),
+                Optional(parsed.CommonMistake),
+                Optional(parsed.Translation)),
             null);
     }
+
+    private static bool HasSource(EvidenceSourceContext source) =>
+        !string.IsNullOrWhiteSpace(source.PassageBody) || !string.IsNullOrWhiteSpace(source.Transcript);
+
+    private static string? Optional(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static bool ContainsForbiddenKeys(string rawJson)
     {
@@ -85,15 +100,44 @@ public static class ExplanationOutputValidator
         }
     }
 
-    private static bool AnswerMatches(string expected, string claimed)
+    /// <summary>
+    /// Whether the model's <c>correctAnswer</c> is the answer key's answer.
+    ///
+    /// The prompt says "copy it character for character", and models still
+    /// wrap a word in quotes, end it with a full stop, or double a space. None
+    /// of those is a different answer, so both sides are normalised the same
+    /// way before the ordinal compare; a genuinely different word still fails.
+    /// </summary>
+    internal static bool AnswerMatches(string expected, string claimed)
     {
         var normExpected = Normalize(expected);
         var normClaimed = Normalize(claimed);
         return string.Equals(normExpected, normClaimed, StringComparison.Ordinal);
     }
 
-    private static string Normalize(string value) =>
-        value.Trim().ToLowerInvariant();
+    private static string Normalize(string value)
+    {
+        var text = value.Trim();
+
+        // Peel surrounding quotes and a trailing full stop until stable, so
+        // "Cartography." and "Cartography". both reduce to cartography.
+        while (true)
+        {
+            var before = text;
+
+            if (text.Length >= 2
+                && Array.IndexOf(SurroundingQuotes, text[0]) >= 0
+                && Array.IndexOf(SurroundingQuotes, text[^1]) >= 0)
+                text = text[1..^1].Trim();
+
+            if (text.EndsWith('.'))
+                text = text[..^1].TrimEnd();
+
+            if (text == before) break;
+        }
+
+        return string.Join(' ', text.ToLowerInvariant().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+    }
 
     private static ExplanationValidationResult Refuse(string code) =>
         new(false, null, code);

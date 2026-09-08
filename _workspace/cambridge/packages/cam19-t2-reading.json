@@ -1,0 +1,1334 @@
+{
+  "formatVersion": "1.0",
+  "title": "Cambridge IELTS 19 \u2014 Test 2",
+  "variant": "academic",
+  "description": "\u0110\u1EC1 l\u1EBB, ch\u1EC9 c\u00F3 Reading v\u00E0 Listening \u2014 kh\u00F4ng c\u00F3 Writing v\u00E0 Speaking n\u00EAn kh\u00F4ng thi th\u1EED full \u0111\u01B0\u1EE3c. Ch\u1ECDn m\u1ED9t trong hai k\u1EF9 n\u0103ng \u0111\u1EC3 l\u00E0m. C\u1EA3 hai \u0111\u1EC1u ch\u1EA5m ngay theo \u0111\u00E1p \u00E1n v\u00E0 ra band lu\u00F4n. Ph\u1EA7n Listening d\u00F9ng m\u1ED9t file ghi \u00E2m li\u1EC1n cho c\u1EA3 b\u1ED1n ph\u1EA7n.",
+  "timingProfile": {
+    "sections": {
+      "reading": {
+        "durationSeconds": 3600,
+        "transferTimeSeconds": 0
+      },
+      "listening": {
+        "durationSeconds": 1800,
+        "transferTimeSeconds": 600
+      }
+    }
+  },
+  "scoringProfile": {
+    "rawToBand": {
+      "listening": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 32,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 26,
+          "band": 6.5
+        },
+        {
+          "minRaw": 23,
+          "band": 6.0
+        },
+        {
+          "minRaw": 18,
+          "band": 5.5
+        },
+        {
+          "minRaw": 16,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.5
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ],
+      "reading": [
+        {
+          "minRaw": 39,
+          "band": 9.0
+        },
+        {
+          "minRaw": 37,
+          "band": 8.5
+        },
+        {
+          "minRaw": 35,
+          "band": 8.0
+        },
+        {
+          "minRaw": 33,
+          "band": 7.5
+        },
+        {
+          "minRaw": 30,
+          "band": 7.0
+        },
+        {
+          "minRaw": 27,
+          "band": 6.5
+        },
+        {
+          "minRaw": 24,
+          "band": 6.0
+        },
+        {
+          "minRaw": 20,
+          "band": 5.5
+        },
+        {
+          "minRaw": 15,
+          "band": 5.0
+        },
+        {
+          "minRaw": 13,
+          "band": 4.5
+        },
+        {
+          "minRaw": 10,
+          "band": 4.0
+        },
+        {
+          "minRaw": 8,
+          "band": 3.5
+        },
+        {
+          "minRaw": 6,
+          "band": 3.0
+        },
+        {
+          "minRaw": 4,
+          "band": 2.5
+        },
+        {
+          "minRaw": 2,
+          "band": 2.0
+        },
+        {
+          "minRaw": 1,
+          "band": 1.0
+        },
+        {
+          "minRaw": 0,
+          "band": 0.0
+        }
+      ]
+    },
+    "answerMatching": {
+      "caseSensitive": false,
+      "trimWhitespace": true,
+      "allowSpellingVariants": false
+    }
+  },
+  "sections": [
+    {
+      "module": "reading",
+      "order": 1,
+      "parts": [
+        {
+          "order": 1,
+          "kind": "passage",
+          "title": "The Industrial Revolution in Britain",
+          "body": "The Industrial Revolution in Britain\nThe Industrial Revolution began in Britain in the mid-1700s and by the 1830s and 1840s\nhad spread to many other parts of the world, including the United States. In Britain, it was a\nperiod when a largely rural, agrarian* society was transformed into an industrialised, urban\none. Goods that had once been crafted by hand started to be produced in mass quantities\nby machines in factories, thanks to the invention of steam power and the introduction of\nnew machines and manufacturing techniques in textiles, iron-making and other industries.\nThe foundations of the Industrial Revolution date back to the early 1700s, when the\nEnglish inventor Thomas Newcomen designed the first modern steam engine. Called the\n\u2018atmospheric steam engine\u2019, Newcomen\u2019s invention was originally used to power machines\nthat pumped water out of mines. In the 1760s, the Scottish engineer James Watt\nstarted to adapt one of Newcomen\u2019s models, and succeeded in making it far more\nefficient. Watt later worked with the English manufacturer Matthew Boulton to invent a\nnew steam engine driven by both the forward and backward strokes of the piston, while\nthe gear mechanism it was connected to produced rotary motion. It was a key innovation\nthat would allow steam power to spread across British industries.\nThe demand for coal, which was a relatively cheap energy source, grew rapidly during\nthe Industrial Revolution, as it was needed to run not only the factories used to produce\nmanufactured goods, but also steam-powered transportation. In the early 1800s, the\nEnglish engineer Richard Trevithick built a steam-powered locomotive, and by 1830\ngoods and passengers were being transported between the industrial centres of\nManchester and Liverpool. In addition, steam-powered boats and ships were widely\nused to carry goods along Britain\u2019s canals as well as across the Atlantic.\nBritain had produced textiles like wool, linen and cotton, for hundreds of years, but prior\nto the Industrial Revolution, the British textile business was a true \u2018cottage industry\u2019, with\nthe work performed in small workshops or even homes by individual spinners, weavers\nand dyers. Starting in the mid-1700s, innovations like the spinning jenny and the power\nloom made weaving cloth and spinning yarn and thread much easier. With these\nmachines, relatively little labour was required to produce cloth, and the new, mechanised\ntextile factories that opened around the country were quickly able to meet customer\ndemand for cloth both at home and abroad.\n* agrarian: relating to the land, especially the use of land for farming\nThe British iron industry also underwent major change as it adopted new innovations.\nChief among the new techniques was the smelting of iron ore with coke (a material\nmade by heating coal) instead of the traditional charcoal. This method was cheaper\nand produced metals that were of a higher quality, enabling Britain\u2019s iron and steel\nproduction to expand in response to demand created by the Napoleonic Wars (1803-15)\nand the expansion of the railways from the 1830s.\nThe latter part of the Industrial Revolution also saw key advances in communication\nmethods, as people increasingly saw the need to communicate efficiently over long\ndistances. In 1837, British inventors William Cooke and Charles Wheatstone patented\nthe first commercial telegraphy system. In the 1830s and 1840s, Samuel Morse\nand other inventors worked on their own versions in the United States. Cooke and\nWheatstone\u2019s system was soon used for railway signalling in the UK. As the speed of\nthe new locomotives increased, it was essential to have a fast and effective means of\navoiding collisions.\nThe impact of the Industrial Revolution on people\u2019s lives was immense. Although\nmany people in Britain had begun moving to the cities from rural areas before the\nIndustrial Revolution, this accelerated dramatically with industrialisation, as the rise\nof large factories turned smaller towns into major cities in just a few decades. This\nrapid urbanisation brought significant challenges, as overcrowded cities suffered from\npollution and inadequate sanitation.\nAlthough industrialisation increased the country\u2019s economic output overall and improved\nthe standard of living for the middle and upper classes, many poor people continued to\nstruggle. Factory workers had to work long hours in dangerous conditions for extremely\nlow wages. These conditions along with the rapid pace of change fuelled opposition\nto industrialisation. A group of British workers who became known as \u2018Luddites\u2019 were\nBritish weavers and textile workers who objected to the increased use of mechanised\nlooms and knitting frames. Many had spent years learning their craft, and they feared\nthat unskilled machine operators were robbing them of their livelihood. A few desperate\nweavers began breaking into factories and smashing textile machines. They called\nthemselves Luddites after Ned Ludd, a young apprentice who was rumoured to have\nwrecked a textile machine in 1779.\nThe first major instances of machine breaking took place in 1811 in the city of\nNottingham, and the practice soon spread across the country. Machine-breaking\nLuddites attacked and burned factories, and in some cases they even exchanged\ngunfire with company guards and soldiers. The workers wanted employers to stop\ninstalling new machinery, but the British government responded to the uprisings by\nmaking machine-breaking punishable by death. The unrest finally reached its peak in\nApril 1812, when a few Luddites were shot during an attack on a mill near Huddersfield.\nIn the days that followed, other Luddites were arrested, and dozens were hanged or\ntransported to Australia. By 1813, the Luddite resistance had all but vanished.",
+          "questions": [
+            {
+              "id": "r-1",
+              "order": 1,
+              "type": "completion",
+              "prompt": "1",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain\u2019s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain\u2019s Industrial Revolution\n\nSteam power\n\ne | Newcomen\u2019s steam engine was used in mines to remove water.\ne \u2014_In Watt and Boulton\u2019s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne \u2014 Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn \u00AB\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne \u2014 Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee \u00AB"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "piston"
+                ]
+              }
+            },
+            {
+              "id": "r-2",
+              "order": 2,
+              "type": "completion",
+              "prompt": "2",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain\u2019s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain\u2019s Industrial Revolution\n\nSteam power\n\ne | Newcomen\u2019s steam engine was used in mines to remove water.\ne \u2014_In Watt and Boulton\u2019s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne \u2014 Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn \u00AB\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne \u2014 Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee \u00AB"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "coal"
+                ]
+              }
+            },
+            {
+              "id": "r-3",
+              "order": 3,
+              "type": "completion",
+              "prompt": "3",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain\u2019s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain\u2019s Industrial Revolution\n\nSteam power\n\ne | Newcomen\u2019s steam engine was used in mines to remove water.\ne \u2014_In Watt and Boulton\u2019s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne \u2014 Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn \u00AB\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne \u2014 Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee \u00AB"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "workshops"
+                ]
+              }
+            },
+            {
+              "id": "r-4",
+              "order": 4,
+              "type": "completion",
+              "prompt": "4",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain\u2019s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain\u2019s Industrial Revolution\n\nSteam power\n\ne | Newcomen\u2019s steam engine was used in mines to remove water.\ne \u2014_In Watt and Boulton\u2019s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne \u2014 Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn \u00AB\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne \u2014 Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee \u00AB"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "labour",
+                  "labor"
+                ]
+              }
+            },
+            {
+              "id": "r-5",
+              "order": 5,
+              "type": "completion",
+              "prompt": "5",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain\u2019s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain\u2019s Industrial Revolution\n\nSteam power\n\ne | Newcomen\u2019s steam engine was used in mines to remove water.\ne \u2014_In Watt and Boulton\u2019s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne \u2014 Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn \u00AB\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne \u2014 Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee \u00AB"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "quality"
+                ]
+              }
+            },
+            {
+              "id": "r-6",
+              "order": 6,
+              "type": "completion",
+              "prompt": "6",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain\u2019s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain\u2019s Industrial Revolution\n\nSteam power\n\ne | Newcomen\u2019s steam engine was used in mines to remove water.\ne \u2014_In Watt and Boulton\u2019s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne \u2014 Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn \u00AB\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne \u2014 Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee \u00AB"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "railway(s)"
+                ]
+              }
+            },
+            {
+              "id": "r-7",
+              "order": 7,
+              "type": "completion",
+              "prompt": "7",
+              "group": {
+                "id": "r-p1-1-7",
+                "title": "Britain\u2019s Industrial Revolution",
+                "instruction": "Complete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "Britain\u2019s Industrial Revolution\n\nSteam power\n\ne | Newcomen\u2019s steam engine was used in mines to remove water.\ne \u2014_In Watt and Boulton\u2019s steam engine, the Movement Of the [1] un.\nwas linked to a gear system.\ne = A greater Supply Of [2] oon Was required to power steam engines.\n\nTextile industry\n\ne __ Before the Industrial Revolution, spinners and weavers worked at home and in\n[3]\ne Not aS MUCH [4] woven Was needed to produce cloth once the\nspinning jenny and power loom were invented.\n\nlron industry\n\ne \u2014 Smelting of iron ore with coke resulted in material that was better\n[5]\ne Demand for iron increased with the Growth Of the [6] oo cccssssssemusceenn \u00AB\n\nCommunications\n\ne Cooke and Wheatstone patented the first telegraphy system.\ne The telegraphy system was used to prevent locomotives colliding.\n\nUrbanisation\n\ne \u2014 Small towns turned into cities very quickly.\ne The new cities were dirty, crowded and lacked SUPFICIENE [7] o..cccssssssesssssenseesnneee \u00AB"
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "sanitation"
+                ]
+              }
+            },
+            {
+              "id": "r-8",
+              "order": 8,
+              "type": "true-false-notgiven",
+              "prompt": "Britain\u2019s canal network grew rapidly so that more goods could be transported around the country.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-9",
+              "order": 9,
+              "type": "true-false-notgiven",
+              "prompt": "Costs in the iron industry rose when the technique of smelting iron ore with coke was introduced.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "FALSE"
+                ]
+              }
+            },
+            {
+              "id": "r-10",
+              "order": 10,
+              "type": "true-false-notgiven",
+              "prompt": "Samuel Morse\u2019s communication system was more reliable than that developed by William Cooke and Charles Wheatstone.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-11",
+              "order": 11,
+              "type": "true-false-notgiven",
+              "prompt": "The economic benefits of industrialisation were limited to certain sectors of society.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-12",
+              "order": 12,
+              "type": "true-false-notgiven",
+              "prompt": "Some skilled weavers believed that the introduction of the new textile machines would lead to job losses.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "TRUE"
+                ]
+              }
+            },
+            {
+              "id": "r-13",
+              "order": 13,
+              "type": "true-false-notgiven",
+              "prompt": "There was some sympathy among local people for the Luddites who were arrested near Huddersfield.",
+              "group": {
+                "id": "r-tfng-8-13",
+                "instruction": "Do the following statements agree with the information given in Reading Passage 1?\nIn boxes 8-13 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN_ if there is no information on this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "passage",
+          "title": "Athletes and stress",
+          "body": "Athletes and stress\n\nA _Itisn\u2019t easy being a professional athlete. Not only are the physical demands greater\nthan most people could handle, athletes also face intense psychological pressure\nduring competition. This is something that British tennis player Emma Raducanu\nwrote about on social media following her withdrawal from the 2021 Wimbledon\ntournament. Though the young player had been doing well in the tournament, she\nbegan having difficulty regulating her breathing and heart rate during a match,\nwhich she later attributed to \u2018the accumulation of the excitement and the buzz\u2019.\n\nB_ For athletes, some level of performance stress is almost unavoidable. But there are\nmany different factors that dictate just how people\u2019s minds and bodies respond to\nstressful events. Typically, stress is the result of an exchange between two factors:\ndemands and resources. An athlete may feel stressed about an event if they feel\nthe demands on them are greater than they can handle. These demands include\nthe high level of physical and mental effort required to succeed, and also the\nathlete\u2019s concerns about the difficulty of the event, their chance of succeeding, and\nany potential dangers such as injury. Resources, on the other hand, are a person\u0027s\nability to cope with these demands. These include factors such as the competitor\u0027s\ndegree of confidence, how much they believe they can control the situation\u2019s\noutcome, and whether they\u2019re looking forward to the event or not.\n\nC Each new demand or change in circumstances affects whether a person responds\npositively or negatively to stress. Typically, the more resources a person feels they\nhave in handling the situation, the more positive their stress response. This positive\nstress response is called a challenge state. But should the person feel there are too\nmany demands placed on them, the more likely they are to experience a negative\nstress response \u2014 known as a threat state. Research shows that the challenge\nstates lead to good performance, while threat states lead to poorer performance.\nSo, in Emma Raducanu\u2019s case, a much larger audience, higher expectations and\nfacing a more skilful opponent, may all have led her to feel there were greater\ndemands being placed on her at Wimbledon \u2014 but she didn\u2019t have the resources to\ntackle them. This led to her experiencing a threat response.\n\nD Our challenge and threat responses essentially influence how our body responds\nto stressful situations, as both affect the production of adrenaline and cortisol \u2014\nalso known as \u2018stress hormones\u2019. During a challenge state, adrenaline increases\nthe amount of blood pumped from the heart and expands the blood vessels, which\nallows more energy to be delivered to the muscles and brain. This increase of\nblood and decrease of pressure in the blood vessels has been consistently related\nto superior sport performance in everything from cricket batting, to golf putting and\nfootball penalty taking. But during a threat state, cortisol inhibits the positive effect\nof adrenaline, resulting in tighter blood vessels, higher blood pressure, slower\npsychological responses, and a faster heart rate. In short, a threat state makes\npeople more anxious \u2014 they make worse decisions and perform more poorly. In\ntennis players, cortisol has been associated with more unsuccessful serves and\ngreater anxiety.\n\nE That said, anxiety is also a common experience for athletes when they\u0027re under\npressure. Anxiety can increase heart rate and perspiration, cause heart palpitations,\nmuscle tremors and shortness of breath, as well as headaches, nausea, stomach\npain, weakness and a desire to escape in more extreme cases. Anxiety can also\nreduce concentration and self-control and cause overthinking. The intensity with\nwhich a person experiences anxiety depends on the demands and resources they\nhave. Anxiety may also manifest itself in the form of excitement or nervousness\ndepending on the stress response. Negative stress responses can be damaging to\nboth physical and mental health \u2014 and repeated episodes of anxiety coupled with\nnegative responses can increase risk of heart disease and depression.\n\nF But there are many ways athletes can ensure they respond positively under\npressure. Positive stress responses can be promoted through the language that\nthey and others \u2014 such as coaches or parents \u2014 use. Psychologists can also help\nathletes change how they see their physiological responses \u2014 such as helping them\nsee a higher heart rate as excitement, rather than nerves. Developing psychological\nskills, such as visualisation, can also help decrease physiological responses to\nthreat. Visualisation may involve the athlete recreating a mental picture of a time\nwhen they performed well, or picturing themselves doing well in the future. This\ncan help create a feeling of control over the stressful event. Recreating competitive\npressure during training can also help athletes learn how to deal with stress. An\nexample of this might be scoring athletes against their peers to create a sense of\ncompetition. This would increase the demands which players experience compared\nto a normal training session, while still allowing them to practise coping with stress.",
+          "questions": [
+            {
+              "id": "r-14",
+              "order": 14,
+              "type": "matching",
+              "prompt": "reference to two chemical compounds which impact on performance",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has six paragraphs, A-F.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-F, in boxes 14\u201418 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "id": "r-15",
+              "order": 15,
+              "type": "matching",
+              "prompt": "examples of strategies for minimising the effects of stress",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has six paragraphs, A-F.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-F, in boxes 14\u201418 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-16",
+              "order": 16,
+              "type": "matching",
+              "prompt": "how a sportsperson accounted for their own experience of stress",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has six paragraphs, A-F.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-F, in boxes 14\u201418 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-17",
+              "order": 17,
+              "type": "matching",
+              "prompt": "study results indicating links between stress responses and performance",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has six paragraphs, A-F.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-F, in boxes 14\u201418 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-18",
+              "order": 18,
+              "type": "matching",
+              "prompt": "mention of people who can influence how athletes perceive their stress responses",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "A"
+                },
+                {
+                  "key": "B",
+                  "text": "B"
+                },
+                {
+                  "key": "C",
+                  "text": "C"
+                },
+                {
+                  "key": "D",
+                  "text": "D"
+                },
+                {
+                  "key": "E",
+                  "text": "E"
+                },
+                {
+                  "key": "F",
+                  "text": "F"
+                }
+              ],
+              "group": {
+                "id": "r-para-14-18",
+                "instruction": "Reading Passage 2 has six paragraphs, A-F.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-F, in boxes 14\u201418 on your answer sheet.\n\nNB You may use any letter more than once."
+              },
+              "answerKey": {
+                "accepted": [
+                  "F"
+                ]
+              }
+            },
+            {
+              "id": "r-19",
+              "order": 19,
+              "type": "completion",
+              "prompt": "19",
+              "group": {
+                "id": "r-p2-19-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "19 Performance stress involves many demands on the athlete, for example, coping\nwith the possible risk Of [19] wns \u00AB\n\n20 Cortisol can cause tennis players to produce feWer GOO o....cccsssssssssssssinssneene \u00AB\n\n21 Psychologists can help athletes to view their physiological responses as the effect\nOf a POSitive feelING SUCH AS [21] cesses \u00BB\n\n22 vcs IS aN example of a psychological technique which can reduce an\nathlete\u2019s stress responses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "injury"
+                ]
+              }
+            },
+            {
+              "id": "r-20",
+              "order": 20,
+              "type": "completion",
+              "prompt": "20",
+              "group": {
+                "id": "r-p2-19-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "19 Performance stress involves many demands on the athlete, for example, coping\nwith the possible risk Of [19] wns \u00AB\n\n20 Cortisol can cause tennis players to produce feWer GOO o....cccsssssssssssssinssneene \u00AB\n\n21 Psychologists can help athletes to view their physiological responses as the effect\nOf a POSitive feelING SUCH AS [21] cesses \u00BB\n\n22 vcs IS aN example of a psychological technique which can reduce an\nathlete\u2019s stress responses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "serves"
+                ]
+              }
+            },
+            {
+              "id": "r-21",
+              "order": 21,
+              "type": "completion",
+              "prompt": "21",
+              "group": {
+                "id": "r-p2-19-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "19 Performance stress involves many demands on the athlete, for example, coping\nwith the possible risk Of [19] wns \u00AB\n\n20 Cortisol can cause tennis players to produce feWer GOO o....cccsssssssssssssinssneene \u00AB\n\n21 Psychologists can help athletes to view their physiological responses as the effect\nOf a POSitive feelING SUCH AS [21] cesses \u00BB\n\n22 vcs IS aN example of a psychological technique which can reduce an\nathlete\u2019s stress responses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "excitement"
+                ]
+              }
+            },
+            {
+              "id": "r-22",
+              "order": 22,
+              "type": "completion",
+              "prompt": "22",
+              "group": {
+                "id": "r-p2-19-22",
+                "instruction": "Complete the sentences below.\n\nChoose ONE WORD ONLY from the passage for each answer.",
+                "text": "19 Performance stress involves many demands on the athlete, for example, coping\nwith the possible risk Of [19] wns \u00AB\n\n20 Cortisol can cause tennis players to produce feWer GOO o....cccsssssssssssssinssneene \u00AB\n\n21 Psychologists can help athletes to view their physiological responses as the effect\nOf a POSitive feelING SUCH AS [21] cesses \u00BB\n\n22 vcs IS aN example of a psychological technique which can reduce an\nathlete\u2019s stress responses."
+              },
+              "constraints": {
+                "maxWords": 1
+              },
+              "answerKey": {
+                "accepted": [
+                  "Visualisation",
+                  "Visualization"
+                ]
+              }
+            },
+            {
+              "id": "r-23",
+              "order": 23,
+              "type": "multiple-select",
+              "prompt": "Which TWO facts about Emma Raducanu\u2019s withdrawal from the Wimbledon tournament are mentioned in the text?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the stage at which she dropped out of the tournament"
+                },
+                {
+                  "key": "B",
+                  "text": "symptoms of her performance stress at the tournament"
+                },
+                {
+                  "key": "C",
+                  "text": "measures which she had taken to manage her stress levels"
+                },
+                {
+                  "key": "D",
+                  "text": "aspects of the Wimbledon tournament which increased her stress levels"
+                },
+                {
+                  "key": "E",
+                  "text": "reactions to her social media posts about her experience at Wimbledon"
+                }
+              ],
+              "marks": 2,
+              "group": {
+                "id": "r-ms-23-24",
+                "instruction": "Choose TWO letters, A-E."
+              },
+              "answerKey": {
+                "accepted": [
+                  [
+                    "B",
+                    "D"
+                  ]
+                ]
+              }
+            },
+            {
+              "id": "r-25",
+              "order": 25,
+              "type": "multiple-select",
+              "prompt": "Which TWO facts about anxiety are mentioned in Paragraph E of the text?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "the factors which determine how severe it may be"
+                },
+                {
+                  "key": "B",
+                  "text": "howlong it takes for its effects to become apparent"
+                },
+                {
+                  "key": "C",
+                  "text": "which of its symptoms is most frequently encountered"
+                },
+                {
+                  "key": "D",
+                  "text": "the types of athletes who are most likely to suffer from it"
+                },
+                {
+                  "key": "E",
+                  "text": "the harm that can result if athletes experience it too often"
+                }
+              ],
+              "marks": 2,
+              "group": {
+                "id": "r-ms-25-26",
+                "instruction": "Choose TWO letters, A-E."
+              },
+              "answerKey": {
+                "accepted": [
+                  [
+                    "A",
+                    "E"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "passage",
+          "title": "An inquiry into the existence of the\ngifted child",
+          "body": "An inquiry into the existence of the\ngifted child\nLet us start by looking at a modern \u2018genius\u2019, in childhood. Einstein was slow to talk as a\nMaryam Mirzakhani, who died at the early baby. He failed the general part of the entry test\nage of 40. She was the only woman to win the \u2014 to Zurich Polytechnic \u2014 though they let him in\nFields Medal \u2014 the mathematical equivalent because of high physics and maths scores.\nof a Nobel prize. It would be easy to assume He struggled at work initially, but he kept\nthat someone as special as Mirzakhani must plugging away and eventually rewrote the\nhave been one of those \u2018gifted\u2019 children, laws of Newtonian mechanics with his theory\nthose who have an extraordinary ability in a of relativity.\nspecific sphere of activity or knowledge. But\nlook closer and a different story emerges. There has been a considerable amount of\nMirzakhani was born in Tehran, Iran. She research on high performance over the last\nwent to a highly selective girls\u2019 school but century that suggests it goes way beyond tested\nmaths wasn\u2019t her interest \u2014 reading was. She intelligence. On top of that, research is clear\nloved novels and would read anything she that brains are flexible, new neural pathways\ncould lay her hands on. As for maths, she did can be created, and IQ isn\u2019t fixed. For example,\nrather poorly at it for the first couple of years just because you can read stories with hundreds\nin her middle school, but became interested of pages at the age of five doesn\u2019t mean you\nwhen her elder brother told her about what will still be ahead of your contemporaries in\nhe\u2019d learned. He shared a famous maths your teens.\nproblem from a magazine that fascinated\nher \u2014 and she was hooked. While the jury is out on giftedness being\ninnate and other factors potentially making\nIn adult life it is clear that she was curious, the difference, what is certain is that the\nexcited by what she did and also resolute in behaviours associated with high levels of\nthe face of setbacks. One of her comments performance are replicable and most can be\nsums it up. \u2018Of course, the most rewarding taught \u2014 even traits such as curiosity.\npart is the \u201CAha\u201D moment, the excitement of\ndiscovery and enjoyment of understanding According to my colleague Prof Deborah\nsomething new .. . But most of the time, doing \u2014 Eyre, with whom I\u2019ve collaborated on the\nmathematics for me is like being ona long hike \u2014 book Great Minds and How to Grow Them,\nwith no trail and no end in sight.\u2019 That trail the latest neuroscience and psychological\ntook her to the heights of original research research suggests most individuals can reach\ninto mathematics. levels of performance associated in school with\nthe gifted and talented. However, they must\nIs her background unusual? Apparently not. be taught the right attitudes and approaches\nMost Nobel prize winners were unexceptional _ to their learning and develop the attributes of\nhigh performers \u2014 curiosity, persistence and they enjoyed themselves. Bloom\u2019s outstanding\nhard work, for example \u2014 an approach Eyre people had worked very hard and consistently\ncalls \u2018high performance learning\u2019. Critically, at something they had become hooked on when\nthey need the right support in developing those at a young age, and their parents all emerged as\napproaches at home as well as at school. having strong work ethics themselves.\n\nProf Anders Ericsson, an eminent education Eyre says we know how high performers\npsychologist at Florida State University, US, learn. From that she has developed a high\nis the co-author of Peak: Secrets from the New performing learning approach. She is working\nScience of Expertise. After research going on this with a group of schools, both in Britain\nback to 1980 into diverse achievements, from and abroad. Some spin-off research, which\nmusic to memory to sport, he doesn\u2019t think looked in detail at 24 of the 3,000 children\nunique and innate talents are at the heart of being studied who were succeeding despite\nperformance. Deliberate practice, that stretches difficult circumstances, found something\nyou every step of the way, and around 10,000 remarkable. Half were getting free school\nhours of it, is what produces the goods. It\u2019s meals because of poverty, more than half were\nnot a magic number \u2014 the highest performers living with a single parent, and four in five\nmove on to doing a whole lot more, of course. _ were living in disadvantaged areas. Interviews\nEricsson\u2019s memory research is particularly uncovered strong evidence of an adult or adults\ninteresting because random students, trained in the child\u2019s life who valued and supported\nin memory techniques for the study, went on education, either in the immediate or extended\nto outperform others thought to have innately family or in the child\u2019s wider community.\nsuperior memories \u2014 those who you might Children talked about the need to work hard at\ncall gifted. school, to listen in class and keep trying.\nBut it is perhaps the work of Benjamin Bloom, \u2014 Let us end with Einstein, the epitome of a\nanother distinguished American educationist genius. He clearly had curiosity, character and\nworking in the 1980s, that gives the most determination. He struggled against rejection\npause for thought. Bloom\u2019s team looked at a in early life but was undeterred. Did he think\ngroup of extraordinarily high achieving people he was a genius or even gifted? He once wrote:\nin disciplines as varied as ballet, swimming, \u2018It\u2019s not that I\u2019m so smart, it\u2019s just that I stay\npiano, tennis, maths, sculpture and neurology. with problems longer. Most people say it is the\nHe found a pattern of parents encouraging intellect which makes a great scientist. They\nand supporting their children, often in areas are wrong: it is character.\u2019",
+          "questions": [
+            {
+              "id": "r-27",
+              "order": 27,
+              "type": "matching",
+              "prompt": "Maryam Mirzakhani is regarded AS [27] once IN the field of mathematics because she was the only female holder of the prestigious Fields Medal \u2014 a record that she retained at the time of her death.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal \u2014\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "H"
+                ]
+              }
+            },
+            {
+              "id": "r-28",
+              "order": 28,
+              "type": "matching",
+              "prompt": "However, maths held little [28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below average UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her siblings showed her.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal \u2014\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "A"
+                ]
+              }
+            },
+            {
+              "id": "r-29",
+              "order": 29,
+              "type": "matching",
+              "prompt": "However, maths held little [28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below average UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her siblings showed her.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal \u2014\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-30",
+              "order": 30,
+              "type": "matching",
+              "prompt": "Later, as a professional mathematician, she had an inquiring mind and proved herself to bE [30] woos WhEN things did not go smoothly.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal \u2014\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-31",
+              "order": 31,
+              "type": "matching",
+              "prompt": "She said she got the greatest [31] ooo from Making ground-breaking discoveries",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal \u2014\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "J"
+                ]
+              }
+            },
+            {
+              "id": "r-32",
+              "order": 32,
+              "type": "matching",
+              "prompt": "and in fact she was responsible for Some EXxtrEMEly [32] unseen mathematical studies.",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "appeal"
+                },
+                {
+                  "key": "B",
+                  "text": "determined"
+                },
+                {
+                  "key": "C",
+                  "text": "intrigued"
+                },
+                {
+                  "key": "D",
+                  "text": "single"
+                },
+                {
+                  "key": "E",
+                  "text": "achievement"
+                },
+                {
+                  "key": "F",
+                  "text": "devoted"
+                },
+                {
+                  "key": "G",
+                  "text": "involved"
+                },
+                {
+                  "key": "H",
+                  "text": "unique"
+                },
+                {
+                  "key": "I",
+                  "text": "innovative"
+                },
+                {
+                  "key": "J",
+                  "text": "satisfaction"
+                },
+                {
+                  "key": "K",
+                  "text": "intent"
+                }
+              ],
+              "group": {
+                "id": "r-sum-27-32",
+                "instruction": "Complete the summary using the list of phrases, A-K, below.",
+                "title": "Maryam Mirzakhani",
+                "text": "Maryam Mirzakhani\nMaryam Mirzakhani is regarded AS [27] once IN the field of mathematics\nbecause she was the only female holder of the prestigious Fields Medal \u2014\na record that she retained at the time of her death. However, maths held little\n[28] ooooccccccssnsieneneee {OF her as a child and in fact her performance was below\naverage UNtI] SHE WAS [29] ws DY A difficult puzzle that one of her\nsiblings showed her.\nLater, as a professional mathematician, she had an inquiring mind and proved\nherself to bE [30] woos WhEN things did not go smoothly. She said she\ngot the greatest [31] ooo from Making ground-breaking discoveries\nand in fact she was responsible for Some EXxtrEMEly [32] unseen\nmathematical studies."
+              },
+              "answerKey": {
+                "accepted": [
+                  "I"
+                ]
+              }
+            },
+            {
+              "id": "r-33",
+              "order": 33,
+              "type": "yes-no-notgiven",
+              "prompt": "Many people who ended up winning prestigious intellectual prizes only reached an average standard when young.",
+              "group": {
+                "id": "r-yng-33-37",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 33-37 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN_ if itis impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-34",
+              "order": 34,
+              "type": "yes-no-notgiven",
+              "prompt": "Einstein\u0027s failures as a young man were due to his lack of confidence.",
+              "group": {
+                "id": "r-yng-33-37",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 33-37 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN_ if itis impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-35",
+              "order": 35,
+              "type": "yes-no-notgiven",
+              "prompt": "It is difficult to reach agreement on whether some children are actually born gifted.",
+              "group": {
+                "id": "r-yng-33-37",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 33-37 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN_ if itis impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "YES"
+                ]
+              }
+            },
+            {
+              "id": "r-36",
+              "order": 36,
+              "type": "yes-no-notgiven",
+              "prompt": "Einstein was upset by the public\u2019s view of his life\u2019s work.",
+              "group": {
+                "id": "r-yng-33-37",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 33-37 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN_ if itis impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NOT GIVEN"
+                ]
+              }
+            },
+            {
+              "id": "r-37",
+              "order": 37,
+              "type": "yes-no-notgiven",
+              "prompt": "Einstein put his success down to the speed at which he dealt with scientific questions.",
+              "group": {
+                "id": "r-yng-33-37",
+                "instruction": "Do the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 33-37 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN_ if itis impossible to say what the writer thinks about this"
+              },
+              "answerKey": {
+                "accepted": [
+                  "NO"
+                ]
+              }
+            },
+            {
+              "id": "r-38",
+              "order": 38,
+              "type": "multiple-choice",
+              "prompt": "What does Eyre believe is needed for children to equal \u2018gifted\u2019 standards?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "strict discipline from the teaching staff"
+                },
+                {
+                  "key": "B",
+                  "text": "assistance from their peers in the classroom"
+                },
+                {
+                  "key": "C",
+                  "text": "the development of a spirit of inquiry towards their studies"
+                },
+                {
+                  "key": "D",
+                  "text": "the determination to surpass everyone else\u2019s achievements"
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "C"
+                ]
+              }
+            },
+            {
+              "id": "r-39",
+              "order": 39,
+              "type": "multiple-choice",
+              "prompt": "What is the result of Ericsson\u0027s research?",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "Very gifted students do not need to work on improving memory skills."
+                },
+                {
+                  "key": "B",
+                  "text": "Being born with a special gift is not the key factor in becoming expert."
+                },
+                {
+                  "key": "C",
+                  "text": "Including time for physical exercise is crucial in raising performance."
+                },
+                {
+                  "key": "D",
+                  "text": "10,000 hours of relevant and demanding work will create a genius."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "B"
+                ]
+              }
+            },
+            {
+              "id": "r-40",
+              "order": 40,
+              "type": "multiple-choice",
+              "prompt": "Inthe penultimate paragraph, it is stated the key to some deprived children\u2019s success is",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "aregular and nourishing diet at home."
+                },
+                {
+                  "key": "B",
+                  "text": "the loving support of more than one parent."
+                },
+                {
+                  "key": "C",
+                  "text": "\u2014 acommunity which has well-funded facilities for learning."
+                },
+                {
+                  "key": "D",
+                  "text": "the guidance of someone who recognises the benefits of learning."
+                }
+              ],
+              "answerKey": {
+                "accepted": [
+                  "D"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

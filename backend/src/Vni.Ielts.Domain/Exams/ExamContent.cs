@@ -357,7 +357,8 @@ public sealed record QuestionExplanation(
     string? CorrectAnswer,
     string ShortReason,
     IReadOnlyList<string> Evidence,
-    string? CommonMistake = null);
+    string? CommonMistake = null,
+    string? Translation = null);
 
 public sealed record Question(
     string Id,

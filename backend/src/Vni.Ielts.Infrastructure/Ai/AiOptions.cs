@@ -63,6 +63,31 @@ public sealed class AiOptions
     /// provider, so it is not gated by this at all. → <c>A-11</c></para>
     /// </summary>
     public bool AllowCrossBorderTransfer { get; set; }
+
+    /// <summary>
+    /// How long one Reading/Listening explanation call may take before it is
+    /// reported as <c>EXPLANATION_PROVIDER_TIMEOUT</c>. <b>Default 60 s.</b>
+    ///
+    /// <para>
+    /// <b><c>[QUYẾT ĐỊNH kỹ thuật]</c></b> — a hung provider must fail within
+    /// a bounded time, and the bound is a number an operator can change
+    /// without a deployment. Before this seam existed the bound was
+    /// <see cref="HttpClient"/>'s 100 s default, which is neither chosen nor
+    /// visible: a learner tapping "giải thích" waited a minute and forty
+    /// seconds to be told to try again, and the sitting's request slot was
+    /// held for the whole of it. The reseller's measured explanation latency
+    /// is single-digit seconds, so 60 s leaves headroom without leaving the
+    /// learner waiting for the whole HttpClient default. The cost of being
+    /// wrong is bounded either way: too low and a slow-but-honest call is
+    /// reported as a timeout and retried; too high and a hung call holds a
+    /// slot for longer.
+    /// </para>
+    ///
+    /// <para>Applied to the named client for the explanation generator and
+    /// clamped to 5..300 s at wiring time, so a typo cannot produce a
+    /// zero-second or an hour-long client.</para>
+    /// </summary>
+    public int ExplanationTimeoutSeconds { get; set; } = 60;
 }
 
 /// <summary>

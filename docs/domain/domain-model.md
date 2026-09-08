@@ -245,17 +245,20 @@ erDiagram
 
     User {
         id id PK
-        string email
-        bool emailVerified
+        string email "nullable · unique among non-null · MOVABLE"
+        string phone "nullable · unique among non-null · primary handle"
         string displayName
         datetime createdAt
         string status "active|suspended"
+        string referralCode
+        id referredByUserId FK "set once"
     }
     UserIdentity {
         id id PK
         id userId FK
-        string provider "email|google|facebook"
+        string provider "password|google|facebook"
         string providerUserId
+        string passwordHash "password rows only"
         datetime linkedAt
     }
     Role {
@@ -271,7 +274,13 @@ erDiagram
 
 **`UserIdentity` is separate from `User`** so one account can carry multiple login methods (requirement AU-1/2/3). Collapsing them would make account linking impossible without a migration.
 
-`[ASSUMPTION]` Identities link only after verified email ownership, never silently — silent linking on matching email is a known account-takeover vector. → M-1
+**`email` is nullable, and null is the ordinary state.** Registration collects a name, a **phone number** and a password — no address (owner decision 08/09/2026) — so the address is not what identifies an account. Both `email` and `phone` are unique *among the accounts that hold one*: the Mongo indexes are `Unique` with a `PartialFilterExpression` on the field being a string, so nulls do not collide.
+
+**And `email` moves.** Changing an account's address migrates the account onto it and frees the old address; a provider link whose account no longer holds the address the provider asserts is dropped at the next sign-in, so signing in at the freed address creates a **brand-new account**. There is no `emailVerified` field, no verification flow, and no mail infrastructure. → `AU-9`/`AU-10`, [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
+
+**`provider` is `password` for the local login method**, not `email` — the row holds the Argon2id hash and is looked up by user id after the handle resolves, which is what lets one account be reached by either a phone number or an address.
+
+An account must always keep at least one way in — an address, a phone number, or a linked provider. `User.EnsureSignInMethodRemains` refuses the profile edit that would clear the last one, because that failure is silent, permanent, and looks exactly like an ordinary edit until the session expires.
 
 Permission keys follow `resource.action`. The examples in requirement C-13 are explicitly not final. → [`../architecture/backend-architecture.md`](../architecture/backend-architecture.md)
 

@@ -67,6 +67,28 @@ public static class PermissionKeys
     public const string UserDelete = "user.delete";
     public const string UserExport = "user.export";
 
+    /// <summary>
+    /// Set another account's password.
+    ///
+    /// <para>
+    /// <b>Its own key, not part of <see cref="UserUpdate"/>, because it is the
+    /// one administrative act that hands over an identity.</b> Whoever holds
+    /// this can sign in as anybody — including another operator — and from that
+    /// point the audit log records the wrong person. Splitting it out means a
+    /// support role can edit a profile without also being able to become the
+    /// person whose profile it is.
+    /// </para>
+    ///
+    /// <para>
+    /// It exists because the product has no self-service recovery: registration
+    /// takes a phone number and no address, verification was removed, and the
+    /// owner chose "liên hệ Zalo, admin cấp lại mật khẩu" over an SMS OTP.
+    /// The escalation is accepted deliberately and is recorded in the threat
+    /// model rather than hidden here.
+    /// </para>
+    /// </summary>
+    public const string UserResetPassword = "user.reset-password";
+
     public const string RoleRead = "role.read";
     public const string RoleAssign = "role.assign";
     public const string RoleManage = "role.manage";
@@ -104,7 +126,7 @@ public static class PermissionKeys
         PackageUpload, PackageRead, PackageDelete,
         EvaluationRead, EvaluationRerun, EvaluationOverride,
         LearnerContentRead,
-        UserRead, UserUpdate, UserSuspend, UserDelete, UserExport,
+        UserRead, UserUpdate, UserSuspend, UserDelete, UserExport, UserResetPassword,
         RoleRead, RoleAssign, RoleManage,
         ConfigRead, ConfigUpdate,
         AuditRead,

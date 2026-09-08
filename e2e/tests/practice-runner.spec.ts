@@ -40,11 +40,11 @@ async function waitForSaved(page: Page) {
 }
 
 async function submitPractice(page: Page, sessionId: string) {
-  await page.locator('.prun-foot .exam-submit').click();
+  await page.locator('.exr-foot .exr-btn-primary, .prun-foot .exam-submit').click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
   await dialog.locator('.exam-submit').click();
-  await expect(page).toHaveURL(`/practice/results/${sessionId}`, { timeout: 30_000 });
+  await expect(page).toHaveURL(`/results/${sessionId}`, { timeout: 30_000 });
   await expect(page.getByText(/Kết quả|Results/i).first()).toBeVisible();
 }
 
@@ -113,12 +113,19 @@ test.describe('practice runner', () => {
 
     await signIn(page, learner, `/students/practice/${sitting.sessionId}`);
     await showPracticeQuestions(page);
-    await expect(page.getByRole('textbox', { name: /What did the survey team measure/ })).toBeVisible();
+    await expect(
+      page.getByRole('textbox', { name: /What did the survey team measure/ }),
+    ).toBeVisible();
 
-    await page.getByRole('textbox', { name: /What did the survey team measure/ }).fill('river depth');
+    await page
+      .getByRole('textbox', { name: /What did the survey team measure/ })
+      .fill('river depth');
     await waitForSaved(page);
 
-    expect(recorded.length, 'Expected at least one session GET and one autosave response.').toBeGreaterThan(0);
+    expect(
+      recorded.length,
+      'Expected at least one session GET and one autosave response.',
+    ).toBeGreaterThan(0);
     assertNoPreSubmitLeaks(recorded);
   });
 
@@ -136,9 +143,9 @@ test.describe('practice runner', () => {
     await page.reload();
     await showPracticeQuestions(page);
 
-    await expect(page.getByRole('textbox', { name: /What did the survey team measure/ })).toHaveValue(
-      'river depth',
-    );
+    await expect(
+      page.getByRole('textbox', { name: /What did the survey team measure/ }),
+    ).toHaveValue('river depth');
 
     const stored = await getSession(request, learner.session.accessToken, sitting.sessionId);
     expect(stored.current.answers['syn-r-1']).toBe('river depth');
@@ -157,14 +164,14 @@ test.describe('practice runner', () => {
     await fillReadingPart1(page);
     await waitForSaved(page);
 
-    await page.locator('.prun-foot .exam-submit').click();
+    await page.locator('.exr-foot .exr-btn-primary, .prun-foot .exam-submit').click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
 
     const confirm = dialog.locator('.exam-submit');
     await confirm.dblclick({ delay: 50 });
 
-    await expect(page).toHaveURL(`/practice/results/${sitting.sessionId}`, { timeout: 30_000 });
+    await expect(page).toHaveURL(`/results/${sitting.sessionId}`, { timeout: 30_000 });
     expect(
       submits.filter((status) => status >= 200 && status < 300).length,
       'Submit must be idempotent under a double-click — one success, not two competing papers.',

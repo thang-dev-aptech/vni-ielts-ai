@@ -76,14 +76,16 @@ internal sealed class MongoPersonalizedExplanationStore(MongoContext context) : 
                 d.Content.CorrectAnswer,
                 d.Content.ShortReason,
                 d.Content.Evidence,
-                d.Content.CommonMistake),
+                d.Content.CommonMistake,
+                d.Content.Translation),
         d.Provider is null
             ? null
             : new ExplanationProviderMetadata(d.Provider, d.Model!, d.PromptVersion!, d.RequestId!),
         d.Attempts,
         d.Error,
         new DateTimeOffset(d.CreatedAt, TimeSpan.Zero),
-        d.CompletedAt is { } done ? new DateTimeOffset(done, TimeSpan.Zero) : null);
+        d.CompletedAt is { } done ? new DateTimeOffset(done, TimeSpan.Zero) : null,
+        d.StartedAt is { } started ? new DateTimeOffset(started, TimeSpan.Zero) : null);
 
     private static PersonalizedExplanationDocument Map(PersonalizedExplanationJob job) => new()
     {
@@ -97,6 +99,7 @@ internal sealed class MongoPersonalizedExplanationStore(MongoContext context) : 
         Error = job.Error,
         CreatedAt = job.CreatedAt.UtcDateTime,
         CompletedAt = job.CompletedAt?.UtcDateTime,
+        StartedAt = job.StartedAt?.UtcDateTime,
         Provider = job.Metadata?.Provider,
         Model = job.Metadata?.Model,
         PromptVersion = job.Metadata?.PromptVersion,
@@ -109,6 +112,7 @@ internal sealed class MongoPersonalizedExplanationStore(MongoContext context) : 
                 ShortReason = job.Content.ShortReason,
                 Evidence = job.Content.Evidence.ToList(),
                 CommonMistake = job.Content.CommonMistake,
+                Translation = job.Content.Translation,
             },
     };
 }
@@ -132,7 +136,8 @@ internal sealed class MongoCanonicalExplanationCache(MongoContext context) : ICa
                 doc.Content.CorrectAnswer,
                 doc.Content.ShortReason,
                 doc.Content.Evidence,
-                doc.Content.CommonMistake),
+                doc.Content.CommonMistake,
+                doc.Content.Translation),
             new ExplanationProviderMetadata(
                 doc.Metadata.Provider,
                 doc.Metadata.Model,
@@ -154,6 +159,7 @@ internal sealed class MongoCanonicalExplanationCache(MongoContext context) : ICa
                 ShortReason = entry.Explanation.ShortReason,
                 Evidence = entry.Explanation.Evidence.ToList(),
                 CommonMistake = entry.Explanation.CommonMistake,
+                Translation = entry.Explanation.Translation,
             },
             Metadata = new ExplanationMetadataDocument
             {
@@ -220,6 +226,10 @@ internal sealed class PersonalizedExplanationDocument
     [MongoDB.Bson.Serialization.Attributes.BsonElement("createdAt")]
     public DateTime CreatedAt { get; set; }
 
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("startedAt")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public DateTime? StartedAt { get; set; }
+
     [MongoDB.Bson.Serialization.Attributes.BsonElement("completedAt")]
     [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
     public DateTime? CompletedAt { get; set; }
@@ -259,6 +269,10 @@ internal sealed class ValidatedExplanationDocument
     [MongoDB.Bson.Serialization.Attributes.BsonElement("commonMistake")]
     [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
     public string? CommonMistake { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("translation")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public string? Translation { get; set; }
 }
 
 internal sealed class ExplanationMetadataDocument

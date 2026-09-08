@@ -1,0 +1,13 @@
+source     TEST 2-L.docx
+sandbox    /Users/metacom/Documents/VNI/VNI IELTS AI/Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING
+key        KEY - TRANSCRIPT/KEY TEST 2-L.docx (21.384 characters)
+extracted  5.556 characters, classification RightsCleared
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[100] Start processing HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[100] Sending HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[101] Received HTTP response headers after 6487.3119ms - 200
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[101] End processing HTTP request after 6516.5592ms - 200
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam parse stream opened after headers.
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by deepseek-ai/deepseek-v4-pro-0813, request chatcmpl-ae4b01f7-d76d-4bed-8c7a-ebf6e291cbdc, prompt exam-parse-prompt-v6, attempt 1, 6676 in / 11645 out.
+parsed     50.275 characters by OpenAi/deepseek-ai/deepseek-v4-pro-0813, request chatcmpl-ae4b01f7-d76d-4bed-8c7a-ebf6e291cbdc
+keep-module refused: the package had no listening section to keep
+raw output written to /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t2-listening.json

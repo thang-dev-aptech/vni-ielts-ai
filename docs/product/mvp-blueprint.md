@@ -45,7 +45,7 @@ Mã `P-01`…`P-22` viết **có số 0 đứng đầu** để phân biệt vớ
 | P-13 | Rubric là framework 4 tiêu chí, không tuyên bố là chấm IELTS chính thức | Hết rủi ro bản quyền descriptor. Thành luật UI: mọi band Writing phải có nhãn "AI · tham khảo" |
 | P-14 | Token: giai đoạn 1 chỉ ghi nhận, không chặn | Không cần trừ nguyên tử, không cần màn hết lượt. Nhưng phải ghi dạng sổ cái |
 | P-15 | 10 lượt miễn phí cho người mới | Hiển thị và trừ dần; hết vẫn dùng được |
-| P-16 | Kiếm token: đăng nhập hằng ngày + giới thiệu qua link | Share thuần không xác minh được — thưởng theo lượt đăng ký qua link, tính khi xác thực email xong |
+| P-16 | Kiếm token: đăng nhập hằng ngày + giới thiệu qua link | Share thuần không xác minh được — thưởng theo lượt đăng ký qua link, **tính ngay khi đăng ký xong** (08/09/2026: không còn xác minh email; chốt chống gian lận là SĐT duy nhất) |
 | P-17 | Chưa bán thương mại | Bỏ hẳn cổng thanh toán, hoá đơn, hoàn tiền khỏi MVP |
 | P-18 | Nhập đề bằng ZIP có 4 thư mục theo kỹ năng | Tên thư mục xác định kỹ năng. Thiếu thư mục = gói một phần, schema đã cho phép |
 | P-19 | Thiếu transcript = cảnh báo, admin quyết | Cần tách blocking/warning + ghi nhật ký ai bỏ qua cảnh báo nào |
@@ -66,7 +66,7 @@ Mã `P-01`…`P-22` viết **có số 0 đứng đầu** để phân biệt vớ
 | `H-8b` — trọng số Task 1 : Task 2 | Đóng bởi `P-12` |
 | `H-8a` — descriptor lấy từ đâu | Đóng bởi `P-13`: rubric là framework của VNI, không phải descriptor chính thức |
 | `M-53` — file đề nào được publish | Đóng bởi `P-21` |
-| `M-27` — xác minh "share" | Thu hẹp bởi `P-16`: thưởng theo đăng ký qua link giới thiệu, tính khi xác thực email — không thưởng cho hành vi share |
+| `M-27` — xác minh "share" | Thu hẹp bởi `P-16`: thưởng theo đăng ký qua link giới thiệu, tính khi đăng ký xong — không thưởng cho hành vi share |
 
 ---
 
@@ -85,7 +85,7 @@ Khách chưa đăng nhập
 /dictation            nghe thử được
 /login  /register
 /forgot-password  /reset-password
-/verify-email  /login/sso
+/login/sso
 
 Đã đăng nhập — một khung duy nhất
 /home                 trang chủ người học (MỚI)
@@ -275,7 +275,7 @@ Ba thứ mới, tất cả đều là thêm chứ không sửa cái đang chạy
 
 | Thêm | Vì sao | Lưu ý thiết kế |
 |---|---|---|
-| Sổ cái usage | `P-14` — ghi nhận mà không chặn | **Sổ cái, không phải bộ đếm.** Mỗi dòng: `userId`, `at`, `action`, `sessionId?`, `provider?`, `model?`, `tokensIn/Out?`, `costEstimate?`. Bật chặn sau này chỉ là thêm một phép kiểm tra; đi từ bộ đếm lên thì phải viết lại schema. Ghi ở: mở phiên, chấm Writing, sinh giải thích, coaching. Cấp 10 lượt khi tạo tài khoản (`P-15`); cộng khi đăng nhập hằng ngày và khi người được giới thiệu xác thực email (`P-16`) |
+| Sổ cái usage | `P-14` — ghi nhận mà không chặn | **Sổ cái, không phải bộ đếm.** Mỗi dòng: `userId`, `at`, `action`, `sessionId?`, `provider?`, `model?`, `tokensIn/Out?`, `costEstimate?`. Bật chặn sau này chỉ là thêm một phép kiểm tra; đi từ bộ đếm lên thì phải viết lại schema. Ghi ở: mở phiên, chấm Writing, sinh giải thích, coaching. Cấp 10 lượt khi tạo tài khoản (`P-15`); cộng khi đăng nhập hằng ngày và khi người được giới thiệu **đăng ký xong** (`P-16`) |
 | Documents | `P-22` | Chừa `relatedExamIds` để `null` — nối với đề sau này không phải migration |
 | Articles | `P-22` | Như trên. Địa chỉ theo slug, không theo id |
 

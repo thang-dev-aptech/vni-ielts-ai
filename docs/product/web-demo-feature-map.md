@@ -78,7 +78,7 @@ Trang chủ → Đăng nhập (email / Google / Facebook)
 
 | Tính năng trong tài liệu | Có trong demo? | Ghi chú |
 |---|---|---|
-| AU-1 Email đăng nhập / đăng ký | Có khung | Có form, lỗi cạnh ô mật khẩu, trạng thái đang xử lý. **Thiếu** xác thực email và quên mật khẩu (chỉ `alert`) |
+| AU-1 Đăng nhập / đăng ký | Có khung | Có form, lỗi cạnh ô mật khẩu, trạng thái đang xử lý. *(Bản đánh giá này mô tả prototype cũ. Từ 08/09/2026: đăng ký bằng SĐT, không còn xác thực email, quên mật khẩu là link Zalo + admin cấp lại — ADR-0018.)* |
 | AU-2 Google SSO · AU-3 Facebook SSO | Có nút | Nút có; **không** có nhánh 409 xác nhận liên kết danh tính (`key-flows.md` §1, M-1) |
 | E-1…E-7 Phiên thi 4 kỹ năng, điều hướng câu, nộp bài | Có khung | Reading có bảng 40 câu + đánh dấu. Listening: audio một lần, không tua. Writing: Task 1/2 + đếm từ. Speaking: Part 2 + đồng hồ chuẩn bị |
 | E-6 Lưu câu trả lời / mất mạng | Có khung | Bốn trạng thái lưu đã đặt tên. Chưa phải hàng đợi thật — prototype tĩnh |
@@ -136,7 +136,7 @@ Những mục này **không được coi là đã vào MVP** chỉ vì chúng xu
 | **M-7** Được ghi lại Speaking không? Mất audio thì sao? | Màn gián đoạn: hai nút *Nói tiếp từ chỗ dừng* và *Ghi lại từ đầu*. Màn 20-C: nút *Thử lại Speaking* | **Chưa chốt.** Hai đường đi là đúng để *thảo luận*; nút "thử lại" trên phiếu điểm là một chính sách hoàn lượt (M-9) trá hình |
 | **M-6** Gián đoạn tính theo thời gian nói hay đồng hồ tường? | Chỉ nói "đồng hồ bài thi vẫn chạy" — không cộng thêm thời gian nói | Khớp giả định ADR-0007 về *session clock*. Phần *response window* vẫn trống |
 | **M-8** Hứa chấm xong trong bao lâu? | Một nơi: "Đang chấm" (đúng). Nhiều nơi khác: "tức thì" (sai) | Giữ "Đang chấm". Cấm số phút/giờ cho đến khi có provider |
-| **B-4 / B-3** Lượt thi, thưởng share | Tokens + PRO + "không giới hạn" | **Bỏ.** Referral đúng thì thưởng khi người được giới thiệu *đăng ký và xác thực email*, không phải lúc bấm share — demo không có flow này (đúng, vì chưa chốt) |
+| **B-4 / B-3** Lượt thi, thưởng share | Tokens + PRO + "không giới hạn" | **Bỏ.** Referral đúng thì thưởng khi người được giới thiệu *đăng ký xong* (mốc xác thực email đã bị bỏ 08/09/2026), không phải lúc bấm share — demo không có flow này |
 | **H-1** Full test 4 kỹ năng liền mạch? | Nút "Thi Full 4 kỹ năng" là CTA chính trên `tests.html` | Ép một câu trả lời. Vẫn `[OPEN QUESTION]` — nghỉ giữa phần bao lâu chưa có |
 | **H-5** Khiếu nại điểm AI | Không có | Đúng là chưa làm |
 | **G-28** Xem lại đáp án R/L sau khi chấm | Không có | Vẫn `[NEEDS VALIDATION]` |

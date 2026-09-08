@@ -1,0 +1,49 @@
+source     TEST 7-L.docx
+sandbox    /Users/metacom/Documents/VNI/VNI IELTS AI/Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/LISTENING
+key        KEY - TRANSCRIPT/KEY TEST 7-L.docx (18.663 characters)
+extracted  4.980 characters, classification RightsCleared
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[100] Start processing HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[100] Sending HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[101] Received HTTP response headers after 2082.4575ms - 200
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[101] End processing HTTP request after 2114.0745ms - 200
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam parse stream opened after headers.
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by gpt-5.4, request chatcmpl-202609031945230166997768268d9d6zci79eam, prompt exam-parse-prompt-v7, attempt 1, 6573 in / 8581 out.
+parsed     31.336 characters by OpenAi/gpt-5.4, request chatcmpl-202609031945230166997768268d9d6zci79eam
+kept       listening section only
+written    /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t7-listening.json
+foreign parts dropped
+model answers  10 answerKey(s) the model wrote were removed; the key document is applied instead
+key read   39 entr(ies) covering 39 mark(s)
+answer key refused
+  error ANSWER_KEY_COVERAGE /sections/0/parts/0/questions/7: Question 8 has no answer in the key. The key document may be short, or an entry before this one may have been read as covering fewer marks than it does — which shifts every answer after it.
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 11, which the paper does not contain. Key text: "A".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 12, which the paper does not contain. Key text: "B".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 13, which the paper does not contain. Key text: "A".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 14, which the paper does not contain. Key text: "C".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 15, which the paper does not contain. Key text: "A".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 16, which the paper does not contain. Key text: "C".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 17, which the paper does not contain. Key text: "A".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 18, which the paper does not contain. Key text: "B".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 19, which the paper does not contain. Key text: "H".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 20, which the paper does not contain. Key text: "G".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 21, which the paper does not contain. Key text: "C".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 22, which the paper does not contain. Key text: "A".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 23, which the paper does not contain. Key text: "C".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 24, which the paper does not contain. Key text: "A".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 25, which the paper does not contain. Key text: "B".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 26, which the paper does not contain. Key text: "E typical subject matter for Prout".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 27, which the paper does not contain. Key text: "B probably an inaccurate title".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 28, which the paper does not contain. Key text: "C may not be genuine".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 29, which the paper does not contain. Key text: "F skillful painting of light and dark".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 30, which the paper does not contain. Key text: "A one of several paintings of the same view".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 31, which the paper does not contain. Key text: "industries".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 32, which the paper does not contain. Key text: "gift".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 33, which the paper does not contain. Key text: "publicity".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 34, which the paper does not contain. Key text: "reputation".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 35, which the paper does not contain. Key text: "machines".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 36, which the paper does not contain. Key text: "toppings".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 37, which the paper does not contain. Key text: "mistake".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 38, which the paper does not contain. Key text: "contact".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 39, which the paper does not contain. Key text: "shape".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 40, which the paper does not contain. Key text: "big".
+The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.

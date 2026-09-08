@@ -19,8 +19,16 @@ export interface Session {
 export interface Me {
   userId: string;
   displayName: string;
+  /**
+   * <b>Nullable since 08/09/2026, and that is the normal case now.</b>
+   * Registration collects a phone number; an address is something an account
+   * may later add, so most rows have none. There is deliberately no
+   * `emailVerified` beside it any more — the verification flow was removed
+   * with the email-first sign-up it belonged to, and a boolean nothing sets is
+   * worse than an absent field: a screen would keep rendering "chưa xác minh"
+   * against a value the server stopped deciding.
+   */
   email: string | null;
-  emailVerified: boolean;
   phone?: string | null;
   /**
    * What this account may do. The CMS filters its navigation on these, and the
@@ -32,8 +40,16 @@ export interface Me {
   hasPassword: boolean;
 }
 
-export const login = (email: string, password: string) =>
-  request<Session>('/api/v1/auth/login', { method: 'POST', body: { email, password } });
+/**
+ * <b>`identifier`, not `email` — the server decides which one it is.</b>
+ * An account is reached by its phone number or by an address, and the client
+ * is the wrong place to guess: a string is only ambiguous until it is looked
+ * up, and a client that sniffed for an `@` would have to be changed again the
+ * next time the rule moves. So the whole typed value goes as one field, and
+ * the caller passes what the person actually typed.
+ */
+export const login = (identifier: string, password: string) =>
+  request<Session>('/api/v1/auth/login', { method: 'POST', body: { identifier, password } });
 
 export const refresh = (refreshToken: string) =>
   request<Session>('/api/v1/auth/refresh', { method: 'POST', body: { refreshToken } });

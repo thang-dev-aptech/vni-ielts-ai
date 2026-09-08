@@ -387,7 +387,7 @@ async function recordOnce() {
  * of this request the server should accept.
  */
 it('never sends the Speaking answer sheet the server owns', async () => {
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
   await screen.findByText('Describe a time you concentrated hard.');
 
   await recordOnce();
@@ -419,7 +419,7 @@ it('shows no save failure for a recording the server has already filed', async (
       400,
     );
 
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
   await screen.findByText('Describe a time you concentrated hard.');
 
   await recordOnce();
@@ -442,7 +442,7 @@ it('shows no save failure for a recording the server has already filed', async (
  * side of that is simply to send the id it was given, and never one it made up.
  */
 it('files the recording against the question id the server sent', async () => {
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
   await screen.findByText('Describe a time you concentrated hard.');
 
   await recordOnce();
@@ -464,7 +464,7 @@ it('files the recording against the question id the server sent', async () => {
 it('opens a question the server already has a recording for as answered', async () => {
   sessionPayload = speakingSession({ 's-part-2': 'rec-server-generated' });
 
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
   await screen.findByText('Describe a time you concentrated hard.');
 
   expect(await screen.findByText('Đã lưu bản ghi')).toBeInTheDocument();
@@ -505,7 +505,7 @@ it('keeps a live sitting alive when an autosave is refused as the wrong section'
       409,
     );
 
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
   await screen.findByText('The History of Cartography');
 
   await userEvent.type(screen.getByRole('textbox', { name: /Câu hỏi 1/ }), 'cartography');
@@ -513,7 +513,7 @@ it('keeps a live sitting alive when an autosave is refused as the wrong section'
   await waitFor(() => expect(answerWrites).toHaveLength(1));
 
   // Not the results screen. `SESSION_EXPIRED` goes there; this must not.
-  expect(window.location.pathname).toBe('/students/session/sit-full');
+  expect(window.location.pathname).toBe('/exam/sit-full');
   // And the exam is still answerable — no expiry latch, no disabled inputs.
   expect(screen.getByRole('textbox', { name: /Câu hỏi 1/ })).toBeEnabled();
   expect(screen.getByRole('button', { name: 'Tiếp theo' })).toBeEnabled();
@@ -545,9 +545,9 @@ it('sends a sitting that has already expired to its results rather than renderin
     current: null,
   };
 
-  open('/students/session/sit-full');
+  open('/exam/sit-full');
 
-  await waitFor(() => expect(window.location.pathname).toBe('/practice/results/sit-full'));
+  await waitFor(() => expect(window.location.pathname).toBe('/results/sit-full'));
 
   // And the runner is gone, rather than sitting behind the results.
   expect(screen.queryByRole('button', { name: 'Nộp bài' })).toBeNull();

@@ -25,16 +25,22 @@ import {
 import type { SessionView } from '../examApi.js';
 import { refusedNumbers, useAnswerSheet } from '../useAnswerSheet.js';
 import { usePracticeClock } from './usePracticeClock.js';
-import { PracticeHeader, type ControlState } from './PracticeHeader.js';
-import { PracticeFooter } from './PracticeFooter.js';
 import { SubmitConfirmCard } from './SubmitConfirmCard.js';
 import { LeaveConfirmCard } from './LeaveConfirmCard.js';
 import { AdvanceConfirmCard } from './AdvanceConfirmCard.js';
 import { FullTestProgressStrip } from './FullTestProgressStrip.js';
 import { PassageToolbar, type FontSize } from '../PassageToolbar.js';
 import { projectRunnerParts } from './sessionProjection.js';
+import { ExamShell, ExamShellFallback } from '../runner/ExamShell.js';
+import { ExamFooter } from '../runner/ExamFooter.js';
+import { PassagePanel } from '../runner/PassagePanel.js';
+import { partLabelKey } from '../runner/partProgress.js';
+import type { ControlState } from '../runner/TargetControl.js';
+import { ListeningAudioPlayer } from '../listening/ListeningAudioPlayer.js';
 import '../../../styles/exam.css';
 import '../../../styles/practice-run.css';
+import '../../../styles/exam-runner.css';
+import '../../../styles/listening.css';
 
 /**
  * Shared sitting shell — luyện đề (open clock) and thi thử / Full Test
@@ -55,7 +61,13 @@ import '../../../styles/practice-run.css';
  * only with "Nộp bài".
  */
 export function PracticeRunnerPage() {
-  const { sessionId = '' } = useParams();
+  /*
+   * One route now, `/exam/:attemptId` — the old `/students/practice/
+   * :sessionId` address is a redirect (see `App.tsx`), never a match here.
+   * `params.sessionId` stays as a defensive fallback rather than a live path.
+   */
+  const params = useParams();
+  const sessionId = params.attemptId ?? params.sessionId ?? '';
   const { accessToken } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
@@ -95,6 +107,12 @@ export function PracticeRunnerPage() {
   });
   const [highlighterActive, setHighlighterActive] = useState(false);
   const [highlightsByPart, setHighlightsByPart] = useState<Record<number, string[]>>({});
+  /*
+   * "Thu nhỏ" on the timed sitting: the passage folds to a rail and the
+   * questions take the width. Page state rather than a preference — a reader
+   * who folded Passage 1 away has not asked for Passage 2 to open folded.
+   */
+  const [passageCollapsed, setPassageCollapsed] = useState(false);
 
   usePageTitle(session?.examTitle);
 
@@ -642,14 +660,7 @@ export function PracticeRunnerPage() {
   const inputsLocked = expired || submitState === 'submitting';
 
   if (failed) {
-    return (
-      <div className="prun-page">
-        <div className="exam-fallback">
-          <h1>{t('exam.gone')}</h1>
-          <p>{t('exam.goneBody')}</p>
-        </div>
-      </div>
-    );
+    return <ExamShellFallback title={t('exam.gone')} body={t('exam.goneBody')} />;
   }
 
   const projection = session === null ? { valid: true, parts: [] } : projectRunnerParts(session);
@@ -658,65 +669,39 @@ export function PracticeRunnerPage() {
 
   if (session !== null && section !== null && !projection.valid) {
     return (
-      <div className="prun-page" data-surface="exam">
-        <PracticeHeader
-          timing="open"
-          examTitle={session.examTitle}
-          module={section.module}
-          partNumber={null}
-          elapsed={null}
-          running={false}
-          targetSeconds={null}
-          clock="idle"
-          target="idle"
-          saveState={save}
-          onToggleRun={() => {}}
-          onSetTarget={() => {}}
-          onExit={openLeave}
-        />
-        <main className="exam-fallback" role="alert">
-          <h1>{t('practice.scopeInvalidTitle')}</h1>
-          <p>{t('practice.scopeInvalidBody')}</p>
-        </main>
-        <footer className="prun-foot" aria-hidden="true" />
+      <ExamShellFallback
+        alert
+        title={t('practice.scopeInvalidTitle')}
+        body={t('practice.scopeInvalidBody')}
+      >
         {leaving && (
           <LeaveConfirmCard offline={offline} save={save} onCancel={closeLeave} onLeave={leave} />
         )}
-      </div>
+      </ExamShellFallback>
     );
   }
 
   if (session === null || section === null || part === undefined) {
     return (
-      <div className="prun-page">
-        <PracticeHeader
-          timing="open"
-          examTitle={session?.examTitle ?? null}
-          module={session?.current?.module ?? null}
-          partNumber={null}
-          elapsed={null}
-          running={false}
-          targetSeconds={null}
-          clock="idle"
-          target="idle"
-          saveState={save}
-          onToggleRun={() => {}}
-          onSetTarget={() => {}}
-          onExit={openLeave}
-        />
-        <main className="exam-fallback">
-          <p>{t('exam.loading')}</p>
-        </main>
-        <footer className="prun-foot" aria-hidden="true" />
+      <ExamShellFallback body={t('exam.loading')}>
         {leaving && (
           <LeaveConfirmCard offline={offline} save={save} onCancel={closeLeave} onLeave={leave} />
         )}
-      </div>
+      </ExamShellFallback>
     );
   }
 
   const isReading = section.module === 'reading';
   const isWriting = section.module === 'writing';
+  const isListening = section.module === 'listening';
+  /*
+   * One layout for every skill. `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026:
+   * *"đồng bộ giao diện các dạng bài thi giống nhau, trình bày sẽ giống
+   * nhau"*. Listening used to draw its own rail, its own bottom bar and its
+   * own question renderer in luyện đề only; all of that is gone. Its audio
+   * now sits in the same card stack above the same `QuestionList`, under the
+   * same header and footer, in both timings.
+   */
   const splitMode = isReading ? 'reading' : isWriting ? 'writing' : 'single';
   const skill = SKILLS[section.module];
   const moduleSequence = resolveModuleSequence(session.moduleSequence);
@@ -742,277 +727,145 @@ export function PracticeRunnerPage() {
           ? t('exam.submitFailed')
           : null;
 
-  return (
-    <div className="prun-page exam-page" data-surface="exam">
-      {isDeadline ? (
-        <PracticeHeader
-          timing="deadline"
-          examTitle={session.examTitle}
-          module={section.module}
-          partNumber={part.order}
-          skillPosition={skillPosition}
-          remaining={remaining}
-          saveState={save}
-        />
-      ) : (
-        <PracticeHeader
-          timing="open"
-          examTitle={session.examTitle}
-          module={section.module}
-          partNumber={part.order}
-          skillPosition={skillPosition}
-          elapsed={clock.elapsed}
-          running={clock.running}
-          targetSeconds={section.targetSeconds ?? null}
-          clock={offline ? 'offline' : clockState}
-          target={targetState}
-          saveState={save}
-          onToggleRun={() => void toggleRun()}
-          onSetTarget={(seconds) => void applyTarget(seconds)}
-          onExit={openLeave}
-        />
-      )}
+  const partLabel = t(partLabelKey(section.module), { number: part.order });
 
-      {session.mode === 'full' && (
-        <FullTestProgressStrip
-          moduleSequence={moduleSequence}
-          currentModule={section.module}
-          completedModules={session.completedModules}
-        />
-      )}
-
-      <div className="prun-shell-state" aria-label={t('practice.runnerState')}>
-        <span
-          className={`prun-connection is-${offline ? 'offline' : 'online'}`}
-          {...(isDeadline && !offline
-            ? { 'aria-hidden': true as const }
-            : { role: 'status' as const, 'aria-live': 'polite' as const })}
-        >
-          {offline ? t('practice.connectionOffline') : t('practice.connectionOnline')}
-        </span>
-      </div>
-
-      {stepFailedMessage !== null && (
-        <p className="exam-submit-error prun-notice is-bad" role="alert">
-          {stepFailedMessage}
-        </p>
-      )}
-
-      {saveBlocked && stepFailed !== 'save' && (
-        <p className="exam-submit-error prun-notice is-bad" role="alert">
-          {t('exam.saveBlockedStep')}
-        </p>
-      )}
-
-      {expired && (
-        <p className="prun-notice exam-expired" role="status">
-          {expiredFlush === 'failed' ? t('exam.expiredUnsaved') : t('exam.expired')}
-        </p>
-      )}
-
-      {isDeadline && !expired && (
-        <p className="prun-notice exam-foot-note">{t('exam.clockKeepsRunning')}</p>
-      )}
-
-      {/* Which answer the server would not take. */}
-      {Object.keys(sheet.refused).length > 0 && (
-        <p className="exam-submit-error prun-notice is-bad" role="alert">
-          {t('exam.answersRefused', {
-            questions: refusedNumbers(session.current, sheet.refused),
-          })}
-        </p>
-      )}
-
-      <main
-        className="prun-body"
-        data-split={splitMode}
-        data-mobile-pane={isReading ? mobilePane : undefined}
-      >
-        {isReading && (
-          <div className="prun-mobile-tabs" role="group" aria-label={t('practice.readingView')}>
-            <button
-              type="button"
-              aria-pressed={mobilePane === 'passage'}
-              onClick={() => setMobilePane('passage')}
-            >
-              {t('exam.passageLabel')}
-            </button>
-            <button
-              type="button"
-              aria-pressed={mobilePane === 'questions'}
-              aria-label={t('exam.questionsLabel')}
-              onClick={() => setMobilePane('questions')}
-            >
-              <span>{t('exam.questionsLabel')}</span>
-              <span className="prun-tab-count">
-                {' '}({part.questions.filter((q) => answers[q.id] != null && answers[q.id] !== '').length}/{part.questions.length})
-              </span>
-            </button>
-          </div>
-        )}
-        {/*
-          Reading: passage left, questions right, each scrolling inside itself.
-          `E-31`. Below the breakpoint the split becomes one column — a
-          two-pane layout does not survive a phone, and Android and iOS are
-          shipping targets.
-        */}
-        {isReading && (
-          <section
-            className="prun-pane prun-passage"
-            ref={passage}
-            aria-label={t('exam.passageLabel')}
-            onMouseUp={handlePassageMouseUp}
-          >
-            <div className="prun-passage-header">
-              {part.title !== null && <h1 className="exam-passage-title">{part.title}</h1>}
-              <PassageToolbar
-                fontSize={passageFontSize}
-                onChangeFontSize={handleFontSizeChange}
-                highlighterActive={highlighterActive}
-                onToggleHighlighter={() => setHighlighterActive((v) => !v)}
-                hasHighlights={currentPartHighlights.length > 0}
-                onClearHighlights={handleClearHighlights}
-              />
-            </div>
-            {part.body !== null && (
-              <PassageBody
-                body={part.body}
-                fontSize={passageFontSize}
-                highlights={currentPartHighlights}
-              />
-            )}
-            {part.imageKey !== null && <ExamImage reference={part.imageKey} caption={part.title} />}
-          </section>
-        )}
-
-        {/* Writing: 40% prompt / 60% editor split on desktop (`D-8`) */}
-        {isWriting && (
-          <section
-            className="prun-pane prun-passage prun-writing-prompt"
-            ref={passage}
-            aria-label={t('exam.passageLabel')}
-          >
-            <div className="prun-writing-head">
-              {part.title !== null && <h1 className="exam-passage-title">{part.title}</h1>}
-              {part.minWords !== null && (
-                <span className="prun-writing-target-badge">
-                  {t('exam.minWords', { count: part.minWords })}
-                </span>
-              )}
-            </div>
-            {part.body !== null && <PassageBody body={part.body} />}
-            {part.imageKey !== null && <ExamImage reference={part.imageKey} caption={part.title} />}
-          </section>
-        )}
-
-        <section
-          className={`prun-pane prun-questions${isWriting ? ' prun-writing-editor' : ''}`}
-          ref={questionPane}
-          aria-label={t('exam.questionsLabel')}
-        >
-          {!isReading && !isWriting && (
-            <>
-              {part.title !== null && <h1 className="exam-passage-title">{part.title}</h1>}
-              {/*
-                Listening's audio is a full-width row above the questions
-                (`E-26`). The draggable answer bank that belongs between them is
-                a separate task; nothing here occupies that space or would have
-                to be unpicked to add it.
-              */}
-              {part.audioKey !== null && section.audioPlayback != null && (
-                <AudioPlayer
-                  key={part.audioKey}
-                  reference={part.audioKey}
-                  policy={section.audioPlayback}
-                />
-              )}
-              {part.audioKey !== null && section.audioPlayback == null && (
-                <p className="audio-failed" role="alert">
-                  {t('exam.audioPolicyMissing')}
-                </p>
-              )}
-              {part.imageKey !== null && (
-                <ExamImage reference={part.imageKey} caption={part.title} />
-              )}
-              {part.cueCard !== null && (
-                <div className="exam-cue">
-                  <h2>{part.cueCard.topic}</h2>
-                  <ul>
-                    {part.cueCard.bullets.map((bullet) => (
-                      <li key={bullet}>{bullet}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {part.body !== null && <PassageBody body={part.body} />}
-            </>
-          )}
-
-          <div className="exam-questions-head">
-            <h2>{t('exam.questionsIn', { number: part.order })}</h2>
-          </div>
-
-          <QuestionList
-            questions={part.questions}
-            answers={answers}
-            disabled={inputsLocked}
-            onChange={markEdited}
-            renderSpecial={(question, value) =>
-              question.type === 'speaking-response' ? (
-                (() => {
-                  const timing = timingFor(section, part.partNumber);
-                  // No timing on the server means no recorder: mounting one
-                  // would need a budget, and the only budget available would
-                  // be one this component invented. → `timingFor`
-                  return timing === null ? (
-                    <p className="audio-failed" role="alert">
-                      {t('exam.speakingTimingMissing')}
-                    </p>
-                  ) : (
-                    <SpeakingRecorder
-                      sessionId={sessionId}
-                      questionId={question.id}
-                      prepSeconds={timing.prepSeconds}
-                      responseSeconds={timing.responseSeconds}
-                      storedId={value}
-                      disabled={inputsLocked}
-                      onStored={(recordingId) => recorded(question.id, recordingId)}
-                    />
-                  );
-                })()
-              ) : question.type === 'essay-task' ? (
-                <>
-                  <QuestionInput
-                    question={question}
-                    value={value}
-                    disabled={inputsLocked}
-                    labelledBy={`q-${question.id}-name`}
-                    onChange={(next) => markEdited(question.id, next)}
-                  />
-                  <WordCount text={value ?? ''} minWords={part.minWords} />
-                </>
-              ) : null
-            }
+  /*
+   * ── The pieces the render needs ───────────────────────────────────────
+   *
+   * Built once, above the return, so the audio block, the question list and
+   * the confirm cards each have a single definition no matter which skill or
+   * timing is on screen.
+   */
+  const audioBlock = part.audioKey !== null && (
+    <>
+      {section.audioPlayback != null ? (
+        /*
+          Listening gets the transport with the progress bar and the volume
+          slider; anything else that happens to carry audio keeps the plain
+          player. Both draw `useExamAudioTrack`, so the once-only / no-seek
+          policy is enforced identically whichever one is on screen.
+        */
+        isListening ? (
+          <ListeningAudioPlayer
+            key={part.audioKey}
+            reference={part.audioKey}
+            policy={section.audioPlayback}
           />
-        </section>
-      </main>
+        ) : (
+          <AudioPlayer
+            key={part.audioKey}
+            reference={part.audioKey}
+            policy={section.audioPlayback}
+          />
+        )
+      ) : (
+        <p className="audio-failed" role="alert">
+          {t('exam.audioPolicyMissing')}
+        </p>
+      )}
+    </>
+  );
 
-      <PracticeFooter
-        key={section.module}
-        parts={parts}
-        activePart={activePart}
-        answers={answers}
-        unconfirmed={unconfirmed}
-        busy={submitState === 'submitting'}
-        ending={advances ? 'advance' : 'submit'}
-        nextNote={nextNote}
-        nextSkillName={nextSkill?.name ?? null}
-        onGoToPart={goToPart}
-        onScrollToSlot={scrollToSlot}
-        onSubmit={openConfirm}
-        onAdvance={openAdvanceConfirm}
-      />
+  const cueBlock = part.cueCard !== null && (
+    <div className="exam-cue">
+      <h2>{part.cueCard.topic}</h2>
+      <ul>
+        {part.cueCard.bullets.map((bullet) => (
+          <li key={bullet}>{bullet}</li>
+        ))}
+      </ul>
+    </div>
+  );
 
+  const questionListNode = (
+    <QuestionList
+      questions={part.questions}
+      answers={answers}
+      disabled={inputsLocked}
+      /* One chrome means one question rendering. The `classic` variant is
+         now unused by the runner and stays only for surfaces outside it. */
+      variant="exam"
+      onChange={markEdited}
+      renderSpecial={(question, value) =>
+        question.type === 'speaking-response' ? (
+          (() => {
+            const timing = timingFor(section, part.partNumber);
+            // No timing on the server means no recorder: mounting one would
+            // need a budget, and the only budget available would be one this
+            // component invented. → `timingFor`
+            return timing === null ? (
+              <p className="audio-failed" role="alert">
+                {t('exam.speakingTimingMissing')}
+              </p>
+            ) : (
+              <SpeakingRecorder
+                sessionId={sessionId}
+                questionId={question.id}
+                prepSeconds={timing.prepSeconds}
+                responseSeconds={timing.responseSeconds}
+                storedId={value}
+                disabled={inputsLocked}
+                onStored={(recordingId) => recorded(question.id, recordingId)}
+              />
+            );
+          })()
+        ) : question.type === 'essay-task' ? (
+          <>
+            <QuestionInput
+              question={question}
+              value={value}
+              disabled={inputsLocked}
+              labelledBy={`q-${question.id}-name`}
+              onChange={(next) => markEdited(question.id, next)}
+            />
+            <WordCount text={value ?? ''} minWords={part.minWords} />
+          </>
+        ) : null
+      }
+    />
+  );
+
+  const readingTools = (
+    <PassageToolbar
+      fontSize={passageFontSize}
+      onChangeFontSize={handleFontSizeChange}
+      highlighterActive={highlighterActive}
+      onToggleHighlighter={() => setHighlighterActive((v) => !v)}
+      hasHighlights={currentPartHighlights.length > 0}
+      onClearHighlights={handleClearHighlights}
+    />
+  );
+
+  const answeredHere = part.questions.filter(
+    (q) => answers[q.id] != null && answers[q.id] !== '',
+  ).length;
+
+  const mobileTabs = isReading ? (
+    <>
+      <button
+        type="button"
+        aria-pressed={mobilePane === 'passage'}
+        onClick={() => setMobilePane('passage')}
+      >
+        {t('exam.passageLabel')}
+      </button>
+      <button
+        type="button"
+        aria-pressed={mobilePane === 'questions'}
+        aria-label={t('exam.questionsLabel')}
+        onClick={() => setMobilePane('questions')}
+      >
+        <span>{t('exam.questionsLabel')}</span>
+        <span className="prun-tab-count">
+          {' '}
+          ({answeredHere}/{part.questions.length})
+        </span>
+      </button>
+    </>
+  ) : null;
+
+  const modals = (
+    <>
       {confirming && (
         <SubmitConfirmCard
           parts={parts}
@@ -1041,7 +894,197 @@ export function PracticeRunnerPage() {
       {leaving && (
         <LeaveConfirmCard offline={offline} save={save} onCancel={closeLeave} onLeave={leave} />
       )}
-    </div>
+    </>
+  );
+
+  /*
+   * ── One chrome, both timings ──────────────────────────────────────────
+   *
+   * `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026: *"bỏ thiết kế cũ đi lấy theo thiết
+   * kế mới cho tất cả luôn"*. `ExamShell` is the only sitting frame now — the
+   * countdown and the open stopwatch differ in the controls beside the clock
+   * and in nothing else. `PracticeHeader` and `PracticeFooter` are gone.
+   *
+   * What must not fork is anything that touches a learner's answers: the
+   * sheet, the submit gate, the refusal classification and the map's box
+   * states are all computed above this line and handed to one render.
+   */
+  const notices = (
+    <>
+      {stepFailedMessage !== null && (
+        <p className="exam-submit-error exr-notice is-bad" role="alert">
+          {stepFailedMessage}
+        </p>
+      )}
+
+      {saveBlocked && stepFailed !== 'save' && (
+        <p className="exam-submit-error exr-notice is-bad" role="alert">
+          {t('exam.saveBlockedStep')}
+        </p>
+      )}
+
+      {expired && (
+        <p className="exam-expired exr-notice is-warn" role="status">
+          {expiredFlush === 'failed' ? t('exam.expiredUnsaved') : t('exam.expired')}
+        </p>
+      )}
+
+      {/* Which answer the server would not take. */}
+      {Object.keys(sheet.refused).length > 0 && (
+        <p className="exam-submit-error exr-notice is-bad" role="alert">
+          {t('exam.answersRefused', {
+            questions: refusedNumbers(session.current, sheet.refused),
+          })}
+        </p>
+      )}
+
+      {/*
+        Connectivity. A deadline sitting says it only when it is lost — the
+        clock is running either way and a green "Đã kết nối" beside a
+        countdown is noise. Luyện đề keeps both states, because pausing and
+        the target are server operations that stop working offline.
+      */}
+      {offline ? (
+        <p className="exr-notice is-warn prun-connection is-offline" role="status">
+          {t('practice.connectionOffline')}
+        </p>
+      ) : (
+        !isDeadline && (
+          <p className="exr-notice is-quiet prun-connection is-online" role="status">
+            {t('practice.connectionOnline')}
+          </p>
+        )
+      )}
+
+      {/* Said before it matters, not discovered when it does. → `L1` */}
+      {isDeadline && !expired && (
+        <p className="exr-notice is-quiet">{t('exam.clockKeepsRunning')}</p>
+      )}
+    </>
+  );
+
+  const passagePanel = isReading ? (
+    <PassagePanel
+      label={partLabel}
+      collapsed={passageCollapsed}
+      onToggleCollapsed={() => setPassageCollapsed((was) => !was)}
+      tools={readingTools}
+      scrollRef={passage}
+      onMouseUp={handlePassageMouseUp}
+    >
+      {part.title !== null && <h2 className="exam-passage-title">{part.title}</h2>}
+      {part.body !== null && (
+        <PassageBody
+          body={part.body}
+          fontSize={passageFontSize}
+          highlights={currentPartHighlights}
+        />
+      )}
+      {part.imageKey !== null && <ExamImage reference={part.imageKey} caption={part.title} />}
+    </PassagePanel>
+  ) : isWriting ? (
+    <PassagePanel
+      label={partLabel}
+      collapsed={passageCollapsed}
+      onToggleCollapsed={() => setPassageCollapsed((was) => !was)}
+      scrollRef={passage}
+    >
+      {part.title !== null && <h2 className="exam-passage-title">{part.title}</h2>}
+      {part.minWords !== null && (
+        <p className="prun-writing-target-badge">{t('exam.minWords', { count: part.minWords })}</p>
+      )}
+      {part.body !== null && <PassageBody body={part.body} />}
+      {part.imageKey !== null && <ExamImage reference={part.imageKey} caption={part.title} />}
+    </PassagePanel>
+  ) : undefined;
+
+  const questionsColumn = (
+    <section className="exr-questions-col" ref={questionPane} aria-label={t('exam.questionsLabel')}>
+      {/*
+        Listening's audio, a Speaking cue card, a diagram: the part's own
+        material, above the questions it belongs to. Reading and Writing carry
+        theirs in the left column instead.
+      */}
+      {!isReading &&
+        !isWriting &&
+        (audioBlock || part.imageKey !== null || cueBlock || part.body !== null) && (
+          <div className="exr-qcard">
+            <div className="exr-qcard-body">
+              {part.title !== null && <h2 className="exam-passage-title">{part.title}</h2>}
+              {audioBlock}
+              {part.imageKey !== null && (
+                <ExamImage reference={part.imageKey} caption={part.title} />
+              )}
+              {cueBlock}
+              {part.body !== null && <PassageBody body={part.body} />}
+            </div>
+          </div>
+        )}
+
+      {questionListNode}
+    </section>
+  );
+
+  return (
+    <>
+      <ExamShell
+        timing={isDeadline ? 'deadline' : 'open'}
+        examTitle={session.examTitle}
+        skillName={skill.name}
+        mode={session.mode}
+        remaining={remaining}
+        elapsed={clock.elapsed}
+        running={clock.running}
+        targetSeconds={section.targetSeconds ?? null}
+        clockState={offline ? 'offline' : clockState}
+        targetState={targetState}
+        onToggleRun={() => void toggleRun()}
+        onSetTarget={(seconds) => void applyTarget(seconds)}
+        onExit={openLeave}
+        saveState={save}
+        skillPosition={skillPosition}
+        notices={notices}
+        tabs={mobileTabs}
+        progressStrip={
+          <>
+            {/* Only when there is a sequence to show. A "Full Test" whose exam
+                version carries one skill has nothing to advance to, and a strip
+                with a single step is a band of chrome that says nothing. */}
+            {session.mode === 'full' && moduleSequence.length > 1 && (
+              <FullTestProgressStrip
+                moduleSequence={moduleSequence}
+                currentModule={section.module}
+                completedModules={session.completedModules}
+              />
+            )}
+          </>
+        }
+        splitMode={splitMode}
+        passageCollapsed={passageCollapsed}
+        {...(isReading ? { mobilePane } : {})}
+        passage={passagePanel}
+        questions={questionsColumn}
+        footer={
+          <ExamFooter
+            key={section.module}
+            module={section.module}
+            parts={parts}
+            activePart={activePart}
+            answers={answers}
+            unconfirmed={unconfirmed}
+            busy={submitState === 'submitting'}
+            ending={advances ? 'advance' : 'submit'}
+            nextNote={nextNote}
+            nextSkillName={nextSkill?.name ?? null}
+            onGoToPart={goToPart}
+            onScrollToSlot={scrollToSlot}
+            onSubmit={openConfirm}
+            onAdvance={openAdvanceConfirm}
+          />
+        }
+      />
+      {modals}
+    </>
   );
 }
 
@@ -1058,8 +1101,6 @@ export function PracticeRunnerPage() {
 function timingFor(section: SessionView['current'], partNumber: number | null) {
   return section?.speakingTiming.find((p) => p.part === partNumber) ?? null;
 }
-
-
 
 /**
  * Words written, against the minimum the task sets.

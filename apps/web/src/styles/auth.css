@@ -1512,6 +1512,38 @@ button.auth-simple-action {
   opacity: 0.7;
 }
 
+/* The forgot-password page's only action is an outbound link, not a submit —
+   nothing on that page posts anywhere. It wears the primary button's shape so
+   the locked-out visitor reads it as the thing to press; the rules below are
+   only what an <a> needs and a <button> gets for free. */
+a.password-submit {
+  display: block;
+  text-align: center;
+  line-height: 48px;
+  text-decoration: none;
+}
+
+/* No support channel is configured, so the page says so and offers the
+   hotline. Kept visually quieter than the Zalo button it replaces: it is a
+   fallback, and dressing it as the primary action would suggest the centre
+   prefers to be phoned. */
+.support-fallback {
+  padding: 12px 14px;
+  border: 1px solid #e6e4e0;
+  border-radius: 12px;
+}
+
+.support-fallback a {
+  font-weight: 700;
+  color: #17161a;
+}
+
+/* Sits under whichever of the two branches rendered. `.auth-simple p` already
+   carries the muted body treatment; this only lifts it off the action above. */
+.support-what-to-say {
+  margin-top: 16px;
+}
+
 /* The forgot-password link is a real link now. It used to be a disabled span
    with a "not built" tooltip, which was honest and useless. */
 .forgot {

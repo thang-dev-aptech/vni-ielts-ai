@@ -48,11 +48,12 @@ public sealed class CanonicalExplanationWorkflow(
                 new ExplanationGenerationRequest(
                     section.Module,
                     question.Id,
-                    question.Prompt ?? string.Empty,
+                    ExplanationQuestionText.Compose(question),
                     expected,
                     LearnerAnswer: null,
                     PassageOrTranscript: source.PassageBody ?? source.Transcript,
-                    Personalized: false),
+                    Personalized: false,
+                    QuestionOptions: ExplanationPromptSafety.FormatOptions(question.Options)),
                 ct);
 
             if (!result.IsSuccess || result.RawJson is null)
@@ -179,7 +180,7 @@ public sealed class CanonicalExplanationWorkflow(
                     if (!string.Equals(q?["id"]?.GetValue<string>(), questionId, StringComparison.Ordinal))
                         continue;
 
-                    q!["explanation"] = new JsonObject
+                    var node = new JsonObject
                     {
                         ["correctAnswer"] = explanation.CorrectAnswer,
                         ["shortReason"] = explanation.ShortReason,
@@ -187,6 +188,13 @@ public sealed class CanonicalExplanationWorkflow(
                             explanation.Evidence.Select(e => JsonValue.Create(e)).ToArray()),
                         ["commonMistake"] = explanation.CommonMistake,
                     };
+
+                    // Only written when present: the package schema declares the
+                    // key as optional and a null would fail `type: string`.
+                    if (explanation.Translation is not null)
+                        node["translation"] = explanation.Translation;
+
+                    q!["explanation"] = node;
                     return;
                 }
             }

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useId, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { isUnreachable, ApiError } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
@@ -9,13 +9,12 @@ import { Paths } from '../../routes/paths.js';
 import {
   getResults,
   getRecordingPlaybackUrl,
-  requestExplanation,
-  type ExplanationContentView,
+  listMySittings,
+  startSession,
   type ExamModule,
-  type PersonalizedExplanationView,
-  type QuestionExplanationStatusView,
   type MarkingStatusView,
   type SectionResultView,
+  type SittingSummary,
   type SectionMarkingView,
   type SectionContentView,
   type SessionResultsView,
@@ -24,37 +23,67 @@ import { type Band, type ScoreState, formatBand, requiresAdvisoryLabel } from '@
 import { SKILLS, SKILL_ORDER } from './skills.js';
 import { PassageBody } from './PassageBody.js';
 import { ExamImage } from './ExamImage.js';
+import { ResultTopBar } from './result/ResultTopBar.js';
+import { ResultHero } from './result/ResultHero.js';
+import { ResultSummaryCards } from './result/ResultSummaryCards.js';
+import { QuestionTypeBreakdown } from './result/QuestionTypeBreakdown.js';
+import { BandComparisonChart } from './result/BandComparisonChart.js';
+import { AnswerReviewList } from './result/AnswerReviewList.js';
+import { ListeningSectionBreakdown } from './result/ListeningSectionBreakdown.js';
+import { PracticeRecommendations, SuggestedDocuments } from './result/PracticeRecommendations.js';
+import {
+  labelForType,
+  listeningAudioIndex,
+  listeningSectionIndex,
+  listeningSectionsFrom,
+  skillsShown,
+  statsFor,
+  suggestionsFrom,
+} from './result/resultModel.js';
+import { ArrowRightGlyph, LeafGlyph } from './result/ResultIcons.js';
 import '../../styles/practice.css';
 import '../../styles/dashboard.css';
 import '../../styles/exam.css';
 import '../../styles/audio.css';
+import '../../styles/exam-runner.css';
+import '../../styles/exam-result.css';
 import { usePageTitle } from '../../routes/usePageTitle.js';
 import { useAlive } from '../../lib/useAlive.js';
 
 /**
- * What the sitting produced.
+ * What the sitting produced — `/results/:attemptId`.
+ *
+ * <b>Cloned from the supplied reference.</b> `[QUYẾT ĐỊNH]` chủ sản phẩm
+ * 08/09/2026: the screenshot is the visual source of truth for this screen.
+ * Hero with the band, four summary cards, the per-type breakdown beside the
+ * band comparison, the answer review with its two sidebar cards, and the
+ * closing banner.
+ *
+ * <b>Standalone: no `DashboardShell`.</b> It carries its own header and its own
+ * breadcrumb. This reverses the 04/09 arrangement that put results inside the
+ * student shell — the paper's own ending is not a page of the student area.
+ *
+ * <b>Three of the reference's figures have no source, and none of them is
+ * invented.</b> The difficulty rating, the cohort percentile and the band
+ * distribution do not exist in this product; each keeps its place in the layout
+ * and shows an absence with a note. DESIGN.md anti-pattern #12.
  *
  * <b>A section with no band is absent, not zero.</b> Reading and Listening are
  * marked the moment they are submitted; Writing and Speaking wait on an
- * evaluation that does not exist yet, so they appear as `—` with the reason
- * beside them. Product law L3: a band that was never awarded is never drawn as
- * a number, and never as a skeleton that reads like one arriving.
+ * evaluation. Product law L3: a band that was never awarded is never drawn as a
+ * number, and never as a skeleton that reads like one arriving. `P-11` adds the
+ * second gate — a band whose conversion table was not equated is withheld with
+ * the reason beside it.
  *
  * <b>Overall needs all four.</b> The server returns null until then, and this
- * screen does not average what it has — a mean over two sections is not an
- * overall band, it is a made-up one.
- *
- * <b>Chrome is the student shell, like every signed-in page.</b> `[QUYẾT
- * ĐỊNH]` chủ sản phẩm 04/09/2026 — one chrome after sign-in. The concern the
- * earlier note raised ("finishing a paper should not feel like leaving the
- * module") is answered by this page's own heading and breadcrumb, not by a
- * different frame.
+ * screen does not average what it has.
  */
-function ResultsChrome({ children, examTitle }: { children: ReactNode; examTitle?: string }) {
+function ResultsChrome({ children, examTitle }: { children: React.ReactNode; examTitle?: string }) {
   const { t } = useI18n();
 
   return (
-    <div className="prac-page result-page">
+    <div className="exs-page result-page">
+      <ResultTopBar />
       <Breadcrumb
         trail={[
           { label: t('nav.home'), to: Paths.home },
@@ -62,21 +91,37 @@ function ResultsChrome({ children, examTitle }: { children: ReactNode; examTitle
           { label: examTitle ?? t('title.results') },
         ]}
       />
-      <section className="result-hero">
-        <div className="container result-stack">{children}</div>
-      </section>
+      <div className="exs-wrap exs-stack">{children}</div>
     </div>
   );
 }
 
 export function ExamResultsPage() {
-  const { sessionId = '' } = useParams();
+  /* `/results/:attemptId` today; `sessionId` is the name the legacy address
+     used and the value the API calls it. */
+  const params = useParams();
+  const sessionId = params.attemptId ?? params.sessionId ?? '';
   const { accessToken } = useAuth();
   const { t } = useI18n();
+  const navigate = useNavigate();
   usePageTitle(t('title.results'));
 
   const [results, setResults] = useState<SessionResultsView | null>(null);
   const [failed, setFailed] = useState<'offline' | 'gone' | null>(null);
+  /**
+   * When this sitting was opened.
+   *
+   * <b>Not on `SessionResultsView`, so it is read off the sittings list.</b>
+   * The results payload carries `submittedAt` and no start time, and the
+   * reference screenshot puts "Thời gian làm bài" in three places. Rather than
+   * widen the API for a display figure, this asks the endpoint that already
+   * has it. A sitting old enough to have fallen off that list leaves the
+   * duration as `—`, which is the honest reading and not a guess.
+   */
+  const [sitting, setSitting] = useState<SittingSummary | null>(null);
+  const [retakeBusy, setRetakeBusy] = useState(false);
+  const [retakeFailed, setRetakeFailed] = useState(false);
+  const [explainSignal, setExplainSignal] = useState(0);
   const alive = useAlive();
 
   const load = useCallback(async () => {
@@ -92,15 +137,29 @@ export function ExamResultsPage() {
        *
        * Every thrown error used to land on that message, with no retry — so a
        * dropped connection told a learner who had just spent an hour on a
-       * paper that their sitting did not exist. `PracticeWorkspace` and
-       * `DictationLibrary` both got a retry when they were built; this screen,
-       * the one reached at the end of the work, did not.
+       * paper that their sitting did not exist.
        */
       if (alive.current) setFailed(isUnreachable(caught) ? 'offline' : 'gone');
     }
   }, [accessToken, sessionId]);
 
   useEffect(() => void load(), [load]);
+
+  /* The start time, on its own request, so a failure here costs the duration
+     and nothing else — the page is already useful without it. */
+  useEffect(() => {
+    if (accessToken === null) return;
+
+    void (async () => {
+      try {
+        const { sittings } = await listMySittings(accessToken, 50);
+        const mine = sittings.find((row) => row.sessionId === sessionId);
+        if (alive.current && mine !== undefined) setSitting(mine);
+      } catch {
+        // No duration rather than a wrong one. `—` says so.
+      }
+    })();
+  }, [accessToken, sessionId, alive]);
 
   if (failed !== null) {
     return (
@@ -153,10 +212,7 @@ export function ExamResultsPage() {
 
   // Single-skill sittings only ever have one section; showing the other three
   // as "chưa chấm" would imply an exam the learner never sat.
-  const shown =
-    results.mode === 'full'
-      ? SKILL_ORDER
-      : SKILL_ORDER.filter((m) => marked.has(m) || markedBy.has(m));
+  const shown = skillsShown(results, SKILL_ORDER);
 
   /**
    * The skill a single-skill sitting was, when the payload lets us tell.
@@ -166,584 +222,457 @@ export function ExamResultsPage() {
    * sitting that has not been marked yet therefore has nothing to infer from,
    * and the "new test" link falls back to the practice page with no skill
    * preselected. Guessing one would send the learner to a different skill's
-   * shelf than the one they just sat, which is worse than a general link.
+   * shelf than the one they just sat.
    */
-  const only = results.mode === 'full' || shown.length !== 1 ? null : shown[0]!;
+  const only = results.mode === 'full' || shown.length !== 1 ? null : (shown[0] ?? null);
 
-  return (
-    <ResultsChrome examTitle={results.examTitle}>
-      <header className="result-head">
-        <p className="result-eyebrow">{t('exam.resultsEyebrow')}</p>
-        <h1 className="result-title">{results.examTitle}</h1>
-        <p className="result-lead">
-          {results.status === 'expired' ? t('exam.resultsExpired') : t('exam.resultsLead')}
-        </p>
-      </header>
+  /* The section the review and the breakdown are about: the single skill's,
+     or Reading's for a Full Test, falling back to whichever came back first.
+     A Full Test still lists every skill's band in its own panel below. */
+  const primaryModule = only ?? (marked.has('reading') ? 'reading' : (shown[0] ?? null));
+  const primarySection = primaryModule === null ? undefined : marked.get(primaryModule);
+  const skillName = primaryModule === null ? null : SKILLS[primaryModule].name;
 
-      <section
-        className={`result-overall${results.mode === 'single' ? ' is-single-mode' : ''}${results.overallBand === null ? ' is-pending' : ''}`}
-      >
-        <span className="result-overall-label">{t('exam.overall')}</span>
-        {/* `is-none` when there is no band: the em dash inherited a 44px
-              display weight and rendered as a thick black bar — it read as a
-              redaction, not as "not marked yet". */}
-        <span
-          className={`result-overall-value num${results.overallBand === null ? ' is-none' : ''}`}
-        >
-          {results.overallBand === null ? '—' : results.overallBand.toFixed(1)}
-        </span>
-        {results.overallBand === null && (
-          <span className="result-overall-note">{t('exam.overallPending')}</span>
-        )}
-      </section>
+  const stats = statsFor(results, primarySection, sitting?.startedAt ?? null);
+  const suggestions = suggestionsFrom(stats);
 
-      <ul className="result-list">
-        {shown.map((moduleId) => {
-          const skill = SKILLS[moduleId];
-          const Icon = skill.icon;
-          const section = marked.get(moduleId);
-          const moduleMarkings = markedBy.get(moduleId);
-          const scoreState = scoreStateFor(section, moduleMarkings);
-          // `requiresAdvisoryLabel` only speaks for a state that is actually
-          // `scored` — before that there is nothing to attribute a
-          // provenance to, so the module's own known marking method fills in
-          // (`isAiMarked`, the one place that check still lives).
-          const advisory =
-            scoreState.status === 'scored' ? requiresAdvisoryLabel(scoreState) : isAiMarked(moduleId);
-          const bandReason =
-            section !== undefined && section.band !== null && !section.bandVerified
-              ? t('exam.bandUnverified')
-              : null;
-          const reason =
-            bandReason ??
-            (section !== undefined || moduleMarkings !== undefined || !isAiMarked(moduleId)
-              ? null
-              : markingStatusText(statusByModule.get(moduleId) ?? fallbackStatus(moduleId), t));
+  /*
+   * The band the hero shows.
+   *
+   * Full Test → the overall band, which the server withholds until all four
+   * skills are marked. Single skill → that skill's band, gated on `P-11`:
+   * shown exactly when there is one and the table behind it was equated.
+   */
+  const heroBand =
+    results.mode === 'full'
+      ? results.overallBand === null
+        ? null
+        : results.overallBand.toFixed(1)
+      : primarySection !== undefined
+        ? primarySection.band !== null && primarySection.bandVerified
+          ? formatBand(primarySection.band as Band)
+          : null
+        : markedBy.get(primaryModule ?? 'reading') !== undefined
+          ? (markedBy.get(primaryModule ?? 'reading')?.[0]?.band.toFixed(1) ?? null)
+          : null;
 
-          return (
-            <li className="result-row" key={moduleId}>
-              <span
-                className="result-icon"
-                style={{ background: skill.tint, color: skill.ink }}
-                aria-hidden="true"
-              >
-                <Icon size={20} />
-              </span>
+  const heroBandNote =
+    heroBand !== null
+      ? null
+      : results.mode === 'full'
+        ? t('exam.overallPending')
+        : primarySection !== undefined && primarySection.band !== null
+          ? t('exam.bandUnverified')
+          : markingStatusText(
+              statusByModule.get(primaryModule ?? 'reading') ??
+                fallbackStatus(primaryModule ?? 'reading'),
+              t,
+            );
 
-              <span className="result-text">
-                <strong>{skill.name}</strong>
-                {/* A Writing row with two task bands beside it read "Chưa
-                      chấm" — the subtitle only knew about answer-key sections.
-                      Seen on the first AI-marked essay, 2026-09-03. */}
-                <span>
-                  {section
-                    ? t('exam.rawOf', { raw: section.rawScore, max: section.maxScore })
-                    : moduleMarkings !== undefined
-                      ? t('exam.aiMarkedTasks', { count: moduleMarkings.length })
-                      : t('exam.notMarked')}
-                </span>
-                {reason !== null && <span className="result-reason">{reason}</span>}
-              </span>
+  /**
+   * "Làm lại đề này" — a new sitting, never the finished one reopened.
+   *
+   * A submitted session is closed; sending the learner back into it would
+   * either 409 or, worse, look like it worked. This opens a fresh one on the
+   * same exam version and the same mode, and lands on the runner.
+   */
+  async function retake() {
+    /*
+     * <b>The exam version comes from the sittings list, not from the result.</b>
+     * `SessionResultsView` carries a title and no `examVersionId` — so until
+     * that row has loaded there is nothing to open, and the control says so by
+     * being disabled rather than by failing when pressed.
+     */
+    if (accessToken === null || results === null || sitting === null) return;
 
-              {/* The tag says where the band came from. Answer-key and AI
-                    bands must never look interchangeable. → product law L4.
-                    Driven by `requiresAdvisoryLabel` once there is an actual
-                    score to attribute — not by comparing `moduleId` against
-                    the two module names this product happens to AI-mark
-                    today, which is what silently mislabels a module that
-                    tomorrow marks a fifth skill by AI. → handoff S1 row 4 */}
-              <span className={advisory ? 'dash-tag dash-tag-ai' : 'dash-tag'}>
-                {advisory ? t('dash.scoring.ai') : t('dash.scoring.key')}
-              </span>
-
-              {/*
-                  <b>Two task bands where there are two, and never their mean.</b>
-                  Writing shows "6.5 · 7.0", not the 6.75 that would come from
-                  averaging them — that average would be answering `H-8b` by
-                  arithmetic, in the one place a learner would read it as fact.
-                */}
-              <span className="result-band num">{bandCell(section, moduleMarkings)}</span>
-            </li>
-          );
-        })}
-      </ul>
-
-      {/*
-          <b>A sitting with nothing marked still has to say something.</b>
-
-          `shown` is empty on a single-skill Writing or Speaking sitting until
-          an evaluation arrives — and today none ever does. The list rendered
-          zero rows, and the "đang chấm" notice below is keyed on a skill being
-          *in* that list, so it rendered nothing either: a learner who had just
-          spent an hour writing two essays was handed a page with an em dash on
-          it and no other word about their paper. Not a missing case in the
-          markup so much as an empty state nobody had a reason to look for,
-          because every fixture in the repo is a Reading one.
-
-          It says what is true — the work is on the server and the marked-by-AI
-          skills do not have a band yet — and offers the same "Kiểm tra lại"
-          the marked case gets, because this page fetches once and will not
-          change on its own. → product law L3
-        */}
-      {shown.length === 0 && (
-        <div className="dash-empty">
-          <h3>{t('exam.nothingMarkedTitle')}</h3>
-          <p>{t('exam.nothingMarkedBody')}</p>
-          <button type="button" className="dash-retry" onClick={() => void load()}>
-            {t('exam.checkAgain')}
-          </button>
-        </div>
-      )}
-
-      {/*
-          Only when it is about a skill on this page.
-
-          It rendered unconditionally — including on a single-skill Reading
-          result, where Writing and Speaking are filtered out of the list
-          above, so the page explained the state of two skills the learner had
-          not sat.
-        */}
-      {/*
-          <b>What actually happened, per module — not one sentence for four
-          situations.</b>
-
-          The notice below used to give one provider-wiring explanation for
-          every case: an essay that is queued, a recording with no transcript,
-          and a marking the platform tried five times and gave up on are three
-          different states with three different answers to "what do I do now".
-          The server reports the job's own state and a sentence written for the
-          learner; this renders it. → `I3.6`
-        */}
-      {(results.markingStatuses ?? [])
-        .filter((status) => status.state !== 'completed')
-        .map((status) => (
-          <p className="dash-notice" key={status.module}>
-            <strong>{SKILLS[status.module].name}: </strong>
-            {markingStatusText(status, t)}
-          </p>
-        ))}
-
-      {/*
-          The blanket notice, kept only for a sitting with no job behind it —
-          one closed before the outbox existed, or a module the outbox does not
-          cover. With a job present the per-module lines above are strictly more
-          truthful, so showing both would be the page contradicting itself.
-        */}
-      {(results.markingStatuses ?? []).length === 0 &&
-        shown.some(
-          (moduleId) =>
-            (moduleId === 'writing' || moduleId === 'speaking') && !markedBy.has(moduleId),
-        ) && (
-          <>
-            <p className="dash-notice">{t('exam.aiPending')}</p>
-            {/*
-              A screen that will not change on its own needs a way to ask.
-
-              Writing and Speaking are marked asynchronously by design, and this
-              page fetches once on mount — so a learner sat under a notice
-              saying the AI was marking, on a page that would never update, with
-              nothing to press. Deliberately a button and not a poll: a poll on
-              a screen nobody is watching costs requests for nothing, and this
-              way the learner is told the answer is being asked for.
-            */}
-            <p>
-              <button type="button" className="dash-retry" onClick={() => void load()}>
-                {t('exam.checkAgain')}
-              </button>
-            </p>
-          </>
-        )}
-
-      {/*
-          What you answered, question by question.
-
-          `/practice`'s own FAQ promises "bạn xem được từng câu mình đã trả lời
-          gì", and the payload has carried `submitted` and `isCorrect` from the
-          first day — nobody had built the screen for it, so the promise was
-          made and not kept.
-
-          It shows what the learner wrote and whether it was accepted. It does
-          NOT show the right answer, and that is not an oversight: the answer
-          key never reaches the client, which is what lets the same exam be sat
-          again. → `A-11`
-        */}
-      {shown.map((moduleId) => {
-        const section = marked.get(moduleId);
-        if (section === undefined || section.questions.length === 0) return null;
-
-        return (
-          <SectionReview
-            key={moduleId}
-            module={moduleId}
-            section={section}
-            sessionId={sessionId}
-            accessToken={accessToken}
-            explanationStatuses={explanationStatuses}
-          />
-        );
-      })}
-
-      {[...markedBy.entries()].map(([moduleId, moduleMarkings]) => (
-        <MarkingReview
-          key={moduleId}
-          module={moduleId}
-          markings={moduleMarkings}
-          {...(moduleId === 'writing'
-            ? { writingBand: results.writingBand, writingBandReason: results.writingBandReason }
-            : {})}
-        />
-      ))}
-
-      {/*
-          Writing sat, nothing marked yet at all — `markedBy` has no entry, so
-          the loop above never runs, and the combined band's own reason
-          (`awaiting-tasks`) would otherwise have nowhere to appear. `P-12`
-          still owes an answer to "why no combined band" even before the
-          first task marking lands.
-        */}
-      {!markedBy.has('writing') &&
-        shown.includes('writing') &&
-        results.writingBandReason !== null && (
-          <MarkingReview
-            module="writing"
-            markings={[]}
-            writingBand={results.writingBand}
-            writingBandReason={results.writingBandReason}
-          />
-        )}
-
-      {/*
-          The paper itself — `P-06`…`P-09`, `S2`. Empty while the sitting was
-          still in progress when this loaded (the server's own gate, not a
-          client guess), so this renders nothing for that case rather than an
-          empty accordion nobody can open.
-        */}
-      {(results.content ?? []).map((content) => (
-        <SectionContentReview
-          key={content.module}
-          module={content.module}
-          content={content}
-          sessionId={sessionId}
-          accessToken={accessToken}
-        />
-      ))}
-
-      {/*
-          <b>`E-13` is a control, not a sentence in a FAQ.</b>
-
-          The owner's words are verbatim: *"muốn luyện 1 kĩ năng thì có thể ấn
-          nút làm đề mới thay vì ấn nút tiếp theo"*. This page offered one quiet
-          link back to the catalogue and called it done — so the one call to
-          action the requirement names by name did not exist on the only screen
-          that is reached after a single-skill sitting ends.
-
-          It carries the skill in the query, because "làm đề mới" means another
-          paper in the skill just sat, not a trip back to a four-skill picker
-          set to Reading. `/practice?skill=…&mode=single` is a link the page
-          already reads. → `PracticeWorkspace`
-
-          A Full Test does not get this button. Its next step is not a new
-          single-skill paper, and "Tiếp theo" belongs to the runner, which is
-          the screen that has a next section to advance to.
-        */}
-      <div className="result-next">
-        {results.mode === 'full' ? (
-          <Link className="btn btn-secondary" to={Paths.practice}>
-            {t('exam.backToPractice')}
-          </Link>
-        ) : (
-          <>
-            <Link
-              className="btn btn-primary"
-              to={only === null ? Paths.practice : `${Paths.practice}?skill=${only}&mode=single`}
-            >
-              {t('exam.newTest')}
-            </Link>
-            <Link className="btn btn-secondary" to={Paths.practice}>
-              {t('exam.backToPractice')}
-            </Link>
-            {/* Said once, plainly. A learner who has done a full test before
-                  is looking for the "Tiếp theo" that is not here. */}
-            <p className="result-next-note">{t('exam.singleEndsHere')}</p>
-          </>
-        )}
-      </div>
-    </ResultsChrome>
-  );
-}
-
-/**
- * One skill's answers, as a grid of numbered chips.
- *
- * <b>Collapsed, because forty chips is not the first thing to say.</b> The
- * bands above are the answer to "how did I do"; this is the answer to "which
- * ones", and a reader who wants it will open it. Unmounted when closed rather
- * than hidden, so a find-on-page never scrolls to text nobody can see — the
- * same rule `FaqAccordion` documents.
- *
- * <b>Colour is not the only channel.</b> Each chip carries a glyph as well as
- * a ground, and an `sr-only` line spelling out the number, the verdict and
- * what was submitted — because "3" announced alone tells a screen-reader user
- * nothing at all.
- */
-function SectionReview({
-  module: moduleId,
-  section,
-  sessionId,
-  accessToken,
-  explanationStatuses,
-}: {
-  module: ExamModule;
-  section: SectionResultView;
-  sessionId: string;
-  accessToken: string | null;
-  explanationStatuses: ReadonlyMap<string, QuestionExplanationStatusView>;
-}) {
-  const { t } = useI18n();
-  const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'needs-review' | 'wrong' | 'blank' | 'right'>('all');
-  const [explanations, setExplanations] = useState<Record<string, PersonalizedExplanationView>>({});
-  const [busy, setBusy] = useState<Record<string, boolean>>({});
-  const [requestErrors, setRequestErrors] = useState<Record<string, string>>({});
-  const panelId = useId();
-  const skill = SKILLS[moduleId];
-  const explainable = moduleId === 'reading' || moduleId === 'listening';
-
-  const totalCount = section.questions.length;
-  const rightCount = section.questions.filter((q) => q.isCorrect).length;
-  const blankCount = section.questions.filter(
-    (q) => q.submitted === null || q.submitted === '',
-  ).length;
-  const wrongCount = section.questions.filter(
-    (q) => !q.isCorrect && q.submitted !== null && q.submitted !== '',
-  ).length;
-  const needsReviewCount = section.questions.filter(
-    (q) => !q.isCorrect || q.submitted === null || q.submitted === '',
-  ).length;
-
-  async function askForExplanation(questionId: string) {
-    if (accessToken === null) return;
-
-    setBusy((was) => ({ ...was, [questionId]: true }));
-    setRequestErrors((was) => {
-      const next = { ...was };
-      delete next[questionId];
-      return next;
-    });
+    setRetakeBusy(true);
+    setRetakeFailed(false);
 
     try {
-      const view = await requestExplanation(
+      const started = await startSession(
         accessToken,
-        sessionId,
-        questionId,
+        {
+          examVersionId: sitting.examVersionId,
+          mode: results.mode,
+          ...(results.mode === 'single' && primaryModule !== null ? { module: primaryModule } : {}),
+          /* The same kind of clock the finished sitting had: a countdown when
+             it had a deadline, the open stopwatch when it did not. */
+          timing: sitting.deadlineAt === null ? ('open' as const) : ('deadline' as const),
+        },
         crypto.randomUUID(),
       );
-      setExplanations((was) => ({ ...was, [questionId]: view }));
-    } catch (caught) {
-      setRequestErrors((was) => ({
-        ...was,
-        [questionId]: isUnreachable(caught)
-          ? t('common.notConnected')
-          : t('exam.explanationFailed'),
-      }));
-    } finally {
-      setBusy((was) => ({ ...was, [questionId]: false }));
+      if (!alive.current) return;
+      navigate(Paths.examSession(started.sessionId));
+    } catch {
+      if (!alive.current) return;
+      setRetakeBusy(false);
+      setRetakeFailed(true);
     }
   }
 
+  /** The question's own prompt and package type, from `content` — the
+      payload's only copy of either. */
+  const promptIndex = new Map<string, string | null>();
+  const typeIndex = new Map<string, string>();
+  for (const section of results.content ?? []) {
+    for (const part of section.parts) {
+      for (const question of part.questions) {
+        promptIndex.set(
+          question.id,
+          question.prompt === null || isPlaceholderPrompt(question.prompt)
+            ? gapLineOf(question)
+            : question.prompt,
+        );
+        typeIndex.set(question.id, question.type);
+      }
+    }
+  }
+
+  /*
+    Listening-only derivations for `ListeningSectionBreakdown` and the
+    "Section" / "Nghe lại" columns on the answer review below. Every one of
+    them is empty (not fabricated) when `results.content` has no Listening
+    entry — a Full Test candidate still on an earlier skill, or content that
+    genuinely never arrived.
+  */
+  const listeningContent = (results.content ?? []).find((c) => c.module === 'listening');
+  const listeningSections =
+    primaryModule === 'listening' ? listeningSectionsFrom(listeningContent, primarySection) : [];
+  const listeningSectionOf = listeningSectionIndex(listeningContent);
+  const listeningAudioOf = listeningAudioIndex(listeningContent);
+
   return (
-    <section className="result-review">
-      <h2 className="result-review-head">
-        <button
-          type="button"
-          className="result-review-trigger"
-          aria-expanded={open}
-          {...(open ? { 'aria-controls': panelId } : {})}
-          onClick={() => setOpen((was) => !was)}
-        >
-          <span>{t('exam.reviewTitle', { skill: skill.name })}</span>
-          <span className="result-review-caret" aria-hidden="true">
-            {open ? '−' : '+'}
-          </span>
-        </button>
-      </h2>
+    <ResultsChrome examTitle={results.examTitle}>
+      <ResultHero
+        examTitle={results.examTitle}
+        skillName={results.mode === 'full' ? null : skillName}
+        submittedAt={results.submittedAt}
+        band={heroBand}
+        bandNote={heroBandNote}
+        stats={stats}
+        retakeBusy={retakeBusy || sitting === null}
+        onRetake={() => void retake()}
+        onExplain={() => setExplainSignal((n) => n + 1)}
+        practiceHref={
+          only === null ? Paths.practice : `${Paths.practice}?skill=${only}&mode=single`
+        }
+      />
 
-      {open && (
-        <div className="result-review-body" id={panelId}>
-          <div className="result-filter-bar" role="group" aria-label="Bộ lọc câu hỏi">
-            <button
-              type="button"
-              className={`result-filter-chip${filter === 'all' ? ' is-active' : ''}`}
-              aria-pressed={filter === 'all'}
-              onClick={() => setFilter('all')}
-            >
-              {t('exam.filterAll')} ({totalCount})
-            </button>
-            <button
-              type="button"
-              className={`result-filter-chip${filter === 'needs-review' ? ' is-active' : ''}`}
-              aria-pressed={filter === 'needs-review'}
-              onClick={() => setFilter('needs-review')}
-            >
-              {t('exam.filterNeedsReview')} ({needsReviewCount})
-            </button>
-            <button
-              type="button"
-              className={`result-filter-chip${filter === 'wrong' ? ' is-active' : ''}`}
-              aria-pressed={filter === 'wrong'}
-              onClick={() => setFilter('wrong')}
-            >
-              {t('exam.filterIncorrect')} ({wrongCount})
-            </button>
-            <button
-              type="button"
-              className={`result-filter-chip${filter === 'blank' ? ' is-active' : ''}`}
-              aria-pressed={filter === 'blank'}
-              onClick={() => setFilter('blank')}
-            >
-              {t('exam.filterUnanswered')} ({blankCount})
-            </button>
-            <button
-              type="button"
-              className={`result-filter-chip${filter === 'right' ? ' is-active' : ''}`}
-              aria-pressed={filter === 'right'}
-              onClick={() => setFilter('right')}
-            >
-              {t('exam.filterCorrect')} ({rightCount})
-            </button>
-          </div>
-
-          <ol className="result-review-grid">
-            {section.questions.map((question, at) => {
-              const existing = explanations[question.questionId];
-              const content = question.canonicalExplanation ?? existing?.explanation ?? null;
-              const status = explanationStatuses.get(question.questionId) ?? null;
-              const state =
-                existing?.state ?? status?.state ?? (content === null ? 'none' : 'ready');
-              const reason = existing?.reason ?? status?.reason ?? null;
-              const questionBusy = busy[question.questionId] === true;
-
-              const isBlank = question.submitted === null || question.submitted === '';
-              const isWrong = !question.isCorrect && !isBlank;
-              const isRight = question.isCorrect;
-              const matches =
-                filter === 'all'
-                  ? true
-                  : filter === 'needs-review'
-                    ? !isRight
-                    : filter === 'wrong'
-                      ? isWrong
-                      : filter === 'blank'
-                        ? isBlank
-                        : isRight;
-
-              return (
-                <li
-                  key={question.questionId}
-                  className={matches ? undefined : 'is-filtered-out'}
-                >
-                  <span className={`result-q${question.isCorrect ? ' is-right' : ' is-wrong'}`}>
-                    <span className="num" aria-hidden="true">
-                      {at + 1}
-                    </span>
-                    <span className="result-q-mark" aria-hidden="true">
-                      {question.isCorrect ? '✓' : '✕'}
-                    </span>
-                    <span className="sr-only">
-                      {t('exam.reviewQuestion', { number: at + 1 })}{' '}
-                      {question.isCorrect ? t('exam.reviewRight') : t('exam.reviewWrong')}
-                      {'. '}
-                      {question.submitted === null || question.submitted === ''
-                        ? t('exam.reviewBlank')
-                        : t('exam.reviewAnswered', { answer: question.submitted })}
-                    </span>
-                  </span>
-                  <span className="result-q-answer" aria-hidden="true">
-                    {question.submitted === null || question.submitted === ''
-                      ? t('exam.reviewBlank')
-                      : question.submitted}
-                  </span>
-
-                  {explainable && (
-                    <div className="result-explanation">
-                      {content === null ? (
-                        <>
-                          <button
-                            type="button"
-                            className="result-explanation-action"
-                            disabled={questionBusy}
-                            aria-describedby={
-                              reason !== null || requestErrors[question.questionId] !== undefined
-                                ? `explain-${question.questionId}-status`
-                                : undefined
-                            }
-                            onClick={() => void askForExplanation(question.questionId)}
-                          >
-                            {questionBusy
-                              ? t('exam.explanationLoading')
-                              : state === 'failed'
-                                ? t('exam.explanationRetry')
-                                : t('exam.explanationRequest')}
-                          </button>
-                          {(state === 'pending' || state === 'running') && (
-                            <span
-                              className="result-explanation-status"
-                              id={`explain-${question.questionId}-status`}
-                              role="status"
-                            >
-                              {reason ?? t('exam.explanationPending')}
-                            </span>
-                          )}
-                          {(state === 'failed' ||
-                            requestErrors[question.questionId] !== undefined) && (
-                            <span
-                              className="result-explanation-status is-bad"
-                              id={`explain-${question.questionId}-status`}
-                              role="alert"
-                            >
-                              {requestErrors[question.questionId] ??
-                                reason ??
-                                t('exam.explanationFailed')}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <ExplanationBlock explanation={content} />
-                      )}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-
-          <p className="result-review-note">{t('exam.reviewNoKey')}</p>
-          {explainable && <p className="result-review-note">{t('exam.reviewExplanationNote')}</p>}
-        </div>
+      {retakeFailed && (
+        <p className="dash-notice" role="alert">
+          {t('exam.startFailed')}
+        </p>
       )}
-    </section>
-  );
-}
 
-function ExplanationBlock({ explanation }: { explanation: ExplanationContentView }) {
-  const { t } = useI18n();
+      {results.status === 'expired' && <p className="dash-notice">{t('exam.resultsExpired')}</p>}
 
-  return (
-    <div className="result-explanation-card">
-      <p>
-        <strong>{t('exam.explanationCorrectAnswer')}: </strong>
-        {explanation.correctAnswer}
-      </p>
-      <p>{explanation.shortReason}</p>
-      {explanation.evidence.length > 0 && (
-        <ul>
-          {explanation.evidence.map((item) => (
-            <li key={item}>{item}</li>
+      <div className="exs-section-head">
+        <h2>{t('exam.overviewTitle')}</h2>
+        <p>{t('exam.overviewLead')}</p>
+      </div>
+
+      <ResultSummaryCards stats={stats} examTitle={results.examTitle} />
+
+      {/* Listening only — one card per part, joined from `content` and the
+          answer-key section rather than split evenly by fiat. */}
+      {primaryModule === 'listening' && <ListeningSectionBreakdown rows={listeningSections} />}
+
+      <div className="exs-two">
+        <QuestionTypeBreakdown rows={stats.breakdown} />
+        {/*
+          `distribution={null}`: nothing in this product measures a cohort, and
+          the panel says so rather than drawing a shape from nothing. The prop
+          is the seam — `G-11`, a configured seam with a null implementation.
+        */}
+        <BandComparisonChart distribution={null} myBand={heroBand} skillName={skillName} />
+      </div>
+
+      <div className="exs-main-two">
+        <div className="exs-stack">
+          {primaryModule !== null &&
+          primarySection !== undefined &&
+          primarySection.questions.length > 0 ? (
+            <AnswerReviewList
+              module={primaryModule}
+              section={primarySection}
+              sessionId={sessionId}
+              accessToken={accessToken}
+              explanationStatuses={explanationStatuses}
+              promptFor={(id) => promptIndex.get(id) ?? null}
+              expandAllSignal={explainSignal}
+              {...(primaryModule === 'listening'
+                ? {
+                    sectionFor: (id: string) => {
+                      const order = listeningSectionOf.get(id);
+                      return order === undefined ? null : t('exam.sectionN', { number: order });
+                    },
+                    typeFor: (id: string) => {
+                      const type = typeIndex.get(id);
+                      return type === undefined ? null : labelForType(type);
+                    },
+                    audioFor: (id: string) => {
+                      const reference = listeningAudioOf.get(id);
+                      if (reference === undefined) return null;
+                      /*
+                        Free replay, not the exam's own once-only policy —
+                        this is a post-submit review, not the live sitting.
+                        Same reasoning `RecordingReview` already gives for
+                        Speaking's plain `<audio controls>` below.
+                      */
+                      return { reference, policy: { playOnce: false, allowSeek: true } };
+                    },
+                  }
+                : {})}
+            />
+          ) : marked.size === 0 && markedBy.size === 0 ? (
+            /*
+              <b>A sitting with nothing at all still has to say something.</b>
+              A single-skill Writing or Speaking sitting has nothing to review
+              until an evaluation arrives — and today none ever does for
+              Speaking. It says what is true and offers the same "Kiểm tra
+              lại" the marked case gets, because this page fetches once and
+              will not change on its own. → product law L3
+
+              <b>Gated on both lists being empty, not on the absence of
+              answer-key questions.</b> A marked Speaking sitting has no
+              question rows by construction and is not an empty result — the
+              marking below is the result — so telling that learner "chưa có
+              kết quả nào" over the top of their own band is simply false.
+            */
+            <div className="dash-empty">
+              <h3>{t('exam.nothingMarkedTitle')}</h3>
+              <p>{t('exam.nothingMarkedBody')}</p>
+              <button type="button" className="dash-retry" onClick={() => void load()}>
+                {t('exam.checkAgain')}
+              </button>
+            </div>
+          ) : null}
+
+          {/*
+            Every skill's band, for a Full Test. A single-skill sitting already
+            has its band in the hero, and a one-row table beneath it would be
+            the same number twice.
+          */}
+          {shown.length > 1 && (
+            <section className="exs-panel">
+              <div className="exs-panel-head">
+                <div>
+                  <h2>{t('exam.perSkillTitle')}</h2>
+                  <p>{t('exam.perSkillLead')}</p>
+                </div>
+              </div>
+
+              <ul className="result-list">
+                {shown.map((moduleId) => {
+                  const skill = SKILLS[moduleId];
+                  const Icon = skill.icon;
+                  const section = marked.get(moduleId);
+                  const moduleMarkings = markedBy.get(moduleId);
+                  const scoreState = scoreStateFor(section, moduleMarkings);
+                  // `requiresAdvisoryLabel` only speaks for a state that is
+                  // actually `scored` — before that there is nothing to
+                  // attribute a provenance to, so the module's own known
+                  // marking method fills in.
+                  const advisory =
+                    scoreState.status === 'scored'
+                      ? requiresAdvisoryLabel(scoreState)
+                      : isAiMarked(moduleId);
+                  const bandReason =
+                    section !== undefined && section.band !== null && !section.bandVerified
+                      ? t('exam.bandUnverified')
+                      : null;
+                  const reason =
+                    bandReason ??
+                    (section !== undefined || moduleMarkings !== undefined || !isAiMarked(moduleId)
+                      ? null
+                      : markingStatusText(
+                          statusByModule.get(moduleId) ?? fallbackStatus(moduleId),
+                          t,
+                        ));
+
+                  return (
+                    <li className="result-row" key={moduleId}>
+                      <span
+                        className="result-icon"
+                        style={{ background: skill.tint, color: skill.ink }}
+                        aria-hidden="true"
+                      >
+                        <Icon size={20} />
+                      </span>
+
+                      <span className="result-text">
+                        <strong>{skill.name}</strong>
+                        <span>
+                          {section
+                            ? t('exam.rawOf', { raw: section.rawScore, max: section.maxScore })
+                            : moduleMarkings !== undefined
+                              ? t('exam.aiMarkedTasks', { count: moduleMarkings.length })
+                              : t('exam.notMarked')}
+                        </span>
+                        {reason !== null && <span className="result-reason">{reason}</span>}
+                      </span>
+
+                      {/* The tag says where the band came from. An answer-key
+                          band and an AI band must never look interchangeable.
+                          → product law L4 */}
+                      <span className={advisory ? 'dash-tag dash-tag-ai' : 'dash-tag'}>
+                        {advisory ? t('dash.scoring.ai') : t('dash.scoring.key')}
+                      </span>
+
+                      {/*
+                        <b>Two task bands where there are two, and never their
+                        mean.</b> Writing shows "6.5 · 7.0", not the 6.75 that
+                        would come from averaging them — that average would be
+                        answering `H-8b` by arithmetic, in the one place a
+                        learner would read it as fact.
+                      */}
+                      <span className="result-band num">{bandCell(section, moduleMarkings)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {results.mode === 'full' && (
+                /* The overall band, once. The hero already names it; this is
+                   the same number in the table it belongs to, so the label is
+                   not repeated. */
+                <p className="result-overall-note">
+                  <span
+                    className={`result-overall-value num${
+                      results.overallBand === null ? ' is-none' : ''
+                    }`}
+                  >
+                    {results.overallBand === null ? '—' : results.overallBand.toFixed(1)}
+                  </span>
+                  {results.overallBand === null && <span>{t('exam.overallPending')}</span>}
+                </p>
+              )}
+            </section>
+          )}
+
+          {/*
+            What actually happened, per module — not one sentence for four
+            situations. The server reports the job's own state and a sentence
+            written for the learner; this renders it. → `I3.6`
+          */}
+          {(results.markingStatuses ?? [])
+            .filter((status) => status.state !== 'completed')
+            .map((status) => (
+              <p className="dash-notice" key={status.module}>
+                <strong>{SKILLS[status.module].name}: </strong>
+                {markingStatusText(status, t)}
+              </p>
+            ))}
+
+          {/*
+            The blanket notice, kept only for a sitting with no job behind it —
+            one closed before the outbox existed, or a module the outbox does
+            not cover. With a job present the per-module lines above are
+            strictly more truthful, so showing both would be the page
+            contradicting itself.
+          */}
+          {(results.markingStatuses ?? []).length === 0 &&
+            shown.some(
+              (moduleId) =>
+                (moduleId === 'writing' || moduleId === 'speaking') && !markedBy.has(moduleId),
+            ) && (
+              <>
+                <p className="dash-notice">{t('exam.aiPending')}</p>
+                {/*
+                  A screen that will not change on its own needs a way to ask.
+                  Deliberately a button and not a poll: a poll on a screen
+                  nobody is watching costs requests for nothing.
+                */}
+                <p>
+                  <button type="button" className="dash-retry" onClick={() => void load()}>
+                    {t('exam.checkAgain')}
+                  </button>
+                </p>
+              </>
+            )}
+
+          {[...markedBy.entries()].map(([moduleId, moduleMarkings]) => (
+            <MarkingReview
+              key={moduleId}
+              module={moduleId}
+              markings={moduleMarkings}
+              {...(moduleId === 'writing'
+                ? { writingBand: results.writingBand, writingBandReason: results.writingBandReason }
+                : {})}
+            />
           ))}
-        </ul>
+
+          {/*
+            Writing sat, nothing marked yet at all — `markedBy` has no entry, so
+            the loop above never runs, and the combined band's own reason
+            (`awaiting-tasks`) would otherwise have nowhere to appear. `P-12`
+            still owes an answer to "why no combined band" even before the
+            first task marking lands.
+          */}
+          {!markedBy.has('writing') &&
+            shown.includes('writing') &&
+            results.writingBandReason !== null && (
+              <MarkingReview
+                module="writing"
+                markings={[]}
+                writingBand={results.writingBand}
+                writingBandReason={results.writingBandReason}
+              />
+            )}
+
+          {/*
+            The paper itself — `P-06`…`P-09`, `S2`. Empty while the sitting was
+            still in progress when this loaded (the server's own gate, not a
+            client guess), so this renders nothing for that case rather than an
+            empty accordion nobody can open.
+          */}
+          {(results.content ?? []).map((content) => (
+            <SectionContentReview
+              key={content.module}
+              module={content.module}
+              content={content}
+              sessionId={sessionId}
+              accessToken={accessToken}
+            />
+          ))}
+        </div>
+
+        <div className="exs-side">
+          <PracticeRecommendations suggestions={suggestions} />
+          <SuggestedDocuments module={primaryModule} />
+        </div>
+      </div>
+
+      {/*
+        <b>`E-13` is a control, not a sentence in a FAQ.</b> The owner's words
+        are verbatim: *"muốn luyện 1 kĩ năng thì có thể ấn nút làm đề mới thay
+        vì ấn nút tiếp theo"*. It carries the skill in the query, because "làm
+        đề mới" means another paper in the skill just sat, not a trip back to a
+        four-skill picker.
+      */}
+      <section className="exs-banner">
+        <div className="exs-banner-text">
+          <LeafGlyph />
+          <div>
+            <strong>{t('exam.bannerTitle')}</strong>
+            <p>{t('exam.bannerLead')}</p>
+          </div>
+        </div>
+        <Link
+          className="exs-btn exs-btn-primary"
+          to={only === null ? Paths.practice : `${Paths.practice}?skill=${only}&mode=single`}
+        >
+          {results.mode === 'full' ? t('exam.backToPractice') : t('exam.newTest')}
+          <ArrowRightGlyph />
+        </Link>
+      </section>
+
+      {results.mode === 'single' && (
+        /* Said once, plainly. A learner who has done a full test before is
+           looking for the "Tiếp theo" that is not here. */
+        <p className="result-next-note">{t('exam.singleEndsHere')}</p>
       )}
-      {explanation.commonMistake !== null && <p>{explanation.commonMistake}</p>}
-    </div>
+    </ResultsChrome>
   );
 }
 
@@ -793,7 +722,11 @@ function MarkingReview({
                     driven by the same shared rule as the row tag above
                     rather than a second hard-coded assumption, so the two
                     cannot drift apart. */}
-              {requiresAdvisoryLabel({ status: 'scored', band: marking.band as Band, provenance: 'ai-advisory' }) && (
+              {requiresAdvisoryLabel({
+                status: 'scored',
+                band: marking.band as Band,
+                provenance: 'ai-advisory',
+              }) && (
                 <div className="ai-advisory-header">
                   <span className="dash-tag dash-tag-ai">{t('exam.aiAdvisory')}</span>
                 </div>
@@ -1161,4 +1094,39 @@ function scoreStateFor(
   }
 
   return { status: 'pending' };
+}
+
+/**
+ * The sentence a gap-fill question was asked in, when the question itself
+ * carries no prompt.
+ *
+ * On a note-completion set the text lives on the group — one line per point,
+ * `[n]` where question n's gap falls — and the question is only a number and
+ * a key. A review row that says "Question 7" for such a question tells the
+ * learner nothing about what they were asked; the line of the note, with its
+ * gap drawn as a blank, does. Null when there is no such line, so the row
+ * falls back to its number rather than to an invented sentence.
+ */
+/**
+ * "Question 7" is what the importer writes for a gap-fill item with no
+ * sentence of its own — a name, not a question. Drawn as the row's text it
+ * repeats the number beside it and says nothing.
+ */
+function isPlaceholderPrompt(prompt: string): boolean {
+  return /^(Question|Câu)\s+\d+$/i.test(prompt.trim());
+}
+
+function gapLineOf(question: {
+  order: number;
+  group: { text: string | null } | null;
+}): string | null {
+  const text = question.group?.text ?? null;
+  if (text === null) return null;
+  const marker = `[${question.order}]`;
+  const line = text
+    .split('\n')
+    .map((one) => one.trim())
+    .find((one) => one.includes(marker));
+  if (line === undefined) return null;
+  return line.replace(/\[\d+\]/g, (found) => (found === marker ? '____' : '…'));
 }

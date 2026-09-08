@@ -53,12 +53,16 @@ public static class CallerIdentity
     public static string DisplayName(this ClaimsPrincipal principal) =>
         principal.FindFirst("name")?.Value ?? string.Empty;
 
-    /// <summary>The signed-in address. Used by the audit trail to name the actor.</summary>
+    /// <summary>
+    /// The signed-in address, if the account has one. Used by the audit trail
+    /// to name the actor. Null for an account registered with a phone number.
+    /// </summary>
     public static string? Email(this ClaimsPrincipal principal) =>
         principal.FindFirst("email")?.Value;
 
-    public static bool EmailVerified(this ClaimsPrincipal principal) =>
-        principal.FindFirst("email_verified")?.Value == "true";
+    /// <summary>The signed-in number, if the account has one. See <see cref="Email"/>.</summary>
+    public static string? Phone(this ClaimsPrincipal principal) =>
+        principal.FindFirst("phone")?.Value;
 
     public static IReadOnlyCollection<string> Permissions(this ClaimsPrincipal principal) =>
         [.. principal.FindAll("perm").Select(c => c.Value)];

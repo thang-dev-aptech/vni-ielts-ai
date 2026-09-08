@@ -1,0 +1,23 @@
+source     TEST 2-R.docx
+sandbox    /Users/metacom/Documents/VNI/VNI IELTS AI/Đề IELTS/Đề CAM/Đề thi thật (Chỉ L và R) VOL 9 - REAL IELTS-20260819T082203Z-1-001/VOL 9 - REAL IELTS/READING
+key        KEY - EXPLAINATION/KET TEST 2-R.docx (325 characters)
+extracted  23.328 characters, classification RightsCleared
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[100] Start processing HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[100] Sending HTTP request POST https://apithat.dev/v1/chat/completions
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.ClientHandler[101] Received HTTP response headers after 2499.0811ms - 200
+info: System.Net.Http.HttpClient.OpenAiStructuredExamClient.LogicalHandler[101] End processing HTTP request after 2548.4076ms - 200
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam parse stream opened after headers.
+info: Vni.Ielts.Infrastructure.Ai.Importing.OpenAiStructuredExamClient[0] Exam source parsed by gpt-5.4, request chatcmpl-202609031841270838773118268d9d6t3Qlekmv, prompt exam-parse-prompt-v6, attempt 1, 9937 in / 8734 out.
+parsed     38.930 characters by OpenAi/gpt-5.4, request chatcmpl-202609031841270838773118268d9d6t3Qlekmv
+kept       reading section only
+written    /Users/metacom/Documents/VNI/VNI IELTS AI/_workspace/vol9/packages/vol9-t2-reading.json
+foreign parts dropped
+key read   38 entr(ies) covering 40 mark(s)
+answer key refused
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 24, which the paper does not contain. Key text: "A, B, D".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 36, which the paper does not contain. Key text: "C".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 37, which the paper does not contain. Key text: "B".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 38, which the paper does not contain. Key text: "A".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 39, which the paper does not contain. Key text: "A".
+  error ANSWER_KEY_COVERAGE /sections: The key answers question 40, which the paper does not contain. Key text: "B".
+The paper is on disk without answers. A key that does not line up with the paper is the failure that marks every learner wrongly and shows no symptom, so nothing is written rather than guessed.

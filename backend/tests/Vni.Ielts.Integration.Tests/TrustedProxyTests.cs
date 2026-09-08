@@ -79,7 +79,7 @@ public sealed class TrustedProxyTests
         request.Headers.Add("X-Forwarded-For", forwardedFor);
         request.Content = JsonContent.Create(new
         {
-            email = "trusted-proxy-fixture@example.com",
+            phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}",
             password = "Password123!Aa",
             displayName = "Fixture",
         });

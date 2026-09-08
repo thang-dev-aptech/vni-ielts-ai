@@ -42,17 +42,24 @@ Two boundaries deserve emphasis because they are easy to get wrong:
 
 ## Account and identity
 
-### T1 · Account takeover via identity linking on a matching email
-**Impact: High.** Two directions, and the second is the one that is live in this product:
-1. An attacker controlling a social account bearing the victim's address inherits the victim's account.
-2. An attacker **registers** the victim's address first — registration does not require verification for the account to exist — sets a password, and waits. When the real owner later signs in with Google, a naive merge leaves the attacker's password working on the merged account.
+### T1 · A freed email address is claimed by someone else
+**Impact: Medium. Rewritten 2026-09-08 — the threat changed shape, it was not mitigated away.**
 
-**Mitigation** — `M-1` was resolved on 2026-08-21 toward *one email is one account*, so the mitigation is no longer "never link silently". → [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md)
-- Direction 1: link only on an address the **provider** asserts is verified (`email_verified`). Google asserts it; Facebook does not, and so still returns `409 IDENTITY_LINK_REQUIRED`.
-- Direction 2: linking into an account whose own email was never verified clears that account's password hash and revokes every refresh-token family for the user. The legitimate user notices nothing — they arrived via the provider; the squatter loses the account.
-- Neither path links a `Suspended` account, and neither accepts a provider profile the API did not fetch itself (`T2`).
+Until 08/09/2026 the risk here was *linking on a matching address*: an attacker who controlled a social account bearing the victim's address, or who squatted the victim's address in the registration form first, could end up inside the victim's account. Both directions assumed the address was a permanent account key. It is not one any more.
 
-**Accepted:** a verified account links with no proof of the password, so compromising the person's Google account compromises this one. That is inherent to accepting an identity provider at all.
+Registration collects no address, `User.Email` is nullable, and **changing an account's address moves the account onto it and frees the old address**. A provider link is dropped at the next sign-in when the provider vouches for an address the linked account no longer holds. So the live risk is the inverse of the old one: whoever controls a *freed* mailbox at Google can sign in and get an account. → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md), superseding [ADR-0013](../decisions/0013-one-email-one-account-silent-linking.md)
+
+**What bounds it, and it is worth being precise because "takeover" is the wrong word:**
+- The account they get is **brand new and empty**. They never reach the migrated account — that one moved to the new address and is the one the original learner signs into. No sittings, no recordings, no ledger history transfers.
+- The link is dropped only when **all three** hold: the provider asserts email verification *and* asserts it true for this sign-in; a usable address was actually asserted; and the linked account's own address is non-null and differs. A provider that vouches for nothing (Facebook) can never unlink anybody.
+- An account whose address was **cleared** keeps its link. Emptying a profile field must not detach the only door a person has.
+- An account that already holds a **password** is refused (`IDENTITY_LINK_REQUIRED`), never linked into and never cleared. The `ADR-0013` eviction branch — clearing the password of an account that never verified its address — is **deleted**, not dormant: with verification gone it would have fired on every ordinary link.
+- Neither path signs in a `Suspended` account, and neither accepts a provider profile the API did not fetch itself (`T2`).
+- The free-turns loop this opens is closed separately, in `T4`.
+
+**Accepted:** an account with no password links from a vouched address with no further proof, so compromising the person's Google account compromises this one. Inherent to accepting an identity provider at all, and unchanged.
+
+**Accepted:** a learner who changes their address **at Google** rather than in their profile gets a new, empty VNI account with no way to merge it. Small while Gmail addresses are immutable; the first support request asking to merge two accounts is the signal to revisit.
 
 ### T2 · OAuth abuse
 **Impact: High.** Authorisation-code interception, redirect-URI manipulation, token substitution.
@@ -71,7 +78,11 @@ Two boundaries deserve emphasis because they are easy to get wrong:
 
 ### T4 · Credential stuffing / automated account creation
 **Impact: Medium.** Directly enables referral fraud (T13).
-**Mitigation:** rate limiting per IP **and per account**; email verification required before entitlement accrues. `[ASSUMPTION]` CAPTCHA on registration if abuse is observed; bot mitigation on registration is not built.
+**Mitigation:** rate limiting per IP **and per account**; **a unique phone number per account**. `[ASSUMPTION]` CAPTCHA on registration if abuse is observed; bot mitigation on registration is not built.
+
+> **Corrected 2026-09-08.** This line used to read *"email verification required before entitlement accrues"*. **There is no email verification.** Registration asks for a phone number and nothing about the address, and the control that replaces a proven mailbox is that a phone number can back exactly one account. That is a real cost to an attacker and a weaker guarantee than it looks: uniqueness is enforced, **ownership is not** (`M-29`, no OTP). → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
+
+> **A free-turns loop created by the same decision, and closed with it.** Freeing an address makes "create a new account" repeatable from one Google login: change the address, sign in at the old one, get a fresh `UserId`, repeat. A welcome grant keyed `grant:{userId}` would pay every turn of that loop forever. The grant for a socially-created account is therefore keyed on the **provider subject** — `grant:sso:{provider}:{subject}` — which does not change, so the ledger pays it once. It is also recorded *after* the identity row is attached, so a lost attach race cannot strand an account holding a grant. This mitigation exists because of `ADR-0018`; it was not needed before it.
 
 **Two controls, and they are complements rather than alternatives.** The HTTP limiter partitions on IP and its bound is deliberately loose — 120/minute — because Vietnamese carrier NAT and any school or office put many legitimate users behind one address, and a tight per-IP limit is a self-inflicted outage that looks exactly like the attack it was meant to stop. Credential stuffing is designed to slip under exactly that kind of limit by spreading a few guesses per account across many accounts and many addresses.
 
@@ -79,7 +90,23 @@ So the account-side control is separate: `ILoginThrottle` locks an address for 1
 
 ### T5 · Password attacks
 **Impact: Medium.**
-**Mitigation:** modern memory-hard hashing (Argon2id); no arbitrary composition rules; constant-time comparison; a per-address lockout after 10 consecutive failures (see T4); password reset tokens single-use, short-lived, and invalidating existing sessions.
+**Mitigation:** modern memory-hard hashing (Argon2id); no arbitrary composition rules; constant-time comparison; a per-handle lockout after 10 consecutive failures (see T4).
+
+> **The email reset channel is gone, 2026-09-08.** This line used to end *"password reset tokens single-use, short-lived, and invalidating existing sessions"*. `/auth/forgot-password` and `/auth/reset-password` no longer exist, and neither does the mail infrastructure that carried them. The lockout key is now whatever the person typed into the single `identifier` field — an address or a phone number — not an address.
+
+#### T5a · Privilege escalation through the operator password reset `[TECHNICAL RISK]`
+**Impact: High. New 2026-09-08.** Password recovery is now a human process: the learner is given a Zalo contact link and an operator resets the password through `POST /api/v1/admin/users/{userId}/password`. **Whoever holds that permission can take over any account in the system, including an administrator's**, and the only proof of identity is whatever the operator did on Zalo — which is outside the product and outside its audit log.
+
+**Mitigation, as built:**
+- A **separate permission key**, `user.reset-password`, not folded into `user.manage`; seeded on `Admin` only, deliberately not on `Support`.
+- **Self-reset is refused.** Without this the endpoint doubles as a way for a stolen admin session to set a password without knowing the current one — the exact prompt `POST /me/password` exists to enforce.
+- **Every session of the target is revoked**, so the reset is visible to the account holder rather than silent.
+- **Audited** as `AuditAction.UserPasswordReset`, with the actor.
+
+**Not mitigated, and named rather than implied:**
+- **No dedicated rate limit.** The route inherits the admin group's `InSessionRead` policy and nothing tighter, so one compromised operator session can walk the user table.
+- **No second-person approval**, and no record of *why* a reset was performed — the Zalo conversation is the only evidence that the person asking was the account holder. `[OPEN QUESTION]` whether operations needs a documented identity check before a reset.
+→ [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md), `AU-10`
 
 `[OPEN QUESTION]` **Screening against known-breached password lists is specified here and not implemented.** It needs either a bundled corpus or a k-anonymity range query to an external service — the second is a third-party dependency in the sign-up path and interacts with `B-2`.
 
@@ -126,8 +153,10 @@ So the account-side control is separate: `ILoginThrottle` locks an address for 1
 ## Rewards and referrals
 
 ### T13 · Referral fraud
-**Impact: Medium.** Self-referral with disposable emails, referral rings, automated signups.
-**Mitigation:** signed referral codes; attribution stays `pending` until the referred user verifies their email; one attribution per referred user, permanently; velocity limits per referrer; append-only ledger for auditability; disposable-domain screening. `[ASSUMPTION]`
+**Impact: Medium.** Self-referral with disposable identities, referral rings, automated signups.
+**Mitigation:** signed referral codes; **one account per phone number**; one attribution per referred user, **set once and never movable** (`User.AttributeReferral` refuses both a re-attribution and a self-referral); append-only ledger for auditability; velocity limits per referrer. `[ASSUMPTION]`
+
+> **Corrected 2026-09-08.** This entry used to say *"attribution stays `pending` until the referred user verifies their email"*, and to rely on disposable-domain screening. **Neither exists.** There is no email verification, so the reward is paid at registration (`P-16`, `AU-10`) and the disposable mailbox is no longer the cheap identity to screen — the unique phone number is what makes a referral ring cost something. Uniqueness is enforced; ownership is not (`M-29`). The ledger carries two actions, `referral.verified` (historical) and `referral.qualified` (current), because it is append-only. → [ADR-0018](../decisions/0018-email-as-a-movable-account-label.md)
 
 ### T14 · Reward gaming via unverifiable share claims
 **Impact: Medium — and structurally unfixable.** No platform reports share completion ([R1](../requirements/risks-and-dependencies.md#r1)), so any share-based reward is inherently claimable without sharing.

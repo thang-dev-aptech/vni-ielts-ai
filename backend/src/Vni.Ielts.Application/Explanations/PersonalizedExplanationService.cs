@@ -22,7 +22,8 @@ public sealed record ExplanationContentView(
     string CorrectAnswer,
     string ShortReason,
     IReadOnlyList<string> Evidence,
-    string? CommonMistake);
+    string? CommonMistake,
+    string? Translation);
 
 /// <summary>
 /// On-demand personalized explanations after submit. Quota enforced by rate
@@ -38,6 +39,21 @@ public sealed class PersonalizedExplanationService(
     Usage.UsageRecorder? usage = null)
 {
     public const int MaxAttempts = 3;
+
+    /// <summary>
+    /// A job still "Running" after this long is dead, not busy.
+    ///
+    /// <b><c>[QUYẾT ĐỊNH kỹ thuật]</c></b> The provider call happens inside the
+    /// learner's own HTTP request, so a job is only ever Running for as long
+    /// as one call takes — and the explanation HttpClient is clamped to at
+    /// most 300 s. A record older than that with no outcome belongs to a
+    /// process that was killed mid-call (a deploy, a crash, a dev restart),
+    /// and before this seam existed it made the question say "Đang tạo giải
+    /// thích…" forever, because every later request found it Running and
+    /// returned it untouched. Past this window the request runs the job
+    /// again; the cost of being wrong is one duplicate provider call.
+    /// </summary>
+    public static readonly TimeSpan StaleRunningAfter = TimeSpan.FromMinutes(5);
 
     public async Task<PersonalizedExplanationView> RequestAsync(
         RequestPersonalizedExplanationCommand command, CancellationToken ct)
@@ -83,10 +99,12 @@ public sealed class PersonalizedExplanationService(
         if (existing is { State: ExplanationJobState.Failed } failed && failed.Attempts >= MaxAttempts)
             return ToView(failed);
 
-        if (existing is { State: ExplanationJobState.Pending or ExplanationJobState.Running })
+        var now = clock.UtcNow;
+
+        if (existing is { State: ExplanationJobState.Pending or ExplanationJobState.Running }
+            && now - (existing.StartedAt ?? existing.CreatedAt) < StaleRunningAfter)
             return ToView(existing);
 
-        var now = clock.UtcNow;
         var job = existing ?? new PersonalizedExplanationJob(
             operationId,
             session.Id,
@@ -103,7 +121,11 @@ public sealed class PersonalizedExplanationService(
 
         if (existing is null)
         {
-            if (!await store.TryInsertAsync(job with { State = ExplanationJobState.Running }, ct))
+            // The first provider call is attempt one. Left at zero, the cap
+            // of three allowed a fourth call — the job went Running with
+            // `Attempts: 0`, failed at 0, and only the retries were counted.
+            job = job with { State = ExplanationJobState.Running, Attempts = 1, StartedAt = now };
+            if (!await store.TryInsertAsync(job, ct))
             {
                 var raced = await store.FindByOperationAsync(operationId, ct);
                 return raced is null
@@ -113,7 +135,13 @@ public sealed class PersonalizedExplanationService(
         }
         else
         {
-            job = job with { State = ExplanationJobState.Running, Attempts = job.Attempts + 1 };
+            job = job with
+            {
+                State = ExplanationJobState.Running,
+                Attempts = job.Attempts + 1,
+                StartedAt = now,
+                Error = null,
+            };
             await store.UpdateAsync(job, ct);
         }
 
@@ -133,11 +161,12 @@ public sealed class PersonalizedExplanationService(
                 new ExplanationGenerationRequest(
                     section.Module,
                     question.Id,
-                    question.Prompt ?? string.Empty,
+                    ExplanationQuestionText.Compose(question),
                     expected,
                     safeSubmitted,
                     source.PassageBody ?? source.Transcript,
-                    Personalized: true),
+                    Personalized: true,
+                    QuestionOptions: ExplanationPromptSafety.FormatOptions(question.Options)),
                 ct);
 
             // The generator was asked, so the ledger records a use whether or
@@ -198,13 +227,43 @@ public sealed class PersonalizedExplanationService(
             await store.UpdateAsync(timedOut, ct);
             return ToView(timedOut);
         }
+        catch (OperationCanceledException)
+        {
+            // The learner's request went away mid-call — a closed tab, a
+            // navigation. The job must not stay Running: the next request
+            // for this question would find it and wait on nothing. Written
+            // with no token, because the one we were given is the cancelled
+            // one.
+            await store.UpdateAsync(
+                job with
+                {
+                    State = ExplanationJobState.Failed,
+                    Error = "EXPLANATION_REQUEST_ABORTED",
+                    CompletedAt = now,
+                },
+                CancellationToken.None);
+            throw;
+        }
     }
 
     public static IReadOnlyList<QuestionExplanationStatusView> ProjectStatuses(
         ExamVersion version,
         IReadOnlyList<PersonalizedExplanationJob> jobs)
     {
-        var byQuestion = jobs.ToDictionary(j => j.QuestionId, j => j);
+        /*
+         * One job per question, chosen rather than assumed. A question can
+         * hold several jobs — one per operation id, one per answer hash —
+         * and `ToDictionary` threw on the second, which took the whole
+         * results page down with a 500. A Ready job outranks any other;
+         * among the rest the newest is the one the learner is waiting on.
+         */
+        var byQuestion = jobs
+            .GroupBy(j => j.QuestionId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderByDescending(j => j.State == ExplanationJobState.Ready)
+                      .ThenByDescending(j => j.StartedAt ?? j.CreatedAt)
+                      .First());
         var statuses = new List<QuestionExplanationStatusView>();
 
         foreach (var section in version.Sections.Where(s =>
@@ -281,7 +340,7 @@ public sealed class PersonalizedExplanationService(
 
     private static ExplanationContentView ToContent(QuestionExplanation explanation) =>
         new(explanation.CorrectAnswer ?? string.Empty, explanation.ShortReason, explanation.Evidence,
-            explanation.CommonMistake);
+            explanation.CommonMistake, explanation.Translation);
 
     private static PersonalizedExplanationView ToView(PersonalizedExplanationJob job) =>
         ToView(job.QuestionId, job.State, job.Attempts, SafeReason(job),
@@ -289,7 +348,8 @@ public sealed class PersonalizedExplanationService(
                 job.Content.CorrectAnswer,
                 job.Content.ShortReason,
                 job.Content.Evidence,
-                job.Content.CommonMistake));
+                job.Content.CommonMistake,
+                job.Content.Translation));
 
     private static PersonalizedExplanationView ToView(
         string questionId,
@@ -305,6 +365,11 @@ public sealed class PersonalizedExplanationService(
             ExplanationJobState.Ready => null,
             ExplanationJobState.Pending or ExplanationJobState.Running =>
                 "Đang tạo giải thích cá nhân.",
+            // The cap is final: RequestAsync returns the failed job without
+            // another provider call, so a "try again" message here would invite
+            // a retry that can never succeed.
+            ExplanationJobState.Failed when job.Attempts >= MaxAttempts =>
+                $"Đã thử {job.Attempts} lần nhưng chưa tạo được giải thích cho câu này.",
             ExplanationJobState.Failed when job.Error == "EXPLANATION_PROVIDER_TIMEOUT" =>
                 "Giải thích chưa sẵn sàng do hệ thống bận. Bạn có thể thử lại.",
             ExplanationJobState.Failed => "Giải thích chưa sẵn sàng. Bạn có thể thử lại.",
