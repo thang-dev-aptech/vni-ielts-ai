@@ -26,8 +26,21 @@ internal sealed class MongoContentRightsRegistry(MongoContext context) : IConten
     /// across an edit.
     /// </summary>
     public async Task<ContentSource?> FindForExamAsync(
-        ExamVersionId examVersionId, ExamDefinitionId examDefinitionId, CancellationToken ct)
+        ExamVersionId examVersionId, ExamDefinitionId examDefinitionId,
+        ContentSourceId? contentSourceId, CancellationToken ct)
     {
+        if (contentSourceId is { } explicitId)
+        {
+            var explicitDoc = await context.ContentSources
+                .Find(s => s.Id == explicitId.Value)
+                .FirstOrDefaultAsync(ct);
+
+            // An explicit source that is not in the registry is a miss.
+            // Do not fall back to a different bound source — that would
+            // publish under the wrong rights record.
+            return explicitDoc?.ToDomain();
+        }
+
         var filter = Builders<ContentSourceDocument>.Filter.Or(
             Builders<ContentSourceDocument>.Filter.AnyEq(s => s.ExamVersionIds, examVersionId.Value),
             Builders<ContentSourceDocument>.Filter.AnyEq(

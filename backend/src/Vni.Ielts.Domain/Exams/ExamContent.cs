@@ -1,4 +1,5 @@
 using Vni.Ielts.Domain.Common;
+using Vni.Ielts.Domain.Content;
 
 namespace Vni.Ielts.Domain.Exams;
 
@@ -68,13 +69,15 @@ public sealed class ExamVersion
         string title, ExamVariant variant, ExamVersionStatus status,
         DateTimeOffset? publishedAt, ScoringProfile scoring, TimingProfile timing,
         IReadOnlyList<Section> sections, IReadOnlyList<ExamModule> moduleSequence,
-        ListeningPlaybackProfile? listeningPlayback, string? description, UserId? authorId)
+        ListeningPlaybackProfile? listeningPlayback, string? description, UserId? authorId,
+        ContentSourceId? contentSourceId)
     {
         Id = id; DefinitionId = definitionId; VersionNumber = versionNumber;
         Title = title; Description = description;
         Variant = variant; Status = status; PublishedAt = publishedAt;
         Scoring = scoring; Timing = timing; Sections = sections;
         ModuleSequence = moduleSequence; AuthorId = authorId;
+        ContentSourceId = contentSourceId;
         ListeningPlayback = listeningPlayback ?? ListeningPlaybackProfile.Conservative;
     }
 
@@ -118,6 +121,18 @@ public sealed class ExamVersion
     /// simply lets the approval through. → `[OPEN QUESTION]`, S7 report
     /// </summary>
     public UserId? AuthorId { get; }
+
+    /// <summary>
+    /// The content-rights source this paper was built from, when the package
+    /// named one. Provenance, not permission — a matching registry row is
+    /// still required before learners may sit it.
+    ///
+    /// <b>Null is a supported state.</b> Legacy versions, blank CMS drafts,
+    /// and format 1.0 packages carry no source id. The publish gate then
+    /// falls back to exam-version / exam-definition bindings.
+    /// </summary>
+    public ContentSourceId? ContentSourceId { get; }
+
     public ScoringProfile Scoring { get; private set; }
     public TimingProfile Timing { get; private set; }
     public ListeningPlaybackProfile ListeningPlayback { get; }
@@ -138,13 +153,14 @@ public sealed class ExamVersion
         ListeningPlaybackProfile? listeningPlayback = null,
         IReadOnlyList<ExamModule>? declaredSequence = null,
         string? description = null,
-        UserId? authorId = null)
+        UserId? authorId = null,
+        ContentSourceId? contentSourceId = null)
     {
         var present = sections.Select(s => s.Module).ToHashSet();
         var sequence = SequenceProfile.Resolve(declaredSequence, present);
         return new(ExamVersionId.New(), definitionId, versionNumber, title, variant,
             ExamVersionStatus.Draft, null, scoring, timing, sections, sequence,
-            listeningPlayback, description, authorId);
+            listeningPlayback, description, authorId, contentSourceId);
     }
 
     /// <summary>
@@ -166,7 +182,8 @@ public sealed class ExamVersion
             ListeningPlaybackProfile.Conservative,
             null,
             null,
-            authorId);
+            authorId,
+            contentSourceId: null);
 
     /// <summary>
     /// Replaces the whole content tree from the CMS authoring workspace.
@@ -191,12 +208,14 @@ public sealed class ExamVersion
         ListeningPlaybackProfile? listeningPlayback = null,
         IReadOnlyList<ExamModule>? moduleSequence = null,
         string? description = null,
-        UserId? authorId = null)
+        UserId? authorId = null,
+        ContentSourceId? contentSourceId = null)
     {
         var present = sections.Select(s => s.Module).ToHashSet();
         var sequence = moduleSequence ?? SequenceProfile.Resolve(null, present);
         return new(id, definitionId, versionNumber, title, variant, status, publishedAt,
-            scoring, timing, sections, sequence, listeningPlayback, description, authorId);
+            scoring, timing, sections, sequence, listeningPlayback, description, authorId,
+            contentSourceId);
     }
 
     public void Publish(DateTimeOffset now)

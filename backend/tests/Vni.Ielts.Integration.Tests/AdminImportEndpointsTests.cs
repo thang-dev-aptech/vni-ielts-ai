@@ -200,6 +200,21 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     }
 
     [SkippableFact]
+    public async Task Uploaded_package_keeps_the_json_content_source_id_on_the_draft_version()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadDraftAsync(client, access);
+
+        using var scope = app.Services.CreateScope();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+        var draft = await drafts.FindAsync(Guid.Parse(draftId), default);
+
+        Assert.Equal("synthetic-validation", draft!.Version.ContentSourceId?.Value);
+    }
+
+    [SkippableFact]
     public async Task A_compression_bomb_is_refused_before_anything_is_persisted()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);

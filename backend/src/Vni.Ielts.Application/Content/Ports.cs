@@ -17,17 +17,22 @@ public interface IContentRightsRegistry
     /// <summary>
     /// The source an exam was built from, or <c>null</c>.
     ///
-    /// <b>Both ids, because a version id follows the content.</b> The seeder
-    /// derives a version id from a fingerprint of the paper, so a corrected
-    /// typo mints a new one; the definition id survives that. A record bound
-    /// to either matches.
+    /// <b>An explicit content-source id wins.</b> When the exam names a
+    /// source, lookup is by that id only — a stale binding on another
+    /// registry row must not cover it. When the exam has no source id
+    /// (legacy / blank drafts), either binding array still matches: a
+    /// version id follows the content, and the definition id survives an
+    /// edit.
     ///
     /// <b><c>null</c> is a normal answer, not an error.</b> An exam that
     /// reached the catalogue by a route the registry does not know about
     /// resolves to nothing here — and nothing is refused. → <see cref="ContentPublishGuard"/>
     /// </summary>
     Task<ContentSource?> FindForExamAsync(
-        ExamVersionId examVersionId, ExamDefinitionId examDefinitionId, CancellationToken ct);
+        ExamVersionId examVersionId,
+        ExamDefinitionId examDefinitionId,
+        ContentSourceId? contentSourceId,
+        CancellationToken ct);
 
     Task<IReadOnlyList<ContentSource>> ListAsync(CancellationToken ct);
 

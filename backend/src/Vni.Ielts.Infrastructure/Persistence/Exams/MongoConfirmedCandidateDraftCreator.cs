@@ -52,8 +52,6 @@ internal sealed class MongoConfirmedCandidateDraftCreator(
         }
 
         var builtVersion = readResult.Version;
-        // Main names the ownership field AuthorId (feature used CreatedBy).
-        // ContentSource is not on main's ExamVersion — drop it at this boundary.
         var draft = ExamVersion.CreateDraft(
             builtVersion.DefinitionId,
             builtVersion.VersionNumber,
@@ -65,7 +63,8 @@ internal sealed class MongoConfirmedCandidateDraftCreator(
             builtVersion.ListeningPlayback,
             builtVersion.ModuleSequence,
             builtVersion.Description,
-            authorId: request.CreatedBy);
+            authorId: request.CreatedBy,
+            contentSourceId: builtVersion.ContentSourceId);
 
         using var session = await context.Database.Client.StartSessionAsync(cancellationToken: ct);
 

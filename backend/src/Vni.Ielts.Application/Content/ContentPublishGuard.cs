@@ -22,11 +22,24 @@ public sealed class ContentPublishGuard(IContentRightsRegistry registry, IClock 
     public async Task<ContentRightsDecision> MayPublishToLearnersAsync(
         ExamVersion version, CancellationToken ct)
     {
-        var source = await registry.FindForExamAsync(version.Id, version.DefinitionId, ct);
+        var source = await registry.FindForExamAsync(
+            version.Id, version.DefinitionId, version.ContentSourceId, ct);
 
         // The clock is the server's. Expiry decided from a client-supplied
         // time would be a client-supplied licence. → CLAUDE.md rule 1
-        return ContentRightsPolicy.Evaluate(
+        var decision = ContentRightsPolicy.Evaluate(
             source, ContentEnvironment.LearnerProduction, clock.UtcNow);
+
+        // Policy still refuses a missing registry row. Annotate with the
+        // exam's requested source so the 409 names what was looked up.
+        if (!decision.Allowed
+            && decision.Denial == ContentRightsDenial.NoRegistryEntry
+            && version.ContentSourceId is { } requested)
+        {
+            return ContentRightsDecision.Refuse(
+                ContentRightsDenial.NoRegistryEntry, requested, decision.Explanation);
+        }
+
+        return decision;
     }
 }

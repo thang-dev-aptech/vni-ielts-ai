@@ -129,4 +129,31 @@ public sealed class ExamResponseSlotMappingTests
 
         Assert.Equal(ListeningPlaybackProfile.Conservative, roundTrip.ListeningPlayback);
     }
+
+    [Fact]
+    public void Content_source_id_round_trips_and_a_legacy_missing_field_maps_to_null()
+    {
+        var original = V2();
+        Assert.Equal("synthetic-mapping", original.ContentSourceId?.Value);
+
+        var roundTrip = original.ToDocument().ToDomain();
+        Assert.Equal("synthetic-mapping", roundTrip.ContentSourceId?.Value);
+
+        var legacy = original.ToDocument();
+        legacy.ContentSourceId = null;
+        Assert.Null(legacy.ToDomain().ContentSourceId);
+    }
+
+    [Fact]
+    public void Changing_only_the_content_source_id_changes_the_fingerprint()
+    {
+        var original = V2();
+        var retargeted = ExamVersion.Rehydrate(
+            original.Id, original.DefinitionId, original.VersionNumber, original.Title, original.Variant,
+            original.Status, original.PublishedAt, original.Scoring, original.Timing, original.Sections,
+            original.ListeningPlayback, original.ModuleSequence, original.Description, original.AuthorId,
+            new Vni.Ielts.Domain.Content.ContentSourceId("source-b"));
+
+        Assert.NotEqual(original.ContentFingerprint(), retargeted.ContentFingerprint());
+    }
 }

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
 using Vni.Ielts.Domain.Common;
+using Vni.Ielts.Domain.Content;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Infrastructure.Content;
@@ -371,7 +372,18 @@ public sealed class ExamPackageReader(JsonSchema schema)
              * title, and normalising it here means no consumer has to remember.
              */
             Blank(root["description"]?.GetValue<string>()),
-            authorId: authorId);
+            authorId: authorId,
+            contentSourceId: ReadContentSourceId(root));
+    }
+
+    /// <summary>
+    /// Provenance from the package, after schema validation. Never derived
+    /// from a path, hash, or filename.
+    /// </summary>
+    private static ContentSourceId? ReadContentSourceId(JsonObject root)
+    {
+        var sourceId = Blank(root["contentSourceRef"]?["sourceId"]?.GetValue<string>());
+        return sourceId is null ? null : new ContentSourceId(sourceId);
     }
 
     /// <summary>Null for absent, empty or whitespace-only text.</summary>

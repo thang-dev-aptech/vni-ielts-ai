@@ -56,6 +56,16 @@ internal sealed class ExamVersionDocument
     [BsonIgnoreIfNull]
     public string? AuthorId { get; set; }
 
+    /// <summary>
+    /// Provenance of the paper — the content-source id named in the package.
+    /// Absent on every document written before this field existed; BSON
+    /// deserialises a missing element to null, which is the supported
+    /// legacy state.
+    /// </summary>
+    [BsonElement("contentSourceId")]
+    [BsonIgnoreIfNull]
+    public string? ContentSourceId { get; set; }
+
     [BsonElement("timing")]
     public TimingDocument Timing { get; set; } = new();
 
