@@ -338,6 +338,49 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
     }
 
     [Fact]
+    public async Task A_root_manifest_and_exam_json_pair_is_accepted_as_the_structured_route()
+    {
+        // The same manifest.json + exam.json shape /admin/packages
+        // (PackageStructuralValidator) already accepts — one ZIP format
+        // regardless of which screen imports it.
+        var archive = Build(File("manifest.json", "{}"), File("exam.json", "{}"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.True(result.IsAcceptable, Describe(result));
+        Assert.Empty(result.Findings);
+        Assert.Equal(["exam.json"], result.Layout.AcceptedEntries);
+    }
+
+    [Fact]
+    public async Task A_root_manifest_paired_with_a_non_json_file_does_not_take_the_shortcut()
+    {
+        // Structural, not content-based (the class stays blind to content):
+        // the second root file must itself end in .json, or this falls back
+        // to the ordinary unknown-entry handling.
+        var archive = Build(File("manifest.json", "{}"), File("notes.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.False(result.IsAcceptable);
+        Assert.Contains(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutEmpty && f.Severity == Error);
+    }
+
+    [Fact]
+    public async Task Three_root_json_files_do_not_take_the_manifest_shortcut()
+    {
+        // Only exactly two root files (manifest.json + one other) is
+        // unambiguous. A third root file falls back to ordinary handling
+        // rather than guessing which of the others is the real exam file.
+        var archive = Build(File("manifest.json", "{}"), File("exam.json", "{}"), File("extra.json", "{}"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.False(result.IsAcceptable);
+        Assert.Contains(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutEmpty && f.Severity == Error);
+    }
+
+    [Fact]
     public async Task Every_finding_is_reported_at_once_not_just_the_first()
     {
         var archive = Build(File("../a.txt"), File("reading/CON.txt"), File("reading/x.zip"));

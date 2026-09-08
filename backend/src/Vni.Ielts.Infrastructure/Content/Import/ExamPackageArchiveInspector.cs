@@ -173,6 +173,7 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var bySkill = new Dictionary<ExamModule, List<string>>();
             var unknown = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var rootFiles = new List<string>();
 
             foreach (var entry in entries)
             {
@@ -197,8 +198,35 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                 }
                 else
                 {
+                    if (segments.Length == 1) rootFiles.Add(segments[0]);
                     var key = segments.Length == 1 ? segments[0] : segments[0] + "/";
                     unknown[key] = unknown.GetValueOrDefault(key) + 1;
+                }
+            }
+
+            // ── Second accepted shape: manifest.json + exam.json at the root ──
+            // The same layout `/admin/packages` (PackageStructuralValidator)
+            // already accepts, so a package author learns one ZIP format
+            // regardless of which screen imports it. Deliberately structural,
+            // not content-based — this class stays "blind to content" (see the
+            // class remarks): manifest.json's own bytes are never opened here,
+            // only the fact that exactly two root files exist and one is named
+            // manifest.json. The other file is handed to the existing
+            // single-file structured route unchanged; that route (and
+            // ExamPackageReader beneath it) is what actually reads and
+            // validates its content, same as it always has.
+            if (bySkill.Count == 0 && rootFiles.Count == 2)
+            {
+                var manifestName = rootFiles.FirstOrDefault(
+                    p => string.Equals(p, "manifest.json", StringComparison.OrdinalIgnoreCase));
+                var examName = rootFiles.FirstOrDefault(p => p != manifestName);
+
+                if (manifestName is not null && examName is not null
+                    && examName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    bySkill[ExamModule.Reading] = [examName];
+                    unknown.Remove(manifestName);
+                    unknown.Remove(examName);
                 }
             }
 
