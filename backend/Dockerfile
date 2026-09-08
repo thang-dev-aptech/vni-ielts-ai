@@ -22,7 +22,7 @@
 # manager and the source it built from; none of that belongs in a running
 # container. The runtime image carries the framework and the published output.
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:e1ffd2a92ae84c1291bc1b6887501f8af98e6331e7af6d4c8d37168c5e87a64c AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:4beef5b8919dcaa2dc924233bd069257e883cc7a061e09088a97d152d6a48510 AS build
 WORKDIR /src
 
 # Restore before copying the rest, so a change to a .cs file does not
