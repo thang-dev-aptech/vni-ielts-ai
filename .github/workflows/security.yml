@@ -65,7 +65,7 @@ jobs:
         language: ['csharp', 'javascript-typescript']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v4
         if: matrix.language == 'csharp'
@@ -123,7 +123,7 @@ jobs:
       pull-requests: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # <b>Full history, not just the tip.</b> A credential deleted in a
           # later commit is still in the repository and still valid until it is
@@ -153,7 +153,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
@@ -201,7 +201,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Only the runtime images are scanned. The build stages contain an SDK, a
       # package manager and the source — none of which ship — and scanning them

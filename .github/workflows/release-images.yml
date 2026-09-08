@@ -63,7 +63,7 @@ jobs:
             context: .
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Base images must be digest-pinned before anything is signed: signing an
       # image built on a moving tag attests to an artifact that cannot be

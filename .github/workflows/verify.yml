@@ -50,7 +50,7 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -309,7 +309,7 @@ jobs:
       # runner default on purpose. .gitattributes has `* text=auto eol=lf`, so
       # a correct checkout produces LF on disk whatever autocrlf says, and this
       # job is where that claim gets tested rather than assumed. → F1.4
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
