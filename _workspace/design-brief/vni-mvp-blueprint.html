@@ -1,0 +1,437 @@
+<title>VNI IELTS MVP Blueprint</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ink:#16212b; --ink-2:#41535f; --ink-3:#6d7f8a;
+  --ground:#f5f7f6; --surface:#ffffff; --surface-2:#ebefec;
+  --line:#d7ddd8; --line-soft:#e6ebe7;
+  --acc:#2867ac; --acc-soft:#e3ecf6;
+  --ok:#06803a; --ok-soft:#e0f0e5;
+  --warn:#9a5b00; --warn-soft:#f7ecd9;
+  --crit:#a3241f; --crit-soft:#f7e4e2;
+  --mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --disp:'Nunito','IBM Plex Sans',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ink:#e6ecec; --ink-2:#a9b8bd; --ink-3:#7e8f96;
+  --ground:#10171c; --surface:#182128; --surface-2:#1f2a32;
+  --line:#2e3c45; --line-soft:#26333b;
+  --acc:#7cb2e8; --acc-soft:#1b2c3d;
+  --ok:#5fc98a; --ok-soft:#12291d;
+  --warn:#e0a44a; --warn-soft:#2c2313;
+  --crit:#ee8b83; --crit-soft:#2e1917;
+}}
+:root[data-theme="dark"]{
+  --ink:#e6ecec; --ink-2:#a9b8bd; --ink-3:#7e8f96;
+  --ground:#10171c; --surface:#182128; --surface-2:#1f2a32;
+  --line:#2e3c45; --line-soft:#26333b;
+  --acc:#7cb2e8; --acc-soft:#1b2c3d;
+  --ok:#5fc98a; --ok-soft:#12291d;
+  --warn:#e0a44a; --warn-soft:#2c2313;
+  --crit:#ee8b83; --crit-soft:#2e1917;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:44px 26px 90px;display:flex;flex-direction:column;gap:40px}
+
+.mast{display:flex;flex-direction:column;gap:14px;padding-bottom:26px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(31px,4.8vw,48px);line-height:1.05;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.deck{font-size:18px;color:var(--ink-2);max-width:62ch;margin:0}
+.mast-meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.mast-meta b{color:var(--ink-2);font-weight:500}
+
+section{display:flex;flex-direction:column;gap:16px}
+.sec-head{display:flex;gap:14px;align-items:baseline;border-top:1px solid var(--line);padding-top:16px}
+.sec-num{font-family:var(--mono);font-size:12.5px;color:var(--acc);flex:none;padding-top:5px}
+h2{font-family:var(--disp);font-weight:800;font-size:clamp(22px,2.8vw,29px);line-height:1.15;letter-spacing:-.015em;margin:0;text-wrap:balance}
+h3{font-family:var(--disp);font-weight:700;font-size:17px;margin:0}
+h4{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0;font-weight:500}
+p{margin:0;max-width:72ch}
+section p+p{margin-top:.6em}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface-2);padding:.1em .34em;border-radius:2px}
+strong{font-weight:600}
+
+.tw{overflow-x:auto;border:1px solid var(--line-soft);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:540px;font-size:14px}
+th{text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:500;padding:10px 13px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface-2)}
+td{padding:10px 13px;border-bottom:1px solid var(--line-soft);vertical-align:top;line-height:1.48}
+tr:last-child td{border-bottom:none}
+td.nm{font-weight:600}
+td.mono{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:2px;white-space:nowrap;font-weight:500}
+.chip::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;flex:none}
+.c-keep{color:var(--ok);background:var(--ok-soft)}
+.c-edit{color:var(--warn);background:var(--warn-soft)}
+.c-new{color:var(--acc);background:var(--acc-soft)}
+.c-out{color:var(--ink-3);background:var(--surface-2)}
+.c-stop{color:var(--crit);background:var(--crit-soft)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:13px;color:var(--ink-2)}
+
+.tree{background:var(--surface);border:1px solid var(--line-soft);padding:18px 20px;overflow-x:auto}
+.tree pre{font-family:var(--mono);font-size:12.8px;line-height:1.75;margin:0;color:var(--ink)}
+.tree .t-new{color:var(--acc);font-weight:500}
+.tree .t-note{color:var(--ink-3)}
+.tree h4{margin-bottom:8px}
+.tree-split{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:16px}
+
+.card{background:var(--surface);border:1px solid var(--line-soft);padding:16px 18px;display:flex;flex-direction:column;gap:9px}
+.card.warn{border-left:3px solid var(--warn)}
+.card.crit{border-left:3px solid var(--crit)}
+.card.acc{border-left:3px solid var(--acc)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+
+.flowline{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;background:var(--surface);border:1px solid var(--line-soft);padding:14px 16px;overflow-x:auto}
+.node{border:1.5px solid var(--line);padding:5px 10px;white-space:nowrap}
+.node.s1{border-color:var(--ink-3)}
+.node.s2{border-color:var(--warn);color:var(--warn)}
+.node.s3{border-color:var(--acc);color:var(--acc)}
+.node.s4{border-color:var(--ok);color:var(--ok);font-weight:500}
+.sep{color:var(--ink-3)}
+
+ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:5px;max-width:72ch}
+ol.tight{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:5px;max-width:72ch}
+
+.foot{border-top:1px solid var(--line);padding-top:18px;font-size:13px;color:var(--ink-3);max-width:72ch}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="page">
+
+<header class="mast">
+  <div class="eyebrow">Đặc tả cấu trúc · Chốt 06/09/2026 · chưa triển khai</div>
+  <h1>VNI IELTS MVP Blueprint</h1>
+  <p class="deck">22 quyết định sản phẩm (P-01…P-22, phân biệt với bộ UX D-1…D-12 ngày 04/09) đã chốt của chủ sản phẩm, dịch thành cấu trúc điều hướng, danh sách màn hình, hợp đồng dữ liệu và vòng đời nội dung.</p>
+  <div class="mast-meta">
+    <span><b>Phạm vi MVP</b> Reading · Listening · Writing</span>
+    <span><b>Speaking</b> ghi âm và lưu, chưa chấm</span>
+    <span><b>Nền tảng</b> Web trước</span>
+    <span><b>Token</b> chỉ ghi nhận, không chặn</span>
+  </div>
+</header>
+
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>22 quyết định đã chốt</h2></div>
+  <p>Nguồn: quyết định của chủ sản phẩm trong phiên làm việc 06/09/2026. Đây là bản ghi duy nhất — một quyết định chỉ nằm trong lịch sử trò chuyện thì coi như không tồn tại.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>#</th><th>Quyết định</th><th>Hệ quả kỹ thuật chính</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">P-01</td><td class="nm">MVP gồm Reading, Listening, Writing</td><td>Thi thử chạy 3 kỹ năng. <code>moduleSequence</code> nằm trong dữ liệu đề nên không cần sửa engine</td></tr>
+        <tr><td class="mono">P-02</td><td class="nm">Speaking: ghi âm và lưu, đánh dấu chưa chấm</td><td>Đường upload đã có. Cần thêm endpoint nghe lại + đặt thời hạn lưu audio</td></tr>
+        <tr><td class="mono">P-03</td><td class="nm">Web trước, app lên chợ sau</td><td>Chưa cài Capacitor. Giữ <code>plugins/speaking-audio</code> làm seam</td></tr>
+        <tr><td class="mono">P-04</td><td class="nm">Luyện tập và Thi thử là hai khu riêng</td><td><code>SessionMode</code> × <code>SessionTiming</code> đã phủ đủ, không cần khái niệm mới</td></tr>
+        <tr><td class="mono">P-05</td><td class="nm">Luyện tập có công tắc bật đồng hồ</td><td>Người dùng chọn <code>SessionTiming</code>. UI đơn giản đi: 1 nút + 1 công tắc thay vì 2 nút</td></tr>
+        <tr><td class="mono">P-06</td><td class="nm">Một layout Result/Review thống nhất mọi loại bài</td><td>Thiếu 3 mảnh API — xem mục 05</td></tr>
+        <tr><td class="mono">P-07</td><td class="nm">Trên: điểm + biểu đồ + chỉ số theo loại bài</td><td><code>SectionResultView</code> đã có <code>rawScore</code>, <code>accuracy</code>, <code>band</code></td></tr>
+        <tr><td class="mono">P-08</td><td class="nm">Dưới: 2 cột — trái đề, phải review</td><td>Cột trái chưa có nguồn dữ liệu sau khi nộp</td></tr>
+        <tr><td class="mono">P-09</td><td class="nm">Writing hiển thị 4 tiêu chí</td><td><code>CriterionAssessmentView</code> đủ dữ liệu. Không cần API mới</td></tr>
+        <tr><td class="mono">P-10</td><td class="nm">Luôn hiện đáp án đúng sau khi nộp</td><td>Code đã làm đúng. Kéo theo: phải ra đề mới liên tục</td></tr>
+        <tr><td class="mono">P-11</td><td class="nm">Band R/L chỉ hiện khi bảng quy đổi đã xác minh</td><td><code>bandTableProvenance</code> đã có sẵn trong schema</td></tr>
+        <tr><td class="mono">P-12</td><td class="nm">Writing Task 1 : Task 2 = 1 : 2</td><td>Band Writing = (T1 + T2×2)/3, làm tròn bất đối xứng. <b>Gỡ chặn Writing</b></td></tr>
+        <tr><td class="mono">P-13</td><td class="nm">Rubric là framework 4 tiêu chí, không tuyên bố là chấm IELTS chính thức</td><td>Hết rủi ro bản quyền descriptor. Thành luật UI: mọi band Writing phải có nhãn "AI ước tính"</td></tr>
+        <tr><td class="mono">P-14</td><td class="nm">Token: giai đoạn 1 chỉ ghi nhận, không chặn</td><td>Không cần trừ nguyên tử, không cần màn hết lượt. Nhưng phải ghi dạng sổ cái</td></tr>
+        <tr><td class="mono">P-15</td><td class="nm">10 lượt miễn phí cho người mới</td><td>Hiển thị và trừ dần; hết vẫn dùng được</td></tr>
+        <tr><td class="mono">P-16</td><td class="nm">Kiếm token: đăng nhập hằng ngày + giới thiệu qua link</td><td>Share thuần không xác minh được — thưởng theo lượt đăng ký qua link, tính khi xác thực email xong</td></tr>
+        <tr><td class="mono">P-17</td><td class="nm">Chưa bán thương mại</td><td>Bỏ hẳn cổng thanh toán, hoá đơn, hoàn tiền khỏi MVP</td></tr>
+        <tr><td class="mono">P-18</td><td class="nm">Nhập đề bằng ZIP có 4 thư mục theo kỹ năng</td><td>Tên thư mục xác định kỹ năng. Thiếu thư mục = gói một phần, schema đã cho phép</td></tr>
+        <tr><td class="mono">P-19</td><td class="nm">Thiếu transcript = cảnh báo, admin quyết</td><td>Cần tách <code>blocking</code>/<code>warning</code> + ghi nhật ký ai bỏ qua cảnh báo nào</td></tr>
+        <tr><td class="mono">P-20</td><td class="nm">Soạn → người khác duyệt → admin xuất bản</td><td>Cần 2 trạng thái mới, 1 quyền server mới, 4 mục nhật ký mới</td></tr>
+        <tr><td class="mono">P-21</td><td class="nm">Chỉ publish nội dung VNI sở hữu hoặc đã xác nhận quyền</td><td><b>Code đã cưỡng chế sẵn.</b> Hai gói hiện tại giữ ở mức nội bộ</td></tr>
+        <tr><td class="mono">P-22</td><td class="nm">Documents/Articles là thư viện độc lập</td><td>2 collection riêng. Chừa trường <code>relatedExamIds</code> để null</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Cấu trúc điều hướng đích</h2></div>
+  <p><strong>Một khung cho khách, một khung sau khi đăng nhập.</strong> Hiện tại có ba khung và bốn trong bảy mục sidebar dẫn ra khỏi chính nó — đó là nguyên nhân đo được của cảm giác mất kiểm soát tổng quan.</p>
+  <div class="tree-split">
+    <div class="tree">
+      <h4>Khách chưa đăng nhập</h4>
+      <pre>/                     Landing
+/practice             xem được, Bắt đầu → mời đăng nhập
+/exams                xem được, thi cần đăng nhập
+/library/documents    đọc được
+/library/articles     đọc được
+/dictation            nghe thử được
+/login  /register
+/forgot-password  /reset-password
+/verify-email  /login/sso</pre>
+    </div>
+    <div class="tree">
+      <h4>Đã đăng nhập — một khung duy nhất</h4>
+      <pre><span class="t-new">/home</span>                 <span class="t-note">trang chủ người học (MỚI)</span>
+/practice             luyện từng kỹ năng
+  └ /practice/:skill
+<span class="t-new">/exams</span>                <span class="t-note">thi thử (TÁCH RA)</span>
+/library
+  ├ /documents
+  └ /articles
+/dictation
+  └ /dictation/:setId
+/progress             tiến độ + lịch sử
+<span class="t-new">/results/:sessionId</span>   <span class="t-note">layout thống nhất</span>
+<span class="t-new">/account</span>              <span class="t-note">hồ sơ, bảo mật, token</span>
+
+TOÀN MÀN HÌNH — không nav, cố ý
+<span class="t-new">/session/:sessionId</span></pre>
+    </div>
+  </div>
+  <div class="card acc">
+    <h3>Ba thay đổi cốt lõi so với hiện tại</h3>
+    <ol class="tight">
+      <li><strong>Có <code>/home</code>.</strong> Landing chỉ dành cho khách. Người đã đăng nhập không bao giờ rơi ngược về khung marketing.</li>
+      <li><strong><code>/practice</code> và <code>/exams</code> tách đôi.</strong> Hai ý định khác nhau đang chen trong một trang cùng hero, FAQ và một modal cụt.</li>
+      <li><strong>Một runner, một địa chỉ.</strong> Hai route hiện tại vốn đã trỏ về cùng một component; chế độ nằm trong dữ liệu phiên, không nằm trong URL.</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Danh sách màn hình MVP</h2></div>
+  <div class="legend">
+    <span class="chip c-keep">giữ</span><span>dùng gần như nguyên</span>
+    <span class="chip c-edit">sửa</span><span>còn lõi, đổi vai hoặc bố cục</span>
+    <span class="chip c-new">mới</span><span>chưa có</span>
+    <span class="chip c-out">ngoài MVP</span>
+  </div>
+
+  <h3>Người học</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Màn hình</th><th>Trạng thái</th><th>Việc phải làm</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">Landing <code>/</code></td><td><span class="chip c-keep">giữ</span></td><td>Chỉ phục vụ khách; bỏ nhánh hiển thị cho người đã đăng nhập</td></tr>
+        <tr><td class="nm">Trang chủ người học <code>/home</code></td><td><span class="chip c-edit">sửa</span></td><td>Từ <code>StudentDashboardPage</code>. Thêm: đang dở, học tiếp, số token còn lại</td></tr>
+        <tr><td class="nm">Luyện tập <code>/practice</code></td><td><span class="chip c-edit">sửa</span></td><td>Bỏ Full Test sang <code>/exams</code>; <b>gỡ <code>EntryTestModal</code></b>; thêm công tắc đồng hồ</td></tr>
+        <tr><td class="nm">Thi thử <code>/exams</code></td><td><span class="chip c-new">mới</span></td><td>Tách phần Full Test ra, kèm màn chuẩn bị trước khi vào</td></tr>
+        <tr><td class="nm">Runner <code>/session/:id</code></td><td><span class="chip c-keep">giữ</span></td><td>Giữ nguyên lõi autosave/timer. Chỉnh bố cục cho màn hẹp</td></tr>
+        <tr><td class="nm">Kết quả <code>/results/:id</code></td><td><span class="chip c-edit">sửa</span></td><td><b>Viết lại theo layout 2 cột.</b> Xem mục 05</td></tr>
+        <tr><td class="nm">Tiến độ <code>/progress</code></td><td><span class="chip c-keep">giữ</span></td><td>Thêm lịch sử đầy đủ, không chỉ 5 phiên gần nhất</td></tr>
+        <tr><td class="nm">Tài khoản <code>/account</code></td><td><span class="chip c-edit">sửa</span></td><td>Từ <code>ProfilePage</code>. Thêm khối token và cách kiếm token</td></tr>
+        <tr><td class="nm">Nghe chép <code>/dictation</code></td><td><span class="chip c-edit">sửa</span></td><td>Thêm lưu kết quả để áp được layout Review thống nhất</td></tr>
+        <tr><td class="nm">Thư viện <code>/library/*</code></td><td><span class="chip c-edit">sửa</span></td><td>Thay mảng cứng bằng dữ liệu thật từ API</td></tr>
+        <tr><td class="nm">Đăng nhập / đăng ký</td><td><span class="chip c-keep">giữ</span></td><td>Thêm màn "kiểm tra email" sau khi đăng ký</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Admin CMS</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Màn hình</th><th>Trạng thái</th><th>Việc phải làm</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">Users · Roles · Audit</td><td><span class="chip c-keep">giữ</span></td><td>Đã chạy trên API thật. Bổ sung ghi quyền</td></tr>
+        <tr><td class="nm">Danh sách / chi tiết đề</td><td><span class="chip c-edit">sửa</span></td><td>Thêm 2 trạng thái mới vào bộ lọc và hành động</td></tr>
+        <tr><td class="nm">Nhập đề <code>/import</code></td><td><span class="chip c-new">mới</span></td><td>Upload ZIP → theo dõi tiến trình → preview → gửi duyệt. Nút hiện đang <code>disabled</code></td></tr>
+        <tr><td class="nm">Hàng chờ duyệt</td><td><span class="chip c-new">mới</span></td><td>Màn hiện tại chạy trên <code>localStorage</code> giả — viết lại trên API thật</td></tr>
+        <tr><td class="nm">Preview đề trước khi duyệt</td><td><span class="chip c-new">mới</span></td><td>Hiện đề đã parse + danh sách cảnh báo + nút bỏ qua có ghi nhật ký</td></tr>
+        <tr><td class="nm">Documents / Articles CMS</td><td><span class="chip c-new">mới</span></td><td>CRUD + xuất bản</td></tr>
+        <tr><td class="nm">My exams · Media library · Config · Evaluations</td><td><span class="chip c-out">ngoài MVP</span></td><td>Gỡ khỏi sidebar cho tới khi làm thật</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Mô hình phiên</h2></div>
+  <p>Không cần khái niệm mới. Hai trục đã tồn tại trong domain phủ đủ bốn tổ hợp.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th></th><th><code>OpenEnded</code> — đếm lên</th><th><code>Deadline</code> — đếm ngược</th></tr></thead>
+      <tbody>
+        <tr><td class="nm"><code>Single</code><br>một kỹ năng</td><td><strong>Luyện tập</strong> — mặc định. Không áp lực, feedback chi tiết</td><td><strong>Luyện tập + bật đồng hồ</strong> — người dùng tự chọn</td></tr>
+        <tr><td class="nm"><code>Full</code><br>nhiều kỹ năng</td><td>Không dùng</td><td><strong>Thi thử</strong> — MVP chạy 3 kỹ năng theo <code>moduleSequence</code> của đề</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card warn">
+    <h3>Một câu chưa quyết: band tổng của bài thi thử 3 kỹ năng</h3>
+    <p>Band tổng IELTS là trung bình của <strong>bốn</strong> kỹ năng. Với ba kỹ năng, con số tính ra không phải band IELTS. Ba cách xử lý: không hiện band tổng, chỉ hiện band từng kỹ năng; hiện kèm nhãn rõ "ước tính 3 kỹ năng, chưa gồm Speaking"; hoặc hiện bình thường kèm chú thích nhỏ. Cần chốt trước khi làm màn kết quả.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Hợp đồng dữ liệu cho Result / Review</h2></div>
+  <p>Layout thống nhất: dải tổng quan ngang phía trên, bên dưới chia hai cột — trái là đề đã làm, phải là review của câu/task đang chọn.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Kỹ năng</th><th>Dải trên</th><th>Cột trái</th><th>Cột phải</th><th>Dữ liệu</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">Reading<br>Listening</td><td>Điểm thô, độ chính xác, biểu đồ đúng/sai/bỏ trống, band nếu bảng quy đổi đã xác minh</td><td>Đoạn văn hoặc audio + danh sách câu</td><td>Câu hỏi → đáp án của bạn → đáp án đúng → giải thích</td><td class="mono">có <code>correctAnswer</code><br>thiếu đề bài</td></tr>
+        <tr><td class="nm">Writing</td><td>Band bài + 4 tiêu chí</td><td>Đề bài + bài viết của bạn</td><td>Band từng tiêu chí → nhận xét → dẫn chứng trích từ chính bài viết</td><td class="mono">đủ</td></tr>
+        <tr><td class="nm">Speaking</td><td>Chưa chấm — trạng thái chờ</td><td>Nghe lại bản ghi</td><td>Trống cho tới khi có ASR</td><td class="mono">thiếu endpoint<br>nghe lại</td></tr>
+        <tr><td class="nm">Dictation</td><td>Số câu đúng, tỉ lệ</td><td>Câu đã nghe</td><td>Nội dung bạn gõ → đáp án đúng → từ sai</td><td class="mono">chưa lưu<br>kết quả</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid2">
+    <div class="card crit">
+      <h3>Ba mảnh còn thiếu</h3>
+      <ul class="tight">
+        <li><strong>Nội dung đề sau khi nộp.</strong> <code>QuestionResultView</code> chỉ có <code>questionId</code>, không có đề bài, đoạn văn hay các lựa chọn. <b>Đây là mảnh chặn cột trái của cả bốn loại bài.</b></li>
+        <li><strong>Endpoint nghe lại ghi âm.</strong> Hiện chỉ có upload.</li>
+        <li><strong>Transcript Speaking.</strong> Chặn bởi ASR — không sửa được bằng code.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Đã có sẵn, dùng ngay</h3>
+      <ul class="tight">
+        <li><code>SectionResultView</code>: <code>rawScore</code>, <code>maxScore</code>, <code>accuracy</code>, <code>band</code>, <code>scoreLabel</code></li>
+        <li><code>QuestionResultView</code>: <code>submitted</code>, <code>isCorrect</code>, <code>correctAnswer</code>, <code>canonicalExplanation</code></li>
+        <li><code>CriterionAssessmentView</code>: <code>criterion</code>, <code>band</code>, <code>feedback</code>, <code>evidence</code></li>
+        <li>Trạng thái chờ chấm đã có đủ mã: <code>AwaitingEvaluator</code>, <code>AwaitingRubric</code>, <code>AwaitingVoiceProvider</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">06</span><h2>Vòng đời đề và quy trình duyệt</h2></div>
+  <div class="flowline">
+    <span class="node s1">Draft</span><span class="sep">→</span>
+    <span class="node s2">InReview</span><span class="sep">→</span>
+    <span class="node s3">Approved</span><span class="sep">→</span>
+    <span class="node s4">Published</span><span class="sep">→</span>
+    <span class="node s1">Unpublished</span>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Chuyển trạng thái</th><th>Ai làm</th><th>Điều kiện</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">Draft → InReview</td><td>Người soạn</td><td>Không còn lỗi mức chặn. Cảnh báo được phép tồn tại</td></tr>
+        <tr><td class="nm">InReview → Approved</td><td>Người duyệt</td><td><strong>Bắt buộc khác người soạn</strong> — cưỡng chế ở server, không phải ẩn nút</td></tr>
+        <tr><td class="nm">InReview → Draft</td><td>Người duyệt</td><td>Trả về kèm lý do</td></tr>
+        <tr><td class="nm">Approved → Published</td><td>Admin</td><td>Phải qua cổng quyền nội dung — nguồn có <code>RightsProof</code> và được cấp mức phát hành</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid2">
+    <div class="card warn">
+      <h3>Ba thứ backend chưa có</h3>
+      <ul class="tight">
+        <li>Quyền <code>exam.review</code> — <strong>không tồn tại ở server</strong>. Màn hàng chờ duyệt của admin đang gác bằng một quyền do client tự bịa</li>
+        <li>Trạng thái <code>InReview</code> và <code>Approved</code> — hiện chỉ có Draft/Published/Unpublished</li>
+        <li>Bốn mục nhật ký: gửi duyệt, duyệt, trả về, bỏ qua cảnh báo</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Đã có sẵn và khớp</h3>
+      <ul class="tight">
+        <li><code>ImportReviewActor(CanEdit, CanReview, CanPublish)</code> — đã tách đúng ba quyền này</li>
+        <li>Vai <code>content-editor</code> <strong>cố tình không có</strong> quyền xuất bản</li>
+        <li>Cổng quyền nội dung đã cưỡng chế: không có bằng chứng quyền thì không cấp mức phát hành, và có test giữ luật này</li>
+        <li>Đề đã xuất bản là bất biến, ghi bằng vân tay nội dung SHA-256</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">07</span><h2>Pipeline nhập đề</h2></div>
+  <p>Gói tải lên có bốn thư mục theo kỹ năng; thiếu thư mục nào thì không tạo kỹ năng đó. Tên thư mục xác định kỹ năng — không cần AI đoán ở bước này.</p>
+  <div class="flowline">
+    <span class="node s1">Upload ZIP</span><span class="sep">→</span>
+    <span class="node s1">Kiểm an toàn</span><span class="sep">→</span>
+    <span class="node s1">Giải nén sandbox</span><span class="sep">→</span>
+    <span class="node s2">Trích văn bản</span><span class="sep">→</span>
+    <span class="node s2">AI phân tích</span><span class="sep">→</span>
+    <span class="node s2">Ghép đáp án</span><span class="sep">→</span>
+    <span class="node s3">Validate</span><span class="sep">→</span>
+    <span class="node s3">Preview</span><span class="sep">→</span>
+    <span class="node s3">Duyệt</span><span class="sep">→</span>
+    <span class="node s4">Publish</span>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3><span class="chip c-keep">đã có</span> Phần khó nhất</h3>
+      <ul class="tight">
+        <li>Trích văn bản docx/pdf/txt trong sandbox có giới hạn kích thước, số trang, thời gian</li>
+        <li>Parser AI trung lập nhà cung cấp</li>
+        <li>Chuẩn hoá bảng đáp án Cambridge in hai cột</li>
+        <li>Ghép đáp án theo vị trí và <strong>từ chối khi lệch</strong></li>
+        <li><strong>Chặn đáp án bịa</strong> — sinh ra từ sự cố thật: model tự chế đủ 40 đáp án cho một đề không có key, sai 5 câu</li>
+        <li>Validator schema, sổ nháp, quy trình review, đánh phiên bản bất biến</li>
+      </ul>
+    </div>
+    <div class="card crit">
+      <h3><span class="chip c-new">phải làm</span> Phần mặt tiền</h3>
+      <ul class="tight">
+        <li>Endpoint upload — hiện toàn bộ chỉ chạy được bằng dòng lệnh</li>
+        <li>Kiểm an toàn ZIP: nhận dạng byte đầu, chặn bom nén, chuẩn hoá đường dẫn chống thoát thư mục. <strong>Đã đặc tả kỹ trong tài liệu nhưng chưa viết dòng nào</strong></li>
+        <li>Phân loại lỗi chặn và cảnh báo</li>
+        <li>Luật riêng: Listening thiếu audio, Writing thiếu đề bài, thiếu transcript</li>
+        <li>Màn theo dõi tiến trình từng lô</li>
+        <li>Màn preview và nút bỏ qua cảnh báo có ghi nhật ký</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">08</span><h2>Bổ sung mô hình dữ liệu</h2></div>
+  <p>Ba thứ mới, tất cả đều là <strong>thêm</strong> chứ không sửa cái đang chạy.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Thêm</th><th>Vì sao</th><th>Lưu ý thiết kế</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">Sổ cái usage</td><td>P-14 — ghi nhận mà không chặn</td><td><strong>Sổ cái, không phải bộ đếm.</strong> Mỗi dòng: ai, lúc nào, hành động, phiên, model, token vào/ra, ước tính chi phí. Bật chặn sau này chỉ là thêm một phép kiểm tra; đi từ bộ đếm lên thì phải viết lại schema</td></tr>
+        <tr><td class="nm">Documents</td><td>P-22</td><td>Chừa <code>relatedExamIds</code> để null — nối với đề sau này không phải migration</td></tr>
+        <tr><td class="nm">Articles</td><td>P-22</td><td>Như trên. Địa chỉ theo slug, không theo id</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card warn">
+    <h3>Một cấu hình đừng để quên</h3>
+    <p>P-02 khiến hệ thống bắt đầu lưu giọng nói thật của người thật mà chưa dùng vào việc gì. Thời hạn lưu bản ghi hiện <strong>để trống, nghĩa là giữ vĩnh viễn</strong>, và tiến trình dọn file mồ côi đang tắt mặc định. Đặt một con số và bật dọn dẹp — mất năm phút, quên thì thành rủi ro thật.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">09</span><h2>Cố ý không làm trong MVP</h2></div>
+  <p>Ghi lại để không ai vô tình làm, và để biết chỗ nào phải chừa seam.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Không làm</th><th>Chừa gì lại</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">Chấm Speaking bằng AI</td><td>Cổng <code>ISectionEvaluator</code> và <code>ITranscriptSource</code> giữ nguyên với hiện thực rỗng</td></tr>
+        <tr><td class="nm">Chặn bằng token</td><td>Sổ cái ghi đủ dữ liệu để bật chặn sau bằng một phép kiểm tra</td></tr>
+        <tr><td class="nm">Thanh toán, gói cước, B2B</td><td>Không chừa gì — cắt sạch khỏi MVP</td></tr>
+        <tr><td class="nm">Ứng dụng native</td><td>Giữ seam ghi âm; giữ logic nghiệp vụ trong hook và package, không nhét vào component trang</td></tr>
+        <tr><td class="nm">RAR, upload folder, file rời</td><td>Thiết kế bước "nhận đầu vào" tách khỏi bước "phân tích" để thêm nguồn sau không đụng lõi</td></tr>
+        <tr><td class="nm">AI Chat</td><td>Không chừa gì</td></tr>
+        <tr><td class="nm">Lộ trình học, thông báo</td><td>Không đưa vào menu — một mục menu là một lời hứa</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">10</span><h2>Đường găng</h2></div>
+  <div class="card crit">
+    <h3>Thứ chặn ngày lên sóng không còn là code</h3>
+    <p>Với 22 quyết định này, mọi rào cản kỹ thuật của MVP đã được gỡ. Thứ còn chặn là: <strong>VNI chưa có đề nào được phép đưa cho học viên thật.</strong> Hai gói hiện có là nội dung mượn, dùng cho kiểm thử nội bộ, và hệ thống đã cưỡng chế điều đó ở tầng code.</p>
+    <p>Kết hợp với P-10 — luôn hiện đáp án đúng nên mỗi đề chỉ "mới" với một người đúng một lần — sản phẩm sống được là nhờ <strong>tốc độ ra đề mới</strong>, không phải nhờ kho đề có sẵn. Sản xuất nội dung nên chạy song song ngay từ bây giờ, không đợi phần mềm xong.</p>
+  </div>
+  <div class="card">
+    <h3>Thứ tự triển khai đề xuất</h3>
+    <ol class="tight">
+      <li><strong>Ghi 22 quyết định vào repo</strong> trước khi viết dòng code nào — vào tài liệu yêu cầu và vào CLAUDE.md. Quyết định chỉ nằm trong lịch sử trò chuyện thì lần làm việc sau sẽ không ai thấy</li>
+      <li>Dựng lại cấu trúc điều hướng và khung giao diện — rẻ nhất, ảnh hưởng lớn nhất tới cảm nhận sản phẩm</li>
+      <li>Mặt tiền nhập đề cho CMS — engine đã mạnh, chỉ thiếu upload, preview, duyệt</li>
+      <li>Layout Result/Review thống nhất, kèm ba mảnh API còn thiếu</li>
+      <li>Sổ cái usage và khối token trên giao diện</li>
+      <li>Documents/Articles thành nội dung thật</li>
+      <li>Nền tảng mobile, rồi Speaking sau cùng</li>
+    </ol>
+  </div>
+</section>
+
+<p class="foot">Bản đặc tả này ghi lại quyết định, không phải hiện trạng code. Mọi nhận định về codebase đã được kiểm chứng trực tiếp trong mã nguồn tại commit <code>61a408f</code>. Chưa có dòng code nào được thay đổi.</p>
+
+</div>

@@ -43,8 +43,17 @@ public sealed record ImportReviewChecklist(IReadOnlySet<ImportReviewCategory> Co
     public bool IsComplete => Enum.GetValues<ImportReviewCategory>().All(Confirmed.Contains);
 }
 
+/// <param name="OverrideReason">
+/// Set only when <see cref="Resolved"/> was reached by an admin overriding
+/// the warning rather than by the condition genuinely being fixed. `P-19`:
+/// "admin bỏ qua được nhưng bắt buộc ghi lý do và vào nhật ký" — the reason
+/// travels with the warning so a later reader of the draft sees not just
+/// that it was waved through, but why. Trailing and optional so every
+/// existing positional construction of this record keeps compiling.
+/// </param>
 public sealed record ImportReviewWarning(
-    string Id, ImportReviewCategory Category, string Path, string Message, bool Resolved);
+    string Id, ImportReviewCategory Category, string Path, string Message, bool Resolved,
+    string? OverrideReason = null);
 
 public sealed record ExamImportDraft(
     Guid Id,

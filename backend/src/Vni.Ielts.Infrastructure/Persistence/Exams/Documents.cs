@@ -43,6 +43,19 @@ internal sealed class ExamVersionDocument
     [BsonIgnoreIfNull]
     public DateTime? PublishedAt { get; set; }
 
+    /// <summary>
+    /// The account that authored this version, when known. `P-20`.
+    ///
+    /// <b>Null on almost every version that exists today.</b> The only
+    /// production path that creates a document here is <c>ExamPackageReader</c>
+    /// via <c>ExamVersion.CreateDraft</c>, and neither it nor the importer
+    /// that calls it has an operator identity to attribute — threading one
+    /// through is <c>S6</c> territory, not this slice's. → `[OPEN QUESTION]`
+    /// </summary>
+    [BsonElement("authorId")]
+    [BsonIgnoreIfNull]
+    public string? AuthorId { get; set; }
+
     [BsonElement("timing")]
     public TimingDocument Timing { get; set; } = new();
 
@@ -176,6 +189,23 @@ internal sealed class ScoringDocument
 
     [BsonElement("writingTask2Weight")]
     public decimal? WritingTask2Weight { get; set; }
+
+    /// <summary>Absent means not-equated. See <c>BandTableProvenance</c>.</summary>
+    [BsonElement("provenance")]
+    public BandTableProvenanceDocument? Provenance { get; set; }
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class BandTableProvenanceDocument
+{
+    [BsonElement("status")]
+    public string Status { get; set; } = string.Empty;
+
+    [BsonElement("source")]
+    public string? Source { get; set; }
+
+    [BsonElement("note")]
+    public string? Note { get; set; }
 }
 
 [BsonIgnoreExtraElements]

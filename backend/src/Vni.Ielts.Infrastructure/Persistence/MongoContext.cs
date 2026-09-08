@@ -100,6 +100,25 @@ public sealed class MongoContext
     internal IMongoCollection<Explanations.CanonicalExplanationDocument> CanonicalExplanations =>
         _db.GetCollection<Explanations.CanonicalExplanationDocument>("canonical_explanations");
 
+    /// <summary>
+    /// The two libraries — <c>P-22</c>. Independent collections; neither
+    /// references <c>exam_versions</c> yet, and <c>relatedExamIds</c> is the
+    /// reserved seam for the day one does.
+    /// </summary>
+    internal IMongoCollection<Library.LibraryDocumentDocument> LibraryDocuments =>
+        _db.GetCollection<Library.LibraryDocumentDocument>("library_documents");
+
+    internal IMongoCollection<Library.ArticleDocument> Articles =>
+        _db.GetCollection<Library.ArticleDocument>("articles");
+
+    /// <summary>
+    /// The usage ledger — <c>P-14</c>. Append and read only; see
+    /// <see cref="Vni.Ielts.Application.Usage.IUsageLedger"/> for why there is
+    /// no update or delete anywhere above this property.
+    /// </summary>
+    internal IMongoCollection<Usage.UsageEntryDocument> UsageLedger =>
+        _db.GetCollection<Usage.UsageEntryDocument>("usage_ledger");
+
     internal IMongoCollection<Learning.LearnerGoalDocument> LearnerGoals =>
         _db.GetCollection<Learning.LearnerGoalDocument>("learner_goals");
 
@@ -108,6 +127,20 @@ public sealed class MongoContext
 
     internal IMongoCollection<Learning.CoachingAdviceDocument> CoachingAdvice =>
         _db.GetCollection<Learning.CoachingAdviceDocument>("coaching_advice");
+
+    /// <summary>
+    /// The exam-import front door (<c>S6b</c>). One draft per
+    /// <c>(definitionId, versionNumber, route, packageHash)</c> — the id
+    /// itself is derived from that tuple by <c>ExamImportWorkflow.StableDraftId</c>,
+    /// which is what makes a retried upload of identical content a no-op
+    /// insert rather than a duplicate draft.
+    /// </summary>
+    internal IMongoCollection<Importing.ExamImportDraftDocument> ImportDrafts =>
+        _db.GetCollection<Importing.ExamImportDraftDocument>("import_drafts");
+
+    /// <summary>Resume state for <c>ImportBatchRunner</c>, keyed by <c>{batchId}:{itemId}</c>.</summary>
+    internal IMongoCollection<Importing.ImportBatchCheckpointDocument> ImportBatchCheckpoints =>
+        _db.GetCollection<Importing.ImportBatchCheckpointDocument>("import_batch_checkpoints");
 
     /// <summary>
     /// Refuses to start against a node that cannot do transactions.
@@ -188,6 +221,16 @@ public sealed class MongoContext
             new CreateIndexModel<UserDocument>(
                 Builders<UserDocument>.IndexKeys.Ascending(u => u.Email),
                 new CreateIndexOptions { Unique = true, Name = "ux_users_email" }),
+            cancellationToken: ct);
+
+        // Sparse: most historical rows have none until `EnsureReferralCode`
+        // backfills them on first read. Unique so a CSPRNG collision — astronomically
+        // unlikely, but not impossible — is caught at write time, not silently
+        // shared by two accounts. → `P-16`
+        await Users.Indexes.CreateOneAsync(
+            new CreateIndexModel<UserDocument>(
+                Builders<UserDocument>.IndexKeys.Ascending(u => u.ReferralCode),
+                new CreateIndexOptions { Unique = true, Sparse = true, Name = "ux_users_referral_code" }),
             cancellationToken: ct);
 
         // One identity per (provider, subject). Without it, a replayed OAuth
@@ -329,6 +372,42 @@ public sealed class MongoContext
                 new CreateIndexOptions { Name = "ix_marking_jobs_session" }),
             cancellationToken: ct);
 
+        // An article's slug is its address, and a draft reserves it. The
+        // handler's lookup gives a clean 409; this index is what holds when
+        // two editors save the same slug at once.
+        await Articles.Indexes.CreateOneAsync(
+            new CreateIndexModel<Library.ArticleDocument>(
+                Builders<Library.ArticleDocument>.IndexKeys.Ascending(a => a.Slug),
+                new CreateIndexOptions { Unique = true, Name = "ux_articles_slug" }),
+            cancellationToken: ct);
+
+        // Both learner listings filter on status and sort newest-published first.
+        await Articles.Indexes.CreateOneAsync(
+            new CreateIndexModel<Library.ArticleDocument>(
+                Builders<Library.ArticleDocument>.IndexKeys
+                    .Ascending(a => a.Status)
+                    .Descending(a => a.PublishedAt),
+                new CreateIndexOptions { Name = "ix_articles_status_published" }),
+            cancellationToken: ct);
+
+        await LibraryDocuments.Indexes.CreateOneAsync(
+            new CreateIndexModel<Library.LibraryDocumentDocument>(
+                Builders<Library.LibraryDocumentDocument>.IndexKeys
+                    .Ascending(d => d.Status)
+                    .Descending(d => d.PublishedAt),
+                new CreateIndexOptions { Name = "ix_library_documents_status_published" }),
+            cancellationToken: ct);
+
+        // A learner's own history, newest first — exactly `IUsageLedger.ListAsync`'s
+        // query shape.
+        await UsageLedger.Indexes.CreateOneAsync(
+            new CreateIndexModel<Usage.UsageEntryDocument>(
+                Builders<Usage.UsageEntryDocument>.IndexKeys
+                    .Ascending(e => e.UserId)
+                    .Descending(e => e.At),
+                new CreateIndexOptions { Name = "ix_usage_ledger_user_at" }),
+            cancellationToken: ct);
+
         await PersonalizedExplanations.Indexes.CreateOneAsync(
             new CreateIndexModel<Explanations.PersonalizedExplanationDocument>(
                 Builders<Explanations.PersonalizedExplanationDocument>.IndexKeys
@@ -336,6 +415,25 @@ public sealed class MongoContext
                     .Ascending(j => j.QuestionId)
                     .Ascending(j => j.AnswerHash),
                 new CreateIndexOptions { Name = "ix_personalized_explanations_lookup" }),
+            cancellationToken: ct);
+
+        // The CMS's "who is reviewing what" screen reads a definition's
+        // drafts. Not unique — StableDraftId already makes the natural key
+        // unique, this index just makes the by-definition query cheap.
+        await ImportDrafts.Indexes.CreateOneAsync(
+            new CreateIndexModel<Importing.ExamImportDraftDocument>(
+                Builders<Importing.ExamImportDraftDocument>.IndexKeys
+                    .Ascending(d => d.DefinitionId)
+                    .Ascending(d => d.VersionNumber),
+                new CreateIndexOptions { Name = "ix_import_drafts_definition_version" }),
+            cancellationToken: ct);
+
+        // ImportBatchRunner resumes a batch by scanning its own items; a
+        // status screen for one batch reads the same shape.
+        await ImportBatchCheckpoints.Indexes.CreateOneAsync(
+            new CreateIndexModel<Importing.ImportBatchCheckpointDocument>(
+                Builders<Importing.ImportBatchCheckpointDocument>.IndexKeys.Ascending(d => d.BatchId),
+                new CreateIndexOptions { Name = "ix_import_batch_checkpoints_batch" }),
             cancellationToken: ct);
 
         // Expired tokens remove themselves. A TTL index does this without a

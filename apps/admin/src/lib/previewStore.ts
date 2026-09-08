@@ -1,106 +1,49 @@
 /**
- * Preview content for the review flow.
+ * The media library's browser-only store.
  *
- * <b>Read this before using anything below.</b> These are not exams. Phase 1
- * builds the lifecycle — roles, ownership, the six states, the three queue
- * screens — and the server does not yet carry any of them: `ExamVersionStatus`
- * has three values, there is no `createdBy`, and no endpoint accepts a submit
- * or a review. There is also no exam content to move through the flow, which
- * is the reason the product owner asked for the surface first.
+ * <b>What this file used to be, and what it narrowed to.</b> It used to carry
+ * two unrelated things behind one `useWorkflow()` hook: a six-state exam
+ * review simulation (`versions`, `apply`, `advance`, `TRANSITIONS`-driven
+ * mutation) standing in for endpoints that did not exist yet, and a set of
+ * media-asset fixtures for `MediaLibraryPage`'s "which exam uses this file"
+ * demo. The endpoints now exist — `submit-for-review`, `approve`,
+ * `return-to-draft` are real, `ReviewQueuePage`, `PendingPublishPage` and
+ * `ExamDetailPage` read and write them directly — so the lifecycle half is
+ * retired along with `WorkflowDetailPage` and `MyExamsPage`, the two screens
+ * that only ever read it.
  *
- * So the queue screens run on this store, in the browser, and say so on every
- * screen. The alternative — wiring them to `/admin/exams` and quietly filling
- * the missing fields with defaults — would produce a CMS that looks finished
- * and lies about which half is real. When the endpoints land, the screens swap
- * `useWorkflow()` for the API and the rest of the code does not move: the
- * shapes here are the shapes the document specifies.
+ * <b>What is left has a narrower, still-real reason to exist.</b> There is no
+ * `media.read`/`media.upload`/`media.retire` permission in
+ * `PermissionKeys.All` at all — the media library has no server endpoint to
+ * cut over to, not a half-built one. `MediaLibraryPage` keeps running on this
+ * store, with its own on-screen notice saying so, until a media API exists.
  *
- * <b>What is genuinely finished</b> is the part that does not depend on a
- * server: the state machine in `lifecycle.ts`, permission and ownership
- * gating, the consequence copy, focus and keyboard behaviour, and the audit
- * line each action would write.
- *
- * → docs/ux/cms-content-operations.md §4.3
+ * <b>What is genuinely finished</b> is the part that never depended on a
+ * server: magic-byte sniffing, the checksum, the size ceilings, and the
+ * asset-lock rule (`media.ts`) that a published exam's media is immutable.
  */
 
 import { useCallback, useSyncExternalStore } from 'react';
-import type { ExamState, Transition } from './lifecycle.js';
-import type { MediaAsset, VersionAsset } from './media.js';
+import type { MediaAsset, ReferencingVersion } from './media.js';
 
-const KEY = 'vni.cms.preview.v2';
+const KEY = 'vni.cms.preview.media.v1';
 
-export interface ReviewNote {
-  id: string;
-  authorName: string;
-  at: string;
-  body: string;
-  /** Which question the note is pinned to, when it is pinned to one. */
-  anchor: string | null;
-}
-
-export interface PreviewModule {
-  module: string;
-  questionCount: number;
-}
-
-/**
- * Authorship, resolved late.
- *
- * A seeded row cannot know the address of whoever signs in, so rows the
- * preview wants the current operator to own carry `self: true` and take their
- * name at read time. It keeps "đề của tôi" meaningful for any account.
- */
-export type PreviewAuthor = { self: true } | { self: false; name: string };
-
-export interface PreviewVersion {
-  versionId: string;
-  definitionId: string;
-  title: string;
-  variant: 'academic' | 'general';
-  versionNumber: number;
-  state: ExamState;
-  modules: PreviewModule[];
-  author: PreviewAuthor;
-  createdAt: string;
-  submittedAt: string | null;
-  reviewedAt: string | null;
-  reviewedByName: string | null;
-  publishedAt: string | null;
-  notes: ReviewNote[];
-  topic: string;
-  difficultyAuthored: string;
-  /** Every `assetRef` the content carries, resolved or not. */
-  assets: VersionAsset[];
-}
-
-export interface PreviewAudit {
-  id: string;
-  at: string;
-  actorEmail: string;
-  action: string;
-  targetLabel: string;
-  detail: string;
-}
-
-interface PreviewState {
-  versions: PreviewVersion[];
-  audit: PreviewAudit[];
-  media: MediaAsset[];
-}
-
-const now = () => new Date().toISOString();
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
 const id = () => crypto.randomUUID();
+
+interface MediaLibraryState {
+  media: MediaAsset[];
+  /** Fixture rows for the "đang dùng ở đâu" / lock demo — display only. */
+  demoExams: ReferencingVersion[];
+}
 
 /**
  * The seed.
  *
- * Six versions, one per state, so every branch of the flow has something to
- * act on the moment the screen opens. Titles are deliberately marked as
- * samples — an operator must never mistake one of these for content a learner
- * could receive.
+ * Four media files and three fixture exam rows — enough to show every asset
+ * state (`free`, `in-use`, `locked`, `retired`) the media rules define.
  */
-function seed(): PreviewState {
+function seed(): MediaLibraryState {
   const audio1 = id();
   const audio2 = id();
   const audio3 = id();
@@ -157,253 +100,58 @@ function seed(): PreviewState {
     },
   ];
 
-  return {
-    media,
-    versions: [
-      {
-        versionId: id(),
-        definitionId: 'sample-reading-024',
-        title: 'Đề mẫu · Reading Practice Test 024',
-        variant: 'academic',
-        versionNumber: 1,
-        state: 'draft',
-        modules: [{ module: 'reading', questionCount: 40 }],
-        author: { self: true },
-        createdAt: daysAgo(2),
-        submittedAt: null,
-        reviewedAt: null,
-        reviewedByName: null,
-        publishedAt: null,
-        notes: [],
-        topic: 'Môi trường',
-        difficultyAuthored: '6.5',
-        assets: [
-          {
-            ref: 'media/' + diagram,
-            mediaId: diagram,
-            usedAt: 'Passage 2 · câu 18 (labelling)',
-            kind: 'image',
-          },
-        ],
-      },
-      {
-        versionId: id(),
-        definitionId: 'sample-listening-011',
-        title: 'Đề mẫu · Listening Practice Test 011',
-        variant: 'academic',
-        versionNumber: 2,
-        state: 'in-review',
-        modules: [{ module: 'listening', questionCount: 40 }],
-        author: { self: true },
-        createdAt: daysAgo(6),
-        submittedAt: daysAgo(3),
-        reviewedAt: null,
-        reviewedByName: null,
-        publishedAt: null,
-        notes: [],
-        topic: 'Giáo dục',
-        difficultyAuthored: '6.0',
-        /* Deliberately incomplete: Part 2 references audio nothing answers to.
-           This is the failure the media surface exists to catch, and catching
-           it at review is the whole point of having a review. */
-        assets: [
-          {
-            ref: 'assets/listening-011-part-1.m4a',
-            mediaId: null,
-            usedAt: 'Section 1 · Part 1',
-            kind: 'audio',
-          },
-          {
-            ref: 'assets/listening-011-part-2.m4a',
-            mediaId: null,
-            usedAt: 'Section 1 · Part 2',
-            kind: 'audio',
-          },
-        ],
-      },
-      {
-        versionId: id(),
-        definitionId: 'sample-writing-007',
-        title: 'Đề mẫu · Writing Task 2 · Đề 007',
-        variant: 'academic',
-        versionNumber: 1,
-        state: 'in-review',
-        modules: [{ module: 'writing', questionCount: 2 }],
-        author: { self: false, name: 'Trần B' },
-        createdAt: daysAgo(9),
-        submittedAt: daysAgo(6),
-        reviewedAt: null,
-        reviewedByName: null,
-        publishedAt: null,
-        notes: [],
-        topic: 'Công nghệ',
-        difficultyAuthored: '7.0',
-        assets: [],
-      },
-      {
-        versionId: id(),
-        definitionId: 'sample-reading-019',
-        title: 'Đề mẫu · Reading Practice Test 019',
-        variant: 'general',
-        versionNumber: 3,
-        state: 'returned',
-        modules: [{ module: 'reading', questionCount: 40 }],
-        author: { self: true },
-        createdAt: daysAgo(14),
-        submittedAt: daysAgo(9),
-        reviewedAt: daysAgo(8),
-        reviewedByName: 'Trưởng chuyên môn (mẫu)',
-        publishedAt: null,
-        notes: [
-          {
-            id: id(),
-            authorName: 'Trưởng chuyên môn (mẫu)',
-            at: daysAgo(8),
-            body: 'Câu 12 và câu 13 cùng đáp án B — kiểm tra lại đáp án chuẩn.',
-            anchor: 'Câu 12',
-          },
-          {
-            id: id(),
-            authorName: 'Trưởng chuyên môn (mẫu)',
-            at: daysAgo(8),
-            body: 'Passage 3 dài hơn mức của General Training. Cân nhắc rút bớt.',
-            anchor: 'Passage 3',
-          },
-        ],
-        topic: 'Sức khoẻ',
-        difficultyAuthored: '5.5',
-        assets: [],
-      },
-      {
-        versionId: id(),
-        definitionId: 'sample-listening-004',
-        title: 'Đề mẫu · Listening Practice Test 004',
-        variant: 'academic',
-        versionNumber: 1,
-        state: 'approved',
-        modules: [{ module: 'listening', questionCount: 40 }],
-        author: { self: false, name: 'Trần B' },
-        createdAt: daysAgo(20),
-        submittedAt: daysAgo(12),
-        reviewedAt: daysAgo(10),
-        reviewedByName: 'Trưởng chuyên môn (mẫu)',
-        publishedAt: null,
-        notes: [],
-        topic: 'Du lịch',
-        difficultyAuthored: '6.0',
-        assets: [
-          { ref: 'media/' + audio3, mediaId: audio3, usedAt: 'Section 1 · Part 1', kind: 'audio' },
-        ],
-      },
-      {
-        versionId: id(),
-        definitionId: 'sample-full-002',
-        title: 'Đề mẫu · Full Test 002',
-        variant: 'academic',
-        versionNumber: 4,
-        state: 'published',
-        modules: [
-          { module: 'reading', questionCount: 40 },
-          { module: 'listening', questionCount: 40 },
-          { module: 'writing', questionCount: 2 },
-          { module: 'speaking', questionCount: 3 },
-        ],
-        author: { self: false, name: 'Trần B' },
-        createdAt: daysAgo(40),
-        submittedAt: daysAgo(35),
-        reviewedAt: daysAgo(33),
-        reviewedByName: 'Trưởng chuyên môn (mẫu)',
-        publishedAt: daysAgo(30),
-        notes: [],
-        topic: 'Tổng hợp',
-        difficultyAuthored: '6.5',
-        assets: [
-          { ref: 'media/' + audio1, mediaId: audio1, usedAt: 'Listening · Part 1', kind: 'audio' },
-          { ref: 'media/' + audio2, mediaId: audio2, usedAt: 'Listening · Part 2', kind: 'audio' },
-        ],
-      },
-    ],
-    audit: [],
-  };
+  const demoExams: ReferencingVersion[] = [
+    {
+      versionId: 'demo-reading-024',
+      title: 'Đề mẫu · Reading Practice Test 024',
+      state: 'draft',
+      assets: [
+        { ref: 'media/' + diagram, mediaId: diagram, usedAt: 'Passage 2 · câu 18 (labelling)', kind: 'image' },
+      ],
+    },
+    {
+      versionId: 'demo-listening-004',
+      title: 'Đề mẫu · Listening Practice Test 004',
+      state: 'draft',
+      assets: [
+        { ref: 'media/' + audio3, mediaId: audio3, usedAt: 'Section 1 · Part 1', kind: 'audio' },
+      ],
+    },
+    {
+      versionId: 'demo-full-002',
+      title: 'Đề mẫu · Full Test 002',
+      state: 'published',
+      assets: [
+        { ref: 'media/' + audio1, mediaId: audio1, usedAt: 'Listening · Part 1', kind: 'audio' },
+        { ref: 'media/' + audio2, mediaId: audio2, usedAt: 'Listening · Part 2', kind: 'audio' },
+      ],
+    },
+  ];
+
+  return { media, demoExams };
 }
 
-function read(): PreviewState {
+function read(): MediaLibraryState {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw === null) return seed();
-    const parsed = JSON.parse(raw) as PreviewState;
+    const parsed = JSON.parse(raw) as MediaLibraryState;
     // A shape that does not match is preview data from an older build. Reseed
     // rather than render half a screen.
-    if (
-      !Array.isArray(parsed.versions) ||
-      !Array.isArray(parsed.audit) ||
-      !Array.isArray(parsed.media)
-    )
-      return seed();
+    if (!Array.isArray(parsed.media) || !Array.isArray(parsed.demoExams)) return seed();
     return parsed;
   } catch {
     return seed();
   }
 }
 
-function write(state: PreviewState) {
+function write(state: MediaLibraryState) {
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
   } catch {
-    // Private windows and full quotas both land here. The screens keep
+    // Private windows and full quotas both land here. The screen keeps
     // working from memory for this tab; only persistence is lost.
   }
-}
-
-/**
- * Applied when a transition fires, mirroring the fields the server will set.
- *
- * Exported for the tests: this function is the whole of what "approving"
- * means to a record, and it is worth pinning down before an endpoint exists to
- * disagree with it.
- */
-export function advance(
-  version: PreviewVersion,
-  transition: Transition,
-  actorName: string,
-  note: string,
-): PreviewVersion {
-  const stamped: PreviewVersion = { ...version, state: transition.to };
-
-  if (transition.id === 'submit') stamped.submittedAt = now();
-  if (transition.id === 'withdraw') stamped.submittedAt = null;
-
-  if (transition.id === 'approve' || transition.id === 'return') {
-    stamped.reviewedAt = now();
-    stamped.reviewedByName = actorName;
-  }
-
-  if (transition.id === 'unapprove') {
-    stamped.reviewedAt = null;
-    stamped.reviewedByName = null;
-  }
-
-  if (transition.id === 'publish') stamped.publishedAt = now();
-
-  if (note.trim() !== '') {
-    stamped.notes = [
-      ...version.notes,
-      { id: id(), authorName: actorName, at: now(), body: note.trim(), anchor: null },
-    ];
-  }
-
-  return stamped;
-}
-
-export interface Workflow {
-  versions: PreviewVersion[];
-  audit: PreviewAudit[];
-  media: MediaAsset[];
-  apply: (versionId: string, transition: Transition, note: string) => void;
-  addMedia: (asset: MediaAsset) => void;
-  retireMedia: (mediaId: string) => void;
-  deleteMedia: (mediaId: string) => void;
-  reset: () => void;
 }
 
 /**
@@ -412,10 +160,10 @@ export interface Workflow {
  * <b>Not in the store, and not in `localStorage`.</b> A Listening part is
  * megabytes; putting one in web storage fails on the quota and would be the
  * wrong thing to do if it succeeded. What survives a reload is the metadata —
- * name, size, duration, checksum — which is exactly what the server will hold
- * once the upload endpoint exists. The playable URL lives here until the tab
- * closes, and a row whose URL has gone says so rather than offering a player
- * that does nothing.
+ * name, size, duration, checksum — which is exactly what a real media
+ * endpoint would hold once one exists. The playable URL lives here until the
+ * tab closes, and a row whose URL has gone says so rather than offering a
+ * player that does nothing.
  */
 const objectUrls = new Map<string, string>();
 
@@ -462,17 +210,11 @@ export function uploadedHere(mediaId: string): boolean {
 
 /*
  * One store for the whole app, not one per component.
- *
- * The three queue screens and the detail screen are four views of the same
- * six rows, and `useState` in each would give each its own copy: approve
- * something on the detail screen, navigate back, and the queue still shows it
- * waiting until React happens to remount. Subscribing to one module-level
- * value is both smaller than a provider and harder to get wrong.
  */
-let current: PreviewState | null = null;
+let current: MediaLibraryState | null = null;
 const listeners = new Set<() => void>();
 
-function snapshot(): PreviewState {
+function snapshot(): MediaLibraryState {
   current ??= read();
   return current;
 }
@@ -482,42 +224,24 @@ function subscribe(listener: () => void): () => void {
   return () => void listeners.delete(listener);
 }
 
-function commit(next: PreviewState) {
+function commit(next: MediaLibraryState) {
   current = next;
   write(next);
   for (const listener of listeners) listener();
 }
 
-/** The preview's read and write side. */
-export function useWorkflow(actorName: string, actorEmail: string): Workflow {
+export interface MediaLibrary {
+  media: MediaAsset[];
+  demoExams: ReferencingVersion[];
+  addMedia: (asset: MediaAsset) => void;
+  retireMedia: (mediaId: string) => void;
+  deleteMedia: (mediaId: string) => void;
+  reset: () => void;
+}
+
+/** The preview media library's read and write side. */
+export function useMediaLibrary(): MediaLibrary {
   const state = useSyncExternalStore(subscribe, snapshot, snapshot);
-
-  const apply = useCallback(
-    (versionId: string, transition: Transition, note: string) => {
-      const base = snapshot();
-      const target = base.versions.find((v) => v.versionId === versionId);
-      if (target === undefined) return;
-
-      commit({
-        ...base,
-        versions: base.versions.map((v) =>
-          v.versionId === versionId ? advance(v, transition, actorName, note) : v,
-        ),
-        audit: [
-          {
-            id: id(),
-            at: now(),
-            actorEmail,
-            action: transition.audit,
-            targetLabel: target.title,
-            detail: `${target.state} → ${transition.to}`,
-          },
-          ...base.audit,
-        ],
-      });
-    },
-    [actorEmail, actorName],
-  );
 
   const addMedia = useCallback((asset: MediaAsset) => {
     const base = snapshot();
@@ -545,33 +269,5 @@ export function useWorkflow(actorName: string, actorEmail: string): Workflow {
 
   const reset = useCallback(() => commit(seed()), []);
 
-  return {
-    versions: state.versions,
-    audit: state.audit,
-    media: state.media,
-    apply,
-    addMedia,
-    retireMedia,
-    deleteMedia,
-    reset,
-  };
-}
-
-/** Whether the signed-in operator authored this version. → `exam.*.own` */
-export function ownedByMe(version: PreviewVersion): boolean {
-  return version.author.self;
-}
-
-export function authorName(version: PreviewVersion, meName: string): string {
-  return version.author.self ? meName : version.author.name;
-}
-
-/** How long something has been waiting, in words an operator can act on. */
-export function waitingFor(since: string | null): string {
-  if (since === null) return '—';
-  const days = Math.floor((Date.now() - new Date(since).getTime()) / 86_400_000);
-  if (days >= 1) return `${days} ngày`;
-  const hours = Math.floor((Date.now() - new Date(since).getTime()) / 3_600_000);
-  if (hours >= 1) return `${hours} giờ`;
-  return 'vừa xong';
+  return { media: state.media, demoExams: state.demoExams, addMedia, retireMedia, deleteMedia, reset };
 }

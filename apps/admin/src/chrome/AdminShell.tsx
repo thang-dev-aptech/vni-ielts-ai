@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { ROLE_PRESETS, useOperator, useViewAs } from '../lib/operator.js';
-import { useWorkflow } from '../lib/previewStore.js';
+import { useMediaLibrary } from '../lib/previewStore.js';
 import { AdminPaths } from '../routes/paths.js';
 import '../styles/admin.css';
 
@@ -49,7 +49,15 @@ const GROUPS: { title: string | null; entries: Entry[] }[] = [
   {
     title: 'Đề thi',
     entries: [
-      { to: AdminPaths.myExams, label: 'Đề của tôi', permission: 'exam.read.own' },
+      /*
+       * "Đề của tôi" (ownership-scoped, `exam.read.own`) was removed here.
+       * `GET /api/v1/admin/exams` carries no author field, so a real
+       * ownership-scoped view cannot be built without inventing data — and
+       * `exam.read.own` is not a key `PermissionKeys.All` grants to anyone
+       * today, so the entry was already unreachable outside the dev-only
+       * "Xem như" preview. "Tất cả đề" below is the real, reachable
+       * equivalent. → G-11
+       */
       { to: AdminPaths.exams, label: 'Tất cả đề', permission: ['exam.read', 'exam.read.any'] },
       { to: AdminPaths.reviewQueue, label: 'Hàng chờ duyệt', permission: 'exam.review' },
       { to: AdminPaths.pendingPublish, label: 'Chờ xuất bản', permission: 'exam.publish' },
@@ -60,8 +68,16 @@ const GROUPS: { title: string | null; entries: Entry[] }[] = [
   {
     title: 'Nội dung',
     entries: [
-      { to: null, label: 'Bài viết', permission: 'article.write', pending: 'Phase 4' },
-      { to: null, label: 'Tài liệu', permission: 'document.write', pending: 'Phase 4' },
+      {
+        to: AdminPaths.articles,
+        label: 'Bài viết',
+        permission: ['article.write', 'article.publish'],
+      },
+      {
+        to: AdminPaths.documents,
+        label: 'Tài liệu',
+        permission: ['document.write', 'document.publish'],
+      },
       { to: null, label: 'Nghe chép', permission: 'dictation.write', pending: 'Phase 4' },
     ],
   },
@@ -112,7 +128,7 @@ export function AdminShell() {
   const { user, signOut } = useAdminAuth();
   const operator = useOperator();
   const { preset, setPreset, available } = useViewAs();
-  const { reset } = useWorkflow(operator.name, operator.email);
+  const { reset } = useMediaLibrary();
 
   const holds = (permission: Entry['permission']) => {
     if (permission === null) return true;

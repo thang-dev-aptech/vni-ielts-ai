@@ -32,6 +32,30 @@
         ]
       }
     },
+    "/api/v1/public/exam-catalogue": {
+      "get": {
+        "tags": [
+          "Exams"
+        ],
+        "summary": "Published exam metadata for the practice shelf; no content",
+        "operationId": "ListPublicExamCatalogue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicExamCatalogueView"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        }
+      }
+    },
     "/api/v1/practice-units": {
       "get": {
         "tags": [
@@ -849,6 +873,45 @@
         ]
       }
     },
+    "/api/v1/me/usage": {
+      "get": {
+        "tags": [
+          "Learning"
+        ],
+        "summary": "Turn balance, the referral code to share, and recent ledger history \u2014 recorded only, never a gate. P-14",
+        "operationId": "GetMyUsage",
+        "parameters": [
+          {
+            "name": "take",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/exams": {
       "get": {
         "tags": [
@@ -1396,6 +1459,46 @@
         ]
       }
     },
+    "/api/v1/sessions/{sessionId}/recordings/{questionId}/playback": {
+      "get": {
+        "tags": [
+          "Exams"
+        ],
+        "summary": "Presigned URL to play back one Speaking recording",
+        "operationId": "GetSpeakingRecordingPlayback",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/sessions/{sessionId}/questions/{questionId}/explanation": {
       "post": {
         "tags": [
@@ -1572,6 +1675,167 @@
             "bearer": []
           }
         ]
+      }
+    },
+    "/api/v1/library/documents": {
+      "get": {
+        "tags": [
+          "Library"
+        ],
+        "summary": "Published documents; filter by skill, type, band, or free text",
+        "operationId": "ListLibraryDocuments",
+        "parameters": [
+          {
+            "name": "skill",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "band",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryDocumentListView"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        }
+      }
+    },
+    "/api/v1/library/documents/{id}": {
+      "get": {
+        "tags": [
+          "Library"
+        ],
+        "summary": "One published document",
+        "operationId": "GetLibraryDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryDocumentView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        }
+      }
+    },
+    "/api/v1/library/articles": {
+      "get": {
+        "tags": [
+          "Library"
+        ],
+        "summary": "Published articles, newest first; filter by category",
+        "operationId": "ListArticles",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleListView"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        }
+      }
+    },
+    "/api/v1/library/articles/{slug}": {
+      "get": {
+        "tags": [
+          "Library"
+        ],
+        "summary": "One published article by its slug; a draft slug is 404",
+        "operationId": "GetArticleBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        }
       }
     },
     "/api/v1/admin/exams": {
@@ -1845,6 +2109,121 @@
         ]
       }
     },
+    "/api/v1/admin/exams/{examVersionId}/submit-for-review": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Author sends a draft to review \u2014 P-20, Draft \u2192 InReview",
+        "operationId": "AdminSubmitExamForReview",
+        "parameters": [
+          {
+            "name": "examVersionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/exams/{examVersionId}/approve": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "A different person signs off the content \u2014 P-20, InReview \u2192 Approved. 403 REVIEWER_IS_AUTHOR if the caller authored this version.",
+        "operationId": "AdminApproveExam",
+        "parameters": [
+          {
+            "name": "examVersionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/exams/{examVersionId}/return-to-draft": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Reviewer sends a version back with a reason \u2014 P-20, InReview \u2192 Draft",
+        "operationId": "AdminReturnExamToDraft",
+        "parameters": [
+          {
+            "name": "examVersionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnExamToDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/users/{userId}/suspend": {
       "post": {
         "tags": [
@@ -1959,6 +2338,826 @@
           }
         ]
       }
+    },
+    "/api/v1/admin/library/documents": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Every document, drafts included",
+        "operationId": "AdminListLibraryDocuments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryDocumentListView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Create a draft document",
+        "operationId": "AdminCreateLibraryDocument",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LibraryDocumentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryDocumentView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/documents/{id}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminGetLibraryDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryDocumentView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Replace a document\u0027s editable fields; status is unchanged",
+        "operationId": "AdminUpdateLibraryDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LibraryDocumentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryDocumentView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Delete a document that is not published",
+        "operationId": "AdminDeleteLibraryDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/documents/{id}/submit": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Draft \u2192 pending review",
+        "operationId": "AdminSubmitLibraryDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/documents/{id}/return": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Pending review \u2192 draft",
+        "operationId": "AdminReturnLibraryDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/documents/{id}/publish": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Make a document visible to learners",
+        "operationId": "AdminPublishLibraryDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/documents/{id}/unpublish": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Hide a document from learners",
+        "operationId": "AdminUnpublishLibraryDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/articles": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Every article, drafts included",
+        "operationId": "AdminListArticles",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleListView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Create a draft article; 409 SLUG_TAKEN if the slug is in use",
+        "operationId": "AdminCreateArticle",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArticleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/articles/{id}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminGetArticle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Replace an article\u0027s editable fields; status is unchanged",
+        "operationId": "AdminUpdateArticle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArticleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Delete an article that is not published",
+        "operationId": "AdminDeleteArticle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/articles/{id}/submit": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Draft \u2192 pending review",
+        "operationId": "AdminSubmitArticle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/articles/{id}/return": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Pending review \u2192 draft",
+        "operationId": "AdminReturnArticle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/articles/{id}/publish": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Make an article visible to learners at /library/articles/{slug}",
+        "operationId": "AdminPublishArticle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/library/articles/{id}/unpublish": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Hide an article from learners",
+        "operationId": "AdminUnpublishArticle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/import/packages": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Upload one exam package ZIP; validates and creates a review draft synchronously",
+        "operationId": "AdminImportPackage",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/import/packages/{draftId}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Status and findings for one import draft",
+        "operationId": "AdminGetImportDraft",
+        "parameters": [
+          {
+            "name": "draftId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/import/packages/{draftId}/warnings/{warningId}/override": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Resolve a warning with a mandatory reason; audited as WarningOverridden",
+        "operationId": "AdminOverrideImportWarning",
+        "parameters": [
+          {
+            "name": "draftId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "warningId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OverrideWarningRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/import/packages/{draftId}/approve": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Approve a draft once every warning is resolved and the checklist is complete",
+        "operationId": "AdminApproveImportDraft",
+        "parameters": [
+          {
+            "name": "draftId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -2028,6 +3227,231 @@
           "flameThreshold": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "ArticleInput": {
+        "required": [
+          "slug",
+          "title",
+          "excerpt",
+          "category",
+          "readMinutes",
+          "author",
+          "body"
+        ],
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "category": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "readMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "author": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "body": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ArticleListView": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArticleSummaryView"
+            }
+          }
+        }
+      },
+      "ArticleSummaryView": {
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "excerpt",
+          "category",
+          "readMinutes",
+          "author",
+          "relatedExamIds",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "publishedAt",
+          "createdBy"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "readMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "author": {
+            "type": "string"
+          },
+          "relatedExamIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          }
+        }
+      },
+      "ArticleView": {
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "excerpt",
+          "category",
+          "readMinutes",
+          "author",
+          "body",
+          "relatedExamIds",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "publishedAt",
+          "createdBy"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "readMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "author": {
+            "type": "string"
+          },
+          "body": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relatedExamIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
           }
         }
       },
@@ -2415,6 +3839,64 @@
           }
         }
       },
+      "ExamCatalogueItem": {
+        "required": [
+          "examVersionId",
+          "title",
+          "variant",
+          "modules",
+          "moduleSequence",
+          "description",
+          "availableModes",
+          "difficultyLabel",
+          "requiresAdvisoryLabel"
+        ],
+        "type": "object",
+        "properties": {
+          "examVersionId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "variant": {
+            "type": "string"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModuleSummary"
+            }
+          },
+          "moduleSequence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "availableModes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "difficultyLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requiresAdvisoryLabel": {
+            "type": "boolean"
+          }
+        }
+      },
       "ExplanationContentView": {
         "required": [
           "correctAnswer",
@@ -2504,6 +3986,263 @@
           }
         }
       },
+      "LibraryDocumentInput": {
+        "required": [
+          "slug",
+          "title",
+          "description",
+          "skill",
+          "category",
+          "type",
+          "format",
+          "targetBand",
+          "topic",
+          "pageCount",
+          "size",
+          "fileUrl",
+          "isFeatured",
+          "isNew",
+          "isUpdated",
+          "isPopular",
+          "access"
+        ],
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "skill": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "category": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "format": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "targetBand": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "topic": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pageCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "size": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fileUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isFeatured": {
+            "type": "boolean"
+          },
+          "isNew": {
+            "type": "boolean"
+          },
+          "isUpdated": {
+            "type": "boolean"
+          },
+          "isPopular": {
+            "type": "boolean"
+          },
+          "access": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LibraryDocumentListView": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LibraryDocumentView"
+            }
+          }
+        }
+      },
+      "LibraryDocumentView": {
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "description",
+          "skill",
+          "category",
+          "type",
+          "format",
+          "targetBand",
+          "topic",
+          "pageCount",
+          "size",
+          "fileUrl",
+          "isFeatured",
+          "isNew",
+          "isUpdated",
+          "isPopular",
+          "access",
+          "relatedExamIds",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "publishedAt",
+          "createdBy"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "skill": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string"
+          },
+          "targetBand": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "topic": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pageCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "size": {
+            "type": "string"
+          },
+          "fileUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isFeatured": {
+            "type": "boolean"
+          },
+          "isNew": {
+            "type": "boolean"
+          },
+          "isUpdated": {
+            "type": "boolean"
+          },
+          "isPopular": {
+            "type": "boolean"
+          },
+          "access": {
+            "type": "string"
+          },
+          "relatedExamIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          }
+        }
+      },
       "LoginRequest": {
         "required": [
           "email",
@@ -2549,6 +4288,38 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "ModuleSummary": {
+        "required": [
+          "module",
+          "questionCount",
+          "durationSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "questionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OverrideWarningRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
           }
         }
       },
@@ -2750,6 +4521,20 @@
           },
           "scoreCapability": {
             "type": "string"
+          }
+        }
+      },
+      "PublicExamCatalogueView": {
+        "required": [
+          "exams"
+        ],
+        "type": "object",
+        "properties": {
+          "exams": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExamCatalogueItem"
+            }
           }
         }
       },
@@ -2976,6 +4761,12 @@
           },
           "displayName": {
             "type": "string"
+          },
+          "referralCode": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3007,6 +4798,17 @@
           "number": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "ReturnExamToDraftRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
           }
         }
       },
@@ -3044,6 +4846,31 @@
             "additionalProperties": {
               "type": "integer",
               "format": "int64"
+            }
+          }
+        }
+      },
+      "SectionContentView": {
+        "required": [
+          "module",
+          "parts",
+          "submissions"
+        ],
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartView"
+            }
+          },
+          "submissions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
             }
           }
         }
@@ -3097,6 +4924,7 @@
           "maxScore",
           "accuracy",
           "band",
+          "bandVerified",
           "scoreLabel",
           "questions"
         ],
@@ -3127,6 +4955,9 @@
             ],
             "format": "double"
           },
+          "bandVerified": {
+            "type": "boolean"
+          },
           "scoreLabel": {
             "type": "string"
           },
@@ -3149,7 +4980,10 @@
           "markings",
           "markingStatuses",
           "explanationStatuses",
-          "overallBand"
+          "overallBand",
+          "writingBand",
+          "writingBandReason",
+          "content"
         ],
         "type": "object",
         "properties": {
@@ -3202,6 +5036,25 @@
               "number"
             ],
             "format": "double"
+          },
+          "writingBand": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "writingBandReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SectionContentView"
+            }
           }
         }
       },
@@ -3478,6 +5331,111 @@
           }
         }
       },
+      "UsageEntryView": {
+        "required": [
+          "id",
+          "at",
+          "action",
+          "kind",
+          "turns",
+          "sessionId",
+          "provider",
+          "model",
+          "tokensIn",
+          "tokensOut",
+          "costEstimate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "action": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "turns": {
+            "type": "number",
+            "format": "double"
+          },
+          "sessionId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "model": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tokensIn": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "tokensOut": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "costEstimate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "UsageView": {
+        "required": [
+          "balance",
+          "initialGrant",
+          "referralCode",
+          "entries"
+        ],
+        "type": "object",
+        "properties": {
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "initialGrant": {
+            "type": "number",
+            "format": "double"
+          },
+          "referralCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageEntryView"
+            }
+          }
+        }
+      },
       "VerifyEmailRequest": {
         "required": [
           "token"
@@ -3517,6 +5475,9 @@
     },
     {
       "name": "Dictation"
+    },
+    {
+      "name": "Library"
     },
     {
       "name": "Admin"

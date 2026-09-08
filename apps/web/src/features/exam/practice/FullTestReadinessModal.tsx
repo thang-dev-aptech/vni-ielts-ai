@@ -8,7 +8,11 @@ import type { PracticeItem } from './practiceCatalogue.js';
  * Requirements from D-5:
  * - Modal with focus trap, Escape = cancel, click-outside = cancel.
  * - Sequence: Reading → Listening → Writing → Speaking.
- * - Duration per skill and total from the catalogue item.
+ * - Duration per skill and total from the catalogue item — which derives them
+ *   from the exam's own `TimingProfile` via `durationSeconds`. There is no
+ *   fallback: an item with no `parts` is an exam nobody has given a timing
+ *   to, and the dialog says so and refuses to start it rather than printing
+ *   60/40/60/15 minutes it decided on by itself. → handoff S1 row 3, `G-11`
  * - Hardware check: microphone and audio required.
  * - System rules: answers autosave; clock does not stop on network loss;
  *   completed skills cannot be reopened.
@@ -30,13 +34,18 @@ export function FullTestReadinessModal({
 }) {
   const titleId = useId();
   const descId = useId();
+  const noticeId = useId();
   const card = useRef<HTMLDivElement>(null);
   const confirmBtn = useRef<HTMLButtonElement>(null);
+  const cancelBtn = useRef<HTMLButtonElement>(null);
+  const configured = item !== null && item.parts.length > 0;
 
   useEffect(() => {
     if (!isOpen) return;
-    confirmBtn.current?.focus();
-  }, [isOpen]);
+    // A disabled button cannot take focus, so an unconfigured exam hands it
+    // to the one action that still works.
+    (configured ? confirmBtn : cancelBtn).current?.focus();
+  }, [isOpen, configured]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -103,54 +112,42 @@ export function FullTestReadinessModal({
         {/* Skill sequence & durations */}
         <div className="readiness-sequence">
           <h3 className="readiness-section-title">Thứ tự các kỹ năng:</h3>
-          <ol className="readiness-steps">
-            {item.parts.length > 0 ? (
-              item.parts.map((part, index) => {
-                const skill = SKILLS[part.module];
-                return (
-                  <li key={part.module} className="readiness-step-item">
-                    <span className="readiness-step-num">{index + 1}</span>
-                    <span
-                      className="readiness-step-name"
-                      style={{ color: skill.ink }}
-                    >
-                      {skill.name}
-                    </span>
-                    <span className="readiness-step-min">
-                      <span className="num">{part.minutes}</span> phút
-                    </span>
-                  </li>
-                );
-              })
-            ) : (
-              <>
-                <li className="readiness-step-item">
-                  <span className="readiness-step-num">1</span>
-                  <span className="readiness-step-name">Reading</span>
-                  <span className="readiness-step-min"><span className="num">60</span> phút</span>
-                </li>
-                <li className="readiness-step-item">
-                  <span className="readiness-step-num">2</span>
-                  <span className="readiness-step-name">Listening</span>
-                  <span className="readiness-step-min"><span className="num">40</span> phút</span>
-                </li>
-                <li className="readiness-step-item">
-                  <span className="readiness-step-num">3</span>
-                  <span className="readiness-step-name">Writing</span>
-                  <span className="readiness-step-min"><span className="num">60</span> phút</span>
-                </li>
-                <li className="readiness-step-item">
-                  <span className="readiness-step-num">4</span>
-                  <span className="readiness-step-name">Speaking</span>
-                  <span className="readiness-step-min"><span className="num">15</span> phút</span>
-                </li>
-              </>
-            )}
-          </ol>
-          <div className="readiness-total-time">
-            <span>Tổng thời gian:</span>
-            <strong>{formatDuration(item.durationSeconds)}</strong>
-          </div>
+          {configured ? (
+            <>
+              <ol className="readiness-steps">
+                {item.parts.map((part, index) => {
+                  const skill = SKILLS[part.module];
+                  return (
+                    <li key={part.module} className="readiness-step-item">
+                      <span className="readiness-step-num">{index + 1}</span>
+                      <span
+                        className="readiness-step-name"
+                        style={{ color: skill.ink }}
+                      >
+                        {skill.name}
+                      </span>
+                      <span className="readiness-step-min">
+                        <span className="num">{part.minutes}</span> phút
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+              <div className="readiness-total-time">
+                <span>Tổng thời gian:</span>
+                <strong>{formatDuration(item.durationSeconds)}</strong>
+              </div>
+            </>
+          ) : (
+            /*
+             * An error state on an incomplete exam, not a main-path button.
+             * The confirm action below is disabled and points here for its
+             * reason, so a screen reader hears why it cannot be pressed.
+             */
+            <p className="readiness-notice" role="alert" id={noticeId}>
+              Đề này chưa cấu hình thời lượng. Hãy báo cho quản trị viên.
+            </p>
+          )}
         </div>
 
         {/* Important conditions */}
@@ -176,6 +173,7 @@ export function FullTestReadinessModal({
           <button
             type="button"
             className="btn btn-secondary"
+            ref={cancelBtn}
             onClick={onCancel}
             disabled={busy}
           >
@@ -185,7 +183,8 @@ export function FullTestReadinessModal({
             type="button"
             className="btn btn-primary readiness-start-btn"
             ref={confirmBtn}
-            disabled={busy}
+            disabled={busy || !configured}
+            aria-describedby={configured ? undefined : noticeId}
             onClick={onConfirm}
           >
             {busy ? 'Đang mở đề thi…' : 'Bắt đầu Full Test →'}

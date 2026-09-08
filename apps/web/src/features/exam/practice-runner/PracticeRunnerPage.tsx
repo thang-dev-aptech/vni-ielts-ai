@@ -959,15 +959,27 @@ export function PracticeRunnerPage() {
             onChange={markEdited}
             renderSpecial={(question, value) =>
               question.type === 'speaking-response' ? (
-                <SpeakingRecorder
-                  sessionId={sessionId}
-                  questionId={question.id}
-                  prepSeconds={timingFor(section, part.partNumber).prepSeconds}
-                  responseSeconds={timingFor(section, part.partNumber).responseSeconds}
-                  storedId={value}
-                  disabled={inputsLocked}
-                  onStored={(recordingId) => recorded(question.id, recordingId)}
-                />
+                (() => {
+                  const timing = timingFor(section, part.partNumber);
+                  // No timing on the server means no recorder: mounting one
+                  // would need a budget, and the only budget available would
+                  // be one this component invented. → `timingFor`
+                  return timing === null ? (
+                    <p className="audio-failed" role="alert">
+                      {t('exam.speakingTimingMissing')}
+                    </p>
+                  ) : (
+                    <SpeakingRecorder
+                      sessionId={sessionId}
+                      questionId={question.id}
+                      prepSeconds={timing.prepSeconds}
+                      responseSeconds={timing.responseSeconds}
+                      storedId={value}
+                      disabled={inputsLocked}
+                      onStored={(recordingId) => recorded(question.id, recordingId)}
+                    />
+                  );
+                })()
               ) : question.type === 'essay-task' ? (
                 <>
                   <QuestionInput
@@ -1033,9 +1045,18 @@ export function PracticeRunnerPage() {
   );
 }
 
+/**
+ * The server's timing for a Speaking part, or null when the exam carries none.
+ *
+ * <b>No fallback, deliberately.</b> This used to answer `{prep: 0, response:
+ * 300}` for a part the exam version had no entry for, which made the client
+ * the author of a five-minute budget nobody had decided on — a business rule
+ * invented in a component. A missing entry is a data error in the exam, and
+ * the runner says so instead of running a clock it made up.
+ * → handoff S1 row 2, `G-11`, five laws #1 and #2
+ */
 function timingFor(section: SessionView['current'], partNumber: number | null) {
-  const configured = section?.speakingTiming.find((p) => p.part === partNumber);
-  return configured ?? { part: partNumber ?? 1, prepSeconds: 0, responseSeconds: 300 };
+  return section?.speakingTiming.find((p) => p.part === partNumber) ?? null;
 }
 
 

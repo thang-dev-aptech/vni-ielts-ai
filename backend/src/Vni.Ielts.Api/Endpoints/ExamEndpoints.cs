@@ -186,6 +186,10 @@ public static class ExamEndpoints
             .WithSummary("Bands for the sections that have been marked")
             .Produces<SessionResultsView>();
 
+        sessions.MapGet("/{sessionId}/recordings/{questionId}/playback", RecordingPlaybackEndpoint)
+            .WithName("GetSpeakingRecordingPlayback")
+            .WithSummary("Presigned URL to play back one Speaking recording");
+
         sessions.MapPost("/{sessionId}/questions/{questionId}/explanation", ExplanationEndpoint)
             .WithName("RequestPersonalizedExplanation")
             .WithSummary("On-demand personalized explanation for one Reading/Listening question")
@@ -1028,6 +1032,39 @@ public static class ExamEndpoints
                 new GetSessionResultsQuery(new UserId(id), new ExamSessionId(sessionId)), ct));
         }
         catch (SessionNotFoundException) { return SessionMissing(); }
+    }
+
+    /// <summary>`S2b` — the GET counterpart to <c>/recordings/init</c>.</summary>
+    private static async Task<IResult> RecordingPlaybackEndpoint(
+        string sessionId, string questionId, ClaimsPrincipal principal,
+        GetSpeakingRecordingPlaybackUrl handler, CancellationToken ct)
+    {
+        if (principal.UserId() is not { } id) return Results.Unauthorized();
+
+        try
+        {
+            var result = await handler.HandleAsync(
+                new GetSpeakingRecordingPlaybackCommand(
+                    new UserId(id), new ExamSessionId(sessionId), questionId),
+                ct);
+
+            return Results.Ok(new { url = result.Url.ToString(), expiresAt = result.ExpiresAt });
+        }
+        catch (SessionNotFoundException) { return SessionMissing(); }
+        catch (SpeakingRecordingUploadUnavailableException)
+        {
+            return Problem(
+                ErrorCodes.RecordingUploadUnavailable,
+                "Presigned Speaking playback is not configured.",
+                StatusCodes.Status503ServiceUnavailable);
+        }
+        catch (SpeakingRecordingUploadNotFoundException)
+        {
+            return Problem(
+                ErrorCodes.RecordingUploadNotFound,
+                "No Speaking recording is available to play back for this question.",
+                StatusCodes.Status404NotFound);
+        }
     }
 
     private static async Task<IResult> ExplanationEndpoint(

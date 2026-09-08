@@ -75,6 +75,10 @@ async function clickNext(page: Page) {
   const button = primaryAction(page);
   await expect(button).toBeEnabled();
   await button.click();
+  // Full Test opens AdvanceConfirmCard before the server advances the skill.
+  const confirm = page.getByRole('button', { name: /Hoàn thành .+, sang/i });
+  await expect(confirm).toBeVisible({ timeout: 10_000 });
+  await confirm.click();
 }
 
 test.describe('four-skill mock', () => {

@@ -126,7 +126,8 @@ public sealed class SignInWithSso(
     IRoleRepository roles,
     ITokenService tokens,
     IHandoffCodeStore handoffCodes,
-    IClock clock)
+    IClock clock,
+    Usage.UsageRecorder? usage = null)
 {
     public async Task<Result<SsoCallbackResult>> HandleAsync(
         SsoCallbackCommand command, CancellationToken ct)
@@ -246,6 +247,7 @@ public sealed class SignInWithSso(
         try
         {
             await users.AddAsync(user, ct);
+            if (usage is not null) await usage.AccountCreatedAsync(user.Id, ct);
         }
         catch (DuplicateEmailException)
         {

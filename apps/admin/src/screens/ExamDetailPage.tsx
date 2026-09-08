@@ -1,11 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { ApiError } from '@vni/auth';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { AdminPaths } from '../routes/paths.js';
-import { listExams, publishExam, unpublishExam, type AdminExam } from '../lib/adminApi.js';
+import {
+  approveExam,
+  listExams,
+  publishExam,
+  returnExamToDraft,
+  submitExamForReview,
+  unpublishExam,
+  type AdminExam,
+} from '../lib/adminApi.js';
 import { StatusBadge } from '../components/StatusBadge.js';
-import { Confirm, useFlash } from '../chrome/Confirm.js';
+import { TransitionBar } from '../components/TransitionBar.js';
+import { useFlash } from '../chrome/Confirm.js';
 import { reasonOf } from './UserDetailPage.js';
+import type { ExamState, Transition } from '../lib/lifecycle.js';
 
 /**
  * Screen 3.2 — one exam, as a timeline of versions.
@@ -13,22 +24,33 @@ import { reasonOf } from './UserDetailPage.js';
  * <b>A timeline, not a form.</b> This is the single most important shape
  * decision in the CMS and it follows from one domain rule: a published
  * `ExamVersion` is immutable. Editing content produces a new version, so a
- * record-editing form would be lying about what the system does — and the
- * first person to trust it would try to fix a typo in a live exam and quietly
- * change the content under a sitting in progress.
+ * record-editing form would be lying about what the system does.
  *
- * <b>Publish is the one action here that changes what learners see</b>, so it
- * asks first and says so in those terms. Both directions are recorded in the
- * audit log under the operator's address, in the same request that performs
- * them. → `cms-spec.md` ràng buộc 6
+ * <b>Now the one real detail screen for the whole review lifecycle</b> — not
+ * only publish/unpublish. `WorkflowDetailPage` used to carry submit/approve/
+ * return against `previewStore`'s browser-only simulation, at a separate
+ * route keyed by version id; this screen carried only publish/unpublish
+ * against the real API, at a route keyed by definition id. Now that
+ * submit-for-review, approve and return-to-draft are real endpoints, keeping
+ * two detail screens for the same version would mean re-deciding "which
+ * screen is the real one" forever — so `TransitionBar` (generic over a bare
+ * `ExamState` since this session, no longer over a preview-store row) renders
+ * every transition open to the operator here, and `WorkflowDetailPage` is
+ * retired. → S1 report, "Known drift the queue removes"
+ *
+ * <b>`REVIEWER_IS_AUTHOR` gets its own sentence.</b> `P-20`'s one
+ * non-negotiable rule — a reviewer may not sign off content they authored —
+ * is enforced entirely server-side, because the client has no way to know who
+ * authored a version (`GET /api/v1/admin/exams` carries no author field). The
+ * 403 that comes back is therefore not predictable from a permission set, and
+ * a generic failure toast would send the operator looking for a bug that is
+ * not there.
  */
 export function ExamDetailPage() {
   const { definitionId = '' } = useParams();
-  const { accessToken, can } = useAdminAuth();
+  const { accessToken } = useAdminAuth();
 
   const [versions, setVersions] = useState<AdminExam[] | null>(null);
-  const [ask, setAsk] = useState<{ version: AdminExam; publish: boolean } | null>(null);
-  const [busy, setBusy] = useState(false);
   const { flash, say } = useFlash();
   const alive = useRef(true);
 
@@ -55,29 +77,20 @@ export function ExamDetailPage() {
 
   useEffect(() => void load(), [load]);
 
-  async function commit() {
-    if (accessToken === null || ask === null) return;
-    setBusy(true);
+  async function runTransition(examVersionId: string, transition: Transition, note: string) {
+    if (accessToken === null) return;
 
     try {
-      const call = ask.publish ? publishExam : unpublishExam;
-      await call(accessToken, ask.version.examVersionId);
+      if (transition.id === 'submit') await submitExamForReview(accessToken, examVersionId);
+      else if (transition.id === 'approve') await approveExam(accessToken, examVersionId);
+      else if (transition.id === 'return') await returnExamToDraft(accessToken, examVersionId, note);
+      else if (transition.id === 'publish') await publishExam(accessToken, examVersionId);
+      else if (transition.id === 'unpublish') await unpublishExam(accessToken, examVersionId);
 
-      say({
-        tone: 'ok',
-        text: ask.publish
-          ? `Đã xuất bản v${ask.version.versionNumber}. Học viên thấy đề này ngay bây giờ.`
-          : `Đã gỡ v${ask.version.versionNumber}. Bài đang làm dở vẫn chạy hết.`,
-      });
-
+      say({ tone: 'ok', text: successText(transition) });
       await load();
     } catch (error) {
-      say({ tone: 'bad', text: reasonOf(error) });
-    } finally {
-      if (alive.current) {
-        setBusy(false);
-        setAsk(null);
-      }
+      say({ tone: 'bad', text: transitionErrorText(transition, error) });
     }
   }
 
@@ -147,69 +160,47 @@ export function ExamDetailPage() {
               </tbody>
             </table>
 
-            <div className="cms-version-actions">
-              {version.status !== 'published' && can('exam.publish') && (
-                <button
-                  type="button"
-                  className="cms-primary"
-                  onClick={() => setAsk({ version, publish: true })}
-                >
-                  Xuất bản
-                </button>
-              )}
-
-              {version.status === 'published' && can('exam.unpublish') && (
-                <button
-                  type="button"
-                  className="cms-secondary"
-                  onClick={() => setAsk({ version, publish: false })}
-                >
-                  Gỡ xuất bản
-                </button>
-              )}
-            </div>
+            <TransitionBar
+              state={version.status as ExamState}
+              onApply={(transition, note) => runTransition(version.examVersionId, transition, note)}
+            />
           </li>
         ))}
       </ol>
-
-      <Confirm
-        open={ask !== null}
-        busy={busy}
-        title={
-          ask === null
-            ? ''
-            : ask.publish
-              ? `Xuất bản v${ask.version.versionNumber}?`
-              : `Gỡ v${ask.version.versionNumber} khỏi danh sách đề?`
-        }
-        body={
-          ask === null ? null : ask.publish ? (
-            <>
-              <p>
-                Học viên sẽ thấy và làm được <strong>{ask.version.title}</strong> ngay sau thao tác
-                này.
-              </p>
-              <p className="cms-muted">
-                Nội dung của version đã xuất bản không sửa được nữa. Muốn đổi thì nhập một version
-                mới.
-              </p>
-            </>
-          ) : (
-            <>
-              <p>
-                Học viên sẽ không bắt đầu được <strong>{ask.version.title}</strong> nữa.
-              </p>
-              <p className="cms-muted">
-                Bài đang làm dở không bị cắt giữa chừng — phiên đã mở vẫn chạy đến hết giờ và vẫn
-                nộp được.
-              </p>
-            </>
-          )
-        }
-        confirmLabel={ask === null ? '' : ask.publish ? 'Xuất bản' : 'Gỡ xuất bản'}
-        onConfirm={() => void commit()}
-        onCancel={() => setAsk(null)}
-      />
     </>
   );
+}
+
+function successText(transition: Transition): string {
+  switch (transition.id) {
+    case 'submit':
+      return 'Đã nộp duyệt.';
+    case 'approve':
+      return 'Đã duyệt. Đề chuyển sang danh sách chờ xuất bản.';
+    case 'return':
+      return 'Đã trả về bản nháp, kèm lý do đã ghi lại.';
+    case 'publish':
+      return 'Đã xuất bản. Học viên thấy đề này ngay bây giờ.';
+    case 'unpublish':
+      return 'Đã gỡ xuất bản. Bài đang làm dở vẫn chạy hết.';
+  }
+}
+
+/**
+ * The server's own sentence, with one exception: `REVIEWER_IS_AUTHOR` reads
+ * clearly on its own, but this names *which action* it blocked, since the
+ * same account can hold `exam.review` and still be refused only on the one
+ * version they authored — a plain flash with no context reads as if approving
+ * failed for no reason.
+ */
+function transitionErrorText(transition: Transition, error: unknown): string {
+  if (
+    transition.id === 'approve' &&
+    error instanceof ApiError &&
+    error.problem.code === 'REVIEWER_IS_AUTHOR'
+  ) {
+    return 'Bạn không thể tự duyệt đề mình soạn — cần một người khác duyệt version này.';
+  }
+
+  return reasonOf(error);
 }

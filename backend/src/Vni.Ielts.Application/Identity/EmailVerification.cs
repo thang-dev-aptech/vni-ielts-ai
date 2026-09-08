@@ -214,7 +214,8 @@ public interface IPasswordResetTokens
 
 public sealed record VerifyEmailCommand(string Token);
 
-public sealed class VerifyEmail(IUserRepository users, IEmailVerificationTokens tokens)
+public sealed class VerifyEmail(
+    IUserRepository users, IEmailVerificationTokens tokens, Usage.UsageRecorder? usage = null)
 {
     public async Task<Result<UserId>> HandleAsync(VerifyEmailCommand command, CancellationToken ct)
     {
@@ -238,8 +239,14 @@ public sealed class VerifyEmail(IUserRepository users, IEmailVerificationTokens 
 
         // Idempotent by nature: verifying an already-verified account is a
         // no-op, which is what a user double-clicking the link produces.
+        var wasAlreadyVerified = user.EmailVerified;
         user.MarkEmailVerified();
         await users.SaveAsync(user, ct);
+
+        // Guarded, not just relying on the ledger's own idempotent id: a
+        // double-click on the link is the expected way to reach this branch a
+        // second time, and it must not read as a second verification event.
+        if (usage is not null && !wasAlreadyVerified) await usage.EmailVerifiedAsync(user, ct);
 
         return user.Id;
     }

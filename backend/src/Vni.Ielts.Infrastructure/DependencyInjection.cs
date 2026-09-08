@@ -2,12 +2,17 @@ using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Application.Assessment;
+using Vni.Ielts.Application.Content.Library;
 using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Application.Dictation;
 using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
+using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Application.Learning;
 using Vni.Ielts.Application.Practice;
+using Vni.Ielts.Application.Usage;
+using Vni.Ielts.Infrastructure.Content.Import;
+using Vni.Ielts.Infrastructure.Persistence.Importing;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
@@ -134,6 +139,13 @@ public static class DependencyInjection
          * Speaking remains on NoTranscriptSource until ASR is selected.
          */
         services.AddSingleton<IRubricSource, ConfiguredRubricSource>();
+
+        // The Writing Task 1 : Task 2 ratio, from Assessment:Writing:TaskWeights.
+        // Unset means no combined Writing band — never a default. → `P-12`, `G-11`
+        services.AddSingleton<IWritingTaskWeighting>(_ =>
+            WritingTaskWeightOptions.ToPolicy(
+                configuration.GetSection(AssessmentOptions.SectionName).Get<AssessmentOptions>()
+                    ?.Writing.TaskWeights));
         services.AddSingleton<ITranscriptSource, NoTranscriptSource>();
 
         services.AddHttpClient(nameof(OpenAiWritingEvaluationClient));
@@ -184,6 +196,7 @@ public static class DependencyInjection
         services.AddScoped<SubmitSpeakingRecording>();
         services.AddScoped<InitSpeakingRecording>();
         services.AddScoped<CompleteSpeakingRecording>();
+        services.AddScoped<GetSpeakingRecordingPlaybackUrl>();
         services.AddScoped<AdvanceSection>();
         services.AddScoped<SubmitExamSession>();
         services.AddScoped<SetStopwatch>();
@@ -277,6 +290,38 @@ public static class DependencyInjection
         services.AddScoped<ResendVerification>();
         services.AddScoped<ConfirmEmailCode>();
 
+        // The two libraries (P-22): documents and articles, learner reads and
+        // CMS writes. Files are a URL string in this slice — no upload yet.
+        services.AddScoped<ILibraryDocumentStore, Persistence.Library.MongoLibraryDocumentStore>();
+        services.AddScoped<IArticleStore, Persistence.Library.MongoArticleStore>();
+        services.AddScoped<ListLibraryDocuments>();
+        services.AddScoped<GetLibraryDocument>();
+        services.AddScoped<ListAllLibraryDocuments>();
+        services.AddScoped<GetLibraryDocumentForEditing>();
+        services.AddScoped<CreateLibraryDocument>();
+        services.AddScoped<UpdateLibraryDocument>();
+        services.AddScoped<DeleteLibraryDocument>();
+        services.AddScoped<ChangeLibraryDocumentStatus>();
+        services.AddScoped<ListArticles>();
+        services.AddScoped<GetArticleBySlug>();
+        services.AddScoped<ListAllArticles>();
+        services.AddScoped<GetArticleForEditing>();
+        services.AddScoped<CreateArticle>();
+        services.AddScoped<UpdateArticle>();
+        services.AddScoped<DeleteArticle>();
+        services.AddScoped<ChangeArticleStatus>();
+
+        // The usage ledger (P-14): record, never block. Every amount defaults
+        // to zero when `Usage` is absent from configuration — the row still
+        // exists, the price is the business's to set. → `G-11`
+        services.AddSingleton(_ =>
+            configuration.GetSection(UsageOptions.SectionName).Get<UsageOptions>()
+                ?? new UsageOptions());
+        services.AddScoped<IUsageLedger, Persistence.Usage.MongoUsageLedger>();
+        services.AddScoped<IReferralDirectory, Persistence.Usage.MongoReferralDirectory>();
+        services.AddScoped<Vni.Ielts.Application.Usage.UsageRecorder>();
+        services.AddScoped<GetMyUsage>();
+
         // Learning: goal, coaching, daily activity. The advisor is the AI half
         // and is gated exactly like the Writing marker; the rest is arithmetic.
         services.AddScoped<ILearnerGoalStore, Persistence.Learning.MongoLearnerGoalStore>();
@@ -306,7 +351,78 @@ public static class DependencyInjection
          */
         services.AddContentRights(configuration);
 
+        // The ZIP front door for exam import (S6). Caps come from
+        // Import:Archive; the class defaults apply when the section is absent.
+        // Stateless, so a singleton. → docs/security/zip-ingestion-security.md
+        services.Configure<Content.Import.ImportArchiveOptions>(
+            configuration.GetSection(Content.Import.ImportArchiveOptions.SectionName));
+        services.AddSingleton<Application.Importing.IExamPackageArchiveInspector,
+            Content.Import.ExamPackageArchiveInspector>();
+
+        /*
+         * ── The rest of the front door: the endpoint-facing pipeline (S6b) ──
+         *
+         * <b>The first production caller of `IExamPackageValidator`.</b>
+         * Before this it was only ever built ad hoc — by
+         * `DevelopmentExamSeeder` for a Development-only fixture load, and by
+         * the operator CLI's own `Main`. Both discover the schema path by
+         * walking up from the running process; `LocateExamSchemaPath` below
+         * does the same walk rather than inventing a second discovery
+         * mechanism, but throws instead of skipping, because this one backs
+         * a real admin endpoint rather than a convenience seed.
+         */
+        services.AddSingleton<IExamPackageValidator>(
+            _ => new Content.ExamPackageValidator(Content.ExamPackageReader.FromSchemaFile(LocateExamSchemaPath())));
+
+        /*
+         * <b>No AI parser is wired in here.</b> `IExamSourceParser` is
+         * registered as the null implementation until AI-assisted parsing of
+         * raw exam source documents is productised for an unattended HTTP
+         * caller — see `UnconfiguredExamSourceParser`'s own remarks. Only the
+         * structured route (an archive holding one ready `exam.json`) is
+         * unaffected by this; it never touches a parser.
+         */
+        services.AddScoped<IPrivateImportAssetStore, DiscardedImportAssetStore>();
+        services.AddScoped<ISourceDocumentExtractor, Content.SafeSourceDocumentExtractor>();
+        services.AddScoped<IExamSourceParser, UnconfiguredExamSourceParser>();
+
+        services.AddScoped<ExamImportWorkflow>();
+        services.AddScoped<ImportReviewWorkflow>();
+        services.AddScoped<IImportDraftStore, MongoImportDraftStore>();
+        services.AddScoped<IImportBatchCheckpointStore, MongoImportBatchCheckpointStore>();
+        services.AddScoped<ExamPackageImportPipeline>();
+
         return services;
+    }
+
+    /// <summary>
+    /// Walks up from the running process to find
+    /// <c>contracts/schemas/exam.schema.json</c> — the same search
+    /// <c>DevelopmentExamSeeder.LocateFixtures</c> and the operator CLI's
+    /// <c>FindRepositoryRoot</c> already do, because every one of these
+    /// processes runs from a build output directory nested somewhere under
+    /// the repository root.
+    ///
+    /// <b>Throws rather than degrading, unlike the seeder.</b> The seeder is
+    /// Development-only convenience that logs and continues; this validator
+    /// is what the admin import endpoints (S6b) exist for, so silently having
+    /// no validator would surface as every upload failing for an unexplained
+    /// reason. Failing fast at the first resolution is the cheaper version of
+    /// the same news.
+    /// </summary>
+    private static string LocateExamSchemaPath()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(directory.FullName, "contracts", "schemas", "exam.schema.json");
+            if (File.Exists(candidate)) return candidate;
+            directory = directory.Parent;
+        }
+
+        throw new InvalidOperationException(
+            "Could not locate contracts/schemas/exam.schema.json above " + AppContext.BaseDirectory
+            + ". The exam-import validator (S6b) needs it to be resolvable at startup.");
     }
 
     /// <summary>
@@ -420,7 +536,24 @@ public static class DependencyInjection
         foreach (var (name, permissions) in SeedRoles)
         {
             if (await roles.FindByNameAsync(name, ct) is not null)
+            {
+                /*
+                 * <b>A system role that already exists still receives keys
+                 * added to the seed later.</b> Before 2026-09-07 the seed was
+                 * insert-only, so `document.write` and friends would have
+                 * reached a fresh database and never an existing one — the
+                 * CMS would show the permission column, and no operator could
+                 * ever hold it. `$addToSet` is idempotent and never removes
+                 * a grant made by hand, so the seed is a floor, not a mirror.
+                 * Done at the collection rather than through `Role.Grant`,
+                 * which (correctly) refuses to mutate a system role.
+                 */
+                await ctx.Roles.UpdateOneAsync(
+                    r => r.Name == name && r.IsSystem,
+                    Builders<RoleDocument>.Update.AddToSetEach(r => r.Permissions, permissions),
+                    cancellationToken: ct);
                 continue;
+            }
 
             try
             {
@@ -458,6 +591,14 @@ public static class DependencyInjection
             PermissionKeys.EvaluationRead,
             // Deliberately NOT ExamPublish — importing content and shipping it
             // to learners are separate authorities. → threat T20
+            // Same split for the two libraries: write, never publish.
+            PermissionKeys.DocumentWrite, PermissionKeys.ArticleWrite,
+            // Submit, but deliberately NOT ExamReview (`P-20`). This is the
+            // author role; mvp-blueprint.md § 06 names the admin review queue
+            // — not a content-editor one — as the screen the missing
+            // permission gates, so today's "different person" is admin.
+            // Revisit if a second, distinct reviewer role is ever seeded.
+            PermissionKeys.ExamSubmit,
         ]),
 
         (SystemRoles.Support,
@@ -470,6 +611,7 @@ public static class DependencyInjection
         [
             PermissionKeys.ExamRead, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdate,
             PermissionKeys.ExamDelete, PermissionKeys.ExamPublish, PermissionKeys.ExamUnpublish,
+            PermissionKeys.ExamSubmit, PermissionKeys.ExamReview,
             PermissionKeys.PackageUpload, PermissionKeys.PackageRead, PermissionKeys.PackageDelete,
             PermissionKeys.EvaluationRead, PermissionKeys.EvaluationRerun,
             PermissionKeys.EvaluationOverride, PermissionKeys.LearnerContentRead,
@@ -477,6 +619,8 @@ public static class DependencyInjection
             PermissionKeys.UserDelete, PermissionKeys.UserExport,
             PermissionKeys.RoleRead, PermissionKeys.RoleAssign, PermissionKeys.RoleManage,
             PermissionKeys.ConfigRead, PermissionKeys.ConfigUpdate, PermissionKeys.AuditRead,
+            PermissionKeys.DocumentWrite, PermissionKeys.DocumentPublish,
+            PermissionKeys.ArticleWrite, PermissionKeys.ArticlePublish,
         ]),
     ];
 }

@@ -31,6 +31,9 @@ namespace Vni.Ielts.Api.Endpoints;
 /// </summary>
 public sealed record AssignRoleRequest(string RoleId, bool Grant);
 
+/// <summary>`P-20`'s "Trả về kèm lý do" — a return with no reason is refused.</summary>
+public sealed record ReturnExamToDraftRequest(string Reason);
+
 public static class AdminEndpoints
 {
     public static void MapAdminEndpoints(this IEndpointRouteBuilder app)
@@ -79,6 +82,19 @@ public static class AdminEndpoints
         group.MapPost("/exams/{examVersionId}/unpublish", UnpublishEndpoint)
             .WithName("AdminUnpublishExam")
             .WithSummary("Stop new sittings of a published version");
+
+        group.MapPost("/exams/{examVersionId}/submit-for-review", SubmitForReviewEndpoint)
+            .WithName("AdminSubmitExamForReview")
+            .WithSummary("Author sends a draft to review — P-20, Draft → InReview");
+
+        group.MapPost("/exams/{examVersionId}/approve", ApproveEndpoint)
+            .WithName("AdminApproveExam")
+            .WithSummary("A different person signs off the content — P-20, InReview → Approved. "
+                + "403 REVIEWER_IS_AUTHOR if the caller authored this version.");
+
+        group.MapPost("/exams/{examVersionId}/return-to-draft", ReturnToDraftEndpoint)
+            .WithName("AdminReturnExamToDraft")
+            .WithSummary("Reviewer sends a version back with a reason — P-20, InReview → Draft");
 
         group.MapPost("/users/{userId}/suspend", SuspendEndpoint)
             .WithName("AdminSuspendUser")
@@ -350,6 +366,26 @@ public static class AdminEndpoints
         if (version.Status == ExamVersionStatus.Published)
             return Conflict("Version này đã được xuất bản.");
 
+        /*
+         * `P-20`: the only path to Published is Approved (a fresh review
+         * sign-off) or Unpublished (re-publishing unchanged content — the
+         * "xuất bản lại" case; content is frozen once first published, so no
+         * second review is owed). A Draft or a version still InReview has not
+         * earned this yet.
+         *
+         * <b>Deliberately not enforced inside `ExamVersion.Publish` itself.</b>
+         * A dozen existing unit and integration test fixtures across three
+         * test projects build a sittable paper with `CreateDraft` followed
+         * directly by `Publish`, with no review step, as a fixture shortcut
+         * unrelated to this feature. Tightening the domain method's guard
+         * would break every one of them for a workflow they do not exercise.
+         * The endpoint is the one caller that matters for real traffic, so
+         * the gate lives here — the same place the rights gate and the
+         * already-published gate already live. → S7 report
+         */
+        if (version.Status is not (ExamVersionStatus.Approved or ExamVersionStatus.Unpublished))
+            return Conflict("Version này chưa được duyệt, không thể xuất bản.");
+
         var now = clock.UtcNow;
         version.Publish(now);
         await catalogue.UpsertAsync(version, ct);
@@ -382,6 +418,102 @@ public static class AdminEndpoints
 
         await Record(audit, principal, AuditAction.ExamUnpublished, "exam-version",
             version.Id.Value, $"{version.Title} v{version.VersionNumber}", clock.UtcNow, ct);
+
+        return Results.Ok(new { status = version.Status.ToString().ToLowerInvariant() });
+    }
+
+    /// <summary>
+    /// The author sends a draft to review. `P-20`, first step of
+    /// <c>Draft → InReview → Approved → Published</c>.
+    /// </summary>
+    private static async Task<IResult> SubmitForReviewEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.ExamSubmit) is { } denial) return denial;
+
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (version.Status != ExamVersionStatus.Draft)
+            return Conflict("Chỉ bản nháp mới nộp duyệt được.");
+
+        var now = clock.UtcNow;
+        version.SubmitForReview();
+        await catalogue.SetStatusAsync(version.Id, version.Status, ct);
+
+        await Record(audit, principal, AuditAction.ExamSubmittedForReview, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", now, ct);
+
+        return Results.Ok(new { status = version.Status.ToString().ToLowerInvariant() });
+    }
+
+    /// <summary>
+    /// A different person signs off the content. `P-20`'s central rule —
+    /// reviewer ≠ author — is enforced inside <see cref="ExamVersion.Approve"/>,
+    /// not by this endpoint's permission check, so it holds even for a caller
+    /// who holds <see cref="PermissionKeys.ExamReview"/> and happens to be the
+    /// author: <see cref="ReviewerIsAuthorException"/> becomes a 403, not a
+    /// silently-ignored no-op and not a 500.
+    /// </summary>
+    private static async Task<IResult> ApproveEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.ExamReview) is { } denial) return denial;
+        if (principal.UserId() is not { } reviewerId) return Results.Unauthorized();
+
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (version.Status != ExamVersionStatus.InReview)
+            return Conflict("Chỉ version đang chờ duyệt mới duyệt được.");
+
+        var now = clock.UtcNow;
+
+        try
+        {
+            version.Approve(new UserId(reviewerId));
+        }
+        catch (ReviewerIsAuthorException e)
+        {
+            return Results.Problem(
+                detail: e.Message,
+                statusCode: StatusCodes.Status403Forbidden,
+                extensions: new Dictionary<string, object?> { ["code"] = ErrorCodes.ReviewerIsAuthor });
+        }
+
+        await catalogue.SetStatusAsync(version.Id, version.Status, ct);
+
+        await Record(audit, principal, AuditAction.ExamApproved, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", now, ct);
+
+        return Results.Ok(new { status = version.Status.ToString().ToLowerInvariant() });
+    }
+
+    /// <summary>The reviewer sends a version back. `P-20`: "Trả về kèm lý do".</summary>
+    private static async Task<IResult> ReturnToDraftEndpoint(
+        string examVersionId, ReturnExamToDraftRequest request, ClaimsPrincipal principal,
+        IExamCatalogue catalogue, IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.ExamReview) is { } denial) return denial;
+
+        if (string.IsNullOrWhiteSpace(request.Reason))
+            return Conflict("Trả về đề cần kèm lý do.");
+
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (version.Status != ExamVersionStatus.InReview)
+            return Conflict("Chỉ version đang chờ duyệt mới trả về được.");
+
+        var now = clock.UtcNow;
+        version.ReturnToDraft(request.Reason);
+        await catalogue.SetStatusAsync(version.Id, version.Status, ct);
+
+        await Record(audit, principal, AuditAction.ExamReturnedToDraft, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", now, ct,
+            new Dictionary<string, string> { ["reason"] = request.Reason });
 
         return Results.Ok(new { status = version.Status.ToString().ToLowerInvariant() });
     }

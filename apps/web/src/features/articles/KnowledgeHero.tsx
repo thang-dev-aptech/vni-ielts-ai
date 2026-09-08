@@ -1,31 +1,36 @@
-import { ARTICLES, ARTICLE_CATEGORY_LABEL, type ArticleCategory } from './articles.js';
+import { ARTICLE_CATEGORY_LABEL, type ArticleCategory, type ArticleSummary } from './articles.js';
 
 /**
  * The dark band at the top of the knowledge centre.
  *
  * <b>Every figure is counted, none is claimed.</b> The reference layout puts a
  * stat row here and this one keeps it — but each number is
- * `ARTICLES.filter(...).length`, computed at render. That is why a category
- * with nothing in it shows a real `0` rather than being quietly dropped: the
- * "Tuyển dụng" shelf is genuinely empty, the filter chip says so in its empty
- * state, and a stat row that hid the zero would be the only part of the page
- * pretending otherwise.
+ * `articles.filter(...).length` over the catalogue `ArticlesPage` fetched and
+ * handed down, computed at render. That is why a category with nothing in it
+ * shows a real `0` rather than being quietly dropped: the "Tuyển dụng" shelf
+ * is genuinely empty, the filter chip says so in its empty state, and a stat
+ * row that hid the zero would be the only part of the page pretending
+ * otherwise.
  *
- * <b>No "150+ bài viết".</b> The brief sketches round inflated totals; the
- * catalogue holds twelve seeded posts. A `+` on a number nobody counted is the
- * thing this product has a rule about, and the rule does not stop applying
- * because a figure would look better.
+ * <b>No "150+ bài viết".</b> The brief sketches round inflated totals. A `+`
+ * on a number nobody counted is the thing this product has a rule about, and
+ * the rule does not stop applying because a figure would look better.
+ *
+ * <b>The catalogue arrives as a prop, not an import.</b> `ArticlesPage` owns
+ * the fetch to `GET /api/v1/library/articles` so this component never reads
+ * it while the request is still in flight and before `ArticlesPage` has
+ * decided what to show for that.
  */
 
 /** Total first, then one tile per category, in the order the chips list them. */
 const STAT_ORDER: ArticleCategory[] = ['huong-dan', 'bai-viet', 'tuyen-dung'];
 
-export function KnowledgeHero() {
+export function KnowledgeHero({ articles }: { articles: ArticleSummary[] }) {
   const stats = [
-    { key: 'all', value: ARTICLES.length, label: 'Tổng số bài' },
+    { key: 'all', value: articles.length, label: 'Tổng số bài' },
     ...STAT_ORDER.map((id) => ({
       key: id,
-      value: ARTICLES.filter((article) => article.category === id).length,
+      value: articles.filter((article) => article.category === id).length,
       label: ARTICLE_CATEGORY_LABEL[id],
     })),
   ];
@@ -55,7 +60,7 @@ export function KnowledgeHero() {
           strip becomes four dimmed zeros under a heading about discovering
           knowledge, which reads as a figure that failed to load.
         */}
-        {ARTICLES.length > 0 && (
+        {articles.length > 0 && (
           <ul className="art-stats">
             {stats.map((stat) => (
               <li className={`art-stat${stat.value === 0 ? ' is-zero' : ''}`} key={stat.key}>

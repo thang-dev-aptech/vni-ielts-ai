@@ -37,12 +37,25 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const palette: Record<ButtonVariant, React.CSSProperties> = {
-    primary: { background: 'var(--acc)', color: '#fff', borderColor: 'var(--acc)' },
+    // D-10: the primary action is --primary (#06803a, 5.05:1 on white text),
+    // not --acc. --acc is for links, informational text and the Reading chip,
+    // which is why `quiet` keeps it — a quiet button reads as a link.
+    primary: {
+      background: 'var(--primary)',
+      color: '#fff',
+      borderColor: 'var(--primary)',
+      boxShadow: 'var(--shadow-press-primary)',
+    },
     secondary: { background: 'var(--card)', color: 'var(--ink)', borderColor: 'var(--line)' },
     quiet: { background: 'transparent', color: 'var(--acc)', borderColor: 'transparent' },
     // --bad is reserved for something that has actually broken or is about to
     // be destroyed. It is never used for ordinary emphasis.
-    danger: { background: 'var(--bad)', color: '#fff', borderColor: 'var(--bad)' },
+    danger: {
+      background: 'var(--bad)',
+      color: '#fff',
+      borderColor: 'var(--bad)',
+      boxShadow: 'var(--shadow-press-danger)',
+    },
   };
 
   const isDisabled = disabled === true || busy;
@@ -59,8 +72,8 @@ export function Button({
         fontSize: 'var(--t-16)',
         fontWeight: 600,
         lineHeight: 'var(--lh-body)',
-        border: '1px solid',
-        borderRadius: 'var(--r-sm)',
+        border: 'var(--bw-2) solid',
+        borderRadius: 'var(--r-md)',
         cursor: isDisabled ? 'not-allowed' : 'pointer',
         opacity: isDisabled ? 0.6 : 1,
         transition: `background var(--dur) var(--ease), opacity var(--dur) var(--ease)`,

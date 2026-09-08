@@ -56,7 +56,21 @@ beforeEach(() => {
   document.title = '';
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () => json({ providers: [] })),
+    vi.fn(async (input: unknown) => {
+      const url = String(input);
+      // `/articles/mo-bai-writing-task-2` is deliberately not a real slug —
+      // this sweep wants the 404 page, not a crash from treating a stub's
+      // generic 200 as a real article with no title, category or body.
+      if (url.includes('/api/v1/library/articles/')) {
+        return json(
+          { title: 'Not found', status: 404, detail: 'No such article.', code: 'NOT_FOUND' },
+          404,
+        );
+      }
+      if (url.includes('/api/v1/library/articles')) return json({ items: [] });
+      if (url.includes('/api/v1/library/documents')) return json({ items: [] });
+      return json({ providers: [] });
+    }),
   );
 });
 
@@ -68,11 +82,18 @@ afterEach(() => {
 it.each(PUBLIC_ROUTES)('names the tab on %s', async (route) => {
   const { unmount } = openAt(route);
 
-  await waitFor(() => expect(document.title).not.toBe(''));
+  /*
+   * Waiting for "not empty" used to be enough — every page set its title
+   * synchronously on first render. `/articles/:slug` no longer does: it
+   * fetches the article first, and `usePageTitle(undefined)` deliberately
+   * sets the bare product name while that request is in flight (see its own
+   * doc comment). A weaker wait would catch that transient value and never
+   * see the real one, so this waits for the final shape directly.
+   */
+  await waitFor(() => expect(document.title).toMatch(/ · VNI IELTS AI$/));
 
   // Every page ends with the product, and none of them *is* only the product —
   // that was the fallback a page with no title of its own used to land on.
-  expect(document.title).toMatch(/ · VNI IELTS AI$/);
   expect(document.title).not.toBe('VNI IELTS AI');
 
   unmount();
@@ -81,9 +102,11 @@ it.each(PUBLIC_ROUTES)('names the tab on %s', async (route) => {
 it.each(PUBLIC_ROUTES)('starts the heading tree at h1 on %s', async (route) => {
   const { unmount } = openAt(route);
 
-  await waitFor(() =>
-    expect(document.querySelectorAll('h1,h2,h3,h4,h5,h6').length).toBeGreaterThan(0),
-  );
+  // Same reasoning as the title test above: an unknown article slug redirects
+  // to `/404` only after a fetch resolves, so this waits for the *final*
+  // heading tree (exactly one `h1`) rather than for "any heading", which the
+  // page's own loading state can satisfy — or fail to — before the redirect.
+  await waitFor(() => expect(document.querySelectorAll('h1')).toHaveLength(1));
 
   const levels = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) =>
     Number(h.tagName[1]),

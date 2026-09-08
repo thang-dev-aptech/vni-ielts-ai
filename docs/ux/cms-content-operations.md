@@ -323,6 +323,17 @@ Bốn luật gắn với sơ đồ:
 3. **Đã duyệt vẫn chưa tới tay học viên.** Không tồn tại nút "duyệt và xuất bản luôn" (`Đ4`).
 4. **Xuất bản xong là bất biến.** Sửa nội dung = phiên bản mới, đi lại từ đầu.
 
+> **Lưu ý 2026-09-07 — cái đã xây (`P-20`, handoff `S7`) là bản hẹp hơn sơ đồ trên.**
+> `mvp-blueprint.md` §06 chốt bốn chuyển trạng thái: `Draft → InReview`, `InReview → Approved`,
+> `InReview → Draft` (kèm lý do), `Approved → Published`. **Không có trạng thái `Returned` tách
+> riêng** — "trả lại" đi thẳng về `Draft`, lý do nằm trong chi tiết nhật ký (`AuditAction
+> .ExamReturnedToDraft`), không phải một `ExamReviewNote` hay một trạng thái thứ năm. Sáu trạng
+> thái và `ExamReviewNote` ở trên vẫn là đề xuất của tài liệu này — tài liệu này vẫn `PROPOSED` với
+> các câu hỏi mở ở §11, và `P-20` là quyết định đã chốt mà `S7` triển khai, không phải sơ đồ này.
+> `apps/admin/src/lib/lifecycle.ts` hiện đã dựng sẵn theo sáu trạng thái và quyền `.own`/`.any` của
+> §4 — việc đó cần được thu hẹp lại cho khớp bản hai-trạng-thái đã triển khai, hoặc owner cần xác
+> nhận lại là muốn bản rộng hơn. Chưa quyết; cờ lên cho người làm frontend slice kế tiếp.
+
 ### 3.2 · Bài viết · Tài liệu · Dictation — bốn trạng thái
 
 ```
@@ -334,6 +345,26 @@ Nháp  ──►  Chờ duyệt  ──►  Đã xuất bản  ──►  Đã g
 Cùng động từ, cùng nút, cùng hộp xác nhận, cùng dòng nhật ký — chỉ **không có bước `Đã duyệt` tách
 riêng**, vì không có ai phải ký chuyên môn cho một bài blog. Đây là ý nghĩa thật của `Đ8`: không
 phải "y hệt nhau", mà là **một mô hình tư duy duy nhất**, học một lần dùng cho tất cả.
+
+> **Đã cài đặt 2026-09-07 (`P-22`, handoff `S5`).** Documents và Articles là hai collection Mongo
+> độc lập (`library_documents`, `articles`), mỗi bên chạy đúng bốn trạng thái ở trên qua
+> `LibraryLifecycle` (`backend/src/Vni.Ielts.Domain/Content/Library/LibraryCommon.cs`) — publish
+> được phép đi thẳng từ Nháp, không có bước duyệt riêng, đúng như mục này mô tả. `relatedExamIds`
+> chừa `null`. Article địa chỉ bằng slug (unique, reserved từ lúc còn Nháp); Document địa chỉ bằng
+> id.
+>
+> Endpoint học viên (chỉ đọc, chỉ bản Đã xuất bản): `GET /api/v1/library/documents[/​{id}]`,
+> `GET /api/v1/library/articles[/​{slug}]`. Endpoint CMS (CRUD + bốn chuyển trạng thái, quyền
+> `document.write`/`document.publish`/`article.write`/`article.publish`):
+> `/api/v1/admin/library/documents` và `/api/v1/admin/library/articles` — xem
+> `backend/src/Vni.Ielts.Api/Endpoints/LibraryEndpoints.cs` và `AdminLibraryEndpoints.cs`.
+>
+> Publish/unpublish ghi `AuditAction.DocumentPublished/Unpublished` và
+> `ArticlePublished/Unpublished` (submit/return không ghi — hai chuyển trạng thái đó chỉ đổi
+> quyền xem trong nội bộ CMS, không ảnh hưởng học viên).
+>
+> **Chưa làm:** upload file thật — `fileUrl` vẫn là một chuỗi URL do CMS tự điền, không có endpoint
+> nhận file.
 
 ### 3.3 · Bốn nguồn nội dung, một cổng kiểm
 

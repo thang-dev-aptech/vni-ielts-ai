@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Learning;
+using Vni.Ielts.Application.Usage;
 using Vni.Ielts.Domain.Common;
 
 namespace Vni.Ielts.Api.Endpoints;
@@ -46,6 +47,20 @@ public static class LearningEndpoints
             .WithName("GetLearnerActivity")
             .WithSummary("Active days for the heatmap, and the current streak")
             .Produces<ActivityView>();
+
+        me.MapGet("/usage", GetUsageEndpoint)
+            .WithName("GetMyUsage")
+            .WithSummary("Turn balance, the referral code to share, and recent ledger history — recorded only, never a gate. P-14")
+            .Produces<UsageView>();
+    }
+
+    private static async Task<IResult> GetUsageEndpoint(
+        ClaimsPrincipal principal, GetMyUsage handler, int? take, CancellationToken ct)
+    {
+        if (principal.UserId() is not { } id) return Results.Unauthorized();
+        var view = await handler.HandleAsync(
+            new GetMyUsageQuery(new UserId(id), take ?? GetMyUsage.DefaultTake), ct);
+        return Results.Ok(view);
     }
 
     private static async Task<IResult> GetGoalEndpoint(

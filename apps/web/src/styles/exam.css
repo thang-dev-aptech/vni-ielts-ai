@@ -2061,3 +2061,35 @@
 .result-next .btn {
   text-decoration: none;
 }
+
+/*
+ * The paper as sat, post-submit (`S2`) — passage/prompt context, the
+ * learner's own essay text, and a Speaking recording fetched on demand.
+ * Deliberately reuses `.result-review*` for the accordion shell so this
+ * looks like the same kind of thing `SectionReview`/`MarkingReview` already
+ * draw, rather than a new visual language for one screen.
+ */
+.result-content-part + .result-content-part {
+  margin-top: var(--s-6);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+}
+
+.result-essay,
+.result-recording {
+  margin-top: var(--s-4);
+}
+
+/* A learner's own words, not authored passage markdown — no `**bold**`
+   parsing, so line breaks are the only structure preserved. */
+.result-essay-text {
+  margin: var(--s-2) 0 0;
+  white-space: pre-wrap;
+  color: var(--ink);
+  font-size: var(--t-16);
+  line-height: var(--lh-body);
+}
+
+.result-writing-combined {
+  margin-top: var(--s-4);
+}

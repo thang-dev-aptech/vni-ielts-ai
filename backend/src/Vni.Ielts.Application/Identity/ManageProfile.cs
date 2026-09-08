@@ -211,7 +211,8 @@ public sealed record ConfirmEmailCodeCommand(UserId UserId, string Code);
 /// </summary>
 public sealed class ConfirmEmailCode(
     IUserRepository users,
-    IEmailVerificationTokens tokens)
+    IEmailVerificationTokens tokens,
+    Usage.UsageRecorder? usage = null)
 {
     public async Task<Result<CodeRedemption>> HandleAsync(
         ConfirmEmailCodeCommand command, CancellationToken ct)
@@ -247,6 +248,8 @@ public sealed class ConfirmEmailCode(
 
         user.MarkEmailVerified();
         await users.SaveAsync(user, ct);
+
+        if (usage is not null) await usage.EmailVerifiedAsync(user, ct);
 
         return CodeRedemption.Verified;
     }

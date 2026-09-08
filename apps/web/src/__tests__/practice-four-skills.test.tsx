@@ -489,24 +489,37 @@ it('states the preparation and speaking budget before the recorder starts', asyn
   // the watched number are character for character the same.
   expect(screen.getByText('Chuẩn bị 01:00 · nói tối đa 02:00')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Bắt đầu chuẩn bị' })).toBeInTheDocument();
+  // A configured part is the server's numbers, passed through untouched — and
+  // never the "chưa cấu hình" state the unconfigured sibling below gets.
+  expect(screen.queryByText(/chưa cấu hình thời lượng/)).toBeNull();
 });
 
 /**
- * A part with no configured timing states the fallback it will actually use.
+ * A part the exam version carries no timing for is a data error, and is shown
+ * as one.
  *
- * `timingFor` falls back to no preparation and five minutes rather than to
- * zero — a zero would stop a recording before it started. That fallback was
- * invisible, so a part the CMS had not been given timings for looked identical
- * to one that had.
+ * <b>This test used to pin the opposite.</b> `timingFor` answered `{prep: 0,
+ * response: 300}` for a missing entry, and the test asserted that the runner
+ * at least *stated* the five minutes it had made up. Handoff S1 row 2 withdrew
+ * that behaviour: a duration the server never sent is a business rule invented
+ * by the client (`G-11`, five laws #1 and #2), and saying it out loud does not
+ * make it less invented. So the runner now renders an explicit "chưa cấu hình"
+ * state and does not mount the recorder — there is no budget to run it against.
  */
-it('states the fallback budget for a part the exam version carries no timing for', async () => {
+it('refuses to invent a budget for a part the exam version carries no timing for', async () => {
   sessionPayload = speakingSession([]);
   open('/students/session/sit-full');
 
   await screen.findByText('Describe a time you concentrated hard.');
 
-  expect(screen.getByText('Nói tối đa 05:00, không có thời gian chuẩn bị')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Bắt đầu ghi âm' })).toBeInTheDocument();
+  const notice = screen.getByText(/Đề này chưa cấu hình thời lượng cho phần Speaking này/);
+  expect(notice).toHaveAttribute('role', 'alert');
+
+  // No stated budget, and no recorder: neither the prep button nor the
+  // record-now button a fallback used to produce.
+  expect(screen.queryByText(/Nói tối đa/)).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Bắt đầu ghi âm' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Bắt đầu chuẩn bị' })).toBeNull();
 });
 
 /* ── What a finished sitting offers next ───────────────────────────────── */

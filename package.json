@@ -9,7 +9,7 @@
   },
   "scripts": {
     "infra": "docker compose -f infra/docker/compose.yaml up -d",
-    "bootstrap": "bash scripts/bootstrap.sh",
+    "bootstrap": "node scripts/bootstrap.mjs",
     "api": "dotnet run --project backend/src/Vni.Ielts.Api",
     "dev": "pnpm --filter @vni/web dev",
     "dev:admin": "pnpm --filter @vni/admin dev",

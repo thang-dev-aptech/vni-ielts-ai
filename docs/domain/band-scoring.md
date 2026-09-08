@@ -68,9 +68,18 @@ Both are assessed against four equally-weighted criteria, each scored on the 0�
 | Lexical Resource | Vocabulary range and accuracy |
 | Grammatical Range and Accuracy | Structure variety and correctness |
 
-Task 2 is weighted more heavily than Task 1 in the official Writing band. `[OPEN QUESTION]` `H-8b` — the exact ratio is not published the way the overall-band rule is.
+Task 2 is weighted more heavily than Task 1 in the official Writing band. IELTS does not publish the exact ratio the way it publishes the overall-band rule, so it was an open question (`H-8b`) until the owner settled it.
 
-**It has no default, and that is deliberate.** The 1:2 assumption used to be a default value in three places — the `ScoringProfile` record, the Mongo document, and the package reader's `?? 2m`. The effect was that every exam version without an explicit weighting was marked on a guess, and nothing said so. `ScoringProfile.RequireWritingTaskWeights()` now throws instead, in the same way `BandFor` refuses a raw score its table does not cover. → `G-11`
+| Rule | Value | Status | Source |
+|---|---|---|---|
+| Writing Task 1 : Task 2 weighting | 1 : 2 — Writing band = (Task 1 + Task 2 × 2) / 3, rounded on the overall-band rule | CONFIRMED | Owner decision 06/09/2026, `P-12` in [`mvp-blueprint.md`](../product/mvp-blueprint.md) |
+| The four-criterion rubric | A framework of four criteria; not a claim to be official IELTS marking, and every Writing band the client shows carries the label "AI · tham khảo" | CONFIRMED | Owner decision 06/09/2026, `P-13` in [`mvp-blueprint.md`](../product/mvp-blueprint.md) |
+
+**`H-8b` resolved 2026-09-06 by `P-12`.** The ratio is still data, not code: it lives in configuration — `Assessment:Writing:TaskWeights` (`{ "Task1": 1, "Task2": 2 }` in `backend/src/Vni.Ielts.Api/appsettings.json`) — and an exam version may carry its own in `ScoringProfile.WritingTask1Weight` / `WritingTask2Weight`. Resolution order in `IWritingTaskWeighting`: the exam version's own weights win; else the configured pair; else none. No literal `1` or `2` appears in C#.
+
+**"None" is still a legal answer, and it still has no default.** The 1:2 assumption used to be a default value in three places — the `ScoringProfile` record, the Mongo document, and the package reader's `?? 2m` — so every exam version without an explicit weighting was marked on a guess, and nothing said so. `ScoringProfile.RequireWritingTaskWeights()` throws in that case, in the same way `BandFor` refuses a raw score its table does not cover, and a deployment with the configuration section removed reports no combined Writing band (`writingBand: null`, `writingBandReason: "weighting-not-configured"`) rather than a number. A configured pair that is half-stated or not strictly positive is refused at startup. → `G-11`
+
+**The rounding rule is unchanged.** The combined band is `BandScore.Weighted`, which delegates to the same `RoundToHalfBand` as `BandScore.Overall` — one implementation of the asymmetric `.25` / `.75` rule, and its tests compute every expectation through that function rather than by hand.
 
 The package format matches that refusal. `criterionWeights.writing` is optional, but declaring it means declaring **both** halves, both strictly positive. A half-stated ratio used to be legal, and it failed at marking time in front of a learner rather than at import time in front of the author who could fix it. → [`versioned-policy-profiles.md`](versioned-policy-profiles.md)
 
@@ -94,7 +103,7 @@ Fluency and Coherence is the criterion a bare transcript represents *worst* — 
 
 `[ASSUMPTION]` The four criterion bands are averaged and rounded to the nearest half band, with `.25` rounding up to the next half band and `.75` up to the next whole band — mirroring the official overall-band rule. The exact official criterion-aggregation rule is not published in the same detail.
 
-Implemented in `CriterionMarking.Aggregate`, which delegates to `BandScore.Overall` so the asymmetric rounding has exactly one implementation and one table-driven test. Mirroring the published rule is a defensible choice where inventing a different one would not be — but it remains an assumption, and it is distinct from `H-8b`, which is a genuine unknown rather than a mirrored rule.
+Implemented in `CriterionMarking.Aggregate`, which delegates to `BandScore.Overall` so the asymmetric rounding has exactly one implementation and one table-driven test. Mirroring the published rule is a defensible choice where inventing a different one would not be — but it remains an assumption, and it is distinct from `H-8b`, which was a genuine unknown rather than a mirrored rule until the owner settled it as 1 : 2 (`P-12`, above).
 
 ---
 

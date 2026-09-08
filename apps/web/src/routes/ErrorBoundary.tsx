@@ -54,8 +54,8 @@ export class ErrorBoundary extends Component<Props, State> {
         style={{ paddingBlock: 'var(--s-7)', maxWidth: 560 }}
       >
         <ErrorState
-          title="Trang gặp sự cố / This page hit a problem"
-          description="Bạn có thể tải lại trang. Nếu lỗi lặp lại, vui lòng báo cho chúng tôi. / You can reload. If it keeps happening, please tell us."
+          title="Trang gặp sự cố"
+          description="Bạn có thể tải lại trang. Nếu lỗi lặp lại, vui lòng báo cho chúng tôi."
           action={
             <button
               onClick={() => window.location.reload()}
@@ -70,7 +70,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 cursor: 'pointer',
               }}
             >
-              Tải lại / Reload
+              Tải lại trang
             </button>
           }
         />

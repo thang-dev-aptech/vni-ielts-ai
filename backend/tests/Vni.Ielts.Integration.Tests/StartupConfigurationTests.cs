@@ -220,6 +220,64 @@ public sealed class StartupConfigurationTests
         Assert.Null(Record.Exception(() => StartupConfiguration.ValidateOrThrow(ProductionBuilder(config))));
     }
 
+    // ── Assessment:Writing:TaskWeights (S4, P-12) ─────────────────────────
+
+    [Fact]
+    public void A_positive_writing_task_weighting_is_accepted()
+    {
+        var config = ValidProductionConfig();
+        config["Assessment:Writing:TaskWeights:Task1"] = "1";
+        config["Assessment:Writing:TaskWeights:Task2"] = "2";
+        var builder = ProductionBuilder(config);
+
+        Assert.Null(Record.Exception(() => StartupConfiguration.ValidateOrThrow(builder)));
+        Assert.Contains("Assessment:Writing:TaskWeights = 1:2", StartupConfiguration.Describe(builder));
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    public void A_non_positive_writing_task_weight_is_rejected_in_every_environment(string task2)
+    {
+        // A zero weight is a division by nothing at results time; there is no
+        // Development reading of it that makes sense, so it is not a warning.
+        foreach (var build in new Func<Dictionary<string, string?>, WebApplicationBuilder>[]
+                 { ProductionBuilder, DevelopmentBuilder })
+        {
+            var config = ValidProductionConfig();
+            config["Assessment:Writing:TaskWeights:Task1"] = "1";
+            config["Assessment:Writing:TaskWeights:Task2"] = task2;
+
+            var ex = Assert.Throws<InvalidOperationException>(
+                () => StartupConfiguration.ValidateOrThrow(build(config)));
+
+            Assert.Contains("Assessment:Writing:TaskWeights", ex.Message);
+            Assert.Contains("strictly positive", ex.Message);
+        }
+    }
+
+    [Fact]
+    public void A_half_stated_writing_task_weighting_is_rejected()
+    {
+        var config = ValidProductionConfig();
+        // Explicitly null, not merely absent: the Api project's own
+        // appsettings.json — which now ships `P-12`'s 1:2 default — is
+        // copied into this test project's output by the project reference
+        // and loaded ahead of this in-memory collection, so an *absent* key
+        // here would silently inherit Task1 = 1 from that file rather than
+        // leaving it unset. A null entry overrides the lower-priority
+        // provider instead of falling through to it.
+        config["Assessment:Writing:TaskWeights:Task1"] = null;
+        config["Assessment:Writing:TaskWeights:Task2"] = "2";
+        var builder = ProductionBuilder(config);
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => StartupConfiguration.ValidateOrThrow(builder));
+
+        Assert.Contains("Assessment:Writing:TaskWeights", ex.Message);
+        Assert.Contains("both", ex.Message);
+    }
+
     private static Dictionary<string, string?> ValidProductionConfig() => new()
     {
         ["Mongo:ConnectionString"] = "mongodb://localhost:27018/?replicaSet=rs0",

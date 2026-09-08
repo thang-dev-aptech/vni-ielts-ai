@@ -62,4 +62,31 @@ public enum AuditAction
     /// Detail carries recording/session/question ids only — never a URL.
     /// </summary>
     SpeakingRecordingPurged,
+
+    // The two libraries (P-22). Target type is "article" / "library-document",
+    // target id the record id, label the title; detail carries `slug` and
+    // the previous status.
+    ArticlePublished,
+    ArticleUnpublished,
+    DocumentPublished,
+    DocumentUnpublished,
+
+    // The exam review lifecycle (P-20). Target type "exam-version".
+    /// <summary>Draft → InReview.</summary>
+    ExamSubmittedForReview,
+    /// <summary>InReview → Approved, by someone other than the author.</summary>
+    ExamApproved,
+    /// <summary>InReview → Draft. Detail carries `reason`.</summary>
+    ExamReturnedToDraft,
+
+    /// <summary>
+    /// An operator proceeded past a non-blocking warning instead of fixing
+    /// it. First needed by `P-19` ("cảnh báo được phép tồn tại" on an exam
+    /// version entering review); deliberately generic rather than
+    /// `ExamWarningOverridden`, because `S6`/`T8` reuses this exact value for
+    /// ZIP import warnings against a target type of "import-draft" — one
+    /// value, two target types, no merge conflict on this enum between the
+    /// two slices.
+    /// </summary>
+    WarningOverridden,
 }

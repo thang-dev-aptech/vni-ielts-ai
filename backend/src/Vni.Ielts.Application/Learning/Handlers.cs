@@ -107,7 +107,8 @@ public sealed class GetCoaching(
     ListMySittings sittings,
     ISectionMarkingStore markings,
     ICoachingAdvisor advisor,
-    ICoachingAdviceCache cache)
+    ICoachingAdviceCache cache,
+    Usage.UsageRecorder? usage = null)
 {
     public async Task<CoachingView> HandleAsync(GetCoachingQuery query, CancellationToken ct)
     {
@@ -172,7 +173,7 @@ public sealed class GetCoaching(
 
         var goalView = goal is null ? null : new LearnerGoalView(goal.TargetBand, goal.ExamDate, goal.UpdatedAt);
         var ai = query.IncludeAdvice
-            ? await AdviseAsync(target, skills, ct)
+            ? await AdviseAsync(query.UserId, target, skills, ct)
             : new CoachingAiView(AdviceApplies(target, skills) ? "pending" : NoAdviceStatus(target, skills), null, [], null);
 
         return new CoachingView(goalView, skills, focus, ai);
@@ -185,7 +186,7 @@ public sealed class GetCoaching(
         target is null ? "no-goal" : "no-data";
 
     private async Task<CoachingAiView> AdviseAsync(
-        decimal? target, IReadOnlyList<CoachingSkillView> skills, CancellationToken ct)
+        UserId userId, decimal? target, IReadOnlyList<CoachingSkillView> skills, CancellationToken ct)
     {
         if (target is not { } t) return new CoachingAiView("no-goal", null, [], null);
         if (skills.All(s => s.CurrentBand is null && s.Detail is null)) return new CoachingAiView("no-data", null, [], null);
@@ -201,6 +202,12 @@ public sealed class GetCoaching(
         var result = await advisor.AdviseAsync(facts, ct);
         if (!result.Succeeded || result.Advice is null)
             return new CoachingAiView("unavailable", null, [], null);
+
+        // Recorded only on an actual provider call — a cache hit above already
+        // returned without reaching here, so this line never double-charges a
+        // second learner who happens to share the same standing. → `P-14`
+        if (usage is not null)
+            await usage.CoachingAdvisedAsync(userId, result.Advice.Provider, result.Advice.Model, ct);
 
         await cache.SetAsync(key, result.Advice, ct);
         return new CoachingAiView("ready", result.Advice.Summary, result.Advice.Tips, result.Advice.Model);
@@ -223,13 +230,23 @@ public sealed class GetCoaching(
 /// to fail the request that called it: a ledger hiccup is not a reason to
 /// refuse a login.
 /// </summary>
-public sealed class LearnerPresence(ILearnerActivityLog log, ILearnerCalendar calendar, IClock clock)
+public sealed class LearnerPresence(
+    ILearnerActivityLog log,
+    ILearnerCalendar calendar,
+    IClock clock,
+    Usage.UsageRecorder? usage = null)
 {
     public async Task TouchAsync(UserId userId, ActivityKind kind, CancellationToken ct)
     {
         try
         {
             await log.RecordAsync(userId, calendar.DayOf(clock.UtcNow), kind, ct);
+
+            // Idempotent by the ledger's own deterministic id (`daily:{userId}:{day}`),
+            // so calling this on every touch of the day — sign-in, refresh,
+            // opening a paper — costs nothing after the first one earns. → `P-16`
+            if (usage is not null)
+                await usage.DailyActivityAsync(userId, calendar.DayOf(clock.UtcNow), ct);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {

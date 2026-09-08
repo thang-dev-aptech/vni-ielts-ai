@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Vni.Ielts.Domain.Tests" />
+  </ItemGroup>
+
 </Project>

@@ -28,7 +28,9 @@ public sealed class User
         PhoneNumber? phone,
         UserStatus status,
         DateTimeOffset createdAt,
-        IReadOnlyCollection<RoleId> roleIds)
+        IReadOnlyCollection<RoleId> roleIds,
+        string? referralCode,
+        UserId? referredByUserId)
     {
         Id = id;
         Email = email;
@@ -38,6 +40,8 @@ public sealed class User
         Status = status;
         CreatedAt = createdAt;
         _roleIds = [.. roleIds];
+        ReferralCode = referralCode;
+        ReferredByUserId = referredByUserId;
     }
 
     private readonly HashSet<RoleId> _roleIds;
@@ -60,6 +64,22 @@ public sealed class User
     public IReadOnlyCollection<RoleId> RoleIds => _roleIds;
 
     /// <summary>
+    /// The code this learner shares so a registration can be credited to
+    /// them. Generated at registration; null only on accounts that predate
+    /// referrals, which <see cref="EnsureReferralCode"/> repairs on first
+    /// read. → `P-16`
+    /// </summary>
+    public string? ReferralCode { get; private set; }
+
+    /// <summary>
+    /// Who brought this learner in, if anyone. Set once at registration and
+    /// never changed — the reward it drives is paid when this account verifies
+    /// its address, and the attribution must not be able to move after that.
+    /// → `P-16`, threat T13
+    /// </summary>
+    public UserId? ReferredByUserId { get; private set; }
+
+    /// <summary>
     /// A suspended account must not be able to start an exam session or spend
     /// tokens, so the check belongs on the entity rather than being repeated
     /// at every call site.
@@ -79,7 +99,9 @@ public sealed class User
             phone: null,
             UserStatus.Active,
             now,
-            []);
+            [],
+            Identity.ReferralCode.Generate(),
+            referredByUserId: null);
     }
 
     /// <summary>Rehydration from storage. Infrastructure only.</summary>
@@ -91,8 +113,37 @@ public sealed class User
         PhoneNumber? phone,
         UserStatus status,
         DateTimeOffset createdAt,
-        IReadOnlyCollection<RoleId> roleIds) =>
-        new(id, email, emailVerified, displayName, phone, status, createdAt, roleIds);
+        IReadOnlyCollection<RoleId> roleIds,
+        string? referralCode = null,
+        UserId? referredByUserId = null) =>
+        new(id, email, emailVerified, displayName, phone, status, createdAt, roleIds, referralCode,
+            referredByUserId);
+
+    /// <summary>
+    /// Records who referred this account. Refuses to overwrite an existing
+    /// attribution and refuses self-referral — the first would let a reward
+    /// be redirected after the fact, the second is the trivial farm.
+    /// </summary>
+    public void AttributeReferral(UserId referrer)
+    {
+        if (referrer == Id)
+            throw new InvalidOperationException("An account cannot refer itself. → User.AttributeReferral");
+        if (ReferredByUserId is not null)
+            throw new InvalidOperationException("Referral attribution is set once. → User.AttributeReferral");
+
+        ReferredByUserId = referrer;
+    }
+
+    /// <summary>
+    /// Gives an account that predates referrals a code. Returns true when one
+    /// was assigned, so the caller knows a save is needed.
+    /// </summary>
+    public bool EnsureReferralCode()
+    {
+        if (ReferralCode is not null) return false;
+        ReferralCode = Identity.ReferralCode.Generate();
+        return true;
+    }
 
     /// <summary>
     /// Verification is what turns an address from a claim into a fact. Several

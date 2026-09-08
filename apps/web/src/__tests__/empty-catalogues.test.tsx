@@ -2,15 +2,16 @@ import { StrictMode } from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
-import { ARTICLES } from '../features/articles/articles.js';
-import { DOCUMENTS } from '../features/library/documents.js';
 
 /**
  * What an empty library says, and what it must not say.
  *
  * `[QUYẾT ĐỊNH]` chủ sản phẩm, 27/08/2026: the product carries only content the
- * owner supplies, added as it arrives. The placeholder articles and documents
- * were deleted rather than left to be mistaken for a catalogue.
+ * owner supplies, added as it arrives. `S5` moved both catalogues behind real
+ * endpoints (`GET /api/v1/library/documents`, `GET /api/v1/library/articles`)
+ * — the placeholder arrays this test used to assert were empty are gone, and
+ * "nothing published yet" is now a fact about what the server returns rather
+ * than about a hard-coded constant in the client.
  *
  * <b>An empty shelf and a search that missed are different facts, and only one
  * of them is the reader's to fix.</b> Offering "thử từ khoá khác" to someone
@@ -19,10 +20,17 @@ import { DOCUMENTS } from '../features/library/documents.js';
  * flattened back into one message by a later edit — the dictation library
  * already made it, and the lesson had not travelled to the other two pages.
  *
- * Deliberately **not** mocked: these assertions are about what actually ships.
- * `module-pages.test.tsx` mocks in its own catalogue to test the behaviour that
- * surrounds content.
+ * <b>The fetch stub answers every request with an empty list.</b> That is the
+ * one thing this file controls and the rest of `module-pages.test.tsx` does
+ * not: a real, non-empty catalogue is exercised there instead.
  */
+
+function json(body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json', 'X-Server-Time': new Date().toISOString() },
+  });
+}
 
 function openAt(path: string) {
   window.history.pushState({}, '', path);
@@ -38,24 +46,13 @@ beforeEach(() => {
   localStorage.setItem('vni.locale', 'vi');
   vi.stubGlobal(
     'fetch',
-    vi.fn(
-      async () =>
-        new Response(JSON.stringify({ providers: [] }), {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Server-Time': new Date().toISOString(),
-          },
-        }),
-    ),
+    vi.fn(async (input: unknown) => {
+      const url = String(input);
+      if (url.includes('/api/v1/library/documents')) return json({ items: [] });
+      if (url.includes('/api/v1/library/articles')) return json({ items: [] });
+      return json({ providers: [] });
+    }),
   );
-});
-
-it('ships no placeholder content in either catalogue', () => {
-  // The point of the whole exercise, asserted directly. A future edit that
-  // reintroduces filler to "make the page look finished" fails here first.
-  expect(ARTICLES).toHaveLength(0);
-  expect(DOCUMENTS).toHaveLength(0);
 });
 
 it('tells a reader the article library is empty rather than blaming their search', async () => {
@@ -74,7 +71,7 @@ it('tells a reader the document library is empty rather than blaming their filte
 
   await screen.findByRole('heading', { name: /Tài liệu IELTS/, level: 1 });
 
-  expect(screen.getByText('Chưa có tài liệu nào.')).toBeInTheDocument();
+  expect(await screen.findByText('Chưa có tài liệu nào.')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Xóa bộ lọc' })).toBeNull();
   expect(screen.queryByText(/thay đổi từ khóa/i)).toBeNull();
 });

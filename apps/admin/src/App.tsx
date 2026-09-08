@@ -9,15 +9,15 @@ import { OverviewPage } from './screens/OverviewPage.js';
 import { ExamsPage } from './screens/ExamsPage.js';
 import { ExamDetailPage } from './screens/ExamDetailPage.js';
 import { ImportPage } from './screens/ImportPage.js';
+import { DocumentsPage } from './screens/DocumentsPage.js';
+import { ArticlesPage } from './screens/ArticlesPage.js';
 import { UsersPage } from './screens/UsersPage.js';
 import { UserDetailPage } from './screens/UserDetailPage.js';
 import { RolesPage } from './screens/RolesPage.js';
 import { AuditPage } from './screens/AuditPage.js';
 import { ConfigPage, EvaluationsPage, PackagesPage } from './screens/PendingPages.js';
-import { MyExamsPage } from './screens/MyExamsPage.js';
 import { ReviewQueuePage } from './screens/ReviewQueuePage.js';
 import { PendingPublishPage } from './screens/PendingPublishPage.js';
-import { WorkflowDetailPage } from './screens/WorkflowDetailPage.js';
 import { MediaLibraryPage } from './screens/MediaLibraryPage.js';
 import './styles/palette.css';
 import './styles/admin.css';
@@ -88,14 +88,6 @@ function Routed() {
         <Route path={AdminPaths.overview} element={<OverviewPage />} />
 
         <Route
-          path={AdminPaths.myExams}
-          element={
-            <Gate permission="exam.read.own">
-              <MyExamsPage />
-            </Gate>
-          }
-        />
-        <Route
           path={AdminPaths.reviewQueue}
           element={
             <Gate permission="exam.review">
@@ -119,15 +111,6 @@ function Routed() {
             </Gate>
           }
         />
-        <Route
-          path={AdminPaths.workflowPattern}
-          element={
-            <Gate permission={['exam.read.own', 'exam.read.any']}>
-              <WorkflowDetailPage />
-            </Gate>
-          }
-        />
-
         <Route
           path={AdminPaths.exams}
           element={
@@ -157,6 +140,22 @@ function Routed() {
           element={
             <Gate permission="package.read">
               <PackagesPage />
+            </Gate>
+          }
+        />
+        <Route
+          path={AdminPaths.documents}
+          element={
+            <Gate permission={['document.write', 'document.publish']}>
+              <DocumentsPage />
+            </Gate>
+          }
+        />
+        <Route
+          path={AdminPaths.articles}
+          element={
+            <Gate permission={['article.write', 'article.publish']}>
+              <ArticlesPage />
             </Gate>
           }
         />

@@ -76,7 +76,16 @@ export default defineConfig({
 
   webServer: [
     {
-      command: 'dotnet run --project ../backend/src/Vni.Ielts.Api --no-launch-profile',
+      /*
+       * Stage the synthetic paper *in this process*, immediately before the
+       * API boots. `DevelopmentExamSeeder` reads `fixtures/exams` once at
+       * startup; a missing `synthetic-full-1.json` both skips the seed and
+       * unpublishes any leftover synthetic from a previous run
+       * (`UnpublishOrphanedFixturesAsync`). globalSetup alone was not enough
+       * on this machine — the catalogue had no "VNI Synthetic Practice Test".
+       */
+      command:
+        'node ./stage-synthetic.mjs && dotnet run --project ../backend/src/Vni.Ielts.Api --no-launch-profile',
       url: `${API}/health/ready`,
       reuseExistingServer: false,
       timeout: 180_000,
@@ -88,7 +97,7 @@ export default defineConfig({
         // Its own database, dropped and reseeded by the fixtures rather than
         // shared with whatever a developer has been doing.
         Mongo__Database: 'vni_ielts_e2e',
-        // Synthetic paper is staged by e2e/global-setup.ts for test stability.
+        // Synthetic paper is staged by stage-synthetic.mjs (also global-setup).
         Seed__IncludeSyntheticExams: 'true',
         // Fixed, so a restart mid-suite does not invalidate every session the
         // suite is holding. Test-only, 48 characters, and never a production

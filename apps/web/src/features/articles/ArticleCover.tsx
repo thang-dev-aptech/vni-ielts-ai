@@ -1,4 +1,4 @@
-import { ARTICLES, type Article } from './articles.js';
+import type { ArticleSummary } from './articles.js';
 
 /**
  * The picture on an article card.
@@ -24,12 +24,20 @@ import { ARTICLES, type Article } from './articles.js';
  * came from the category, which was worse — the three previewed articles are
  * all `huong-dan`, so the row was three shades of one green.
  *
- * Position cycles, so neighbours never collide — and it is a property of the
- * catalogue rather than of the page, so one article wears the same cover on
- * the landing page, on the index and on itself. Inserting an article does
- * shift the covers below it; they are decoration, and a shifted decoration is
- * cheaper than a duplicated one. The slug hash stays as the fallback for an
- * article that is not in the catalogue at all.
+ * Position cycles, so neighbours never collide — and it is a property of
+ * wherever it is rendered from rather than of the page, so one article wears
+ * the same cover on the landing page and on the index as long as both start
+ * from the same catalogue order. Inserting an article does shift the covers
+ * below it; they are decoration, and a shifted decoration is cheaper than a
+ * duplicated one. The slug hash stays as the fallback for a caller that has
+ * not computed a position — `ArticlePage`'s related row, which renders
+ * without covers and never reaches this component at all, being the one place
+ * that would have needed it.
+ *
+ * <b>The seat is a prop, not a lookup.</b> This used to search a module-level
+ * `ARTICLES` array for the card's own slug; now that the catalogue is fetched
+ * rather than imported, the caller — which already has the list and the index
+ * it is mapping over — passes the seat down instead.
  *
  * <b>`aria-hidden`, and the card is still a link with a heading in it.</b> The
  * cover carries no information the headline does not; described, it would be
@@ -37,9 +45,15 @@ import { ARTICLES, type Article } from './articles.js';
  *
  * → `ArticleCard`, which decides *whether* a card has one.
  */
-export function ArticleCover({ article }: { article: Article }) {
-  const at = ARTICLES.findIndex((one) => one.slug === article.slug);
-  const seat = at >= 0 ? at : hash(article.slug);
+export function ArticleCover({
+  article,
+  index,
+}: {
+  article: ArticleSummary;
+  /** Position in the list being rendered. Falls back to a slug hash when absent. */
+  index?: number | undefined;
+}) {
+  const seat = index !== undefined && index >= 0 ? index : hash(article.slug);
 
   // `noUncheckedIndexedAccess` is on, so both lookups have to be proved to the
   // compiler rather than reasoned about in a comment.

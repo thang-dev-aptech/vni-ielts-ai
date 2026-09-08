@@ -36,7 +36,12 @@ import { fileURLToPath } from 'node:url';
 const ROOT = process.env.VNI_DOCS_CHECK_ROOT
   ? path.resolve(process.env.VNI_DOCS_CHECK_ROOT)
   : path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SKIP_DIRS = new Set(['.git', 'node_modules', 'bin', 'obj', 'dist']);
+// `ds-bundle/` is the gitignored output of the design-sync tool. It copies
+// docs/ux/DESIGN.md out of docs/, so every relative link in that copy points
+// at a path that only exists next to the original. Linting a generated copy
+// of a file that is already linted in place reports the same document twice
+// and fails on the second one for no reason a human can fix by hand.
+const SKIP_DIRS = new Set(['.git', 'node_modules', 'bin', 'obj', 'dist', 'ds-bundle']);
 const DOC_SUFFIXES = new Set(['.md', '.mdc']);
 
 // Files deleted on 2026-08-20. They targeted a discontinued Claude Design

@@ -510,8 +510,34 @@ public sealed class ExamPackageReader(JsonSchema schema)
             // decided. ScoringProfile refuses at the point of use instead.
             s["criterionWeights"]?["writing"]?["task1"]?.GetValue<decimal>(),
             s["criterionWeights"]?["writing"]?["task2"]?.GetValue<decimal>(),
-            ConvertPartialCredit(s["partialCredit"] as JsonObject));
+            ConvertPartialCredit(s["partialCredit"] as JsonObject),
+            ConvertBandTableProvenance(s["bandTableProvenance"] as JsonObject));
     }
+
+    /// <summary>
+    /// Same optional-and-absent-means-null pattern as the Writing task
+    /// weights just above: no substituted status. A package that says
+    /// nothing about where its table came from carries no provenance, and
+    /// `ScoringProfile.Provenance` being null is exactly what `P-11` reads as
+    /// not-equated. The schema's own <c>allOf</c> already requires
+    /// <c>source</c> whenever <c>status</c> is <c>equated</c>, so there is
+    /// nothing left to enforce here.
+    /// </summary>
+    private static BandTableProvenance? ConvertBandTableProvenance(JsonObject? provenance) =>
+        provenance is null
+            ? null
+            : new BandTableProvenance(
+                ParseProvenanceStatus(provenance["status"]!.GetValue<string>()),
+                provenance["source"]?.GetValue<string>(),
+                provenance["note"]?.GetValue<string>());
+
+    private static BandTableProvenanceStatus ParseProvenanceStatus(string value) => value switch
+    {
+        "synthetic" => BandTableProvenanceStatus.Synthetic,
+        "provisional" => BandTableProvenanceStatus.Provisional,
+        "equated" => BandTableProvenanceStatus.Equated,
+        _ => throw new InvalidOperationException($"Unknown bandTableProvenance status '{value}'."),
+    };
 
     private static PartialCreditPolicy? ConvertPartialCredit(JsonObject? partialCredit)
     {

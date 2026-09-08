@@ -287,6 +287,9 @@ public sealed class SpeakingRecordingUploadAbuseTests
             string objectKey, string contentType, string checksumSha256, TimeSpan ttl) =>
             new($"https://storage.example.com/{objectKey}?X-Amz-Signature=should-not-be-audited");
 
+        public Uri CreatePresignedGetUrl(string objectKey, TimeSpan ttl) =>
+            new($"https://storage.example.com/{objectKey}?X-Amz-Signature=should-not-be-audited");
+
         public Task<SpeakingRecordingObjectHead?> HeadAsync(string objectKey, CancellationToken ct) =>
             Task.FromResult(
                 Heads.TryGetValue(objectKey, out var head) ? head : null);

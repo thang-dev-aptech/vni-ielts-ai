@@ -7,12 +7,19 @@
  * happen. It is a banner rather than a footnote for the same reason: the cost
  * of someone believing these rows are real is a decision taken about content
  * that does not exist.
+ *
+ * <b>No longer names "vòng đời duyệt" specifically.</b> The exam review
+ * lifecycle this notice used to explain now runs on real endpoints — only the
+ * media library still has no server API to cut over to (no
+ * `media.read`/`media.upload`/`media.retire` key exists yet in
+ * `PermissionKeys.All`), so the copy stays generic to whatever screen is
+ * still using this store.
  */
 export function PreviewNotice({ what }: { what: string }) {
   return (
     <p className="cms-preview-notice" role="note">
-      <strong>Dữ liệu xem trước.</strong> {what} Máy chủ chưa có vòng đời duyệt, nên các thao tác ở
-      đây chỉ đổi trạng thái trong trình duyệt của bạn — không có gì được ghi lên hệ thống.
+      <strong>Dữ liệu xem trước.</strong> {what} Thao tác ở đây chỉ đổi trạng thái trong trình duyệt
+      của bạn — không có gì được ghi lên hệ thống.
     </p>
   );
 }

@@ -2062,41 +2062,16 @@
   justify-content: center;
 }
 
-/* Entry test modal specifics (S4) */
-.entry-test-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 12px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--green-soft);
-  color: var(--primary-dark);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.entry-test-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
+/* Readiness modal: the exam carries no timing, so there is nothing to start */
+.readiness-notice {
+  margin: 0;
   padding: 12px 14px;
-  background: var(--sunk);
-  border: 1px solid var(--line);
+  background: var(--bad-soft);
+  border: 1px solid var(--bad);
   border-radius: var(--radius);
   font-size: 13.5px;
   line-height: 1.45;
-  color: var(--ink-2);
-}
-
-.entry-test-notice-icon {
-  font-weight: 800;
-  color: var(--primary);
-}
-
-.entry-test-disabled-btn:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
+  color: var(--bad);
 }
 
 /* Readiness modal specifics */

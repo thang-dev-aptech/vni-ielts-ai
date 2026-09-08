@@ -19,7 +19,7 @@ import {
   type MediaAsset,
   type MediaKind,
 } from '../lib/media.js';
-import { objectUrlFor, rememberObjectUrl, uploadedHere, useWorkflow } from '../lib/previewStore.js';
+import { objectUrlFor, rememberObjectUrl, uploadedHere, useMediaLibrary } from '../lib/previewStore.js';
 
 /**
  * Màn D1 — the media library.
@@ -37,14 +37,17 @@ import { objectUrlFor, rememberObjectUrl, uploadedHere, useWorkflow } from '../l
  * behind a published version cannot be replaced or deleted — replacing the file
  * under a live reference changes what candidates hear while the version number
  * says nothing happened. Retiring is the way out: it takes the asset out of the
- * picker and leaves everything already using it alone.
+ * <b>Still on the browser-only store — deliberately.</b> There is no
+ * `media.read` / `media.upload` / `media.retire` key in `PermissionKeys.All`
+ * and no media admin endpoint to cut over to. Until those exist, this screen
+ * keeps reading `previewStore` (localStorage fixtures) and renders
+ * `PreviewNotice` on every visit so nobody mistakes the four sample files for
+ * live assets. Review / pending-publish / exam detail already left this store.
+ * → `apps/admin/src/lib/previewStore.ts`
  */
 export function MediaLibraryPage() {
   const operator = useOperator();
-  const { versions, media, addMedia, retireMedia, deleteMedia } = useWorkflow(
-    operator.name,
-    operator.email,
-  );
+  const { demoExams: versions, media, addMedia, retireMedia, deleteMedia } = useMediaLibrary();
 
   const [kind, setKind] = useState<MediaKind | 'all'>('all');
   const [busy, setBusy] = useState(false);

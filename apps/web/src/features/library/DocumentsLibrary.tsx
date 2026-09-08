@@ -1,16 +1,17 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { useI18n } from '../../i18n/index.js';
 import { fold } from '../../lib/fold.js';
 import { Pagination } from '../chrome/Pagination.js';
 import { DocumentCard, FeaturedResource } from './DocumentCard.js';
 import { ResourceSidebar } from './ResourceSidebar.js';
 import {
   BAND_FILTERS,
-  DOCUMENTS,
   SKILL_FILTERS,
   TYPE_FILTERS,
   type DocumentBand,
   type DocumentSkill,
   type DocumentType,
+  type LibraryDocument,
 } from './documents.js';
 
 const PER_PAGE = 8;
@@ -36,8 +37,26 @@ type Filters = {
  * <b>Search is deferred; chips are not.</b> Typing re-runs `fold` over every
  * title; `useDeferredValue` keeps the field responsive. A chip is one discrete
  * change and wants to feel instant.
+ *
+ * <b>The catalogue arrives as a prop, not an import.</b> `DocumentsPage` owns
+ * the fetch to `GET /api/v1/library/documents` — it needs the same list for
+ * its hero stats — and hands down `docs` plus `loading`/`failed` so this
+ * component never has to decide, on its own, what "no documents yet" means
+ * versus "the request is still in flight" versus "the request failed".
  */
-export function DocumentsLibrary() {
+export function DocumentsLibrary({
+  docs,
+  loading,
+  failed,
+  onRetry,
+}: {
+  /** `null` while the first fetch is in flight. */
+  docs: LibraryDocument[] | null;
+  loading: boolean;
+  failed: boolean;
+  onRetry: () => void;
+}) {
+  const { t } = useI18n();
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<Filters>({
     skill: 'all',
@@ -48,9 +67,11 @@ export function DocumentsLibrary() {
 
   const deferredQuery = useDeferredValue(query);
 
+  const allDocs = docs ?? [];
+
   const matches = useMemo(() => {
     const needle = fold(deferredQuery);
-    return DOCUMENTS.filter((doc) => {
+    return allDocs.filter((doc) => {
       if (filters.skill !== 'all' && doc.skill !== filters.skill) return false;
       if (filters.type !== 'all' && doc.type !== filters.type) return false;
       if (filters.band !== 'all' && doc.targetBand !== filters.band) return false;
@@ -59,7 +80,7 @@ export function DocumentsLibrary() {
         `${doc.title} ${doc.description} ${doc.category} ${doc.topic ?? ''} ${doc.targetBand ?? ''} ${doc.format}`,
       ).includes(needle);
     });
-  }, [deferredQuery, filters]);
+  }, [deferredQuery, filters, allDocs]);
 
   const free = matches.filter((doc) => doc.access === 'free');
   const premium = matches.filter((doc) => doc.access === 'premium');
@@ -113,7 +134,7 @@ export function DocumentsLibrary() {
     return chips;
   }, [filters, query]);
 
-  const popular = DOCUMENTS.filter((doc) => doc.isPopular).slice(0, 4);
+  const popular = allDocs.filter((doc) => doc.isPopular).slice(0, 4);
 
   function setSkill(skill: DocumentSkill | 'all') {
     setFilters((was) => ({ ...was, skill }));
@@ -193,96 +214,120 @@ export function DocumentsLibrary() {
             </div>
           )}
 
-          <div className="res-list-head">
-            <h2 className="res-list-title">{listHeading(filters)}</h2>
-            <p className="res-list-count" role="status">
-              {countLine(matches.length, free.length, premium.length, safePage, listFree.length)}
-            </p>
-          </div>
-
           {/*
-            An empty shelf and a filter that missed are different facts, and
-            only one of them is the reader's to fix. Offering "Xóa bộ lọc" to
-            someone looking at a library nothing has been published into asks
-            them to undo something they never did.
+            Three distinct facts, and a learner who sees the wrong one is left
+            guessing whether to wait, retry, or stop searching. "Still loading"
+            and "the request failed" are not spellings of "nothing published" —
+            each needs a different thing from the reader (nothing, a retry,
+            nothing) and showing the filter UI's own empty copy for either of
+            the first two would say "Chưa có tài liệu nào" while a retry is
+            still the honest next step.
           */}
-          {DOCUMENTS.length === 0 ? (
+          {loading ? (
+            <p className="res-list-count" role="status">
+              {t('common.loading')}
+            </p>
+          ) : failed ? (
             <div className="res-empty">
-              <p>Chưa có tài liệu nào.</p>
-              <p className="res-empty-hint">
-                Kho tài liệu đang được biên soạn. Tài liệu sẽ xuất hiện ở đây khi VNI đăng bản đầu
-                tiên.
-              </p>
-            </div>
-          ) : empty ? (
-            <div className="res-empty">
-              <p>Không tìm thấy tài liệu phù hợp.</p>
-              <p className="res-empty-hint">Hãy thử thay đổi từ khóa hoặc bộ lọc.</p>
-              <button type="button" className="btn btn-secondary" onClick={clearAll}>
-                Xóa bộ lọc
+              <p>{t('common.notConnected')}</p>
+              <button type="button" className="btn btn-secondary" onClick={onRetry}>
+                {t('common.retry')}
               </button>
             </div>
           ) : (
             <>
-              {featured !== undefined && safePage === 1 && <FeaturedResource doc={featured} />}
+              <div className="res-list-head">
+                <h2 className="res-list-title">{listHeading(filters)}</h2>
+                <p className="res-list-count" role="status">
+                  {countLine(matches.length, free.length, premium.length, safePage, listFree.length)}
+                </p>
+              </div>
 
-              {slice.length > 0 && (
-                <div className="res-shelf">
-                  <div className="res-shelf-head">
-                    <h3>Tài liệu miễn phí</h3>
-                    <p>Có tài khoản VNI là mở được. Không giới hạn số lần tải.</p>
-                  </div>
-                  <ul className="res-list">
-                    {slice.map((doc) => (
-                      <li key={doc.id}>
-                        <DocumentCard doc={doc} />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {listFree.length === 0 && premium.length > 0 && (
-                <p className="res-shelf-empty">Không có tài liệu miễn phí nào khớp bộ lọc.</p>
-              )}
-
-              {listFree.length > 0 && (
-                <div className="res-pager-meta">
-                  <p>
-                    Hiển thị {(safePage - 1) * PER_PAGE + 1}–
-                    {Math.min(safePage * PER_PAGE, listFree.length)} trên {listFree.length} tài liệu
-                    miễn phí
+              {/*
+                An empty shelf and a filter that missed are different facts, and
+                only one of them is the reader's to fix. Offering "Xóa bộ lọc" to
+                someone looking at a library nothing has been published into asks
+                them to undo something they never did.
+              */}
+              {allDocs.length === 0 ? (
+                <div className="res-empty">
+                  <p>Chưa có tài liệu nào.</p>
+                  <p className="res-empty-hint">
+                    Kho tài liệu đang được biên soạn. Tài liệu sẽ xuất hiện ở đây khi VNI đăng bản
+                    đầu tiên.
                   </p>
                 </div>
-              )}
-              <Pagination page={safePage} pages={pages} onGo={setPage} />
-
-              {premium.length > 0 && (
-                <div className="res-shelf is-premium">
-                  <div className="res-shelf-head">
-                    <h3>
-                      Tài liệu độc quyền <span className="res-shelf-badge">Premium</span>
-                    </h3>
-                    <p>
-                      Bộ tài liệu do đội ngũ học thuật VNI biên soạn riêng. Liên hệ để được tư vấn
-                      cách nhận — chưa mở bán trực tuyến.
-                    </p>
-                  </div>
-                  <ul className="res-list">
-                    {premium.map((doc) => (
-                      <li key={doc.id}>
-                        <DocumentCard doc={doc} />
-                      </li>
-                    ))}
-                  </ul>
+              ) : empty ? (
+                <div className="res-empty">
+                  <p>Không tìm thấy tài liệu phù hợp.</p>
+                  <p className="res-empty-hint">Hãy thử thay đổi từ khóa hoặc bộ lọc.</p>
+                  <button type="button" className="btn btn-secondary" onClick={clearAll}>
+                    Xóa bộ lọc
+                  </button>
                 </div>
+              ) : (
+                <>
+                  {featured !== undefined && safePage === 1 && <FeaturedResource doc={featured} />}
+
+                  {slice.length > 0 && (
+                    <div className="res-shelf">
+                      <div className="res-shelf-head">
+                        <h3>Tài liệu miễn phí</h3>
+                        <p>Có tài khoản VNI là mở được. Không giới hạn số lần tải.</p>
+                      </div>
+                      <ul className="res-list">
+                        {slice.map((doc) => (
+                          <li key={doc.id}>
+                            <DocumentCard doc={doc} />
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {listFree.length === 0 && premium.length > 0 && (
+                    <p className="res-shelf-empty">Không có tài liệu miễn phí nào khớp bộ lọc.</p>
+                  )}
+
+                  {listFree.length > 0 && (
+                    <div className="res-pager-meta">
+                      <p>
+                        Hiển thị {(safePage - 1) * PER_PAGE + 1}–
+                        {Math.min(safePage * PER_PAGE, listFree.length)} trên {listFree.length} tài
+                        liệu miễn phí
+                      </p>
+                    </div>
+                  )}
+                  <Pagination page={safePage} pages={pages} onGo={setPage} />
+
+                  {premium.length > 0 && (
+                    <div className="res-shelf is-premium">
+                      <div className="res-shelf-head">
+                        <h3>
+                          Tài liệu độc quyền <span className="res-shelf-badge">Premium</span>
+                        </h3>
+                        <p>
+                          Bộ tài liệu do đội ngũ học thuật VNI biên soạn riêng. Liên hệ để được tư
+                          vấn cách nhận — chưa mở bán trực tuyến.
+                        </p>
+                      </div>
+                      <ul className="res-list">
+                        {premium.map((doc) => (
+                          <li key={doc.id}>
+                            <DocumentCard doc={doc} />
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
         </div>
 
         <ResourceSidebar
-          docs={DOCUMENTS}
+          docs={allDocs}
           skill={filters.skill}
           onSkill={setSkill}
           popular={popular}

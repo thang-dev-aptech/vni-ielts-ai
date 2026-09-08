@@ -18,7 +18,20 @@ public enum ExamModule { Reading, Listening, Writing, Speaking }
 
 public enum ExamVariant { Academic, General }
 
-public enum ExamVersionStatus { Draft, Published, Unpublished }
+/// <summary>
+/// `InReview` and `Approved` implement `P-20`'s review lifecycle — author
+/// submits, a <b>different</b> person reviews, admin publishes:
+/// <c>Draft → InReview → Approved → Published → Unpublished</c>.
+///
+/// <b>No separate "returned" status.</b> The blueprint's own transition
+/// table (`docs/product/mvp-blueprint.md` § 06) sends a returned version
+/// straight back to <c>Draft</c> — the reviewer's reason travels in the
+/// audit log, not in a fifth persisted state. A broader CMS redesign
+/// proposes a distinct `Returned` state (`docs/ux/cms-content-operations.md`
+/// § 3.1), but that document is marked `PROPOSED` with open questions of its
+/// own; `P-20` is the decision this enum implements. → `[QUYẾT ĐỊNH kỹ thuật]`
+/// </summary>
+public enum ExamVersionStatus { Draft, InReview, Approved, Published, Unpublished }
 
 public enum QuestionType
 {
@@ -55,13 +68,13 @@ public sealed class ExamVersion
         string title, ExamVariant variant, ExamVersionStatus status,
         DateTimeOffset? publishedAt, ScoringProfile scoring, TimingProfile timing,
         IReadOnlyList<Section> sections, IReadOnlyList<ExamModule> moduleSequence,
-        ListeningPlaybackProfile? listeningPlayback, string? description)
+        ListeningPlaybackProfile? listeningPlayback, string? description, UserId? authorId)
     {
         Id = id; DefinitionId = definitionId; VersionNumber = versionNumber;
         Title = title; Description = description;
         Variant = variant; Status = status; PublishedAt = publishedAt;
         Scoring = scoring; Timing = timing; Sections = sections;
-        ModuleSequence = moduleSequence;
+        ModuleSequence = moduleSequence; AuthorId = authorId;
         ListeningPlayback = listeningPlayback ?? ListeningPlaybackProfile.Conservative;
     }
 
@@ -90,6 +103,21 @@ public sealed class ExamVersion
     public ExamVariant Variant { get; }
     public ExamVersionStatus Status { get; private set; }
     public DateTimeOffset? PublishedAt { get; private set; }
+
+    /// <summary>
+    /// The account that drafted this version, when known. `P-20` needs this
+    /// to enforce reviewer ≠ author <b>on the server</b> — not by disabling a
+    /// button in the CMS.
+    ///
+    /// <b>Null is a supported, common state.</b> The only production path
+    /// that creates an <see cref="ExamVersion"/> today is
+    /// <c>ExamPackageReader</c>, and it has no caller identity to attribute —
+    /// threading one through the import/CLI pipeline is out of this slice's
+    /// reach (`S6` territory). <see cref="Approve"/> cannot enforce its rule
+    /// against an author nobody recorded, and it does not invent one; it
+    /// simply lets the approval through. → `[OPEN QUESTION]`, S7 report
+    /// </summary>
+    public UserId? AuthorId { get; }
     public ScoringProfile Scoring { get; }
     public TimingProfile Timing { get; }
     public ListeningPlaybackProfile ListeningPlayback { get; }
@@ -109,13 +137,14 @@ public sealed class ExamVersion
         ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections,
         ListeningPlaybackProfile? listeningPlayback = null,
         IReadOnlyList<ExamModule>? declaredSequence = null,
-        string? description = null)
+        string? description = null,
+        UserId? authorId = null)
     {
         var present = sections.Select(s => s.Module).ToHashSet();
         var sequence = SequenceProfile.Resolve(declaredSequence, present);
         return new(ExamVersionId.New(), definitionId, versionNumber, title, variant,
             ExamVersionStatus.Draft, null, scoring, timing, sections, sequence,
-            listeningPlayback, description);
+            listeningPlayback, description, authorId);
     }
 
     public static ExamVersion Rehydrate(
@@ -124,12 +153,13 @@ public sealed class ExamVersion
         ScoringProfile scoring, TimingProfile timing, IReadOnlyList<Section> sections,
         ListeningPlaybackProfile? listeningPlayback = null,
         IReadOnlyList<ExamModule>? moduleSequence = null,
-        string? description = null)
+        string? description = null,
+        UserId? authorId = null)
     {
         var present = sections.Select(s => s.Module).ToHashSet();
         var sequence = moduleSequence ?? SequenceProfile.Resolve(null, present);
         return new(id, definitionId, versionNumber, title, variant, status, publishedAt,
-            scoring, timing, sections, sequence, listeningPlayback, description);
+            scoring, timing, sections, sequence, listeningPlayback, description, authorId);
     }
 
     public void Publish(DateTimeOffset now)
@@ -146,6 +176,70 @@ public sealed class ExamVersion
     /// administrative action. → `M-15`
     /// </summary>
     public void Unpublish() => Status = ExamVersionStatus.Unpublished;
+
+    /// <summary>
+    /// The author sends a draft to review. First step of `P-20`'s
+    /// <c>Draft → InReview → Approved → Published</c>.
+    ///
+    /// <b>Does not check for blocking errors or warnings.</b> That is the
+    /// package validator's job, at import time — `P-19` explicitly allows a
+    /// version with open warnings to enter review; only a blocking error
+    /// stops content from reaching <see cref="ExamVersionStatus.Draft"/> at
+    /// all, which means it stops it here too, by never having produced a
+    /// draft to submit.
+    /// </summary>
+    public void SubmitForReview()
+    {
+        if (Status != ExamVersionStatus.Draft)
+            throw new InvalidOperationException(
+                $"Chỉ bản nháp mới nộp duyệt được. Version này đang ở trạng thái {Status}.");
+        Status = ExamVersionStatus.InReview;
+    }
+
+    /// <summary>
+    /// A different person signs off the content. `P-20`'s one non-negotiable
+    /// rule — "bắt buộc khác người soạn, cưỡng chế ở server, không phải ẩn
+    /// nút" — is enforced <b>here</b>, so it holds even for a caller who
+    /// somehow reaches this method with every permission there is.
+    ///
+    /// <b>A no-op guard when <see cref="AuthorId"/> is null.</b> See that
+    /// property's doc comment — most versions today carry no author, and
+    /// refusing every one of them until the import pipeline threads an actor
+    /// id through would stop content from shipping for a reason no operator
+    /// on this screen can fix. That gap is tracked, not hidden: `[OPEN
+    /// QUESTION]`, S7 report.
+    /// </summary>
+    public void Approve(UserId reviewerId)
+    {
+        if (Status != ExamVersionStatus.InReview)
+            throw new InvalidOperationException(
+                $"Chỉ version đang chờ duyệt mới duyệt được. Version này đang ở trạng thái {Status}.");
+        if (AuthorId is { } author && author == reviewerId)
+            throw new ReviewerIsAuthorException();
+        Status = ExamVersionStatus.Approved;
+    }
+
+    /// <summary>
+    /// The reviewer sends a draft back. `P-20`'s transition table: "Trả về
+    /// kèm lý do" — a reason is not optional, the same way a Library return
+    /// is not (`cms-content-operations.md` § 3.2, `Đ8`).
+    ///
+    /// <b>Goes straight to <see cref="ExamVersionStatus.Draft"/>, not to a
+    /// separate "returned" state.</b> See <see cref="ExamVersionStatus"/>'s
+    /// doc comment for why this enum has no fifth member for it. The reason
+    /// travels into the audit log's detail dictionary, which is where every
+    /// other "why" on this admin surface already lives — there is no
+    /// `ExamReviewNote` type, and none is added by this slice.
+    /// </summary>
+    public void ReturnToDraft(string reason)
+    {
+        if (Status != ExamVersionStatus.InReview)
+            throw new InvalidOperationException(
+                $"Chỉ version đang chờ duyệt mới trả về được. Version này đang ở trạng thái {Status}.");
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ArgumentException("Trả về đề cần kèm lý do.", nameof(reason));
+        Status = ExamVersionStatus.Draft;
+    }
 
     public Section? Section(ExamModule module) =>
         Sections.FirstOrDefault(s => s.Module == module);
@@ -173,6 +267,18 @@ public sealed class ExamVersion
             Sections.Count > 0 ? Sections[0].Module
                 : throw new InvalidOperationException("An exam version has no sections."));
 }
+
+/// <summary>
+/// <see cref="ExamVersion.Approve"/> refused because the reviewer and the
+/// author are the same account — `P-20`'s one non-negotiable rule.
+///
+/// <b>A distinct type, not a bare <see cref="InvalidOperationException"/>.</b>
+/// The API layer has to tell this apart from "this version is not awaiting
+/// review right now": one is a 403 that no retry or wait fixes, the other is
+/// a 409 that a status change resolves.
+/// </summary>
+public sealed class ReviewerIsAuthorException() : InvalidOperationException(
+    "Người duyệt không thể là người soạn. Cần một người khác duyệt version này.");
 
 public sealed record Section(ExamModule Module, int Order, IReadOnlyList<SectionPart> Parts)
 {
@@ -382,7 +488,20 @@ public sealed record ScoringProfile(
     AnswerMatchingRules Matching,
     decimal? WritingTask1Weight = null,
     decimal? WritingTask2Weight = null,
-    PartialCreditPolicy? PartialCredit = null)
+    PartialCreditPolicy? PartialCredit = null,
+    /// <summary>
+    /// Where this version's raw-to-band tables came from, and therefore
+    /// whether a Reading or Listening band may reach a learner. `P-11`: a
+    /// band is shown only when the table is <see
+    /// cref="BandTableProvenanceStatus.Equated"/>.
+    ///
+    /// <b>Absent means not-equated, and that is deliberate — the conservative
+    /// reading, never the flattering one.</b> `H-4` (where VNI's tables came
+    /// from) is still open, so a version that says nothing about its table's
+    /// origin gets treated exactly like one that admits the table is
+    /// invented. No default fills the gap. → `G-11`
+    /// </summary>
+    BandTableProvenance? Provenance = null)
 {
     /// <summary>
     /// The relative weight of Writing Task 1 and Task 2, or a refusal.
@@ -512,3 +631,39 @@ public sealed record ScoringProfile(
 }
 
 public sealed record BandBoundary(int MinRaw, BandScore Band);
+
+/// <summary>
+/// Where a version's raw-to-band conversion tables came from.
+///
+/// `H-4` — whether VNI's tables are licensed, internally equated, or
+/// approximated — is open, and this enumeration is what lets a version say
+/// which of those is true of its own tables rather than leaving every reader
+/// to assume the flattering answer. → `contracts/schemas/exam.schema.json`
+/// `bandTableProvenance`
+/// </summary>
+public enum BandTableProvenanceStatus
+{
+    /// <summary>Invented for this repository. Never learner-facing.</summary>
+    Synthetic,
+
+    /// <summary>A real table, but generic — not equated to this paper.</summary>
+    Provisional,
+
+    /// <summary>
+    /// Equated to this test version. The only status that may feed a band
+    /// trend, and the only one under which `P-11` lets a Reading or Listening
+    /// band reach a learner.
+    /// </summary>
+    Equated,
+}
+
+/// <summary>
+/// <see cref="Source"/> is required by the package schema when
+/// <see cref="Status"/> is <see cref="BandTableProvenanceStatus.Equated"/> —
+/// an equated table without a stated source is an unfalsifiable claim, and
+/// it is the claim that unlocks a learner-facing band. Not re-validated here:
+/// the schema is the gate at import time, and this record carries whatever
+/// passed it.
+/// </summary>
+public sealed record BandTableProvenance(
+    BandTableProvenanceStatus Status, string? Source = null, string? Note = null);

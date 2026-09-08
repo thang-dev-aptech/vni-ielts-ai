@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { isUnreachable } from '../../lib/api.js';
+import { isUnreachable, ApiError } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
 import { useI18n } from '../../i18n/index.js';
@@ -8,6 +8,7 @@ import type { StringKey } from '../../i18n/strings.js';
 import { Paths } from '../../routes/paths.js';
 import {
   getResults,
+  getRecordingPlaybackUrl,
   requestExplanation,
   type ExplanationContentView,
   type ExamModule,
@@ -16,12 +17,17 @@ import {
   type MarkingStatusView,
   type SectionResultView,
   type SectionMarkingView,
+  type SectionContentView,
   type SessionResultsView,
 } from './examApi.js';
+import { type Band, type ScoreState, formatBand, requiresAdvisoryLabel } from '@vni/types';
 import { SKILLS, SKILL_ORDER } from './skills.js';
+import { PassageBody } from './PassageBody.js';
+import { ExamImage } from './ExamImage.js';
 import '../../styles/practice.css';
 import '../../styles/dashboard.css';
 import '../../styles/exam.css';
+import '../../styles/audio.css';
 import { usePageTitle } from '../../routes/usePageTitle.js';
 import { useAlive } from '../../lib/useAlive.js';
 
@@ -197,10 +203,22 @@ export function ExamResultsPage() {
           const Icon = skill.icon;
           const section = marked.get(moduleId);
           const moduleMarkings = markedBy.get(moduleId);
+          const scoreState = scoreStateFor(section, moduleMarkings);
+          // `requiresAdvisoryLabel` only speaks for a state that is actually
+          // `scored` — before that there is nothing to attribute a
+          // provenance to, so the module's own known marking method fills in
+          // (`isAiMarked`, the one place that check still lives).
+          const advisory =
+            scoreState.status === 'scored' ? requiresAdvisoryLabel(scoreState) : isAiMarked(moduleId);
+          const bandReason =
+            section !== undefined && section.band !== null && !section.bandVerified
+              ? t('exam.bandUnverified')
+              : null;
           const reason =
-            section !== undefined || moduleMarkings !== undefined || !isAiMarked(moduleId)
+            bandReason ??
+            (section !== undefined || moduleMarkings !== undefined || !isAiMarked(moduleId)
               ? null
-              : markingStatusText(statusByModule.get(moduleId) ?? fallbackStatus(moduleId), t);
+              : markingStatusText(statusByModule.get(moduleId) ?? fallbackStatus(moduleId), t));
 
           return (
             <li className="result-row" key={moduleId}>
@@ -228,17 +246,14 @@ export function ExamResultsPage() {
               </span>
 
               {/* The tag says where the band came from. Answer-key and AI
-                    bands must never look interchangeable. → product law L4 */}
-              <span
-                className={
-                  moduleId === 'writing' || moduleId === 'speaking'
-                    ? 'dash-tag dash-tag-ai'
-                    : 'dash-tag'
-                }
-              >
-                {moduleId === 'writing' || moduleId === 'speaking'
-                  ? t('dash.scoring.ai')
-                  : t('dash.scoring.key')}
+                    bands must never look interchangeable. → product law L4.
+                    Driven by `requiresAdvisoryLabel` once there is an actual
+                    score to attribute — not by comparing `moduleId` against
+                    the two module names this product happens to AI-mark
+                    today, which is what silently mislabels a module that
+                    tomorrow marks a fifth skill by AI. → handoff S1 row 4 */}
+              <span className={advisory ? 'dash-tag dash-tag-ai' : 'dash-tag'}>
+                {advisory ? t('dash.scoring.ai') : t('dash.scoring.key')}
               </span>
 
               {/*
@@ -369,7 +384,48 @@ export function ExamResultsPage() {
       })}
 
       {[...markedBy.entries()].map(([moduleId, moduleMarkings]) => (
-        <MarkingReview key={moduleId} module={moduleId} markings={moduleMarkings} />
+        <MarkingReview
+          key={moduleId}
+          module={moduleId}
+          markings={moduleMarkings}
+          {...(moduleId === 'writing'
+            ? { writingBand: results.writingBand, writingBandReason: results.writingBandReason }
+            : {})}
+        />
+      ))}
+
+      {/*
+          Writing sat, nothing marked yet at all — `markedBy` has no entry, so
+          the loop above never runs, and the combined band's own reason
+          (`awaiting-tasks`) would otherwise have nowhere to appear. `P-12`
+          still owes an answer to "why no combined band" even before the
+          first task marking lands.
+        */}
+      {!markedBy.has('writing') &&
+        shown.includes('writing') &&
+        results.writingBandReason !== null && (
+          <MarkingReview
+            module="writing"
+            markings={[]}
+            writingBand={results.writingBand}
+            writingBandReason={results.writingBandReason}
+          />
+        )}
+
+      {/*
+          The paper itself — `P-06`…`P-09`, `S2`. Empty while the sitting was
+          still in progress when this loaded (the server's own gate, not a
+          client guess), so this renders nothing for that case rather than an
+          empty accordion nobody can open.
+        */}
+      {(results.content ?? []).map((content) => (
+        <SectionContentReview
+          key={content.module}
+          module={content.module}
+          content={content}
+          sessionId={sessionId}
+          accessToken={accessToken}
+        />
       ))}
 
       {/*
@@ -694,9 +750,14 @@ function ExplanationBlock({ explanation }: { explanation: ExplanationContentView
 function MarkingReview({
   module: moduleId,
   markings,
+  writingBand = null,
+  writingBandReason = null,
 }: {
   module: ExamModule;
   markings: SectionMarkingView[];
+  /** Writing only — the combined band, `P-12`. Ignored for every other module. */
+  writingBand?: number | null;
+  writingBandReason?: 'awaiting-tasks' | 'weighting-not-configured' | null;
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -728,9 +789,15 @@ function MarkingReview({
               className="result-marking-card ai-advisory-card"
               key={`${marking.module}-${marking.taskNumber ?? 'whole'}`}
             >
-              <div className="ai-advisory-header">
-                <span className="dash-tag dash-tag-ai">{t('exam.aiAdvisory')}</span>
-              </div>
+              {/* Always true for anything reached through `markings` — but
+                    driven by the same shared rule as the row tag above
+                    rather than a second hard-coded assumption, so the two
+                    cannot drift apart. */}
+              {requiresAdvisoryLabel({ status: 'scored', band: marking.band as Band, provenance: 'ai-advisory' }) && (
+                <div className="ai-advisory-header">
+                  <span className="dash-tag dash-tag-ai">{t('exam.aiAdvisory')}</span>
+                </div>
+              )}
               <header className="result-marking-head">
                 <h3>
                   {marking.taskNumber === null
@@ -763,9 +830,231 @@ function MarkingReview({
               </ul>
             </article>
           ))}
+
+          {/*
+              `P-12`: additive to the two task cards above, never a
+              replacement — the same reasoning `bandCell` already carries for
+              never averaging them. Shown only for Writing, and only once at
+              least one task marking exists (that is when the reason codes are
+              meaningful; before any marking arrives the "đang chấm" notice
+              elsewhere already says what is happening).
+            */}
+          {moduleId === 'writing' && (
+            <article className="result-marking-card ai-advisory-card result-writing-combined">
+              <div className="ai-advisory-header">
+                <span className="dash-tag dash-tag-ai">{t('exam.aiAdvisory')}</span>
+              </div>
+              <header className="result-marking-head">
+                <h3>{t('exam.writingBandCombined')}</h3>
+                <span className="result-marking-band num">
+                  {writingBand === null ? '—' : writingBand.toFixed(1)}
+                </span>
+              </header>
+              {writingBand === null && writingBandReason !== null && (
+                <p className="result-marking-rubric">
+                  {writingBandReason === 'awaiting-tasks'
+                    ? t('exam.writingBandReasonAwaitingTasks')
+                    : t('exam.writingBandReasonWeightingNotConfigured')}
+                </p>
+              )}
+            </article>
+          )}
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * The paper as sat, for one module — `SessionResultsView.content`, `S2`.
+ *
+ * <b>Passage, prompt and cue card only; not the interactive sheet again.</b>
+ * `SectionReview` above already shows every question's own answer and
+ * correctness — re-rendering `QuestionList`'s editable inputs here would both
+ * duplicate that and imply a post-submit answer could still change. This adds
+ * exactly the context `QuestionResultView` cannot carry: what the passage
+ * said, what the task asked, what the cue card prompted — reusing
+ * `PassageBody` and `ExamImage` exactly as the runner does, per `S2`'s own
+ * note that `PartView` is the same shape twice.
+ *
+ * Writing's essay text lives on `content.submissions`, keyed by question id —
+ * `QuestionResultView` has none, since Writing is marked rather than scored.
+ * Speaking's recordings are fetched on demand rather than carried in the
+ * payload; a button per `speaking-response` question asks for a presigned URL
+ * only when someone actually wants to listen.
+ */
+function SectionContentReview({
+  module: moduleId,
+  content,
+  sessionId,
+  accessToken,
+}: {
+  module: ExamModule;
+  content: SectionContentView;
+  sessionId: string;
+  accessToken: string | null;
+}) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+  const skill = SKILLS[moduleId];
+
+  if (content.parts.length === 0) return null;
+
+  return (
+    <section className="result-review">
+      <h2 className="result-review-head">
+        <button
+          type="button"
+          className="result-review-trigger"
+          aria-expanded={open}
+          {...(open ? { 'aria-controls': panelId } : {})}
+          onClick={() => setOpen((was) => !was)}
+        >
+          <span>{t('exam.contentReviewTitle', { skill: skill.name })}</span>
+          <span className="result-review-caret" aria-hidden="true">
+            {open ? '−' : '+'}
+          </span>
+        </button>
+      </h2>
+
+      {open && (
+        <div className="result-review-body" id={panelId}>
+          {content.parts
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .map((part) => (
+              <article className="result-content-part" key={part.order}>
+                {part.title !== null && <h3 className="exam-passage-title">{part.title}</h3>}
+                {part.body !== null && <PassageBody body={part.body} />}
+                {part.imageKey !== null && (
+                  <ExamImage reference={part.imageKey} caption={part.title} />
+                )}
+                {part.cueCard !== null && (
+                  <div className="exam-cue">
+                    <h4>{part.cueCard.topic}</h4>
+                    <ul>
+                      {part.cueCard.bullets.map((bullet) => (
+                        <li key={bullet}>{bullet}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {part.questions.map((question) => {
+                  if (question.type === 'essay-task') {
+                    const essay = content.submissions[question.id] ?? null;
+                    return (
+                      <div className="result-essay" key={question.id}>
+                        {question.prompt !== null && (
+                          <p className="exam-group-rubric">{question.prompt}</p>
+                        )}
+                        <h4>{t('exam.essayLabel')}</h4>
+                        {essay === null || essay === '' ? (
+                          <p className="result-reason">{t('exam.reviewBlank')}</p>
+                        ) : (
+                          <p className="result-essay-text">{essay}</p>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  if (question.type === 'speaking-response') {
+                    return (
+                      <RecordingReview
+                        key={question.id}
+                        sessionId={sessionId}
+                        questionId={question.id}
+                        prompt={question.prompt}
+                        accessToken={accessToken}
+                      />
+                    );
+                  }
+
+                  return null;
+                })}
+              </article>
+            ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/**
+ * "Nghe lại" for one Speaking answer.
+ *
+ * <b>Fetched on press, not with the results payload.</b> A sitting can carry
+ * several recordings and most reviews never open one — `S2`'s own reasoning
+ * for a separate endpoint rather than a URL embedded in `content`.
+ *
+ * <b>Not `AudioPlayer`.</b> That component fetches an exam *asset* by
+ * reference through the authenticated `/exams/assets/{path}` route and plays
+ * it under a Listening playback policy (once, no seek, by default). A
+ * recording's playback URL is already a presigned, expiring link the browser
+ * can fetch directly — a different shape this product does not have a
+ * component for yet. Built here rather than widening `AudioPlayer`'s own
+ * contract, which stays exactly as `D-11` preserves it.
+ */
+function RecordingReview({
+  sessionId,
+  questionId,
+  prompt,
+  accessToken,
+}: {
+  sessionId: string;
+  questionId: string;
+  prompt: string | null;
+  accessToken: string | null;
+}) {
+  const { t } = useI18n();
+  const [state, setState] = useState<'idle' | 'loading' | 'ready' | 'unavailable' | 'failed'>(
+    'idle',
+  );
+  const [source, setSource] = useState<string | null>(null);
+
+  async function load() {
+    if (accessToken === null) return;
+    setState('loading');
+
+    try {
+      const playback = await getRecordingPlaybackUrl(accessToken, sessionId, questionId);
+      setSource(playback.url);
+      setState('ready');
+    } catch (caught) {
+      setState(
+        caught instanceof ApiError && caught.problem.status === 404 ? 'unavailable' : 'failed',
+      );
+    }
+  }
+
+  return (
+    <div className="result-recording">
+      {prompt !== null && <p className="exam-group-rubric">{prompt}</p>}
+      <h4>{t('exam.recordingsLabel')}</h4>
+
+      {state === 'ready' && source !== null ? (
+        // Browser-native controls, deliberately: this is a review aid with
+        // none of the Listening section's once-only policy to enforce, so
+        // there is no reason to withhold seek, speed or volume.
+        <audio controls src={source} />
+      ) : state === 'unavailable' ? (
+        <p className="dash-notice">{t('exam.recordingUnavailable')}</p>
+      ) : state === 'failed' ? (
+        <p className="audio-failed" role="alert">
+          {t('exam.recordingFailed')}
+        </p>
+      ) : (
+        <button
+          type="button"
+          className="dash-retry"
+          disabled={state === 'loading'}
+          onClick={() => void load()}
+        >
+          {state === 'loading' ? t('exam.recordingLoading') : t('exam.recordingPlay')}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -806,33 +1095,30 @@ function fallbackStatus(moduleId: ExamModule): MarkingStatusView {
 /**
  * The band cell for one skill.
  *
- * <b>Reading and Listening show no band at all, and that is the deliberate
- * part.</b> The server computes one — it needs it eventually — but the only
- * conversion table this product owns declares itself `"provisional": true`,
- * with the note *"H-4 must adjudicate before any band is reported to a
- * learner"*. Displaying it **is** reporting it. Exam 1's table also sits half a
- * band below the commonly published conversion at raw 19 and raw 23, so the
- * number is not merely unverified, it is known to disagree with something.
+ * <b>`P-11` replaced the old blanket suppression, 06/09/2026.</b> This used to
+ * ignore `section.band` unconditionally: the only conversion table this
+ * product owned declared itself `"provisional": true`, with the note "H-4
+ * must adjudicate before any band is reported to a learner", and `H-4` had no
+ * answer. It does now — the exam version says whether its band table was
+ * equated, and `SectionResultView.bandVerified` carries that verdict. A band
+ * is shown exactly when there both is one and the table behind it is
+ * verified; every other combination is the same `—` this cell always drew,
+ * with a reason a caller can render beside it (`bandReason` in the row above,
+ * `exam.bandUnverified`).
  *
- * <b>Nothing is lost by removing it.</b> The correct count is already on the
- * row beside this cell — "Đúng 32/40" is the fact the answer key actually
- * supports. What goes is a band nobody equated. When `H-4` is answered, this is
- * one line coming back.
- *
- * Writing has two task bands and no module band — combining them needs a ratio
- * IELTS does not publish, so they are shown side by side rather than averaged
- * (`H-8b`). Speaking has one band for the whole test.
- *
- * The temptation in both halves is the same: render `6.75`, render `4.5`, move
- * on. Either number would be this function answering an open question, on the
- * screen where a learner is least equipped to notice it had been answered.
+ * Writing has two task bands and no module band — combining them by mean
+ * would answer `H-8b` with arithmetic, so they are shown side by side instead
+ * (the combined band that *is* defined, `P-12`'s 1:2 weighting, is a separate
+ * number rendered elsewhere, never averaged here). Speaking has one band for
+ * the whole test.
  */
 function bandCell(
   section: SectionResultView | undefined,
   markings: SectionMarkingView[] | undefined,
 ): string {
-  // Deliberately ignores `section.band`. → `H-4`
-  if (section !== undefined) return '—';
+  if (section !== undefined) {
+    return section.band !== null && section.bandVerified ? formatBand(section.band as Band) : '—';
+  }
 
   if (markings !== undefined && markings.length > 0) {
     return markings
@@ -843,4 +1129,36 @@ function bandCell(
   }
 
   return '—';
+}
+
+/**
+ * A row's `ScoreState`, for `@vni/types.requiresAdvisoryLabel` — the shared
+ * product-law-L4 rule for whether a band needs the "AI · tham khảo" tag.
+ *
+ * <b>Source, not module name.</b> Reading and Listening are `answer-key`
+ * because they came back on `section` — the deterministic scorer's own list.
+ * Writing and Speaking are `ai-advisory` because they came back on
+ * `markings` — the evaluator's list. A module that is not currently one of
+ * the two AI-marked skills but somehow produced a `markings` entry (the
+ * shape this product would take on the day a fifth skill gets AI marking) is
+ * still `ai-advisory`, because nothing here ever compares `moduleId` against
+ * `'writing'` or `'speaking'`.
+ *
+ * `'pending'` is the honest fallback before either list carries the module —
+ * `requiresAdvisoryLabel` has no opinion on a state that has not been scored,
+ * and correctly so: there is no band yet to attribute a source to.
+ */
+function scoreStateFor(
+  section: SectionResultView | undefined,
+  markings: SectionMarkingView[] | undefined,
+): ScoreState {
+  if (section !== undefined && section.band !== null) {
+    return { status: 'scored', band: section.band as Band, provenance: 'answer-key' };
+  }
+
+  if (markings !== undefined && markings.length > 0) {
+    return { status: 'scored', band: markings[0]!.band as Band, provenance: 'ai-advisory' };
+  }
+
+  return { status: 'pending' };
 }

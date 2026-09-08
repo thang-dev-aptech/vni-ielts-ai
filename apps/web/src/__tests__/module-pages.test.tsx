@@ -3,39 +3,54 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
-import { ARTICLES } from '../features/articles/articles.js';
-import { DOCUMENTS } from '../features/library/documents.js';
+import { TEST_ARTICLES, TEST_DOCUMENTS } from './catalogueFixtures.js';
 
 /*
   <b>These tests bring their own catalogue.</b>
 
-  The shipped `ARTICLES` and `DOCUMENTS` are empty — the product carries only
-  content the owner supplies, and none has been supplied for either module. The
-  behaviour around them is still real: filtering by skill, searching without
-  diacritics, refusing a download for a file nobody uploaded, routing a slug to
-  its own page. Testing that against whatever happens to ship was always the
-  weaker arrangement — a test reading `ARTICLES[0]` fails when an editor
-  reorders the index, which is a false alarm about a correct edit.
+  The shipped library endpoints return whatever VNI has actually published —
+  none has been supplied for either module. The behaviour around them is
+  still real: filtering by skill, searching without diacritics, refusing a
+  download for a file nobody uploaded, routing a slug to its own page. Testing
+  that against whatever happens to ship was always the weaker arrangement — a
+  test reading a hard-coded first row fails when an editor reorders the index,
+  which is a false alarm about a correct edit. So these tests stub the two
+  library endpoints (`documentsApi.ts` / `articlesApi.ts` read through
+  `fetch`, same as every other API call) to answer with a fixed catalogue.
 
   The empty state that ships is locked separately, in `empty-catalogues.test.tsx`.
 */
-vi.mock('../features/articles/articles.js', async (importOriginal) => {
-  const original = await importOriginal<typeof import('../features/articles/articles.js')>();
-  const { TEST_ARTICLES } = await import('./catalogueFixtures.js');
-  return {
-    ...original,
-    ARTICLES: TEST_ARTICLES,
-    // `findArticle` closes over the module's own array, so overriding the
-    // array alone would leave every deep link resolving to nothing.
-    findArticle: (slug: string) => TEST_ARTICLES.find((a) => a.slug === slug),
-  };
-});
 
-vi.mock('../features/library/documents.js', async (importOriginal) => {
-  const original = await importOriginal<typeof import('../features/library/documents.js')>();
-  const { TEST_DOCUMENTS } = await import('./catalogueFixtures.js');
-  return { ...original, DOCUMENTS: TEST_DOCUMENTS };
-});
+function notFoundProblem(): Response {
+  return json(
+    { title: 'Not found', status: 404, detail: 'No such record.', code: 'NOT_FOUND' },
+    404,
+  );
+}
+
+/** Routes the two public library endpoints to the fixture catalogue; anything else gets the SSO stub every other test in this file relies on. */
+function libraryAwareFetch(input: unknown): Response {
+  const url = String(input);
+
+  if (url.includes('/api/v1/library/documents/')) {
+    const id = decodeURIComponent(url.split('/api/v1/library/documents/')[1]!.split('?')[0]!);
+    const doc = TEST_DOCUMENTS.find((d) => d.id === id);
+    return doc ? json(doc) : notFoundProblem();
+  }
+  if (url.includes('/api/v1/library/documents')) {
+    return json({ items: TEST_DOCUMENTS });
+  }
+  if (url.includes('/api/v1/library/articles/')) {
+    const slug = decodeURIComponent(url.split('/api/v1/library/articles/')[1]!.split('?')[0]!);
+    const article = TEST_ARTICLES.find((a) => a.slug === slug);
+    return article ? json(article) : notFoundProblem();
+  }
+  if (url.includes('/api/v1/library/articles')) {
+    return json({ items: TEST_ARTICLES });
+  }
+
+  return json({ providers: [] });
+}
 
 /**
  * Each module is a page.
@@ -68,7 +83,7 @@ beforeEach(() => {
   localStorage.setItem('vni.locale', 'vi');
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () => json({ providers: [] })),
+    vi.fn(async (input: unknown) => libraryAwareFetch(input)),
   );
 });
 
@@ -94,14 +109,17 @@ it('narrows the library by skill, and says how many are left', async () => {
   openAt('/documents');
 
   await screen.findByRole('heading', { name: /Tài liệu IELTS/, level: 1 });
+  // The catalogue is fetched. Wait for a known row before interacting, or the
+  // click below can land before the list has anything to filter.
+  await screen.findByText(TEST_DOCUMENTS[0]!.title);
 
   // Skill radios live in the "Kỹ năng" group; Writing also appears as a
   // category button in the sidebar, so scope the click to the filter row.
   const skillGroup = screen.getByRole('radiogroup', { name: 'Kỹ năng' });
   await userEvent.click(within(skillGroup).getByRole('radio', { name: 'Writing' }));
 
-  const writing = DOCUMENTS.filter((doc) => doc.skill === 'writing');
-  expect(screen.getByRole('status').textContent).toContain(String(writing.length));
+  const writing = TEST_DOCUMENTS.filter((doc) => doc.skill === 'writing');
+  await waitFor(() => expect(screen.getByRole('status').textContent).toContain(String(writing.length)));
 
   // Card titles are h3. Featured (free + isFeatured) may appear once more as
   // the featured block, so compare the set of visible card titles.
@@ -117,6 +135,7 @@ it('finds a document typed without its diacritics', async () => {
   openAt('/documents');
 
   await screen.findByRole('heading', { name: /Tài liệu IELTS/, level: 1 });
+  await screen.findByText(TEST_DOCUMENTS[0]!.title);
   await userEvent.type(screen.getByRole('searchbox'), 'tu vung');
 
   expect(
@@ -130,6 +149,7 @@ it('offers no download for a file that has not been published', async () => {
   openAt('/documents');
 
   await screen.findByRole('heading', { name: /Tài liệu IELTS/, level: 1 });
+  await screen.findByText(TEST_DOCUMENTS[0]!.title);
 
   expect(screen.queryByRole('link', { name: 'Tải xuống' })).toBeNull();
   expect(screen.queryByRole('link', { name: 'Xem tài liệu' })).toBeNull();
@@ -138,7 +158,7 @@ it('offers no download for a file that has not been published', async () => {
   // are open, so there is no price and no checkout.
   expect(screen.getAllByText(/Sắp có/).length).toBeGreaterThan(0);
   expect(screen.getAllByRole('link', { name: 'Liên hệ nhận tài liệu' }).length).toBe(
-    DOCUMENTS.filter((doc) => doc.access === 'premium').length,
+    TEST_DOCUMENTS.filter((doc) => doc.access === 'premium').length,
   );
 
   // And nowhere on the page is there a number that reads as a price.
@@ -148,7 +168,7 @@ it('offers no download for a file that has not been published', async () => {
 it('opens an article from the index and lands on its own page', async () => {
   openAt('/articles');
 
-  const first = ARTICLES[0]!;
+  const first = TEST_ARTICLES[0]!;
   const card = await screen.findByRole('link', { name: new RegExp(first.title) });
   await userEvent.click(card);
 
@@ -157,7 +177,7 @@ it('opens an article from the index and lands on its own page', async () => {
 });
 
 it('renders an article reached by deep link, body and all', async () => {
-  const article = ARTICLES[1]!;
+  const article = TEST_ARTICLES[1]!;
   openAt(`/articles/${article.slug}`);
 
   await screen.findByRole('heading', { name: article.title, level: 1 });
@@ -185,9 +205,10 @@ it('previews three articles on the landing page and links on to the rest', async
   expect(toArticles.getAttribute('href')).toBe('/articles');
 
   // Three, not the whole list — that was the reason they became pages.
-  const preview = screen
-    .getByRole('heading', { name: 'Đọc thêm trong lúc chờ buổi luyện tới.' })
-    .closest('section');
+  const previewHeading = await screen.findByRole('heading', {
+    name: 'Đọc thêm trong lúc chờ buổi luyện tới.',
+  });
+  const preview = previewHeading.closest('section');
   expect(within(preview as HTMLElement).getAllByRole('link', { name: /phút đọc/ }).length).toBe(3);
 });
 

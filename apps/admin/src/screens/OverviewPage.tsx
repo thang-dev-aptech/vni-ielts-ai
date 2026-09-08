@@ -11,7 +11,6 @@ import {
 } from '../lib/adminApi.js';
 import { actionLabel } from './AuditPage.js';
 import { useOperator } from '../lib/operator.js';
-import { useWorkflow } from '../lib/previewStore.js';
 
 /**
  * Screen 2.1 — the overview.
@@ -28,12 +27,21 @@ import { useWorkflow } from '../lib/previewStore.js';
  * <b>Each panel is gated by the permission that feeds it.</b> An operator who
  * cannot read accounts does not get a tile counting them — a count is already
  * information about the thing.
+ *
+ * <b>The review-lifecycle tiles are real counts now, off the same `exams`
+ * list the top row already loads.</b> They used to read `previewStore`'s
+ * six sample versions, filtered by `author.self` for "của tôi" — that
+ * filter has no real counterpart: `GET /api/v1/admin/exams` carries no
+ * author field, so "đề của tôi đang soạn" and "đề của tôi bị trả lại"
+ * could not be rebuilt honestly and are gone rather than faked. "Đang chờ
+ * bạn duyệt" and "đã duyệt, chờ xuất bản" need no ownership data — every
+ * `exam.review`/`exam.publish` holder sees the whole queue — so those two
+ * survived, now counting real `inreview`/`approved` rows.
  */
 export function OverviewPage() {
   const { accessToken, user } = useAdminAuth();
   const operator = useOperator();
   const can = operator.can;
-  const { versions } = useWorkflow(operator.name, operator.email);
 
   const [exams, setExams] = useState<AdminExam[] | null>(null);
   const [userCount, setUserCount] = useState<number | null>(null);
@@ -98,65 +106,30 @@ export function OverviewPage() {
         {can('user.read') && <Tile label="Tài khoản" value={userCount} to={AdminPaths.users} />}
       </div>
 
-      {(can('exam.read.own') || can('exam.review') || can('exam.publish')) && (
+      {(can('exam.review') || can('exam.publish')) && (
         <section className="cms-panel">
           <div className="cms-panel-head">
             <h2>Quy trình nội dung</h2>
-            <span className="cms-muted">Số liệu từ dữ liệu xem trước</span>
           </div>
 
           <div className="cms-tiles">
-            {can('exam.read.own') && (
-              <Tile
-                label="Đề của tôi đang soạn"
-                value={versions.filter((v) => v.author.self && v.state === 'draft').length}
-                to={AdminPaths.myExams}
-              />
-            )}
-            {can('exam.read.own') && (
-              <Tile
-                label="Đề của tôi bị trả lại"
-                value={versions.filter((v) => v.author.self && v.state === 'returned').length}
-                to={AdminPaths.myExams}
-              />
-            )}
             {can('exam.review') && (
               <Tile
-                label="Đang chờ bạn duyệt"
-                value={versions.filter((v) => v.state === 'in-review').length}
+                label="Đang chờ duyệt"
+                value={exams === null ? null : exams.filter((e) => e.status === 'inreview').length}
                 to={AdminPaths.reviewQueue}
               />
             )}
             {can('exam.publish') && (
               <Tile
                 label="Đã duyệt, chờ xuất bản"
-                value={versions.filter((v) => v.state === 'approved').length}
+                value={exams === null ? null : exams.filter((e) => e.status === 'approved').length}
                 to={AdminPaths.pendingPublish}
               />
             )}
           </div>
         </section>
       )}
-
-      {/* Development only, and folded out of the production bundle with the
-          control it points at: telling an operator to use a dropdown that does
-          not exist on their build is worse than saying nothing. */}
-      {import.meta.env.DEV &&
-        !operator.previewing &&
-        !can('exam.review') &&
-        !can('exam.read.own') && (
-          <section className="cms-panel">
-            <div className="cms-panel-head">
-              <h2>Vòng đời duyệt nội dung</h2>
-            </div>
-            <p className="cms-muted">
-              Tài khoản của bạn chưa giữ quyền nào trong bộ quyền mới (<code>exam.submit</code>,{' '}
-              <code>exam.review</code>, <code>exam.read.own</code>) — máy chủ chưa gieo chúng. Dùng
-              ô <strong>Xem như</strong> trên thanh trên cùng để đi thử CMS bằng con mắt của từng
-              vai.
-            </p>
-          </section>
-        )}
 
       {can('audit.read') && (
         <section className="cms-panel">

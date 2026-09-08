@@ -103,7 +103,8 @@ public sealed record StartExamSessionCommand(
 /// which is why the database is a replica set. → `G-11`, threat `T22`
 /// </summary>
 public sealed class StartExamSession(
-    IExamCatalogue catalogue, IExamSessionRepository sessions, IClock clock)
+    IExamCatalogue catalogue, IExamSessionRepository sessions, IClock clock,
+    Usage.UsageRecorder? usage = null)
 {
     public async Task<SessionView> HandleAsync(StartExamSessionCommand command, CancellationToken ct)
     {
@@ -127,6 +128,11 @@ public sealed class StartExamSession(
 
         await sessions.AddAsync(session, ct);
 
+        // Recorded after the insert and never consulted before it: `P-14` is
+        // a ledger that observes, and a balance of zero or less opens a
+        // sitting exactly as a balance of ten does.
+        if (usage is not null) await usage.SessionOpenedAsync(command.UserId, session.Id, ct);
+
         return session.ToView(version, now, SessionProjection.Empty, []);
     }
 }
@@ -135,7 +141,8 @@ public sealed record StartPracticeUnitSessionCommand(
     UserId UserId, string PracticeUnitId, int? TargetSeconds = null);
 
 public sealed class StartPracticeUnitSession(
-    IExamCatalogue catalogue, IExamSessionRepository sessions, IClock clock)
+    IExamCatalogue catalogue, IExamSessionRepository sessions, IClock clock,
+    Usage.UsageRecorder? usage = null)
 {
     public async Task<SessionView> HandleAsync(
         StartPracticeUnitSessionCommand command, CancellationToken ct)
@@ -155,6 +162,8 @@ public sealed class StartPracticeUnitSession(
             timing == SessionTiming.OpenEnded ? command.TargetSeconds : null,
             unit.Id, unit.PartIds);
         await sessions.AddAsync(session, ct);
+        // Same ledger row as a full sitting; a practice unit is a session opened. → `P-14`
+        if (usage is not null) await usage.SessionOpenedAsync(command.UserId, session.Id, ct);
         return session.ToView(version, now, SessionProjection.Empty, []);
     }
 }
@@ -716,7 +725,8 @@ public sealed class SubmitExamSession(
     IMarkingOutbox outbox,
     IRubricSource rubrics,
     IPersonalizedExplanationStore explanationStore,
-    IClock clock)
+    IClock clock,
+    IWritingTaskWeighting? weighting = null)
 {
     public async Task<SessionResultsView> HandleAsync(
         SubmitExamSessionCommand command, CancellationToken ct)
@@ -808,7 +818,9 @@ public sealed class SubmitExamSession(
             await results.ListAsync(session.Id, ct),
             await markings.ListAsync(session.Id, ct),
             await outbox.ListAsync(session.Id, ct),
-            await explanationStore.ListForSessionAsync(session.Id, ct));
+            await explanationStore.ListForSessionAsync(session.Id, ct),
+            weighting,
+            await answers.LoadWritingSubmissionsAsync(session, version, ct));
     }
 }
 
@@ -947,7 +959,8 @@ public sealed class GetSessionResults(
     IMarkingOutbox outbox,
     IRubricSource rubrics,
     IPersonalizedExplanationStore explanationStore,
-    IClock clock)
+    IClock clock,
+    IWritingTaskWeighting? weighting = null)
 {
     public async Task<SessionResultsView> HandleAsync(GetSessionResultsQuery query, CancellationToken ct)
     {
@@ -973,7 +986,9 @@ public sealed class GetSessionResults(
             await results.ListAsync(session.Id, ct),
             await markings.ListAsync(session.Id, ct),
             await outbox.ListAsync(session.Id, ct),
-            await explanationStore.ListForSessionAsync(session.Id, ct));
+            await explanationStore.ListForSessionAsync(session.Id, ct),
+            weighting,
+            await answers.LoadWritingSubmissionsAsync(session, version, ct));
     }
 }
 
@@ -1471,24 +1486,38 @@ internal static class SessionProjection
             current);
     }
 
+    /// <summary>The results screen — bands, markings and, post-submit, the paper itself.</summary>
+    /// <param name="writingSubmissions">
+    /// The learner's own Writing answers, keyed by question id — loaded by
+    /// the caller via <see cref="LoadWritingSubmissionsAsync"/>, since this
+    /// method stays a pure projection and does none of its own I/O. Ignored
+    /// whenever <see cref="BuildContent"/> would not show it anyway (sitting
+    /// still <c>InProgress</c>, or Writing not sat).
+    /// </param>
     public static SessionResultsView ToResults(
         this ExamSession session, ExamVersion version,
         IReadOnlyList<SectionScore> scores,
         IReadOnlyList<SectionMarking> markings,
         IReadOnlyList<MarkingJob>? jobs = null,
-        IReadOnlyList<PersonalizedExplanationJob>? explanationJobs = null)
+        IReadOnlyList<PersonalizedExplanationJob>? explanationJobs = null,
+        IWritingTaskWeighting? weighting = null,
+        IReadOnlyDictionary<string, string?>? writingSubmissions = null)
     {
-        // <b>Writing's two task bands do not become a Writing band here.</b>
-        // IELTS marks Task 1 and Task 2 separately and combines them on a ratio
-        // it does not publish; `ScoringProfile.RequireWritingTaskWeights`
-        // refuses to guess one (`H-8b`). So Writing contributes a module band
-        // only when the exam version carries the weighting — otherwise the two
-        // task bands are reported as what they are, and Writing has no band.
+        // <b>Writing's two task bands become a Writing band only on a ratio
+        // somebody recorded.</b> IELTS marks Task 1 and Task 2 separately;
+        // `P-12` (owner, 06/09/2026) settled the ratio at 1 : 2, and that
+        // number lives in the exam version's ScoringProfile or in
+        // `Assessment:Writing:TaskWeights` — never here. When neither carries
+        // one, the two task bands are reported as what they are and Writing
+        // has no band, with the reason beside it. → `IWritingTaskWeighting`
         var capability = PracticeScorePolicy.ScoreCapability(session, version);
         var moduleBands = new List<BandScore>();
         moduleBands.AddRange(scores.Select(s => s.Band).OfType<BandScore>());
 
-        if (WritingBand(version, markings) is { } writing) moduleBands.Add(writing);
+        var (writingBand, writingReason) = WritingBand(
+            session, version, markings, weighting ?? WritingTaskWeightPolicy.Unconfigured);
+
+        if (writingBand is { } writing) moduleBands.Add(writing);
 
         if (markings.FirstOrDefault(m => m.Module == ExamModule.Speaking) is { } speaking)
             moduleBands.Add(speaking.Band);
@@ -1510,7 +1539,89 @@ internal static class SessionProjection
             [.. markings.OrderBy(m => m.Module).ThenBy(m => m.TaskNumber).Select(m => m.ToView())],
             [.. (jobs ?? []).OrderBy(j => j.Module).Select(j => ToStatusView(j, markings))],
             PersonalizedExplanationService.ProjectStatuses(version, explanationJobs ?? []),
-            overall);
+            overall,
+            writingBand?.Value,
+            writingReason,
+            BuildContent(session, version, writingSubmissions));
+    }
+
+    private static readonly IReadOnlyDictionary<string, string?> NoSubmissions =
+        new Dictionary<string, string?>();
+
+    /// <summary>
+    /// The cột trái of the Result/Review screen (`S2` / `P-08`) — empty,
+    /// unconditionally, until the sitting as a whole has left
+    /// <see cref="SessionStatus.InProgress"/>.
+    ///
+    /// <b>Gated on the sitting's own status, not on each section's.</b> A
+    /// Full Test candidate still sitting Listening has a Reading attempt
+    /// that is already closed and scored — and must still see nothing here,
+    /// because the sitting they are inside of has not ended. Gating per
+    /// section would hand that candidate Reading's passage while the exam
+    /// they are taking is still running.
+    /// </summary>
+    private static IReadOnlyList<SectionContentView> BuildContent(
+        ExamSession session, ExamVersion version,
+        IReadOnlyDictionary<string, string?>? writingSubmissions)
+    {
+        if (session.Status == SessionStatus.InProgress) return [];
+
+        return
+        [
+            .. session.Attempts
+                .Select(a => a.Module)
+                .Distinct()
+                .Select(m => (Module: m, Section: version.Section(m),
+                    Attempt: session.Attempts.FirstOrDefault(a => a.Module == m)))
+                .Where(x => x.Section is not null)
+                .OrderBy(x => x.Section!.Order)
+                .Select(x => new SectionContentView(
+                    x.Module.ToString().ToLowerInvariant(),
+                    [
+                        .. x.Section!.Parts
+                            .OrderBy(p => p.Order)
+                            // Mirrors the pre-submit visibility rule in
+                            // `ToView(this ExamSession, ...)` — a part-scoped
+                            // practice attempt never opened the rest of the
+                            // section, so post-submit review does not hand it
+                            // over either.
+                            .Where(p => x.Attempt?.PartId is null
+                                || x.Attempt.PartId
+                                    == $"{x.Module.ToString().ToLowerInvariant()}-part-{p.Order}")
+                            .Select(p => p.ToView()),
+                    ],
+                    x.Module == ExamModule.Writing
+                        ? writingSubmissions ?? NoSubmissions
+                        : NoSubmissions)),
+        ];
+    }
+
+    /// <summary>
+    /// The learner's own Writing answers for this sitting, keyed by question
+    /// id — the essay text the left column of the results screen shows
+    /// beside the task prompt.
+    ///
+    /// <b>Reuses the exact read path <see cref="SectionMarkingRunner"/> uses
+    /// to mark the same essays, rather than a second one.</b> That runner
+    /// used to read the sheet by question id against a slot-keyed store and
+    /// silently find nothing — the 2026-09-03 defect that reported every
+    /// Writing submission as unanswered. A results screen with its own way
+    /// of reading the sheet could reintroduce exactly that mismatch on a
+    /// screen nothing else exercises.
+    ///
+    /// Null when Writing was never opened in this sitting, so a caller that
+    /// is about to build results for, say, a Reading-only practice session
+    /// can skip the read outright.
+    /// </summary>
+    public static async Task<IReadOnlyDictionary<string, string?>?> LoadWritingSubmissionsAsync(
+        this IAnswerSheetStore answers, ExamSession session, ExamVersion version, CancellationToken ct)
+    {
+        if (session.Status == SessionStatus.InProgress) return null;
+        if (!session.Attempts.Any(a => a.Module == ExamModule.Writing)) return null;
+        if (version.Section(ExamModule.Writing) is not { } section) return null;
+
+        var sheet = await answers.LoadAsync(session.Id, ExamModule.Writing, ct);
+        return ResponseSlotAnswers.ToQuestionAnswers(sheet, section);
     }
 
     /// <summary>
@@ -1627,32 +1738,43 @@ internal static class SessionProjection
     }
 
     /// <summary>
-    /// Writing's module band, or null while the ratio is unknown.
+    /// Why the Writing band is absent, on the wire. Stable strings the client
+    /// switches on; never sentences.
+    /// </summary>
+    internal const string WritingAwaitingTasks = "awaiting-tasks";
+    internal const string WritingWeightingNotConfigured = "weighting-not-configured";
+
+    /// <summary>
+    /// Writing's module band, or null with the reason.
     ///
     /// <b>Two task bands are not a Writing band, and averaging them would be
-    /// the invented default this codebase refuses everywhere else.</b> Task 2
-    /// weighs more than Task 1 — that much is known — but IELTS does not
-    /// publish the ratio the way it publishes the overall-band rounding rule.
-    /// An exam version may carry one as data; when it does not, Writing has no
-    /// module band and the results screen shows the two task bands instead of
-    /// a number nobody can defend. → `H-8b`, `G-11`
+    /// the invented default this codebase refuses everywhere else.</b> The
+    /// ratio comes from <see cref="IWritingTaskWeighting"/> — the exam version
+    /// first, the deployment's configuration second — and the arithmetic is
+    /// <see cref="BandScore.Weighted"/>'s, so the asymmetric rounding has one
+    /// implementation. A null band is the honest state and carries its cause:
+    /// fewer than two task markings, or no ratio anywhere. A sitting that never
+    /// opened Writing gets neither. → `P-12`, `G-11`
     /// </summary>
-    private static BandScore? WritingBand(
-        ExamVersion version, IReadOnlyList<SectionMarking> markings)
+    private static (BandScore? Band, string? Reason) WritingBand(
+        ExamSession session, ExamVersion version, IReadOnlyList<SectionMarking> markings,
+        IWritingTaskWeighting weighting)
     {
         var task1 = markings.FirstOrDefault(m => m.Module == ExamModule.Writing && m.TaskNumber == 1);
         var task2 = markings.FirstOrDefault(m => m.Module == ExamModule.Writing && m.TaskNumber == 2);
 
-        if (task1 is null || task2 is null) return null;
+        if (task1 is null || task2 is null)
+        {
+            var writingSat = session.Attempts.Any(a => a.Module == ExamModule.Writing);
+            return (null, writingSat ? WritingAwaitingTasks : null);
+        }
 
-        // Ask, and accept the refusal. `RequireWritingTaskWeights` throws when
-        // the version carries no ratio; that is the correct behaviour for a
-        // caller that must have one, and the wrong behaviour for a results
-        // screen, which simply has one fewer band to show.
-        if (version.Scoring.WritingTask1Weight is not { } w1) return null;
-        if (version.Scoring.WritingTask2Weight is not { } w2) return null;
-        if (w1 <= 0m || w2 <= 0m) return null;
+        // Resolve, and accept "none". `Require` is for a caller that must have
+        // a ratio; a results screen simply has one fewer band to show, and
+        // says why.
+        if (weighting.Resolve(version.Scoring) is not { } weights)
+            return (null, WritingWeightingNotConfigured);
 
-        return BandScore.Weighted([(task1.Band, w1), (task2.Band, w2)]);
+        return (BandScore.Weighted([(task1.Band, weights.Task1), (task2.Band, weights.Task2)]), null);
     }
 }

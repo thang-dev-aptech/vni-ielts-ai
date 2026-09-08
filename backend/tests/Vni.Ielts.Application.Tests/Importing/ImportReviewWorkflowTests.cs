@@ -46,7 +46,7 @@ public sealed class ImportReviewWorkflowTests
         var blockedWarning = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
         Assert.Equal("IMPORT_WARNINGS_UNRESOLVED", blockedWarning.ErrorCode);
 
-        var resolved = await review.ResolveWarningAsync(store.Draft.Id, 0, "w1", Reviewer, default);
+        var resolved = await review.ResolveWarningAsync(store.Draft.Id, 0, "w1", "checked against source", Reviewer, default);
         var blockedChecklist = await review.ApproveAsync(store.Draft.Id, resolved.Draft!.Revision, Reviewer, default);
         Assert.Equal("IMPORT_CHECKLIST_INCOMPLETE", blockedChecklist.ErrorCode);
 
@@ -59,6 +59,28 @@ public sealed class ImportReviewWorkflowTests
         Assert.True(approved.IsSuccess);
         Assert.Equal("reviewer", approved.Draft!.ReviewedBy);
         Assert.Equal(ImportApprovalState.Approved, approved.Draft.ApprovalState);
+        Assert.Equal("checked against source", approved.Draft.Warnings.Single(w => w.Id == "w1").OverrideReason);
+    }
+
+    /// <summary>
+    /// `P-19`: "admin bỏ qua được nhưng bắt buộc ghi lý do và vào nhật ký".
+    /// Enforced in the workflow itself, not only at the HTTP boundary — this
+    /// is the red-when-removed target for that rule at the Application layer.
+    /// </summary>
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Resolving_a_warning_without_a_reason_is_refused(string? blankReason)
+    {
+        var store = new Store(Draft(warning: true));
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.ResolveWarningAsync(store.Draft.Id, 0, "w1", blankReason!, Reviewer, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_WARNING_REASON_REQUIRED", result.ErrorCode);
+        Assert.False(store.Draft.Warnings.Single().Resolved);
     }
 
     [Fact]

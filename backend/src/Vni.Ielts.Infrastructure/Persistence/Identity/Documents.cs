@@ -58,6 +58,16 @@ internal sealed class UserDocument
     /// </summary>
     [BsonElement("roleIds")]
     public List<string> RoleIds { get; set; } = [];
+
+    /// <summary>The code this account shares. Null only for the handful of accounts that predate `P-16`.</summary>
+    [BsonElement("referralCode")]
+    [BsonIgnoreIfNull]
+    public string? ReferralCode { get; set; }
+
+    /// <summary>Who this account credits. Set once, never overwritten. → `P-16`</summary>
+    [BsonElement("referredByUserId")]
+    [BsonIgnoreIfNull]
+    public string? ReferredByUserId { get; set; }
 }
 
 [BsonIgnoreExtraElements]

@@ -54,8 +54,13 @@ is a third exam mode are **not** in it — those are `B-12` and `M-34`…`M-37` 
 | E-15 | Entering the four-skills practice area presents a **choice layer** before the learner reaches the exam library | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"khi user ấn vào luyện 4 đề thì sẽ hiện mocup để báo user"* |
 | E-16 | The layer offers **two exits**: sit an entry test to find out the learner's current level, or **skip** straight into practising the existing library | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"có thể làm bài test trước xem trình độ hiện tại là bao nhiêu hoặc user có thể bỏ qua là luyện tập các bài có sẵn của mình"* |
 | E-17 | **Skipping is always available.** The entry test is an offer, never a gate on practice — the same sentence that creates it also creates the way past it | CONFIRMED | Chủ sản phẩm, 27/08/2026, nguyên văn: *"hoặc user có thể bỏ qua"* |
-| E-18 | Whether the entry test is a **third mode**, a re-framed Full Test, or a rule of the sitting | UNCONFIRMED | → `B-12`. `E-11` confirms two modes and nothing has superseded it; a third would be a new owner decision, not an inference from `E-15` |
+| E-18 | Whether the entry test is a **third mode**, a re-framed Full Test, or a rule of the sitting | CONFIRMED | Owner decision 06/09/2026 (`P-04`): there is no third mode — Practice and Mock are the two areas, on the existing `SessionMode` × `SessionTiming` axes. `B-12` resolved |
 | E-19 | What the entry test **contains** (four skills or fewer, full length or shortened) and what it **reports** | UNCONFIRMED | → `M-34`, `M-35` |
+
+> **`[NEEDS RE-CONFIRMATION 2026-09-06]` — `E-15`…`E-17`.** The 22 decisions of 06/09/2026 (`P-01`…`P-22`) do not
+> mention the entry test, and `P-04` settles practice vs mock without it. The 07/09 code-first handoff (`S8`)
+> removes `EntryTestModal` as a dead end. The three rows are kept, not deleted: the owner has not said the
+> entry test is dropped, only that the MVP does not contain it. `E-18` is closed by `P-04` → `B-12`.
 
 > **`E-17` is the load-bearing row, not `E-15`.** A choice layer that can be dismissed is an offer; one
 > that cannot is a gate on the module. The owner's sentence contains the escape, so every state of the
@@ -190,6 +195,12 @@ An internal token currency. The concepts are confirmed; **no amounts and no char
 
 > **T-2 carries a known platform limitation.** No target platform reports share completion ([ADR-0009](../decisions/0009-share-gating-not-verifiable.md)). The business intent is confirmed; how a share is verified is not. Do not resolve this by dropping the feature — that is the owner's call. → `M-27`
 
+> **06/09/2026 — `P-14`…`P-17` settle how the MVP treats this.** Usage is *recorded* in an append-only
+> ledger and never blocks (`P-14`); a new account is granted **10 turns** (`P-15`); turns are earned by daily
+> login and by a referral whose invitee verifies their email — not by sharing (`P-16`); nothing is sold
+> (`P-17`). `T-4` stays `UNCONFIRMED` for every amount other than the 10-turn grant, and `B-5a`/`B-5b`
+> (what is charged, how much) stay open — the ledger records, it does not price.
+
 ## Requirement freeze — scope decisions, 2026-08-20
 
 The product owner declared the requirement freeze on 2026-08-20 and made five scope calls in the
@@ -203,10 +214,10 @@ the rules inside it — where a rule is still open, the row names the decision t
 
 | ID | Decision | Status | Source |
 |---|---|---|---|
-| F-1 | **Speaking is AI-scored and is in the first release.** Closes the scope half of `M-26`; supersedes the `UNCONFIRMED` on `A-14` | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
-| F-2 | **AI Chat is in the first release.** Closes `B-6f` | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
+| F-1 | **Speaking is AI-scored and is in the first release.** Closes the scope half of `M-26`; supersedes the `UNCONFIRMED` on `A-14`. **`[SUPERSEDED 2026-09-06]` for the MVP by `P-02`** — Speaking is recorded and stored, not marked, until an ASR provider is selected | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
+| F-2 | **AI Chat is in the first release.** Closes `B-6f`. **`[NEEDS RE-CONFIRMATION 2026-09-06]`** — the 06/09 blueprint §09 lists AI Chat as deliberately out of the MVP, but no numbered `P-*` decision says so | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
 | F-3 | **AI-assisted exam parsing is in the first release.** `I-15a` was already confirmed; this sets its timing | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
-| F-4 | **Token spending is live in the first release** — the ledger is not built dormant. Confirms `T-3` operates at launch | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
+| F-4 | **Token spending is live in the first release** — the ledger is not built dormant. Confirms `T-3` operates at launch. **`[SUPERSEDED 2026-09-06]` by `P-14`** — usage is recorded in a ledger and never blocks; nothing is charged in the MVP | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
 | F-5 | **The CMS authors and edits exam content in place.** Closes `M-16` toward the authoring branch, and answers `H-2`: VNI authors its own content | CONFIRMED | Owner decision 2026-08-20, requirement-freeze session |
 
 ### What each one leaves open
@@ -224,6 +235,64 @@ the rules inside it — where a rule is still open, the row names the decision t
 > internal part timings, or three attempts with three deadlines and three upload lifecycles. While
 > Speaking was `UNCONFIRMED` this was a deferrable detail. F-1 makes it a blocking modelling
 > decision. → [`assumptions-and-open-questions.md`](assumptions-and-open-questions.md) `H-1`
+
+---
+
+## MVP blueprint — product decisions, 2026-09-06
+
+The product owner settled 22 decisions in the working session of 06/09/2026. They define the MVP:
+**Reading, Listening and Writing; Speaking recorded and stored but not marked; web first; usage
+recorded in a ledger and never blocking.** The derivation — navigation, screen list, Result/Review
+data contract, content lifecycle, import pipeline — lives in
+[`../product/mvp-blueprint.md`](../product/mvp-blueprint.md) and is `PROPOSED`; only the rows below
+are `CONFIRMED`.
+
+> **Two things about the ids.** They carry a **leading zero** (`P-01`, not `P-1`) and are unrelated to
+> `P-1`…`P-5` under *Platforms* above. And `P-*` (06/09) is newer than the UX set `D-1`…`D-12` (04/09,
+> [`../VNI_IELTS_AI_COMPLETE_REDESIGN_PROMPT.md`](../VNI_IELTS_AI_COMPLETE_REDESIGN_PROMPT.md)); where the
+> two conflict, `P-*` wins. `D-10` (visual system) does not conflict and stands. → [`../README.md` §
+> Source precedence](../README.md)
+
+| ID | Decision | Status | Source |
+|---|---|---|---|
+| P-01 | The MVP is **Reading, Listening, Writing**. A mock test runs three skills in the exam's `moduleSequence` | CONFIRMED | Owner decision 06/09/2026 |
+| P-02 | **Speaking: record and store, mark as not yet assessed.** No AI marking until an ASR provider is selected. Needs a playback endpoint and a recording retention period | CONFIRMED | Owner decision 06/09/2026 |
+| P-03 | **Web first**; store apps later. Capacitor is not installed; `plugins/speaking-audio` stays as the seam | CONFIRMED | Owner decision 06/09/2026 |
+| P-04 | **Practice (Luyện tập) and Mock (Thi thử) are two separate areas.** The existing `SessionMode` × `SessionTiming` axes cover it; no new concept | CONFIRMED | Owner decision 06/09/2026 |
+| P-05 | **Practice has a clock switch** — the learner chooses `SessionTiming`; one button and one switch instead of two buttons | CONFIRMED | Owner decision 06/09/2026 |
+| P-06 | **One Result/Review layout for every kind of exercise** | CONFIRMED | Owner decision 06/09/2026 |
+| P-07 | Result top strip: score, chart, metrics by exercise type | CONFIRMED | Owner decision 06/09/2026 |
+| P-08 | Result body: **two columns** — left the exam as taken, right the review of the selected item | CONFIRMED | Owner decision 06/09/2026 |
+| P-09 | Writing results show the **four criteria** | CONFIRMED | Owner decision 06/09/2026 |
+| P-10 | **The correct answer is always shown after submission.** Consequence: new exams must be produced continuously | CONFIRMED | Owner decision 06/09/2026 |
+| P-11 | **A Reading/Listening band is shown only when the exam version's conversion table is verified** (`bandTableProvenance`); otherwise the learner sees no band and the reason | CONFIRMED | Owner decision 06/09/2026 |
+| P-12 | **Writing Task 1 : Task 2 = 1 : 2.** Writing band = (T1 + T2×2) / 3, rounded with the existing `BandScore` rule. The weights live in the exam's `ScoringProfile` or `Assessment:Writing` configuration, never in code | CONFIRMED | Owner decision 06/09/2026 |
+| P-13 | **The rubric is a four-criterion framework; it does not claim to be official IELTS marking.** Every Writing band carries the label "AI · tham khảo" | CONFIRMED | Owner decision 06/09/2026 |
+| P-14 | **Token, stage 1: record only, never block.** No atomic deduction, no out-of-turns screen — but the record is a ledger, not a counter | CONFIRMED | Owner decision 06/09/2026 |
+| P-15 | **10 free turns for a new account.** Shown and counted down; at zero the learner can still use everything | CONFIRMED | Owner decision 06/09/2026 |
+| P-16 | **Earn turns by daily login and by referral link.** A bare share cannot be verified; the reward is per registration through the link, granted when the invitee verifies their email | CONFIRMED | Owner decision 06/09/2026 |
+| P-17 | **Nothing is sold yet.** Payment gateway, invoices and refunds are out of the MVP entirely | CONFIRMED | Owner decision 06/09/2026 |
+| P-18 | **Exam import is a ZIP with four skill folders** `reading/ listening/ writing/ speaking/`. The folder name determines the skill; a missing folder means a partial package, which the schema already allows | CONFIRMED | Owner decision 06/09/2026 |
+| P-19 | **A missing transcript is a warning, and the admin decides.** Findings split into blocking and warning; overriding a warning records who, and why, in the audit log | CONFIRMED | Owner decision 06/09/2026 |
+| P-20 | **Author → a different person reviews → admin publishes.** Needs `InReview` and `Approved` statuses, a server-side `exam.review` permission, four audit actions, and reviewer ≠ author enforced on the server | CONFIRMED | Owner decision 06/09/2026 |
+| P-21 | **Publish only content VNI owns or has confirmed rights to.** Already enforced by `ContentRightsPolicy`; the two existing packages stay at internal level | CONFIRMED | Owner decision 06/09/2026 |
+| P-22 | **Documents and Articles are two independent libraries** — two collections; `relatedExamIds` reserved and left `null`; articles addressed by slug | CONFIRMED | Owner decision 06/09/2026 |
+
+### What the 06/09 decisions close, supersede, or leave open
+
+| Item | Effect |
+|---|---|
+| `F-1` Speaking AI-scored in the first release | `[SUPERSEDED 2026-09-06]` for the MVP by `P-02` |
+| `F-4` Token spending live in the first release | `[SUPERSEDED 2026-09-06]` by `P-14` |
+| `F-2` AI Chat in the first release | `[NEEDS RE-CONFIRMATION 2026-09-06]` — blueprint §09 lists it as deliberately out of the MVP; no numbered decision says so |
+| `M-30` · `B-12` · `B-13` — what Practice, Mock and the entry test are | Closed by `P-04` + `P-05`. `E-15`…`E-17` (entry test) await re-confirmation; the 07/09 handoff removes `EntryTestModal` |
+| `M-10` warning-severity packages | Closed by `P-19` |
+| `H-4` band conversion tables | Closed by `P-11` as a product rule — a band appears only where the exam version carries a verified table; verifying a table is per-version editorial work |
+| `H-8b` Task weighting | Closed by `P-12` |
+| `H-8a` descriptor source | Closed by `P-13` |
+| `M-53` which exam files may be published | Closed by `P-21` |
+| `M-27` share verification | Narrowed by `P-16`: reward on referral registration verified by email, never on the share itself |
+| Overall band of a three-skill mock | **Still open** `[BUSINESS DECISION]` — three skills do not make an IELTS overall band; until decided the API returns no overall band for a mock (`G-11`) |
 
 ---
 

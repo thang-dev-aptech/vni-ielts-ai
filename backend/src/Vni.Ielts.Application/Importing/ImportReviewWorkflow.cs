@@ -57,11 +57,21 @@ public sealed class ImportReviewWorkflow(
             : ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
     }
 
+    /// <summary>
+    /// Resolves a warning — either because the underlying condition was
+    /// genuinely fixed, or because a reviewer is overriding it.
+    /// <c>reason</c> is mandatory either way: `P-19`'s
+    /// "bắt buộc ghi lý do" is enforced here, in the workflow, rather than
+    /// only at the HTTP boundary — an endpoint is not the only caller this
+    /// type will ever have, and a rule that lives only in a controller is a
+    /// rule the next caller can forget.
+    /// </summary>
     public async Task<ImportReviewResult> ResolveWarningAsync(
-        Guid draftId, int expectedRevision, string warningId, ImportReviewActor actor,
+        Guid draftId, int expectedRevision, string warningId, string reason, ImportReviewActor actor,
         CancellationToken ct)
     {
         if (!actor.CanReview) return ImportReviewResult.Refused("IMPORT_REVIEW_FORBIDDEN");
+        if (string.IsNullOrWhiteSpace(reason)) return ImportReviewResult.Refused("IMPORT_WARNING_REASON_REQUIRED");
         var draft = await drafts.FindAsync(draftId, ct);
         if (draft is null) return ImportReviewResult.Refused("IMPORT_DRAFT_NOT_FOUND");
         if (draft.Revision != expectedRevision) return ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
@@ -69,7 +79,9 @@ public sealed class ImportReviewWorkflow(
             return ImportReviewResult.Refused("IMPORT_WARNING_NOT_FOUND");
         var updated = draft with
         {
-            Warnings = draft.Warnings.Select(w => w.Id == warningId ? w with { Resolved = true } : w).ToArray(),
+            Warnings = draft.Warnings
+                .Select(w => w.Id == warningId ? w with { Resolved = true, OverrideReason = reason } : w)
+                .ToArray(),
             Revision = draft.Revision + 1,
         };
         return await drafts.ReplaceAsync(updated, expectedRevision, ct)

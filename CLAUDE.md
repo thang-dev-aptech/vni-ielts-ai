@@ -11,50 +11,56 @@ Targets: End-user Web · Android · iOS · Admin CMS · central Backend API.
 
 ## Current phase
 
-**Phase 4 — implementation, foundation stage.** The **requirement freeze happened on 2026-08-20** (`F-1`…`F-5` in [`docs/requirements/confirmed.md`](docs/requirements/confirmed.md)), which lifted the no-application-code rule.
+**Phase 4 — implementation, MVP code-first stage (since 2026-09-07).** The requirement freeze happened on 2026-08-20 (`F-1`…`F-5` in [`docs/requirements/confirmed.md`](docs/requirements/confirmed.md)). On **2026-09-06 the product owner settled 22 further decisions, `P-01`…`P-22`**, recorded in [`docs/requirements/confirmed.md`](docs/requirements/confirmed.md) § MVP blueprint and derived in [`docs/product/mvp-blueprint.md`](docs/product/mvp-blueprint.md). They define the MVP:
 
-**The freeze was partial, and the distinction governs what may be built.** It settled *scope* — Speaking AI scoring, AI Chat, AI-assisted parsing, live token spending, and in-place CMS authoring are all in the first release. It did **not** settle the rules inside them: token amounts (`B-5a`/`B-5b`), chat scope (`B-6a`), parse accuracy (`B-7b`), Speaking depth (`H-3`) are all still open.
+> **Reading, Listening, Writing. Speaking is recorded and stored, not marked. Web first. Usage is recorded in a ledger and never blocks. Nothing is sold.**
 
-> **An unresolved policy becomes a configured seam with a null implementation — never an invented default** (`G-11`). Build the ledger without prices. Build the entitlement check without a charging rule. Bind the Writing criterion set from configuration rather than hard-coding the four `H-8` confirmed, and leave the Task 1 : Task 2 weighting `H-8b` never settled as a value a caller must supply.
+**Strategy: finish code and API first, the interface later.** The owner will describe the interface in a later stage; when that happens the remaining work must be wiring data into a layout. **No interface redesign happens in this stage.** The work queue is the slice list `S0`…`S9` in `_workspace/design-brief/claude-code-handoff.md` (a working note; the decisions it rests on live in `docs/`, and the slice table is mirrored in the blueprint § 10). One slice at a time: build, report, stop for approval.
 
-### ⚠ 2026-08-28 — the blockers no longer stop the work
+**Precedence between the two September decision sets.** `P-*` (product, 06/09) beats `D-1`…`D-12` (UX, 04/09, [`docs/VNI_IELTS_AI_COMPLETE_REDESIGN_PROMPT.md`](docs/VNI_IELTS_AI_COMPLETE_REDESIGN_PROMPT.md)) where they conflict; `D-10` (visual system) stands. `P-01`…`P-22` carry a leading zero and are not `P-1`…`P-5`, the platform rows. → [`docs/README.md` § Source precedence](docs/README.md)
 
-**`[QUYẾT ĐỊNH]` chủ sản phẩm, 28/08/2026:** *"tất cả mọi thứ trong project đều có thể update kể cả file claude … không cần biết là bị chặn gì những ưu tiên sẽ sử dụng tất cả các phương án tối ưu nhất"*
+**What 06/09 superseded:** `F-1` (Speaking AI-scored in the first release) → `P-02`; `F-4` (token spending live) → `P-14`. `F-2` (AI Chat in the first release) awaits re-confirmation: the blueprint lists AI Chat as deliberately out of the MVP, but no numbered decision says so. The entry test (`E-15`…`E-17`) is absent from the 22 decisions and its modal is removed in slice `S8`; the rows await re-confirmation rather than deletion.
 
-This paragraph replaces the one that stood here, which said *"do not build … until the blocker above it clears"*. That instruction is withdrawn.
-
-| Was blocking | Now |
-|---|---|
-| `B-2` PDPL cross-border | **Build the whole AI pipeline**, behind `Ai:AllowCrossBorderTransfer` (default `false`). A legal filing is not a code dependency. Deterministic marking never touches a provider, so it is not gated at all |
-| `B-8` UI/UX review | **Adjudicated.** Advisory input; Calibri 12 and the untokened yellow rejected on measurable grounds. `UI0`–`UI11` unblocked |
-| `H-1` Speaking shape | The schema already supports both readings — `speakingTiming.parts` carries per-part timing either way. Build against the shape, not against the answer |
-| Email provider, audio retention, token prices | **Configured seams with stated defaults**, owned by the business and changeable without a deploy |
-
-**The rule that did not change, and now carries more weight, not less** (`G-11`):
+**The rule that carries the most weight** (`G-11`):
 
 > **An unresolved policy becomes a configured seam with a null implementation — never an invented default.**
 
-"Build through the blocker" means the code exists, is wired, is tested and runs. "Configured seam" means the number a business owner would want to change lives in configuration where they can change it. A decision that is genuinely technical — a protocol, a schema, a queue — is simply made, recorded as `[QUYẾT ĐỊNH kỹ thuật]` with its reasoning and the cost of being wrong.
+"Build through the blocker" (owner, 28/08/2026: *"không cần biết là bị chặn gì những ưu tiên sẽ sử dụng tất cả các phương án tối ưu nhất"*) means the code exists, is wired, is tested and runs. "Configured seam" means the number a business owner would want to change lives in configuration where they can change it. A decision that is genuinely technical — a protocol, a schema, a queue — is simply made and recorded as `[QUYẾT ĐỊNH kỹ thuật]` with its reasoning and the cost of being wrong. → [`docs/requirements/assumptions-and-open-questions.md`](docs/requirements/assumptions-and-open-questions.md)
 
-→ the standing directive in [`docs/requirements/assumptions-and-open-questions.md`](docs/requirements/assumptions-and-open-questions.md), and the work queue in [`docs/development/infrastructure-gate.md`](docs/development/infrastructure-gate.md).
+### Still open, and what stands in for the answer
 
-A clickable HTML prototype lives **outside this repository** at `/Users/metacom/Documents/VNI/VNI IELTS AI Web design` — `client/` (21 learner screens) and `admin/` (14 CMS screens), written as plain HTML/CSS/JavaScript. Google Stitch was evaluated and dropped.
+| Open item | What the code does meanwhile |
+|---|---|
+| Speaking AI marking — no ASR provider selected | Out of the MVP by `P-02`. `NoTranscriptSource` and the null evaluator stay; recordings are stored and shown as "chưa chấm" |
+| Content VNI may publish — no VNI-owned exam exists yet | `ContentRightsPolicy` refuses `LearnerProduction` without `RightsProof` (`P-21`). `exam/Exam1` and `exam/Vol9Test1` are borrowed: internal use only, at most `InternalReview`. **This is the real launch-day critical path, and it is not a code task** |
+| PDPL cross-border (`B-2`) | The owner accepts it as a compliance risk for the MVP. `Ai:AllowCrossBorderTransfer` stays a configuration seam. The CTIA filing is due about early 11/2026 — the clock started with the first marked essay on 2026-09-03 |
+| Recording retention (`M-2`) | `ObjectStorage:SpeakingRecordingRetentionDays` is **90** and `Recordings:SweepEnabled` is **true** in `appsettings.json` (T17). Override per environment via secrets if the owner picks a different window |
+| Overall band of a three-skill mock | Not decided. The API returns no overall band for a mock until the owner picks one of the three options in the blueprint § 04 |
+| Token amounts beyond the 10-turn grant (`B-5a`, `B-5b`, `T-4`) | The ledger records; it does not price. No deduction, no blocking |
 
-> **A lot of this product is now built, and a lot of it is not.** The line moved on 2026-08-27 and this sentence moved with it, because the previous one — *"no domain logic, no endpoints, no screens"* — had become false while remaining the first thing anyone read. A canonical document that is wrong about the code is worse than no document: it sends a new reader, or a new agent, to build something that already exists.
->
-> **Built and running:** identity (email/password, Google SSO, device management, six-digit email verification), the exam engine (catalogue, sittings, autosave with per-question ordering and an offline journal, Full Test advance, expiry), deterministic Reading and Listening marking, the Writing and Speaking marking pipeline with a null evaluator, the learner web app, part of the CMS — and, since 2026-08-28, the whole production surface: SMTP sender, S3-compatible object storage, startup configuration gate, liveness/readiness, Docker images, encrypted backup with a drilled restore, a generated OpenAPI contract with a drift gate, and a real-browser suite.
->
-> **Not built:** speech-to-text (unselected), Articles and Documents beyond an empty state, AI Chat, token pricing, the native Capacitor recorder. The exam screens exist but predate a `B-8` ruling.
->
-> **Live since 2026-09-03 — the Writing AI marking path carries real learner work.** The previous sentence here said 2026-09-02, and it was wrong about the code: the switches were on, but `SectionMarkingRunner` read the answer sheet by question id while autosave stores every answer by response-slot id, so every essay was read as `NothingSubmitted`, no provider was called, and `section_markings` stayed empty while every job reported `completed`. The GPT adapter, the egress guard, the JSON-Schema validator, the router and the durable marking queue were all built by 2026-08-30 and refused every learner essay, because `AiProviderPolicy.ContractedProcessorHosts` was empty. `[QUYẾT ĐỊNH]` chủ sản phẩm 02/09/2026 — *"cho chạy thật luôn"* — put `api.vietapi.tech` on that list and set both configuration switches; the slot-id fix on 2026-09-03 is what made the first band land. **The Worker needs its own `appsettings.Development.json` Mongo section** (added the same day) — without it, it defaults to `localhost:27017/?replicaSet=rs0`, not the dev stack's `27018`, and dies 30 s after boot, which is the other reason no essay was ever marked on a dev machine. **Three things that decision did not settle and that someone still owns:** no data-processing agreement exists; the reseller's real backend is unverified and the 2026-08-27 evidence points at Claude, which the 2026-08-20 decision excludes; and the PDPL CTIA filing is due within 60 days of the first transfer — the clock started with the first marked essay. → [`docs/development/ai-provider-setup.md`](docs/development/ai-provider-setup.md), `B-2`, `M-28`
->
-> **Built but not switched on:** Speaking marking, which needs a transcript and therefore an ASR provider. The `Assessment` rubric that `H-13` recorded as missing is now configured in `secrets.develop.json`; `H-8a` (whose band descriptors) is still unanswered, so the configured `DescriptorSource` is a synthetic stand-in and not the official descriptors.
->
+### Inventory — verified against the code on 2026-09-07 (post T1–T14 working tree)
+
+> **A canonical document that is wrong about the code is worse than no document:** it sends the next reader, or the next agent, to build something that already exists or to trust something that does not. This inventory was rewritten again after slices `S1`…`S8` landed in code: several rows that previously said "not built" are now running.
+
+**Built and running:** identity (email/password, Google SSO, device management, six-digit email verification); the exam engine (catalogue, sittings, autosave with per-question ordering and an offline journal, Full Test advance, expiry, server-authoritative timer); deterministic Reading and Listening marking; the Writing AI marking path, live with real learner essays since 2026-09-03 through the `api.vietapi.tech` reseller (owner decision 02/09/2026, *"cho chạy thật luôn"* — a data-processing agreement still does not exist and the reseller's real backend is unverified, see `B-2`, `M-28`, [`docs/development/ai-provider-setup.md`](docs/development/ai-provider-setup.md)); combined Writing band via configured `Assessment:Writing:TaskWeights` 1:2 (`WritingTaskWeightPolicy`, `P-12`); Speaking recording upload **and** playback (`GET …/sessions/{id}/recordings/{questionId}/playback`); post-submit exam content on session results (`SessionResultsView.Content`, gated off `InProgress`); the append-only usage ledger (`UsageEntry` / `UsageRecorder` / `GET /api/v1/me/usage`, 10-turn grant, daily-login and referral earn seams — amounts beyond the grant stay at 0 under `G-11`); Documents and Articles as real collections with learner + admin APIs and CMS screens (hard-coded catalogue arrays removed); ZIP safety inspector + `POST /api/v1/admin/import/packages` (multipart `file`) with draft persistence, warning override + audit; exam review lifecycle `Draft → InReview → Approved → Published` / `Unpublished`, permissions `exam.submit` / `exam.review`, reviewer ≠ author when `AuthorId` is known; admin Roles matrix columns from `GET /api/v1/admin/roles` `permissions[]` (`PermissionKeys.All`, 34 keys); the learner web app (`apps/web`); the CMS on real APIs for users, roles, audit, exams, library, import; the whole production surface — SMTP sender, S3-compatible object storage, startup configuration gate, liveness/readiness, Docker images, encrypted backup with a drilled restore, a generated OpenAPI contract with a drift gate, a real-browser suite. The import *engine* — `ExamImportWorkflow`, `ImportReviewWorkflow`, `ImportBatchRunner`, `FabricatedAnswerKeyGuard`, `CambridgeAnswerKeyNormalizer`, `SafeSourceDocumentExtractor`, `ExamPackageReader` — runs from the command line and is reused by the HTTP door, never rewritten.
+
+**Built with a deliberate null implementation, by decision:** Speaking marking (`NoTranscriptSource`, `P-02`); API-hosted AI exam-source parsing (`UnconfiguredExamSourceParser` → `AI_PARSER_UNAVAILABLE` — HTTP import accepts packages that already contain a ready `exam.json` only; see [ADR-0017](docs/decisions/0017-exam-version-author-review-import-seams.md)). The `Assessment` rubric that `H-13` recorded as missing is configured; its `DescriptorSource` is VNI's own text, which `P-13` makes the intended state rather than a stand-in.
+
+**Not built, and still in the MVP-adjacent queue:** dictation result persistence (catalogue is fixture-backed; checks are ephemeral) · batch-import HTTP surface (checkpoint store exists; no `/admin/import/batches` yet) · threading `ExamVersion.AuthorId` through the import pipeline so reviewer ≠ author applies to uploaded drafts ([open question](docs/requirements/assumptions-and-open-questions.md); [ADR-0017](docs/decisions/0017-exam-version-author-review-import-seams.md)) · media library admin API (`media.*` keys and endpoints do not exist; CMS media screen stays on browser-only `previewStore` until they do).
+
+**S1 drift — removed this wave:** `bandCell` gated on `bandVerified`; `timingFor` no longer invents speaking defaults; `FullTestReadinessModal` reads catalogue timing; advisory label via provenance / `@vni/types.requiresAdvisoryLabel`; admin permission columns from the server rather than a hand-maintained key list; EntryTestModal and dead CMS sidebar entries gone.
+
+**Not built, and deliberately out of the MVP:** token pricing, payment, invoices, refunds (`P-14`, `P-17`) · AI Chat (`F-2` awaits re-confirmation) · speech-to-text and Speaking AI marking (`P-02`) · the native Capacitor recorder and any Capacitor install (`P-03`) · RAR, folder and loose-file import · learning paths and notifications.
+
+**Two dev-machine facts that cost days:** the Worker needs its own `appsettings.Development.json` Mongo section — without it, it defaults to `localhost:27017/?replicaSet=rs0`, not the dev stack's `27018`, and dies 30 s after boot. And `SectionMarkingRunner` reads the answer sheet by response-slot id, not question id — the 2026-09-03 fix that made the first Writing band land.
+
 > The rule that outlives the inventory: **an architecture document is not evidence of implementation, and an ADR is not evidence of a business requirement.** Check the code. → [`docs/README.md` § Documented is not implemented](docs/README.md)
 
 ## ▶ Start here: the task queue
 
-**[`docs/development/infrastructure-foundation-todolist.md`](docs/development/infrastructure-foundation-todolist.md) holds the current infrastructure work queue.** The independent re-audit on 2026-08-28 found that the earlier `I0`…`I7` closure did not prove current Foundation readiness: object-storage readiness can report a false positive, two idempotency gates are unreliable, production-smoke cannot boot with its checked-in configuration, and clean-checkout tooling is not portable.
+**For the current stage, the queue is the slice list `S0`…`S9` in `_workspace/design-brief/claude-code-handoff.md`** — summarised in [`docs/product/mvp-blueprint.md`](docs/product/mvp-blueprint.md) § 10. Each slice runs spec → plan → build → review, closes only with a test verified to go red when the fix is removed, and then **stops for approval**. The infrastructure queue below stays the reference for Foundation work and for understanding why existing infrastructure code was built.
+
+**[`docs/development/infrastructure-foundation-todolist.md`](docs/development/infrastructure-foundation-todolist.md) holds the infrastructure work queue.** The independent re-audit on 2026-08-28 found that the earlier `I0`…`I7` closure did not prove current Foundation readiness: object-storage readiness can report a false positive, two idempotency gates are unreliable, production-smoke cannot boot with its checked-in configuration, and clean-checkout tooling is not portable.
 
 [`docs/development/infrastructure-gate.md`](docs/development/infrastructure-gate.md), its [`infrastructure-completion-report.md`](docs/development/infrastructure-completion-report.md), and [`docs/development/next-actions.md`](docs/development/next-actions.md) remain historical records. Read the new Foundation checklist first; use the older files only to understand why existing code was built.
 
@@ -103,7 +109,7 @@ Four groups. Detail lives in [`docs/product/vision-and-scope.md`](docs/product/v
 | Group | Modules |
 |---|---|
 | **Core Learning** | 4 Skills Practice (Reading · Listening · Writing · Speaking) · Dictation · Documents · Articles |
-| **AI** | AI Scoring · AI Chat |
+| **AI** | AI Scoring · AI Chat — AI Chat is **not in the MVP** (`F-2` awaits re-confirmation) |
 | **Platform** | Authentication (multi-provider SSO) · Token · Profile |
 | **Admin** | CMS — users, roles, permissions, articles, documents, exams, bulk import |
 
@@ -137,7 +143,7 @@ These are invariants, not preferences. Each one exists because violating it caus
 
 5. **No AI provider type may appear in the domain layer.** Domain and Application reference a port (`IWritingEvaluator`, `ISpeechRecognizer`, …). Vendor SDKs exist only in Infrastructure adapters. → [ADR-0005](docs/decisions/0005-ai-provider-abstraction.md)
 
-6. **AI credentials never enter this repository, and no real learner data goes through the test proxy.** Providers were selected 2026-08-20: **GPT (OpenAI) and Gemini (Google)**; the **Claude API remains excluded**. Testing routes through a third-party `baseURL` reseller — a second data processor — so it may carry **synthetic data only**. Production uses the official APIs and is gated on `B-2` (PDPL cross-border position). Keys live in environment configuration; a PreToolUse hook blocks writes to `.env*`. Speech-to-text is **still unselected**. → [`docs/ai/provider-comparison.md`](docs/ai/provider-comparison.md)
+6. **AI credentials never enter this repository.** Providers were selected 2026-08-20: **GPT (OpenAI) and Gemini (Google)**; the **Claude API remains excluded**. Testing routes through a third-party `baseURL` reseller — a second data processor. The rule used to add *"no real learner data goes through that reseller"*; the owner overrode it on 02/09/2026 (*"cho chạy thật luôn"*), and real essays have gone through `api.vietapi.tech` since 2026-09-03. That is recorded as an **accepted compliance risk**, not a resolved one (`B-2`, `M-28`) — do not describe it as compliant. Keys live in environment configuration; a PreToolUse hook blocks writes to `.env*`. Speech-to-text is **still unselected**. → [`docs/ai/provider-comparison.md`](docs/ai/provider-comparison.md)
 
 7. **Domain entities carry no persistence attributes.** No `[BsonId]`, no EF annotations, no driver types on domain types. This single boundary is what makes the MongoDB→PostgreSQL migration tractable. → [ADR-0004](docs/decisions/0004-persistence-abstraction-boundary.md)
 
@@ -161,10 +167,10 @@ Full validation, including recommendations and open technology decisions: [`docs
 | Database, Phase 1 | MongoDB | CONFIRMED | Owner brief 2026-08-20 |
 | .NET version | 10 (LTS → 2028-11-14) | EXISTING | [ADR-0001](docs/decisions/0001-backend-dotnet10-aspnetcore.md) accepted |
 | Database target | PostgreSQL | EXISTING | [ADR-0003](docs/decisions/0003-database-mongodb-first-postgresql-target.md) accepted |
-| Clients | Capacitor 8 + React + TypeScript | EXISTING | [ADR-0002](docs/decisions/0002-client-capacitor-react.md) accepted — **no React written yet** |
+| Clients | Capacitor 8 + React + TypeScript | EXISTING | [ADR-0002](docs/decisions/0002-client-capacitor-react.md) accepted — the React web app is built (`apps/web`, `apps/admin`); **Capacitor is not installed**, web ships first (`P-03`) |
 | Speaking capture | Native Capacitor plugin, **not** WebView `MediaRecorder` | EXISTING | [ADR-0006](docs/decisions/0006-speaking-audio-capture-native-plugin.md) accepted |
 | LLM evaluation | **GPT (OpenAI) + Gemini (Google).** Claude API excluded | CONFIRMED | Owner decision 2026-08-20 — [`docs/ai/provider-comparison.md`](docs/ai/provider-comparison.md) |
-| Speech-to-text | **Undecided** — and only needed if `M-26` keeps Speaking | UNCONFIRMED | Requires word-level timings |
+| Speech-to-text | **Undecided** — Speaking marking is out of the MVP (`P-02`), so nothing in the queue waits on it | UNCONFIRMED | Requires word-level timings |
 
 ---
 

@@ -174,11 +174,19 @@ public static class CriterionMarking
         {
             var c = byKey[key];
 
+            // Models commonly wrap evidence in literal "…" or '…'. Strip
+            // those before storing — a wrapping quote is a formatting artifact,
+            // not part of the learner's text, and leaving it in defeats the
+            // grounding check and shows ugly punctuation in the results screen.
+            var cleanEvidence = c.Evidence
+                .Select(StripQuoteWrapping)
+                .ToList();
+
             assessments.Add(CriterionAssessment.Create(
-                key, BandScore.Create(c.Band), c.Feedback, c.Evidence));
+                key, BandScore.Create(c.Band), c.Feedback, cleanEvidence));
 
             ungrounded.AddRange(
-                c.Evidence.Where(quote => !IsGroundedIn(normalisedSubmission, quote)));
+                cleanEvidence.Where(quote => !IsGroundedIn(normalisedSubmission, quote)));
         }
 
         var recomputed = Aggregate([.. assessments.Select(a => a.Band)]);
@@ -255,6 +263,42 @@ public static class CriterionMarking
     /// paraphrase pass as a quotation, and the entire value of this check is
     /// that it distinguishes those two things.
     /// </summary>
+    /// <summary>
+    /// Removes symmetrical wrapping quotation marks from a model-returned
+    /// evidence string.
+    ///
+    /// Models frequently wrap evidence in literal <c>"…"</c> or curly
+    /// <c>"…"</c>. These are formatting artifacts — the learner's essay does
+    /// not contain them, so <see cref="IsGroundedIn"/> would false-flag every
+    /// such quote as fabricated. Stripping is safe because:
+    ///
+    /// <list type="bullet">
+    /// <item>Only matched pairs are removed — <c>"text"</c> becomes
+    /// <c>text</c>, but <c>"text</c> (unmatched) is left alone.</item>
+    /// <item>Evidence that genuinely starts and ends with a quote mark
+    /// (because the essay does) is vanishingly rare, and if it occurs the
+    /// inner text is still grounded — the check passes.</item>
+    /// </list>
+    /// </summary>
+    internal static string StripQuoteWrapping(string quote)
+    {
+        var trimmed = quote.Trim();
+        if (trimmed.Length < 2) return trimmed;
+
+        var first = trimmed[0];
+        var last = trimmed[^1];
+
+        if ((first == '"'    && last == '"')    ||
+            (first == '\u201c' && last == '\u201d') ||
+            (first == '\''   && last == '\'')  ||
+            (first == '\u2018' && last == '\u2019'))
+        {
+            return trimmed[1..^1].Trim();
+        }
+
+        return trimmed;
+    }
+
     private static bool IsGroundedIn(string normalisedSubmission, string quote)
     {
         var needle = Normalise(quote);

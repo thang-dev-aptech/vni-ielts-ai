@@ -25,8 +25,9 @@
   --muted: #6b6a71;
 
   /* ── Surfaces ────────────────────────────────────────────────────────
-   * Depth comes from these three layers plus a hairline border.
-   * There are no shadow tokens, and that is deliberate — see below.
+   * Depth comes from these three layers plus a hairline border. Static
+   * surfaces carry no shadow; the D-10 shadow tokens below are for
+   * pressable things only.
    */
   --page: #f6f5f3;
   --card: #ffffff;
@@ -59,12 +60,23 @@
    * One hard shadow `0 4px 0 <darker-hue>` on filled buttons and pressable cards
    * (read as physical thickness; Duolingo adaptation 2026-09-04).
    * Blurred elevation shadow ONLY on dialog / drawer / popover.
+   *
+   * The press shadows are scoped per variant because each one hard-codes its
+   * own darker hue. A single shared `--shadow-press` put a green edge under
+   * the red danger button — the shadow must be the same tone as the surface
+   * it sits under, only darker.
    */
-  --shadow-press: 0 4px 0 var(--primary-dark);
-  --shadow-press-hover: 0 2px 0 var(--primary-dark);
+  --shadow-press-primary: 0 4px 0 var(--primary-dark);
+  --shadow-press-primary-hover: 0 2px 0 var(--primary-dark);
+  --shadow-press-danger: 0 4px 0 var(--bad-dark);
   --shadow-card: 0 4px 0 var(--line);
   --shadow-card-hover: 0 2px 0 var(--line);
   --shadow-elevation: 0 12px 32px rgba(23, 22, 26, 0.16);
+
+  /* Deprecated aliases. `apps/web/src/styles/dashboard.css` still reads
+   * --shadow-press; drop these once that call site uses the scoped name. */
+  --shadow-press: var(--shadow-press-primary);
+  --shadow-press-hover: var(--shadow-press-primary-hover);
 
   /* ── Status ──────────────────────────────────────────────────────────
    * --warn is INFORMATIONAL (clock at level 2–3, word count short).
@@ -77,6 +89,9 @@
   --ok-soft: #e4f4e9;
   --bad: #b3261e;
   --bad-soft: #fce9e7;
+  /* Shadow use only — the darker tone under a pressed danger button. Never a
+   * text or surface colour; it has no measured contrast pair. */
+  --bad-dark: #8c1d17;
 
   /* ── Brand — surfaces only, never text ───────────────────────────────
    * Orange reaches 2.39 and green 2.79 on light; the threshold is 4.5.

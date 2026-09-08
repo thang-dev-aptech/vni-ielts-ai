@@ -209,6 +209,19 @@ export interface SectionResultView {
   rawScore: number;
   maxScore: number;
   band: number | null;
+  /**
+   * `P-11`: whether `band` may be shown to the learner at all. True only when
+   * the exam version's band table was equated; every other status, and its
+   * absence, reads as not-equated.
+   *
+   * <b>A gate read alongside `band`, not a second source for the number.</b>
+   * `band` still carries whatever the deterministic scorer computed,
+   * unconditionally — a screen that wants the product rule has to check both
+   * fields, because the number and the permission to show it are two
+   * different decisions. Reading and Listening only; Writing and Speaking have
+   * no `band` here at all (`markings` instead).
+   */
+  bandVerified: boolean;
   questions: QuestionResultView[];
 }
 
@@ -301,6 +314,55 @@ export interface SessionResultsView {
   explanationStatuses: QuestionExplanationStatusView[];
   /** Null until all four modules are marked. The screen draws that as `—`. */
   overallBand: number | null;
+  /**
+   * The combined Writing band — Task 1 and Task 2 on the ratio in force
+   * (`P-12`), rounded server-side. Null while fewer than two task markings
+   * exist or no ratio is resolvable; never a placeholder number. Additive to
+   * `markings`, which still carries the two task bands side by side — this is
+   * never computed client-side from them. Labelled "AI · tham khảo" (`P-13`).
+   */
+  writingBand: number | null;
+  /**
+   * Why `writingBand` is null, when Writing was sat and the band is absent:
+   * `awaiting-tasks` while fewer than two task markings exist,
+   * `weighting-not-configured` when both exist and no ratio is configured.
+   * Null when the band is present or Writing was not part of this sitting.
+   */
+  writingBandReason: 'awaiting-tasks' | 'weighting-not-configured' | null;
+  /**
+   * The paper as it was sat (`P-06`…`P-09`) — passage, prompt, cue card —
+   * for every module this sitting actually attempted. `QuestionResultView`
+   * alone carries no passage or prompt to show alongside a review.
+   *
+   * <b>Empty while the sitting is still in progress, with no exception.</b> A
+   * Full Test candidate still on Listening must not be handed Reading's
+   * passage early just because Reading's own section already closed — the
+   * server gates on the whole sitting's status, not each section's.
+   *
+   * <b>The exact `PartView` shape the pre-submit sitting renders.</b> No
+   * transcript (blocked by the open ASR decision, `P-02`) and no answer key —
+   * neither lifts here either.
+   */
+  content: SectionContentView[];
+}
+
+/**
+ * One section's content, as the learner actually sat it — see
+ * `SessionResultsView.content`.
+ */
+export interface SectionContentView {
+  module: ExamModule;
+  parts: PartView[];
+  /**
+   * Writing only: the learner's own submitted text for each essay question,
+   * keyed by question id. Empty for every other module.
+   *
+   * <b>Not duplicated onto `QuestionResultView`.</b> Reading and Listening
+   * already carry the learner's answer on `QuestionResultView.submitted`;
+   * Writing has no `QuestionResultView` at all because it is marked rather
+   * than scored, so this is the one place its essay text lives.
+   */
+  submissions: Record<string, string | null>;
 }
 
 export interface MarkingStatusView {
@@ -541,6 +603,28 @@ export const submitSession = (accessToken: string, sessionId: string, idempotenc
 
 export const getResults = (accessToken: string, sessionId: string) =>
   request<SessionResultsView>(`/api/v1/sessions/${sessionId}/results`, { accessToken });
+
+/** A presigned URL to play back one Speaking recording, and when it expires. */
+export interface RecordingPlaybackView {
+  url: string;
+  expiresAt: string;
+}
+
+/**
+ * On demand, not prefetched with the results payload — a sitting can carry
+ * several recordings and most reviews never open one. 404s when nothing has
+ * been linked yet, or when the recording belongs to someone else's session;
+ * the caller renders that as "not available" rather than a hard failure.
+ */
+export const getRecordingPlaybackUrl = (
+  accessToken: string,
+  sessionId: string,
+  questionId: string,
+) =>
+  request<RecordingPlaybackView>(
+    `/api/v1/sessions/${sessionId}/recordings/${questionId}/playback`,
+    { accessToken },
+  );
 
 export const requestExplanation = (
   accessToken: string,

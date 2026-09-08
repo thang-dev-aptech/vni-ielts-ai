@@ -1,0 +1,34 @@
+{
+  "shape": "package",
+  "pkg": "@vni/ui",
+  "globalName": "VniUi",
+  "tokensPkg": "@vni/design-system",
+  "tokensGlob": "src/*.css",
+  "guidelinesGlob": [
+    "../../../../../docs/ux/DESIGN.md"
+  ],
+  "readmeHeader": ".design-sync/conventions.md",
+  "extraFonts": [
+    "../../../../../.design-sync/fonts.css"
+  ],
+  "componentSrcMap": {
+    "Button": "src/Button.tsx",
+    "Field": "src/Field.tsx",
+    "Alert": "src/Alert.tsx",
+    "Card": "src/Card.tsx",
+    "PageHeader": "src/Card.tsx",
+    "Spinner": "src/States.tsx",
+    "EmptyState": "src/States.tsx",
+    "ErrorState": "src/States.tsx"
+  },
+  "dtsPropsFor": {
+    "Button": "/** Only one `primary` per viewport — DESIGN.md states it as a rule, not a preference. Secondary actions are `secondary` (outlined) or `quiet`. `danger` is reserved for something that has broken or is about to be destroyed, never for ordinary emphasis. */\nvariant?: 'primary' | 'secondary' | 'quiet' | 'danger';\n/** Renders `busyLabel` and disables the button. Separate from `disabled` on purpose: a busy button and an unavailable button mean different things to someone reading the screen. */\nbusy?: boolean;\n/** Label shown while `busy` is true. */\nbusyLabel?: string;\nfullWidth?: boolean;\ndisabled?: boolean;\ntype?: 'button' | 'submit' | 'reset';\nonClick?: React.MouseEventHandler<HTMLButtonElement>;\n'aria-label'?: string;\nclassName?: string;\nstyle?: React.CSSProperties;\nchildren: React.ReactNode;",
+    "Field": "/** A real `<label>` bound by id — never a placeholder standing in for one. */\nlabel: string;\n/** Shown under the field, wired through `aria-describedby`, and marks the input `aria-invalid`. */\nerror?: string;\n/** Helper text under the field, also announced via `aria-describedby`. */\nhint?: string;\nname?: string;\ntype?: string;\nvalue?: string;\ndefaultValue?: string;\nplaceholder?: string;\nrequired?: boolean;\ndisabled?: boolean;\nautoComplete?: string;\nonChange?: React.ChangeEventHandler<HTMLInputElement>;\nclassName?: string;\nstyle?: React.CSSProperties;",
+    "Alert": "/** `error` means something has broken. It is NOT for \"time is running out\" or \"you have not written enough yet\" — DESIGN.md law L1 reserves red for failure. Use `warning` for informational urgency. `error` and `warning` announce assertively via role=\"alert\"; `info` and `success` use role=\"status\". */\ntone: 'info' | 'success' | 'warning' | 'error';\n/** Optional bold first line above the body. */\ntitle?: string;\nchildren: React.ReactNode;",
+    "Card": "/** Renders the recessed layer (`--sunk` background, `--line-2` border, `--r-md` radius) instead of the raised one. Depth in this system comes from three background layers plus a hairline border — there is no shadow token and none should be added. */\nsunk?: boolean;\nstyle?: React.CSSProperties;\nchildren: React.ReactNode;",
+    "PageHeader": "/** Rendered as the page `<h1>`. */\ntitle: string;\n/** Muted line under the title. */\nsubtitle?: string;",
+    "Spinner": "/** Required. Announced via role=\"status\" / aria-live=\"polite\", so it must say what is loading rather than just \"Loading\". */\nlabel: string;",
+    "EmptyState": "title: string;\n/** Say why it is empty. An empty state that offers a dead button is worse than one that admits the feature is not built. */\ndescription: string;\n/** Optional call to action — typically a `<Button>`. */\naction?: React.ReactNode;",
+    "ErrorState": "title: string;\ndescription: string;\n/** Optional recovery action — typically a `<Button>`. Announced via role=\"alert\". */\naction?: React.ReactNode;"
+  }
+}

@@ -1,14 +1,14 @@
 /**
- * The document catalogue.
+ * The document catalogue — shape and labels.
  *
- * <b>Placeholder content, and the shape is the deliverable.</b> There is no
- * documents endpoint — `M-23` describes the module in one sentence and no CMS
- * screen exists to publish anything — so this file stands in for the response
- * the API will eventually return. Field names match a document record so
- * replacing the array with a fetch is a change to one import.
+ * <b>Served by `GET /api/v1/library/documents` as of `S5`.</b> This file used
+ * to carry the catalogue itself (`DOCUMENTS`, now deleted) as a stand-in for
+ * an endpoint that did not exist. It now carries only what every surface over
+ * that endpoint still needs in common: the record shape, and the filter/label
+ * tables the page's chips are built from. `documentsApi.ts` owns the fetch.
  *
- * <b>`fileUrl` is optional on purpose.</b> Nothing has been uploaded, so no
- * entry has one, and the page renders those as *"Sắp có"* rather than as a
+ * <b>`fileUrl` is optional on purpose.</b> A document the CMS has not attached
+ * a file to has none, and the page renders that as *"Sắp có"* rather than as a
  * download that 404s.
  *
  * <b>No invented popularity scores.</b> "Tài liệu phổ biến" in the sidebar is
@@ -104,20 +104,6 @@ export const SKILL_LABELS: Record<DocumentSkill, string> = {
   grammar: 'Ngữ pháp',
   general: 'Chung',
 };
-
-/**
- * <b>Empty, deliberately, since 2026-08-27.</b>
- *
- * This array stood in for a documents endpoint that does not exist. It is now
- * empty by the owner's direction: only content the owner supplies ships, added
- * as it arrives. Nothing was ever uploaded behind these entries — every one of
- * them already rendered as *"Sắp có"* — so removing them costs no download and
- * removes a shelf of titles nobody could open.
- *
- * The type stays for the same reason it always did: it is the shape of the
- * response, so the swap to a fetch touches one import.
- */
-export const DOCUMENTS: LibraryDocument[] = [];
 
 export function skillCounts(
   docs: LibraryDocument[],

@@ -59,6 +59,76 @@ public sealed class RubricOptions
     /// descriptorSource may be taken from the artifact at startup.
     /// </summary>
     public string? ArtifactPath { get; set; }
+
+    /// <summary>
+    /// The deployment-wide Task 1 : Task 2 ratio — <c>Assessment:Writing:TaskWeights</c>.
+    ///
+    /// <b>Read for Writing only.</b> Speaking is one marking and has nothing
+    /// to combine, so the same key under <c>Assessment:Speaking</c> is
+    /// ignored. An exam version that carries its own ratio wins over this
+    /// one; when this is unset and the version carries none, Writing has no
+    /// combined band. The value in `appsettings.json` is `P-12` (owner
+    /// decision 06/09/2026): 1 : 2. → `G-11`
+    /// </summary>
+    public WritingTaskWeightOptions? TaskWeights { get; set; }
+}
+
+/// <summary>
+/// Both halves of the ratio, or neither.
+///
+/// A half-stated ratio is refused, in the same way the package format refuses
+/// <c>criterionWeights.writing</c> with one side missing — it used to fail at
+/// marking time in front of a learner rather than at startup in front of the
+/// person who can fix it.
+/// </summary>
+public sealed class WritingTaskWeightOptions
+{
+    public decimal? Task1 { get; set; }
+    public decimal? Task2 { get; set; }
+
+    /// <summary>Nothing configured: the null implementation, not an error.</summary>
+    public bool IsUnset => Task1 is null && Task2 is null;
+
+    /// <summary>
+    /// What is wrong with this pair, or null when it is usable or unset.
+    /// One validation for the startup gate and the DI factory, so they cannot
+    /// disagree about what "positive" means.
+    /// </summary>
+    public string? Problem()
+    {
+        if (IsUnset) return null;
+
+        if (Task1 is null || Task2 is null)
+            return "Assessment:Writing:TaskWeights declares one half of the ratio. Declare both "
+                + "Task1 and Task2, or neither.";
+
+        if (Task1 <= 0m || Task2 <= 0m)
+            return $"Assessment:Writing:TaskWeights is {Task1}:{Task2}. Both halves must be "
+                + "strictly positive; a zero or negative weight cannot combine two bands.";
+
+        return null;
+    }
+
+    /// <summary>
+    /// The policy Application runs on: the configured pair, or the
+    /// unconfigured policy when nothing is set. Throws on a pair
+    /// <see cref="Problem"/> rejects — the startup gate reports it first with
+    /// every other fault; this is the backstop for a host that skipped the gate.
+    /// </summary>
+    public static WritingTaskWeightPolicy ToPolicy(WritingTaskWeightOptions? options)
+    {
+        if (options is null || options.IsUnset) return WritingTaskWeightPolicy.Unconfigured;
+
+        if (options.Problem() is { } problem) throw new InvalidOperationException(problem);
+
+        return new WritingTaskWeightPolicy(new WritingTaskWeights(options.Task1!.Value, options.Task2!.Value));
+    }
+
+    public override string ToString() =>
+        IsUnset
+            ? "not set"
+            : $"{Task1?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"}"
+                + $":{Task2?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"}";
 }
 
 /// <summary>

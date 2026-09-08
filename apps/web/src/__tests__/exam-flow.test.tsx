@@ -158,6 +158,10 @@ const results = {
       rawScore: 1,
       maxScore: 2,
       band: 4.5,
+      // `P-11`: Exam 1's own table is provisional, so the default fixture
+      // stays unverified — the realistic case, and the one that used to be
+      // the *only* case this screen could express.
+      bandVerified: false,
       questions: [
         { questionId: 'r-1', submitted: 'cartography', isCorrect: true },
         { questionId: 'r-2', submitted: null, isCorrect: false },
@@ -168,6 +172,9 @@ const results = {
   markingStatuses: [] as unknown[],
   explanationStatuses: [] as unknown[],
   overallBand: null,
+  writingBand: null,
+  writingBandReason: null,
+  content: [] as unknown[],
 };
 
 let saves = 0;
@@ -208,6 +215,14 @@ async function confirmSubmit() {
  */
 let resultsPayload: unknown = results;
 
+/**
+ * What `GET .../recordings/{questionId}/playback` answers with — a
+ * presigned URL and its own expiry (`S2`). `null` makes the route answer 404,
+ * the same "not linked yet / not yours" refusal the server sends.
+ */
+let playbackPayload: { url: string; expiresAt: string } | null = null;
+let playbackCalls: string[] = [];
+
 function mockApi() {
   vi.stubGlobal(
     'fetch',
@@ -226,6 +241,12 @@ function mockApi() {
 
       if (url.endsWith('/api/v1/sessions') && method === 'POST') return json(openSession(), 201);
       if (url.endsWith('/results')) return json(resultsPayload);
+      if (url.includes('/recordings/') && url.endsWith('/playback')) {
+        playbackCalls.push(url);
+        return playbackPayload === null
+          ? json({ code: 'RECORDING_UPLOAD_NOT_FOUND' }, 404)
+          : json(playbackPayload);
+      }
       if (url.endsWith('/questions/r-1/explanation') && method === 'POST') {
         explanationCalls += 1;
         return json({
@@ -284,6 +305,8 @@ beforeEach(() => {
   submitKeys = [];
   explanationCalls = 0;
   resultsPayload = results;
+  playbackPayload = null;
+  playbackCalls = [];
   mockApi();
 });
 
@@ -502,30 +525,82 @@ it('sends old result bookmarks to the practice results page', async () => {
 });
 
 /**
- * The band the server computed is not the band the learner is shown.
+ * The band the server computed is not always the band the learner is shown.
  *
- * <b>`27/08/2026`, `[QUYẾT ĐỊNH]` chủ sản phẩm: no Reading or Listening band
- * reaches a learner until `H-4` is adjudicated.</b> The payload still carries
- * one — the server needs it eventually, and the overall band will be built from
- * it — but the only conversion table this product owns declares itself
- * `"provisional": true`, and Exam 1's sits half a band below the commonly
- * published conversion at raw 19 and raw 23.
- *
- * This test asserts the *absence* of a number the API is actively sending,
- * which is the kind of thing a well-meaning later edit undoes in one line while
- * "wiring up the band we already have".
+ * <b>`P-11`, 06/09/2026, replaces the blanket suppression this test used to
+ * pin.</b> Until then no Reading or Listening band ever reached a learner —
+ * `H-4` had no answer, so `bandCell` ignored `section.band` unconditionally.
+ * `H-4` now has one: the exam version says whether its band table was
+ * equated, and the server sends that verdict as `bandVerified` alongside the
+ * band it always computed. Both halves of the new rule are pinned here, not
+ * just the one the old test kept: a verified band is shown, and an unverified
+ * one still draws the same dash it always did — this is the case a
+ * well-meaning "wire up the band we already have" edit would otherwise
+ * silently flip in the wrong direction if it dropped the `bandVerified`
+ * check rather than the whole suppression.
  */
-it('never shows the Reading band, however confidently the server sends one', async () => {
+it('withholds Reading and Listening bands until their band tables are verified', async () => {
+  resultsPayload = {
+    ...results,
+    sections: [
+      results.sections[0],
+      {
+        module: 'listening',
+        rawScore: 2,
+        maxScore: 3,
+        band: 5.0,
+        // Same demo-critical case as Reading: raw marks exist, but the borrowed
+        // conversion table is not equated for learner-facing band display.
+        bandVerified: false,
+        questions: [
+          { questionId: 'l-1', submitted: 'surfing', isCorrect: true },
+          { questionId: 'l-2', submitted: 'breakfast', isCorrect: true },
+          { questionId: 'l-3', submitted: null, isCorrect: false },
+        ],
+      },
+    ],
+  };
+
+  open('/practice/results/sit-1');
+
+  const readingRow = (await screen.findByText('Reading')).closest('li')!;
+  const listeningRow = screen.getByText('Listening').closest('li')!;
+  const reason = 'Band đang ẩn vì bảng quy đổi của đề này chưa được xác minh.';
+
+  // `results` in this file carries `band: 4.5, bandVerified: false` for
+  // Reading. Unverified: the number must not appear, and the row says why.
+  expect(within(readingRow).queryByText('4.5')).toBeNull();
+  expect(within(readingRow).queryByText('4')).toBeNull();
+  expect(within(readingRow).getByText(reason)).toBeInTheDocument();
+
+  // Listening has the same product rule: raw/correct counts are shown, but an
+  // unverified raw-to-band table must not leak a numeric band.
+  expect(within(listeningRow).queryByText('5.0')).toBeNull();
+  expect(within(listeningRow).queryByText('5')).toBeNull();
+  expect(within(listeningRow).getByText(reason)).toBeInTheDocument();
+
+  // The correct count is what stands in its place — the fact the key supports.
+  expect(within(readingRow).getByText('Đúng 1/2 câu')).toBeInTheDocument();
+  expect(within(listeningRow).getByText('Đúng 2/3 câu')).toBeInTheDocument();
+});
+
+it('shows the Reading band once the exam version marks its table verified', async () => {
+  resultsPayload = {
+    ...results,
+    sections: [{ ...results.sections[0], bandVerified: true }],
+  };
+
   open('/practice/results/sit-1');
 
   const row = (await screen.findByText('Reading')).closest('li')!;
 
-  // `results` in this file carries `band: 4.5` for Reading. It must not appear.
-  expect(within(row).queryByText('4.5')).toBeNull();
-  expect(within(row).queryByText('4')).toBeNull();
-
-  // The correct count is what stands in its place — the fact the key supports.
-  expect(within(row).getByText('Đúng 1/2 câu')).toBeInTheDocument();
+  expect(within(row).getByText('4.5')).toBeInTheDocument();
+  // Verified: the band table reason has nothing to explain any more.
+  expect(
+    within(row).queryByText('Band đang ẩn vì bảng quy đổi của đề này chưa được xác minh.'),
+  ).toBeNull();
+  // Reading is still answer-key, never AI — the tag must not flip.
+  expect(within(row).getByText('Chấm theo đáp án')).toBeInTheDocument();
 });
 
 it('submits once however many times the button is pressed', async () => {
@@ -1041,6 +1116,284 @@ it('shows both Writing task bands rather than an average of them', async () => {
   expect(screen.getAllByText('Bộ tiêu chí: ielts-writing-2023.1')).toHaveLength(2);
   expect(screen.getByText('Covers the task.')).toBeInTheDocument();
   expect(screen.getByText('a steady rise')).toBeInTheDocument();
+});
+
+/**
+ * `P-12`: the combined Writing band is additive to the two task bands, and
+ * carries its own reason when it is absent — never a second average.
+ */
+it('shows the combined Writing band beside the two task bands, once it exists', async () => {
+  resultsPayload = {
+    ...results,
+    mode: 'full',
+    sections: [],
+    markings: [
+      {
+        module: 'writing',
+        taskNumber: 1,
+        rubricVersion: 'ielts-writing-2023.1',
+        band: 6.5,
+        criteria: [],
+        flags: [],
+      },
+      {
+        module: 'writing',
+        taskNumber: 2,
+        rubricVersion: 'ielts-writing-2023.1',
+        band: 7,
+        criteria: [],
+        flags: [],
+      },
+    ],
+    markingStatuses: [],
+    explanationStatuses: [],
+    overallBand: null,
+    writingBand: 8.5,
+    writingBandReason: null,
+  };
+
+  open('/practice/results/sit-1');
+
+  await userEvent.click(await screen.findByRole('button', { name: /Xem nhận xét · Writing/ }));
+
+  expect(screen.getByText('Band Writing tổng')).toBeInTheDocument();
+  expect(screen.getByText('8.5')).toBeInTheDocument();
+  // The two task bands are still there, unreplaced.
+  expect(screen.getByText('6.5 · 7.0')).toBeInTheDocument();
+});
+
+it.each([
+  [
+    'awaiting-tasks' as const,
+    'Cần đủ hai bài Task 1 và Task 2 được chấm mới tính được band Writing tổng.',
+  ],
+  [
+    'weighting-not-configured' as const,
+    'Chưa cấu hình tỉ lệ Task 1 : Task 2 nên chưa tính được band Writing tổng.',
+  ],
+])('explains a missing combined Writing band: %s', async (reason, message) => {
+  resultsPayload = {
+    ...results,
+    mode: 'full',
+    sections: [],
+    markings: [
+      {
+        module: 'writing',
+        taskNumber: 1,
+        rubricVersion: 'ielts-writing-2023.1',
+        band: 6.5,
+        criteria: [],
+        flags: [],
+      },
+    ],
+    markingStatuses: [],
+    explanationStatuses: [],
+    overallBand: null,
+    writingBand: null,
+    writingBandReason: reason,
+  };
+
+  open('/practice/results/sit-1');
+
+  await userEvent.click(await screen.findByRole('button', { name: /Xem nhận xét · Writing/ }));
+
+  const combinedCard = screen.getByText('Band Writing tổng').closest('article')!;
+  expect(within(combinedCard).getByText('—')).toBeInTheDocument();
+  expect(within(combinedCard).getByText(message)).toBeInTheDocument();
+});
+
+/**
+ * The advisory tag comes from where a row's number came from — `section`
+ * (the answer key) or `markings` (an AI evaluation) — never from comparing
+ * `moduleId` against the two skills this product happens to AI-mark today.
+ *
+ * <b>This is the regression the old `moduleId === 'writing' ||
+ * moduleId === 'speaking'` check could not survive.</b> Reading and
+ * Listening never carry an AI marking in the real product — but if either
+ * one ever did, the inline module check would mislabel it as an answer-key
+ * band while the row itself displays a number the AI produced, which is
+ * exactly the mix-up product law L4 exists to prevent. `markings` for
+ * `listening` here stands in for that future module without needing one to
+ * actually exist: it proves the tag is read off the data's own shape.
+ */
+it('tags a band as AI-advisory from which list it came on, not from the module name', async () => {
+  resultsPayload = {
+    ...results,
+    mode: 'full',
+    sections: [],
+    markings: [
+      {
+        module: 'listening',
+        taskNumber: null,
+        rubricVersion: 'hypothetical-listening-ai-2099.1',
+        band: 7,
+        criteria: [],
+        flags: [],
+      },
+    ],
+    markingStatuses: [],
+    explanationStatuses: [],
+    overallBand: null,
+    writingBand: null,
+    writingBandReason: null,
+  };
+
+  open('/practice/results/sit-1');
+
+  const row = (await screen.findByText('Listening')).closest('li')!;
+  expect(within(row).getByText('AI chấm · tham khảo')).toBeInTheDocument();
+  expect(within(row).queryByText('Chấm theo đáp án')).toBeNull();
+});
+
+/**
+ * `S2` — the paper as it was sat, post-submit: passage/prompt context
+ * `QuestionResultView` alone cannot carry, and the essay text Writing has no
+ * `QuestionResultView` to hold at all.
+ */
+it('shows the passage and the learner\'s own essay text, post-submit', async () => {
+  resultsPayload = {
+    ...results,
+    mode: 'full',
+    sections: [{ ...results.sections[0] }],
+    markings: [],
+    markingStatuses: [],
+    explanationStatuses: [],
+    overallBand: null,
+    writingBand: null,
+    writingBandReason: null,
+    content: [
+      {
+        module: 'reading',
+        parts: [
+          {
+            order: 1,
+            kind: 'passage',
+            title: 'The History of Cartography',
+            body: 'Bản đồ cổ nhất được biết đến có niên đại khoảng 25.000 năm.',
+            audioKey: null,
+            imageKey: null,
+            taskNumber: null,
+            partNumber: null,
+            cueCard: null,
+            minWords: null,
+            questions: [],
+          },
+        ],
+        submissions: {},
+      },
+      {
+        module: 'writing',
+        parts: [
+          {
+            order: 1,
+            kind: 'task',
+            title: 'Task 2',
+            body: 'Some people think university students should pay all costs.',
+            audioKey: null,
+            imageKey: null,
+            taskNumber: 2,
+            partNumber: null,
+            cueCard: null,
+            minWords: 250,
+            questions: [
+              {
+                id: 'w-2',
+                order: 1,
+                type: 'essay-task',
+                prompt: null,
+                options: [],
+                maxWords: null,
+                group: null,
+                slots: [],
+              },
+            ],
+          },
+        ],
+        submissions: { 'w-2': 'In my view, funding should be shared between the state and families.' },
+      },
+    ],
+  };
+
+  open('/practice/results/sit-1');
+
+  await userEvent.click(await screen.findByRole('button', { name: /Xem lại đề bài · Reading/ }));
+  expect(
+    screen.getByText('Bản đồ cổ nhất được biết đến có niên đại khoảng 25.000 năm.'),
+  ).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole('button', { name: /Xem lại đề bài · Writing/ }));
+  expect(
+    screen.getByText('In my view, funding should be shared between the state and families.'),
+  ).toBeInTheDocument();
+});
+
+/**
+ * "Nghe lại" — a Speaking recording is fetched on demand, `S2`'s own
+ * endpoint, and the player receives whatever URL the server hands back.
+ */
+it('fetches a presigned playback URL on demand and hands it to the player', async () => {
+  playbackPayload = {
+    url: 'https://cdn.example.test/rec/sp-1.m4a?sig=abc',
+    expiresAt: new Date(Date.now() + 600_000).toISOString(),
+  };
+
+  resultsPayload = {
+    ...results,
+    mode: 'full',
+    sections: [],
+    markings: [],
+    markingStatuses: [],
+    explanationStatuses: [],
+    overallBand: null,
+    writingBand: null,
+    writingBandReason: null,
+    content: [
+      {
+        module: 'speaking',
+        parts: [
+          {
+            order: 1,
+            kind: 'speaking-part',
+            title: 'Part 1',
+            body: null,
+            audioKey: null,
+            imageKey: null,
+            taskNumber: null,
+            partNumber: 1,
+            cueCard: null,
+            minWords: null,
+            questions: [
+              {
+                id: 'sp-1',
+                order: 1,
+                type: 'speaking-response',
+                prompt: 'Describe your hometown.',
+                options: [],
+                maxWords: null,
+                group: null,
+                slots: [],
+              },
+            ],
+          },
+        ],
+        submissions: {},
+      },
+    ],
+  };
+
+  open('/practice/results/sit-1');
+
+  await userEvent.click(await screen.findByRole('button', { name: /Xem lại đề bài · Speaking/ }));
+  await userEvent.click(screen.getByRole('button', { name: 'Nghe lại' }));
+
+  await waitFor(() => expect(playbackCalls.some((u) => u.includes('/recordings/sp-1/playback'))).toBe(true));
+
+  const player = await screen.findByRole('button', { name: 'Nghe lại' }).catch(() => null);
+  // The button is replaced by the player once the URL lands, not left beside it.
+  expect(player).toBeNull();
+  const audio = document.querySelector('audio[src]');
+  expect(audio).not.toBeNull();
+  expect(audio!.getAttribute('src')).toBe('https://cdn.example.test/rec/sp-1.m4a?sig=abc');
 });
 
 it.each([

@@ -241,4 +241,12 @@ public static class ErrorCodes
     /// <c>M-53</c> has not settled yet.
     /// </summary>
     public const string ContentRightMissing = "CONTENT_RIGHT_MISSING";
+
+    /// <summary>
+    /// <see cref="Vni.Ielts.Domain.Exams.ReviewerIsAuthorException"/> surfaced
+    /// as a 403. `P-20`'s reviewer ≠ author rule — no retry and no wait makes
+    /// this succeed, only a different reviewer account can, which is why it
+    /// is 403 and not 409.
+    /// </summary>
+    public const string ReviewerIsAuthor = "REVIEWER_IS_AUTHOR";
 }

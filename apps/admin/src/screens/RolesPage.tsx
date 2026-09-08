@@ -1,20 +1,31 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { listRoles, type AdminRole } from '../lib/adminApi.js';
+import { PERMISSION } from '../lib/permissions.js';
 
 /**
  * Screen 7.1 — roles, as a permission matrix.
  *
- * <b>The columns come from the server.</b> `PermissionKeys.All` is the one
- * list; restating it in TypeScript would mean a key added to the domain simply
- * does not get a column, and nobody notices until someone tries to grant it.
+ * <b>The columns come from the server, not from `permissions.ts`.</b>
+ * `PermissionKeys.All` is the one list of what actually exists; restating it
+ * in TypeScript would mean a key added to the domain simply does not get a
+ * column, and nobody notices until someone tries to grant it. `permissions.ts`
+ * still has a role in this screen — as a *display* lookup, keyed by the
+ * server's own strings, for a Vietnamese label and a group. A key with no
+ * entry there renders under its raw string rather than being dropped: an
+ * unlabelled-but-real permission is visible and auditable, which is strictly
+ * better than an invisible one. Conversely, a label in `permissions.ts` for a
+ * key the server does not currently grant (several — `.own`/`.any` scope
+ * variants, `media.*`, `exam.preview` — are still proposals) simply never
+ * gets a column, because the loop below iterates the server's list, not
+ * `permissions.ts`'s.
  *
  * <b>The matrix is read-only, and one row of it explains why that matters.</b>
- * `content-editor` deliberately holds `exam.create` and not `exam.publish`:
- * bringing content in and putting it in front of learners are different acts
- * by different people. A grid of live checkboxes is the easiest possible way
- * to erase that distinction with one stray click — so granting waits for the
- * audit log that would record who did it.
+ * A role deliberately holds `exam.submit` and not `exam.review`: composing
+ * content and reviewing it are different acts by different people. A grid of
+ * live checkboxes is the easiest possible way to erase that distinction with
+ * one stray click — so granting waits for the audit log that would record who
+ * did it.
  */
 export function RolesPage() {
   const { accessToken } = useAdminAuth();
@@ -44,9 +55,14 @@ export function RolesPage() {
 
   if (roles === null) return <p className="cms-muted">Đang tải…</p>;
 
-  /** Grouped by the prefix, which is how the specification lists them. */
+  /**
+   * Grouped by `permissions.ts`'s own group label when the key has one, and
+   * by its dotted prefix otherwise — so a permission the domain grew without
+   * a matching label entry still lands in a sensible section instead of one
+   * "khác" bucket nobody expects to check.
+   */
   const groups = permissions.reduce<Record<string, string[]>>((acc, key) => {
-    const group = key.split('.')[0] ?? 'khác';
+    const group = PERMISSION[key]?.group ?? key.split('.')[0] ?? 'khác';
     (acc[group] ??= []).push(key);
     return acc;
   }, {});
@@ -85,6 +101,14 @@ export function RolesPage() {
                   <tr key={key}>
                     <td>
                       <code>{key}</code>
+                      {/*
+                        The label is a display fallback of a fallback — most
+                        permissions have one, some genuinely do not, and both
+                        are correct states for this cell to be in.
+                      */}
+                      {PERMISSION[key] !== undefined && (
+                        <span className="cms-sub">{PERMISSION[key].label}</span>
+                      )}
                     </td>
                     {roles.map((role) => (
                       <td key={role.roleId} className="cms-matrix-cell">

@@ -132,6 +132,7 @@ internal static class ExamMappers
         Variant = version.Variant.ToString(),
         Status = version.Status.ToString(),
         PublishedAt = version.PublishedAt is { } at ? Utc(at) : null,
+        AuthorId = version.AuthorId?.Value,
         ListeningPlayback = new ListeningPlaybackDocument
         {
             Practice = new AudioPlaybackRuleDocument
@@ -180,6 +181,14 @@ internal static class ExamMappers
             Matching = version.Scoring.Matching.ToDocument(),
             WritingTask1Weight = version.Scoring.WritingTask1Weight,
             WritingTask2Weight = version.Scoring.WritingTask2Weight,
+            Provenance = version.Scoring.Provenance is { } provenance
+                ? new BandTableProvenanceDocument
+                {
+                    Status = provenance.Status.ToString(),
+                    Source = provenance.Source,
+                    Note = provenance.Note,
+                }
+                : null,
         },
         Sections =
         [
@@ -299,7 +308,14 @@ internal static class ExamMappers
                     [.. t.Boundaries.Select(b => new BandBoundary(b.MinRaw, BandScore.Create(b.Band)))]),
             doc.Scoring.Matching.ToDomain(),
             doc.Scoring.WritingTask1Weight,
-            doc.Scoring.WritingTask2Weight);
+            doc.Scoring.WritingTask2Weight,
+            PartialCredit: null,
+            Provenance: doc.Scoring.Provenance is { } provenance
+                ? new BandTableProvenance(
+                    Enum.Parse<BandTableProvenanceStatus>(provenance.Status, ignoreCase: true),
+                    provenance.Source,
+                    provenance.Note)
+                : null);
 
         return ExamVersion.Rehydrate(
             new ExamVersionId(doc.Id),
@@ -324,7 +340,8 @@ internal static class ExamMappers
             doc.ModuleSequence is { Count: > 0 } stored
                 ? [.. stored.Select(m => Enum.Parse<ExamModule>(m, ignoreCase: true))]
                 : null,
-            doc.Description);
+            doc.Description,
+            doc.AuthorId is { } author ? new UserId(author) : null);
     }
 
     private static AnswerMatchingRules ToDomain(this MatchingRulesDocument doc) =>

@@ -4,7 +4,8 @@ using Vni.Ielts.Domain.Identity;
 
 namespace Vni.Ielts.Application.Identity;
 
-public sealed record RegisterUserCommand(string Email, string Password, string DisplayName);
+public sealed record RegisterUserCommand(
+    string Email, string Password, string DisplayName, string? ReferralCode = null);
 
 /// <summary>
 /// What registration produces: a signed-in session, and an honest account of
@@ -57,7 +58,9 @@ public sealed class RegisterUser(
     IVerificationMessageSender sender,
     IPermissionResolver permissions,
     ITokenService tokens,
-    IClock clock)
+    IClock clock,
+    Usage.IReferralDirectory? referrals = null,
+    Usage.UsageRecorder? usage = null)
 {
     public async Task<Result<RegisterUserResult>> HandleAsync(
         RegisterUserCommand command, CancellationToken ct)
@@ -93,6 +96,15 @@ public sealed class RegisterUser(
         if (learner is not null)
             user.AssignRole(learner.Id);
 
+        // An unrecognised or absent code is silently ignored — a stale link
+        // must never fail somebody's registration. → `P-16`
+        if (referrals is not null
+            && Domain.Identity.ReferralCode.Normalise(command.ReferralCode) is { } code
+            && await referrals.FindByReferralCodeAsync(code, ct) is { } referrer)
+        {
+            user.AttributeReferral(referrer.Id);
+        }
+
         try
         {
             await users.AddAsync(user, ct);
@@ -109,6 +121,8 @@ public sealed class RegisterUser(
             return Error.Conflict(
                 ErrorCodes.EmailAlreadyRegistered, "That email address is already registered.");
         }
+
+        if (usage is not null) await usage.AccountCreatedAsync(user.Id, ct);
 
         // Actually issue and send it. An earlier version returned
         // `emailVerificationRequired: true` with no token, no endpoint, and no

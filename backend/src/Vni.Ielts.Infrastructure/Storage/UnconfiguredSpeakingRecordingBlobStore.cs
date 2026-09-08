@@ -10,6 +10,9 @@ internal sealed class UnconfiguredSpeakingRecordingBlobStore : ISpeakingRecordin
         string objectKey, string contentType, string checksumSha256, TimeSpan ttl) =>
         throw new SpeakingRecordingUploadUnavailableException();
 
+    public Uri CreatePresignedGetUrl(string objectKey, TimeSpan ttl) =>
+        throw new SpeakingRecordingUploadUnavailableException();
+
     public Task<SpeakingRecordingObjectHead?> HeadAsync(string objectKey, CancellationToken ct) =>
         throw new SpeakingRecordingUploadUnavailableException();
 

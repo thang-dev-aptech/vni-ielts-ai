@@ -98,7 +98,8 @@ public sealed class SectionMarkingRunner(
     IRubricSource rubrics,
     IEnumerable<ISectionEvaluator> evaluators,
     ISectionMarkingStore store,
-    ITranscriptSource transcripts)
+    ITranscriptSource transcripts,
+    Usage.UsageRecorder? usage = null)
 {
     public async Task<IReadOnlyList<MarkingOutcome>> RunAsync(
         ExamVersion version, ExamModule module, ExamSessionId sessionId,
@@ -226,8 +227,27 @@ public sealed class SectionMarkingRunner(
 
         try
         {
-            var claim = await evaluator.EvaluateAsync(
-                new EvaluationRequest(rubric, submission, unit.Prompt), ct);
+            ClaimedEvaluation claim;
+
+            /*
+             * <b>The ledger row is written for the call, not for the mark.</b>
+             * A provider that answered was paid whether or not the answer
+             * survives validation below, so the row goes in as soon as the
+             * evaluator returns. What it cost — provider, model, tokens — is
+             * reported by the adapter into the scope opened here; the reason
+             * that is an ambient scope rather than a wider return type is in
+             * `EvaluationUsageReport`. Speaking has no evaluator wired and
+             * so never reaches this line; when it does, it gets its own
+             * action name. → `P-14`
+             */
+            using (var report = Usage.EvaluationUsageReport.Begin())
+            {
+                claim = await evaluator.EvaluateAsync(
+                    new EvaluationRequest(rubric, submission, unit.Prompt), ct);
+
+                if (usage is not null && unit.Module == ExamModule.Writing)
+                    await usage.WritingMarkedAsync(sessionId, report.Usage, ct);
+            }
 
             var marking = CriterionMarking.Mark(
                 rubric, claim.Criteria, claim.ReportedBand, submission, unit.TaskNumber);

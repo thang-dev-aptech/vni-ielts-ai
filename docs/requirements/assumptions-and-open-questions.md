@@ -235,6 +235,31 @@ messages, unlike an exam which has a fixed number of submissions. → [`../ai/co
 Package format v1 assumes a ZIP that is **already schema-correct**. Parsing raw source material is a
 different capability and is not covered by it. → [`../architecture/exam-package-format.md`](../architecture/exam-package-format.md)
 
+**Interim seam (do not close this item):** the hosted API registers `UnconfiguredExamSourceParser`.
+`POST /api/v1/admin/import/packages` accepts only packages that already contain a ready `exam.json`;
+raw-document ZIPs get finding `AI_PARSER_UNAVAILABLE`. The operator CLI remains the path that can
+produce that `exam.json` today. → [ADR-0017](../decisions/0017-exam-version-author-review-import-seams.md)
+
+---
+
+### B-14 · `ExamVersion.AuthorId` is nullable because import does not thread an actor `[OPEN QUESTION]`
+
+**Blocks:** full enforcement of `P-20` reviewer ≠ author on every version, including ones created by
+ZIP upload or the development seeder.
+
+`ExamVersion.AuthorId` is `UserId?`. `Approve` throws `ReviewerIsAuthorException` only when
+`AuthorId` is non-null and equal to the reviewer. The HTTP import pipeline and
+`DevelopmentExamSeeder` create versions without a CMS actor on the call stack, so they leave
+`AuthorId` null — and a holder of `exam.review` can currently approve those drafts.
+
+| | |
+|---|---|
+| **B-14a** | Which actor becomes `AuthorId` on `POST /api/v1/admin/import/packages` — the uploading operator, a required form field, or something else? |
+| **B-14b** | What about seed / CLI imports that have no interactive operator? |
+
+**Do not close by inventing a system user.** That would hide the gap and make audit lie.
+→ [ADR-0017](../decisions/0017-exam-version-author-review-import-seams.md), `ExamContent.cs`
+
 ---
 
 ### B-8 · Adjudicate the third-party UI/UX review — **ADJUDICATED 2026-08-28** ✅
@@ -302,7 +327,17 @@ Both need owner confirmation before they constrain the AI output schema.
 
 ---
 
-### B-12 · Bài test đầu vào là **chế độ thứ ba**, **Full Test đóng khung khác**, hay **một luật của phiên thi**? `[BUSINESS DECISION]`
+### B-12 · Bài test đầu vào là **chế độ thứ ba**, **Full Test đóng khung khác**, hay **một luật của phiên thi**? — **RESOLVED 2026-09-06** ✅ → `P-04`
+
+**Quyết định — chủ sản phẩm, 06/09/2026 (`P-04`, `P-05`):** Luyện tập và Thi thử là **hai khu riêng**,
+phủ bằng hai trục đã có `SessionMode` × `SessionTiming`; không có chế độ thứ ba, không thêm thuộc tính
+phân loại vào `exam.schema.json`. Bài test đầu vào **không nằm trong 22 quyết định** và không nằm trong MVP:
+bản bàn giao code-first 07/09 (`S8`) gỡ `EntryTestModal` — modal tự bật với nút bị vô hiệu, không có nơi để
+đi. `E-15`…`E-17` giữ nguyên trong `confirmed.md` với nhãn `[NEEDS RE-CONFIRMATION 2026-09-06]`: chủ sản
+phẩm chưa nói bỏ hẳn, chỉ là MVP không có. `E-18` đóng theo câu này. → [`../product/mvp-blueprint.md`](../product/mvp-blueprint.md) §04
+
+<details><summary>Lịch sử câu hỏi</summary>
+
 **Chặn:** hình dạng của `ExamSession.Mode`, việc `exam.schema.json` có thêm thuộc tính phân loại hay
 không, và cả màn kết quả của bài test đầu vào. **Đây là `M-30` với cái tên thứ tư** — không phải một
 câu hỏi mới.
@@ -342,9 +377,20 @@ thi. Hai câu hỏi này không tách rời được.
 Đặc tả luồng đã dựng để **sống được với cả ba câu trả lời**:
 [`../ux/practice-entry-test-flow.md`](../ux/practice-entry-test-flow.md).
 
+</details>
+
 ---
 
-### B-13 · "Luyện đề / Thi thử" đứng ở đâu so với Full Test / Single Skill? `[BUSINESS DECISION]`
+### B-13 · "Luyện đề / Thi thử" đứng ở đâu so với Full Test / Single Skill? — **RESOLVED 2026-09-06** ✅ → `P-04`
+
+**Quyết định — chủ sản phẩm, 06/09/2026 (`P-04`, `P-05`):** cách đọc **(3)** — hai cặp là cùng một thứ nhìn
+từ hai phía. *Luyện tập* = `Single` × `OpenEnded` (đếm lên), có công tắc chuyển sang `Deadline` nếu người
+học muốn; *Thi thử* = `Full` × `Deadline`, nhiều kỹ năng theo `moduleSequence` của đề. Tổ hợp `Full` ×
+`OpenEnded` không dùng. Không thêm trường nào vào `exam.schema.json`; `mode` giữ nguyên hình dạng. Đóng luôn
+`M-30`. → [`../product/mvp-blueprint.md`](../product/mvp-blueprint.md) §04
+
+<details><summary>Lịch sử câu hỏi</summary>
+
 **Chặn:** hình dạng của `ExamSession.mode`, thanh chế độ trên `/practice`, và luật của mọi phiên
 luyện đề. **Đây là `M-30` với cái tên thứ năm** — cùng một câu hỏi, không phải câu mới.
 
@@ -369,6 +415,8 @@ vào — cộng cái thứ năm này. Chốt từng cái một sẽ ra một b�
 **Chưa mặc định gì cả.** Không thêm trường nào vào `exam.schema.json`, và `mode` giữ nguyên hình dạng
 hiện tại cho tới khi có câu trả lời — `G-11`. Đặc tả bề mặt dựng để sống được với cả ba cách đọc:
 [`../ux/practice-mode.md`](../ux/practice-mode.md) §6 `X-4`.
+
+</details>
 
 ---
 
@@ -398,12 +446,12 @@ question that had been open under a different name — *who stands behind an AI 
 not a person: it is the rubric plus a citation the learner can look up. That closes the loop `M-11`
 left open when the teacher role went out of scope.
 
-It did **not** settle three things, and each is now tracked separately:
+It did **not** settle three things. Two of them closed on 2026-09-06 (`P-12`, `P-13`); `H-8c` stays open:
 
 | Still open | Why it matters |
 |---|---|
-| `H-8a` **Where the band descriptors come from** | IELTS publishes them, but copyright is held jointly by British Council · IDP · Cambridge and the publication states no third-party reuse terms. Embedding them verbatim in a commercial product is a legal question. Three options: use the public version pending legal review · VNI writes its own descriptors · seek permission. `Rubric.DescriptorSource` records the answer per version so it is always possible to tell which evaluations were produced under which one |
-| `H-8b` **Task 1 : Task 2 weighting** | Task 2 weighs more, but IELTS does not publish the ratio the way it publishes the overall-band rule. Previously defaulted to 1:2 in three places; all three now refuse instead. → `G-11` |
+| `H-8a` **Where the band descriptors come from** — **RESOLVED 2026-09-06** ✅ by `P-13` | **Decision:** the rubric is VNI's own four-criterion framework and does not claim to be official IELTS marking. The configured `DescriptorSource` is therefore VNI's text, not a copy of the published descriptors, and every Writing band carries the label "AI · tham khảo". The copyright question is moot because nothing official is embedded. *History:* IELTS publishes them, but copyright is held jointly by British Council · IDP · Cambridge and the publication states no third-party reuse terms. Embedding them verbatim in a commercial product is a legal question. Three options: use the public version pending legal review · VNI writes its own descriptors · seek permission. `Rubric.DescriptorSource` records the answer per version so it is always possible to tell which evaluations were produced under which one |
+| `H-8b` **Task 1 : Task 2 weighting** — **RESOLVED 2026-09-06** ✅ by `P-12` | **Decision:** 1 : 2. Writing band = (Task 1 + Task 2 × 2) / 3, rounded with the existing `BandScore.RoundToHalfBand` — no new rounding code. The ratio lives in the exam's `ScoringProfile` or the `Assessment:Writing` configuration, never in code; `RequireWritingTaskWeights()` keeps refusing until that configuration is bound (handoff slice `S4`). *History:* Task 2 weighs more, but IELTS does not publish the ratio the way it publishes the overall-band rule. Previously defaulted to 1:2 in three places; all three now refuse instead. → `G-11` |
 | `H-8c` **The calibration set** | *"Chuẩn nhất"* is a claim about accuracy, and accuracy is only measurable against essays a human has already marked. Needs 30–50 Writing scripts marked by an experienced IELTS teacher, held out of every prompt, re-scored on each model / prompt / rubric change. Nothing in the schema substitutes for it. → [`../security/ai-security.md`](../security/ai-security.md) § Calibration set |
 
 → [`../ai/output-contracts.md`](../ai/output-contracts.md) checks 4, 5 and 9
@@ -449,6 +497,11 @@ assumption.
 ---
 
 ### M-27 · How is a "share" verified for token earning? `[BUSINESS DECISION]`
+
+> **Narrowed 2026-09-06 by `P-16`.** The owner accepted that a bare share cannot be verified
+> ([ADR-0009](../decisions/0009-share-gating-not-verifiable.md)) and moved the reward to **registration
+> through a referral link, granted when the invitee verifies their email**. What remains open is only
+> whether *Share Exam* / *Share Result* (`T-2`) survive as unrewarded features or are dropped.
 **Two layers, and they have different answers:**
 
 | Layer | Status |
@@ -536,7 +589,15 @@ one draft write model and one validator — see `M-16` for why.
 
 ---
 
-### H-4 · Band score conversion tables `[OPEN QUESTION]`
+### H-4 · Band score conversion tables — **RESOLVED 2026-09-06** ✅ → `P-11`
+
+**Decision — product owner, 06/09/2026 (`P-11`):** a Reading or Listening band is shown **only when the exam
+version's conversion table is verified** — `bandTableProvenance` in `exam.schema.json`, which already exists.
+Otherwise the learner sees the raw score, no band, and the reason. This closes the question as a *product
+rule*: the product no longer needs one global answer to "where do VNI's tables come from"; each exam version
+carries its own provenance, and verifying a table is editorial work done per version. The API must return the
+verified flag; the client must not infer it (handoff slice `S1`). → [`../product/mvp-blueprint.md`](../product/mvp-blueprint.md) §05
+
 IELTS raw-score→band boundaries are **equated per test version** — the official position is that "the Band 6 boundary may be set at slightly different raw scores across test versions" ([ielts.org](https://www.ielts.org/take-a-test/your-results/ielts-scoring-in-detail)). Official per-version tables are not public.
 
 **What we need:** where VNI's conversion tables come from — licensed, internally calibrated, or approximated.
@@ -595,6 +656,11 @@ dữ liệu cá nhân phải khai trong hồ sơ `B-2`.
 ### M-2 · Audio retention period `[BUSINESS DECISION]`
 How long are student voice recordings kept after evaluation? Interacts directly with B-2 (PDPL), storage cost, and any future model-calibration work.
 `[ASSUMPTION]` 90 days, then delete the audio and keep the transcript and scores.
+
+> **Urgent since 2026-09-06.** `P-02` makes the system store real learners' voices with no marking to use
+> them for. `ObjectStorage:SpeakingRecordingRetentionDays` is empty — which means *keep forever* — and
+> `Recordings:SweepEnabled` defaults to off. Set a number (the 90-day assumption above, unless the owner says
+> otherwise) and switch the sweep on. Five minutes of configuration; forgotten, it is a real PDPL exposure.
 
 ### M-3 · Concurrency and scale targets `[OPEN QUESTION]`
 No user numbers were provided. Peak concurrent exam sessions drives queue sizing, storage, and AI rate-limit planning.
@@ -683,7 +749,13 @@ xác nhận đó là chủ ý chứ không phải bỏ sót.
 học viên tự luyện. Lúc đó đây là khoảng 8–12 màn cộng thay đổi mô hình dữ liệu — **không phải việc
 thêm vào giữa chừng cho rẻ.**
 
-### M-10 · May packages with warning-severity findings be imported? `[OPEN QUESTION]`
+### M-10 · May packages with warning-severity findings be imported? — **RESOLVED 2026-09-06** ✅ → `P-19`
+
+**Decision — product owner, 06/09/2026 (`P-19`):** yes. Findings split into **blocking** and **warning**; a
+missing transcript is a warning. A package with warnings can be sent for review and approved, but overriding a
+warning is an explicit act that **must record a reason and land in the audit log** with the actor. The
+warning severity therefore stays in the format spec. → [`../product/mvp-blueprint.md`](../product/mvp-blueprint.md) §07
+
 The validation pipeline distinguishes errors from warnings. Screen 11.13 briefs warnings as importable with an explicit override. If the answer is no, the warning severity has no purpose and the distinction should be removed from the format spec.
 
 ---
@@ -861,7 +933,13 @@ khi chưa có quy tắc là mời gọi việc phát minh luật nghiệp vụ n
 Four questions raised by the content-first CMS design. Full context in
 [`../ux/cms-content-operations.md`](../ux/cms-content-operations.md).
 
-### M-30 · Practice Test và Mock Test khác Full Test ở chỗ nào `[BUSINESS DECISION]`
+### M-30 · Practice Test và Mock Test khác Full Test ở chỗ nào — **RESOLVED 2026-09-06** ✅ → `P-04`
+
+**Quyết định — chủ sản phẩm, 06/09/2026 (`P-04`, `P-05`):** khác nhau ở **cách làm bài**, không ở nội dung.
+*Thi thử* (Mock) là `Full` × `Deadline`; *Luyện tập* là `Single` × `OpenEnded` với công tắc bật đồng hồ.
+"Practice Test" như một loại đề riêng không tồn tại — đề không mang thuộc tính phân loại, `exam.schema.json`
+không đổi. Cùng đóng `B-12` và `B-13`. → [`../product/mvp-blueprint.md`](../product/mvp-blueprint.md) §04
+
 
 `E-11` chốt **hai** chế độ: Full Test và Single Skill. Cây sản phẩm chủ sản phẩm đưa ra ngày 24/08 có
 **ba** mục dưới "Luyện đề": Full Test · Practice Test · Mock Test — cộng thêm nhánh "Học IELTS" theo
@@ -1259,7 +1337,15 @@ band production và overall band bốn kỹ năng. →
 Khuyến nghị lưu practice riêng khỏi mock; raw/estimated result của part lẻ không được trộn vào trend
 IELTS band của full mock.
 
-### M-53 · File đề nào có quyền publish cho learner `[BUSINESS DECISION]`
+### M-53 · File đề nào có quyền publish cho learner — **RESOLVED 2026-09-06** ✅ → `P-21`
+
+**Quyết định — chủ sản phẩm, 06/09/2026 (`P-21`):** chỉ publish nội dung **VNI sở hữu hoặc đã xác nhận
+quyền**. `ContentRightsPolicy` đã cưỡng chế điều này — từ chối `LearnerProduction` khi thiếu `RightsProof`, có
+test giữ luật — và **không nới lỏng**. Hai gói `exam/Exam1` và `exam/Vol9Test1` là nội dung mượn: giữ ở mức nội
+bộ, tối đa `InternalReview`, không bao giờ `LearnerProduction`. Hệ quả: VNI hiện **chưa có đề nào** được phép
+đưa cho học viên thật — đó là đường găng của ngày lên sóng, và nó không phải việc của code.
+→ [`../product/mvp-blueprint.md`](../product/mvp-blueprint.md) §10
+
 
 **Chặn:** publish nội dung thật, không chặn schema/importer/fixture/internal review.
 

@@ -185,6 +185,22 @@ public sealed class DevelopmentExamSeeder(
                     "Exam {Id} is already published with identical content; leaving it untouched.",
                     versionId.Value);
             }
+            else if (existing is { Status: ExamVersionStatus.Unpublished })
+            {
+                /*
+                 * <b>Same id, previously orphan-unpublished.</b> E2E stages
+                 * `synthetic-full-1.json` only while the suite runs; when the
+                 * file is absent, `UnpublishOrphanedFixturesAsync` marks the
+                 * row Unpublished. Re-staging then hits this branch: the
+                 * content fingerprint (and therefore the version id) is
+                 * unchanged, so `UpsertAsync` would correctly refuse a content
+                 * rewrite of a once-published row. Re-publish the status only.
+                 */
+                await catalogue.SetStatusAsync(versionId, ExamVersionStatus.Published, ct);
+                logger.LogInformation(
+                    "Re-published {Id}: fixture is back on disk after an orphan unpublish.",
+                    versionId.Value);
+            }
             else
             {
                 await catalogue.UpsertAsync(published, ct);

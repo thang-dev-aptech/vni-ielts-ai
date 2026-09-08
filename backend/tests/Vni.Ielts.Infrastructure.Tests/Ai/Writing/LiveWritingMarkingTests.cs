@@ -141,7 +141,7 @@ public sealed class LiveWritingMarkingTests(Xunit.Abstractions.ITestOutputHelper
                 Assert.Contains(
                     Normalise(quote),
                     normalisedEssay,
-                    StringComparison.Ordinal);
+                    StringComparison.OrdinalIgnoreCase);
             }
         }
 

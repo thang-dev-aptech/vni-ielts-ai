@@ -1,128 +1,101 @@
 import { describe, expect, it } from 'vitest';
-import {
-  EXAM_STATES,
-  STATE,
-  TRANSITIONS,
-  allows,
-  transitionsFor,
-  type ExamState,
-} from '../lib/lifecycle.js';
+import { EXAM_STATES, STATE, TRANSITIONS, allows, transitionsFor, type ExamState } from '../lib/lifecycle.js';
 import { PERMISSION, ROLE_PRESETS } from '../lib/permissions.js';
 
 /**
- * The lifecycle is the part of Phase 1 that is finished, so it is the part
- * that gets pinned down.
+ * The lifecycle, pinned down against the real server model.
  *
- * These are not tests of the screens. They are tests of the two rules the
- * screens read from — which transition is open to whom, and which role holds
- * which authority — written so that a change to either has to be deliberate.
- * The three at the bottom are confirmed product decisions expressed as code:
- * if someone widens a role preset until an author can publish, the suite says
- * so rather than the CMS quietly shipping it.
+ * <b>Rewritten for the five-state collapse.</b> This suite used to pin a
+ * six-state table with `withdraw`, `unapprove` and `resume` transitions and a
+ * client-side ownership dimension (`own` vs `any`). None of that exists on the
+ * server: `ExamVersionStatus` has five values, `ReturnToDraft` goes straight
+ * to `Draft` with no fifth "returned" state, and only five HTTP endpoints
+ * exist — submit-for-review, approve, return-to-draft, publish, unpublish.
+ * `withdraw`/`unapprove`/`resume` had no endpoint behind them and are gone;
+ * the reviewer ≠ author rule that used to live in an `ownership` field is
+ * enforced entirely server-side (`ExamVersion.Approve`) and surfaces as a 403
+ * the client could not have pre-empted, so `allows()` checks permission alone.
+ *
+ * The red-when-removed target for the state collapse: every one of the five
+ * status strings the server can actually send (`"draft"`, `"inreview"`,
+ * `"approved"`, `"published"`, `"unpublished"`) resolves to a face, and no
+ * code path here assumes a `"returned"` status the server never sends — see
+ * "the table itself" below, which iterates `EXAM_STATES` rather than a
+ * hand-typed list, so a stray reintroduction of `returned` would need to be
+ * added to `EXAM_STATES` to type-check, and this test would then have to be
+ * told about it explicitly rather than picking it up for free.
  */
 
-function actor(permissions: string[], isOwner: boolean) {
+function actor(permissions: string[]) {
   const held = new Set(permissions);
-  return { can: (p: string) => held.has(p), isOwner };
+  return { can: (p: string) => held.has(p) };
 }
 
-const preset = (id: string) => {
-  const found = ROLE_PRESETS.find((r) => r.id === id);
-  if (found === undefined) throw new Error(`no preset ${id}`);
-  return found.permissions;
-};
-
-const idsFor = (state: ExamState, permissions: string[], isOwner: boolean) =>
-  transitionsFor(state, actor(permissions, isOwner))
+const idsFor = (state: ExamState, permissions: string[]) =>
+  transitionsFor(state, actor(permissions))
     .map((t) => t.id)
     .sort();
 
-describe('an author acting on their own work', () => {
+describe('the five real states', () => {
+  it('is exactly draft, inreview, approved, published, unpublished — no more, no fewer', () => {
+    expect(EXAM_STATES).toEqual(['draft', 'inreview', 'approved', 'published', 'unpublished']);
+  });
+
+  it('never carries a client-side "returned" state', () => {
+    expect(EXAM_STATES).not.toContain('returned');
+    expect(EXAM_STATES).not.toContain('in-review'); // the old, hyphenated spelling
+  });
+
+  it('gives every one of the five a face', () => {
+    for (const state of EXAM_STATES) expect(STATE[state].label.length).toBeGreaterThan(0);
+  });
+});
+
+describe('an operator holding exam.submit', () => {
   it('may submit a draft, and nothing else', () => {
-    expect(idsFor('draft', preset('exam-author'), true)).toEqual(['submit']);
+    expect(idsFor('draft', ['exam.submit'])).toEqual(['submit']);
   });
 
-  it('may withdraw a submission but cannot review it', () => {
-    expect(idsFor('in-review', preset('exam-author'), true)).toEqual(['withdraw']);
-  });
-
-  it('may reopen a returned exam', () => {
-    expect(idsFor('returned', preset('exam-author'), true)).toEqual(['resume']);
-  });
-
-  it('cannot publish an approved exam — that authority is not theirs', () => {
-    expect(idsFor('approved', preset('exam-author'), true)).toEqual([]);
+  it('gets nothing on a version already in review', () => {
+    expect(idsFor('inreview', ['exam.submit'])).toEqual([]);
   });
 });
 
-describe("an author acting on someone else's work", () => {
-  it('gets no transitions at all on a draft', () => {
-    expect(idsFor('draft', preset('exam-author'), false)).toEqual([]);
+describe('an operator holding exam.review', () => {
+  it('may approve or return a submission', () => {
+    expect(idsFor('inreview', ['exam.review'])).toEqual(['approve', 'return']);
   });
 
-  it('cannot withdraw a submission they did not make', () => {
-    expect(idsFor('in-review', preset('exam-author'), false)).toEqual([]);
-  });
-});
-
-describe('the academic lead', () => {
-  it('may approve or return a submission, and may unstick it', () => {
-    expect(idsFor('in-review', preset('academic-lead'), false)).toEqual([
-      'approve',
-      'return',
-      'withdraw',
-    ]);
-  });
-
-  it('may take an approval back', () => {
-    expect(idsFor('approved', preset('academic-lead'), false)).toEqual(['unapprove']);
-  });
-
-  it('still cannot publish', () => {
-    expect(
-      transitionsFor('approved', actor(preset('academic-lead'), false)).map((t) => t.to),
-    ).not.toContain('published');
+  it('cannot publish an approved exam — that authority is separate', () => {
+    expect(idsFor('approved', ['exam.review'])).toEqual([]);
   });
 });
 
-describe('the administrator', () => {
+describe('an operator holding exam.publish and exam.unpublish', () => {
   it('publishes an approved exam', () => {
-    expect(idsFor('approved', preset('admin'), false)).toEqual(['publish', 'unapprove']);
+    expect(idsFor('approved', ['exam.publish'])).toEqual(['publish']);
   });
 
   it('unpublishes a live one', () => {
-    expect(idsFor('published', preset('admin'), false)).toEqual(['unpublish']);
+    expect(idsFor('published', ['exam.unpublish'])).toEqual(['unpublish']);
   });
 
   it('republishes one that was taken down', () => {
-    expect(idsFor('unpublished', preset('admin'), false)).toEqual(['publish']);
+    expect(idsFor('unpublished', ['exam.publish'])).toEqual(['publish']);
+  });
+
+  it('cannot review — publishing does not imply reviewing', () => {
+    expect(idsFor('inreview', ['exam.publish'])).toEqual([]);
   });
 });
 
-describe('ownership scope', () => {
-  it('closes an own-scoped transition to a non-owner', () => {
-    const submit = TRANSITIONS.find((t) => t.id === 'submit');
-    expect(submit).toBeDefined();
-    expect(allows(submit!, actor(['exam.submit'], false))).toBe(false);
-  });
-
-  it('opens it again for a holder of exam.update.any', () => {
-    const submit = TRANSITIONS.find((t) => t.id === 'submit');
-    expect(allows(submit!, actor(['exam.submit', 'exam.update.any'], false))).toBe(true);
-  });
-
-  it('never lets a permission the actor lacks through, owner or not', () => {
-    for (const transition of TRANSITIONS) {
-      expect(allows(transition, actor([], true))).toBe(false);
-    }
+describe('an operator holding nothing', () => {
+  it('gets no transition from any state', () => {
+    for (const state of EXAM_STATES) expect(idsFor(state, [])).toEqual([]);
   });
 });
 
 describe('the table itself', () => {
-  it('gives every state a face', () => {
-    for (const state of EXAM_STATES) expect(STATE[state].label.length).toBeGreaterThan(0);
-  });
-
   it('only names permissions the CMS knows how to label', () => {
     for (const transition of TRANSITIONS) {
       expect(PERMISSION[transition.permission], transition.permission).toBeDefined();
@@ -144,11 +117,50 @@ describe('the table itself', () => {
       expect(EXAM_STATES).toContain(transition.to);
     }
   });
+
+  it('requires a note only on return — the one transition the server refuses without a reason', () => {
+    for (const transition of TRANSITIONS) {
+      expect(transition.requiresNote === true, transition.id).toBe(transition.id === 'return');
+    }
+  });
+
+  it("names the server's own AuditAction enum value, not an invented dotted string", () => {
+    const known = new Set([
+      'ExamSubmittedForReview',
+      'ExamApproved',
+      'ExamReturnedToDraft',
+      'ExamPublished',
+      'ExamUnpublished',
+    ]);
+    for (const transition of TRANSITIONS) expect(known.has(transition.audit)).toBe(true);
+  });
 });
 
-/* ── Confirmed decisions, as executable statements ───────────────────────── */
+describe('ownership is no longer a client-side gate', () => {
+  it('allows() takes no isOwner argument — the reviewer ≠ author rule is enforced server-side', () => {
+    const submit = TRANSITIONS.find((t) => t.id === 'submit');
+    expect(submit).toBeDefined();
+    // A caller holding the permission is let through regardless of who they
+    // are — the server has no ownership data to check against on this route
+    // either (SubmitForReviewEndpoint checks only PermissionKeys.ExamSubmit).
+    expect(allows(submit!, actor(['exam.submit']))).toBe(true);
+  });
+});
+
+/* ── Confirmed decisions, as executable statements ────────────────────────
+ *
+ * Unrelated to the five-state collapse above — these pin ROLE_PRESETS, the
+ * dev-only "Xem như" preview role bundles in `permissions.ts`, which this
+ * task did not change. Carried over unmodified from the six-state suite.
+ */
 
 describe('the decisions taken on 2026-08-24', () => {
+  const preset = (id: string) => {
+    const found = ROLE_PRESETS.find((r) => r.id === id);
+    if (found === undefined) throw new Error(`no preset ${id}`);
+    return found.permissions;
+  };
+
   it('C-16 · leaves publishing to the administrator alone', () => {
     for (const role of ROLE_PRESETS) {
       const publishes = role.permissions.includes('exam.publish');

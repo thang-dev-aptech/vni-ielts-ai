@@ -37,6 +37,20 @@ public static class PermissionKeys
     public const string ExamPublish = "exam.publish";
     public const string ExamUnpublish = "exam.unpublish";
 
+    /// <summary>
+    /// The author sends a draft to review. `P-20`.
+    /// </summary>
+    public const string ExamSubmit = "exam.submit";
+
+    /// <summary>
+    /// Approve or return a version in review. `P-20`'s reviewer ≠ author
+    /// rule is enforced in <see cref="Vni.Ielts.Domain.Exams.ExamVersion.Approve"/>,
+    /// not by withholding this key from the author — two different holders
+    /// of this permission can still collide on the same version, which is
+    /// exactly the case the domain-level check exists for.
+    /// </summary>
+    public const string ExamReview = "exam.review";
+
     public const string PackageUpload = "package.upload";
     public const string PackageRead = "package.read";
     public const string PackageDelete = "package.delete";
@@ -63,6 +77,18 @@ public static class PermissionKeys
     public const string AuditRead = "audit.read";
 
     /// <summary>
+    /// The two libraries (<c>P-22</c>). Write and publish are split for the
+    /// same reason as <c>exam.update</c> / <c>exam.publish</c>: the person who
+    /// drafts a post and the person who puts it in front of every learner need
+    /// not be the same account. Publish covers unpublish and return-to-draft;
+    /// write covers create, edit, delete and submit-for-review.
+    /// </summary>
+    public const string DocumentWrite = "document.write";
+    public const string DocumentPublish = "document.publish";
+    public const string ArticleWrite = "article.write";
+    public const string ArticlePublish = "article.publish";
+
+    /// <summary>
     /// Every key, in the order the CMS's permission matrix renders its columns.
     ///
     /// <b>Derived here, not restated in the client.</b> The matrix needs a
@@ -74,6 +100,7 @@ public static class PermissionKeys
     public static readonly IReadOnlyList<string> All =
     [
         ExamRead, ExamCreate, ExamUpdate, ExamDelete, ExamPublish, ExamUnpublish,
+        ExamSubmit, ExamReview,
         PackageUpload, PackageRead, PackageDelete,
         EvaluationRead, EvaluationRerun, EvaluationOverride,
         LearnerContentRead,
@@ -81,6 +108,7 @@ public static class PermissionKeys
         RoleRead, RoleAssign, RoleManage,
         ConfigRead, ConfigUpdate,
         AuditRead,
+        DocumentWrite, DocumentPublish, ArticleWrite, ArticlePublish,
     ];
 }
 

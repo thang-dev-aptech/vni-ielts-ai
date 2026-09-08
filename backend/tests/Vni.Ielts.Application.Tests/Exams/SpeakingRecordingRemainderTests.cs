@@ -429,6 +429,9 @@ public sealed class SpeakingRecordingRemainderTests
             return new Uri("http://localhost:9000/" + objectKey);
         }
 
+        public Uri CreatePresignedGetUrl(string objectKey, TimeSpan ttl) =>
+            new("http://localhost:9000/" + objectKey);
+
         public Task<SpeakingRecordingObjectHead?> HeadAsync(string objectKey, CancellationToken ct) =>
             Task.FromResult<SpeakingRecordingObjectHead?>(
                 Keys.Contains(objectKey) ? new SpeakingRecordingObjectHead(1, "audio/webm", "aa") : null);

@@ -1,10 +1,13 @@
 import { useI18n } from '../../i18n/index.js';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Paths } from '../../routes/paths.js';
 import { usePageTitle } from '../../routes/usePageTitle.js';
+import { useAlive } from '../../lib/useAlive.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { ArticleCard } from '../articles/ArticleCard.js';
-import { ARTICLES } from '../articles/articles.js';
+import { listArticles } from '../articles/articlesApi.js';
+import type { ArticleSummary } from '../articles/articles.js';
 import { FacebookIcon, YouTubeIcon, ZaloIcon } from './BrandIcons.js';
 import { Contact } from './contact.js';
 import { HeroPanel } from './HeroPanel.js';
@@ -62,6 +65,27 @@ export function LandingPage() {
    * the difference is confined to the calls to action.
    */
   const signedIn = status === 'signed-in';
+
+  /*
+   * The teaser is three articles, fetched on the same public, anonymous
+   * endpoint `ArticlesPage` uses. `articles` stays `null` while the request is
+   * in flight or failed — either way the section below renders nothing rather
+   * than a heading over an empty grid. A transient failure here is not worth
+   * a retry button on the home page; the index at `/articles` already has one.
+   */
+  const alive = useAlive();
+  const [articles, setArticles] = useState<ArticleSummary[] | null>(null);
+
+  const loadArticles = useCallback(async () => {
+    try {
+      const items = await listArticles();
+      if (alive.current) setArticles(items);
+    } catch {
+      // See the comment above — no visible failure state for this preview.
+    }
+  }, [alive]);
+
+  useEffect(() => void loadArticles(), [loadArticles]);
 
   return (
     <>
@@ -240,7 +264,7 @@ export function LandingPage() {
             that leads somewhere with nothing in it. The home page has no
             business advertising a library that has not been stocked.
           */}
-          {ARTICLES.length > 0 && (
+          {articles !== null && articles.length > 0 && (
             <>
               <div className="section-heading row-heading updates-articles-head" data-reveal>
                 <div>
@@ -253,8 +277,8 @@ export function LandingPage() {
               </div>
 
               <div className="article-grid" data-reveal data-reveal-stagger>
-                {ARTICLES.slice(0, 3).map((article) => (
-                  <ArticleCard key={article.slug} article={article} cover />
+                {articles.slice(0, 3).map((article, index) => (
+                  <ArticleCard key={article.slug} article={article} cover index={index} />
                 ))}
               </div>
             </>

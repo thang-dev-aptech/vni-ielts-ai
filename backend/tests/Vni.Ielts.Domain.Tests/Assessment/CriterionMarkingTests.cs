@@ -194,6 +194,44 @@ public sealed class CriterionMarkingTests
         Assert.Contains(MarkingFlag.EvidenceNotGrounded, marking.Flags);
     }
 
+    // ── Quote-wrapping normalisation ────────────────────────────────────────
+
+    [Theory]
+    // Straight double quotes — the most common model artifact.
+    [InlineData("\"fewer cars means cleaner air\"", "fewer cars means cleaner air")]
+    // Curly double quotes.
+    [InlineData("\u201cfewer cars means cleaner air\u201d", "fewer cars means cleaner air")]
+    // Straight single quotes.
+    [InlineData("'fewer cars means cleaner air'", "fewer cars means cleaner air")]
+    // Curly single quotes.
+    [InlineData("\u2018fewer cars means cleaner air\u2019", "fewer cars means cleaner air")]
+    // Not a matched pair — left alone.
+    [InlineData("\"fewer cars means cleaner air", "\"fewer cars means cleaner air")]
+    // No wrapping — unchanged.
+    [InlineData("fewer cars means cleaner air", "fewer cars means cleaner air")]
+    // Single character with quotes — too short after stripping.
+    [InlineData("\"x\"", "x")]
+    public void StripQuoteWrapping_removes_symmetrical_pairs_only(
+        string input, string expected)
+    {
+        Assert.Equal(expected, CriterionMarking.StripQuoteWrapping(input));
+    }
+
+    [Fact]
+    public void Evidence_wrapped_in_quotes_is_grounded_after_stripping()
+    {
+        // The model returned the evidence wrapped in literal "…". Production
+        // must strip the wrapping and recognise the quote as grounded.
+        var claims = FourClaims();
+        claims[0] = Claim(
+            CriterionKeys.TaskResponse, 6,
+            "\"fewer cars means cleaner air\"");
+
+        var marking = CriterionMarking.Mark(Writing, claims, null, Submission);
+
+        Assert.Empty(marking.UngroundedEvidence);
+    }
+
     // ── Aggregation ─────────────────────────────────────────────────────────
 
     [Theory]

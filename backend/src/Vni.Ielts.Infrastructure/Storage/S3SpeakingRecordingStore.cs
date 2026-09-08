@@ -45,6 +45,30 @@ internal sealed class S3SpeakingRecordingBlobStore(IAmazonS3 client, ObjectStora
         return new Uri(url);
     }
 
+    public Uri CreatePresignedGetUrl(string objectKey, TimeSpan ttl)
+    {
+        EnsureKey(objectKey);
+
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = options.SpeakingRecordingsBucket,
+            Key = ObjectStorageOptions.Under(options.SpeakingRecordingsPrefix, objectKey),
+            Verb = HttpVerb.GET,
+            Expires = DateTime.UtcNow.Add(ttl),
+        };
+
+        var url = client.GetPreSignedURL(request);
+        if (options.ServiceUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            && Uri.TryCreate(url, UriKind.Absolute, out var parsed)
+            && parsed.Scheme == Uri.UriSchemeHttps)
+        {
+            url = new UriBuilder(parsed) { Scheme = Uri.UriSchemeHttp, Port = parsed.Port == 443 ? 9000 : parsed.Port }
+                .Uri.ToString();
+        }
+
+        return new Uri(url);
+    }
+
     public async Task<SpeakingRecordingObjectHead?> HeadAsync(string objectKey, CancellationToken ct)
     {
         EnsureKey(objectKey);

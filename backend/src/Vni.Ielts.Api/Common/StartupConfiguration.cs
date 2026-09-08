@@ -1,5 +1,8 @@
+using Vni.Ielts.Application.Usage;
 using Vni.Ielts.Infrastructure.Ai;
+using Vni.Ielts.Infrastructure.Assessment;
 using Vni.Ielts.Infrastructure.Configuration;
+using Vni.Ielts.Infrastructure.Content.Import;
 using Vni.Ielts.Infrastructure.Persistence;
 using Vni.Ielts.Infrastructure.Security;
 using Vni.Ielts.Infrastructure.Security.Sso;
@@ -510,6 +513,57 @@ public static class StartupConfiguration
                 + "silently gives an in-flight request no grace at all.");
         }
 
+        // ── Assessment ────────────────────────────────────────────────────
+        /*
+         * The Writing Task 1 : Task 2 ratio. Unset is fine — it is the null
+         * implementation, and Writing simply has no combined band (`G-11`).
+         * A half-stated or non-positive pair is refused in every environment:
+         * a zero weight is a division by nothing at results time, and there
+         * is no development reading of it that makes sense.
+         */
+        var assessment = builder.Configuration.GetSection(AssessmentOptions.SectionName)
+            .Get<AssessmentOptions>() ?? new AssessmentOptions();
+
+        if (assessment.Writing.TaskWeights?.Problem() is { } weightsProblem)
+            problems.Add(weightsProblem);
+
+        // ── Usage ledger ─────────────────────────────────────────────────
+        /*
+         * Every amount here is a business number nobody has to decide before
+         * the ledger works — `P-15` fixed the welcome grant at ten, and the
+         * rest default to zero: `G-11`'s null implementation, not a guess.
+         * The only thing checked is that a *stated* number is not negative —
+         * a negative turn count has no reading in any environment, the same
+         * class of mistake as a negative timeout.
+         */
+        var usage = builder.Configuration.GetSection(UsageOptions.SectionName)
+            .Get<UsageOptions>() ?? new UsageOptions();
+
+        void RequireNonNegative(string key, decimal value)
+        {
+            if (value < 0)
+                problems.Add($"{key} is {value}. A negative turn amount has no reading; unset it to leave the amount undecided.");
+        }
+
+        RequireNonNegative($"{UsageOptions.SectionName}:InitialGrantTurns", usage.InitialGrantTurns);
+        RequireNonNegative($"{UsageOptions.SectionName}:DailyLoginTurns", usage.DailyLoginTurns);
+        RequireNonNegative($"{UsageOptions.SectionName}:ReferralTurns", usage.ReferralTurns);
+        RequireNonNegative($"{UsageOptions.SectionName}:TurnCostPerUse", usage.TurnCostPerUse);
+        foreach (var (action, cost) in usage.TurnCostByAction)
+            RequireNonNegative($"{UsageOptions.SectionName}:TurnCostByAction:{action}", cost);
+
+        // ── Exam import archive caps ──────────────────────────────────────
+        /*
+         * A cap of zero refuses every package; a negative timeout crashes the
+         * timer at the first upload rather than at boot. Checked in every
+         * environment, because there is no development reading of "no upload
+         * can ever succeed" that is useful. → `ImportArchiveOptions`
+         */
+        var importArchive = builder.Configuration.GetSection(ImportArchiveOptions.SectionName)
+            .Get<ImportArchiveOptions>() ?? new ImportArchiveOptions();
+
+        problems.AddRange(importArchive.Problems());
+
         // ── Transport ─────────────────────────────────────────────────────
         if (!development
             && builder.Configuration.GetValue("Https:Require", true)
@@ -743,7 +797,13 @@ public static class StartupConfiguration
         var email = configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>()
             ?? new SmtpOptions();
         var ai = configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+        var assessment = configuration.GetSection(AssessmentOptions.SectionName)
+            .Get<AssessmentOptions>() ?? new AssessmentOptions();
         var origins = configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+        var importArchiveDescribed = configuration.GetSection(ImportArchiveOptions.SectionName)
+            .Get<ImportArchiveOptions>() ?? new ImportArchiveOptions();
+        var usageDescribed = configuration.GetSection(UsageOptions.SectionName)
+            .Get<UsageOptions>() ?? new UsageOptions();
 
         var lines = new List<string>
         {
@@ -795,6 +855,26 @@ public static class StartupConfiguration
             $"Email:ClientBaseUrl = {SecretRedaction.Url(email.ClientBaseUrl)}",
 
             $"Ai:AllowCrossBorderTransfer = {ai.AllowCrossBorderTransfer}",
+
+            "Assessment:Writing:TaskWeights = "
+                + (assessment.Writing.TaskWeights is { IsUnset: false } weights
+                    ? weights.ToString()
+                    : "not set — no combined Writing band unless the exam version carries a ratio, G-11"),
+
+            $"Usage:InitialGrantTurns = {usageDescribed.InitialGrantTurns}",
+            $"Usage:DailyLoginTurns = {usageDescribed.DailyLoginTurns}"
+                + (usageDescribed.DailyLoginTurns == 0 ? " — undecided, G-11" : ""),
+            $"Usage:ReferralTurns = {usageDescribed.ReferralTurns}"
+                + (usageDescribed.ReferralTurns == 0 ? " — undecided, G-11" : ""),
+
+            // Printed at boot, never in a finding: an administrator reading the
+            // startup log may know the caps; an uploader must not.
+            $"Import:Archive = entries {importArchiveDescribed.MaxEntries}, "
+                + $"total {importArchiveDescribed.MaxTotalUncompressedBytes} B, "
+                + $"entry {importArchiveDescribed.MaxEntryUncompressedBytes} B, "
+                + $"ratio {importArchiveDescribed.MaxCompressionRatio}:1, "
+                + $"archive {importArchiveDescribed.MaxArchiveBytes} B, "
+                + $"timeout {importArchiveDescribed.ExtractionTimeoutSeconds} s",
         };
 
         foreach (var (section, provider) in new[] { ("OpenAi", ai.OpenAi), ("Gemini", ai.Gemini) })

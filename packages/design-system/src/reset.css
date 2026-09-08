@@ -125,10 +125,12 @@ video {
   outline-offset: 2px;
 }
 
-/* Depth is three background layers plus a hairline border. There is no
- * shadow token in this system; all four surveyed design systems dropped
- * shadows, and the prototype's 31 uses are a measurement of the problem,
- * not a pattern to continue. */
+/* Depth is three background layers plus a hairline border. `.card` is a
+ * static surface, so it carries no shadow — all four surveyed design systems
+ * dropped decorative shadows, and the prototype's 31 uses are a measurement
+ * of the problem, not a pattern to continue. The D-10 hard shadows
+ * (--shadow-press-primary, --shadow-press-danger, --shadow-card) belong to
+ * pressable things, not to this. */
 .card {
   background: var(--card);
   border: 1px solid var(--line);

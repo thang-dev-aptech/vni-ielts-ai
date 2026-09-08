@@ -23,6 +23,8 @@ internal static class IdentityMappers
         Status = user.Status.ToString(),
         CreatedAt = user.CreatedAt.UtcDateTime,
         RoleIds = [.. user.RoleIds.Select(r => r.Value)],
+        ReferralCode = user.ReferralCode,
+        ReferredByUserId = user.ReferredByUserId?.Value,
     };
 
     public static User ToDomain(this UserDocument doc) => User.Rehydrate(
@@ -36,7 +38,9 @@ internal static class IdentityMappers
         // DateTime.Kind decide, because an Unspecified kind here silently
         // becomes local time and every deadline shifts by the server's offset.
         new DateTimeOffset(DateTime.SpecifyKind(doc.CreatedAt, DateTimeKind.Utc)),
-        [.. doc.RoleIds.Select(r => new RoleId(r))]);
+        [.. doc.RoleIds.Select(r => new RoleId(r))],
+        doc.ReferralCode,
+        doc.ReferredByUserId is null ? null : new UserId(doc.ReferredByUserId));
 
     public static UserIdentityDocument ToDocument(this UserIdentity identity) => new()
     {

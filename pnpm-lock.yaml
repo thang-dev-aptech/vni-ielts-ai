@@ -81,6 +81,9 @@ importers:
       '@vni/speaking-audio':
         specifier: workspace:*
         version: link:../../plugins/speaking-audio
+      '@vni/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@vni/ui':
         specifier: workspace:*
         version: link:../../packages/ui

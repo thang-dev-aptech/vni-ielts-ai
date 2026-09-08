@@ -231,12 +231,23 @@ public sealed record QuestionResultView(
 /// scope — practice parts report raw and accuracy only. Product law L3: a
 /// section with no result is absent from the list, never present with a zero.
 /// </summary>
+/// <param name="BandVerified">
+/// `P-11`: whether <paramref name="Band"/> may be shown to the learner at
+/// all. True only when the exam version's <c>ScoringProfile.Provenance</c>
+/// says <c>equated</c> — every other status, and its absence, reads as
+/// not-equated. <b>A gate read alongside <see cref="Band"/>, not a second
+/// source for the number.</b> <see cref="Band"/> still carries whatever
+/// <c>DeterministicScorer</c> computed, unconditionally; a client that wants
+/// the product rule has to check both fields, because the number and the
+/// permission to show it come from two different decisions.
+/// </param>
 public sealed record SectionResultView(
     string Module,
     int RawScore,
     int MaxScore,
     decimal? Accuracy,
     decimal? Band,
+    bool BandVerified,
     string ScoreLabel,
     IReadOnlyList<QuestionResultView> Questions);
 
@@ -283,7 +294,64 @@ public sealed record SessionResultsView(
     /// Null until every one of the four modules has a band. Absent is the
     /// honest state; the client draws it as `—`, never as a partial average.
     /// </summary>
-    decimal? OverallBand);
+    decimal? OverallBand,
+    /// <summary>
+    /// The combined Writing band — Task 1 and Task 2 on the ratio in force
+    /// (`P-12`: 1 : 2, carried by the exam version or by configuration) and
+    /// rounded by <c>BandScore.Weighted</c>. Null while fewer than two task
+    /// markings exist or no ratio is resolvable; never a placeholder number.
+    /// The client labels it "AI · tham khảo" (`P-13`).
+    /// </summary>
+    decimal? WritingBand,
+    /// <summary>
+    /// Why <see cref="WritingBand"/> is null, when Writing was sat and the
+    /// band is absent: <c>awaiting-tasks</c> while fewer than two task
+    /// markings exist, <c>weighting-not-configured</c> when both exist and
+    /// neither the exam version nor the deployment carries a ratio. Null when
+    /// the band is present or Writing was not part of this sitting.
+    /// </summary>
+    string? WritingBandReason,
+    /// <summary>
+    /// The left-hand column of the Result/Review screen (`P-08`) — the paper
+    /// as it was sat, for every module this sitting actually attempted.
+    ///
+    /// <b>Empty while the sitting is still <c>InProgress</c>, with no
+    /// exception.</b> `S2` exists because `QuestionResultView` alone has no
+    /// passage, prompt or cue card for the cột trái to render — but a Full
+    /// Test candidate still on Listening must not be handed Reading's passage
+    /// early just because Reading's attempt already closed. The gate is on
+    /// the whole sitting's status, not on each section's own.
+    ///
+    /// <b>Reuses <see cref="PartView"/> exactly as the sitting does.</b> That
+    /// type already has no <c>Transcript</c> field (see the doc comment on
+    /// <see cref="ExamCatalogueItem"/>) and no answer key — and neither lifts
+    /// here. Transcript stays out post-submit too, blocked by the open ASR
+    /// decision rather than by the pre/post-submit boundary (`P-02`); the
+    /// correct answer belongs on <see cref="QuestionResultView"/>, served
+    /// alongside this, not duplicated here.
+    /// </summary>
+    IReadOnlyList<SectionContentView> Content);
+
+/// <summary>
+/// One section's content, as the learner actually sat it — see
+/// <see cref="SessionResultsView.Content"/>.
+/// </summary>
+/// <param name="Submissions">
+/// Writing only: the learner's own submitted text for each essay question,
+/// keyed by question id. Empty for every other module.
+///
+/// <b>Not duplicated onto <see cref="QuestionResultView"/>.</b> Reading and
+/// Listening already carry the learner's answer on
+/// <c>QuestionResultView.Submitted</c> — Writing has no
+/// <see cref="QuestionResultView"/> at all, because it is marked rather than
+/// scored, so this is the one place its essay text can live without
+/// inventing a second field that means the same thing as the first for three
+/// modules out of four.
+/// </param>
+public sealed record SectionContentView(
+    string Module,
+    IReadOnlyList<PartView> Parts,
+    IReadOnlyDictionary<string, string?> Submissions);
 
 /// <summary>
 /// One module's marking, and where it has got to.
@@ -502,6 +570,7 @@ internal static class ExamViewMapping
                 ? Math.Round((decimal)score.RawScore / score.MaxScore, 4, MidpointRounding.AwayFromZero)
                 : null,
             score.Band?.Value,
+            version?.Scoring.Provenance?.Status == BandTableProvenanceStatus.Equated,
             PracticeScorePolicy.ScoreLabel(capability, score.Band),
             [.. score.Questions.Select(q => q.ToView(version, score.Module))]);
 

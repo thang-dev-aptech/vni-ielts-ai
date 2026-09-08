@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from 'react';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
 import { PageHead } from '../chrome/PageHead.js';
 import { useAuth } from '../auth/AuthContext.js';
@@ -7,7 +8,9 @@ import { jumpToSection } from '../chrome/jumpToSection.js';
 import { useReveal } from '../landing/useReveal.js';
 import { Paths } from '../../routes/paths.js';
 import { usePageTitle } from '../../routes/usePageTitle.js';
-import { DOCUMENTS } from './documents.js';
+import { useAlive } from '../../lib/useAlive.js';
+import type { LibraryDocument } from './documents.js';
+import { listDocuments } from './documentsApi.js';
 import { DocumentsLibrary } from './DocumentsLibrary.js';
 import '../../styles/landing.css';
 import '../../styles/module-pages.css';
@@ -26,8 +29,8 @@ import '../../styles/documents-page.css';
  *
  * <b>Deliberately plain about what is missing.</b> `M-23` is one sentence —
  * read it or download it. No reader, no annotation, no favourites. Find the
- * file, see what it is, open it. No file has been published yet, so every free
- * entry currently renders "Sắp có" instead of a button that would 404.
+ * file, see what it is, open it. A document the CMS has not attached a file
+ * to renders "Sắp có" instead of a button that would 404.
  *
  * <b>Free and premium are two shelves.</b> `[QUYẾT ĐỊNH]` 22/08/2026. Splitting
  * them means a learner scanning the free shelf is never reading titles they
@@ -94,8 +97,24 @@ export function DocumentsPage() {
   useReveal();
   usePageTitle('Tài liệu IELTS');
 
-  const freeCount = DOCUMENTS.filter((doc) => doc.access === 'free').length;
-  const skillCount = new Set(DOCUMENTS.map((doc) => doc.skill)).size;
+  const alive = useAlive();
+  const [docs, setDocs] = useState<LibraryDocument[] | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  const load = useCallback(async () => {
+    setFailed(false);
+    try {
+      const items = await listDocuments();
+      if (alive.current) setDocs(items);
+    } catch {
+      if (alive.current) setFailed(true);
+    }
+  }, [alive]);
+
+  useEffect(() => void load(), [load]);
+
+  const freeCount = (docs ?? []).filter((doc) => doc.access === 'free').length;
+  const skillCount = new Set((docs ?? []).map((doc) => doc.skill)).size;
 
   const { user } = useAuth();
   const compact = user !== null;
@@ -134,10 +153,10 @@ export function DocumentsPage() {
             library is the one in the list below — *"Chưa có tài liệu nào"* —
             and it only needs saying once.
           */}
-              {DOCUMENTS.length > 0 && (
+              {(docs?.length ?? 0) > 0 && (
                 <ul className="res-hero-stats" aria-label="Quy mô thư viện">
                   <li>
-                    <strong>{DOCUMENTS.length}</strong>
+                    <strong>{docs?.length ?? 0}</strong>
                     <span>tài liệu trong kho</span>
                   </li>
                   <li>
@@ -170,7 +189,12 @@ export function DocumentsPage() {
 
       <section className="res-lib-band" id="library" tabIndex={-1}>
         <div className="container">
-          <DocumentsLibrary />
+          <DocumentsLibrary
+            docs={docs}
+            loading={docs === null && !failed}
+            failed={failed}
+            onRetry={load}
+          />
         </div>
       </section>
 

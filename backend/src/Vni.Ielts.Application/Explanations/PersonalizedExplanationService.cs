@@ -34,7 +34,8 @@ public sealed class PersonalizedExplanationService(
     IAnswerSheetStore answers,
     IPersonalizedExplanationStore store,
     IReadingListeningExplanationGenerator generator,
-    IClock clock)
+    IClock clock,
+    Usage.UsageRecorder? usage = null)
 {
     public const int MaxAttempts = 3;
 
@@ -138,6 +139,15 @@ public sealed class PersonalizedExplanationService(
                     source.PassageBody ?? source.Transcript,
                     Personalized: true),
                 ct);
+
+            // The generator was asked, so the ledger records a use whether or
+            // not the answer validates — the provider call is what costs.
+            // Canonical and cached explanations never reach this line. → `P-14`
+            if (usage is not null)
+            {
+                await usage.ExplanationGeneratedAsync(
+                    command.UserId, session.Id, result.Metadata?.Provider, result.Metadata?.Model, ct);
+            }
 
             if (!result.IsSuccess || result.RawJson is null)
             {

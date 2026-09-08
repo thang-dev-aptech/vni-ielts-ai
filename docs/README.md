@@ -96,6 +96,16 @@ When sources disagree, higher wins:
 
 > **Limit:** demote only where the newer source **addresses the same subject and says less** than the older document. Never use this rule to mass-demote older requirements that the newer source simply did not mention.
 
+**Two dated decision sets, September 2026.** `P-01`…`P-22` are **product decisions** the owner made on
+06/09/2026 ([`product/mvp-blueprint.md`](product/mvp-blueprint.md), rows in
+[`requirements/confirmed.md`](requirements/confirmed.md)). `D-1`…`D-12` are **UX decisions** locked on
+04/09/2026 ([`VNI_IELTS_AI_COMPLETE_REDESIGN_PROMPT.md`](VNI_IELTS_AI_COMPLETE_REDESIGN_PROMPT.md)). Both are
+tier 2; `P-*` is the later owner statement, so **where they conflict, `P-*` wins**. `D-10` (visual system)
+does not conflict and stays in force. Two namespace warnings: `P-01` (leading zero) is not `P-1` — the
+latter is a *Platforms* row in `confirmed.md` — and the UX `D-1`…`D-12` are not the *Database* rows
+`D-1`…`D-6` in `confirmed.md`. The conflicts that were identified are listed in
+`_workspace/design-brief/vni-design-brief.html` § B.
+
 ---
 
 ## Tag legend
@@ -127,6 +137,7 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 ### Product — what and why
 - [`product/executive-summary.md`](product/executive-summary.md) — what the product is, what is technically hard, what is unknown
 - [`product/vision-and-scope.md`](product/vision-and-scope.md) — the four module groups, scope boundaries, non-goals
+- [`product/mvp-blueprint.md`](product/mvp-blueprint.md) — **the MVP as decided on 06/09/2026**: the 22 owner decisions `P-01`…`P-22` (CONFIRMED, sourced in `requirements/confirmed.md`) and their derivation — navigation, screen list, Result/Review data contract, content lifecycle, import pipeline, what is deliberately not built (all `PROPOSED`)
 - [`product/four-skills-practice-and-mock-research.md`](product/four-skills-practice-and-mock-research.md) — current research for part/full-skill practice, four-skill mock, scoring, AI/voice providers, required APIs and the gate before implementation planning
 - [`product/competitor-edly.md`](product/competitor-edly.md) — nearest competitor; three learner modules worth considering
 - [`product/web-demo-feature-map.md`](product/web-demo-feature-map.md) — prototype web vs confirmed scope (features and flows, not visuals)
@@ -168,6 +179,7 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 
 ### UX
 - [`ux/DESIGN.md`](ux/DESIGN.md) — design language. Direction **C · Soft Card** CONFIRMED 2026-08-20; tokens, spacing/type scale, and the four product laws are binding engineering constraints held at `PROPOSED` — bundled owner confirmation due at requirement freeze
+- [`VNI_IELTS_AI_COMPLETE_REDESIGN_PROMPT.md`](VNI_IELTS_AI_COMPLETE_REDESIGN_PROMPT.md) — the learner redesign brief with the 12 UX decisions `D-1`…`D-12` locked 04/09/2026. `D-10` (visual system) is the source of truth for colour, type and spacing; where another `D-*` conflicts with a `P-*` decision of 06/09, `P-*` wins
 - [`ux/practice-entry-test-flow.md`](ux/practice-entry-test-flow.md) — the choice layer at the entrance to four-skills practice (`E-15`…`E-19`): every state of the layer, both exits, and what the result screen may state while `H-4` and `B-2` are open. Surfaces `B-12` · `M-34`…`M-37`
 - [`ux/practice-mode.md`](ux/practice-mode.md) — **Luyện đề vs Thi thử** (`E-20`…`E-32`, owner instruction 2026-08-27): the rules that separate the two modes, the practice header/footer component contract, the Listening practice and review screens, the Reading split view, and five recorded conflicts. Narrows `B-8` for the Reading and Listening screens. Surfaces `B-13` · `M-38`…`M-44`
 - [`ux/cms-spec.md`](ux/cms-spec.md) — Admin CMS screens, states, permission matrix, import and AI-inspection flows
@@ -209,6 +221,13 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 | [0008](decisions/0008-exam-package-format-v1.md) | Exam package format v1 | Accepted |
 | [0009](decisions/0009-share-gating-not-verifiable.md) | **Share-gated progression not implementable; use referral attribution** | Accepted (finding) |
 | [0010](decisions/0010-documentation-source-of-truth.md) | `docs/` canonical; tool configs point, never duplicate | Accepted |
+| [0011](decisions/0011-mongodb-single-node-replica-set.md) | MongoDB single-node replica set for local/dev | Accepted |
+| [0012](decisions/0012-learner-first-sequencing.md) | Learner-first sequencing | Accepted |
+| [0013](decisions/0013-one-email-one-account-silent-linking.md) | One email, one account; no silent linking | Accepted |
+| [0014](decisions/0014-backend-mediated-oidc-handoff-code.md) | Backend-mediated OIDC handoff code | Accepted |
+| [0015](decisions/0015-answer-sheet-closure-protocol.md) | Answer-sheet closure protocol | Accepted |
+| [0016](decisions/0016-object-storage-one-bucket-prefix-per-class.md) | Object storage: one bucket, prefix per class | Accepted |
+| [0017](decisions/0017-exam-version-author-review-import-seams.md) | Nullable `AuthorId`; five review statuses; structured-only HTTP import | Accepted |
 
 New ADRs: use `/adr` — it handles numbering and format. Template: [`ADR-template.md`](decisions/ADR-template.md).
 

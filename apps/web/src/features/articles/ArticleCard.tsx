@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Paths } from '../../routes/paths.js';
 import { formatDate } from '../../lib/dates.js';
 import { ArticleCover } from './ArticleCover.js';
-import { ARTICLE_CATEGORY_LABEL, type Article } from './articles.js';
+import { ARTICLE_CATEGORY_LABEL, type ArticleSummary } from './articles.js';
 
 /**
  * One article, as a card.
@@ -36,14 +36,23 @@ import { ARTICLE_CATEGORY_LABEL, type Article } from './articles.js';
  * text that pushes the date and the title apart. It belongs on the article
  * itself, where it is a fact about that piece rather than wallpaper.
  */
-export function ArticleCard({ article, cover = false }: { article: Article; cover?: boolean }) {
+export function ArticleCard({
+  article,
+  cover = false,
+  index,
+}: {
+  article: ArticleSummary;
+  cover?: boolean;
+  /** Position in the list being rendered — forwarded to `ArticleCover` as its seat. */
+  index?: number | undefined;
+}) {
   return (
     <Link
       className={`article-card is-${article.category}${cover ? ' has-cover' : ''}`}
       to={Paths.article(article.slug)}
     >
       {cover ? (
-        <ArticleCover article={article} />
+        <ArticleCover article={article} index={index} />
       ) : (
         <span className="article-rule" aria-hidden="true" />
       )}

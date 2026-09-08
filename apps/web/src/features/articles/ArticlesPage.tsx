@@ -1,5 +1,5 @@
 import { useI18n } from '../../i18n/index.js';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
 import { PageHead } from '../chrome/PageHead.js';
@@ -7,13 +7,15 @@ import { useAuth } from '../auth/AuthContext.js';
 import '../../styles/app-shell.css';
 import { Pagination } from '../chrome/Pagination.js';
 import { fold } from '../../lib/fold.js';
+import { useAlive } from '../../lib/useAlive.js';
 import { useReveal } from '../landing/useReveal.js';
 import { Paths } from '../../routes/paths.js';
 import { usePageTitle } from '../../routes/usePageTitle.js';
 import { ArticleCard } from './ArticleCard.js';
 import { ArticleToolbar } from './ArticleToolbar.js';
 import { KnowledgeHero } from './KnowledgeHero.js';
-import { ARTICLES, ARTICLE_CATEGORY_LABEL, type ArticleCategory } from './articles.js';
+import { listArticles } from './articlesApi.js';
+import { ARTICLE_CATEGORY_LABEL, type ArticleCategory, type ArticleSummary } from './articles.js';
 import '../../styles/landing.css';
 import '../../styles/module-pages.css';
 import '../../styles/practice.css';
@@ -59,18 +61,43 @@ export function ArticlesPage() {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
 
+  const alive = useAlive();
+  const [articles, setArticles] = useState<ArticleSummary[] | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  const load = useCallback(async () => {
+    setFailed(false);
+    try {
+      const items = await listArticles();
+      if (alive.current) setArticles(items);
+    } catch {
+      if (alive.current) setFailed(true);
+    }
+  }, [alive]);
+
+  useEffect(() => void load(), [load]);
+
+  const loading = articles === null && !failed;
+  const allArticles = articles ?? [];
+
   const matches = useMemo(() => {
     // `fold` because half of Vietnamese search input arrives unmarked — someone
     // types "writing task" or "phan bo thoi gian" without the marks, and a
     // plain substring match finds nothing and reads as an empty library.
     const needle = fold(query);
 
-    return ARTICLES.filter((article) => {
+    return allArticles.filter((article) => {
       if (category !== 'all' && article.category !== category) return false;
       if (!needle) return true;
       return fold(`${article.title} ${article.excerpt}`).includes(needle);
     });
-  }, [category, query]);
+  }, [category, query, allArticles]);
+
+  /** Absolute seat of an article in the fetched catalogue — the cover's position key. */
+  const seatOf = useMemo(
+    () => new Map(allArticles.map((article, i) => [article.slug, i])),
+    [allArticles],
+  );
 
   // Narrowing has to put the reader back on page one, or a search that leaves
   // four results while they are on page two shows an empty grid and reads as a
@@ -100,7 +127,7 @@ export function ArticlesPage() {
           lead="Bài hướng dẫn và mẹo luyện thi do VNI đăng."
         />
       ) : (
-        <KnowledgeHero />
+        <KnowledgeHero articles={allArticles} />
       )}
 
       {/* The toolbar overlaps the hero's lower edge, so the first thing under
@@ -126,26 +153,37 @@ export function ArticlesPage() {
             {/* Heading and count in one live region: changing the filter
                 silently rewrote the count, and a screen reader heard a number
                 with no list attached to it. */}
-            <p className="art-grid-count" role="status">
-              {ARTICLES.length === 0
-                ? 'Chưa có bài viết nào'
-                : matches.length === 0
-                  ? 'Không có bài viết nào khớp'
-                  : `${matches.length} bài${pages > 1 ? ` · trang ${current}/${pages}` : ''}`}
-            </p>
+            {!loading && !failed && (
+              <p className="art-grid-count" role="status">
+                {allArticles.length === 0
+                  ? 'Chưa có bài viết nào'
+                  : matches.length === 0
+                    ? 'Không có bài viết nào khớp'
+                    : `${matches.length} bài${pages > 1 ? ` · trang ${current}/${pages}` : ''}`}
+              </p>
+            )}
           </div>
 
           {/*
-            Three empty states, not two, and the new one is not a variation of
-            the others.
-
-            An empty catalogue is not the reader's doing. Telling someone to
-            try another keyword when nothing has ever been published sends them
-            hunting for a mistake they did not make — the same failure the
-            dictation library was rewritten to avoid, and the filter controls
-            have nothing to offer here either.
+            Four states, not two, and a loading request and a failed one are
+            not a variation of "nothing published" — each tells the reader to
+            do something different (wait, retry, nothing) and showing the
+            wrong one either hides a real failure behind silence or tells a
+            visitor the library is permanently empty while a retry is still
+            the honest next step.
           */}
-          {ARTICLES.length === 0 ? (
+          {loading ? (
+            <p role="status">{t('common.loading')}</p>
+          ) : failed ? (
+            <div className="art-empty">
+              <h2>{t('common.notConnected')}</h2>
+              <div className="art-empty-actions">
+                <button type="button" className="btn btn-primary" onClick={() => void load()}>
+                  {t('common.retry')}
+                </button>
+              </div>
+            </div>
+          ) : allArticles.length === 0 ? (
             <div className="art-empty">
               <h2>Chưa có bài viết nào</h2>
               <p>
@@ -219,7 +257,12 @@ export function ArticlesPage() {
             <>
               <div className="article-grid" data-reveal data-reveal-stagger>
                 {shown.map((article) => (
-                  <ArticleCard key={article.slug} article={article} cover />
+                  <ArticleCard
+                    key={article.slug}
+                    article={article}
+                    cover
+                    index={seatOf.get(article.slug)}
+                  />
                 ))}
               </div>
 

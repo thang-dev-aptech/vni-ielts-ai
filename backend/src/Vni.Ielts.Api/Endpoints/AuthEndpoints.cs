@@ -12,7 +12,13 @@ using Vni.Ielts.Domain.Common;
 
 namespace Vni.Ielts.Api.Endpoints;
 
-public sealed record RegisterRequest(string Email, string Password, string DisplayName);
+/// <param name="ReferralCode">
+/// The inviter's code, from a shared link. Optional, and an unrecognised code
+/// is silently ignored rather than rejected — nobody's registration should
+/// fail because someone else's link went stale. → `P-16`
+/// </param>
+public sealed record RegisterRequest(
+    string Email, string Password, string DisplayName, string? ReferralCode = null);
 public sealed record LoginRequest(string Email, string Password);
 public sealed record RefreshRequest(string RefreshToken);
 public sealed record VerifyEmailRequest(string Token);
@@ -149,7 +155,9 @@ public static class AuthEndpoints
         CancellationToken ct)
     {
         var result = await handler.HandleAsync(
-            new RegisterUserCommand(request.Email, request.Password, request.DisplayName), ct);
+            new RegisterUserCommand(
+                request.Email, request.Password, request.DisplayName, request.ReferralCode),
+            ct);
 
         return result.Match(
             // 201 with a session. Registration signs the learner in and the

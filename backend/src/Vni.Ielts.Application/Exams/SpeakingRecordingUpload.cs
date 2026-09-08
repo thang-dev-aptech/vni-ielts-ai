@@ -176,6 +176,14 @@ public interface ISpeakingRecordingBlobStore
     Uri CreatePresignedPutUrl(
         string objectKey, string contentType, string checksumSha256, TimeSpan ttl);
 
+    /// <summary>
+    /// A short-lived, read-only URL to play one recording back — `S2b`'s
+    /// counterpart to <see cref="CreatePresignedPutUrl"/>. No checksum or
+    /// content type to declare: a GET proves nothing about the bytes, it
+    /// only fetches them.
+    /// </summary>
+    Uri CreatePresignedGetUrl(string objectKey, TimeSpan ttl);
+
     Task<SpeakingRecordingObjectHead?> HeadAsync(string objectKey, CancellationToken ct);
 
     Task PutAsync(
@@ -363,6 +371,50 @@ public sealed class CompleteSpeakingRecording(
 
         await metadata.MarkLinkedAsync(command.UploadId, now, ct);
         return row.RecordingId;
+    }
+}
+
+public sealed record GetSpeakingRecordingPlaybackCommand(
+    UserId UserId, ExamSessionId SessionId, string QuestionId);
+
+public sealed record SpeakingRecordingPlaybackResult(Uri Url, DateTimeOffset ExpiresAt);
+
+/// <summary>
+/// `S2b` — the counterpart to <see cref="InitSpeakingRecording"/> the Result/
+/// Review screen needs: a short-lived URL to play one answer back. Upload
+/// had this from the start; listening back never did.
+/// </summary>
+public sealed class GetSpeakingRecordingPlaybackUrl(
+    IExamCatalogue catalogue,
+    IExamSessionRepository sessions,
+    ISpeakingRecordingBlobStore blobs,
+    ISpeakingRecordingMetadataStore metadata,
+    IClock clock)
+{
+    /// <summary>
+    /// Minutes, not the upload window's quarter hour — a playback link is
+    /// consumed the moment the page renders it, never held open for a
+    /// multi-megabyte transfer the way an upload PUT is.
+    /// </summary>
+    private static readonly TimeSpan PlaybackTtl = TimeSpan.FromMinutes(5);
+
+    public async Task<SpeakingRecordingPlaybackResult> HandleAsync(
+        GetSpeakingRecordingPlaybackCommand command, CancellationToken ct)
+    {
+        if (!blobs.IsConfigured) throw new SpeakingRecordingUploadUnavailableException();
+
+        // 404, not 403 — the same ownership shape as every other sitting
+        // route. A learner asking for another's recording must not learn
+        // the session id was real. → `SessionProjection.LoadOwnedAsync`
+        await sessions.LoadOwnedAsync(catalogue, command.SessionId, command.UserId, ct);
+
+        var rows = await metadata.ListBySessionAsync(command.SessionId, ct);
+        var row = rows.FirstOrDefault(r =>
+                r.QuestionId == command.QuestionId && r.Status == SpeakingRecordingStatus.Linked)
+            ?? throw new SpeakingRecordingUploadNotFoundException();
+
+        var url = blobs.CreatePresignedGetUrl(row.ObjectKey, PlaybackTtl);
+        return new SpeakingRecordingPlaybackResult(url, clock.UtcNow.Add(PlaybackTtl));
     }
 }
 

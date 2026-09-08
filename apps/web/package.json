@@ -15,6 +15,7 @@
     "@vni/auth": "workspace:*",
     "@vni/design-system": "workspace:*",
     "@vni/speaking-audio": "workspace:*",
+    "@vni/types": "workspace:*",
     "@vni/ui": "workspace:*",
     "react": "19.2.0",
     "react-dom": "19.2.0",

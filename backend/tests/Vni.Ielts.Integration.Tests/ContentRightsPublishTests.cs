@@ -124,6 +124,30 @@ public sealed class ContentRightsPublishTests(SsoAppFactory app) : IClassFixture
         return draft;
     }
 
+    /// <summary>
+    /// Same shape as <see cref="DraftAsync"/>, but <c>Approved</c> — `P-20`
+    /// (slice S7) added a second, independent precondition to
+    /// <c>PublishEndpoint</c>: only an <c>Approved</c> or previously
+    /// <c>Published</c> version may publish. A bare <c>Draft</c> now refuses
+    /// before this gate is ever reached, which would make the success case
+    /// below indistinguishable from a rights refusal. The three refusal cases
+    /// above are unaffected — the rights gate runs before the status check
+    /// regardless of status, so they keep using <see cref="DraftAsync"/>.
+    /// </summary>
+    private static async Task<ExamVersion> ApprovedVersionAsync(
+        IExamCatalogue catalogue, ExamDefinitionId definitionId)
+    {
+        var seeded = (await catalogue.ListAllAsync(default)).FirstOrDefault();
+        Assert.True(seeded is not null, "No exam is seeded, so nothing here can be published.");
+
+        var version = ExamVersion.Rehydrate(
+            ExamVersionId.New(), definitionId, 1, seeded!.Title, seeded.Variant,
+            ExamVersionStatus.Approved, null, seeded.Scoring, seeded.Timing, seeded.Sections);
+
+        await catalogue.UpsertAsync(version, default);
+        return version;
+    }
+
     [SkippableFact]
     public async Task An_exam_whose_source_has_no_registry_entry_is_refused_at_publish()
     {
@@ -234,7 +258,7 @@ public sealed class ContentRightsPublishTests(SsoAppFactory app) : IClassFixture
                 boundExamDefinitionIds: [definition]),
             default);
 
-        var draft = await DraftAsync(catalogue, definition);
+        var draft = await ApprovedVersionAsync(catalogue, definition);
 
         var response = await PublishAsync(client, access, draft.Id);
 

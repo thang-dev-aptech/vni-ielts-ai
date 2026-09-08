@@ -1,11 +1,15 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
+import { useI18n } from '../../i18n/index.js';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
 import { Paths } from '../../routes/paths.js';
 import { usePageTitle } from '../../routes/usePageTitle.js';
+import { useAlive } from '../../lib/useAlive.js';
+import { ApiError } from '../../lib/api.js';
 import { formatDate } from '../../lib/dates.js';
 import { ArticleCard } from './ArticleCard.js';
-import { ARTICLES, ARTICLE_CATEGORY_LABEL, findArticle } from './articles.js';
+import { getArticleBySlug, listArticles } from './articlesApi.js';
+import { ARTICLE_CATEGORY_LABEL, type Article, type ArticleSummary } from './articles.js';
 
 /**
  * One article.
@@ -13,19 +17,63 @@ import { ARTICLES, ARTICLE_CATEGORY_LABEL, findArticle } from './articles.js';
  * <b>The slug is the address.</b> An unknown one is a 404 rather than an empty
  * page — a stale link should say it is stale, not render a heading with
  * nothing under it and leave the reader wondering whether the article was
- * deleted or the site is broken.
+ * deleted or the site is broken. `GET /api/v1/library/articles/{slug}`
+ * deliberately answers a draft slug the same way, so this page cannot tell the
+ * two apart and does not try to.
  *
- * <b>The body is placeholder copy.</b> There is no articles endpoint and no
- * CMS screen to publish one, so the text comes from `articles.ts`. What this
- * page settles is the shape: a title, a byline, a date, paragraphs, and a way
- * back to the index — none of which changes when the source becomes a fetch.
+ * <b>Fetched by slug, as of `S5`.</b> This used to read a static
+ * `ARTICLES` array synchronously; `articlesApi.ts` now owns the network call,
+ * which means a fetch that is in flight, one that fails outright, and one
+ * that 404s are three states this page has to tell apart — a spinner, a 404
+ * redirect and an empty page all look different to a reader for a reason.
+ * Related reading is a second, independent fetch: its failure must not hide
+ * an article that loaded successfully.
  */
 export function ArticlePage() {
-  const { slug } = useParams<{ slug: string }>();
-  const article = slug ? findArticle(slug) : undefined;
+  const { t } = useI18n();
+  const { slug = '' } = useParams<{ slug: string }>();
+  const alive = useAlive();
 
-  // The article's own title, not the product's. Called before the early
-  // return, because a hook after a `return` is a hook that sometimes runs.
+  const [article, setArticle] = useState<Article | null>(null);
+  const [related, setRelated] = useState<ArticleSummary[]>([]);
+  const [notFound, setNotFound] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const load = useCallback(async () => {
+    setFailed(false);
+    setNotFound(false);
+    setArticle(null);
+
+    try {
+      const found = await getArticleBySlug(slug);
+      if (!alive.current) return;
+      setArticle(found);
+
+      // Related reading is a nice-to-have beside the piece the reader came
+      // for; a failed second fetch must not take away the article they can
+      // already read.
+      try {
+        const siblings = await listArticles(found.category);
+        if (alive.current) {
+          setRelated(siblings.filter((other) => other.slug !== found.slug).slice(0, 3));
+        }
+      } catch {
+        if (alive.current) setRelated([]);
+      }
+    } catch (caught) {
+      if (!alive.current) return;
+      if (caught instanceof ApiError && caught.problem.status === 404) {
+        setNotFound(true);
+      } else {
+        setFailed(true);
+      }
+    }
+  }, [slug, alive]);
+
+  useEffect(() => void load(), [load]);
+
+  // The article's own title, not the product's. Called on every render so the
+  // hook order never depends on which state this page is in.
   usePageTitle(article?.title);
 
   // A new article at the same route keeps the old scroll position otherwise —
@@ -34,11 +82,30 @@ export function ArticlePage() {
     window.scrollTo({ top: 0 });
   }, [slug]);
 
-  if (!article) return <Navigate to="/404" replace />;
+  if (notFound) return <Navigate to="/404" replace />;
 
-  const related = ARTICLES.filter(
-    (other) => other.slug !== article.slug && other.category === article.category,
-  ).slice(0, 3);
+  if (failed) {
+    return (
+      <section className="section page-body">
+        <div className="container article-column">
+          <p role="status">{t('common.notConnected')}</p>
+          <button type="button" className="btn btn-primary" onClick={() => void load()}>
+            {t('common.retry')}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  if (article === null) {
+    return (
+      <section className="section page-body">
+        <div className="container article-column">
+          <p role="status">{t('common.loading')}</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <>
