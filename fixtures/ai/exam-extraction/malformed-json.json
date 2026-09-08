@@ -1,0 +1,19 @@
+{
+  "contractVersion": "exam-extraction-v1",
+  "classification": "Reading",
+  "modules": [
+    {
+      "module": "Reading",
+      "classification": "Reading",
+      "provenance": { "sourceId": "s1" },
+      "parts": [
+        {
+          "id": "part-1",
+          "order": 1,
+          "provenance": { "sourceId": "s1" },
+          "questions": [
+            {
+              "id": "q-1",
+              "order": 1,
+              "options": [],
+              "prompt": "The council approved the sche

@@ -32,24 +32,28 @@ internal sealed class MongoUserRepository(MongoContext ctx) : IUserRepository
     public async Task<bool> PhoneExistsAsync(PhoneNumber phone, CancellationToken ct) =>
         await ctx.Users.Find(u => u.Phone == phone.Value).AnyAsync(ct);
 
+    public Task<(IReadOnlyList<User> Users, long Total)> ListAsync(
+        string? search, int skip, int take, CancellationToken ct) =>
+        ListAsync(UserListQuery.SearchOnly(search, skip, take), ct);
+
     /// <summary>
-    /// A page of accounts for the CMS.
+    /// A page of accounts for the CMS. Filters run in the store.
     ///
-    /// Paged from the start rather than "list them all and filter in the UI":
-    /// the second works on the fifty accounts a dev database holds and falls
-    /// over in the first real week.
+    /// <see cref="UserListQuery.HasEmail"/> maps the retired emailVerified
+    /// filter: main has no verification flag (ADR-0018), so true/false means
+    /// "has an address" / "address-less".
     /// </summary>
     public async Task<(IReadOnlyList<User> Users, long Total)> ListAsync(
-        string? search, int skip, int take, CancellationToken ct)
+        UserListQuery query, CancellationToken ct)
     {
-        var filter = Builders<UserDocument>.Filter.Empty;
+        var filters = new List<FilterDefinition<UserDocument>>();
 
-        if (!string.IsNullOrWhiteSpace(search))
+        if (!string.IsNullOrWhiteSpace(query.Search))
         {
             // Escaped before it reaches a regex. An unescaped search box hands
             // the database a pattern chosen by the caller, and `(a+)+$` is the
             // classic way to hang one.
-            var pattern = System.Text.RegularExpressions.Regex.Escape(search.Trim());
+            var pattern = System.Text.RegularExpressions.Regex.Escape(query.Search.Trim());
 
             /*
              * The phone number is searched too, and it has to be: an account
@@ -59,29 +63,60 @@ internal sealed class MongoUserRepository(MongoContext ctx) : IUserRepository
              * way it is stored, so the typed text is normalised first when it
              * looks like a number — `0912 345 678` finds `+84912345678`.
              */
-            var phonePattern = PhoneNumber.TryCreate(search, out var typed)
+            var phonePattern = PhoneNumber.TryCreate(query.Search, out var typed)
                 ? System.Text.RegularExpressions.Regex.Escape(typed.Value)
                 : pattern;
 
-            filter = Builders<UserDocument>.Filter.Or(
+            filters.Add(Builders<UserDocument>.Filter.Or(
                 Builders<UserDocument>.Filter.Regex(
                     u => u.Email, new BsonRegularExpression(pattern, "i")),
                 Builders<UserDocument>.Filter.Regex(
                     u => u.DisplayName, new BsonRegularExpression(pattern, "i")),
                 Builders<UserDocument>.Filter.Regex(
-                    u => u.Phone, new BsonRegularExpression(phonePattern, "i")));
+                    u => u.Phone, new BsonRegularExpression(phonePattern, "i"))));
         }
+
+        if (query.RoleId is { } roleId)
+            filters.Add(Builders<UserDocument>.Filter.AnyEq(u => u.RoleIds, roleId.Value));
+
+        if (query.Status is { } status)
+            filters.Add(Builders<UserDocument>.Filter.Eq(u => u.Status, status.ToString()));
+
+        if (query.HasEmail is { } hasEmail)
+        {
+            filters.Add(hasEmail
+                ? Builders<UserDocument>.Filter.Type(u => u.Email, BsonType.String)
+                : Builders<UserDocument>.Filter.Or(
+                    Builders<UserDocument>.Filter.Exists(u => u.Email, false),
+                    Builders<UserDocument>.Filter.Eq(u => u.Email, null)));
+        }
+
+        var filter = filters.Count == 0
+            ? Builders<UserDocument>.Filter.Empty
+            : Builders<UserDocument>.Filter.And(filters);
 
         var total = await ctx.Users.CountDocumentsAsync(filter, cancellationToken: ct);
 
         var documents = await ctx.Users
             .Find(filter)
             .SortByDescending(u => u.CreatedAt)
-            .Skip(skip)
-            .Limit(take)
+            .Skip(query.Skip)
+            .Limit(query.Take)
             .ToListAsync(ct);
 
         return ([.. documents.Select(d => d.ToDomain())], total);
+    }
+
+    public async Task<long> CountActiveWithRoleAsync(RoleId roleId, UserId? excluding, CancellationToken ct)
+    {
+        var filter = Builders<UserDocument>.Filter.And(
+            Builders<UserDocument>.Filter.Eq(u => u.Status, nameof(UserStatus.Active)),
+            Builders<UserDocument>.Filter.AnyEq(u => u.RoleIds, roleId.Value));
+
+        if (excluding is { } id)
+            filter &= Builders<UserDocument>.Filter.Ne(u => u.Id, id.Value);
+
+        return await ctx.Users.CountDocumentsAsync(filter, cancellationToken: ct);
     }
 
     /// <summary>

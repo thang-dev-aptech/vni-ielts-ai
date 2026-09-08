@@ -1,0 +1,26 @@
+{
+  "contractVersion": "exam-extraction-v1",
+  "title": "Synthetic Reading Practice A",
+  "classification": "Reading",
+  "confidence": 0.8,
+  "variant": "Academic",
+  "durationMinutes": 60,
+  "modules": [
+    {
+      "module": "Reading",
+      "classification": "Reading",
+      "confidence": 0.8,
+      "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null },
+      "parts": [
+        {
+          "id": "part-1",
+          "order": 1,
+          "title": "Passage 1",
+          "body": "Synthetic passage text.",
+          "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null },
+          "questions": []
+        }
+      ]
+    }
+  ]
+}

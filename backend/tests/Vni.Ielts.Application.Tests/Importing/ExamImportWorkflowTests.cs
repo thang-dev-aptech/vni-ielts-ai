@@ -1,4 +1,5 @@
 using Vni.Ielts.Application.Importing;
+using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Tests.Importing;

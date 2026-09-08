@@ -8,6 +8,7 @@ import { ForbiddenPage } from './screens/ForbiddenPage.js';
 import { OverviewPage } from './screens/OverviewPage.js';
 import { ExamsPage } from './screens/ExamsPage.js';
 import { ExamDetailPage } from './screens/ExamDetailPage.js';
+import { ExamModulePreviewScreen } from './screens/ExamModulePreviewScreen.js';
 import { ImportPage } from './screens/ImportPage.js';
 import { DocumentsPage } from './screens/DocumentsPage.js';
 import { ArticlesPage } from './screens/ArticlesPage.js';
@@ -15,10 +16,16 @@ import { UsersPage } from './screens/UsersPage.js';
 import { UserDetailPage } from './screens/UserDetailPage.js';
 import { RolesPage } from './screens/RolesPage.js';
 import { AuditPage } from './screens/AuditPage.js';
-import { ConfigPage, EvaluationsPage, PackagesPage } from './screens/PendingPages.js';
+import { ConfigPage, EvaluationsPage } from './screens/PendingPages.js';
+import { PackagesPage } from './screens/PackagesPage.js';
+import { PackageReviewPage } from './screens/PackageReviewPage.js';
+import { CandidateReviewPage } from './screens/CandidateReviewPage.js';
 import { ReviewQueuePage } from './screens/ReviewQueuePage.js';
 import { PendingPublishPage } from './screens/PendingPublishPage.js';
 import { MediaLibraryPage } from './screens/MediaLibraryPage.js';
+import { ContentRightsPage } from './screens/ContentRightsPage.js';
+import { MyExamsPage } from './screens/MyExamsPage.js';
+import { QuestionBuilderPage } from './screens/QuestionBuilderPage.js';
 import './styles/palette.css';
 import './styles/admin.css';
 import './styles/workflow.css';
@@ -112,9 +119,25 @@ function Routed() {
           }
         />
         <Route
+          path={AdminPaths.myExams}
+          element={
+            <Gate permission={['exam.read.own', 'exam.read.any', 'exam.create']}>
+              <MyExamsPage />
+            </Gate>
+          }
+        />
+        <Route
+          path={AdminPaths.builderPattern}
+          element={
+            <Gate permission={['exam.read.own', 'exam.read.any', 'exam.update.own', 'exam.update.any']}>
+              <QuestionBuilderPage />
+            </Gate>
+          }
+        />
+        <Route
           path={AdminPaths.exams}
           element={
-            <Gate permission="exam.read">
+            <Gate permission={['exam.read', 'exam.read.any', 'exam.read.own']}>
               <ExamsPage />
             </Gate>
           }
@@ -122,8 +145,16 @@ function Routed() {
         <Route
           path={AdminPaths.examPattern}
           element={
-            <Gate permission="exam.read">
+            <Gate permission={['exam.read', 'exam.read.any', 'exam.read.own']}>
               <ExamDetailPage />
+            </Gate>
+          }
+        />
+        <Route
+          path={AdminPaths.examPreviewPattern}
+          element={
+            <Gate permission={['exam.read', 'exam.read.any', 'exam.read.own']}>
+              <ExamModulePreviewScreen />
             </Gate>
           }
         />
@@ -136,10 +167,34 @@ function Routed() {
           }
         />
         <Route
+          path={AdminPaths.contentRights}
+          element={
+            <Gate permission="content-rights.manage">
+              <ContentRightsPage />
+            </Gate>
+          }
+        />
+        <Route
           path={AdminPaths.packages}
           element={
             <Gate permission="package.read">
               <PackagesPage />
+            </Gate>
+          }
+        />
+        <Route
+          path={AdminPaths.candidatePattern}
+          element={
+            <Gate permission="package.read">
+              <CandidateReviewPage />
+            </Gate>
+          }
+        />
+        <Route
+          path={AdminPaths.packagePattern}
+          element={
+            <Gate permission="package.read">
+              <PackageReviewPage />
             </Gate>
           }
         />

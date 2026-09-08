@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { useOperator } from '../lib/operator.js';
 import { Confirm, useFlash } from '../chrome/Confirm.js';
@@ -11,6 +12,7 @@ import {
   type ImportFinding,
   type ImportWarning,
 } from '../lib/adminApi.js';
+import { AdminPaths } from '../routes/paths.js';
 import { reasonOf } from './UserDetailPage.js';
 
 /**
@@ -155,7 +157,9 @@ export function ImportPage() {
         <h1>Nhập đề</h1>
         <p>
           Gói nhập thành công sẽ ra <strong>bản nháp</strong> — học viên chưa thấy được. Muốn đưa
-          vào sử dụng thì cần một thao tác xuất bản riêng.
+          vào sử dụng thì cần một thao tác xuất bản riêng. Nguồn đề chưa có quyền tới học viên thì
+          đăng ký tại{' '}
+          <Link to={AdminPaths.contentRights}>Quyền nội dung</Link> trước khi xuất bản.
         </p>
       </header>
 

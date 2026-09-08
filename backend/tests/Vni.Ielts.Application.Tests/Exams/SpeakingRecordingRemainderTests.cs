@@ -313,6 +313,7 @@ public sealed class SpeakingRecordingRemainderTests
             Task.FromResult(id == version.Id ? version : null);
         public Task UpsertAsync(ExamVersion version, CancellationToken ct) => Task.CompletedTask;
         public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) => Task.CompletedTask;
+        public Task DeleteAsync(ExamVersionId id, CancellationToken ct) => Task.CompletedTask;
     }
 
     private sealed class Sessions(ExamSession session) : IExamSessionRepository

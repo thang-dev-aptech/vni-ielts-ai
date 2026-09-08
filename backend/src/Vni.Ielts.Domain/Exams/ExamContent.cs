@@ -118,17 +118,17 @@ public sealed class ExamVersion
     /// simply lets the approval through. → `[OPEN QUESTION]`, S7 report
     /// </summary>
     public UserId? AuthorId { get; }
-    public ScoringProfile Scoring { get; }
-    public TimingProfile Timing { get; }
+    public ScoringProfile Scoring { get; private set; }
+    public TimingProfile Timing { get; private set; }
     public ListeningPlaybackProfile ListeningPlayback { get; }
-    public IReadOnlyList<Section> Sections { get; }
+    public IReadOnlyList<Section> Sections { get; private set; }
 
     /// <summary>
     /// The order a Full Test advances through this version's modules.
     /// Resolved from <c>sequenceProfile</c> at import, or from
     /// <see cref="SequenceProfile.CanonicalOrder"/> when absent. → `E-12`
     /// </summary>
-    public IReadOnlyList<ExamModule> ModuleSequence { get; }
+    public IReadOnlyList<ExamModule> ModuleSequence { get; private set; }
 
     public bool IsSittable => Status == ExamVersionStatus.Published;
 
@@ -145,6 +145,43 @@ public sealed class ExamVersion
         return new(ExamVersionId.New(), definitionId, versionNumber, title, variant,
             ExamVersionStatus.Draft, null, scoring, timing, sections, sequence,
             listeningPlayback, description, authorId);
+    }
+
+    /// <summary>
+    /// A blank exam an author starts from in the CMS, rather than from a
+    /// JSON/ZIP upload. Content, scoring, and timing are empty until
+    /// <see cref="ReplaceContent"/> fills them.
+    /// </summary>
+    public static ExamVersion CreateBlankDraft(
+        ExamDefinitionId definitionId, int versionNumber, string title, ExamVariant variant,
+        UserId authorId) =>
+        CreateDraft(
+            definitionId,
+            versionNumber,
+            title,
+            variant,
+            new ScoringProfile(new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(), AnswerMatchingRules.Default),
+            new TimingProfile(new Dictionary<ExamModule, int>(), null, []),
+            [],
+            ListeningPlaybackProfile.Conservative,
+            null,
+            null,
+            authorId);
+
+    /// <summary>
+    /// Replaces the whole content tree from the CMS authoring workspace.
+    /// Draft only — published content is immutable.
+    /// </summary>
+    public void ReplaceContent(IReadOnlyList<Section> sections, ScoringProfile scoring, TimingProfile timing)
+    {
+        if (Status != ExamVersionStatus.Draft)
+            throw new InvalidOperationException(
+                $"Chỉ bản nháp mới sửa được. Version này đang ở trạng thái {Status}.");
+        Sections = sections;
+        Scoring = scoring;
+        Timing = timing;
+        var present = sections.Select(s => s.Module).ToHashSet();
+        ModuleSequence = SequenceProfile.Resolve(null, present);
     }
 
     public static ExamVersion Rehydrate(

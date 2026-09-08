@@ -63,18 +63,34 @@ internal sealed class FakeUserRepository : IUserRepository
     public bool ThrowDuplicatePhoneOnNextSave { get; set; }
 
     public Task<(IReadOnlyList<User> Users, long Total)> ListAsync(
-        string? search, int skip, int take, CancellationToken ct)
+        string? search, int skip, int take, CancellationToken ct) =>
+        ListAsync(UserListQuery.SearchOnly(search, skip, take), ct);
+
+    public Task<(IReadOnlyList<User> Users, long Total)> ListAsync(
+        UserListQuery query, CancellationToken ct)
     {
-        var matches = _byId.Values
-            .Where(u => string.IsNullOrWhiteSpace(search)
-                || (u.Email?.Value.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
-                || (u.Phone?.Value.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
-                || u.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        var matches = _byId.Values.Where(u =>
+        {
+            if (!string.IsNullOrWhiteSpace(query.Search)
+                && !(u.Email?.Value.Contains(query.Search, StringComparison.OrdinalIgnoreCase) ?? false)
+                && !(u.Phone?.Value.Contains(query.Search, StringComparison.OrdinalIgnoreCase) ?? false)
+                && !u.DisplayName.Contains(query.Search, StringComparison.OrdinalIgnoreCase))
+                return false;
+            if (query.RoleId is { } role && !u.HasRole(role)) return false;
+            if (query.Status is { } status && u.Status != status) return false;
+            if (query.HasEmail is { } hasEmail && (u.Email is not null) != hasEmail) return false;
+            return true;
+        }).ToList();
 
         return Task.FromResult<(IReadOnlyList<User>, long)>(
-            ([.. matches.Skip(skip).Take(take)], matches.Count));
+            ([.. matches.Skip(query.Skip).Take(query.Take)], matches.Count));
     }
+
+    public Task<long> CountActiveWithRoleAsync(RoleId roleId, UserId? excluding, CancellationToken ct) =>
+        Task.FromResult(_byId.Values.LongCount(u =>
+            u.Status == UserStatus.Active
+            && u.HasRole(roleId)
+            && (excluding is null || u.Id != excluding.Value)));
 
     public Task AddAsync(User user, CancellationToken ct)
     {
@@ -166,7 +182,7 @@ internal sealed class FakeUserIdentityRepository : IUserIdentityRepository
 internal sealed class FakeRoleRepository : IRoleRepository
 {
     private readonly List<Role> _all =
-        [Role.Create(SystemRoles.Learner, isSystem: true, [PermissionKeys.ExamRead])];
+        [Role.Create(SystemRoles.Learner, isSystem: true, [PermissionKeys.ExamReadOwn])];
 
     public Task<Role?> FindByIdAsync(RoleId id, CancellationToken ct) =>
         Task.FromResult(_all.FirstOrDefault(r => r.Id == id));
@@ -411,4 +427,169 @@ internal sealed class FakeLoginThrottle : ILoginThrottle
     /// independent budgets of ten guesses.
     /// </summary>
     private static string Key(string handle) => handle.Trim().ToLowerInvariant();
+}
+
+/// <summary>
+/// In-process serialisation of the last-admin check+write. Mirrors the Mongo
+/// coordinator for unit tests; integration tests prove the real transaction.
+/// </summary>
+internal sealed class FakeProtectedAdminMutation(FakeUserRepository users, FakeRoleRepository roles)
+    : IProtectedAdminMutation
+{
+    private readonly object _gate = new();
+    private readonly LastActiveAdminGuard _guard = new(users, roles);
+
+    public Task<ProtectedAdminMutationResult> TrySuspendAsync(UserId targetId, CancellationToken ct)
+    {
+        lock (_gate)
+        {
+            var user = users.FindByIdAsync(targetId, ct).GetAwaiter().GetResult();
+            if (user is null)
+                return Task.FromResult(new ProtectedAdminMutationResult(ProtectedAdminMutationOutcome.NotFound, null));
+            if (user.Status == UserStatus.Suspended)
+                return Task.FromResult(new ProtectedAdminMutationResult(ProtectedAdminMutationOutcome.AlreadyApplied, user));
+            if (_guard.WouldLeaveZeroActiveAdminsAsync(user, LastAdminOperation.Suspend, ct).GetAwaiter().GetResult())
+                return Task.FromResult(new ProtectedAdminMutationResult(ProtectedAdminMutationOutcome.WouldLeaveZeroActiveAdmins, user));
+
+            user.Suspend();
+            users.SaveAsync(user, ct).GetAwaiter().GetResult();
+            return Task.FromResult(new ProtectedAdminMutationResult(ProtectedAdminMutationOutcome.Applied, user));
+        }
+    }
+
+    public Task<ProtectedAdminMutationResult> TryRevokeAdminRoleAsync(UserId targetId, CancellationToken ct)
+    {
+        lock (_gate)
+        {
+            var user = users.FindByIdAsync(targetId, ct).GetAwaiter().GetResult();
+            if (user is null)
+                return Task.FromResult(new ProtectedAdminMutationResult(ProtectedAdminMutationOutcome.NotFound, null));
+
+            var admin = roles.FindByNameAsync(SystemRoles.Admin, ct).GetAwaiter().GetResult();
+            if (admin is null)
+                return Task.FromResult(new ProtectedAdminMutationResult(ProtectedAdminMutationOutcome.NotFound, user));
+            if (!user.HasRole(admin.Id))
+                return Task.FromResult(new ProtectedAdminMutationResult(ProtectedAdminMutationOutcome.AlreadyApplied, user));
+            if (_guard.WouldLeaveZeroActiveAdminsAsync(user, LastAdminOperation.RevokeAdminRole, ct).GetAwaiter().GetResult())
+                return Task.FromResult(new ProtectedAdminMutationResult(ProtectedAdminMutationOutcome.WouldLeaveZeroActiveAdmins, user));
+
+            user.RemoveRole(admin.Id);
+            users.SaveAsync(user, ct).GetAwaiter().GetResult();
+            return Task.FromResult(new ProtectedAdminMutationResult(ProtectedAdminMutationOutcome.Applied, user));
+        }
+    }
+}
+
+internal sealed class FakeStaffInvitationRepository : IStaffInvitationRepository
+{
+    private readonly Dictionary<string, StaffInvitation> _byId = [];
+
+    public bool ThrowDuplicateOnNextAdd { get; set; }
+
+    public Task<StaffInvitation?> FindByIdAsync(string id, CancellationToken ct) =>
+        Task.FromResult(_byId.GetValueOrDefault(id));
+
+    public Task<StaffInvitation?> FindLiveByEmailAsync(Email email, DateTimeOffset now, CancellationToken ct) =>
+        Task.FromResult(_byId.Values.FirstOrDefault(i => i.Email == email && i.IsLive(now)));
+
+    public Task<StaffInvitation?> FindByTokenHashAsync(string tokenHash, CancellationToken ct) =>
+        Task.FromResult(_byId.Values.FirstOrDefault(i => i.TokenHash == tokenHash));
+
+    public Task<(IReadOnlyList<StaffInvitation> Invitations, long Total)> ListPendingAsync(
+        int skip, int take, DateTimeOffset now, CancellationToken ct)
+    {
+        var live = _byId.Values.Where(i => i.IsLive(now)).ToList();
+        return Task.FromResult<(IReadOnlyList<StaffInvitation>, long)>(
+            ([.. live.Skip(skip).Take(take)], live.Count));
+    }
+
+    public Task AddAsync(StaffInvitation invitation, CancellationToken ct)
+    {
+        if (ThrowDuplicateOnNextAdd)
+        {
+            ThrowDuplicateOnNextAdd = false;
+            throw new DuplicateLiveInvitationException(invitation.Email.Value);
+        }
+
+        _byId[invitation.Id] = invitation;
+        return Task.CompletedTask;
+    }
+
+    public Task SaveAsync(StaffInvitation invitation, CancellationToken ct)
+    {
+        _byId[invitation.Id] = invitation;
+        return Task.CompletedTask;
+    }
+
+    public Task ExpireStalePendingByEmailAsync(Email email, DateTimeOffset now, CancellationToken ct)
+    {
+        foreach (var invitation in _byId.Values
+                     .Where(i => i.Email == email
+                                 && i.Status == StaffInvitationStatus.Pending
+                                 && now >= i.ExpiresAt)
+                     .ToList())
+        {
+            invitation.MarkExpired();
+            _byId[invitation.Id] = invitation;
+        }
+
+        return Task.CompletedTask;
+    }
+}
+
+/// <summary>
+/// In-process atomic accept. Identity-write failure leaves neither user nor
+/// accepted invitation — the same all-or-nothing contract as the Mongo port.
+/// </summary>
+internal sealed class FakeStaffInvitationAcceptance(
+    FakeStaffInvitationRepository invitations,
+    FakeUserRepository users,
+    FakeUserIdentityRepository identities) : IStaffInvitationAcceptance
+{
+    private readonly object _gate = new();
+
+    public bool FailIdentityWrite { get; set; }
+
+    public Task<Result<AcceptStaffInvitationResult>> AcceptAsync(
+        string tokenHash,
+        string displayName,
+        string passwordHash,
+        DateTimeOffset now,
+        CancellationToken ct)
+    {
+        lock (_gate)
+        {
+            var invitation = invitations.FindByTokenHashAsync(tokenHash, ct).GetAwaiter().GetResult();
+            if (invitation is null || !invitation.IsLive(now))
+            {
+                return Task.FromResult<Result<AcceptStaffInvitationResult>>(
+                    Error.Validation(ErrorCodes.InvitationInvalid, "This invitation is no longer valid."));
+            }
+
+            if (users.EmailExistsAsync(invitation.Email, ct).GetAwaiter().GetResult())
+            {
+                return Task.FromResult<Result<AcceptStaffInvitationResult>>(
+                    Error.Conflict(ErrorCodes.EmailAlreadyRegistered, "That email address is already registered."));
+            }
+
+            var user = User.RegisterFromProvider(invitation.Email, displayName, now);
+            foreach (var roleId in invitation.RoleIds)
+                user.AssignRole(roleId);
+
+            if (FailIdentityWrite)
+            {
+                return Task.FromResult<Result<AcceptStaffInvitationResult>>(
+                    Error.Conflict(ErrorCodes.ValidationFailed, "Identity write failed."));
+            }
+
+            users.AddAsync(user, ct).GetAwaiter().GetResult();
+            identities.AddAsync(
+                UserIdentity.ForPassword(user.Id, passwordHash, now), ct)
+                .GetAwaiter().GetResult();
+            invitation.Accept(now);
+            invitations.SaveAsync(invitation, ct).GetAwaiter().GetResult();
+            return Task.FromResult<Result<AcceptStaffInvitationResult>>(
+                new AcceptStaffInvitationResult(user.Id.Value));
+        }
+    }
 }

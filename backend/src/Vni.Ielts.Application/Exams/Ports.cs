@@ -52,6 +52,25 @@ public interface IExamCatalogue
     /// no longer round-trips through persistence — status moves, content does not.
     /// </summary>
     Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct);
+
+    /// <summary>
+    /// Removes a draft version. Published / in-review content must not pass
+    /// through here — the endpoint refuses those statuses before calling.
+    /// </summary>
+    Task DeleteAsync(ExamVersionId id, CancellationToken ct);
+
+    /// <summary>
+    /// CMS per-author listing. Default filters <see cref="ListAllAsync"/> in memory;
+    /// Infrastructure may replace with an indexed query. Uses <see cref="ExamVersion.AuthorId"/>
+    /// (main's name for feature <c>CreatedBy</c>).
+    /// </summary>
+    async Task<(IReadOnlyList<ExamVersion> Versions, long Total)> ListByCreatedByAsync(
+        UserId createdBy, int skip, int take, CancellationToken ct)
+    {
+        var all = await ListAllAsync(ct);
+        var matches = all.Where(v => v.AuthorId == createdBy).ToList();
+        return ([.. matches.Skip(skip).Take(take)], matches.Count);
+    }
 }
 
 /// <summary>
@@ -86,6 +105,14 @@ public interface IExamSessionRepository
     Task<ExamSession?> FindOpenForUserAsync(UserId userId, CancellationToken ct);
 
     Task<IReadOnlyList<ExamSession>> ListForUserAsync(UserId userId, int limit, CancellationToken ct);
+
+    /// <summary>CMS per-user sittings page. Default pages <see cref="ListForUserAsync"/>.</summary>
+    async Task<(IReadOnlyList<ExamSession> Sessions, long Total)> ListPageForUserAsync(
+        UserId userId, int skip, int take, CancellationToken ct)
+    {
+        var all = await ListForUserAsync(userId, limit: skip + take, ct);
+        return ([.. all.Skip(skip).Take(take)], all.Count);
+    }
 
     Task AddAsync(ExamSession session, CancellationToken ct);
 

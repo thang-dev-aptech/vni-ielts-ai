@@ -53,7 +53,7 @@ public sealed class LoginWithPasswordTests
             UserIdentity.ForPassword(user.Id, hasher.Hash(Correct), Now), default);
 
         var sut = new LoginWithPassword(
-            users, identities, hasher, new FakePermissionResolver(PermissionKeys.ExamRead),
+            users, identities, hasher, new FakePermissionResolver(PermissionKeys.ExamReadOwn),
             tokens, loginThrottle);
 
         return new Harness(sut, hasher, tokens, loginThrottle, user);

@@ -1,0 +1,37 @@
+{
+  "contractVersion": "exam-extraction-v1",
+  "title": "Synthetic Reading Practice A",
+  "classification": "Reading",
+  "confidence": null,
+  "modules": [
+    {
+      "module": "Reading",
+      "classification": "Reading",
+      "confidence": null,
+      "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null },
+      "parts": [
+        {
+          "id": "part-1",
+          "order": 1,
+          "title": "Passage 1",
+          "body": "Synthetic passage text.",
+          "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null },
+          "questions": [
+            {
+              "id": "q-1",
+              "order": 1,
+              "type": "MultipleChoice",
+              "prompt": "Which statement is correct?",
+              "options": [
+                { "key": "A", "text": "The first option" },
+                { "key": "A", "text": "A different option with the same key" }
+              ],
+              "answerKey": { "accepted": ["A"], "matchingRule": null },
+              "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

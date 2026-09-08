@@ -22,9 +22,13 @@ using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Persistence.Exams;
 using Vni.Ielts.Infrastructure.Persistence.Identity;
 using Vni.Ielts.Infrastructure.Ai;
+using Vni.Ielts.Infrastructure.Ai.Extraction;
 using Vni.Ielts.Infrastructure.Ai.Writing;
 using Vni.Ielts.Infrastructure.Assessment;
 using Vni.Ielts.Infrastructure.Explanations;
+using Vni.Ielts.Application.Media;
+using Vni.Ielts.Infrastructure.Observability;
+using Vni.Ielts.Infrastructure.Persistence.Media;
 using Vni.Ielts.Infrastructure.Security;
 using Vni.Ielts.Infrastructure.Security.Sso;
 using Microsoft.Extensions.Logging;
@@ -87,6 +91,82 @@ public static class DependencyInjection
          */
 
         services.AddScoped<IExamCatalogue, MongoExamCatalogue>();
+        services.AddScoped<IExamPackageRepository, MongoExamPackageRepository>();
+        services.AddScoped<IPackageUploadStore, GridFsPackageUploadStore>();
+        services.AddScoped<IPackageImportTransaction, MongoPackageImportTransaction>();
+        services.AddSingleton<IPackageCascadeDeleteHooks, NoOpPackageCascadeDeleteHooks>();
+        services.AddScoped<IPackageCascadeDelete, MongoPackageCascadeDelete>();
+        services.AddSingleton<IPackageRetentionHooks, NoOpPackageRetentionHooks>();
+        services.AddScoped<IParsedExamCandidateRepository, MongoParsedExamCandidateRepository>();
+        services.AddScoped<ISourceDocumentGroupingProposalRepository, MongoSourceDocumentGroupingProposalRepository>();
+        services.AddScoped<ReviewParsedExamCandidate>();
+        services.AddScoped<GetParsedExamCandidate>();
+        services.AddScoped<ListParsedExamCandidates>();
+        services.AddSingleton<IConfirmedCandidatePackageBuilder, ConfirmedCandidatePackageBuilder>();
+        services.AddScoped<IConfirmedCandidateDraftCreator, MongoConfirmedCandidateDraftCreator>();
+        services.AddScoped<CreateDraftFromParsedCandidate>();
+        /*
+         * ── Who parses a raw exam package ─────────────────────────────────
+         *
+         * Two implementations, one seam, and the choice is made from
+         * configuration rather than from whichever was registered last.
+         *
+         * `ConfiguredExamExtractionParser` calls a provider and produces a
+         * candidate with content in it. `NeedsReviewExamContentParser`
+         * proposes nothing at all and sends the package to staff. The second
+         * is not a stub to be deleted: it is the null implementation this
+         * product runs on when no provider is configured, when the prompt
+         * version does not match the build, or when the egress guard refuses
+         * the endpoint — and an install in that state is a working install,
+         * because a package still reaches review. → `G-11`
+         *
+         * The gate is evaluated once, here, so a half-configured install
+         * cannot discover the fact from inside a background job after the
+         * upload has already been accepted.
+         */
+        services.Configure<ExamParsingOptions>(configuration.GetSection(ExamParsingOptions.SectionName));
+        services.Configure<PackageRetentionOptions>(configuration.GetSection(PackageRetentionOptions.SectionName));
+
+        var examParsing = configuration.GetSection(ExamParsingOptions.SectionName)
+            .Get<ExamParsingOptions>() ?? new ExamParsingOptions();
+
+        if (examParsing.Enabled && examParsing.Problems(ai) is { Count: > 0 } examParsingProblems)
+        {
+            throw new InvalidOperationException(
+                "ExamParsing is enabled but cannot run: "
+                + string.Join(" ", examParsingProblems));
+        }
+
+        services.AddHttpClient(nameof(OpenAiExamExtractionClient));
+        services.AddHttpClient(nameof(GeminiExamExtractionClient));
+        services.AddSingleton<IExamExtractionClient, OpenAiExamExtractionClient>();
+        services.AddSingleton<IExamExtractionClient, GeminiExamExtractionClient>();
+        services.AddScoped<IExamExtractionRunStore, MongoExamExtractionRunStore>();
+        services.AddSingleton<ExamParsingMetrics>();
+        services.AddScoped<ConfiguredExamExtractionParser>();
+        services.AddSingleton<NeedsReviewExamContentParser>();
+
+        if (examParsing.IsConfiguredFor(ai))
+        {
+            services.AddScoped<IExamContentParser>(sp =>
+                sp.GetRequiredService<ConfiguredExamExtractionParser>());
+        }
+        else
+        {
+            services.AddScoped<IExamContentParser>(sp =>
+                sp.GetRequiredService<NeedsReviewExamContentParser>());
+        }
+        services.AddSingleton(configuration.GetSection("ContentImport:Extraction").Get<DocumentExtractionLimits>()
+            ?? DocumentExtractionLimits.Conservative);
+        services.AddSingleton<IDocxTextExtractor, OoxmlDocxTextExtractor>();
+        services.AddSingleton<IPdfTextExtractor, PdfPigTextExtractor>();
+        services.AddSingleton<SourceDocumentExtractor>();
+        services.AddSingleton<DirectoryAdjacentDocumentGrouper>();
+        // ExamPackageReader is registered once below (S6b / LocateExamSchemaPath).
+        services.AddSingleton<PackageStructuralValidator>();
+        services.AddScoped<RawPackageParsingProcessor>();
+        services.AddScoped<PackageIngestionProcessor>();
+        services.AddScoped<PackageRetentionProcessor>();
         services.AddScoped<IExamSessionRepository, MongoExamSessionRepository>();
         services.AddScoped<IAnswerSheetStore, MongoAnswerSheetStore>();
         services.AddScoped<ISectionResultStore, MongoSectionResultStore>();
@@ -231,6 +311,16 @@ public static class DependencyInjection
             services.AddSingleton<IExamAssetStore, FixtureAssetStore>();
         }
 
+        // Media Library (CMS package / media endpoints). Uses the same
+        // ObjectStorage config section as Storage.ObjectStorageOptions above —
+        // MediaObjectStorageOptions is the Media-scoped binding shape.
+        services.Configure<MediaObjectStorageOptions>(configuration.GetSection(MediaObjectStorageOptions.SectionName));
+        services.AddScoped<IMediaAssetRepository, MongoMediaAssetRepository>();
+        services.AddSingleton<S3ObjectStorage>();
+        services.AddSingleton<Application.Media.IObjectStorage>(sp => sp.GetRequiredService<S3ObjectStorage>());
+        services.AddSingleton<IMediaOrphanReconciliationHooks, NoOpMediaOrphanReconciliationHooks>();
+        services.AddScoped<IMediaOrphanReconciliation, MongoMediaOrphanReconciliation>();
+
         // Dictation has no authoring surface yet, so its content is a file
         // read once at startup rather than a repository over an empty table.
         services.AddSingleton<IDictationCatalogue, FixtureDictationCatalogue>();
@@ -267,6 +357,28 @@ public static class DependencyInjection
         services.AddScoped<SetPassword>();
         services.AddScoped<SetPhone>();
         services.AddScoped<ChangeEmail>();
+
+        services.Configure<AdminUserOperationOptions>(configuration.GetSection(AdminUserOperationOptions.SectionName));
+        services.Configure<PrivacyOptions>(configuration.GetSection(PrivacyOptions.SectionName));
+        services.AddScoped<ILastActiveAdminGuard, LastActiveAdminGuard>();
+        services.AddScoped<IProtectedAdminMutation, Persistence.Identity.MongoProtectedAdminMutation>();
+        services.AddScoped<IStaffInvitationRepository, Persistence.Identity.MongoStaffInvitationRepository>();
+        services.AddScoped<IStaffInvitationAcceptance, Persistence.Identity.MongoStaffInvitationAcceptance>();
+        services.AddScoped<IPrivacyRequestRepository, Persistence.Identity.MongoPrivacyRequestRepository>();
+        services.AddScoped<IPersonalDataExportStore, Persistence.Identity.MongoPersonalDataExportStore>();
+        services.AddScoped<IPasswordResetTokens, Security.MongoPasswordResetTokens>();
+        services.AddScoped<IVerificationMessageSender, Security.LoggingStaffMessageSender>();
+        services.AddScoped<CreateStaffAccount>();
+        services.AddScoped<InviteStaff>();
+        services.AddScoped<ResendStaffInvitation>();
+        services.AddScoped<RevokeStaffInvitation>();
+        services.AddScoped<AcceptStaffInvitation>();
+        services.AddScoped<BulkSuspendUsers>();
+        services.AddScoped<UpdateAdminUserProfile>();
+        services.AddScoped<ForceStaffPasswordReset>();
+        services.AddScoped<CreatePrivacyRequest>();
+        services.AddScoped<ApprovePrivacyRequest>();
+        services.AddScoped<ExecutePrivacyRequest>();
 
         // The two libraries (P-22): documents and articles, learner reads and
         // CMS writes. Files are a URL string in this slice — no upload yet.
@@ -349,8 +461,9 @@ public static class DependencyInjection
          * mechanism, but throws instead of skipping, because this one backs
          * a real admin endpoint rather than a convenience seed.
          */
+        services.AddSingleton(sp => Content.ExamPackageReader.FromSchemaFile(LocateExamSchemaPath()));
         services.AddSingleton<IExamPackageValidator>(
-            _ => new Content.ExamPackageValidator(Content.ExamPackageReader.FromSchemaFile(LocateExamSchemaPath())));
+            sp => new Content.ExamPackageValidator(sp.GetRequiredService<Content.ExamPackageReader>()));
 
         /*
          * <b>No AI parser is wired in here.</b> `IExamSourceParser` is
@@ -552,54 +665,55 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// The seeded roles. `M-11` settled that the first release has no teacher
-    /// role, so there is deliberately no fourth entry here.
+    /// The seeded roles. Reseeded for the 6-state CMS lifecycle +
+    /// ownership-scoped RBAC: `content-editor`/`support` folded into `admin`
+    /// (`C-25`) — their permissions moved onto `admin`'s list below, not
+    /// dropped — and a content-authoring role (`M-11b`) plus a review role
+    /// (`Đ4`) replace them.
     ///
-    /// Note <c>learner</c> holds only <c>exam.read</c>. A learner's ability to
-    /// sit an exam is not a CMS permission — it is governed by entitlement and
-    /// session ownership, and conflating the two would put learner behaviour
-    /// behind the admin permission model.
+    /// Note <c>learner</c> holds only <c>exam.read.own</c>. A learner's
+    /// ability to sit an exam is not a CMS permission — it is governed by
+    /// entitlement and session ownership, and conflating the two would put
+    /// learner behaviour behind the admin permission model.
     /// </summary>
     private static readonly (string Name, string[] Permissions)[] SeedRoles =
     [
-        (SystemRoles.Learner, [PermissionKeys.ExamRead]),
+        (SystemRoles.Learner, [PermissionKeys.ExamReadOwn]),
 
-        (SystemRoles.ContentEditor,
+        (SystemRoles.ExamAuthor,
         [
-            PermissionKeys.ExamRead, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdate,
-            PermissionKeys.ExamDelete, PermissionKeys.PackageRead, PermissionKeys.PackageUpload,
-            PermissionKeys.EvaluationRead,
-            // Deliberately NOT ExamPublish — importing content and shipping it
-            // to learners are separate authorities. → threat T20
-            // Same split for the two libraries: write, never publish.
+            PermissionKeys.ExamReadOwn, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdateOwn,
+            PermissionKeys.ExamDeleteOwn, PermissionKeys.ExamSubmit, PermissionKeys.ExamPreview,
+            // Upload + shared inbox; confirming another author's package needs package.confirm.
+            PermissionKeys.PackageUpload, PermissionKeys.PackageRead,
+            PermissionKeys.MediaUpload, PermissionKeys.MediaRead,
             PermissionKeys.DocumentWrite, PermissionKeys.ArticleWrite,
-            // Submit, but deliberately NOT ExamReview (`P-20`). This is the
-            // author role; mvp-blueprint.md § 06 names the admin review queue
-            // — not a content-editor one — as the screen the missing
-            // permission gates, so today's "different person" is admin.
-            // Revisit if a second, distinct reviewer role is ever seeded.
-            PermissionKeys.ExamSubmit,
         ]),
 
-        (SystemRoles.Support,
+        (SystemRoles.AcademicLead,
         [
-            PermissionKeys.ExamRead, PermissionKeys.PackageRead, PermissionKeys.EvaluationRead,
-            PermissionKeys.LearnerContentRead, PermissionKeys.UserRead,
+            PermissionKeys.ExamReadOwn, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdateOwn,
+            PermissionKeys.ExamDeleteOwn, PermissionKeys.ExamSubmit, PermissionKeys.ExamPreview,
+            PermissionKeys.PackageUpload, PermissionKeys.PackageRead, PermissionKeys.PackageConfirm,
+            PermissionKeys.ExamReadAny, PermissionKeys.ExamUpdateAny, PermissionKeys.ExamReview,
+            PermissionKeys.EvaluationRead,
+            PermissionKeys.MediaUpload, PermissionKeys.MediaRead, PermissionKeys.MediaRetire,
+            PermissionKeys.DocumentWrite, PermissionKeys.ArticleWrite,
         ]),
 
         (SystemRoles.Admin,
         [
-            PermissionKeys.ExamRead, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdate,
-            PermissionKeys.ExamDelete, PermissionKeys.ExamPublish, PermissionKeys.ExamUnpublish,
-            PermissionKeys.ExamSubmit, PermissionKeys.ExamReview,
-            PermissionKeys.PackageUpload, PermissionKeys.PackageRead, PermissionKeys.PackageDelete,
+            PermissionKeys.ExamReadAny, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdateAny,
+            PermissionKeys.ExamDeleteAny, PermissionKeys.ExamReview, PermissionKeys.ExamPreview,
+            PermissionKeys.ExamPublish, PermissionKeys.ExamUnpublish,
+            PermissionKeys.PackageUpload, PermissionKeys.PackageRead, PermissionKeys.PackageConfirm,
+            PermissionKeys.PackageDelete,
+            PermissionKeys.ContentRightsManage,
+            PermissionKeys.MediaUpload, PermissionKeys.MediaRead, PermissionKeys.MediaRetire,
             PermissionKeys.EvaluationRead, PermissionKeys.EvaluationRerun,
             PermissionKeys.EvaluationOverride, PermissionKeys.LearnerContentRead,
             PermissionKeys.UserRead, PermissionKeys.UserUpdate, PermissionKeys.UserSuspend,
-            PermissionKeys.UserDelete, PermissionKeys.UserExport,
-            // The only recovery path a locked-out learner has, now that there
-            // is no address to mail a reset link to. Admin only — support can
-            // read an account but must not be able to become one.
+            PermissionKeys.UserDelete, PermissionKeys.UserExport, PermissionKeys.TokenRead,
             PermissionKeys.UserResetPassword,
             PermissionKeys.RoleRead, PermissionKeys.RoleAssign, PermissionKeys.RoleManage,
             PermissionKeys.ConfigRead, PermissionKeys.ConfigUpdate, PermissionKeys.AuditRead,

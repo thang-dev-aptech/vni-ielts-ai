@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import type { ImportDraft } from '../lib/adminApi.js';
 
 /**
@@ -67,6 +68,14 @@ function chooseFile(name = 'package.zip') {
   fireEvent.change(input, { target: { files: [file] } });
 }
 
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <ImportPage />
+    </MemoryRouter>,
+  );
+}
+
 describe('ImportPage', () => {
   beforeEach(() => {
     vi.mocked(uploadImportPackage).mockReset();
@@ -89,7 +98,7 @@ describe('ImportPage', () => {
       }),
     );
 
-    render(<ImportPage />);
+    renderPage();
     chooseFile();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
@@ -107,11 +116,18 @@ describe('ImportPage', () => {
           detail: 'Path traversal detected at /../../etc/passwd.',
           code: 'PACKAGE_REJECTED',
         },
-        [{ severity: 'error', code: 'PATH_TRAVERSAL', path: '/../../etc/passwd', message: 'Path traversal detected at /../../etc/passwd.' }],
+        [
+          {
+            severity: 'error',
+            code: 'PATH_TRAVERSAL',
+            path: '/../../etc/passwd',
+            message: 'Path traversal detected at /../../etc/passwd.',
+          },
+        ],
       ),
     );
 
-    render(<ImportPage />);
+    renderPage();
     chooseFile();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
@@ -138,7 +154,7 @@ describe('ImportPage', () => {
       ),
     );
 
-    render(<ImportPage />);
+    renderPage();
     chooseFile('raw-documents.zip');
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
@@ -175,7 +191,7 @@ describe('ImportPage', () => {
       }),
     );
 
-    render(<ImportPage />);
+    renderPage();
     chooseFile();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
     await screen.findByText(/Asset không khớp\./);

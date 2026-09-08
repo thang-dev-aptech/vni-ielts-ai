@@ -1,6 +1,12 @@
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Confirm, useFlash } from '../chrome/Confirm.js';
-import { PreviewNotice } from '../components/PreviewNotice.js';
+import { useAdminAuth } from '../lib/AdminAuth.js';
+import {
+  deleteMedia as deleteMediaApi,
+  listMedia,
+  retireMedia as retireMediaApi,
+  uploadMedia,
+} from '../lib/adminApi.js';
 import { useOperator } from '../lib/operator.js';
 import {
   ASSET_STATE,
@@ -8,18 +14,17 @@ import {
   MAX_BYTES,
   REJECTION,
   assetState,
-  checksumOf,
   formatBytes,
   formatDuration,
   inspect,
   mayDelete,
   mayRetire,
-  probeDuration,
   usedBy,
   type MediaAsset,
   type MediaKind,
+  type ReferencingVersion,
 } from '../lib/media.js';
-import { objectUrlFor, rememberObjectUrl, uploadedHere, useMediaLibrary } from '../lib/previewStore.js';
+import { reasonOf } from './UserDetailPage.js';
 
 /**
  * Màn D1 — the media library.
@@ -37,30 +42,75 @@ import { objectUrlFor, rememberObjectUrl, uploadedHere, useMediaLibrary } from '
  * behind a published version cannot be replaced or deleted — replacing the file
  * under a live reference changes what candidates hear while the version number
  * says nothing happened. Retiring is the way out: it takes the asset out of the
- * <b>Still on the browser-only store — deliberately.</b> There is no
- * `media.read` / `media.upload` / `media.retire` key in `PermissionKeys.All`
- * and no media admin endpoint to cut over to. Until those exist, this screen
- * keeps reading `previewStore` (localStorage fixtures) and renders
- * `PreviewNotice` on every visit so nobody mistakes the four sample files for
- * live assets. Review / pending-publish / exam detail already left this store.
- * → `apps/admin/src/lib/previewStore.ts`
+ * picker and leaves everything already using it alone.
+ *
+ * Wired to `GET/POST /api/v1/admin/media` and retire/delete. Client-side
+ * `inspect` still runs first so the operator hears about a bad file before the
+ * round-trip; the server re-validates from scratch. Usage columns stay empty
+ * until a reference inventory lands on the list payload — the server still
+ * refuses delete when anything references the file.
  */
 export function MediaLibraryPage() {
+  const { accessToken } = useAdminAuth();
   const operator = useOperator();
-  const { demoExams: versions, media, addMedia, retireMedia, deleteMedia } = useMediaLibrary();
 
+  const [media, setMedia] = useState<MediaAsset[] | null>(null);
+  const [failed, setFailed] = useState(false);
   const [kind, setKind] = useState<MediaKind | 'all'>('all');
   const [busy, setBusy] = useState(false);
+  const [actionBusy, setActionBusy] = useState(false);
   const [rejected, setRejected] = useState<{ code: string; text: string; file: string } | null>(
     null,
   );
   const [pending, setPending] = useState<{ asset: MediaAsset; action: 'retire' | 'delete' } | null>(
     null,
   );
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
+  const previewUrlsRef = useRef<Record<string, string>>({});
   const input = useRef<HTMLInputElement>(null);
+  const alive = useRef(true);
   const { flash, say } = useFlash();
 
+  /** Reference inventory is not on the media list wire yet — keep the column. */
+  const versions: ReferencingVersion[] = [];
+
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    previewUrlsRef.current = previewUrls;
+  }, [previewUrls]);
+
+  useEffect(() => {
+    return () => {
+      for (const url of Object.values(previewUrlsRef.current)) URL.revokeObjectURL(url);
+    };
+  }, []);
+
+  const load = useCallback(async () => {
+    if (accessToken === null) return;
+    try {
+      const assets = await listMedia(accessToken);
+      if (alive.current) {
+        setMedia(assets);
+        setFailed(false);
+      }
+    } catch {
+      if (alive.current) setFailed(true);
+    }
+  }, [accessToken]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
   async function take(file: File) {
+    if (accessToken === null) return;
+
     setBusy(true);
     setRejected(null);
 
@@ -74,35 +124,71 @@ export function MediaLibraryPage() {
         return;
       }
 
-      // Do not let the DOM-supplied filename or MIME type reach a browser
-      // renderer. `inspect` derives a canonical type from magic bytes, and the
-      // preview URL names a fresh Blob carrying only that type and those bytes.
+      // Early operator check only. The server sniffs magic bytes again and is
+      // the real boundary. Do not trust the DOM filename or MIME type for
+      // anything beyond display.
+      const asset = await uploadMedia(accessToken, file);
       const url = URL.createObjectURL(new Blob([bytes], { type: verdict.contentType }));
-      const mediaId = crypto.randomUUID();
 
-      const asset: MediaAsset = {
-        mediaId,
-        kind: verdict.kind,
-        fileName: file.name,
-        contentType: verdict.contentType,
-        bytes: file.size,
-        durationMs: verdict.kind === 'audio' ? await probeDuration(url) : null,
-        checksum: await checksumOf(bytes),
-        uploadedByName: operator.name,
-        uploadedAt: new Date().toISOString(),
-        retired: false,
-      };
-
-      rememberObjectUrl(mediaId, url);
-      addMedia(asset);
-      say({ tone: 'ok', text: `Đã nhận ${file.name}.` });
+      if (alive.current) {
+        setPreviewUrls((prev) => ({ ...prev, [asset.mediaId]: url }));
+        setMedia((prev) => [asset, ...(prev ?? []).filter((m) => m.mediaId !== asset.mediaId)]);
+        say({ tone: 'ok', text: `Đã nhận ${file.name}.` });
+      } else {
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      if (alive.current) say({ tone: 'bad', text: reasonOf(error) });
     } finally {
-      setBusy(false);
+      if (alive.current) setBusy(false);
       if (input.current !== null) input.current.value = '';
     }
   }
 
-  const shown = kind === 'all' ? media : media.filter((m) => m.kind === kind);
+  async function confirmPending() {
+    if (pending === null || accessToken === null) return;
+
+    setActionBusy(true);
+    try {
+      if (pending.action === 'delete') {
+        await deleteMediaApi(accessToken, pending.asset.mediaId);
+        if (alive.current) {
+          setMedia((prev) => (prev ?? []).filter((m) => m.mediaId !== pending.asset.mediaId));
+          setPreviewUrls((prev) => {
+            const next = { ...prev };
+            const url = next[pending.asset.mediaId];
+            if (url !== undefined) {
+              URL.revokeObjectURL(url);
+              delete next[pending.asset.mediaId];
+            }
+            return next;
+          });
+          say({ tone: 'ok', text: `Đã xoá ${pending.asset.fileName}.` });
+        }
+      } else {
+        await retireMediaApi(accessToken, pending.asset.mediaId);
+        if (alive.current) {
+          setMedia((prev) =>
+            (prev ?? []).map((m) =>
+              m.mediaId === pending.asset.mediaId ? { ...m, retired: true } : m,
+            ),
+          );
+          say({ tone: 'ok', text: `Đã gỡ ${pending.asset.fileName} khỏi bộ chọn.` });
+        }
+      }
+      if (alive.current) setPending(null);
+    } catch (error) {
+      if (alive.current) {
+        say({ tone: 'bad', text: reasonOf(error) });
+        setPending(null);
+      }
+    } finally {
+      if (alive.current) setActionBusy(false);
+    }
+  }
+
+  const items = media ?? [];
+  const shown = kind === 'all' ? items : items.filter((m) => m.kind === kind);
   const mayUpload = operator.can('media.upload');
 
   return (
@@ -115,9 +201,16 @@ export function MediaLibraryPage() {
         </p>
       </header>
 
-      <PreviewNotice what="Kho dưới đây có sẵn bốn tệp mẫu." />
-
       {flash}
+
+      {failed && (
+        <p className="cms-alert is-bad" role="alert">
+          Không tải được kho media.{' '}
+          <button type="button" className="cms-secondary" onClick={() => void load()}>
+            Thử lại
+          </button>
+        </p>
+      )}
 
       {mayUpload && (
         <section className="cms-panel">
@@ -138,13 +231,13 @@ export function MediaLibraryPage() {
             <input
               ref={input}
               type="file"
-              disabled={busy}
+              disabled={busy || accessToken === null}
               onChange={(event) => {
                 const file = event.target.files?.[0];
                 if (file !== undefined) void take(file);
               }}
             />
-            <span>{busy ? 'Đang đọc tệp…' : 'Chọn tệp'}</span>
+            <span>{busy ? 'Đang tải lên…' : 'Chọn tệp'}</span>
           </label>
 
           {rejected !== null && (
@@ -157,13 +250,13 @@ export function MediaLibraryPage() {
           <p className="cms-muted">
             Kiểm tra ở đây đọc magic bytes của tệp, không tin phần đuôi tên — nhưng nó là để báo sớm
             cho bạn, <strong>không phải hàng rào an toàn</strong>. Máy chủ sẽ kiểm lại từ đầu khi
-            đường tải lên thật có mặt.
+            nhận tệp.
           </p>
         </section>
       )}
 
       <div className="cms-filters" role="group" aria-label="Lọc theo loại">
-        <Chip active={kind === 'all'} onClick={() => setKind('all')} count={media.length}>
+        <Chip active={kind === 'all'} onClick={() => setKind('all')} count={items.length}>
           Tất cả
         </Chip>
         {(['audio', 'image', 'file'] as MediaKind[]).map((k) => (
@@ -171,25 +264,27 @@ export function MediaLibraryPage() {
             key={k}
             active={kind === k}
             onClick={() => setKind(k)}
-            count={media.filter((m) => m.kind === k).length}
+            count={items.filter((m) => m.kind === k).length}
           >
             {KIND_LABEL[k]}
           </Chip>
         ))}
       </div>
 
-      {shown.length === 0 && (
+      {media === null && !failed && <p className="cms-muted">Đang tải…</p>}
+
+      {media !== null && shown.length === 0 && (
         <div className="cms-empty">
-          <h3>{media.length === 0 ? 'Kho đang trống' : 'Không có tệp nào thuộc loại này'}</h3>
+          <h3>{items.length === 0 ? 'Kho đang trống' : 'Không có tệp nào thuộc loại này'}</h3>
           <p>
-            {media.length === 0
+            {items.length === 0
               ? 'Tải một tệp âm thanh lên để bắt đầu.'
               : 'Đổi bộ lọc để xem các loại khác.'}
           </p>
         </div>
       )}
 
-      {shown.length > 0 && (
+      {media !== null && shown.length > 0 && (
         <div className="cms-table-wrap">
           <table className="cms-table">
             <thead>
@@ -206,7 +301,7 @@ export function MediaLibraryPage() {
               {shown.map((asset) => {
                 const users = usedBy(asset, versions);
                 const state = assetState(asset, versions);
-                const url = objectUrlFor(asset.mediaId);
+                const url = previewUrls[asset.mediaId] ?? null;
 
                 return (
                   <tr key={asset.mediaId}>
@@ -217,14 +312,13 @@ export function MediaLibraryPage() {
                         <span className="cms-code">{asset.checksum.slice(0, 12)}</span>
                       </span>
                       {asset.kind === 'audio' && url !== null && (
-                        // Byte-sniffed browser blob URL only. codeql[js/xss-through-dom]
+                        // Session blob from this upload only. codeql[js/xss-through-dom]
                         <audio controls src={url} preload="metadata" />
                       )}
                       {asset.kind === 'audio' && url === null && (
                         <span className="cms-sub">
-                          {uploadedHere(asset.mediaId)
-                            ? 'Tệp chỉ tồn tại trong phiên đã tải lên — nạp lại trang là mất phần phát thử.'
-                            : 'Tệp mẫu — không có nội dung thật để phát.'}
+                          Phát thử có sẵn trong phiên vừa tải lên — tải lại trang thì mất phần phát
+                          thử cục bộ.
                         </span>
                       )}
                     </td>
@@ -289,21 +383,11 @@ export function MediaLibraryPage() {
         title={pending?.action === 'delete' ? 'Xoá tệp này khỏi kho?' : 'Gỡ tệp này khỏi bộ chọn?'}
         confirmLabel={pending?.action === 'delete' ? 'Xoá' : 'Gỡ'}
         tone={pending?.action === 'delete' ? 'danger' : 'normal'}
-        busy={false}
-        onCancel={() => setPending(null)}
-        onConfirm={() => {
-          if (pending === null) return;
-          if (pending.action === 'delete') deleteMedia(pending.asset.mediaId);
-          else retireMedia(pending.asset.mediaId);
-          say({
-            tone: 'ok',
-            text:
-              pending.action === 'delete'
-                ? `Đã xoá ${pending.asset.fileName}.`
-                : `Đã gỡ ${pending.asset.fileName} khỏi bộ chọn.`,
-          });
-          setPending(null);
+        busy={actionBusy}
+        onCancel={() => {
+          if (!actionBusy) setPending(null);
         }}
+        onConfirm={() => void confirmPending()}
         body={
           <ul className="cms-consequences">
             {pending?.action === 'delete' ? (

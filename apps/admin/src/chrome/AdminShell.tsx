@@ -49,20 +49,21 @@ const GROUPS: { title: string | null; entries: Entry[] }[] = [
   {
     title: 'Đề thi',
     entries: [
-      /*
-       * "Đề của tôi" (ownership-scoped, `exam.read.own`) was removed here.
-       * `GET /api/v1/admin/exams` carries no author field, so a real
-       * ownership-scoped view cannot be built without inventing data — and
-       * `exam.read.own` is not a key `PermissionKeys.All` grants to anyone
-       * today, so the entry was already unreachable outside the dev-only
-       * "Xem như" preview. "Tất cả đề" below is the real, reachable
-       * equivalent. → G-11
-       */
+      {
+        to: AdminPaths.myExams,
+        label: 'Đề của tôi',
+        permission: ['exam.read.own', 'exam.read.any', 'exam.create'],
+      },
       { to: AdminPaths.exams, label: 'Tất cả đề', permission: ['exam.read', 'exam.read.any'] },
       { to: AdminPaths.reviewQueue, label: 'Hàng chờ duyệt', permission: 'exam.review' },
       { to: AdminPaths.pendingPublish, label: 'Chờ xuất bản', permission: 'exam.publish' },
       { to: AdminPaths.import, label: 'Nhập đề', permission: 'package.upload' },
       { to: AdminPaths.packages, label: 'Lịch sử gói', permission: 'package.read' },
+      {
+        to: AdminPaths.contentRights,
+        label: 'Quyền nội dung',
+        permission: 'content-rights.manage',
+      },
     ],
   },
   {

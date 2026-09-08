@@ -467,6 +467,7 @@ public sealed class SpeakingRecordingUploadTests
 
         public Task UpsertAsync(ExamVersion version, CancellationToken ct) => Task.CompletedTask;
         public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) => Task.CompletedTask;
+        public Task DeleteAsync(ExamVersionId id, CancellationToken ct) => Task.CompletedTask;
     }
 
     private sealed class Sessions(ExamSession session) : IExamSessionRepository
@@ -488,4 +489,5 @@ public sealed class SpeakingRecordingUploadTests
             ExamSession session, SessionState from, CancellationToken ct) =>
             Task.FromResult(true);
     }
+
 }

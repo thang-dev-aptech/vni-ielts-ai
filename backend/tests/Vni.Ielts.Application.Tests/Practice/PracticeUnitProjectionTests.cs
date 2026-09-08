@@ -128,5 +128,6 @@ public sealed class PracticeUnitProjectionTests
             Task.FromResult(versions.FirstOrDefault(v => v.Id == id));
         public Task UpsertAsync(ExamVersion version, CancellationToken ct) => Task.CompletedTask;
         public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) => Task.CompletedTask;
+        public Task DeleteAsync(ExamVersionId id, CancellationToken ct) => Task.CompletedTask;
     }
 }

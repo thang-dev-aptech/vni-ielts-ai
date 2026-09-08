@@ -1,0 +1,56 @@
+{
+  "contractVersion": "exam-extraction-v1",
+  "title": "Synthetic Reading Practice A",
+  "classification": "Reading",
+  "confidence": 0.8,
+  "modules": [
+    {
+      "module": "Reading",
+      "classification": "Reading",
+      "confidence": 0.8,
+      "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null },
+      "parts": [
+        {
+          "id": "part-1",
+          "order": 1,
+          "title": "Passage 1",
+          "body": "Synthetic passage text about municipal transport planning.",
+          "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null },
+          "questions": [
+            {
+              "id": "q-1",
+              "order": 1,
+              "type": "Matching",
+              "prompt": "Choose the correct heading for paragraph A.",
+              "options": [
+                { "key": "A", "text": "A change in funding" },
+                { "key": "B", "text": "An unexpected consequence" },
+                { "key": "C", "text": "The original proposal" }
+              ],
+              "answerKey": { "accepted": ["B"], "matchingRule": null },
+              "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null }
+            },
+            {
+              "id": "q-2",
+              "order": 2,
+              "type": "Completion",
+              "prompt": "The council approved the scheme in ________.",
+              "options": [],
+              "answerKey": { "accepted": ["1998"], "matchingRule": "exact" },
+              "provenance": { "sourceId": "s1", "chunkId": "s1c2", "page": null }
+            },
+            {
+              "id": "q-3",
+              "order": 5,
+              "type": "TrueFalseNotGiven",
+              "prompt": "The scheme was funded entirely by central government.",
+              "options": [],
+              "answerKey": null,
+              "provenance": { "sourceId": "s1", "chunkId": "s1c2", "page": null }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

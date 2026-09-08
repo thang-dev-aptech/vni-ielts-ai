@@ -30,30 +30,62 @@ namespace Vni.Ielts.Domain.Identity;
 /// </summary>
 public static class PermissionKeys
 {
-    public const string ExamRead = "exam.read";
+    // exam.read/update/delete are ownership-scoped rather than global keys —
+    // `Đ5`'s `<resource>.<action>[.<scope>]` convention. There is no bare
+    // `exam.read` etc.: every caller either sees their own content or
+    // everyone's, and a coarser key would let "can read" quietly mean "can
+    // read anything." → docs/ux/cms-content-operations.md §4.1
+    public const string ExamReadOwn = "exam.read.own";
+    public const string ExamReadAny = "exam.read.any";
     public const string ExamCreate = "exam.create";
-    public const string ExamUpdate = "exam.update";
-    public const string ExamDelete = "exam.delete";
+    public const string ExamUpdateOwn = "exam.update.own";
+    public const string ExamUpdateAny = "exam.update.any";
+    public const string ExamDeleteOwn = "exam.delete.own";
+    public const string ExamDeleteAny = "exam.delete.any";
+
+    /// <summary>Submit for review, and withdraw a submission — same permission, opposite direction.</summary>
+    public const string ExamSubmit = "exam.submit";
+
+    /// <summary>Approve, return, or unapprove a submission under review.</summary>
+    public const string ExamReview = "exam.review";
+
+    /// <summary>See a draft as a learner would, before it is publishable.</summary>
+    public const string ExamPreview = "exam.preview";
+
     public const string ExamPublish = "exam.publish";
     public const string ExamUnpublish = "exam.unpublish";
 
-    /// <summary>
-    /// The author sends a draft to review. `P-20`.
-    /// </summary>
-    public const string ExamSubmit = "exam.submit";
-
-    /// <summary>
-    /// Approve or return a version in review. `P-20`'s reviewer ≠ author
-    /// rule is enforced in <see cref="Vni.Ielts.Domain.Exams.ExamVersion.Approve"/>,
-    /// not by withholding this key from the author — two different holders
-    /// of this permission can still collide on the same version, which is
-    /// exactly the case the domain-level check exists for.
-    /// </summary>
-    public const string ExamReview = "exam.review";
-
     public const string PackageUpload = "package.upload";
+
+    /// <summary>
+    /// Shared inbox: list and open any package in the CMS review queue.
+    /// Not ownership-scoped — holders see every package, not only their uploads.
+    /// Confirming a package into Drafts requires <see cref="PackageConfirm"/>
+    /// (or candidate confirm via <see cref="ExamReview"/>), not this key alone.
+    /// </summary>
     public const string PackageRead = "package.read";
+
+    /// <summary>
+    /// Shared review: confirm a ReadyToImport ZIP package into Draft exam
+    /// versions. <c>AuthorId</c> on those drafts is the confirmer, not the
+    /// uploader — intentionally separate from <see cref="PackageUpload"/>.
+    /// </summary>
+    public const string PackageConfirm = "package.confirm";
+
     public const string PackageDelete = "package.delete";
+
+    /// <summary>
+    /// Register a content-source rights grant in the CMS.
+    ///
+    /// <b>Narrower than package/exam authority on purpose.</b> Deciding that
+    /// third-party material may reach learners is a legal act, not an
+    /// authoring one — only <c>admin</c> is seeded with it.
+    /// </summary>
+    public const string ContentRightsManage = "content-rights.manage";
+
+    public const string MediaUpload = "media.upload";
+    public const string MediaRead = "media.read";
+    public const string MediaRetire = "media.retire";
 
     public const string EvaluationRead = "evaluation.read";
     public const string EvaluationRerun = "evaluation.rerun";
@@ -66,6 +98,7 @@ public static class PermissionKeys
     public const string UserSuspend = "user.suspend";
     public const string UserDelete = "user.delete";
     public const string UserExport = "user.export";
+    public const string TokenRead = "token.read";
 
     /// <summary>
     /// Set another account's password.
@@ -79,13 +112,8 @@ public static class PermissionKeys
     /// person whose profile it is.
     /// </para>
     ///
-    /// <para>
-    /// It exists because the product has no self-service recovery: registration
-    /// takes a phone number and no address, verification was removed, and the
-    /// owner chose "liên hệ Zalo, admin cấp lại mật khẩu" over an SMS OTP.
-    /// The escalation is accepted deliberately and is recorded in the threat
-    /// model rather than hidden here.
-    /// </para>
+    /// Kept from main (ADR-0018) while CMS roles fold to exam-author /
+    /// academic-lead / admin.
     /// </summary>
     public const string UserResetPassword = "user.reset-password";
 
@@ -100,10 +128,8 @@ public static class PermissionKeys
 
     /// <summary>
     /// The two libraries (<c>P-22</c>). Write and publish are split for the
-    /// same reason as <c>exam.update</c> / <c>exam.publish</c>: the person who
-    /// drafts a post and the person who puts it in front of every learner need
-    /// not be the same account. Publish covers unpublish and return-to-draft;
-    /// write covers create, edit, delete and submit-for-review.
+    /// same reason as <c>exam.update</c> / <c>exam.publish</c>. Kept from main
+    /// while Articles/Documents endpoints still exist on this branch.
     /// </summary>
     public const string DocumentWrite = "document.write";
     public const string DocumentPublish = "document.publish";
@@ -121,12 +147,16 @@ public static class PermissionKeys
     /// </summary>
     public static readonly IReadOnlyList<string> All =
     [
-        ExamRead, ExamCreate, ExamUpdate, ExamDelete, ExamPublish, ExamUnpublish,
-        ExamSubmit, ExamReview,
-        PackageUpload, PackageRead, PackageDelete,
+        ExamReadOwn, ExamReadAny, ExamCreate, ExamUpdateOwn, ExamUpdateAny,
+        ExamDeleteOwn, ExamDeleteAny, ExamSubmit, ExamReview, ExamPreview,
+        ExamPublish, ExamUnpublish,
+        PackageUpload, PackageRead, PackageConfirm, PackageDelete,
+        ContentRightsManage,
+        MediaUpload, MediaRead, MediaRetire,
         EvaluationRead, EvaluationRerun, EvaluationOverride,
         LearnerContentRead,
-        UserRead, UserUpdate, UserSuspend, UserDelete, UserExport, UserResetPassword,
+        UserRead, UserUpdate, UserSuspend, UserDelete, UserExport, TokenRead,
+        UserResetPassword,
         RoleRead, RoleAssign, RoleManage,
         ConfigRead, ConfigUpdate,
         AuditRead,
@@ -135,14 +165,18 @@ public static class PermissionKeys
 }
 
 /// <summary>
-/// The three seeded roles. <c>M-11</c> settled that the first release has no
-/// teacher role, so there is deliberately no <c>Class</c>, no <c>Assignment</c>,
-/// and no teacher-student relationship anywhere in this model.
+/// The seeded roles. <c>M-11</c> settled that the first release has no
+/// class-management teacher role (<c>M-11a</c> stays out of scope), but a
+/// content-authoring one is in scope as <see cref="ExamAuthor"/> (<c>M-11b</c>).
+/// <c>ContentEditor</c> and <c>Support</c> folded into <see cref="Admin"/>
+/// (<c>C-25</c>) — their permissions moved to <c>Admin</c>'s seed list, not
+/// dropped, so un-folding either back into its own seeded role later is a
+/// data change, not a redesign.
 /// </summary>
 public static class SystemRoles
 {
     public const string Learner = "learner";
+    public const string ExamAuthor = "exam-author";
+    public const string AcademicLead = "academic-lead";
     public const string Admin = "admin";
-    public const string ContentEditor = "content-editor";
-    public const string Support = "support";
 }

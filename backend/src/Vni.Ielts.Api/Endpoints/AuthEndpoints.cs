@@ -113,7 +113,25 @@ public static class AuthEndpoints
             .WithSummary("End this session on the server, not only in this browser")
             .RequireAuthorization();
 
+        group.MapPost("/staff-invitations/accept", AcceptStaffInvitationEndpoint)
+            .WithName("AcceptStaffInvitation")
+            .WithSummary("Accept a staff invitation and set a password")
+            .RequireRateLimiting(RateLimitPolicies.Registration);
+
         app.MapGet("/api/v1/me", Me).WithName("Me").WithTags("Identity").RequireAuthorization();
+    }
+
+    private static async Task<IResult> AcceptStaffInvitationEndpoint(
+        [FromBody] AcceptStaffInvitationRequest request,
+        AcceptStaffInvitation handler,
+        HttpContext http,
+        CancellationToken ct)
+    {
+        var result = await handler.HandleAsync(
+            new AcceptStaffInvitationCommand(request.Token, request.Password, request.DisplayName), ct);
+        return result.Match(
+            ok => Results.Ok(new { userId = ok.UserId }),
+            error => ApiProblem.From(error, http));
     }
 
     private static async Task<IResult> Logout(

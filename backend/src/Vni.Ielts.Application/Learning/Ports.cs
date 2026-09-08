@@ -20,6 +20,18 @@ public interface ILearnerActivityLog
 {
     Task RecordAsync(UserId userId, DateOnly day, ActivityKind kind, CancellationToken ct);
     Task<IReadOnlyList<ActivityDay>> ListAsync(UserId userId, DateOnly from, DateOnly to, CancellationToken ct);
+
+    /// <summary>
+    /// Newest-first page of activity days in <paramref name="from"/>…<paramref name="to"/>.
+    /// Default pages in memory; Mongo may override with a store-side skip/limit.
+    /// </summary>
+    async Task<(IReadOnlyList<ActivityDay> Days, long Total)> ListPageAsync(
+        UserId userId, DateOnly from, DateOnly to, int skip, int take, CancellationToken ct)
+    {
+        var all = await ListAsync(userId, from, to, ct);
+        var ordered = all.OrderByDescending(d => d.Date).ToList();
+        return ([.. ordered.Skip(skip).Take(take)], ordered.Count);
+    }
 }
 
 /// <summary>

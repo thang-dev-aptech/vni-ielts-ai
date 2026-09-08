@@ -35,7 +35,7 @@ public sealed class RegisterUserTests
 
         public RegisterUser Sut => new(
             Users, Identities, Roles, Hasher,
-            new FakePermissionResolver(PermissionKeys.ExamRead), Sessions, new FixedClock(Now));
+            new FakePermissionResolver(PermissionKeys.ExamReadOwn), Sessions, new FixedClock(Now));
     }
 
     private const string Password = "mot-mat-khau-du-dai-2026";

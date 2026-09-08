@@ -1,5 +1,5 @@
 /**
- * The three surfaces whose underlying capability does not exist yet.
+ * The surfaces whose underlying capability does not exist yet.
  *
  * <b>Each names its dependency.</b> An operator who opens Đánh giá AI needs to
  * know whether to wait five minutes or raise it with someone — "sắp có" answers
@@ -60,20 +60,6 @@ export function EvaluationsPage() {
   );
 }
 
-export function PackagesPage() {
-  return (
-    <Pending
-      title="Lịch sử gói"
-      lead="Mọi lần tải gói lên, kể cả những lần bị từ chối."
-      what={[
-        'Thời điểm, người tải, tên tệp và kết quả',
-        'Với gói bị từ chối: chặng nào từ chối và danh sách finding kèm vị trí trong tệp',
-        'Thông điệp từ chối nêu hạng mục, không nêu con số ngưỡng',
-      ]}
-      waitingOn="Đường nhập ZIP. Hiện chưa có thực thể lưu lịch sử gói vì chưa có gói nào đi qua."
-    />
-  );
-}
 
 export function ConfigPage() {
   return (

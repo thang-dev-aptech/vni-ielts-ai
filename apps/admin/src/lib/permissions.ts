@@ -48,8 +48,10 @@ export const PERMISSION: Record<string, PermissionFace> = {
   'exam.publish': { label: 'Xuất bản', group: 'Vòng đời' },
   'exam.unpublish': { label: 'Gỡ xuất bản', group: 'Vòng đời' },
   'package.upload': { label: 'Tải gói lên', group: 'Nhập đề' },
-  'package.read': { label: 'Xem gói đã nhập', group: 'Nhập đề' },
+  'package.read': { label: 'Xem hộp thư gói (mọi gói)', group: 'Nhập đề' },
+  'package.confirm': { label: 'Xác nhận gói vào bản nháp', group: 'Nhập đề' },
   'package.delete': { label: 'Xoá gói', group: 'Nhập đề' },
+  'content-rights.manage': { label: 'Đăng ký quyền nội dung', group: 'Nhập đề' },
   'media.read': { label: 'Xem kho media', group: 'Media' },
   'media.upload': { label: 'Tải media lên', group: 'Media' },
   'media.retire': { label: 'Gỡ media khỏi bộ chọn', group: 'Media' },
@@ -68,11 +70,10 @@ export const PERMISSION: Record<string, PermissionFace> = {
   'user.read': { label: 'Xem người dùng', group: 'Người dùng' },
   'user.update': { label: 'Sửa người dùng', group: 'Người dùng' },
   'user.suspend': { label: 'Khoá tài khoản', group: 'Người dùng' },
-  // Its own key, not part of `user.update`: holding it means being able to
-  // sign in as any other account. → ADR-0018, and the note on UserDetailPage.
-  'user.reset-password': { label: 'Cấp lại mật khẩu', group: 'Người dùng' },
   'user.delete': { label: 'Xoá tài khoản', group: 'Người dùng' },
   'user.export': { label: 'Xuất dữ liệu cá nhân', group: 'Người dùng' },
+  'user.reset-password': { label: 'Đặt lại mật khẩu', group: 'Người dùng' },
+  'token.read': { label: 'Xem sổ token', group: 'Người dùng' },
   'role.read': { label: 'Xem vai', group: 'Vai' },
   'role.assign': { label: 'Gán vai', group: 'Vai' },
   'role.manage': { label: 'Sửa vai và quyền', group: 'Vai' },
@@ -135,6 +136,7 @@ const LEAD: string[] = [
   'exam.read.any',
   'exam.update.any',
   'exam.review',
+  'package.confirm',
   'media.retire',
   'evaluation.read',
 ];
@@ -145,7 +147,9 @@ const ADMIN: string[] = [
     'exam.delete.any',
     'exam.publish',
     'exam.unpublish',
+    'package.confirm',
     'package.delete',
+    'content-rights.manage',
     'media.read',
     'media.upload',
     'media.retire',
@@ -162,11 +166,9 @@ const ADMIN: string[] = [
     'user.read',
     'user.update',
     'user.suspend',
-    // Admin only, matching the server's seed: support can read an account but
-    // must not be able to become one.
-    'user.reset-password',
     'user.delete',
     'user.export',
+    'token.read',
     'role.read',
     'role.assign',
     'role.manage',
@@ -196,3 +198,7 @@ export const ROLE_PRESETS: readonly RolePreset[] = [
     permissions: ADMIN,
   },
 ];
+
+export function roleLabel(roleId: string): string {
+  return ROLE_PRESETS.find((role) => role.id === roleId)?.label ?? roleId;
+}

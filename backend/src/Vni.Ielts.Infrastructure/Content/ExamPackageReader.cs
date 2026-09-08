@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Infrastructure.Content;
@@ -60,7 +61,13 @@ public sealed class ExamPackageReader(JsonSchema schema)
     /// Validates and converts. Findings carry a JSON Pointer path so an author
     /// gets an addressable list of what to fix rather than a stack trace.
     /// </summary>
-    public ExamPackageResult Read(string json, ExamDefinitionId definitionId, int versionNumber)
+    /// <param name="authorId">
+    /// Optional ownership stamp — confirmer on ZIP confirm, uploader on
+    /// single-JSON import. Omitted for CMS in-place saves that already own
+    /// the draft being replaced.
+    /// </param>
+    public ExamPackageResult Read(
+        string json, ExamDefinitionId definitionId, int versionNumber, UserId? authorId = null)
     {
         JsonNode? node;
         try
@@ -87,7 +94,7 @@ public sealed class ExamPackageReader(JsonSchema schema)
         if (!evaluation.IsValid)
             return ExamPackageResult.Rejected(Collect(evaluation));
 
-        var version = Convert(node.AsObject(), definitionId, versionNumber);
+        var version = Convert(node.AsObject(), definitionId, versionNumber, authorId);
 
         // Coverage is checked here rather than by the schema, which can
         // validate shape but not completeness. An incomplete rawToBand table
@@ -329,7 +336,8 @@ public sealed class ExamPackageReader(JsonSchema schema)
                     $"Question '{question.Id}' has no authored explanation evidence."));
     }
 
-    private static ExamVersion Convert(JsonObject root, ExamDefinitionId definitionId, int versionNumber)
+    private static ExamVersion Convert(
+        JsonObject root, ExamDefinitionId definitionId, int versionNumber, UserId? authorId)
     {
         var variant = root["variant"]!.GetValue<string>() == "general"
             ? ExamVariant.General : ExamVariant.Academic;
@@ -362,7 +370,8 @@ public sealed class ExamPackageReader(JsonSchema schema)
              * render as no description rather than as a blank line under the
              * title, and normalising it here means no consumer has to remember.
              */
-            Blank(root["description"]?.GetValue<string>()));
+            Blank(root["description"]?.GetValue<string>()),
+            authorId: authorId);
     }
 
     /// <summary>Null for absent, empty or whitespace-only text.</summary>

@@ -69,6 +69,27 @@ public enum AuditAction
     RoleAssigned,
     RoleRemoved,
 
+    UserCreated,
+    UserInvited,
+    UserInvitationResent,
+    UserInvitationRevoked,
+    UserInvitationAccepted,
+    UserProfileUpdated,
+    UserVerificationResent,
+    UserPasswordResetForced,
+    UserBulkSuspended,
+    UserExportRequested,
+    UserExportDownloaded,
+    PrivacyRequestCreated,
+    PrivacyRequestApproved,
+    PrivacyRequestExecuteRefused,
+
+    /// <summary>
+    /// An operator registered a content-source rights grant via the CMS.
+    /// Insert-only — never an overwrite of an existing <c>sourceId</c>.
+    /// </summary>
+    ContentRightsRegistered,
+
     /// <summary>
     /// Speaking audio removed because an account or attempt was deleted.
     /// Detail carries recording/session/question ids only — never a URL.
@@ -90,6 +111,33 @@ public enum AuditAction
     ExamApproved,
     /// <summary>InReview → Draft. Detail carries `reason`.</summary>
     ExamReturnedToDraft,
+
+    /// <summary>CMS author created a blank draft exam version.</summary>
+    ExamCreated,
+
+    /// <summary>CMS author saved exam content through the question builder.</summary>
+    ExamContentSaved,
+
+    /// <summary>CMS author permanently removed a draft exam version.</summary>
+    ExamDeleted,
+
+    ParsedCandidateCorrected,
+    ParsedCandidateRejected,
+    ParsedCandidateConfirmed,
+    PackageUploaded,
+    PackageImported,
+    PackageDeleted,
+    PackageUploadPurged,
+    RetentionPurged,
+    MediaUploaded,
+    MediaRetired,
+    MediaDeleted,
+
+    /// <summary>
+    /// Object-store Put succeeded but metadata Save failed, and compensation
+    /// Delete also failed — durable intent so ops/reconcile can remove the orphan.
+    /// </summary>
+    MediaOrphanCleanupFailed,
 
     /// <summary>
     /// An operator proceeded past a non-blocking warning instead of fixing

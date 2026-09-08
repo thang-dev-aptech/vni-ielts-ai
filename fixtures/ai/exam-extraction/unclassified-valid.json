@@ -1,0 +1,34 @@
+{
+  "contractVersion": "exam-extraction-v1",
+  "title": null,
+  "classification": "Unclassified",
+  "confidence": null,
+  "modules": [
+    {
+      "module": null,
+      "classification": "Unclassified",
+      "confidence": null,
+      "provenance": { "sourceId": "s1", "chunkId": null, "page": 2 },
+      "parts": [
+        {
+          "id": "part-1",
+          "order": 1,
+          "title": null,
+          "body": "Synthetic text that does not state which skill it belongs to.",
+          "provenance": { "sourceId": "s1", "chunkId": null, "page": 2 },
+          "questions": [
+            {
+              "id": "q-1",
+              "order": 1,
+              "type": null,
+              "prompt": "Complete the sentence.",
+              "options": [],
+              "answerKey": null,
+              "provenance": { "sourceId": "s1", "chunkId": "s1c2", "page": null }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

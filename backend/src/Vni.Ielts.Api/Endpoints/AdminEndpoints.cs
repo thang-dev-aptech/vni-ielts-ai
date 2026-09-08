@@ -12,6 +12,7 @@ using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Content;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
+using Vni.Ielts.Infrastructure.Content;
 
 namespace Vni.Ielts.Api.Endpoints;
 
@@ -34,7 +35,25 @@ public sealed record AssignRoleRequest(string RoleId, bool Grant);
 /// <summary>`P-20`'s "Trả về kèm lý do" — a return with no reason is refused.</summary>
 public sealed record ReturnExamToDraftRequest(string Reason);
 
-public static class AdminEndpoints
+public sealed record RegisterContentSourceFileRequest(
+    string Path, string? Sha256 = null, long? SizeBytes = null);
+
+public sealed record RegisterContentSourceProofRequest(
+    string Reference, string Reviewer, DateTimeOffset ReviewedAt);
+
+public sealed record RegisterContentSourceRequest(
+    string SourceId,
+    string Title,
+    string RootPath,
+    IReadOnlyList<string> AllowedEnvironments,
+    string? Owner = null,
+    DateTimeOffset? ExpiresAt = null,
+    IReadOnlyList<RegisterContentSourceFileRequest>? Files = null,
+    RegisterContentSourceProofRequest? Proof = null);
+
+public sealed record CreateExamRequest(string Title, string Variant);
+
+public static partial class AdminEndpoints
 {
     public static void MapAdminEndpoints(this IEndpointRouteBuilder app)
     {
@@ -55,6 +74,34 @@ public static class AdminEndpoints
             .WithName("AdminListExams")
             .WithSummary("Every exam version, drafts included");
 
+        group.MapPost("/exams", CreateExamEndpoint)
+            .WithName("AdminCreateExam")
+            .WithSummary("Start a blank draft exam from the CMS");
+
+        group.MapGet("/exams/{examVersionId}", GetExamEndpoint)
+            .WithName("AdminGetExam")
+            .WithSummary("One exam version for the CMS authoring workspace");
+
+        group.MapGet("/exams/{examVersionId}/preview", ExamPreviewEndpoint)
+            .WithName("AdminExamPreview")
+            .WithSummary("Reviewer preview of content and answer keys");
+
+        group.MapGet("/exams/{examVersionId}/content", ExamContentEndpoint)
+            .WithName("AdminGetExamContent")
+            .WithSummary("Authoring document for the question builder");
+
+        group.MapPut("/exams/{examVersionId}/content", SaveExamContentEndpoint)
+            .WithName("AdminSaveExamContent")
+            .WithSummary("Replace a draft's content through the same schema gate as ZIP import");
+
+        group.MapPost("/exams/{examVersionId}/validate", ValidateExamContentEndpoint)
+            .WithName("AdminValidateExamContent")
+            .WithSummary("Read-only schema checklist for the authoring workspace");
+
+        group.MapDelete("/exams/{examVersionId}", DeleteExamEndpoint)
+            .WithName("AdminDeleteExam")
+            .WithSummary("Permanently remove a draft exam version");
+
         group.MapGet("/users", UsersEndpoint)
             .WithName("AdminListUsers")
             .WithSummary("A page of accounts");
@@ -74,6 +121,10 @@ public static class AdminEndpoints
         group.MapGet("/content-sources", ContentSourcesEndpoint)
             .WithName("AdminListContentSources")
             .WithSummary("Where the source material came from and what may be done with it");
+
+        group.MapPost("/content-sources", RegisterContentSourceEndpoint)
+            .WithName("AdminRegisterContentSource")
+            .WithSummary("Register a content-source rights grant — never overwrites an existing id");
 
         group.MapPost("/exams/{examVersionId}/publish", PublishEndpoint)
             .WithName("AdminPublishExam")
@@ -124,6 +175,8 @@ public static class AdminEndpoints
         group.MapPost("/users/{userId}/password", ResetUserPasswordEndpoint)
             .WithName("AdminResetUserPassword")
             .WithSummary("Set a new password for an account that cannot sign in");
+
+        MapUserAdministration(group);
     }
 
     /// <summary>The new password, in the clear over TLS and never logged.</summary>
@@ -139,13 +192,23 @@ public static class AdminEndpoints
     private static async Task<IResult> ExamsEndpoint(
         ClaimsPrincipal principal, IExamCatalogue catalogue, CancellationToken ct)
     {
-        if (Denied(principal, PermissionKeys.ExamRead) is { } denial) return denial;
+        if (principal.UserId() is null) return Results.Unauthorized();
+
+        var perms = principal.Permissions();
+        var any = perms.Contains(PermissionKeys.ExamReadAny);
+        var own = perms.Contains(PermissionKeys.ExamReadOwn);
+        if (!any && !own)
+            return Denied(principal, PermissionKeys.ExamReadOwn)!;
 
         var versions = await catalogue.ListAllAsync(ct);
+        var userId = principal.UserId();
+        var visible = any
+            ? versions
+            : versions.Where(v => v.AuthorId is { } a && a.Value == userId).ToList();
 
         return Results.Ok(new
         {
-            exams = versions.Select(v => new
+            exams = visible.Select(v => new
             {
                 examVersionId = v.Id.Value,
                 definitionId = v.DefinitionId.Value,
@@ -154,6 +217,7 @@ public static class AdminEndpoints
                 variant = v.Variant.ToString().ToLowerInvariant(),
                 status = v.Status.ToString().ToLowerInvariant(),
                 publishedAt = v.PublishedAt,
+                authorId = v.AuthorId?.Value,
                 modules = v.Sections
                     .OrderBy(s => s.Order)
                     .Select(s => new
@@ -166,18 +230,274 @@ public static class AdminEndpoints
         });
     }
 
+    private static async Task<IResult> CreateExamEndpoint(
+        ClaimsPrincipal principal, CreateExamRequest request, IExamCatalogue catalogue,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.ExamCreate) is { } denial) return denial;
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return Problem(ErrorCodes.ValidationFailed, "A title is required.", StatusCodes.Status400BadRequest);
+
+        var variant = request.Variant == "general" ? ExamVariant.General : ExamVariant.Academic;
+        var version = ExamVersion.CreateBlankDraft(
+            ExamDefinitionId.New(), versionNumber: 1, request.Title.Trim(), variant,
+            new UserId(principal.UserId()!));
+
+        await catalogue.UpsertAsync(version, ct);
+
+        var now = clock.UtcNow;
+        await Record(audit, principal, AuditAction.ExamCreated, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", now, ct);
+
+        return Results.Created($"/api/v1/admin/exams/{version.Id.Value}", new
+        {
+            examVersionId = version.Id.Value,
+            definitionId = version.DefinitionId.Value,
+            versionNumber = version.VersionNumber,
+            status = version.Status.ToString().ToLowerInvariant(),
+            authorId = version.AuthorId?.Value,
+        });
+    }
+
+    private static async Task<IResult> GetExamEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue, CancellationToken ct)
+    {
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (DeniedRead(principal, version.AuthorId) is { } denial) return denial;
+
+        return Results.Ok(new
+        {
+            examVersionId = version.Id.Value,
+            definitionId = version.DefinitionId.Value,
+            versionNumber = version.VersionNumber,
+            title = version.Title,
+            variant = version.Variant.ToString().ToLowerInvariant(),
+            status = version.Status.ToString().ToLowerInvariant(),
+            publishedAt = version.PublishedAt,
+            authorId = version.AuthorId?.Value,
+            modules = version.Sections
+                .OrderBy(s => s.Order)
+                .Select(s => new
+                {
+                    module = s.Module.ToString().ToLowerInvariant(),
+                    questionCount = s.Questions.Count(),
+                    durationSeconds = (int)version.Timing.DurationFor(s.Module).TotalSeconds,
+                }),
+        });
+    }
+
+    private static async Task<IResult> ExamPreviewEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue, CancellationToken ct)
+    {
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (DeniedRead(principal, version.AuthorId) is { } denial) return denial;
+        if (Denied(principal, PermissionKeys.ExamPreview) is { } previewDenial) return previewDenial;
+
+        return Results.Ok(new
+        {
+            examVersionId = version.Id.Value,
+            title = version.Title,
+            sections = version.Sections
+                .OrderBy(s => s.Order)
+                .Select(s => new
+                {
+                    module = s.Module.ToString().ToLowerInvariant(),
+                    parts = s.Parts
+                        .OrderBy(p => p.Order)
+                        .Select(p => new
+                        {
+                            title = p.Title,
+                            body = p.Body,
+                            transcript = p.Transcript,
+                            cueCard = p.CueCard == null
+                                ? null
+                                : new { topic = p.CueCard.Topic, bullets = p.CueCard.Bullets },
+                            questions = p.Questions
+                                .OrderBy(q => q.Order)
+                                .Select(q => new
+                                {
+                                    id = q.Id,
+                                    order = q.Order,
+                                    type = q.Type.ToString().ToLowerInvariant(),
+                                    prompt = q.Prompt,
+                                    options = q.Options.Select(o => new { key = o.Key, text = o.Text }),
+                                    answerKey = q.AnswerKey == null
+                                        ? null
+                                        : q.AnswerKey.Accepted.Select(a => new
+                                        {
+                                            single = a.Single,
+                                            all = a.All,
+                                            pairLeft = a.Pair?.Left,
+                                            pairRight = a.Pair?.Right,
+                                        }),
+                                }),
+                        }),
+                }),
+        });
+    }
+
+    private static async Task<IResult> ExamContentEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue, CancellationToken ct)
+    {
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (DeniedRead(principal, version.AuthorId) is { } denial) return denial;
+
+        return Results.Ok(ExamContentSerializer.ToNode(version));
+    }
+
+    private static async Task<IResult> SaveExamContentEndpoint(
+        string examVersionId, ClaimsPrincipal principal, HttpRequest request,
+        IExamCatalogue catalogue, ExamPackageReader reader, IAuditLog audit, IClock clock,
+        CancellationToken ct)
+    {
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (DeniedOwn(principal, PermissionKeys.ExamUpdateOwn, version.AuthorId) is { } denial) return denial;
+
+        if (version.Status != ExamVersionStatus.Draft)
+            return Conflict("Chỉ bản nháp mới sửa được.");
+
+        using var bodyReader = new StreamReader(request.Body);
+        var json = await bodyReader.ReadToEndAsync(ct);
+
+        var result = reader.Read(json, version.DefinitionId, version.VersionNumber);
+        if (!result.IsValid || result.Version is null)
+            return Results.Ok(new { valid = false, findings = ToWireFindings(result.Findings) });
+
+        version.ReplaceContent(result.Version.Sections, result.Version.Scoring, result.Version.Timing);
+        await catalogue.UpsertAsync(version, ct);
+
+        var now = clock.UtcNow;
+        await Record(audit, principal, AuditAction.ExamContentSaved, "exam-version",
+            version.Id.Value, $"{version.Title} v{version.VersionNumber}", now, ct);
+
+        return Results.Ok(new
+        {
+            valid = true,
+            status = version.Status.ToString().ToLowerInvariant(),
+            findings = Array.Empty<object>(),
+        });
+    }
+
+    private static async Task<IResult> ValidateExamContentEndpoint(
+        string examVersionId, ClaimsPrincipal principal, HttpRequest request,
+        IExamCatalogue catalogue, ExamPackageReader reader, CancellationToken ct)
+    {
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        if (DeniedRead(principal, version.AuthorId) is { } denial) return denial;
+
+        using var bodyReader = new StreamReader(request.Body);
+        var json = await bodyReader.ReadToEndAsync(ct);
+
+        var result = reader.Read(json, version.DefinitionId, version.VersionNumber);
+
+        return Results.Ok(new { valid = result.IsValid, findings = ToWireFindings(result.Findings) });
+    }
+
+    private static IEnumerable<object> ToWireFindings(IReadOnlyList<ValidationFinding> findings) =>
+        findings.Select(f => new
+        {
+            stage = "schema",
+            code = f.Code,
+            pointer = f.Path,
+            message = f.Message,
+        });
+
+    /// <summary>
+    /// Draft-only hard delete. Ownership-scoped; missing or foreign drafts
+    /// look like 404 rather than 403 so existence is not disclosed.
+    /// </summary>
+    private static async Task<IResult> DeleteExamEndpoint(
+        string examVersionId, ClaimsPrincipal principal, IExamCatalogue catalogue,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        var version = await catalogue.FindAsync(new ExamVersionId(examVersionId), ct);
+        if (version is null) return Results.NotFound();
+
+        // Prefer ExamDeleteOwn for authors; ExamDeleteAny covers admin override.
+        var perms = principal.Permissions();
+        var owns = version.AuthorId is { } a && principal.UserId() == a.Value;
+        var allowed = (perms.Contains(PermissionKeys.ExamDeleteOwn) && owns)
+            || perms.Contains(PermissionKeys.ExamDeleteAny);
+        if (!allowed) return Results.NotFound();
+
+        if (version.Status != ExamVersionStatus.Draft)
+            return Conflict("Chỉ bản nháp mới xoá được.");
+
+        var label = $"{version.Title} v{version.VersionNumber}";
+        await catalogue.DeleteAsync(version.Id, ct);
+
+        await Record(audit, principal, AuditAction.ExamDeleted, "exam-version",
+            examVersionId, label, clock.UtcNow, ct);
+
+        return Results.NoContent();
+    }
+
     private static async Task<IResult> UsersEndpoint(
-        ClaimsPrincipal principal, IUserRepository users,
-        string? search, int? page, CancellationToken ct)
+        ClaimsPrincipal principal, IUserRepository users, IRoleRepository roles,
+        string? search, string? role, string? status, string? hasEmail, int? page,
+        CancellationToken ct)
     {
         if (Denied(principal, PermissionKeys.UserRead) is { } denial) return denial;
 
-        // Clamped, not trusted. A caller-supplied page size is a way to ask
-        // for the whole collection in one response.
         const int PageSize = 25;
         var current = Math.Clamp(page ?? 1, 1, MaxPage);
 
-        var (page1, total) = await users.ListAsync(search, (current - 1) * PageSize, PageSize, ct);
+        RoleId? roleId = null;
+        if (!string.IsNullOrWhiteSpace(role))
+        {
+            var slug = role.Trim();
+            if (slug is not (SystemRoles.ExamAuthor or SystemRoles.AcademicLead or SystemRoles.Admin
+                or SystemRoles.Learner))
+            {
+                return Problem(ErrorCodes.ValidationFailed, "role must be a known role slug.",
+                    StatusCodes.Status400BadRequest);
+            }
+
+            var found = await roles.FindByNameAsync(slug, ct);
+            if (found is null)
+                return Problem(ErrorCodes.ValidationFailed, "role must be a known role slug.",
+                    StatusCodes.Status400BadRequest);
+            roleId = found.Id;
+        }
+
+        UserStatus? parsedStatus = null;
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            parsedStatus = status.Trim().ToLowerInvariant() switch
+            {
+                "active" => UserStatus.Active,
+                "suspended" => UserStatus.Suspended,
+                _ => null,
+            };
+            if (parsedStatus is null)
+                return Problem(ErrorCodes.ValidationFailed, "status must be active or suspended.",
+                    StatusCodes.Status400BadRequest);
+        }
+
+        // hasEmail replaces feature emailVerified — main has no verification flag (ADR-0018).
+        bool? parsedHasEmail = null;
+        if (!string.IsNullOrWhiteSpace(hasEmail))
+        {
+            if (!bool.TryParse(hasEmail, out var parsed))
+                return Problem(ErrorCodes.ValidationFailed, "hasEmail must be true or false.",
+                    StatusCodes.Status400BadRequest);
+            parsedHasEmail = parsed;
+        }
+
+        var (page1, total) = await users.ListAsync(
+            new UserListQuery(search, roleId, parsedStatus, parsedHasEmail, (current - 1) * PageSize, PageSize),
+            ct);
 
         return Results.Ok(new
         {
@@ -188,9 +508,6 @@ public static class AdminEndpoints
             {
                 userId = u.Id.Value,
                 displayName = u.DisplayName,
-                // Both handles are shown to an operator who has `user.read`.
-                // The address may be absent — registration asks for a number —
-                // so the number is what a support call is usually traced by.
                 email = u.Email?.Value,
                 phone = u.Phone?.Value,
                 status = u.Status.ToString().ToLowerInvariant(),
@@ -337,6 +654,164 @@ public static class AdminEndpoints
                 examDefinitionIds = s.BoundExamDefinitionIds,
                 examVersionIds = s.BoundExamVersionIds,
             }),
+        });
+    }
+
+    /// <summary>
+    /// Insert-only registration of a content-source rights grant.
+    ///
+    /// A duplicate <c>sourceId</c> is a conflict, not an update. Change rights by
+    /// minting a new id. Learner-production proof is required the same way the
+    /// seed refuses an unproven grant.
+    /// </summary>
+    private static async Task<IResult> RegisterContentSourceEndpoint(
+        RegisterContentSourceRequest request, ClaimsPrincipal principal,
+        IContentRightsRegistry registry, IAuditLog audit, IClock clock,
+        CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.ContentRightsManage) is { } denial) return denial;
+
+        if (string.IsNullOrWhiteSpace(request.SourceId))
+            return Problem(ErrorCodes.ValidationFailed, "sourceId is required.", StatusCodes.Status400BadRequest);
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return Problem(ErrorCodes.ValidationFailed, "title is required.", StatusCodes.Status400BadRequest);
+
+        if (string.IsNullOrWhiteSpace(request.RootPath))
+            return Problem(ErrorCodes.ValidationFailed, "rootPath is required.", StatusCodes.Status400BadRequest);
+
+        ContentSourceId sourceId;
+        try
+        {
+            sourceId = new ContentSourceId(request.SourceId.Trim());
+        }
+        catch (ArgumentException e)
+        {
+            return Problem(ErrorCodes.ValidationFailed, e.Message, StatusCodes.Status400BadRequest);
+        }
+
+        var environments = new List<ContentEnvironment>();
+        foreach (var raw in request.AllowedEnvironments ?? [])
+        {
+            if (!TryParseEnvironment(raw, out var environment))
+            {
+                return Problem(
+                    ErrorCodes.ValidationFailed,
+                    $"Unknown environment '{raw}'. Use fixture, internal-review, or learner-production.",
+                    StatusCodes.Status400BadRequest);
+            }
+
+            environments.Add(environment);
+        }
+
+        if (environments.Count == 0)
+        {
+            return Problem(
+                ErrorCodes.ValidationFailed,
+                "allowedEnvironments must include at least one environment.",
+                StatusCodes.Status400BadRequest);
+        }
+
+        RightsProof? proof = null;
+        if (request.Proof is { } wireProof)
+        {
+            try
+            {
+                proof = new RightsProof(wireProof.Reference, wireProof.Reviewer, wireProof.ReviewedAt);
+            }
+            catch (ArgumentException e)
+            {
+                return Problem(ErrorCodes.ValidationFailed, e.Message, StatusCodes.Status400BadRequest);
+            }
+        }
+
+        if (environments.Contains(ContentEnvironment.LearnerProduction) && proof is null)
+        {
+            return Problem(
+                ErrorCodes.ValidationFailed,
+                $"Learner-production for '{sourceId}' requires a rights proof "
+                + "(reference, reviewer, reviewedAt).",
+                StatusCodes.Status400BadRequest);
+        }
+
+        IReadOnlyList<ContentFileRef> files;
+        try
+        {
+            files = (request.Files ?? [])
+                .Select(f => new ContentFileRef(f.Path, f.Sha256, f.SizeBytes))
+                .ToArray();
+        }
+        catch (ArgumentException e)
+        {
+            return Problem(ErrorCodes.ValidationFailed, e.Message, StatusCodes.Status400BadRequest);
+        }
+
+        ContentSource source;
+        try
+        {
+            source = ContentSource.Register(
+                sourceId,
+                request.Title.Trim(),
+                string.IsNullOrWhiteSpace(request.Owner) ? null : request.Owner.Trim(),
+                proof,
+                environments,
+                request.ExpiresAt,
+                request.RootPath.Trim(),
+                files,
+                boundExamVersionIds: [],
+                boundExamDefinitionIds: []);
+        }
+        catch (UnprovenPublishRightException)
+        {
+            return Problem(
+                ErrorCodes.ValidationFailed,
+                $"Learner-production for '{sourceId}' requires a rights proof "
+                + "(reference, reviewer, reviewedAt).",
+                StatusCodes.Status400BadRequest);
+        }
+        catch (ArgumentException e)
+        {
+            return Problem(ErrorCodes.ValidationFailed, e.Message, StatusCodes.Status400BadRequest);
+        }
+
+        if (!await registry.RegisterIfAbsentAsync(source, ct))
+        {
+            return Conflict(
+                "Nguồn này đã đăng ký, không ghi đè được — muốn đổi quyền, tạo sourceId mới.",
+                ErrorCodes.ValidationFailed);
+        }
+
+        var now = clock.UtcNow;
+        await Record(
+            audit, principal, AuditAction.ContentRightsRegistered,
+            "content-source", source.Id.Value, source.Title, now, ct,
+            new Dictionary<string, string>
+            {
+                ["sourceId"] = source.Id.Value,
+                ["environments"] = string.Join(",", source.AllowedEnvironments.Select(Describe)),
+                ["mayReachLearners"] = ContentRightsPolicy
+                    .Evaluate(source, ContentEnvironment.LearnerProduction, now).Allowed
+                    ? "true"
+                    : "false",
+            });
+
+        return Results.Created($"/api/v1/admin/content-sources", new
+        {
+            sourceId = source.Id.Value,
+            title = source.Title,
+            owner = source.Owner,
+            rootPath = source.RootPath,
+            allowedEnvironments = source.AllowedEnvironments.Select(Describe).Order().ToArray(),
+            expiresAt = source.ExpiresAt,
+            licenceReference = source.Proof?.Reference,
+            reviewer = source.Proof?.Reviewer,
+            reviewedAt = source.Proof?.ReviewedAt,
+            mayReachLearners = ContentRightsPolicy
+                .Evaluate(source, ContentEnvironment.LearnerProduction, now).Allowed,
+            fileCount = source.Files.Count,
+            hashedFileCount = source.Files.Count(f => f.Sha256 is not null),
+            examDefinitionIds = source.BoundExamDefinitionIds,
+            examVersionIds = source.BoundExamVersionIds,
         });
     }
 
@@ -539,63 +1014,66 @@ public static class AdminEndpoints
     }
 
     private static Task<IResult> SuspendEndpoint(
-        string userId, ClaimsPrincipal principal, IUserRepository users,
+        string userId, ClaimsPrincipal principal, IProtectedAdminMutation protectedAdmin,
         ITokenService tokens, IAuditLog audit, IClock clock, CancellationToken ct) =>
-        ChangeStatus(userId, principal, users, tokens, audit, clock, suspend: true, ct);
+        ChangeStatusSuspend(userId, principal, protectedAdmin, tokens, audit, clock, ct);
 
     private static Task<IResult> ReinstateEndpoint(
         string userId, ClaimsPrincipal principal, IUserRepository users,
-        ITokenService tokens, IAuditLog audit, IClock clock, CancellationToken ct) =>
-        ChangeStatus(userId, principal, users, tokens, audit, clock, suspend: false, ct);
+        IAuditLog audit, IClock clock, CancellationToken ct) =>
+        ChangeStatusReinstate(userId, principal, users, audit, clock, ct);
 
     /// <summary>
-    /// Suspend or reinstate, and — on suspend — cut the account's ability to
-    /// keep going.
-    ///
-    /// <b>Revoking the refresh families is the part that was missing.</b>
-    /// `RefreshTokens` already refuses a suspended account, so a suspended
-    /// user could not have obtained a <i>new</i> access token. But the families
-    /// stayed alive in storage, which meant the suspension left no mark on the
-    /// thing an attacker actually holds, and a later reinstatement silently
-    /// re-armed every session the account had ever opened — including one
-    /// opened by whoever the suspension was a response to.
-    ///
-    /// <b>What this still does not do is revoke the access token already
-    /// issued.</b> A JWT cannot be recalled; the window is
-    /// <c>Jwt:AccessTokenMinutes</c>, 15 by default. That is a deliberate
-    /// trade — the alternative is a database read on every request — but it
-    /// has to be said out loud, and the operator's confirmation dialog says it
-    /// rather than promising an instant cut-off.
+    /// Suspend goes through <see cref="IProtectedAdminMutation"/> so the
+    /// last-admin check and user write share one cross-instance transaction.
+    /// Reinstate has no last-admin risk and keeps the plain save.
     /// </summary>
-    private static async Task<IResult> ChangeStatus(
-        string userId, ClaimsPrincipal principal, IUserRepository users,
-        ITokenService tokens, IAuditLog audit, IClock clock, bool suspend,
-        CancellationToken ct)
+    private static async Task<IResult> ChangeStatusSuspend(
+        string userId, ClaimsPrincipal principal, IProtectedAdminMutation protectedAdmin,
+        ITokenService tokens, IAuditLog audit, IClock clock, CancellationToken ct)
     {
         if (Denied(principal, PermissionKeys.UserSuspend) is { } denial) return denial;
 
-        // Suspending yourself locks the last administrator out of the product,
-        // and the only way back is a database edit. Refused here rather than
-        // hidden in the UI, because the UI is not the enforcement.
         if (principal.UserId() == userId)
             return Conflict("Không thể tự khoá tài khoản của chính mình.");
+
+        var mutation = await protectedAdmin.TrySuspendAsync(new UserId(userId), ct);
+        return mutation.Outcome switch
+        {
+            ProtectedAdminMutationOutcome.NotFound => Results.NotFound(),
+            ProtectedAdminMutationOutcome.WouldLeaveZeroActiveAdmins => Conflict(
+                "Không thể khoá quản trị viên cuối cùng đang hoạt động.", ErrorCodes.LastAdminProtected),
+            ProtectedAdminMutationOutcome.AlreadyApplied or ProtectedAdminMutationOutcome.Applied =>
+                await FinishSuspendAsync(mutation.User!, principal, tokens, audit, clock, ct),
+            _ => throw new InvalidOperationException($"Unexpected outcome {mutation.Outcome}."),
+        };
+    }
+
+    private static async Task<IResult> FinishSuspendAsync(
+        Domain.Identity.User user, ClaimsPrincipal principal, ITokenService tokens,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        await tokens.RevokeAllForUserAsync(user.Id, ct);
+        await Record(
+            audit, principal, AuditAction.UserSuspended,
+            "user", user.Id.Value, Label(user), clock.UtcNow, ct);
+        return Results.Ok(new { status = user.Status.ToString().ToLowerInvariant() });
+    }
+
+    private static async Task<IResult> ChangeStatusReinstate(
+        string userId, ClaimsPrincipal principal, IUserRepository users,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.UserSuspend) is { } denial) return denial;
 
         var user = await users.FindByIdAsync(new UserId(userId), ct);
         if (user is null) return Results.NotFound();
 
-        if (suspend) user.Suspend();
-        else user.Reinstate();
-
+        user.Reinstate();
         await users.SaveAsync(user, ct);
 
-        // After the save, not before: a revocation that succeeds against an
-        // account whose status write then fails leaves the account usable and
-        // its sessions gone, which is the worst of both.
-        if (suspend) await tokens.RevokeAllForUserAsync(user.Id, ct);
-
         await Record(
-            audit, principal,
-            suspend ? AuditAction.UserSuspended : AuditAction.UserReinstated,
+            audit, principal, AuditAction.UserReinstated,
             "user", user.Id.Value, Label(user), clock.UtcNow, ct);
 
         return Results.Ok(new { status = user.Status.ToString().ToLowerInvariant() });
@@ -603,7 +1081,7 @@ public static class AdminEndpoints
 
     private static async Task<IResult> AssignRoleEndpoint(
         string userId, ClaimsPrincipal principal, AssignRoleRequest request,
-        IUserRepository users, IRoleRepository roles,
+        IUserRepository users, IRoleRepository roles, IProtectedAdminMutation protectedAdmin,
         IAuditLog audit, IClock clock, CancellationToken ct)
     {
         if (Denied(principal, PermissionKeys.RoleAssign) is { } denial) return denial;
@@ -614,21 +1092,40 @@ public static class AdminEndpoints
         var role = await roles.FindByIdAsync(new RoleId(request.RoleId), ct);
         if (role is null) return Results.NotFound();
 
-        // Dropping your own admin role is the same lockout as suspending
-        // yourself, one step removed.
         if (principal.UserId() == userId && !request.Grant && role.Name == SystemRoles.Admin)
             return Conflict("Không thể tự gỡ vai admin của chính mình.");
+
+        if (!request.Grant && role.Name == SystemRoles.Admin)
+        {
+            var mutation = await protectedAdmin.TryRevokeAdminRoleAsync(new UserId(userId), ct);
+            return mutation.Outcome switch
+            {
+                ProtectedAdminMutationOutcome.NotFound => Results.NotFound(),
+                ProtectedAdminMutationOutcome.WouldLeaveZeroActiveAdmins => Conflict(
+                    "Không thể gỡ vai admin của quản trị viên cuối cùng đang hoạt động.",
+                    ErrorCodes.LastAdminProtected),
+                ProtectedAdminMutationOutcome.AlreadyApplied or ProtectedAdminMutationOutcome.Applied =>
+                    await FinishRoleChangeAsync(mutation.User!, principal, role.Name, grant: false, audit, clock, ct),
+                _ => throw new InvalidOperationException($"Unexpected outcome {mutation.Outcome}."),
+            };
+        }
 
         if (request.Grant) user.AssignRole(role.Id);
         else user.RemoveRole(role.Id);
 
         await users.SaveAsync(user, ct);
+        return await FinishRoleChangeAsync(user, principal, role.Name, request.Grant, audit, clock, ct);
+    }
 
+    private static async Task<IResult> FinishRoleChangeAsync(
+        Domain.Identity.User user, ClaimsPrincipal principal, string roleName, bool grant,
+        IAuditLog audit, IClock clock, CancellationToken ct)
+    {
         await Record(
             audit, principal,
-            request.Grant ? AuditAction.RoleAssigned : AuditAction.RoleRemoved,
+            grant ? AuditAction.RoleAssigned : AuditAction.RoleRemoved,
             "user", user.Id.Value, Label(user), clock.UtcNow, ct,
-            new Dictionary<string, string> { ["role"] = role.Name });
+            new Dictionary<string, string> { ["role"] = roleName });
 
         return Results.Ok(new { roles = user.RoleIds.Select(r => r.Value) });
     }
@@ -767,6 +1264,27 @@ public static class AdminEndpoints
         _ => environment.ToString().ToLowerInvariant(),
     };
 
+    private static bool TryParseEnvironment(string raw, out ContentEnvironment environment)
+    {
+        switch (raw.Trim().ToLowerInvariant())
+        {
+            case "fixture":
+                environment = ContentEnvironment.Fixture;
+                return true;
+            case "internal-review":
+            case "internalreview":
+                environment = ContentEnvironment.InternalReview;
+                return true;
+            case "learner-production":
+            case "learnerproduction":
+                environment = ContentEnvironment.LearnerProduction;
+                return true;
+            default:
+                environment = default;
+                return false;
+        }
+    }
+
     /// <summary>
     /// Why a publish was refused, for an operator to act on.
     ///
@@ -786,10 +1304,42 @@ public static class AdminEndpoints
     };
 
     private static IResult Conflict(string detail) =>
+        Conflict(detail, ErrorCodes.ValidationFailed);
+
+    private static IResult Conflict(string detail, string code) =>
         Results.Problem(
             detail: detail,
             statusCode: StatusCodes.Status409Conflict,
-            extensions: new Dictionary<string, object?> { ["code"] = ErrorCodes.ValidationFailed });
+            extensions: new Dictionary<string, object?> { ["code"] = code });
+
+    private static IResult Problem(string code, string detail, int status) =>
+        Results.Problem(
+            detail: detail,
+            statusCode: status,
+            extensions: new Dictionary<string, object?> { ["code"] = code });
+
+    private static IResult FromError(Error error) => error.Kind switch
+    {
+        ErrorKind.NotFound => Results.NotFound(new { code = error.Code, message = error.Detail }),
+        ErrorKind.Forbidden or ErrorKind.Unauthorized => Results.Problem(
+            detail: error.Detail,
+            statusCode: error.Kind == ErrorKind.Unauthorized
+                ? StatusCodes.Status401Unauthorized
+                : StatusCodes.Status403Forbidden,
+            extensions: new Dictionary<string, object?> { ["code"] = error.Code }),
+        ErrorKind.Conflict => Results.Problem(
+            detail: error.Detail,
+            statusCode: StatusCodes.Status409Conflict,
+            extensions: new Dictionary<string, object?> { ["code"] = error.Code }),
+        ErrorKind.Validation => Results.Problem(
+            detail: error.Detail,
+            statusCode: StatusCodes.Status400BadRequest,
+            extensions: new Dictionary<string, object?> { ["code"] = error.Code }),
+        _ => Results.Problem(
+            detail: error.Detail,
+            statusCode: StatusCodes.Status500InternalServerError,
+            extensions: new Dictionary<string, object?> { ["code"] = error.Code }),
+    };
 
     /// <summary>
     /// 403 with a stable code, not 404.
@@ -815,4 +1365,47 @@ public static class AdminEndpoints
                 ["permission"] = permission,
             });
     }
+
+    /// <summary>
+    /// Ownership-scoped counterpart to <see cref="Denied"/> for exam updates.
+    /// <c>exam.update.any</c> is sufficient on its own (admin override); it must
+    /// not require <c>exam.update.own</c>. Holding only <c>.own</c> requires the
+    /// caller to be the author. Do not fall through to <see cref="Denied"/> —
+    /// a holder of <c>.own</c> who is not the author would otherwise be allowed.
+    /// </summary>
+    private static IResult? DeniedOwn(ClaimsPrincipal principal, string permission, UserId? authorId)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+
+        var perms = principal.Permissions();
+        var allowed = perms.Contains(PermissionKeys.ExamUpdateAny)
+            || (perms.Contains(permission)
+                && authorId is not null
+                && principal.UserId() == authorId.Value.Value);
+
+        return allowed ? null : Forbidden(permission);
+    }
+
+    private static IResult? DeniedRead(ClaimsPrincipal principal, UserId? authorId)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+
+        var perms = principal.Permissions();
+        if (perms.Contains(PermissionKeys.ExamReadAny)) return null;
+        if (perms.Contains(PermissionKeys.ExamReadOwn)
+            && authorId is not null && principal.UserId() == authorId.Value.Value)
+            return null;
+
+        return Forbidden(PermissionKeys.ExamReadAny);
+    }
+
+    private static IResult Forbidden(string permission) =>
+        Results.Problem(
+            detail: $"This account does not hold {permission}.",
+            statusCode: StatusCodes.Status403Forbidden,
+            extensions: new Dictionary<string, object?>
+            {
+                ["code"] = ErrorCodes.PermissionDenied,
+                ["permission"] = permission,
+            });
 }

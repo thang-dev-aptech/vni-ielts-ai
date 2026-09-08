@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vni.edu.vn/schemas/exam-extraction.schema.json",
+  "title": "ExamExtraction",
+  "description": "What a model may propose after reading an uploaded exam document, and nothing more. This is a review proposal, not an exam: it becomes a ParsedExamCandidate that a staff member confirms. The envelope an exam needs to be sat - variant, timing, and raw-to-band scoring - is deliberately absent, because those are equated per exam version and attach to it as data rather than being readable off a page. Provenance is expressed as references to the source and chunk identifiers supplied in the request, so every proposal can be traced back to the bytes it came from and a reference the request never issued is a rejection.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "classification", "modules"],
+  "properties": {
+    "contractVersion": {
+      "description": "Pinned so a stored proposal names the contract it was produced against. A new shape is a new value here, not a silent change of meaning.",
+      "type": "string",
+      "enum": ["exam-extraction-v1"]
+    },
+    "title": {
+      "description": "A title proposal read off the paper. Null when the paper does not state one; never inferred from a file name.",
+      "type": ["string", "null"],
+      "maxLength": 300
+    },
+    "classification": { "$ref": "#/$defs/classification" },
+    "confidence": { "$ref": "#/$defs/confidence" },
+    "modules": {
+      "type": "array",
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/module" }
+    }
+  },
+  "$defs": {
+    "classification": {
+      "description": "Unclassified and NeedsReview are first-class answers, not failures. A model that cannot tell which module a document belongs to must say so rather than guess, because a guess reaches a learner as a fact.",
+      "type": "string",
+      "enum": [
+        "Reading",
+        "Listening",
+        "Writing",
+        "Speaking",
+        "Unclassified",
+        "NeedsReview"
+      ]
+    },
+    "examModule": {
+      "type": ["string", "null"],
+      "enum": [null, "Reading", "Listening", "Writing", "Speaking"]
+    },
+    "confidence": {
+      "description": "Metadata only, and nullable: no downstream decision reads it, and it can never move a band. A bounded number rather than a closed enumeration - the enum-not-range rule exists because a band is a decided value where 6.3 must be impossible, and this is not a band. Enumerating tenths would have rejected a legitimate 0.85 and invented a granularity no provider agreed to. The range is restated in the server mapper, because provider-side schema enforcement is a convenience this server assumes failed.",
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "provenance": {
+      "description": "Where in the supplied sources this proposal came from. sourceId and chunkId are the opaque identifiers issued in the request; the server maps them back to archive entries. A reference the request did not issue is rejected rather than dropped.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId"],
+      "properties": {
+        "sourceId": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "chunkId": { "type": ["string", "null"], "maxLength": 64 },
+        "page": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    },
+    "questionType": {
+      "type": ["string", "null"],
+      "enum": [
+        null,
+        "MultipleChoice",
+        "MultipleSelect",
+        "TrueFalseNotGiven",
+        "YesNoNotGiven",
+        "Matching",
+        "Completion",
+        "ShortAnswer",
+        "Labelling",
+        "EssayTask",
+        "SpeakingResponse"
+      ]
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "text"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1, "maxLength": 8 },
+        "text": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "answerKey": {
+      "description": "Copied from an official answer key printed in the source. Omitted entirely when the source carries none - an answer the model worked out itself is a guess even when it is right, and a well-formed wrong key marks every learner who sits the paper.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["accepted"],
+      "properties": {
+        "accepted": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+        },
+        "matchingRule": { "type": ["string", "null"], "maxLength": 120 }
+      }
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "order", "options", "provenance"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "order": {
+          "description": "The number printed on the paper. Gaps are kept: renumbering to close one silently renames a question a reviewer is looking for.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "type": { "$ref": "#/$defs/questionType" },
+        "prompt": { "type": ["string", "null"], "maxLength": 8000 },
+        "options": {
+          "type": "array",
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/option" }
+        },
+        "answerKey": {
+          "anyOf": [{ "$ref": "#/$defs/answerKey" }, { "type": "null" }]
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      }
+    },
+    "part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "order", "questions", "provenance"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "order": { "type": "integer", "minimum": 1 },
+        "title": { "type": ["string", "null"], "maxLength": 300 },
+        "body": { "type": ["string", "null"], "maxLength": 40000 },
+        "questions": {
+          "type": "array",
+          "maxItems": 60,
+          "items": { "$ref": "#/$defs/question" }
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      }
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "parts", "provenance"],
+      "properties": {
+        "module": { "$ref": "#/$defs/examModule" },
+        "classification": { "$ref": "#/$defs/classification" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "parts": {
+          "type": "array",
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/part" }
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      }
+    }
+  }
+}

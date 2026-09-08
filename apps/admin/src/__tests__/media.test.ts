@@ -144,7 +144,7 @@ describe('what may be done to a file', () => {
 
 describe('an exam that cannot be sat', () => {
   it('finds the reference that resolves to nothing', () => {
-    expect(missingAssets(version('in-review', null))).toHaveLength(1);
+    expect(missingAssets(version('inreview', null))).toHaveLength(1);
   });
 
   it('names where the missing file was meant to play', () => {
@@ -163,6 +163,22 @@ describe('an exam that cannot be sat', () => {
       ],
     };
     expect(publishBlockers(broken)[0]).toContain('2');
+  });
+
+  it('does not treat a resolved package asset as missing just because it has no library id', () => {
+    expect(
+      missingAssets({
+        assets: [
+          {
+            ref: 'assets/listening-part-1.m4a',
+            mediaId: null,
+            usedAt: 'Listening · Part 1',
+            kind: 'audio',
+            resolved: true,
+          },
+        ],
+      }),
+    ).toHaveLength(0);
   });
 });
 
