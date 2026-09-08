@@ -47,6 +47,10 @@ COPY --from=build /app .
 # as well, not just in the API image.
 COPY contracts/schemas/ contracts/schemas/
 
+# The marking worker loads the same configured rubric as the API. Keep the
+# runtime path identical in both images and copy no other fixture content.
+COPY fixtures/assessment/writing-rubric-v1.json fixtures/assessment/writing-rubric-v1.json
+
 # The worker's own health port. Not 8080: a deployment that puts the API and
 # the worker on the same host must not have their default ports collide.
 ENV ASPNETCORE_HTTP_PORTS=8081

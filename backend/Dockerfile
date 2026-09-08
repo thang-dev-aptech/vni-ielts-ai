@@ -69,6 +69,11 @@ COPY --from=build /app .
 # walk exists for the local `dotnet run` layout, not to be relied on here.
 COPY contracts/schemas/ contracts/schemas/
 
+# Writing marking resolves this configured path from /app at runtime. Copy only
+# the versioned rubric, not the full fixtures tree, so the image contains no
+# learner data or unrelated test material.
+COPY fixtures/assessment/writing-rubric-v1.json fixtures/assessment/writing-rubric-v1.json
+
 # The port the process listens on inside the container. Nothing maps it to 80
 # here: that is the orchestrator's decision, and hard-coding it would make this
 # image unusable behind anything that expects otherwise.
