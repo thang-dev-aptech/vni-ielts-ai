@@ -30,6 +30,8 @@ namespace Vni.Ielts.Api.Endpoints;
 /// </summary>
 public sealed record OverrideWarningRequest(string Reason);
 
+public sealed record SetChecklistRequest(IReadOnlyList<string> Confirmed);
+
 public sealed record ImportFindingView(string Severity, string Code, string Path, string Message);
 
 public sealed record ImportWarningView(
@@ -82,6 +84,10 @@ public static class AdminImportEndpoints
         group.MapPost("/packages/{draftId}/warnings/{warningId}/override", OverrideWarningEndpoint)
             .WithName("AdminOverrideImportWarning")
             .WithSummary("Resolve a warning with a mandatory reason; audited as WarningOverridden");
+
+        group.MapPost("/packages/{draftId}/checklist", SetChecklistEndpoint)
+            .WithName("AdminSetImportChecklist")
+            .WithSummary("Confirm which review-checklist categories this draft has cleared");
 
         group.MapPost("/packages/{draftId}/approve", ApproveEndpoint)
             .WithName("AdminApproveImportDraft")
@@ -213,6 +219,36 @@ public static class AdminImportEndpoints
             ct);
 
         return Results.Ok(ToView(draft));
+    }
+
+    private static async Task<IResult> SetChecklistEndpoint(
+        string draftId, SetChecklistRequest request, ClaimsPrincipal principal,
+        IImportDraftStore drafts, ImportReviewWorkflow review, HttpContext http, CancellationToken ct)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+        if (!Guid.TryParse(draftId, out var id)) return Results.NotFound();
+
+        var parsed = new HashSet<ImportReviewCategory>();
+        foreach (var name in request.Confirmed ?? [])
+        {
+            if (!Enum.TryParse<ImportReviewCategory>(name, ignoreCase: true, out var category)
+                || !Enum.IsDefined(category))
+            {
+                return Problem(
+                    ErrorCodes.ValidationFailed,
+                    $"Unknown checklist category '{name}'.",
+                    400,
+                    http);
+            }
+            parsed.Add(category);
+        }
+
+        var current = await drafts.FindAsync(id, ct);
+        if (current is null) return Results.NotFound();
+
+        var actor = BuildActor(principal);
+        var result = await review.SetChecklistAsync(id, current.Revision, parsed, actor, ct);
+        return result.IsSuccess ? Results.Ok(ToView(result.Draft!)) : RefusedResult(result, http);
     }
 
     private static async Task<IResult> ApproveEndpoint(

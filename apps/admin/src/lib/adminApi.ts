@@ -1232,6 +1232,31 @@ export const overrideImportWarning = async (
   return parseImportResponse(response);
 };
 
+/**
+ * Thay thế toàn bộ tập checklist đã xác nhận — không cộng dồn phía server.
+ * Luôn gửi đủ tập hiện tại, không chỉ mục vừa đổi.
+ */
+export const setImportChecklist = async (
+  accessToken: string,
+  draftId: string,
+  confirmed: string[],
+): Promise<ImportDraft> => {
+  const response = await authedFetch(
+    `${apiBase()}/api/v1/admin/import/packages/${draftId}/checklist`,
+    accessToken,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ confirmed }),
+    },
+  );
+
+  return parseImportResponse(response);
+};
+
 export const approveImportDraft = async (
   accessToken: string,
   draftId: string,

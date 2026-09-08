@@ -10,7 +10,7 @@ import type { ImportDraft } from '../lib/adminApi.js';
  *
  * <b>`ImportApiError` is the real class, not a mock.</b> `importOriginal` pulls
  * it through unmocked so `error instanceof ImportApiError` in `ImportPage`
- * still works against the errors these tests construct — only the three
+ * still works against the errors these tests construct — only the four
  * network-calling functions are replaced.
  */
 
@@ -35,13 +35,13 @@ vi.mock('../lib/adminApi.js', async (importOriginal) => {
     ...actual,
     uploadImportPackage: vi.fn(),
     overrideImportWarning: vi.fn(),
+    setImportChecklist: vi.fn(),
     approveImportDraft: vi.fn(),
   };
 });
 
-const { uploadImportPackage, overrideImportWarning, ImportApiError } = await import(
-  '../lib/adminApi.js'
-);
+const { uploadImportPackage, overrideImportWarning, setImportChecklist, ImportApiError } =
+  await import('../lib/adminApi.js');
 const { ImportPage } = await import('../screens/ImportPage.js');
 
 function draft(overrides: Partial<ImportDraft> = {}): ImportDraft {
@@ -77,9 +77,19 @@ function renderPage() {
 }
 
 describe('ImportPage', () => {
+  const checklistLabels = [
+    'Câu hỏi',
+    'Lựa chọn',
+    'Giới hạn từ',
+    'Biến thể đáp án chấp nhận',
+    'Transcript và bằng chứng',
+    'Ánh xạ tài nguyên',
+  ];
+
   beforeEach(() => {
     vi.mocked(uploadImportPackage).mockReset();
     vi.mocked(overrideImportWarning).mockReset();
+    vi.mocked(setImportChecklist).mockReset();
   });
 
   it('renders the returned draft\'s findings and warnings on a successful upload', async () => {
@@ -215,5 +225,62 @@ describe('ImportPage', () => {
         'Đã đối chiếu thủ công với file gốc.',
       ),
     );
+  });
+
+  it('enables Duyệt after every checklist item is confirmed', async () => {
+    vi.mocked(uploadImportPackage).mockResolvedValue(draft({ checklistComplete: false }));
+    vi.mocked(setImportChecklist).mockImplementation(async (_token, _draftId, confirmed) =>
+      draft({
+        checklistConfirmed: confirmed,
+        checklistComplete: confirmed.length === 6,
+      }),
+    );
+
+    renderPage();
+    chooseFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+    await screen.findByText('Bản nháp draft-1');
+
+    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeDisabled();
+
+    for (const label of checklistLabels) {
+      fireEvent.click(screen.getByRole('checkbox', { name: label }));
+      await waitFor(() => expect(screen.getByRole('checkbox', { name: label })).toBeChecked());
+    }
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Duyệt' })).toBeEnabled());
+    const lastConfirmed = vi.mocked(setImportChecklist).mock.calls.at(-1)?.[2] ?? [];
+    expect(lastConfirmed).toHaveLength(6);
+    expect(lastConfirmed).toEqual(
+      expect.arrayContaining([
+        'questions',
+        'options',
+        'wordlimits',
+        'acceptedvariants',
+        'transcriptandevidence',
+        'assetmapping',
+      ]),
+    );
+  });
+
+  it('keeps Duyệt disabled and reports remaining checklist items', async () => {
+    vi.mocked(uploadImportPackage).mockResolvedValue(draft({ checklistComplete: false }));
+    vi.mocked(setImportChecklist).mockResolvedValue(
+      draft({ checklistConfirmed: ['questions'], checklistComplete: false }),
+    );
+
+    renderPage();
+    chooseFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+    await screen.findByText('Bản nháp draft-1');
+
+    expect(screen.getByText('Còn 6 mục checklist chưa xác nhận.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Câu hỏi' }));
+
+    expect(await screen.findByText('Còn 5 mục checklist chưa xác nhận.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeDisabled();
+    expect(setImportChecklist).toHaveBeenCalledWith('token-1', 'draft-1', ['questions']);
   });
 });

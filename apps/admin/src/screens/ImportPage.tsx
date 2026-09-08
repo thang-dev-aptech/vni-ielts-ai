@@ -6,6 +6,7 @@ import { Confirm, useFlash } from '../chrome/Confirm.js';
 import {
   approveImportDraft,
   overrideImportWarning,
+  setImportChecklist,
   uploadImportPackage,
   ImportApiError,
   type ImportDraft,
@@ -39,6 +40,15 @@ import { reasonOf } from './UserDetailPage.js';
  * describe what happens before the request that either returns a draft or a
  * `PACKAGE_REJECTED` 422 naming which stage refused it.
  */
+
+const CHECKLIST_ITEMS: Array<[key: string, label: string]> = [
+  ['questions', 'Câu hỏi'],
+  ['options', 'Lựa chọn'],
+  ['wordlimits', 'Giới hạn từ'],
+  ['acceptedvariants', 'Biến thể đáp án chấp nhận'],
+  ['transcriptandevidence', 'Transcript và bằng chứng'],
+  ['assetmapping', 'Ánh xạ tài nguyên'],
+];
 
 const STAGES = [
   { key: 'magic', label: 'Kiểm chữ ký tệp', note: 'Đúng là ZIP, không phải tệp đổi đuôi' },
@@ -82,6 +92,7 @@ export function ImportPage() {
   const [overrideBusy, setOverrideBusy] = useState(false);
 
   const [approving, setApproving] = useState(false);
+  const [checklistBusy, setChecklistBusy] = useState(false);
 
   const input = useRef<HTMLInputElement>(null);
 
@@ -130,6 +141,23 @@ export function ImportPage() {
     }
   }
 
+  async function toggleChecklist(key: string, checkedNow: boolean) {
+    if (accessToken === null || draft === null) return;
+    const next = new Set(draft.checklistConfirmed);
+    if (checkedNow) next.add(key);
+    else next.delete(key);
+
+    setChecklistBusy(true);
+    try {
+      const updated = await setImportChecklist(accessToken, draft.draftId, [...next]);
+      setDraft(updated);
+    } catch (error) {
+      say({ tone: 'bad', text: reasonOf(error) });
+    } finally {
+      setChecklistBusy(false);
+    }
+  }
+
   async function approve() {
     if (accessToken === null || draft === null) return;
     setApproving(true);
@@ -149,7 +177,11 @@ export function ImportPage() {
   const openWarnings = draft === null ? [] : unresolvedWarnings(draft);
   const alreadyApproved = draft?.approvalState === 'approved';
   const canApprove =
-    draft !== null && !alreadyApproved && blocking.length === 0 && openWarnings.length === 0;
+    draft !== null &&
+    !alreadyApproved &&
+    blocking.length === 0 &&
+    openWarnings.length === 0 &&
+    draft.checklistComplete;
 
   return (
     <>
@@ -310,6 +342,29 @@ export function ImportPage() {
             </>
           )}
 
+          {operator.can('exam.review') && (
+            <>
+              <h3>
+                Checklist chuyên môn ({draft.checklistConfirmed.length}/{CHECKLIST_ITEMS.length})
+              </h3>
+              <ul className="cms-notes">
+                {CHECKLIST_ITEMS.map(([key, label]) => (
+                  <li key={key}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={draft.checklistConfirmed.includes(key)}
+                        disabled={checklistBusy || alreadyApproved}
+                        onChange={(e) => void toggleChecklist(key, e.target.checked)}
+                      />{' '}
+                      {label}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
           {operator.can('exam.review') ? (
             <div className="cms-version-actions">
               <button
@@ -324,7 +379,9 @@ export function ImportPage() {
                 <span className="cms-muted">
                   {blocking.length > 0
                     ? `Còn ${blocking.length} finding lỗi chưa xử lý.`
-                    : `Còn ${openWarnings.length} cảnh báo chưa xử lý.`}
+                    : openWarnings.length > 0
+                      ? `Còn ${openWarnings.length} cảnh báo chưa xử lý.`
+                      : `Còn ${CHECKLIST_ITEMS.length - draft.checklistConfirmed.length} mục checklist chưa xác nhận.`}
                 </span>
               )}
             </div>

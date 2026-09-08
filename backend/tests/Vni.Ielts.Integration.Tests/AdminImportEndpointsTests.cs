@@ -342,6 +342,143 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
             ImportApprovalState.ReviewRequired, (await drafts.FindAsync(Guid.Parse(draftId), default))!.ApprovalState);
     }
 
+    private static readonly string[] FullChecklist =
+    [
+        "questions",
+        "options",
+        "wordlimits",
+        "acceptedvariants",
+        "transcriptandevidence",
+        "assetmapping",
+    ];
+
+    [SkippableFact]
+    public async Task Setting_the_full_checklist_unblocks_approval()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadDraftAsync(client, access);
+        await ResolveOpenWarningsAsync(client, access, draftId);
+
+        var checklist = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = FullChecklist });
+        var checklistResponse = await client.SendAsync(checklist);
+        var checklistBody = await BodyOf(checklistResponse);
+
+        Assert.Equal(HttpStatusCode.OK, checklistResponse.StatusCode);
+        Assert.True(checklistBody.GetProperty("checklistComplete").GetBoolean());
+
+        var approve = await client.SendAsync(
+            Request(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access));
+        var approveBody = await BodyOf(approve);
+
+        Assert.Equal(HttpStatusCode.OK, approve.StatusCode);
+        Assert.Equal("approved", approveBody.GetProperty("approvalState").GetString());
+    }
+
+    [SkippableFact]
+    public async Task An_unknown_checklist_category_is_refused_with_400()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadDraftAsync(client, access);
+
+        var before = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var beforeBody = await BodyOf(before);
+        var confirmedBefore = beforeBody.GetProperty("checklistConfirmed")
+            .EnumerateArray().Select(v => v.GetString()).ToArray();
+
+        var checklist = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = new[] { "not-a-real-category" } });
+        var checklistResponse = await client.SendAsync(checklist);
+        var checklistBody = await BodyOf(checklistResponse);
+
+        Assert.Equal(HttpStatusCode.BadRequest, checklistResponse.StatusCode);
+        Assert.Equal("VALIDATION_FAILED", checklistBody.GetProperty("code").GetString());
+
+        var after = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var afterBody = await BodyOf(after);
+        var confirmedAfter = afterBody.GetProperty("checklistConfirmed")
+            .EnumerateArray().Select(v => v.GetString()).ToArray();
+
+        Assert.Equal(confirmedBefore, confirmedAfter);
+        Assert.False(afterBody.GetProperty("checklistComplete").GetBoolean());
+    }
+
+    [SkippableFact]
+    public async Task A_numeric_undefined_checklist_category_is_refused_with_400()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadDraftAsync(client, access);
+
+        var before = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var beforeBody = await BodyOf(before);
+        var confirmedBefore = beforeBody.GetProperty("checklistConfirmed")
+            .EnumerateArray().Select(v => v.GetString()).ToArray();
+
+        var checklist = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = new[] { "999" } });
+        var checklistResponse = await client.SendAsync(checklist);
+        var checklistBody = await BodyOf(checklistResponse);
+
+        Assert.Equal(HttpStatusCode.BadRequest, checklistResponse.StatusCode);
+        Assert.Equal("VALIDATION_FAILED", checklistBody.GetProperty("code").GetString());
+
+        var after = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var afterBody = await BodyOf(after);
+        var confirmedAfter = afterBody.GetProperty("checklistConfirmed")
+            .EnumerateArray().Select(v => v.GetString()).ToArray();
+
+        Assert.Equal(confirmedBefore, confirmedAfter);
+        Assert.False(afterBody.GetProperty("checklistComplete").GetBoolean());
+    }
+
+    private async Task<string> UploadDraftAsync(HttpClient client, string access)
+    {
+        var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        request.Content = ValidStructuredPackage();
+        var response = await client.SendAsync(request);
+        var body = await BodyOf(response);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var draftId = body.GetProperty("draftId").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(draftId));
+        return draftId!;
+    }
+
+    private static async Task ResolveOpenWarningsAsync(HttpClient client, string access, string draftId)
+    {
+        var get = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var body = await BodyOf(get);
+        foreach (var warning in body.GetProperty("warnings").EnumerateArray())
+        {
+            if (warning.GetProperty("resolved").GetBoolean()) continue;
+
+            var overrideRequest = Request(
+                HttpMethod.Post,
+                $"/api/v1/admin/import/packages/{draftId}/warnings/{warning.GetProperty("id").GetString()}/override",
+                access);
+            overrideRequest.Content = JsonContent.Create(new
+            {
+                reason = "Resolved in the HTTP checklist-unblocks-approval fixture.",
+            });
+            var overrideResponse = await client.SendAsync(overrideRequest);
+            Assert.Equal(HttpStatusCode.OK, overrideResponse.StatusCode);
+        }
+    }
+
     /// <summary>Seeds a structured, valid draft carrying one unresolved warning "w1".</summary>
     private async Task<string> SeedDraftWithWarningAsync()
     {
