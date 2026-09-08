@@ -195,6 +195,15 @@ export function ImportPage() {
           kết quả lên đây.
         </p>
 
+        <p className="cms-muted">
+          Chưa biết cấu trúc gói?{' '}
+          <a className="cms-link-button" href="/templates/exam-package-template.zip" download>
+            Tải gói mẫu (.zip)
+          </a>{' '}
+          — có sẵn <code>manifest.json</code> + <code>exam.json</code> đúng định dạng, sửa nội dung
+          rồi tải lên lại.
+        </p>
+
         <label className="cms-drop">
           <input
             ref={input}

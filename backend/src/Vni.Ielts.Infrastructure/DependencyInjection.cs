@@ -704,8 +704,8 @@ public static class DependencyInjection
         (SystemRoles.Admin,
         [
             PermissionKeys.ExamReadAny, PermissionKeys.ExamCreate, PermissionKeys.ExamUpdateAny,
-            PermissionKeys.ExamDeleteAny, PermissionKeys.ExamReview, PermissionKeys.ExamPreview,
-            PermissionKeys.ExamPublish, PermissionKeys.ExamUnpublish,
+            PermissionKeys.ExamDeleteAny, PermissionKeys.ExamSubmit, PermissionKeys.ExamReview,
+            PermissionKeys.ExamPreview, PermissionKeys.ExamPublish, PermissionKeys.ExamUnpublish,
             PermissionKeys.PackageUpload, PermissionKeys.PackageRead, PermissionKeys.PackageConfirm,
             PermissionKeys.PackageDelete,
             PermissionKeys.ContentRightsManage,
