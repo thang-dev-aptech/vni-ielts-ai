@@ -31,7 +31,7 @@ RUN pnpm --filter @vni/web build
 # dirs) or trusting someone else's recipe for it. nginx-unprivileged is the
 # nginx project's own build for exactly this — non-root by default, listening
 # on 8080, already owning everything it needs to.
-FROM nginxinc/nginx-unprivileged:1.29-alpine@sha256:0c79d56aee561a1d81c63f00eee5fb5fe29279560cdc55e91425133104c7fbe6 AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine@sha256:2ddec616f1cb58bcac057aa388f28cb81e35137641ef4226d321714499329bd1 AS runtime
 
 # <b>Patch the base, do not merely pin it.</b> F4.5 pins by digest so a build is
 # reproducible; this line exists because a pin alone is a promise to ship the
