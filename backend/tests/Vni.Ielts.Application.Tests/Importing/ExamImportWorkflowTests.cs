@@ -73,7 +73,7 @@ public sealed class ExamImportWorkflowTests
         var workflow = new ExamImportWorkflow(validator, store, parser);
 
         var result = await workflow.ImportStructuredAsync(
-            "valid-structured-package", ExamDefinitionId.New(), 1, default);
+            "valid-structured-package", ExamDefinitionId.New(), 1, true, default);
 
         Assert.True(result.IsAccepted);
         Assert.Equal(["valid-structured-package"], validator.Seen);
@@ -96,7 +96,7 @@ public sealed class ExamImportWorkflowTests
             "source.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             text, ExamImportWorkflow.Hash("source bytes"), ExamImportWorkflow.Hash(text));
 
-        var result = await workflow.ImportExtractedAsync(source, ExamDefinitionId.New(), 1, default);
+        var result = await workflow.ImportExtractedAsync(source, ExamDefinitionId.New(), 1, true, default);
 
         Assert.True(result.IsAccepted);
         Assert.Equal(["valid-ai-package"], validator.Seen);
@@ -119,7 +119,7 @@ public sealed class ExamImportWorkflowTests
             new ExtractedImportSource(
                 "source.pdf", "application/pdf", text,
                 ExamImportWorkflow.Hash("source bytes"), ExamImportWorkflow.Hash(text)),
-            ExamDefinitionId.New(), 1, default);
+            ExamDefinitionId.New(), 1, true, default);
 
         Assert.False(result.IsAccepted);
         Assert.Equal("RESPONSE_SLOT_KEY_MISSING", Assert.Single(result.Findings).Code);
@@ -139,7 +139,7 @@ public sealed class ExamImportWorkflowTests
             new ExtractedImportSource(
                 "source.pdf", "application/pdf", "changed",
                 ExamImportWorkflow.Hash("source bytes"), new string('0', 64)),
-            ExamDefinitionId.New(), 1, default);
+            ExamDefinitionId.New(), 1, true, default);
 
         Assert.False(result.IsAccepted);
         Assert.Equal("SOURCE_HASH_MISMATCH", Assert.Single(result.Findings).Code);

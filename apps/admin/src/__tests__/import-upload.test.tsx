@@ -58,6 +58,7 @@ function draft(overrides: Partial<ImportDraft> = {}): ImportDraft {
     warnings: [],
     checklistConfirmed: [],
     checklistComplete: false,
+    checklistRequired: true,
     ...overrides,
   };
 }
@@ -282,5 +283,53 @@ describe('ImportPage', () => {
     expect(await screen.findByText('Còn 5 mục checklist chưa xác nhận.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Duyệt' })).toBeDisabled();
     expect(setImportChecklist).toHaveBeenCalledWith('token-1', 'draft-1', ['questions']);
+  });
+
+  it('ticks the review-required toggle by default before upload', () => {
+    renderPage();
+    expect(
+      screen.getByRole('checkbox', {
+        name: /Cần rà soát trước khi công bố \(khuyến nghị cho nội dung mới hoặc chưa có ai kiểm tra\)/,
+      }),
+    ).toBeChecked();
+  });
+
+  it('enables Duyệt immediately when the uploaded draft does not require the checklist', async () => {
+    vi.mocked(uploadImportPackage).mockResolvedValue(
+      draft({ checklistRequired: false, checklistComplete: false }),
+    );
+
+    renderPage();
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: /Cần rà soát trước khi công bố \(khuyến nghị cho nội dung mới hoặc chưa có ai kiểm tra\)/,
+      }),
+    );
+    chooseFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+    await screen.findByText('Bản nháp draft-1');
+
+    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeEnabled();
+    expect(screen.queryByRole('heading', { name: /Checklist chuyên môn/ })).not.toBeInTheDocument();
+    expect(uploadImportPackage).toHaveBeenCalledWith('token-1', expect.any(File), {
+      checklistRequired: false,
+    });
+  });
+
+  it('keeps Duyệt locked and shows the checklist when the draft still requires review', async () => {
+    vi.mocked(uploadImportPackage).mockResolvedValue(
+      draft({ checklistRequired: true, checklistComplete: false }),
+    );
+
+    renderPage();
+    chooseFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+    await screen.findByText('Bản nháp draft-1');
+
+    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeDisabled();
+    expect(screen.getByRole('heading', { name: /Checklist chuyên môn/ })).toBeInTheDocument();
+    expect(uploadImportPackage).toHaveBeenCalledWith('token-1', expect.any(File), {
+      checklistRequired: true,
+    });
   });
 });

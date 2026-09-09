@@ -6,31 +6,15 @@ import { formatAdminDate } from '../lib/formatAdminDate.js';
 import { AdminPaths } from '../routes/paths.js';
 import {
   deletePackage,
-  getPackage,
   listExams,
   listPackages,
-  uploadPackage,
   type AdminPackage,
 } from '../lib/adminApi.js';
 
-const POLL_INTERVAL_MS = 1500;
-const POLL_MAX_ATTEMPTS = 20;
-
 /**
- * "Lịch sử gói" — every package uploaded through `/import` (S6b, structured
- * exam.json in a skill folder) shows up here, rejections included, plus —
- * from the upload box below — every package uploaded straight to
- * `POST /admin/packages` (manifest.json + exam.json at the archive root).
- *
- * <b>Two different package formats, two different screens, on purpose.</b>
- * `/import` wants exactly one exam.json inside reading/|listening/|writing/|
- * speaking/, no manifest. This box wants a manifest.json declaring one or
- * more exam.json files at the archive root. Uploading the wrong shape to the
- * wrong place produces LAYOUT_UNKNOWN_ENTRY / MANIFEST_MISSING findings —
- * that is not a bug in either pipeline, it is two real, different contracts.
- * `uploadPackage()` existed in `adminApi.ts` with nothing in the UI ever
- * calling it until this box was added — the endpoint worked, there was
- * simply no way to reach it.
+ * "Lịch sử gói" — every package uploaded through `/import` (S6b) shows up
+ * here, rejections included. This screen lists and deletes; the only upload
+ * surface is "Nhập đề" (`ImportPage`).
  */
 const STATUS_LABEL: Record<AdminPackage['status'], string> = {
   uploaded: 'Đã tải lên',
@@ -66,7 +50,7 @@ const STATUS_TONE: Record<AdminPackage['status'], string> = {
 
 export function PackagesPage() {
   const { accessToken, can } = useAdminAuth();
-  const { flash, say } = useFlash();
+  const { flash } = useFlash();
 
   const [packages, setPackages] = useState<AdminPackage[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -76,9 +60,6 @@ export function PackagesPage() {
     pkg: AdminPackage;
     draftCount: number;
   } | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
   const alive = useRef(true);
 
   useEffect(() => {
@@ -102,40 +83,6 @@ export function PackagesPage() {
   useEffect(() => void load(), [load]);
 
   const canDelete = can('package.delete');
-  const canUpload = can('package.upload');
-
-  async function upload() {
-    if (accessToken === null || file === null) return;
-    setUploading(true);
-    setUploadError(null);
-
-    try {
-      const { packageId } = await uploadPackage(accessToken, file);
-      say({ tone: 'ok', text: `Đã tải lên «${file.name}» — đang xử lý.` });
-      setFile(null);
-      await load();
-
-      // The Worker processes structurally, not in the request path — poll
-      // a few times so the operator sees the real terminal status (imported
-      // / needs-review / rejected) without a manual page refresh, same
-      // pattern /import used before it moved to a synchronous endpoint.
-      for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt += 1) {
-        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-        if (!alive.current) return;
-        const current = await getPackage(accessToken, packageId).catch(() => null);
-        if (current === null) break;
-        if (current.status !== 'uploaded' && current.status !== 'scanning'
-          && current.status !== 'validating' && current.status !== 'parsing') {
-          break;
-        }
-      }
-      if (alive.current) await load();
-    } catch {
-      if (alive.current) setUploadError('Không tải lên được. Kiểm tra định dạng gói rồi thử lại.');
-    } finally {
-      if (alive.current) setUploading(false);
-    }
-  }
 
   async function askDelete(pkg: AdminPackage) {
     if (accessToken === null) return;
@@ -165,44 +112,6 @@ export function PackagesPage() {
       </div>
 
       {flash}
-
-      {canUpload && (
-        <section className="cms-panel">
-          <h2>Tải gói lên trực tiếp</h2>
-          <p className="cms-muted">
-            Gói <code>.zip</code> có <code>manifest.json</code> khai báo một hoặc nhiều{' '}
-            <code>exam.json</code> ở gốc — khác định dạng "Nhập đề" (đề đơn trong thư mục kỹ năng,
-            không manifest). Dùng ô này cho gói đã đóng theo chuẩn manifest.
-          </p>
-
-          <label className="cms-drop">
-            <input
-              type="file"
-              accept=".zip"
-              disabled={!canUpload || uploading}
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            />
-            <span>{file === null ? 'Chọn tệp gói (.zip)' : file.name}</span>
-          </label>
-
-          <div className="cms-version-actions">
-            <button
-              type="button"
-              className="cms-primary"
-              disabled={file === null || uploading}
-              onClick={() => void upload()}
-            >
-              {uploading ? 'Đang tải lên…' : 'Tải lên'}
-            </button>
-          </div>
-
-          {uploadError !== null && (
-            <p className="cms-alert is-bad" role="alert">
-              {uploadError}
-            </p>
-          )}
-        </section>
-      )}
 
       {failed && (
         <p className="cms-alert is-bad" role="alert">

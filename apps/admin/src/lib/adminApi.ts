@@ -1131,6 +1131,8 @@ export interface ImportDraft {
   warnings: ImportWarning[];
   checklistConfirmed: string[];
   checklistComplete: boolean;
+  /** When false, approval does not wait on the six-item specialist checklist. */
+  checklistRequired: boolean;
 }
 
 /**
@@ -1193,12 +1195,13 @@ async function parseImportResponse(response: Response): Promise<ImportDraft> {
 export const uploadImportPackage = async (
   accessToken: string,
   file: File,
-  options: { definitionId?: string; versionNumber?: number } = {},
+  options: { definitionId?: string; versionNumber?: number; checklistRequired?: boolean } = {},
 ): Promise<ImportDraft> => {
   const form = new FormData();
   form.append('file', file);
   if (options.definitionId) form.append('definitionId', options.definitionId);
   if (options.versionNumber) form.append('versionNumber', String(options.versionNumber));
+  form.append('checklistRequired', String(options.checklistRequired ?? true));
 
   const response = await authedFetch(`${apiBase()}/api/v1/admin/import/packages`, accessToken, {
     method: 'POST',

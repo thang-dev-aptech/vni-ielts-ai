@@ -34,7 +34,8 @@ public sealed class ExamPackageImportPipeline(
     /// silently mis-reading a truncated archive.
     /// </param>
     public async Task<ExamImportAttempt> ImportAsync(
-        Stream zip, ExamDefinitionId definitionId, int versionNumber, CancellationToken ct)
+        Stream zip, ExamDefinitionId definitionId, int versionNumber, bool checklistRequired,
+        CancellationToken ct)
     {
         if (!zip.CanSeek)
         {
@@ -58,7 +59,8 @@ public sealed class ExamPackageImportPipeline(
                 return ExamImportAttempt.Rejected(extraction.Findings);
 
             return await ImportFromSandboxAsync(
-                inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber, ct);
+                inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber,
+                checklistRequired, ct);
         }
         catch (ExamSourceParsingUnavailableException e)
         {
@@ -100,14 +102,15 @@ public sealed class ExamPackageImportPipeline(
     /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
         PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
-        CancellationToken ct)
+        bool checklistRequired, CancellationToken ct)
     {
         var allEntries = layout.AcceptedEntries.ToArray();
 
         if (allEntries.Length == 1 && allEntries[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
             var packageJson = await File.ReadAllTextAsync(Path.Combine(sandboxDirectory, allEntries[0]), ct);
-            return await workflow.ImportStructuredAsync(packageJson, definitionId, versionNumber, ct);
+            return await workflow.ImportStructuredAsync(
+                packageJson, definitionId, versionNumber, checklistRequired, ct);
         }
 
         var combined = new StringBuilder();
@@ -132,7 +135,8 @@ public sealed class ExamPackageImportPipeline(
         var source = new ExtractedImportSource(
             "package", "text/plain", text, hash, hash, ImportDataClassification.Restricted);
 
-        var attempt = await workflow.ImportExtractedAsync(source, definitionId, versionNumber, ct);
+        var attempt = await workflow.ImportExtractedAsync(
+            source, definitionId, versionNumber, checklistRequired, ct);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
         return await GuardAgainstFabricatedAnswersAsync(attempt.Draft, ct);

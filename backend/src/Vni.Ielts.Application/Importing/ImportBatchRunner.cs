@@ -59,9 +59,9 @@ public sealed class ImportBatchRunner(
             try
             {
                 var attempt = item.StructuredPackage is { } package
-                    ? await imports.ImportStructuredAsync(package, item.DefinitionId, item.VersionNumber, ct)
+                    ? await imports.ImportStructuredAsync(package, item.DefinitionId, item.VersionNumber, true, ct)
                     : await imports.ImportExtractedAsync(
-                        item.ExtractedSource!, item.DefinitionId, item.VersionNumber, ct);
+                        item.ExtractedSource!, item.DefinitionId, item.VersionNumber, true, ct);
                 var state = attempt.IsAccepted
                     ? ImportBatchItemState.Succeeded : ImportBatchItemState.Failed;
                 await checkpoints.SaveAsync(new ImportBatchCheckpoint(

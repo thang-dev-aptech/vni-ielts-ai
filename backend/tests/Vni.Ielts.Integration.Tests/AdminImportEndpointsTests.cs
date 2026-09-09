@@ -368,6 +368,47 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     ];
 
     [SkippableFact]
+    public async Task Uploading_with_checklistRequired_false_skips_the_checklist_gate()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var json = ValidPackageJson.Replace("admin-import-test", $"skip-checklist-{Guid.NewGuid():n}");
+        var zip = BuildZip(("reading/exam.json", json));
+        var content = new MultipartFormDataContent();
+        var part = new ByteArrayContent(zip);
+        part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
+        content.Add(part, "file", "package.zip");
+        content.Add(new StringContent("false"), "checklistRequired");
+
+        var upload = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        upload.Content = content;
+        var uploadResponse = await client.SendAsync(upload);
+        var uploadBody = await BodyOf(uploadResponse);
+
+        Assert.Equal(HttpStatusCode.Created, uploadResponse.StatusCode);
+        Assert.False(uploadBody.GetProperty("checklistRequired").GetBoolean());
+        Assert.False(uploadBody.GetProperty("checklistComplete").GetBoolean());
+
+        var draftId = uploadBody.GetProperty("draftId").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(draftId));
+
+        var get = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var getBody = await BodyOf(get);
+        Assert.False(getBody.GetProperty("checklistRequired").GetBoolean());
+
+        await ResolveOpenWarningsAsync(client, access, draftId!);
+
+        var approve = await client.SendAsync(
+            Request(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access));
+        var approveBody = await BodyOf(approve);
+
+        Assert.Equal(HttpStatusCode.OK, approve.StatusCode);
+        Assert.Equal("approved", approveBody.GetProperty("approvalState").GetString());
+    }
+
+    [SkippableFact]
     public async Task Setting_the_full_checklist_unblocks_approval()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
@@ -503,7 +544,7 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
 
         var attempt = await workflow.ImportStructuredAsync(
             ValidPackageJson.Replace("admin-import-test", $"seed-{Guid.NewGuid():n}"),
-            Vni.Ielts.Domain.Exams.ExamDefinitionId.New(), 1, default);
+            Vni.Ielts.Domain.Exams.ExamDefinitionId.New(), 1, true, default);
 
         Assert.True(attempt.IsAccepted, string.Join("; ", attempt.Findings.Select(f => f.Message)));
 

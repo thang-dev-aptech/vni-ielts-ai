@@ -116,7 +116,7 @@ public sealed class ImportReviewWorkflow(
         if (draft.Revision != expectedRevision) return ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
         if (draft.Warnings.Any(w => !w.Resolved))
             return ImportReviewResult.Refused("IMPORT_WARNINGS_UNRESOLVED");
-        if (!draft.Checklist.IsComplete)
+        if (draft.ChecklistRequired && !draft.Checklist.IsComplete)
             return ImportReviewResult.Refused("IMPORT_CHECKLIST_INCOMPLETE");
         var approved = draft with
         {

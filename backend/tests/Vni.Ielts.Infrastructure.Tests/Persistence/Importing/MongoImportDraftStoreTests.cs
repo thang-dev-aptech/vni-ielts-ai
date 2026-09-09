@@ -154,6 +154,29 @@ public sealed class MongoImportDraftStoreTests
     }
 
     [Fact]
+    public async Task A_draft_document_without_checklistRequired_reads_as_required()
+    {
+        var context = new MongoContext(Options.Create(new MongoOptions
+        {
+            ConnectionString = "mongodb://localhost:27018/?directConnection=true",
+            Database = $"vni_ielts_import_draft_test_{Guid.NewGuid():n}",
+        }));
+        var validator = new ExamPackageValidator(
+            ExamPackageReader.FromSchemaFile(SchemaPath()));
+        var store = new MongoImportDraftStore(context, validator);
+        var draft = Draft(validator, PackageJson);
+        await store.SaveAsync(draft, default);
+
+        var unset = await context.ImportDrafts.UpdateOneAsync(
+            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, draft.Id.ToString("D")),
+            Builders<ExamImportDraftDocument>.Update.Unset(d => d.ChecklistRequired));
+        Assert.Equal(1, unset.ModifiedCount);
+
+        var found = await store.FindAsync(draft.Id, default);
+        Assert.True(found!.ChecklistRequired);
+    }
+
+    [Fact]
     public async Task Warnings_and_their_override_reason_round_trip()
     {
         var (store, validator) = NewStore();

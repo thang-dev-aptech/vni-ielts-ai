@@ -41,8 +41,8 @@ public sealed class ImportBatchRunnerTests
         var workflow = new ExamImportWorkflow(new Validator(), drafts, new Parser());
         var definition = ExamDefinitionId.New();
 
-        var first = await workflow.ImportStructuredAsync("valid", definition, 1, default);
-        var second = await workflow.ImportStructuredAsync("valid", definition, 1, default);
+        var first = await workflow.ImportStructuredAsync("valid", definition, 1, true, default);
+        var second = await workflow.ImportStructuredAsync("valid", definition, 1, true, default);
 
         Assert.Equal(first.Draft!.Id, second.Draft!.Id);
         Assert.Single(drafts.Items);

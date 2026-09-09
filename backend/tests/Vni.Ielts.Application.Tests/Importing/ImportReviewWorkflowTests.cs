@@ -98,6 +98,20 @@ public sealed class ImportReviewWorkflowTests
     }
 
     [Fact]
+    public async Task Approval_succeeds_without_checklist_when_not_required()
+    {
+        var store = new Store(Draft() with { ChecklistRequired = false });
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var approved = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.True(approved.IsSuccess);
+        Assert.Equal(ImportApprovalState.Approved, approved.Draft!.ApprovalState);
+        Assert.False(approved.Draft.Checklist.IsComplete);
+        Assert.False(approved.Draft.ChecklistRequired);
+    }
+
+    [Fact]
     public void Diff_keeps_source_and_parsed_package_side_by_side()
     {
         var diff = ImportReviewWorkflow.Diff(Draft());

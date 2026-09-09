@@ -71,7 +71,8 @@ public sealed record ExamImportDraft(
     ImportReviewChecklist Checklist,
     IReadOnlyList<ImportReviewWarning> Warnings,
     int Revision,
-    string? ReviewedBy);
+    string? ReviewedBy,
+    bool ChecklistRequired = true);
 
 public sealed record ExamImportAttempt(
     bool IsAccepted, ExamImportDraft? Draft, IReadOnlyList<PackageFinding> Findings)
@@ -98,6 +99,7 @@ public sealed class ExamImportWorkflow(
         string packageJson,
         ExamDefinitionId definitionId,
         int versionNumber,
+        bool checklistRequired,
         CancellationToken ct) =>
         ValidateAndSaveAsync(
             packageJson,
@@ -107,12 +109,14 @@ public sealed class ExamImportWorkflow(
             Hash(packageJson),
             packageJson,
             parserMetadata: null,
+            checklistRequired,
             ct);
 
     public async Task<ExamImportAttempt> ImportExtractedAsync(
         ExtractedImportSource source,
         ExamDefinitionId definitionId,
         int versionNumber,
+        bool checklistRequired,
         CancellationToken ct)
     {
         var observedHash = Hash(source.Text);
@@ -135,6 +139,7 @@ public sealed class ExamImportWorkflow(
             source.SourceSha256.ToLowerInvariant(),
             source.Text,
             parsed.Metadata,
+            checklistRequired,
             ct);
     }
 
@@ -146,6 +151,7 @@ public sealed class ExamImportWorkflow(
         string sourceHash,
         string sourceText,
         ParserRunMetadata? parserMetadata,
+        bool checklistRequired,
         CancellationToken ct)
     {
         var validation = validator.Validate(packageJson, definitionId, versionNumber);
@@ -165,7 +171,8 @@ public sealed class ExamImportWorkflow(
             definitionId, versionNumber, route, sourceHash, packageHash,
             validation.Version, parserMetadata, ImportApprovalState.ReviewRequired,
             validation.Findings, sourceText,
-            packageJson, ImportReviewChecklist.Empty, warnings, 0, null);
+            packageJson, ImportReviewChecklist.Empty, warnings, 0, null,
+            checklistRequired);
 
         await drafts.SaveAsync(draft, ct);
         return ExamImportAttempt.Accepted(draft);

@@ -106,6 +106,10 @@ internal sealed class ExamImportDraftDocument
     [BsonElement("reviewedBy")]
     [BsonIgnoreIfNull]
     public string? ReviewedBy { get; set; }
+
+    [BsonElement("checklistRequired")]
+    [BsonIgnoreIfNull]
+    public bool? ChecklistRequired { get; set; }
 }
 
 /// <summary>
@@ -221,7 +225,8 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
                 w.Id, Enum.Parse<ImportReviewCategory>(w.Category), w.Path, w.Message, w.Resolved,
                 w.OverrideReason)).ToArray(),
             doc.Revision,
-            doc.ReviewedBy);
+            doc.ReviewedBy,
+            doc.ChecklistRequired ?? true);
     }
 
     private static ExamImportDraftDocument ToDocument(ExamImportDraft draft) => new()
@@ -252,5 +257,6 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
         }).ToList(),
         Revision = draft.Revision,
         ReviewedBy = draft.ReviewedBy,
+        ChecklistRequired = draft.ChecklistRequired,
     };
 }

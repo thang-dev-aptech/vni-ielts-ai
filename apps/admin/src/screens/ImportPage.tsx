@@ -86,6 +86,7 @@ export function ImportPage() {
   const [uploading, setUploading] = useState(false);
   const [rejection, setRejection] = useState<ImportApiError | null>(null);
   const [draft, setDraft] = useState<ImportDraft | null>(null);
+  const [checklistRequired, setChecklistRequired] = useState(true);
 
   const [overriding, setOverriding] = useState<ImportWarning | null>(null);
   const [overrideReason, setOverrideReason] = useState('');
@@ -102,7 +103,7 @@ export function ImportPage() {
     setRejection(null);
 
     try {
-      const created = await uploadImportPackage(accessToken, file);
+      const created = await uploadImportPackage(accessToken, file, { checklistRequired });
       setDraft(created);
       say({ tone: 'ok', text: `Đã nhận gói. Draft ${created.draftId} — bản nháp, chưa xuất bản.` });
     } catch (error) {
@@ -181,7 +182,7 @@ export function ImportPage() {
     !alreadyApproved &&
     blocking.length === 0 &&
     openWarnings.length === 0 &&
-    draft.checklistComplete;
+    (!draft.checklistRequired || draft.checklistComplete);
 
   return (
     <>
@@ -204,14 +205,10 @@ export function ImportPage() {
           <div>
             <dt>Định dạng</dt>
             <dd>
-              <code>.zip</code> chứa một đề — hôm nay chỉ nhận gói đã có sẵn một <code>exam.json</code>{' '}
-              hoàn chỉnh
-            </dd>
-          </div>
-          <div>
-            <dt>Phiên bản định dạng</dt>
-            <dd>
-              <code>formatVersion 1.0</code>
+              <code>.zip</code> chứa <code>manifest.json</code> khai báo một hoặc nhiều{' '}
+              <code>exam.json</code>, hoặc một <code>exam.json</code> đơn trong thư mục kỹ năng (
+              <code>reading/</code>, <code>listening/</code>, <code>writing/</code>,{' '}
+              <code>speaking/</code>)
             </dd>
           </div>
           <div>
@@ -234,6 +231,20 @@ export function ImportPage() {
           </a>{' '}
           — có sẵn <code>manifest.json</code> + <code>exam.json</code> đúng định dạng, sửa nội dung
           rồi tải lên lại.
+        </p>
+
+        <label className="cms-field">
+          <input
+            type="checkbox"
+            checked={checklistRequired}
+            disabled={uploading}
+            onChange={(e) => setChecklistRequired(e.target.checked)}
+          />{' '}
+          Cần rà soát trước khi công bố (khuyến nghị cho nội dung mới hoặc chưa có ai kiểm tra)
+        </label>
+        <p className="cms-muted">
+          Gói đã qua kiểm tra thủ công từ trước (ví dụ AI parse lại nội dung đã duyệt) có thể bỏ tick
+          để nhập thẳng.
         </p>
 
         <label className="cms-drop">
@@ -342,7 +353,7 @@ export function ImportPage() {
             </>
           )}
 
-          {operator.can('exam.review') && (
+          {operator.can('exam.review') && draft.checklistRequired && (
             <>
               <h3>
                 Checklist chuyên môn ({draft.checklistConfirmed.length}/{CHECKLIST_ITEMS.length})
@@ -381,7 +392,9 @@ export function ImportPage() {
                     ? `Còn ${blocking.length} finding lỗi chưa xử lý.`
                     : openWarnings.length > 0
                       ? `Còn ${openWarnings.length} cảnh báo chưa xử lý.`
-                      : `Còn ${CHECKLIST_ITEMS.length - draft.checklistConfirmed.length} mục checklist chưa xác nhận.`}
+                      : draft.checklistRequired
+                        ? `Còn ${CHECKLIST_ITEMS.length - draft.checklistConfirmed.length} mục checklist chưa xác nhận.`
+                        : null}
                 </span>
               )}
             </div>

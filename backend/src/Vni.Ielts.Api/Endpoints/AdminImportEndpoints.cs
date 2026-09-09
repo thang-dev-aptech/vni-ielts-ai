@@ -49,7 +49,8 @@ public sealed record ImportDraftView(
     IReadOnlyList<ImportFindingView> Findings,
     IReadOnlyList<ImportWarningView> Warnings,
     IReadOnlyList<string> ChecklistConfirmed,
-    bool ChecklistComplete);
+    bool ChecklistComplete,
+    bool ChecklistRequired);
 
 public sealed record ImportRejectionView(bool IsAccepted, IReadOnlyList<ImportFindingView> Findings);
 
@@ -95,11 +96,11 @@ public static class AdminImportEndpoints
     }
 
     /// <summary>
-    /// <c>multipart/form-data</c>: a <c>file</c> part (the ZIP) and two
-    /// optional text fields, <c>definitionId</c> and <c>versionNumber</c>
-    /// (defaults: a fresh definition id, version 1 — the "new exam" case,
-    /// which is what an operator uploading a package for the first time
-    /// almost always means).
+    /// <c>multipart/form-data</c>: a <c>file</c> part (the ZIP) and optional
+    /// text fields <c>definitionId</c>, <c>versionNumber</c> (defaults: a fresh
+    /// definition id, version 1 — the "new exam" case), and
+    /// <c>checklistRequired</c> (absent or unparseable means <c>true</c> — the
+    /// conservative reading: the six-item review checklist still gates approval).
     ///
     /// <b>Synchronous, by design.</b> The brief is explicit that a background
     /// job queue is out of scope here — the archive caps already bound how
@@ -132,6 +133,8 @@ public static class AdminImportEndpoints
             ? new ExamDefinitionId(supplied)
             : ExamDefinitionId.New();
         var versionNumber = int.TryParse(form["versionNumber"], out var parsed) && parsed > 0 ? parsed : 1;
+        var checklistRequired =
+            !bool.TryParse(form["checklistRequired"], out var explicitFlag) || explicitFlag;
 
         await using var uploadStream = file.OpenReadStream();
         var seekable = uploadStream;
@@ -153,7 +156,8 @@ public static class AdminImportEndpoints
                 seekable = spooled;
             }
 
-            var attempt = await pipeline.ImportAsync(seekable, definitionId, versionNumber, ct);
+            var attempt = await pipeline.ImportAsync(
+                seekable, definitionId, versionNumber, checklistRequired, ct);
 
             if (!attempt.IsAccepted || attempt.Draft is null)
                 return Rejected(attempt.Findings, http);
@@ -299,7 +303,8 @@ public static class AdminImportEndpoints
             w.Id, w.Category.ToString().ToLowerInvariant(), w.Path, w.Message, w.Resolved, w.OverrideReason))
             .ToArray(),
         draft.Checklist.Confirmed.Select(c => c.ToString().ToLowerInvariant()).ToArray(),
-        draft.Checklist.IsComplete);
+        draft.Checklist.IsComplete,
+        draft.ChecklistRequired);
 
     private static IResult Rejected(IReadOnlyList<PackageFinding> findings, HttpContext http) =>
         Results.Problem(
