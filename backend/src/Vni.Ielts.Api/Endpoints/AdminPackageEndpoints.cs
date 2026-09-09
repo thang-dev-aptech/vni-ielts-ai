@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
 using Vni.Ielts.Api.Common;
@@ -276,6 +277,7 @@ public static class AdminPackageEndpoints
     };
 
     public const long MaxPackageBytes = 2L * 1024 * 1024 * 1024;
+    private const long MultipartOverheadBytes = 64L * 1024;
 
     private static async Task<IResult> UploadPackageEndpoint(
         HttpRequest request,
@@ -293,8 +295,19 @@ public static class AdminPackageEndpoints
             return Problem(
                 ErrorCodes.ValidationFailed, "Expected a multipart upload.", StatusCodes.Status400BadRequest);
 
+        // Raised before ReadFormAsync reads the body — see AdminImportEndpoints
+        // for the identical reasoning. Program.cs's global 1 MB Kestrel default
+        // would otherwise refuse every package over that before this code runs.
+        //
+        // Multipart is exempt from IdempotencyMiddleware (the boundary changes
+        // on every browser send). This handler does not yet dedupe by content
+        // hash — a retried upload creates a second package row. Known residual,
+        // same shape as MediaEndpoints.UploadEndpoint; not fixed here.
+        if (request.HttpContext.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } cap)
+            cap.MaxRequestBodySize = MaxPackageBytes + MultipartOverheadBytes;
+
         var form = await request.ReadFormAsync(
-            new Microsoft.AspNetCore.Http.Features.FormOptions { MultipartBodyLengthLimit = MaxPackageBytes },
+            new FormOptions { MultipartBodyLengthLimit = MaxPackageBytes },
             ct);
         var file = form.Files.GetFile("package");
         if (file is null || file.Length == 0)

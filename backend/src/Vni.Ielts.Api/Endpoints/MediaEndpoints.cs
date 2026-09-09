@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,13 @@ namespace Vni.Ielts.Api.Endpoints;
 /// same kinds, same size ceilings, same magic-byte signatures, checked again
 /// here because an uploaded file is untrusted input and a browser-side check
 /// is for the operator's convenience, not the boundary.
+///
+/// <b>A retried upload can leave two rows for one file.</b> Idempotency
+/// middleware cannot hash a multipart body (the boundary changes on every
+/// send), and this handler does not yet look up an existing asset by
+/// <c>sha256</c> before <c>MediaAsset.Create</c>. Known residual, not fixed
+/// here — a duplicate is operator-visible library clutter, not a silent
+/// double charge.
 /// </summary>
 public static class MediaEndpoints
 {
@@ -77,6 +85,8 @@ public static class MediaEndpoints
         [MediaKind.File] = 20L * 1024 * 1024,
     };
 
+    private const long MultipartOverheadBytes = 64L * 1024;
+
     private static Signature? Sniff(byte[] head)
     {
         foreach (var signature in Signatures)
@@ -106,6 +116,9 @@ public static class MediaEndpoints
 
         if (!request.HasFormContentType)
             return Problem(ErrorCodes.ValidationFailed, "Expected a multipart upload.", StatusCodes.Status400BadRequest);
+
+        if (request.HttpContext.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } cap)
+            cap.MaxRequestBodySize = MaxBytes.Values.Max() + MultipartOverheadBytes;
 
         var form = await request.ReadFormAsync(ct);
         var file = form.Files.GetFile("file");

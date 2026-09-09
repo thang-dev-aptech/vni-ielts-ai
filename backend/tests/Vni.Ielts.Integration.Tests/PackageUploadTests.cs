@@ -79,12 +79,9 @@ public sealed class PackageUploadTests(SsoAppFactory app) : IClassFixture<SsoApp
         string access, string fileName, byte[] bytes, string idempotencyKey)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/packages");
-        // A fixed boundary, not the default random one — a real network retry
-        // resends identical bytes, and IdempotencyMiddleware compares a hash
-        // of the raw body. Two `MultipartFormDataContent` instances with
-        // different random boundaries would hash differently even though the
-        // file part is byte-for-byte the same, which would make a genuine
-        // replay look like key reuse with a different body (409, not 202).
+        // Boundary is fixed only so two test requests share a stable fixture.
+        // IdempotencyMiddleware no longer hashes multipart bodies (the browser
+        // boundary changes on a real retry), so this handler does not replay.
         var form = new MultipartFormDataContent("fixed-test-boundary");
         var fileContent = new ByteArrayContent(bytes);
         form.Add(fileContent, "package", fileName);
@@ -172,7 +169,7 @@ public sealed class PackageUploadTests(SsoAppFactory app) : IClassFixture<SsoApp
     }
 
     [SkippableFact]
-    public async Task A_repeated_idempotency_key_replays_the_first_response_without_a_second_package()
+    public async Task A_repeated_multipart_upload_creates_a_second_package()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
@@ -187,18 +184,16 @@ public sealed class PackageUploadTests(SsoAppFactory app) : IClassFixture<SsoApp
         var firstBody = await first.Content.ReadFromJsonAsync<JsonElement>();
 
         var second = await client.SendAsync(UploadRequest(access, "demo.json", TinyJsonPackage(), key));
-        var secondBodyText = await second.Content.ReadAsStringAsync();
-        Assert.True(second.StatusCode == HttpStatusCode.Accepted, $"status={second.StatusCode} body={secondBodyText}");
-        var secondBody = JsonDocument.Parse(secondBodyText).RootElement;
+        Assert.Equal(HttpStatusCode.Accepted, second.StatusCode);
+        var secondBody = await second.Content.ReadFromJsonAsync<JsonElement>();
 
-        Assert.Equal(
+        Assert.NotEqual(
             firstBody.GetProperty("packageId").GetString(),
             secondBody.GetProperty("packageId").GetString());
 
         var count = await Db().GetCollection<BsonDocument>("exam_packages")
-            .Find(Builders<BsonDocument>.Filter.Eq(
-                "_id", firstBody.GetProperty("packageId").GetString()))
+            .Find(Builders<BsonDocument>.Filter.Eq("uploadedBy", userId))
             .CountDocumentsAsync();
-        Assert.Equal(1, count);
+        Assert.Equal(2, count);
     }
 }
