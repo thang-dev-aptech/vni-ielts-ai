@@ -480,6 +480,8 @@ public static class DependencyInjection
         services.AddScoped<ExamImportWorkflow>();
         services.AddScoped<ImportReviewWorkflow>();
         services.AddScoped<IImportDraftStore, MongoImportDraftStore>();
+        services.AddSingleton<IImportApprovalCommitHooks, NoOpImportApprovalCommitHooks>();
+        services.AddScoped<IImportApprovalCommitter, MongoImportApprovalCommitter>();
         services.AddScoped<IImportBatchCheckpointStore, MongoImportBatchCheckpointStore>();
         services.AddScoped<ExamPackageImportPipeline>();
 

@@ -75,6 +75,9 @@ public sealed class ImportBatchRunnerTests
             Task.FromResult<ExamImportDraft?>(Items.SingleOrDefault(d => d.Id == id));
         public Task<bool> ReplaceAsync(ExamImportDraft draft, int expected, CancellationToken ct) =>
             Task.FromResult(false);
+
+        public Task<IReadOnlyList<ExamImportDraft>> ListAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamImportDraft>>(Items);
     }
 
     private sealed class Parser : IExamSourceParser

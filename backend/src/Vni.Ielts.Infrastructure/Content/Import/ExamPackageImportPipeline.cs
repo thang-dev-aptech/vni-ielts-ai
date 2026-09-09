@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.Options;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
 
@@ -35,7 +36,7 @@ public sealed class ExamPackageImportPipeline(
     /// </param>
     public async Task<ExamImportAttempt> ImportAsync(
         Stream zip, ExamDefinitionId definitionId, int versionNumber, bool checklistRequired,
-        CancellationToken ct)
+        CancellationToken ct, UserId? createdBy = null, DateTimeOffset? createdAt = null)
     {
         if (!zip.CanSeek)
         {
@@ -60,7 +61,7 @@ public sealed class ExamPackageImportPipeline(
 
             return await ImportFromSandboxAsync(
                 inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber,
-                checklistRequired, ct);
+                checklistRequired, createdBy, createdAt, ct);
         }
         catch (ExamSourceParsingUnavailableException e)
         {
@@ -102,7 +103,7 @@ public sealed class ExamPackageImportPipeline(
     /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
         PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
-        bool checklistRequired, CancellationToken ct)
+        bool checklistRequired, UserId? createdBy, DateTimeOffset? createdAt, CancellationToken ct)
     {
         var allEntries = layout.AcceptedEntries.ToArray();
 
@@ -110,7 +111,7 @@ public sealed class ExamPackageImportPipeline(
         {
             var packageJson = await File.ReadAllTextAsync(Path.Combine(sandboxDirectory, allEntries[0]), ct);
             return await workflow.ImportStructuredAsync(
-                packageJson, definitionId, versionNumber, checklistRequired, ct);
+                packageJson, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt);
         }
 
         var combined = new StringBuilder();
@@ -136,7 +137,7 @@ public sealed class ExamPackageImportPipeline(
             "package", "text/plain", text, hash, hash, ImportDataClassification.Restricted);
 
         var attempt = await workflow.ImportExtractedAsync(
-            source, definitionId, versionNumber, checklistRequired, ct);
+            source, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
         return await GuardAgainstFabricatedAnswersAsync(attempt.Draft, ct);

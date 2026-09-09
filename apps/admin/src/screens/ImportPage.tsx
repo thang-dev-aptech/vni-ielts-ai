@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { useOperator } from '../lib/operator.js';
 import { Confirm, useFlash } from '../chrome/Confirm.js';
 import {
   approveImportDraft,
+  getImportDraft,
+  listImportDrafts,
   overrideImportWarning,
   setImportChecklist,
   uploadImportPackage,
@@ -14,6 +16,7 @@ import {
   type ImportWarning,
 } from '../lib/adminApi.js';
 import { AdminPaths } from '../routes/paths.js';
+import { formatAdminDate } from '../lib/formatAdminDate.js';
 import { reasonOf } from './UserDetailPage.js';
 
 /**
@@ -87,6 +90,8 @@ export function ImportPage() {
   const [rejection, setRejection] = useState<ImportApiError | null>(null);
   const [draft, setDraft] = useState<ImportDraft | null>(null);
   const [checklistRequired, setChecklistRequired] = useState(true);
+  const [history, setHistory] = useState<ImportDraft[] | null>(null);
+  const [historyError, setHistoryError] = useState(false);
 
   const [overriding, setOverriding] = useState<ImportWarning | null>(null);
   const [overrideReason, setOverrideReason] = useState('');
@@ -97,6 +102,30 @@ export function ImportPage() {
 
   const input = useRef<HTMLInputElement>(null);
 
+  async function refreshHistory() {
+    if (accessToken === null) return;
+    try {
+      const { drafts } = await listImportDrafts(accessToken);
+      setHistory(drafts);
+      setHistoryError(false);
+    } catch {
+      setHistoryError(true);
+    }
+  }
+
+  useEffect(() => {
+    void refreshHistory();
+  }, [accessToken]);
+
+  async function openDraft(draftId: string) {
+    if (accessToken === null) return;
+    try {
+      setDraft(await getImportDraft(accessToken, draftId));
+    } catch (error) {
+      say({ tone: 'bad', text: reasonOf(error) });
+    }
+  }
+
   async function upload() {
     if (accessToken === null || file === null) return;
     setUploading(true);
@@ -105,6 +134,7 @@ export function ImportPage() {
     try {
       const created = await uploadImportPackage(accessToken, file, { checklistRequired });
       setDraft(created);
+      await refreshHistory();
       say({ tone: 'ok', text: `Đã nhận gói. Draft ${created.draftId} — bản nháp, chưa xuất bản.` });
     } catch (error) {
       if (error instanceof ImportApiError) {
@@ -132,6 +162,7 @@ export function ImportPage() {
         overrideReason.trim(),
       );
       setDraft(updated);
+      await refreshHistory();
       say({ tone: 'ok', text: 'Đã bỏ qua cảnh báo, kèm lý do đã ghi vào nhật ký.' });
       setOverriding(null);
       setOverrideReason('');
@@ -152,6 +183,7 @@ export function ImportPage() {
     try {
       const updated = await setImportChecklist(accessToken, draft.draftId, [...next]);
       setDraft(updated);
+      await refreshHistory();
     } catch (error) {
       say({ tone: 'bad', text: reasonOf(error) });
     } finally {
@@ -166,6 +198,7 @@ export function ImportPage() {
     try {
       const updated = await approveImportDraft(accessToken, draft.draftId);
       setDraft(updated);
+      await refreshHistory();
       say({ tone: 'ok', text: 'Đã duyệt bản nháp. Vẫn cần một thao tác xuất bản riêng để tới học viên.' });
     } catch (error) {
       say({ tone: 'bad', text: reasonOf(error) });
@@ -274,6 +307,59 @@ export function ImportPage() {
         </div>
 
         {rejection !== null && <RejectionPanel error={rejection} />}
+      </section>
+
+      <section className="cms-panel">
+        <h2>Bản nháp đã nhập</h2>
+        <p className="cms-muted">
+          Danh sách này là draft đã qua cửa nhập đồng bộ. <strong>Lịch sử gói</strong> là đường
+          xử lý ZIP thô riêng — một gói không hiện ở cả hai trừ khi được tải lên cả hai cửa.
+        </p>
+
+        {historyError && <p className="cms-muted">Không tải được lịch sử nhập.</p>}
+        {history !== null && history.length === 0 && (
+          <p className="cms-muted">Chưa có bản nháp nhập nào.</p>
+        )}
+        {history !== null && history.length > 0 && (
+          <div className="cms-table-wrap">
+            <table className="cms-table">
+              <thead>
+                <tr>
+                  <th>Đề</th>
+                  <th>Người tải</th>
+                  <th>Thời điểm</th>
+                  <th>Trạng thái</th>
+                  <th>Checklist</th>
+                  <th>Cảnh báo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((row) => (
+                  <tr key={row.draftId}>
+                    <td>
+                      <button type="button" className="cms-link-button" onClick={() => void openDraft(row.draftId)}>
+                        {row.title ?? row.draftId}
+                      </button>
+                    </td>
+                    <td>
+                      <code>{row.createdBy ?? '—'}</code>
+                    </td>
+                    <td className="cms-sub">{formatAdminDate(row.createdAt, 'datetime') ?? '—'}</td>
+                    <td>
+                      <span className={`cms-badge is-${row.approvalState === 'approved' ? 'ready' : 'hold'}`}>
+                        {row.approvalState === 'approved' ? 'Đã duyệt' : 'Chờ duyệt'}
+                      </span>
+                    </td>
+                    <td className="cms-sub">
+                      {row.checklistConfirmed.length}/{CHECKLIST_ITEMS.length}
+                    </td>
+                    <td className="cms-sub">{row.unresolvedWarningCount ?? 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {draft !== null && (
@@ -400,6 +486,11 @@ export function ImportPage() {
                         ? `Còn ${CHECKLIST_ITEMS.length - draft.checklistConfirmed.length} mục checklist chưa xác nhận.`
                         : null}
                 </span>
+              )}
+              {alreadyApproved && draft.examVersionId !== null && draft.examVersionId !== undefined && (
+                <Link className="cms-link-button" to={AdminPaths.builder(draft.examVersionId)}>
+                  Mở đề trong soạn thảo
+                </Link>
               )}
             </div>
           ) : (

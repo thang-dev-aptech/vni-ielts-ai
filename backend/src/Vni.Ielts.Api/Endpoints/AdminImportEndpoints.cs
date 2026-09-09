@@ -50,7 +50,12 @@ public sealed record ImportDraftView(
     IReadOnlyList<ImportWarningView> Warnings,
     IReadOnlyList<string> ChecklistConfirmed,
     bool ChecklistComplete,
-    bool ChecklistRequired);
+    bool ChecklistRequired,
+    string? CreatedBy = null,
+    DateTimeOffset? CreatedAt = null,
+    string? Title = null,
+    string? ExamVersionId = null,
+    int UnresolvedWarningCount = 0);
 
 public sealed record ImportRejectionView(bool IsAccepted, IReadOnlyList<ImportFindingView> Findings);
 
@@ -77,6 +82,10 @@ public static class AdminImportEndpoints
             .WithName("AdminImportPackage")
             .WithSummary("Upload one exam package ZIP; validates and creates a review draft synchronously")
             .DisableAntiforgery();
+
+        group.MapGet("/packages", ListDraftsEndpoint)
+            .WithName("AdminListImportDrafts")
+            .WithSummary("Import drafts newest first, for resume after leaving the upload page");
 
         group.MapGet("/packages/{draftId}", GetDraftEndpoint)
             .WithName("AdminGetImportDraft")
@@ -109,7 +118,7 @@ public static class AdminImportEndpoints
     /// </summary>
     private static async Task<IResult> UploadPackageEndpoint(
         HttpRequest request, ClaimsPrincipal principal, ExamPackageImportPipeline pipeline,
-        IOptions<ImportArchiveOptions> archiveOptions, HttpContext http, CancellationToken ct)
+        IOptions<ImportArchiveOptions> archiveOptions, IClock clock, HttpContext http, CancellationToken ct)
     {
         if (principal.UserId() is null) return Results.Unauthorized();
         if (Denied(principal, PermissionKeys.PackageUpload) is { } denial) return denial;
@@ -157,7 +166,8 @@ public static class AdminImportEndpoints
             }
 
             var attempt = await pipeline.ImportAsync(
-                seekable, definitionId, versionNumber, checklistRequired, ct);
+                seekable, definitionId, versionNumber, checklistRequired, ct,
+                createdBy: new UserId(principal.UserId()!), createdAt: clock.UtcNow);
 
             if (!attempt.IsAccepted || attempt.Draft is null)
                 return Rejected(attempt.Findings, http);
@@ -171,10 +181,19 @@ public static class AdminImportEndpoints
         }
     }
 
+    private static async Task<IResult> ListDraftsEndpoint(
+        ClaimsPrincipal principal, IImportDraftStore drafts, CancellationToken ct)
+    {
+        if (DeniedUnlessCanReadImportDraft(principal) is { } denial) return denial;
+
+        var listed = await drafts.ListAsync(ct);
+        return Results.Ok(new { drafts = listed.Select(ToView).ToArray() });
+    }
+
     private static async Task<IResult> GetDraftEndpoint(
         string draftId, ClaimsPrincipal principal, IImportDraftStore drafts, CancellationToken ct)
     {
-        if (Denied(principal, PermissionKeys.PackageRead) is { } denial) return denial;
+        if (DeniedUnlessCanReadImportDraft(principal) is { } denial) return denial;
         if (!Guid.TryParse(draftId, out var id)) return Results.NotFound();
 
         var draft = await drafts.FindAsync(id, ct);
@@ -304,7 +323,12 @@ public static class AdminImportEndpoints
             .ToArray(),
         draft.Checklist.Confirmed.Select(c => c.ToString().ToLowerInvariant()).ToArray(),
         draft.Checklist.IsComplete,
-        draft.ChecklistRequired);
+        draft.ChecklistRequired,
+        draft.CreatedBy?.Value,
+        draft.CreatedAt,
+        draft.Version.Title,
+        draft.ApprovalState == ImportApprovalState.Approved ? draft.Version.Id.Value : null,
+        draft.Warnings.Count(w => !w.Resolved));
 
     private static IResult Rejected(IReadOnlyList<PackageFinding> findings, HttpContext http) =>
         Results.Problem(
@@ -355,6 +379,28 @@ public static class AdminImportEndpoints
 
     private static IResult Conflict(string detail, HttpContext http) =>
         Problem(ErrorCodes.ValidationFailed, detail, StatusCodes.Status409Conflict, http);
+
+    /// <summary>
+    /// List and detail share this gate so a reviewer holding only
+    /// <see cref="PermissionKeys.ExamReview"/> can resume a draft. Upload,
+    /// checklist, warning override and approve keep their own checks.
+    /// </summary>
+    private static IResult? DeniedUnlessCanReadImportDraft(ClaimsPrincipal principal)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+        var held = principal.Permissions();
+        if (held.Contains(PermissionKeys.PackageRead) || held.Contains(PermissionKeys.ExamReview))
+            return null;
+
+        return Results.Problem(
+            detail: $"This account does not hold {PermissionKeys.PackageRead} or {PermissionKeys.ExamReview}.",
+            statusCode: StatusCodes.Status403Forbidden,
+            extensions: new Dictionary<string, object?>
+            {
+                ["code"] = ErrorCodes.PermissionDenied,
+                ["permission"] = $"{PermissionKeys.PackageRead}|{PermissionKeys.ExamReview}",
+            });
+    }
 
     /// <summary>403 with a stable code, not 404 — the caller is a named operator. Same reasoning as <c>AdminEndpoints.Denied</c>.</summary>
     private static IResult? Denied(ClaimsPrincipal principal, string permission)

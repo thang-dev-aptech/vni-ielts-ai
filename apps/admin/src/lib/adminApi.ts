@@ -1133,6 +1133,11 @@ export interface ImportDraft {
   checklistComplete: boolean;
   /** When false, approval does not wait on the six-item specialist checklist. */
   checklistRequired: boolean;
+  createdBy?: string | null;
+  createdAt?: string | null;
+  title?: string | null;
+  examVersionId?: string | null;
+  unresolvedWarningCount?: number;
 }
 
 /**
@@ -1214,6 +1219,9 @@ export const uploadImportPackage = async (
 
 export const getImportDraft = (accessToken: string, draftId: string) =>
   request<ImportDraft>(`/api/v1/admin/import/packages/${draftId}`, { accessToken });
+
+export const listImportDrafts = (accessToken: string) =>
+  request<{ drafts: ImportDraft[] }>('/api/v1/admin/import/packages', { accessToken });
 
 /** `P-19`'s "bỏ qua được nhưng bắt buộc ghi lý do" — a blank reason is refused with a 409. */
 export const overrideImportWarning = async (

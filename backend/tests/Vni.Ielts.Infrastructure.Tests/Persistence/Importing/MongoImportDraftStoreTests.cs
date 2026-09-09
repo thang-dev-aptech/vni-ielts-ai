@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Persistence;
@@ -198,5 +199,75 @@ public sealed class MongoImportDraftStoreTests
         var warning = Assert.Single(found!.Warnings);
         Assert.True(warning.Resolved);
         Assert.Equal("Checked by hand.", warning.OverrideReason);
+    }
+
+    [Fact]
+    public async Task CreatedBy_and_CreatedAt_round_trip()
+    {
+        var (store, validator) = NewStore();
+        var at = new DateTimeOffset(2026, 9, 9, 10, 0, 0, TimeSpan.Zero);
+        var draft = Draft(validator, PackageJson) with
+        {
+            CreatedBy = new UserId("uploader-1"),
+            CreatedAt = at,
+        };
+
+        await store.SaveAsync(draft, default);
+        var found = await store.FindAsync(draft.Id, default);
+
+        Assert.Equal(draft.CreatedBy, found!.CreatedBy);
+        Assert.Equal(at, found.CreatedAt);
+    }
+
+    [Fact]
+    public async Task A_legacy_document_without_created_fields_maps_to_null()
+    {
+        var context = new MongoContext(Options.Create(new MongoOptions
+        {
+            ConnectionString = "mongodb://localhost:27018/?directConnection=true",
+            Database = $"vni_ielts_import_draft_test_{Guid.NewGuid():n}",
+        }));
+        var validator = new ExamPackageValidator(
+            ExamPackageReader.FromSchemaFile(SchemaPath()));
+        var store = new MongoImportDraftStore(context, validator);
+        var draft = Draft(validator, PackageJson);
+        await store.SaveAsync(draft, default);
+
+        var unset = await context.ImportDrafts.UpdateOneAsync(
+            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, draft.Id.ToString("D")),
+            Builders<ExamImportDraftDocument>.Update
+                .Unset(d => d.CreatedBy)
+                .Unset(d => d.CreatedAt));
+        Assert.Equal(1, unset.MatchedCount);
+
+        var found = await store.FindAsync(draft.Id, default);
+        Assert.Null(found!.CreatedBy);
+        Assert.Null(found.CreatedAt);
+    }
+
+    [Fact]
+    public async Task List_returns_newest_timestamp_first_and_legacy_rows_last()
+    {
+        var (store, validator) = NewStore();
+        var older = Draft(validator, PackageJson.Replace("store-test", "older")) with
+        {
+            CreatedAt = new DateTimeOffset(2026, 9, 1, 0, 0, 0, TimeSpan.Zero),
+        };
+        var newer = Draft(validator, PackageJson.Replace("store-test", "newer")) with
+        {
+            CreatedAt = new DateTimeOffset(2026, 9, 9, 0, 0, 0, TimeSpan.Zero),
+        };
+        var legacy = Draft(validator, PackageJson.Replace("store-test", "legacy"));
+
+        await store.SaveAsync(older, default);
+        await store.SaveAsync(legacy, default);
+        await store.SaveAsync(newer, default);
+
+        var listed = await store.ListAsync(default);
+        Assert.Equal(3, listed.Count);
+        Assert.Equal(newer.Id, listed[0].Id);
+        Assert.Equal(older.Id, listed[1].Id);
+        Assert.Equal(legacy.Id, listed[2].Id);
+        Assert.Null(listed[2].CreatedAt);
     }
 }

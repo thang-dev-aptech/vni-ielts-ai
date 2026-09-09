@@ -37,11 +37,20 @@ vi.mock('../lib/adminApi.js', async (importOriginal) => {
     overrideImportWarning: vi.fn(),
     setImportChecklist: vi.fn(),
     approveImportDraft: vi.fn(),
+    listImportDrafts: vi.fn(),
+    getImportDraft: vi.fn(),
   };
 });
 
-const { uploadImportPackage, overrideImportWarning, setImportChecklist, ImportApiError } =
-  await import('../lib/adminApi.js');
+const {
+  uploadImportPackage,
+  overrideImportWarning,
+  setImportChecklist,
+  approveImportDraft,
+  listImportDrafts,
+  getImportDraft,
+  ImportApiError,
+} = await import('../lib/adminApi.js');
 const { ImportPage } = await import('../screens/ImportPage.js');
 
 function draft(overrides: Partial<ImportDraft> = {}): ImportDraft {
@@ -91,6 +100,9 @@ describe('ImportPage', () => {
     vi.mocked(uploadImportPackage).mockReset();
     vi.mocked(overrideImportWarning).mockReset();
     vi.mocked(setImportChecklist).mockReset();
+    vi.mocked(approveImportDraft).mockReset();
+    vi.mocked(listImportDrafts).mockReset().mockResolvedValue({ drafts: [] });
+    vi.mocked(getImportDraft).mockReset();
   });
 
   it('renders the returned draft\'s findings and warnings on a successful upload', async () => {
@@ -331,5 +343,76 @@ describe('ImportPage', () => {
     expect(uploadImportPackage).toHaveBeenCalledWith('token-1', expect.any(File), {
       checklistRequired: true,
     });
+  });
+
+  it('lists import drafts after remount so a left page is recoverable', async () => {
+    vi.mocked(listImportDrafts).mockResolvedValue({
+      drafts: [
+        draft({
+          title: 'Cam 19 Test 1',
+          createdBy: 'uploader-1',
+          createdAt: '2026-09-09T10:00:00Z',
+          unresolvedWarningCount: 1,
+        }),
+      ],
+    });
+
+    const { unmount } = renderPage();
+    expect(await screen.findByRole('button', { name: 'Cam 19 Test 1' })).toBeInTheDocument();
+    expect(screen.getByText('Lịch sử gói')).toBeInTheDocument();
+    unmount();
+
+    renderPage();
+    expect(await screen.findByRole('button', { name: 'Cam 19 Test 1' })).toBeInTheDocument();
+    expect(listImportDrafts).toHaveBeenCalledWith('token-1');
+  });
+
+  it('opens a listed draft into the existing review panel', async () => {
+    vi.mocked(listImportDrafts).mockResolvedValue({
+      drafts: [draft({ title: 'Cam 19 Test 1' })],
+    });
+    vi.mocked(getImportDraft).mockResolvedValue(
+      draft({
+        warnings: [
+          {
+            id: 'w1',
+            category: 'questions',
+            path: '/q/1',
+            message: 'Thiếu transcript.',
+            resolved: false,
+            overrideReason: null,
+          },
+        ],
+      }),
+    );
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Cam 19 Test 1' }));
+
+    expect(await screen.findByText('Bản nháp draft-1')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Bỏ qua, có lý do' })).toBeInTheDocument();
+    expect(getImportDraft).toHaveBeenCalledWith('token-1', 'draft-1');
+  });
+
+  it('shows a builder link after approval', async () => {
+    vi.mocked(uploadImportPackage).mockResolvedValue(
+      draft({ checklistRequired: false, checklistComplete: false }),
+    );
+    vi.mocked(approveImportDraft).mockResolvedValue(
+      draft({
+        approvalState: 'approved',
+        checklistRequired: false,
+        examVersionId: 'ev-promoted-1',
+      }),
+    );
+
+    renderPage();
+    chooseFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+    await screen.findByText('Bản nháp draft-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Duyệt' }));
+
+    const link = await screen.findByRole('link', { name: 'Mở đề trong soạn thảo' });
+    expect(link).toHaveAttribute('href', '/my-exams/ev-promoted-1/builder');
   });
 });

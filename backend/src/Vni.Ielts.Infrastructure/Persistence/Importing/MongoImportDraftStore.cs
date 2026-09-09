@@ -1,6 +1,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
 
@@ -110,6 +111,18 @@ internal sealed class ExamImportDraftDocument
     [BsonElement("checklistRequired")]
     [BsonIgnoreIfNull]
     public bool? ChecklistRequired { get; set; }
+
+    [BsonElement("createdBy")]
+    [BsonIgnoreIfNull]
+    public string? CreatedBy { get; set; }
+
+    [BsonElement("createdAt")]
+    [BsonIgnoreIfNull]
+    public DateTime? CreatedAt { get; set; }
+
+    [BsonElement("examVersionId")]
+    [BsonIgnoreIfNull]
+    public string? ExamVersionId { get; set; }
 }
 
 /// <summary>
@@ -187,7 +200,17 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
         return result.MatchedCount > 0;
     }
 
-    private ExamImportDraft ToDraft(ExamImportDraftDocument doc)
+    public async Task<IReadOnlyList<ExamImportDraft>> ListAsync(CancellationToken ct)
+    {
+        var docs = await context.ImportDrafts
+            .Find(Builders<ExamImportDraftDocument>.Filter.Empty)
+            .Sort(Builders<ExamImportDraftDocument>.Sort.Descending(d => d.CreatedAt).Descending(d => d.Id))
+            .ToListAsync(ct);
+
+        return [.. docs.Select(ToDraft)];
+    }
+
+    internal ExamImportDraft ToDraft(ExamImportDraftDocument doc)
     {
         var definitionId = new ExamDefinitionId(doc.DefinitionId);
         var validation = validator.Validate(doc.PackageJson, definitionId, doc.VersionNumber);
@@ -203,6 +226,26 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
                 + "The schema or validator changed since this draft was saved.");
         }
 
+        var parsed = validation.Version;
+        var version = string.IsNullOrEmpty(doc.ExamVersionId)
+            ? parsed
+            : ExamVersion.Rehydrate(
+                new ExamVersionId(doc.ExamVersionId),
+                parsed.DefinitionId,
+                parsed.VersionNumber,
+                parsed.Title,
+                parsed.Variant,
+                parsed.Status,
+                parsed.PublishedAt,
+                parsed.Scoring,
+                parsed.Timing,
+                parsed.Sections,
+                parsed.ListeningPlayback,
+                parsed.ModuleSequence,
+                parsed.Description,
+                parsed.AuthorId,
+                parsed.ContentSourceId);
+
         return new ExamImportDraft(
             Guid.Parse(doc.Id),
             definitionId,
@@ -210,7 +253,7 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
             Enum.Parse<ExamImportRoute>(doc.Route),
             doc.SourceHash,
             doc.PackageHash,
-            validation.Version,
+            version,
             doc.ParserProvider is null
                 ? null
                 : new ParserRunMetadata(
@@ -226,10 +269,14 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
                 w.OverrideReason)).ToArray(),
             doc.Revision,
             doc.ReviewedBy,
-            doc.ChecklistRequired ?? true);
+            doc.ChecklistRequired ?? true,
+            doc.CreatedBy is { Length: > 0 } createdBy ? new UserId(createdBy) : null,
+            doc.CreatedAt is { } createdAt
+                ? new DateTimeOffset(DateTime.SpecifyKind(createdAt, DateTimeKind.Utc))
+                : null);
     }
 
-    private static ExamImportDraftDocument ToDocument(ExamImportDraft draft) => new()
+    internal static ExamImportDraftDocument ToDocument(ExamImportDraft draft) => new()
     {
         Id = draft.Id.ToString("D"),
         DefinitionId = draft.DefinitionId.Value,
@@ -258,5 +305,8 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
         Revision = draft.Revision,
         ReviewedBy = draft.ReviewedBy,
         ChecklistRequired = draft.ChecklistRequired,
+        CreatedBy = draft.CreatedBy?.Value,
+        CreatedAt = draft.CreatedAt?.UtcDateTime,
+        ExamVersionId = draft.Version.Id.Value,
     };
 }

@@ -1,4 +1,5 @@
 using Vni.Ielts.Application.Explanations;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Importing;
@@ -24,6 +25,7 @@ public sealed record ImportReviewResult(
 public sealed class ImportReviewWorkflow(
     IImportDraftStore drafts,
     IExamPackageValidator validator,
+    IImportApprovalCommitter approval,
     CanonicalExplanationWorkflow? canonicalExplanations = null)
 {
     public static ImportReviewDiff Diff(ExamImportDraft draft) => new(
@@ -114,19 +116,69 @@ public sealed class ImportReviewWorkflow(
         var draft = await drafts.FindAsync(draftId, ct);
         if (draft is null) return ImportReviewResult.Refused("IMPORT_DRAFT_NOT_FOUND");
         if (draft.Revision != expectedRevision) return ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+
+        if (draft.ApprovalState == ImportApprovalState.Approved)
+            return await CommitApprovedAsync(draft, expectedRevision, ct);
+
         if (draft.Warnings.Any(w => !w.Resolved))
             return ImportReviewResult.Refused("IMPORT_WARNINGS_UNRESOLVED");
         if (draft.ChecklistRequired && !draft.Checklist.IsComplete)
             return ImportReviewResult.Refused("IMPORT_CHECKLIST_INCOMPLETE");
+
+        var catalogueDraft = CatalogueDraftFrom(draft);
         var approved = draft with
         {
             ApprovalState = ImportApprovalState.Approved,
             ReviewedBy = actor.ActorId,
             Revision = draft.Revision + 1,
+            Version = catalogueDraft,
         };
-        return await drafts.ReplaceAsync(approved, expectedRevision, ct)
-            ? ImportReviewResult.Success(approved)
-            : ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+
+        var committed = await approval.CommitAsync(approved, expectedRevision, catalogueDraft, ct);
+        return committed.Status switch
+        {
+            ImportApprovalCommitStatus.Committed or ImportApprovalCommitStatus.AlreadyCommitted
+                when committed.Draft is not null => ImportReviewResult.Success(committed.Draft),
+            ImportApprovalCommitStatus.IdentityConflict =>
+                ImportReviewResult.Refused("IMPORT_CATALOGUE_CONFLICT"),
+            _ => ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT"),
+        };
+    }
+
+    private async Task<ImportReviewResult> CommitApprovedAsync(
+        ExamImportDraft draft, int expectedRevision, CancellationToken ct)
+    {
+        var catalogueDraft = CatalogueDraftFrom(draft);
+        var committed = await approval.CommitAsync(draft, expectedRevision, catalogueDraft, ct);
+        return committed.Status switch
+        {
+            ImportApprovalCommitStatus.Committed or ImportApprovalCommitStatus.AlreadyCommitted
+                when committed.Draft is not null => ImportReviewResult.Success(committed.Draft),
+            ImportApprovalCommitStatus.IdentityConflict =>
+                ImportReviewResult.Refused("IMPORT_CATALOGUE_CONFLICT"),
+            _ => ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT"),
+        };
+    }
+
+    private static ExamVersion CatalogueDraftFrom(ExamImportDraft draft)
+    {
+        var version = draft.Version;
+        return ExamVersion.Rehydrate(
+            version.Id,
+            version.DefinitionId,
+            version.VersionNumber,
+            version.Title,
+            version.Variant,
+            ExamVersionStatus.Draft,
+            publishedAt: null,
+            version.Scoring,
+            version.Timing,
+            version.Sections,
+            version.ListeningPlayback,
+            version.ModuleSequence,
+            version.Description,
+            draft.CreatedBy,
+            version.ContentSourceId);
     }
 
     public async Task<ImportReviewResult> EnrichCanonicalExplanationsAsync(

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Importing;
@@ -72,7 +73,9 @@ public sealed record ExamImportDraft(
     IReadOnlyList<ImportReviewWarning> Warnings,
     int Revision,
     string? ReviewedBy,
-    bool ChecklistRequired = true);
+    bool ChecklistRequired = true,
+    UserId? CreatedBy = null,
+    DateTimeOffset? CreatedAt = null);
 
 public sealed record ExamImportAttempt(
     bool IsAccepted, ExamImportDraft? Draft, IReadOnlyList<PackageFinding> Findings)
@@ -100,7 +103,9 @@ public sealed class ExamImportWorkflow(
         ExamDefinitionId definitionId,
         int versionNumber,
         bool checklistRequired,
-        CancellationToken ct) =>
+        CancellationToken ct,
+        UserId? createdBy = null,
+        DateTimeOffset? createdAt = null) =>
         ValidateAndSaveAsync(
             packageJson,
             definitionId,
@@ -110,14 +115,18 @@ public sealed class ExamImportWorkflow(
             packageJson,
             parserMetadata: null,
             checklistRequired,
-            ct);
+            ct,
+            createdBy,
+            createdAt);
 
     public async Task<ExamImportAttempt> ImportExtractedAsync(
         ExtractedImportSource source,
         ExamDefinitionId definitionId,
         int versionNumber,
         bool checklistRequired,
-        CancellationToken ct)
+        CancellationToken ct,
+        UserId? createdBy = null,
+        DateTimeOffset? createdAt = null)
     {
         var observedHash = Hash(source.Text);
         if (!FixedTimeEquals(source.TextSha256, observedHash))
@@ -140,7 +149,9 @@ public sealed class ExamImportWorkflow(
             source.Text,
             parsed.Metadata,
             checklistRequired,
-            ct);
+            ct,
+            createdBy,
+            createdAt);
     }
 
     private async Task<ExamImportAttempt> ValidateAndSaveAsync(
@@ -152,7 +163,9 @@ public sealed class ExamImportWorkflow(
         string sourceText,
         ParserRunMetadata? parserMetadata,
         bool checklistRequired,
-        CancellationToken ct)
+        CancellationToken ct,
+        UserId? createdBy = null,
+        DateTimeOffset? createdAt = null)
     {
         var validation = validator.Validate(packageJson, definitionId, versionNumber);
         if (!validation.IsValid || validation.Version is null)
@@ -172,7 +185,7 @@ public sealed class ExamImportWorkflow(
             validation.Version, parserMetadata, ImportApprovalState.ReviewRequired,
             validation.Findings, sourceText,
             packageJson, ImportReviewChecklist.Empty, warnings, 0, null,
-            checklistRequired);
+            checklistRequired, createdBy, createdAt);
 
         await drafts.SaveAsync(draft, ct);
         return ExamImportAttempt.Accepted(draft);

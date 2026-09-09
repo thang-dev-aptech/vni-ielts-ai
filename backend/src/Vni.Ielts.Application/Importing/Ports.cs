@@ -32,6 +32,55 @@ public interface IImportDraftStore
     Task SaveAsync(ExamImportDraft draft, CancellationToken ct);
     Task<ExamImportDraft?> FindAsync(Guid draftId, CancellationToken ct);
     Task<bool> ReplaceAsync(ExamImportDraft draft, int expectedRevision, CancellationToken ct);
+
+    /// <summary>Newest <see cref="ExamImportDraft.CreatedAt"/> first; drafts with no timestamp sort last.</summary>
+    Task<IReadOnlyList<ExamImportDraft>> ListAsync(CancellationToken ct);
+}
+
+public enum ImportApprovalCommitStatus
+{
+    Committed,
+    AlreadyCommitted,
+    RevisionConflict,
+    IdentityConflict,
+}
+
+public sealed record ImportApprovalCommitResult(
+    ImportApprovalCommitStatus Status, ExamImportDraft? Draft)
+{
+    public static ImportApprovalCommitResult Committed(ExamImportDraft draft) =>
+        new(ImportApprovalCommitStatus.Committed, draft);
+
+    public static ImportApprovalCommitResult AlreadyCommitted(ExamImportDraft draft) =>
+        new(ImportApprovalCommitStatus.AlreadyCommitted, draft);
+
+    public static ImportApprovalCommitResult RevisionConflict() =>
+        new(ImportApprovalCommitStatus.RevisionConflict, null);
+
+    public static ImportApprovalCommitResult IdentityConflict() =>
+        new(ImportApprovalCommitStatus.IdentityConflict, null);
+}
+
+/// <summary>
+/// Persists the approved import draft and the catalogue Draft in one commit.
+/// Implementations must not leak storage types into Application.
+/// </summary>
+public interface IImportApprovalCommitter
+{
+    Task<ImportApprovalCommitResult> CommitAsync(
+        ExamImportDraft approvedDraft,
+        int expectedRevision,
+        ExamVersion catalogueDraft,
+        CancellationToken ct);
+}
+
+/// <summary>
+/// Test seam around approval promotion. Production registers a no-op hook;
+/// only a test host may replace it. The committer itself is mandatory.
+/// </summary>
+public interface IImportApprovalCommitHooks
+{
+    Task AfterCatalogueWriteAsync(ExamVersionId versionId, CancellationToken ct);
 }
 
 public sealed record SourceExtractionLimits(

@@ -1,5 +1,6 @@
 using Vni.Ielts.Application.Importing;
 using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Tests.Importing;
@@ -62,6 +63,9 @@ public sealed class ExamImportWorkflowTests
             Saved[index] = draft;
             return Task.FromResult(true);
         }
+
+        public Task<IReadOnlyList<ExamImportDraft>> ListAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamImportDraft>>(Saved);
     }
 
     [Fact]
@@ -146,6 +150,23 @@ public sealed class ExamImportWorkflowTests
         Assert.Equal(0, parser.Calls);
         Assert.Empty(validator.Seen);
         Assert.Empty(store.Saved);
+    }
+
+    [Fact]
+    public async Task Structured_import_records_the_supplied_uploader_and_time()
+    {
+        var store = new FakeDraftStore();
+        var workflow = new ExamImportWorkflow(new FakeValidator(), store, new FakeParser("not-used"));
+        var uploader = new UserId("uploader-1");
+        var at = new DateTimeOffset(2026, 9, 9, 10, 0, 0, TimeSpan.Zero);
+
+        var result = await workflow.ImportStructuredAsync(
+            "valid-structured-package", ExamDefinitionId.New(), 1, true, default, uploader, at);
+
+        Assert.True(result.IsAccepted);
+        Assert.Equal(uploader, result.Draft!.CreatedBy);
+        Assert.Equal(at, result.Draft.CreatedAt);
+        Assert.Equal(uploader, store.Saved.Single().CreatedBy);
     }
 
     private static ExamVersion Paper(ExamDefinitionId definitionId, int versionNumber) =>
