@@ -123,6 +123,31 @@ internal sealed class ExamImportDraftDocument
     [BsonElement("examVersionId")]
     [BsonIgnoreIfNull]
     public string? ExamVersionId { get; set; }
+
+    [BsonElement("assetManifest")]
+    public List<ImportAssetManifestDocument> AssetManifest { get; set; } = [];
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class ImportAssetManifestDocument
+{
+    [BsonElement("reference")] public string Reference { get; set; } = string.Empty;
+    [BsonElement("stagingKey")] public string StagingKey { get; set; } = string.Empty;
+    [BsonElement("contentType")] public string ContentType { get; set; } = string.Empty;
+    [BsonElement("length")] public long Length { get; set; }
+    [BsonElement("sha256")] public string Sha256 { get; set; } = string.Empty;
+
+    public static ImportAssetManifestDocument From(ImportAssetManifestEntry entry) => new()
+    {
+        Reference = entry.Reference,
+        StagingKey = entry.StagingKey,
+        ContentType = entry.ContentType,
+        Length = entry.Length,
+        Sha256 = entry.Sha256,
+    };
+
+    public ImportAssetManifestEntry ToEntry() =>
+        new(Reference, StagingKey, ContentType, Length, Sha256);
 }
 
 /// <summary>
@@ -273,7 +298,8 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
             doc.CreatedBy is { Length: > 0 } createdBy ? new UserId(createdBy) : null,
             doc.CreatedAt is { } createdAt
                 ? new DateTimeOffset(DateTime.SpecifyKind(createdAt, DateTimeKind.Utc))
-                : null);
+                : null,
+            (doc.AssetManifest ?? []).Select(a => a.ToEntry()).ToArray());
     }
 
     internal static ExamImportDraftDocument ToDocument(ExamImportDraft draft) => new()
@@ -308,5 +334,6 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
         CreatedBy = draft.CreatedBy?.Value,
         CreatedAt = draft.CreatedAt?.UtcDateTime,
         ExamVersionId = draft.Version.Id.Value,
+        AssetManifest = draft.Assets.Select(ImportAssetManifestDocument.From).ToList(),
     };
 }

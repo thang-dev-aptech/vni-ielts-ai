@@ -353,6 +353,21 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
     }
 
     [Fact]
+    public async Task Files_under_assets_are_accepted_and_are_not_unknown_entries()
+    {
+        var archive = Build(
+            File("reading/exam.json", "{}"),
+            Bytes("assets/aptis-listening-t24/1.mp3", [0x49, 0x44, 0x33, 0x00]));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.True(result.IsAcceptable, Describe(result));
+        Assert.Contains("assets/aptis-listening-t24/1.mp3", result.Layout.AssetEntries);
+        Assert.Contains("reading/exam.json", result.Layout.AcceptedEntries);
+        Assert.DoesNotContain(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutUnknownEntry);
+    }
+
+    [Fact]
     public async Task A_root_manifest_paired_with_a_non_json_file_does_not_take_the_shortcut()
     {
         // Structural, not content-based (the class stays blind to content):

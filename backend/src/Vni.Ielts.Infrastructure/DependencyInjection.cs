@@ -477,6 +477,11 @@ public static class DependencyInjection
         services.AddScoped<ISourceDocumentExtractor, Content.SafeSourceDocumentExtractor>();
         services.AddScoped<IExamSourceParser, UnconfiguredExamSourceParser>();
 
+        if (objectStorageRegistered)
+            services.AddScoped<IImportExamAssetStore, Storage.S3ImportExamAssetStore>();
+        else
+            services.AddScoped<IImportExamAssetStore, Storage.ExamAssetStoreBackedImportExamAssetStore>();
+
         services.AddScoped<ExamImportWorkflow>();
         services.AddScoped<ImportReviewWorkflow>();
         services.AddScoped<IImportDraftStore, MongoImportDraftStore>();

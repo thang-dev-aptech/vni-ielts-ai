@@ -173,6 +173,12 @@ public sealed class MongoContext
     internal IMongoCollection<Importing.ImportBatchCheckpointDocument> ImportBatchCheckpoints =>
         _db.GetCollection<Importing.ImportBatchCheckpointDocument>("import_batch_checkpoints");
 
+    internal IMongoCollection<Importing.ImportAssetCleanupIntentDocument> ImportAssetCleanupIntents =>
+        _db.GetCollection<Importing.ImportAssetCleanupIntentDocument>("import_asset_cleanup_intents");
+
+    internal IMongoCollection<Importing.ImportAssetCleanupCoordinationDocument> ImportAssetCleanupCoordination =>
+        _db.GetCollection<Importing.ImportAssetCleanupCoordinationDocument>("import_asset_cleanup_coordination");
+
     /// <summary>
     /// Refuses to start against a node that cannot do transactions.
     ///

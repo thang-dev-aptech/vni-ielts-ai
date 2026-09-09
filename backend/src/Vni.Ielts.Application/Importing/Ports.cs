@@ -43,6 +43,9 @@ public enum ImportApprovalCommitStatus
     AlreadyCommitted,
     RevisionConflict,
     IdentityConflict,
+    AssetMissing,
+    AssetConflict,
+    Canceled,
 }
 
 public sealed record ImportApprovalCommitResult(
@@ -59,6 +62,15 @@ public sealed record ImportApprovalCommitResult(
 
     public static ImportApprovalCommitResult IdentityConflict() =>
         new(ImportApprovalCommitStatus.IdentityConflict, null);
+
+    public static ImportApprovalCommitResult AssetMissing() =>
+        new(ImportApprovalCommitStatus.AssetMissing, null);
+
+    public static ImportApprovalCommitResult AssetConflict() =>
+        new(ImportApprovalCommitStatus.AssetConflict, null);
+
+    public static ImportApprovalCommitResult Canceled() =>
+        new(ImportApprovalCommitStatus.Canceled, null);
 }
 
 /// <summary>
@@ -81,6 +93,8 @@ public interface IImportApprovalCommitter
 public interface IImportApprovalCommitHooks
 {
     Task AfterCatalogueWriteAsync(ExamVersionId versionId, CancellationToken ct);
+
+    Task AfterAssetPromotionAsync(Guid draftId, CancellationToken ct) => Task.CompletedTask;
 }
 
 public sealed record SourceExtractionLimits(

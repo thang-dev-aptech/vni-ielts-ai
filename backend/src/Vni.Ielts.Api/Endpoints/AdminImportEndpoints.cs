@@ -55,7 +55,8 @@ public sealed record ImportDraftView(
     DateTimeOffset? CreatedAt = null,
     string? Title = null,
     string? ExamVersionId = null,
-    int UnresolvedWarningCount = 0);
+    int UnresolvedWarningCount = 0,
+    int AssetCount = 0);
 
 public sealed record ImportRejectionView(bool IsAccepted, IReadOnlyList<ImportFindingView> Findings);
 
@@ -328,7 +329,8 @@ public static class AdminImportEndpoints
         draft.CreatedAt,
         draft.Version.Title,
         draft.ApprovalState == ImportApprovalState.Approved ? draft.Version.Id.Value : null,
-        draft.Warnings.Count(w => !w.Resolved));
+        draft.Warnings.Count(w => !w.Resolved),
+        draft.Assets.Count);
 
     private static IResult Rejected(IReadOnlyList<PackageFinding> findings, HttpContext http) =>
         Results.Problem(

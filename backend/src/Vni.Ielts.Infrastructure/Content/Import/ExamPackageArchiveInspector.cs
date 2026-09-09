@@ -174,6 +174,7 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             var bySkill = new Dictionary<ExamModule, List<string>>();
             var unknown = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             var rootFiles = new List<string>();
+            var assetEntries = new List<string>();
 
             foreach (var entry in entries)
             {
@@ -195,6 +196,11 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                     if (!bySkill.TryGetValue(module, out var list))
                         bySkill[module] = list = [];
                     list.Add(verdict.Path);
+                }
+                else if (segments.Length >= 2
+                    && string.Equals(segments[0], "assets", StringComparison.OrdinalIgnoreCase))
+                {
+                    assetEntries.Add(verdict.Path);
                 }
                 else
                 {
@@ -255,7 +261,8 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
 
             var layout = new PackageLayout(
                 bySkill.ToDictionary(p => p.Key, p => (IReadOnlyList<string>)p.Value.AsReadOnly()),
-                unknown.Keys.OrderBy(k => k, StringComparer.Ordinal).ToArray());
+                unknown.Keys.OrderBy(k => k, StringComparer.Ordinal).ToArray(),
+                assetEntries);
 
             var acceptable = findings.All(f => f.Severity != Error);
             return new ArchiveInspection(acceptable, findings, layout);

@@ -169,6 +169,28 @@ public sealed class ExamImportWorkflowTests
         Assert.Equal(uploader, store.Saved.Single().CreatedBy);
     }
 
+    [Fact]
+    public async Task Structured_import_stores_the_asset_manifest_without_changing_the_draft_id()
+    {
+        var definition = ExamDefinitionId.New();
+        var manifest = new ImportAssetManifestEntry[]
+        {
+            new("assets/a.mp3", "imports/exam-drafts/x/assets/a.mp3", "audio/mpeg", 8, new string('a', 64)),
+        };
+
+        var without = await new ExamImportWorkflow(new FakeValidator(), new FakeDraftStore(), new FakeParser("not-used"))
+            .ImportStructuredAsync("valid-structured-package", definition, 1, true, default);
+        var withStore = new FakeDraftStore();
+        var with = await new ExamImportWorkflow(new FakeValidator(), withStore, new FakeParser("not-used"))
+            .ImportStructuredAsync(
+                "valid-structured-package", definition, 1, true, default,
+                assetManifest: manifest);
+
+        Assert.Equal(without.Draft!.Id, with.Draft!.Id);
+        Assert.Equal(manifest, with.Draft.Assets);
+        Assert.Empty(without.Draft.Assets);
+    }
+
     private static ExamVersion Paper(ExamDefinitionId definitionId, int versionNumber) =>
         ExamVersion.CreateDraft(
             definitionId,

@@ -270,4 +270,49 @@ public sealed class MongoImportDraftStoreTests
         Assert.Equal(legacy.Id, listed[2].Id);
         Assert.Null(listed[2].CreatedAt);
     }
+
+    [Fact]
+    public async Task Asset_manifest_round_trips()
+    {
+        var (store, validator) = NewStore();
+        var draft = Draft(validator, PackageJson) with
+        {
+            AssetManifest =
+            [
+                new ImportAssetManifestEntry(
+                    "assets/a.mp3",
+                    "imports/exam-drafts/00000000-0000-0000-0000-000000000001/assets/a.mp3",
+                    "audio/mpeg",
+                    12,
+                    new string('b', 64)),
+            ],
+        };
+
+        await store.SaveAsync(draft, default);
+        var found = await store.FindAsync(draft.Id, default);
+        Assert.Equal(draft.Assets, found!.Assets);
+    }
+
+    [Fact]
+    public async Task A_draft_document_without_asset_manifest_reads_as_empty()
+    {
+        var context = new MongoContext(Options.Create(new MongoOptions
+        {
+            ConnectionString = "mongodb://localhost:27018/?directConnection=true",
+            Database = $"vni_ielts_import_draft_test_{Guid.NewGuid():n}",
+        }));
+        var validator = new ExamPackageValidator(
+            ExamPackageReader.FromSchemaFile(SchemaPath()));
+        var store = new MongoImportDraftStore(context, validator);
+        var draft = Draft(validator, PackageJson);
+        await store.SaveAsync(draft, default);
+
+        var unset = await context.ImportDrafts.UpdateOneAsync(
+            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, draft.Id.ToString("D")),
+            Builders<ExamImportDraftDocument>.Update.Unset(d => d.AssetManifest));
+        Assert.Equal(1, unset.ModifiedCount);
+
+        var found = await store.FindAsync(draft.Id, default);
+        Assert.Empty(found!.Assets);
+    }
 }

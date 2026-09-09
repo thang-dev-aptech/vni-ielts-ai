@@ -26,6 +26,7 @@ public sealed class ImportReviewWorkflow(
     IImportDraftStore drafts,
     IExamPackageValidator validator,
     IImportApprovalCommitter approval,
+    IImportExamAssetStore examAssets,
     CanonicalExplanationWorkflow? canonicalExplanations = null)
 {
     public static ImportReviewDiff Diff(ExamImportDraft draft) => new(
@@ -53,10 +54,24 @@ public sealed class ImportReviewWorkflow(
             Checklist = ImportReviewChecklist.Empty,
             ReviewedBy = null,
             Revision = draft.Revision + 1,
+            AssetManifest = [],
         };
-        return await drafts.ReplaceAsync(edited, expectedRevision, ct)
-            ? ImportReviewResult.Success(edited)
-            : ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+
+        var replaced = await drafts.ReplaceAsync(edited, expectedRevision, ct);
+        if (!replaced) return ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+
+        var abandoned = ImportAssetPaths.StagedReferences(draft.Assets);
+        if (abandoned.Count > 0)
+        {
+            using var compensation = ImportAssetCompensation.Start();
+            await examAssets.RecordCleanupIntentAsync(
+                draft.Id,
+                abandoned,
+                ImportAssetCleanupReason.StagingAbandoned,
+                compensation.Token);
+        }
+
+        return ImportReviewResult.Success(edited);
     }
 
     /// <summary>
@@ -135,14 +150,7 @@ public sealed class ImportReviewWorkflow(
         };
 
         var committed = await approval.CommitAsync(approved, expectedRevision, catalogueDraft, ct);
-        return committed.Status switch
-        {
-            ImportApprovalCommitStatus.Committed or ImportApprovalCommitStatus.AlreadyCommitted
-                when committed.Draft is not null => ImportReviewResult.Success(committed.Draft),
-            ImportApprovalCommitStatus.IdentityConflict =>
-                ImportReviewResult.Refused("IMPORT_CATALOGUE_CONFLICT"),
-            _ => ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT"),
-        };
+        return ToResult(committed);
     }
 
     private async Task<ImportReviewResult> CommitApprovedAsync(
@@ -150,15 +158,24 @@ public sealed class ImportReviewWorkflow(
     {
         var catalogueDraft = CatalogueDraftFrom(draft);
         var committed = await approval.CommitAsync(draft, expectedRevision, catalogueDraft, ct);
-        return committed.Status switch
+        return ToResult(committed);
+    }
+
+    private static ImportReviewResult ToResult(ImportApprovalCommitResult committed) =>
+        committed.Status switch
         {
             ImportApprovalCommitStatus.Committed or ImportApprovalCommitStatus.AlreadyCommitted
                 when committed.Draft is not null => ImportReviewResult.Success(committed.Draft),
             ImportApprovalCommitStatus.IdentityConflict =>
                 ImportReviewResult.Refused("IMPORT_CATALOGUE_CONFLICT"),
+            ImportApprovalCommitStatus.AssetConflict =>
+                ImportReviewResult.Refused(ImportAssetFindingCodes.Conflict),
+            ImportApprovalCommitStatus.AssetMissing =>
+                ImportReviewResult.Refused(ImportAssetFindingCodes.Missing),
+            ImportApprovalCommitStatus.Canceled =>
+                ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT"),
             _ => ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT"),
         };
-    }
 
     private static ExamVersion CatalogueDraftFrom(ExamImportDraft draft)
     {

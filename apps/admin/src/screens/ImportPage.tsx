@@ -388,6 +388,10 @@ export function ImportPage() {
                 <code>{draft.definitionId}</code> v{draft.versionNumber}
               </dd>
             </div>
+            <div>
+              <dt>Tài nguyên</dt>
+              <dd>{draft.assetCount ?? 0}</dd>
+            </div>
           </dl>
 
           {draft.findings.length === 0 && draft.warnings.length === 0 && (

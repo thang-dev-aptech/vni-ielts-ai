@@ -75,7 +75,11 @@ public sealed record ExamImportDraft(
     string? ReviewedBy,
     bool ChecklistRequired = true,
     UserId? CreatedBy = null,
-    DateTimeOffset? CreatedAt = null);
+    DateTimeOffset? CreatedAt = null,
+    IReadOnlyList<ImportAssetManifestEntry>? AssetManifest = null)
+{
+    public IReadOnlyList<ImportAssetManifestEntry> Assets => AssetManifest ?? [];
+}
 
 public sealed record ExamImportAttempt(
     bool IsAccepted, ExamImportDraft? Draft, IReadOnlyList<PackageFinding> Findings)
@@ -105,7 +109,8 @@ public sealed class ExamImportWorkflow(
         bool checklistRequired,
         CancellationToken ct,
         UserId? createdBy = null,
-        DateTimeOffset? createdAt = null) =>
+        DateTimeOffset? createdAt = null,
+        IReadOnlyList<ImportAssetManifestEntry>? assetManifest = null) =>
         ValidateAndSaveAsync(
             packageJson,
             definitionId,
@@ -117,7 +122,8 @@ public sealed class ExamImportWorkflow(
             checklistRequired,
             ct,
             createdBy,
-            createdAt);
+            createdAt,
+            assetManifest);
 
     public async Task<ExamImportAttempt> ImportExtractedAsync(
         ExtractedImportSource source,
@@ -165,7 +171,8 @@ public sealed class ExamImportWorkflow(
         bool checklistRequired,
         CancellationToken ct,
         UserId? createdBy = null,
-        DateTimeOffset? createdAt = null)
+        DateTimeOffset? createdAt = null,
+        IReadOnlyList<ImportAssetManifestEntry>? assetManifest = null)
     {
         var validation = validator.Validate(packageJson, definitionId, versionNumber);
         if (!validation.IsValid || validation.Version is null)
@@ -185,7 +192,8 @@ public sealed class ExamImportWorkflow(
             validation.Version, parserMetadata, ImportApprovalState.ReviewRequired,
             validation.Findings, sourceText,
             packageJson, ImportReviewChecklist.Empty, warnings, 0, null,
-            checklistRequired, createdBy, createdAt);
+            checklistRequired, createdBy, createdAt,
+            assetManifest ?? []);
 
         await drafts.SaveAsync(draft, ct);
         return ExamImportAttempt.Accepted(draft);
@@ -194,7 +202,7 @@ public sealed class ExamImportWorkflow(
     public static string Hash(string value) =>
         Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 
-    private static Guid StableDraftId(
+    public static Guid StableDraftId(
         ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route, string packageHash)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(

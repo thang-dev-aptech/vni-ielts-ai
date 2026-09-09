@@ -73,10 +73,11 @@ public sealed record ImportArchiveLimits(
 /// </summary>
 public sealed record PackageLayout(
     IReadOnlyDictionary<ExamModule, IReadOnlyList<string>> EntriesBySkill,
-    IReadOnlyList<string> UnknownEntries)
+    IReadOnlyList<string> UnknownEntries,
+    IReadOnlyList<string> AssetEntries = null!)
 {
     public static PackageLayout Empty { get; } =
-        new(new Dictionary<ExamModule, IReadOnlyList<string>>(), []);
+        new(new Dictionary<ExamModule, IReadOnlyList<string>>(), [], []);
 
     /// <summary>Skills with at least one file. Order follows <see cref="ExamModule"/>.</summary>
     public IReadOnlyList<ExamModule> PresentSkills =>
@@ -84,8 +85,9 @@ public sealed record PackageLayout(
             .Where(m => EntriesBySkill.TryGetValue(m, out var e) && e.Count > 0)
             .ToArray();
 
-    /// <summary>Every relative path that would be extracted, across all skills.</summary>
-    public IEnumerable<string> AcceptedEntries => EntriesBySkill.Values.SelectMany(e => e);
+    /// <summary>Every relative path that would be extracted, across skills and <c>assets/**</c>.</summary>
+    public IEnumerable<string> AcceptedEntries =>
+        EntriesBySkill.Values.SelectMany(e => e).Concat(AssetEntries ?? []);
 }
 
 public sealed record ArchiveInspection(

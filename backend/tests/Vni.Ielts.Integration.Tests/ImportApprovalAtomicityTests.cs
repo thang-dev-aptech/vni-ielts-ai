@@ -230,9 +230,13 @@ public sealed class ImportApprovalFaultFactory : SsoAppFactory
 public sealed class MutableImportApprovalCommitHooks : IImportApprovalCommitHooks
 {
     public Func<ExamVersionId, CancellationToken, Task>? AfterCatalogueWrite { get; set; }
+    public Func<Guid, CancellationToken, Task>? AfterAssetPromotion { get; set; }
 
     public Task AfterCatalogueWriteAsync(ExamVersionId versionId, CancellationToken ct) =>
         AfterCatalogueWrite?.Invoke(versionId, ct) ?? Task.CompletedTask;
+
+    public Task AfterAssetPromotionAsync(Guid draftId, CancellationToken ct) =>
+        AfterAssetPromotion?.Invoke(draftId, ct) ?? Task.CompletedTask;
 }
 
 public sealed class ImportApprovalAtomicityFaultTests(ImportApprovalFaultFactory app)

@@ -1138,6 +1138,8 @@ export interface ImportDraft {
   title?: string | null;
   examVersionId?: string | null;
   unresolvedWarningCount?: number;
+  /** Count of staged/bound exam assets. Never includes storage keys. */
+  assetCount?: number;
 }
 
 /**

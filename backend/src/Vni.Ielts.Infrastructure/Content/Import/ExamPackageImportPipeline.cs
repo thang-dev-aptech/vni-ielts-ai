@@ -21,6 +21,8 @@ public sealed class ExamPackageImportPipeline(
     ISourceDocumentExtractor extractor,
     ExamImportWorkflow workflow,
     IImportDraftStore drafts,
+    IExamPackageValidator validator,
+    IImportExamAssetStore examAssets,
     IOptions<ImportArchiveOptions> archiveOptions)
 {
     /// <param name="zip">
@@ -83,35 +85,33 @@ public sealed class ExamPackageImportPipeline(
     }
 
     /// <summary>
-    /// <b>Structured route:</b> the archive holds exactly one accepted file
-    /// and it is JSON — a package already assembled by a human, or by the
-    /// operator CLI, which already ran <see cref="FabricatedAnswerKeyGuard"/>
-    /// itself before anyone would upload its output here. Running the guard
-    /// again on a package the CLI has already keyed would flag every
-    /// legitimate answer key it wrote, so this route deliberately does not
-    /// call it — see <see cref="GuardAgainstFabricatedAnswersAsync"/> for
-    /// where the guard actually runs.
+    /// <b>Structured route:</b> exactly one accepted exam JSON plus optional
+    /// <c>assets/**</c> files. Media is staged privately and never sent through
+    /// <see cref="ISourceDocumentExtractor"/> or the AI parser.
     ///
-    /// <b>AI-parsed route:</b> every other shape. <c>P-18</c>: the folder name
-    /// alone decides the skill, and a missing folder is simply not present —
-    /// <see cref="PackageLayout.PresentSkills"/> already encodes exactly that.
-    /// Every file under every present skill folder is extracted and
-    /// concatenated under a heading per file, the same way the operator CLI
-    /// concatenates a paper and its answer key under headings rather than
-    /// sending two requests: a model asked to align content across two calls
-    /// has to remember the first, which is what it is worst at.
+    /// <b>AI-parsed route:</b> every other skill-folder shape. <c>P-18</c>: the
+    /// folder name alone decides the skill. Asset files are not concatenated
+    /// into the parser source.
     /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
         PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
         bool checklistRequired, UserId? createdBy, DateTimeOffset? createdAt, CancellationToken ct)
     {
-        var allEntries = layout.AcceptedEntries.ToArray();
+        var skillFiles = layout.EntriesBySkill.Values.SelectMany(e => e).ToArray();
+        var jsonFiles = skillFiles
+            .Where(path => path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        var nonJson = skillFiles
+            .Where(path => !path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
 
-        if (allEntries.Length == 1 && allEntries[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        if (jsonFiles.Length == 1 && nonJson.Length == 0)
         {
-            var packageJson = await File.ReadAllTextAsync(Path.Combine(sandboxDirectory, allEntries[0]), ct);
-            return await workflow.ImportStructuredAsync(
-                packageJson, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt);
+            var packageJson = await File.ReadAllTextAsync(
+                Path.Combine(sandboxDirectory, jsonFiles[0]), ct);
+            return await ImportStructuredWithAssetsAsync(
+                packageJson, layout.AssetEntries ?? [], sandboxDirectory,
+                definitionId, versionNumber, checklistRequired, createdBy, createdAt, ct);
         }
 
         var combined = new StringBuilder();
@@ -141,6 +141,57 @@ public sealed class ExamPackageImportPipeline(
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
         return await GuardAgainstFabricatedAnswersAsync(attempt.Draft, ct);
+    }
+
+    private async Task<ExamImportAttempt> ImportStructuredWithAssetsAsync(
+        string packageJson,
+        IReadOnlyList<string> zipAssets,
+        string sandboxDirectory,
+        ExamDefinitionId definitionId,
+        int versionNumber,
+        bool checklistRequired,
+        UserId? createdBy,
+        DateTimeOffset? createdAt,
+        CancellationToken ct)
+    {
+        var validation = validator.Validate(packageJson, definitionId, versionNumber);
+        if (!validation.IsValid || validation.Version is null)
+            return ExamImportAttempt.Rejected(validation.Findings);
+
+        var packageHash = ExamImportWorkflow.Hash(packageJson);
+        var draftId = ExamImportWorkflow.StableDraftId(
+            definitionId, versionNumber, ExamImportRoute.StructuredPackage, packageHash);
+
+        IReadOnlyList<ImportAssetManifestEntry> manifest = [];
+        if (ImportAssetPaths.ZipBindableReferences(validation.Version).Count > 0 || zipAssets.Count > 0)
+        {
+            var bound = await ImportExamAssetBinder.BindAsync(
+                examAssets, validation.Version, packageJson, sandboxDirectory, zipAssets, draftId, ct);
+            if (bound.Findings.Count > 0)
+                return ExamImportAttempt.Rejected(bound.Findings);
+            manifest = bound.Manifest;
+        }
+
+        try
+        {
+            return await workflow.ImportStructuredAsync(
+                packageJson, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt, manifest);
+        }
+        catch
+        {
+            var staged = ImportAssetPaths.StagedReferences(manifest);
+            if (staged.Count > 0)
+            {
+                using var compensation = ImportAssetCompensation.Start();
+                await examAssets.RecordCleanupIntentAsync(
+                    draftId,
+                    staged,
+                    ImportAssetCleanupReason.DraftSaveFailed,
+                    compensation.Token);
+            }
+
+            throw;
+        }
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Importing;
 using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
 using Vni.Ielts.Domain.Common;
@@ -189,7 +190,7 @@ public sealed class ImportReviewWorkflowTests
         var store = new Store(Draft(complete: true));
         var catalogue = new MemoryCatalogue();
         var committer = new SpyCommitter(new MemoryCommitter(store, catalogue));
-        var review = new ImportReviewWorkflow(store, new Validator(), committer);
+        var review = new ImportReviewWorkflow(store, new Validator(), committer, new MemoryAssets());
 
         var approved = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
 
@@ -203,7 +204,7 @@ public sealed class ImportReviewWorkflowTests
     public async Task Catalogue_commit_conflict_leaves_the_draft_unapproved()
     {
         var store = new Store(Draft(complete: true));
-        var review = new ImportReviewWorkflow(store, new Validator(), new RefusingCommitter());
+        var review = new ImportReviewWorkflow(store, new Validator(), new RefusingCommitter(), new MemoryAssets());
 
         var refused = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
 
@@ -217,7 +218,7 @@ public sealed class ImportReviewWorkflowTests
     public async Task Catalogue_commit_failure_leaves_the_draft_unapproved()
     {
         var store = new Store(Draft(complete: true));
-        var review = new ImportReviewWorkflow(store, new Validator(), new ThrowingCommitter());
+        var review = new ImportReviewWorkflow(store, new Validator(), new ThrowingCommitter(), new MemoryAssets());
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             review.ApproveAsync(store.Draft.Id, 0, Reviewer, default));
@@ -226,8 +227,48 @@ public sealed class ImportReviewWorkflowTests
         Assert.Equal(0, store.ApprovedReplaceCalls);
     }
 
+    [Fact]
+    public async Task Edit_cas_conflict_does_not_create_staging_abandoned_cleanup_intent()
+    {
+        var staged = Entry("assets/staged.mp3", staged: true);
+        var store = new Store(Draft() with { AssetManifest = [staged] })
+        {
+            ForceReplaceConflict = true,
+        };
+        var assets = new RecordingAssets();
+        var review = new ImportReviewWorkflow(
+            store, new Validator(), new MemoryCommitter(store, new MemoryCatalogue()), assets);
+
+        var result = await review.EditAsync(store.Draft.Id, 0, "valid-edited", Editor, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_REVISION_CONFLICT", result.ErrorCode);
+        Assert.Empty(assets.Intents);
+    }
+
+    [Fact]
+    public async Task Edit_success_records_staging_abandoned_only_after_replace_succeeds()
+    {
+        var staged = Entry("assets/staged.mp3", staged: true);
+        var store = new Store(Draft() with { AssetManifest = [staged] });
+        var assets = new RecordingAssets();
+        var review = new ImportReviewWorkflow(
+            store, new Validator(), new MemoryCommitter(store, new MemoryCatalogue()), assets);
+
+        var result = await review.EditAsync(store.Draft.Id, 0, "valid-edited", Editor, default);
+
+        Assert.True(result.IsSuccess);
+        var intent = Assert.Single(assets.Intents);
+        Assert.Equal(ImportAssetCleanupReason.StagingAbandoned, intent.Reason);
+        Assert.Equal([staged.Reference], intent.References);
+    }
+
+    private static ImportAssetManifestEntry Entry(string reference, bool staged) =>
+        new(reference, staged ? $"imports/exam-drafts/{Guid.NewGuid():D}/assets/{reference["assets/".Length..]}" : "",
+            "audio/mpeg", 8, "aa");
+
     private static ImportReviewWorkflow Review(Store store, MemoryCatalogue? catalogue = null) =>
-        new(store, new Validator(), new MemoryCommitter(store, catalogue ?? new MemoryCatalogue()));
+        new(store, new Validator(), new MemoryCommitter(store, catalogue ?? new MemoryCatalogue()), new MemoryAssets());
 
     private static ExamImportDraft Draft(bool warning = false, bool complete = false)
     {
@@ -246,15 +287,77 @@ public sealed class ImportReviewWorkflowTests
             0, null);
     }
 
+    private sealed class RecordingAssets : IImportExamAssetStore
+    {
+        public List<(Guid DraftId, IReadOnlyList<string> References, ImportAssetCleanupReason Reason, bool TimedCompensation)> Intents { get; } = [];
+
+        public Task<StagedImportAsset> StageAsync(
+            Guid draftId, string reference, Stream content,
+            string contentType, long length, string sha256, CancellationToken ct) =>
+            Task.FromResult(new StagedImportAsset(reference, $"imports/{draftId:D}", contentType, length, sha256));
+
+        public Task<ImportAssetAvailability> CheckFinalAsync(string reference, CancellationToken ct) =>
+            Task.FromResult(ImportAssetAvailability.Present("application/octet-stream", 1, "00"));
+
+        public Task<ImportAssetPromotionResult> PromoteAsync(StagedImportAsset asset, CancellationToken ct)
+        {
+            var status = string.IsNullOrEmpty(asset.StagingKey)
+                ? ImportAssetPromotionStatus.AlreadyPresent
+                : ImportAssetPromotionStatus.PromotedThisAttempt;
+            return Task.FromResult(new ImportAssetPromotionResult(status, asset.Reference));
+        }
+
+        public Task VerifyFinalAsync(IReadOnlyList<ImportAssetManifestEntry> assets, CancellationToken ct) =>
+            Task.CompletedTask;
+
+        public Task RecordCleanupIntentAsync(
+            Guid draftId, IReadOnlyList<string> promotedReferences,
+            ImportAssetCleanupReason reason, CancellationToken ct)
+        {
+            Intents.Add((draftId, promotedReferences, reason, ct.CanBeCanceled && ct != CancellationToken.None));
+            return Task.CompletedTask;
+        }
+
+        public Task ProcessPendingCleanupAsync(IExamCatalogue catalogue, CancellationToken ct) =>
+            Task.CompletedTask;
+    }
+
+    private sealed class MemoryAssets : IImportExamAssetStore
+    {
+        public Task<StagedImportAsset> StageAsync(
+            Guid draftId, string reference, Stream content,
+            string contentType, long length, string sha256, CancellationToken ct) =>
+            Task.FromResult(new StagedImportAsset(reference, $"imports/{draftId:D}", contentType, length, sha256));
+
+        public Task<ImportAssetAvailability> CheckFinalAsync(string reference, CancellationToken ct) =>
+            Task.FromResult(ImportAssetAvailability.Present("application/octet-stream", 1, "00"));
+
+        public Task<ImportAssetPromotionResult> PromoteAsync(StagedImportAsset asset, CancellationToken ct) =>
+            Task.FromResult(new ImportAssetPromotionResult(ImportAssetPromotionStatus.AlreadyPresent, asset.Reference));
+
+        public Task VerifyFinalAsync(IReadOnlyList<ImportAssetManifestEntry> assets, CancellationToken ct) =>
+            Task.CompletedTask;
+
+        public Task RecordCleanupIntentAsync(
+            Guid draftId, IReadOnlyList<string> promotedReferences,
+            ImportAssetCleanupReason reason, CancellationToken ct) =>
+            Task.CompletedTask;
+
+        public Task ProcessPendingCleanupAsync(IExamCatalogue catalogue, CancellationToken ct) =>
+            Task.CompletedTask;
+    }
+
     private sealed class Store(ExamImportDraft draft) : IImportDraftStore
     {
         public ExamImportDraft Draft { get; set; } = draft;
         public int ApprovedReplaceCalls { get; private set; }
+        public bool ForceReplaceConflict { get; init; }
         public Task SaveAsync(ExamImportDraft value, CancellationToken ct) { Draft = value; return Task.CompletedTask; }
         public Task<ExamImportDraft?> FindAsync(Guid id, CancellationToken ct) =>
             Task.FromResult<ExamImportDraft?>(Draft.Id == id ? Draft : null);
         public Task<bool> ReplaceAsync(ExamImportDraft value, int expected, CancellationToken ct)
         {
+            if (ForceReplaceConflict) return Task.FromResult(false);
             if (Draft.Id != value.Id || Draft.Revision != expected) return Task.FromResult(false);
             if (value.ApprovalState == ImportApprovalState.Approved) ApprovedReplaceCalls++;
             Draft = value;

@@ -130,6 +130,17 @@ describe('ImportPage', () => {
     expect(screen.getByRole('button', { name: 'Bỏ qua, có lý do' })).toBeInTheDocument();
   });
 
+  it('shows the bound asset count on a successful upload', async () => {
+    vi.mocked(uploadImportPackage).mockResolvedValue(draft({ assetCount: 1 }));
+
+    renderPage();
+    chooseFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+
+    const label = await screen.findByText('Tài nguyên');
+    expect(label.closest('div')).toHaveTextContent('1');
+  });
+
   it('renders the specific PACKAGE_REJECTED message, not a generic failure', async () => {
     vi.mocked(uploadImportPackage).mockRejectedValue(
       new ImportApiError(

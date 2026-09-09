@@ -12,6 +12,7 @@ namespace Vni.Ielts.Infrastructure.Persistence.Importing;
 internal sealed class MongoImportApprovalCommitter(
     MongoContext context,
     IExamPackageValidator validator,
+    IImportExamAssetStore examAssets,
     IImportApprovalCommitHooks hooks) : IImportApprovalCommitter
 {
     public async Task<ImportApprovalCommitResult> CommitAsync(
@@ -20,75 +21,168 @@ internal sealed class MongoImportApprovalCommitter(
         ExamVersion catalogueDraft,
         CancellationToken ct)
     {
-        var mapper = new MongoImportDraftStore(context, validator);
-        using var session = await context.Database.Client.StartSessionAsync(cancellationToken: ct);
-
-        try
-        {
-            session.StartTransaction();
-
-            var current = await context.ImportDrafts
-                .Find(session, Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, approvedDraft.Id.ToString("D")))
-                .FirstOrDefaultAsync(ct);
-
-            if (current is null)
+        return await MongoImportAssetCleanup.WithCoordinationLeaseAsync(
+            context,
+            async (lease, leaseCt) =>
             {
-                await session.AbortTransactionAsync(ct);
-                return ImportApprovalCommitResult.RevisionConflict();
-            }
+                var mapper = new MongoImportDraftStore(context, validator);
+                var promotion = await PromoteAssetsAsync(approvedDraft, lease, leaseCt);
+                if (promotion.Blocked is not null) return promotion.Blocked;
 
-            if (string.Equals(current.ApprovalState, nameof(ImportApprovalState.Approved), StringComparison.Ordinal)
-                && current.Revision == expectedRevision)
-            {
-                var equivalent = await CatalogueIsEquivalentAsync(session, catalogueDraft, ct);
-                if (!equivalent)
+                using var session = await context.Database.Client.StartSessionAsync(cancellationToken: leaseCt);
+
+                try
                 {
-                    await session.AbortTransactionAsync(ct);
-                    return ImportApprovalCommitResult.IdentityConflict();
+                    await lease.EnsureCurrentAsync(leaseCt);
+                    await hooks.AfterAssetPromotionAsync(approvedDraft.Id, leaseCt);
+                    await lease.EnsureCurrentAsync(leaseCt);
+                    await examAssets.VerifyFinalAsync(approvedDraft.Assets, leaseCt);
+                    await lease.EnsureCurrentAsync(leaseCt);
+                    session.StartTransaction();
+
+                    var current = await context.ImportDrafts
+                        .Find(session, Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, approvedDraft.Id.ToString("D")))
+                        .FirstOrDefaultAsync(leaseCt);
+
+                    if (current is null)
+                    {
+                        await session.AbortTransactionAsync(leaseCt);
+                        await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
+                        return ImportApprovalCommitResult.RevisionConflict();
+                    }
+
+                    if (string.Equals(current.ApprovalState, nameof(ImportApprovalState.Approved), StringComparison.Ordinal)
+                        && current.Revision == expectedRevision)
+                    {
+                        var equivalent = await CatalogueIsEquivalentAsync(session, catalogueDraft, leaseCt);
+                        if (!equivalent)
+                        {
+                            await session.AbortTransactionAsync(leaseCt);
+                            return ImportApprovalCommitResult.IdentityConflict();
+                        }
+
+                        await session.AbortTransactionAsync(leaseCt);
+                        return ImportApprovalCommitResult.AlreadyCommitted(mapper.ToDraft(current));
+                    }
+
+                    if (current.Revision != expectedRevision
+                        || !string.Equals(current.ApprovalState, nameof(ImportApprovalState.ReviewRequired), StringComparison.Ordinal))
+                    {
+                        await session.AbortTransactionAsync(leaseCt);
+                        await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
+                        return ImportApprovalCommitResult.RevisionConflict();
+                    }
+
+                    await lease.EnsureCurrentAsync(leaseCt);
+                    var identity = await WriteCatalogueAsync(session, catalogueDraft, leaseCt);
+                    if (identity is not null)
+                    {
+                        await session.AbortTransactionAsync(leaseCt);
+                        await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
+                        return identity;
+                    }
+
+                    await hooks.AfterCatalogueWriteAsync(catalogueDraft.Id, leaseCt);
+
+                    var replaced = await context.ImportDrafts.ReplaceOneAsync(
+                        session,
+                        Builders<ExamImportDraftDocument>.Filter.And(
+                            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, approvedDraft.Id.ToString("D")),
+                            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Revision, expectedRevision),
+                            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.ApprovalState, nameof(ImportApprovalState.ReviewRequired))),
+                        MongoImportDraftStore.ToDocument(approvedDraft),
+                        cancellationToken: leaseCt);
+
+                    if (replaced.MatchedCount == 0)
+                    {
+                        await session.AbortTransactionAsync(leaseCt);
+                        await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
+                        return ImportApprovalCommitResult.RevisionConflict();
+                    }
+
+                    await session.CommitTransactionAsync(leaseCt);
+                    return ImportApprovalCommitResult.Committed(approvedDraft);
+                }
+                catch
+                {
+                    await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
+                    if (session.IsInTransaction) await session.AbortTransactionAsync(leaseCt);
+                    throw;
+                }
+            },
+            ct);
+    }
+
+    private async Task<ImportAssetPromotionBatch> PromoteAssetsAsync(
+        ExamImportDraft draft,
+        IImportAssetCoordinationLease lease,
+        CancellationToken ct)
+    {
+        var outcomes = new List<ImportAssetPromotionResult>();
+        var manifest = draft.Assets;
+        if (manifest.Count == 0)
+        {
+            foreach (var reference in ImportAssetPaths.ZipBindableReferences(draft.Version))
+            {
+                await lease.EnsureCurrentAsync(ct);
+                var existing = await examAssets.CheckFinalAsync(reference, ct);
+                if (existing.Kind != ImportAssetAvailabilityKind.Present)
+                {
+                    outcomes.Add(new ImportAssetPromotionResult(ImportAssetPromotionStatus.Missing, reference));
+                    await RecordCleanupBestEffortAsync(draft.Id, outcomes
+                        .Where(o => o.Status == ImportAssetPromotionStatus.PromotedThisAttempt)
+                        .Select(o => o.Reference).ToArray());
+                    return new ImportAssetPromotionBatch(outcomes, ImportApprovalCommitResult.AssetMissing());
                 }
 
-                await session.AbortTransactionAsync(ct);
-                return ImportApprovalCommitResult.AlreadyCommitted(mapper.ToDraft(current));
+                outcomes.Add(new ImportAssetPromotionResult(ImportAssetPromotionStatus.AlreadyPresent, reference));
             }
 
-            if (current.Revision != expectedRevision
-                || !string.Equals(current.ApprovalState, nameof(ImportApprovalState.ReviewRequired), StringComparison.Ordinal))
+            return new ImportAssetPromotionBatch(outcomes, null);
+        }
+
+        foreach (var entry in manifest)
+        {
+            await lease.EnsureCurrentAsync(ct);
+            var result = await examAssets.PromoteAsync(
+                new StagedImportAsset(entry.Reference, entry.StagingKey, entry.ContentType, entry.Length, entry.Sha256),
+                ct);
+            outcomes.Add(result);
+            if (result.Status is ImportAssetPromotionStatus.PromotedThisAttempt or ImportAssetPromotionStatus.AlreadyPresent)
+                continue;
+
+            var promoted = outcomes
+                .Where(o => o.Status == ImportAssetPromotionStatus.PromotedThisAttempt)
+                .Select(o => o.Reference)
+                .ToArray();
+            await RecordCleanupBestEffortAsync(draft.Id, promoted);
+            var blocked = result.Status switch
             {
-                await session.AbortTransactionAsync(ct);
-                return ImportApprovalCommitResult.RevisionConflict();
-            }
+                ImportAssetPromotionStatus.Conflict => ImportApprovalCommitResult.AssetConflict(),
+                ImportAssetPromotionStatus.Canceled => ImportApprovalCommitResult.Canceled(),
+                _ => ImportApprovalCommitResult.AssetMissing(),
+            };
+            return new ImportAssetPromotionBatch(outcomes, blocked);
+        }
 
-            var identity = await WriteCatalogueAsync(session, catalogueDraft, ct);
-            if (identity is not null)
-            {
-                await session.AbortTransactionAsync(ct);
-                return identity;
-            }
+        return new ImportAssetPromotionBatch(outcomes, null);
+    }
 
-            await hooks.AfterCatalogueWriteAsync(catalogueDraft.Id, ct);
-
-            var replaced = await context.ImportDrafts.ReplaceOneAsync(
-                session,
-                Builders<ExamImportDraftDocument>.Filter.And(
-                    Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, approvedDraft.Id.ToString("D")),
-                    Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Revision, expectedRevision),
-                    Builders<ExamImportDraftDocument>.Filter.Eq(d => d.ApprovalState, nameof(ImportApprovalState.ReviewRequired))),
-                MongoImportDraftStore.ToDocument(approvedDraft),
-                cancellationToken: ct);
-
-            if (replaced.MatchedCount == 0)
-            {
-                await session.AbortTransactionAsync(ct);
-                return ImportApprovalCommitResult.RevisionConflict();
-            }
-
-            await session.CommitTransactionAsync(ct);
-            return ImportApprovalCommitResult.Committed(approvedDraft);
+    private async Task RecordCleanupBestEffortAsync(Guid draftId, IReadOnlyList<string> promoted)
+    {
+        if (promoted.Count == 0) return;
+        try
+        {
+            using var compensation = ImportAssetCompensation.Start();
+            await examAssets.RecordCleanupIntentAsync(
+                draftId,
+                promoted,
+                ImportAssetCleanupReason.ApprovalCommitFailed,
+                compensation.Token);
         }
         catch
         {
-            if (session.IsInTransaction) await session.AbortTransactionAsync(ct);
-            throw;
+            // Best-effort compensation path.
         }
     }
 
@@ -141,4 +235,6 @@ internal sealed class MongoImportApprovalCommitter(
 internal sealed class NoOpImportApprovalCommitHooks : IImportApprovalCommitHooks
 {
     public Task AfterCatalogueWriteAsync(ExamVersionId versionId, CancellationToken ct) => Task.CompletedTask;
+
+    public Task AfterAssetPromotionAsync(Guid draftId, CancellationToken ct) => Task.CompletedTask;
 }
