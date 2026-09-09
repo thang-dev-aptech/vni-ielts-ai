@@ -237,7 +237,7 @@ export function ImportPage() {
           </p>
         </details>
 
-        <label className="cms-field">
+        <label className="cms-field-inline">
           <input
             type="checkbox"
             checked={checklistRequired}
