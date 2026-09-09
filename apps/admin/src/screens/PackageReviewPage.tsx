@@ -113,6 +113,28 @@ export function PackageReviewPage() {
 
       {candidates === null && error === null && <p className="cms-muted">Đang tải…</p>}
 
+      {pkg !== null && pkg.findings.length > 0 && (
+        <section className="cms-panel">
+          <h2>Lý do bị từ chối ({pkg.findings.length})</h2>
+          <ul className="cms-notes">
+            {pkg.findings.map((finding, i) => (
+              <li key={i}>
+                {finding.stage !== undefined && (
+                  <span className="cms-badge is-attention">{finding.stage}</span>
+                )}{' '}
+                {finding.code !== undefined && (
+                  <strong className="cms-code">{finding.code}</strong>
+                )}{' '}
+                {finding.pointer !== undefined && (
+                  <span className="cms-code">{finding.pointer}</span>
+                )}
+                {finding.message !== undefined && <> — {finding.message}</>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/*
        * Một gói JSON/ZIP đơn tự nhập thẳng thành Draft — không qua bước
        * candidate nào cả (đó là đường riêng của Phase 6, AI phân tích đề
@@ -168,10 +190,10 @@ export function PackageReviewPage() {
             </p>
           )}
 
-          {candidates.length === 0 && (
+          {candidates.length === 0 && pkg !== null && pkg.findings.length === 0 && (
             <div className="cms-empty">
               <h3>Trống</h3>
-              <p>Gói này chưa có candidate. Worker có thể vẫn đang phân tích, hoặc parse đã từ chối.</p>
+              <p>Gói này chưa có candidate. Worker có thể vẫn đang phân tích.</p>
             </div>
           )}
 

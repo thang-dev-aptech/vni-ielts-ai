@@ -135,4 +135,46 @@ describe('PackageReviewPage', () => {
 
     await waitFor(() => expect(screen.getByText('Trống')).toBeInTheDocument());
   });
+
+  it('renders every finding on a rejected package, including one with only a message', async () => {
+    getPackage.mockResolvedValue(
+      packageOf({
+        status: 'rejected',
+        findings: [
+          {
+            stage: 'inspect',
+            code: 'NOT_A_ZIP',
+            pointer: '/',
+            message: 'The upload is not a ZIP archive.',
+          },
+          {
+            message: 'Parse stopped before a candidate was produced.',
+          },
+        ],
+      }),
+    );
+    listPackageCandidates.mockResolvedValue([]);
+    renderPage();
+
+    await waitFor(() => expect(screen.getByText(/Lý do bị từ chối/)).toBeInTheDocument());
+    expect(screen.getByText('inspect')).toBeInTheDocument();
+    expect(screen.getByText('NOT_A_ZIP')).toBeInTheDocument();
+    expect(screen.getByText('/')).toBeInTheDocument();
+    expect(screen.getByText(/The upload is not a ZIP archive/)).toBeInTheDocument();
+    expect(screen.getByText(/Parse stopped before a candidate was produced/)).toBeInTheDocument();
+    expect(screen.queryByText('Trống')).not.toBeInTheDocument();
+  });
+
+  it('keeps the empty wait state when there are no findings yet', async () => {
+    getPackage.mockResolvedValue(packageOf({ status: 'scanning', findings: [] }));
+    listPackageCandidates.mockResolvedValue([]);
+    renderPage();
+
+    await waitFor(() => expect(screen.getByText('Trống')).toBeInTheDocument());
+    expect(
+      screen.getByText('Gói này chưa có candidate. Worker có thể vẫn đang phân tích.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Lý do bị từ chối/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/parse đã từ chối/)).not.toBeInTheDocument();
+  });
 });
