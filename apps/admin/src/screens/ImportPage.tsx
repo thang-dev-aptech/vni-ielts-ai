@@ -201,37 +201,41 @@ export function ImportPage() {
       <section className="cms-panel">
         <h2>Chọn gói</h2>
 
-        <dl className="cms-facts">
-          <div>
-            <dt>Định dạng</dt>
-            <dd>
-              <code>.zip</code> chứa <code>manifest.json</code> khai báo một hoặc nhiều{' '}
-              <code>exam.json</code>, hoặc một <code>exam.json</code> đơn trong thư mục kỹ năng (
-              <code>reading/</code>, <code>listening/</code>, <code>writing/</code>,{' '}
-              <code>speaking/</code>)
-            </dd>
-          </div>
-          <div>
-            <dt>Dung lượng tối đa</dt>
-            <dd>200 MB mỗi gói</dd>
-          </div>
-        </dl>
+        <details>
+          <summary>Định dạng &amp; mẹo đóng gói</summary>
 
-        <p className="cms-muted">
-          Gói gồm tài liệu thô (.docx/.pdf/.txt theo từng kỹ năng) chưa nhập được: API hiện chưa nối
-          nhà cung cấp AI để phân tích tài liệu thô. Dựng gói bằng CLI vận hành (
-          <code>backend/tools/Vni.Ielts.ExamImporter</code>) trước, rồi tải file <code>exam.json</code>{' '}
-          kết quả lên đây.
-        </p>
+          <dl className="cms-facts">
+            <div>
+              <dt>Định dạng</dt>
+              <dd>
+                <code>.zip</code> chứa <code>manifest.json</code> khai báo một hoặc nhiều{' '}
+                <code>exam.json</code>, hoặc một <code>exam.json</code> đơn trong thư mục kỹ năng (
+                <code>reading/</code>, <code>listening/</code>, <code>writing/</code>,{' '}
+                <code>speaking/</code>)
+              </dd>
+            </div>
+            <div>
+              <dt>Dung lượng tối đa</dt>
+              <dd>200 MB mỗi gói</dd>
+            </div>
+          </dl>
 
-        <p className="cms-muted">
-          Chưa biết cấu trúc gói?{' '}
-          <a className="cms-link-button" href="/templates/exam-package-template.zip" download>
-            Tải gói mẫu (.zip)
-          </a>{' '}
-          — có sẵn <code>manifest.json</code> + <code>exam.json</code> đúng định dạng, sửa nội dung
-          rồi tải lên lại.
-        </p>
+          <p className="cms-muted">
+            Gói gồm tài liệu thô (.docx/.pdf/.txt theo từng kỹ năng) chưa nhập được: API hiện chưa
+            nối nhà cung cấp AI để phân tích tài liệu thô. Dựng gói bằng CLI vận hành (
+            <code>backend/tools/Vni.Ielts.ExamImporter</code>) trước, rồi tải file{' '}
+            <code>exam.json</code> kết quả lên đây.
+          </p>
+
+          <p className="cms-muted">
+            Chưa biết cấu trúc gói?{' '}
+            <a className="cms-link-button" href="/templates/exam-package-template.zip" download>
+              Tải gói mẫu (.zip)
+            </a>{' '}
+            — có sẵn <code>manifest.json</code> + <code>exam.json</code> đúng định dạng, sửa nội
+            dung rồi tải lên lại.
+          </p>
+        </details>
 
         <label className="cms-field">
           <input
@@ -242,10 +246,10 @@ export function ImportPage() {
           />{' '}
           Cần rà soát trước khi công bố (khuyến nghị cho nội dung mới hoặc chưa có ai kiểm tra)
         </label>
-        <p className="cms-muted">
-          Gói đã qua kiểm tra thủ công từ trước (ví dụ AI parse lại nội dung đã duyệt) có thể bỏ tick
-          để nhập thẳng.
-        </p>
+        <span className="cms-sub">
+          Gói đã qua kiểm tra thủ công từ trước (ví dụ AI parse lại nội dung đã duyệt) có thể bỏ
+          tick để nhập thẳng.
+        </span>
 
         <label className="cms-drop">
           <input
