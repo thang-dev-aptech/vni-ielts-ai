@@ -114,6 +114,16 @@ public sealed class ImportReviewWorkflow(
         var draft = await drafts.FindAsync(draftId, ct);
         if (draft is null) return ImportReviewResult.Refused("IMPORT_DRAFT_NOT_FOUND");
         if (draft.Revision != expectedRevision) return ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+        /*
+         * A blocking finding has no override, and that is the difference from a
+         * warning. `P-19`'s warnings are judgements a reviewer may make with a
+         * recorded reason. An error here is two documents in the same package
+         * contradicting each other — a key answer the passage does not contain, an
+         * answer over the paper's own word limit — and no amount of authority makes
+         * those consistent. The fix is a corrected file. → IP-03
+         */
+        if (draft.Findings.Any(f => f.Severity == "error"))
+            return ImportReviewResult.Refused("IMPORT_FINDINGS_BLOCKING");
         if (draft.Warnings.Any(w => !w.Resolved))
             return ImportReviewResult.Refused("IMPORT_WARNINGS_UNRESOLVED");
         if (!draft.Checklist.IsComplete)

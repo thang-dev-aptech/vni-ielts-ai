@@ -97,6 +97,53 @@ public sealed class ImportReviewWorkflowTests
     }
 
     [Fact]
+    public async Task A_draft_with_a_blocking_finding_cannot_be_approved()
+    {
+        var store = new Store(Draft(complete: true, findings:
+            [new PackageFinding("error", PaperKeyConsistency.WordLimitCode, "/q/1", "over the limit")]));
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_FINDINGS_BLOCKING", result.ErrorCode);
+    }
+
+    /// <summary>
+    /// Warnings stay clearable — that is `P-19`, and the transcript case depends
+    /// on it. Only errors are absolute.
+    /// </summary>
+    [Fact]
+    public async Task A_warning_severity_finding_does_not_block_approval()
+    {
+        var store = new Store(Draft(complete: true, findings:
+            [new PackageFinding("warning", PassageAnchorCheck.OutOfOrderCode, "/q/2", "out of order")]));
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.True(result.IsSuccess);
+    }
+
+    /// <summary>
+    /// There is no override. A reviewer with every permission still cannot clear
+    /// a contradiction between a paper and its key — the fix is a corrected file,
+    /// not a recorded reason.
+    /// </summary>
+    [Fact]
+    public async Task Resolving_every_warning_does_not_clear_a_blocking_finding()
+    {
+        var store = new Store(Draft(complete: true, findings:
+            [new PackageFinding("error", PassageAnchorCheck.NotInPassageCode, "/q/1", "absent")]));
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_FINDINGS_BLOCKING", result.ErrorCode);
+    }
+
+    [Fact]
     public void Diff_keeps_source_and_parsed_package_side_by_side()
     {
         var diff = ImportReviewWorkflow.Diff(Draft());
@@ -105,14 +152,15 @@ public sealed class ImportReviewWorkflowTests
         Assert.False(diff.TextIsIdentical);
     }
 
-    private static ExamImportDraft Draft(bool warning = false, bool complete = false)
+    private static ExamImportDraft Draft(
+        bool warning = false, bool complete = false, IReadOnlyList<PackageFinding>? findings = null)
     {
         var definition = ExamDefinitionId.New();
         var paper = Validator.Paper(definition, 1);
         return new ExamImportDraft(
             Guid.NewGuid(), definition, 1, ExamImportRoute.AiParsedSource,
             new string('a', 64), ExamImportWorkflow.Hash("valid"), paper, null,
-            ImportApprovalState.ReviewRequired, [], "raw source", "valid",
+            ImportApprovalState.ReviewRequired, findings ?? [], "raw source", "valid",
             complete
                 ? new ImportReviewChecklist(Enum.GetValues<ImportReviewCategory>().ToHashSet())
                 : ImportReviewChecklist.Empty,
