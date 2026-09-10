@@ -38,7 +38,8 @@ public sealed class ExamPackageImportPipeline(
     /// </param>
     public async Task<ExamImportAttempt> ImportAsync(
         Stream zip, ExamDefinitionId definitionId, int versionNumber, bool checklistRequired,
-        CancellationToken ct, UserId? createdBy = null, DateTimeOffset? createdAt = null)
+        CancellationToken ct, UserId? createdBy = null, DateTimeOffset? createdAt = null,
+        string? packageId = null, bool saveDraft = true)
     {
         if (!zip.CanSeek)
         {
@@ -63,7 +64,7 @@ public sealed class ExamPackageImportPipeline(
 
             return await ImportFromSandboxAsync(
                 inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber,
-                checklistRequired, createdBy, createdAt, ct);
+                checklistRequired, createdBy, createdAt, ct, packageId, saveDraft);
         }
         catch (ExamSourceParsingUnavailableException e)
         {
@@ -84,18 +85,17 @@ public sealed class ExamPackageImportPipeline(
         }
     }
 
-    /// <summary>
-    /// <b>Structured route:</b> exactly one accepted exam JSON plus optional
-    /// <c>assets/**</c> files. Media is staged privately and never sent through
-    /// <see cref="ISourceDocumentExtractor"/> or the AI parser.
-    ///
-    /// <b>AI-parsed route:</b> every other skill-folder shape. <c>P-18</c>: the
-    /// folder name alone decides the skill. Asset files are not concatenated
-    /// into the parser source.
-    /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
-        PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
-        bool checklistRequired, UserId? createdBy, DateTimeOffset? createdAt, CancellationToken ct)
+        PackageLayout layout,
+        string sandboxDirectory,
+        ExamDefinitionId definitionId,
+        int versionNumber,
+        bool checklistRequired,
+        UserId? createdBy,
+        DateTimeOffset? createdAt,
+        CancellationToken ct,
+        string? packageId = null,
+        bool saveDraft = true)
     {
         var skillFiles = layout.EntriesBySkill.Values.SelectMany(e => e).ToArray();
         var jsonFiles = skillFiles
@@ -111,7 +111,8 @@ public sealed class ExamPackageImportPipeline(
                 Path.Combine(sandboxDirectory, jsonFiles[0]), ct);
             return await ImportStructuredWithAssetsAsync(
                 packageJson, layout.AssetEntries ?? [], sandboxDirectory,
-                definitionId, versionNumber, checklistRequired, createdBy, createdAt, ct);
+                definitionId, versionNumber, checklistRequired, createdBy, createdAt, ct,
+                packageId, saveDraft);
         }
 
         var combined = new StringBuilder();
@@ -137,10 +138,11 @@ public sealed class ExamPackageImportPipeline(
             "package", "text/plain", text, hash, hash, ImportDataClassification.Restricted);
 
         var attempt = await workflow.ImportExtractedAsync(
-            source, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt);
+            source, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt,
+            packageId, saveDraft);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
-        return await GuardAgainstFabricatedAnswersAsync(attempt.Draft, ct);
+        return await GuardAgainstFabricatedAnswersAsync(attempt.Draft, saveDraft, ct);
     }
 
     private async Task<ExamImportAttempt> ImportStructuredWithAssetsAsync(
@@ -152,15 +154,27 @@ public sealed class ExamPackageImportPipeline(
         bool checklistRequired,
         UserId? createdBy,
         DateTimeOffset? createdAt,
-        CancellationToken ct)
+        CancellationToken ct,
+        string? packageId = null,
+        bool saveDraft = true)
     {
         var validation = validator.Validate(packageJson, definitionId, versionNumber);
         if (!validation.IsValid || validation.Version is null)
             return ExamImportAttempt.Rejected(validation.Findings);
 
         var packageHash = ExamImportWorkflow.Hash(packageJson);
-        var draftId = ExamImportWorkflow.StableDraftId(
-            definitionId, versionNumber, ExamImportRoute.StructuredPackage, packageHash);
+        Guid draftId;
+        if (!string.IsNullOrWhiteSpace(packageId))
+        {
+            var bytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(
+                $"{definitionId.Value}\n{versionNumber}\n{ExamImportRoute.StructuredPackage}\n{packageHash}\n{packageId}"));
+            draftId = new Guid(bytes.AsSpan(0, 16));
+        }
+        else
+        {
+            draftId = ExamImportWorkflow.StableDraftId(
+                definitionId, versionNumber, ExamImportRoute.StructuredPackage, packageHash);
+        }
 
         IReadOnlyList<ImportAssetManifestEntry> manifest = [];
         if (ImportAssetPaths.ZipBindableReferences(validation.Version).Count > 0 || zipAssets.Count > 0)
@@ -175,7 +189,8 @@ public sealed class ExamPackageImportPipeline(
         try
         {
             return await workflow.ImportStructuredAsync(
-                packageJson, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt, manifest);
+                packageJson, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt, manifest,
+                packageId, saveDraft);
         }
         catch
         {
@@ -218,7 +233,7 @@ public sealed class ExamPackageImportPipeline(
     /// ("the draft is on disk for inspection").
     /// </summary>
     private async Task<ExamImportAttempt> GuardAgainstFabricatedAnswersAsync(
-        ExamImportDraft draft, CancellationToken ct)
+        ExamImportDraft draft, bool saveDraft, CancellationToken ct)
     {
         var fabricated = FabricatedAnswerKeyGuard
             .Inspect(draft.PackageJson, sourceIncludesAnswerKey: false)
@@ -238,7 +253,12 @@ public sealed class ExamPackageImportPipeline(
             Revision = draft.Revision + 1,
         };
 
-        var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
-        return ExamImportAttempt.Accepted(replaced ? updated : draft);
+        if (saveDraft)
+        {
+            var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
+            return ExamImportAttempt.Accepted(replaced ? updated : draft);
+        }
+
+        return ExamImportAttempt.Accepted(updated);
     }
 }

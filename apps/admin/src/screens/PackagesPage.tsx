@@ -83,6 +83,7 @@ export function PackagesPage() {
   useEffect(() => void load(), [load]);
 
   const canDelete = can('package.delete');
+  const canUpload = can('package.upload') && can('exam.create');
 
   async function askDelete(pkg: AdminPackage) {
     if (accessToken === null) return;
@@ -105,11 +106,13 @@ export function PackagesPage() {
         <p>Mọi lần tải gói lên, kể cả những lần bị từ chối.</p>
       </header>
 
-      <div className="cms-toolbar">
-        <Link className="cms-primary" to={AdminPaths.import}>
-          Nhập đề mới
-        </Link>
-      </div>
+      {canUpload && (
+        <div className="cms-toolbar">
+          <Link className="cms-primary" to={AdminPaths.import}>
+            Nhập đề mới
+          </Link>
+        </div>
+      )}
 
       {flash}
 
@@ -169,6 +172,11 @@ export function PackagesPage() {
                           : `${pkg.findings.length} findings`}
                       </span>
                     )}
+                    {pkg.status === 'failed' && (
+                      <span className="cms-sub" title={pkg.failureDetail ?? undefined}>
+                        {pkg.failureCode ?? pkg.failureDetail ?? 'Lỗi xử lý'}
+                      </span>
+                    )}
                     {pkg.status === 'imported' && (
                       <span className="cms-sub">
                         {pkg.createdVersionIds.length === 1
@@ -180,6 +188,7 @@ export function PackagesPage() {
                       <Link to={AdminPaths.package(pkg.packageId)}>Rà soát</Link>
                     )}
                     {pkg.status !== 'rejected' &&
+                      pkg.status !== 'failed' &&
                       pkg.status !== 'imported' &&
                       pkg.status !== 'needs-review' && <span className="cms-sub">—</span>}
                   </td>

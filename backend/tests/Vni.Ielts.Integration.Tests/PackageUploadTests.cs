@@ -153,7 +153,7 @@ public sealed class PackageUploadTests(SsoAppFactory app) : IClassFixture<SsoApp
     }
 
     [SkippableFact]
-    public async Task An_unrecognised_file_extension_is_rejected()
+    public async Task An_unrecognised_file_extension_creates_visible_rejected_package_row()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
@@ -166,10 +166,21 @@ public sealed class PackageUploadTests(SsoAppFactory app) : IClassFixture<SsoApp
             UploadRequest(access, "demo.pdf", TinyJsonPackage(), Guid.NewGuid().ToString("n")));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var packageId = body.GetProperty("packageId").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(packageId));
+        Assert.Equal("rejected", body.GetProperty("status").GetString());
+
+        var stored = await Db().GetCollection<BsonDocument>("exam_packages")
+            .Find(Builders<BsonDocument>.Filter.Eq("_id", packageId))
+            .FirstOrDefaultAsync();
+        Assert.NotNull(stored);
+        Assert.Equal("Rejected", stored["status"].AsString);
+        Assert.True(stored["findings"].AsBsonArray.Count > 0);
     }
 
     [SkippableFact]
-    public async Task A_repeated_multipart_upload_creates_a_second_package()
+    public async Task An_idempotent_retry_replays_the_same_package()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
@@ -182,18 +193,164 @@ public sealed class PackageUploadTests(SsoAppFactory app) : IClassFixture<SsoApp
         var first = await client.SendAsync(UploadRequest(access, "demo.json", TinyJsonPackage(), key));
         Assert.Equal(HttpStatusCode.Accepted, first.StatusCode);
         var firstBody = await first.Content.ReadFromJsonAsync<JsonElement>();
+        var firstPkgId = firstBody.GetProperty("packageId").GetString();
 
         var second = await client.SendAsync(UploadRequest(access, "demo.json", TinyJsonPackage(), key));
         Assert.Equal(HttpStatusCode.Accepted, second.StatusCode);
         var secondBody = await second.Content.ReadFromJsonAsync<JsonElement>();
+        var secondPkgId = secondBody.GetProperty("packageId").GetString();
 
-        Assert.NotEqual(
-            firstBody.GetProperty("packageId").GetString(),
-            secondBody.GetProperty("packageId").GetString());
+        Assert.Equal(firstPkgId, secondPkgId);
 
-        var count = await Db().GetCollection<BsonDocument>("exam_packages")
-            .Find(Builders<BsonDocument>.Filter.Eq("uploadedBy", userId))
-            .CountDocumentsAsync();
-        Assert.Equal(2, count);
+        var stored = await Db().GetCollection<BsonDocument>("exam_packages")
+            .Find(Builders<BsonDocument>.Filter.Eq("_id", firstPkgId))
+            .ToListAsync();
+        Assert.Single(stored);
+    }
+
+    [SkippableFact]
+    public async Task Same_key_with_different_bytes_returns_conflict()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        var (_, userId) = await SignInAsync(client);
+        await GrantExactPermissionsAsync(userId, "author", "package.upload", "exam.create");
+        var (access, _) = await SignInAsync(client);
+
+        var key = Guid.NewGuid().ToString("n");
+        var bytes1 = Encoding.UTF8.GetBytes("""{"title":"first"}""");
+        var bytes2 = Encoding.UTF8.GetBytes("""{"title":"second"}""");
+
+        var first = await client.SendAsync(UploadRequest(access, "demo.json", bytes1, key));
+        Assert.Equal(HttpStatusCode.Accepted, first.StatusCode);
+
+        var second = await client.SendAsync(UploadRequest(access, "demo.json", bytes2, key));
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+    }
+
+    [SkippableFact]
+    public async Task Different_keys_with_same_bytes_creates_two_distinct_packages()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        var (_, userId) = await SignInAsync(client);
+        await GrantExactPermissionsAsync(userId, "author", "package.upload", "exam.create");
+        var (access, _) = await SignInAsync(client);
+
+        var key1 = Guid.NewGuid().ToString("n");
+        var key2 = Guid.NewGuid().ToString("n");
+
+        var first = await client.SendAsync(UploadRequest(access, "demo.json", TinyJsonPackage(), key1));
+        Assert.Equal(HttpStatusCode.Accepted, first.StatusCode);
+        var firstBody = await first.Content.ReadFromJsonAsync<JsonElement>();
+        var firstId = firstBody.GetProperty("packageId").GetString()!;
+
+        var second = await client.SendAsync(UploadRequest(access, "demo.json", TinyJsonPackage(), key2));
+        Assert.Equal(HttpStatusCode.Accepted, second.StatusCode);
+        var secondBody = await second.Content.ReadFromJsonAsync<JsonElement>();
+        var secondId = secondBody.GetProperty("packageId").GetString()!;
+
+        Assert.NotEqual(firstId, secondId);
+
+        var stored = await Db().GetCollection<BsonDocument>("exam_packages")
+            .Find(Builders<BsonDocument>.Filter.In("_id", new[] { firstId, secondId }))
+            .ToListAsync();
+        Assert.Equal(2, stored.Count);
+    }
+
+    [SkippableFact]
+    public async Task Empty_file_does_not_create_package_row()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        var (_, userId) = await SignInAsync(client);
+        await GrantExactPermissionsAsync(userId, "author", "package.upload", "exam.create");
+        var (access, _) = await SignInAsync(client);
+
+        var initialCount = await Db().GetCollection<BsonDocument>("exam_packages").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty);
+
+        var response = await client.SendAsync(
+            UploadRequest(access, "empty.json", [], Guid.NewGuid().ToString("n")));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var finalCount = await Db().GetCollection<BsonDocument>("exam_packages").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty);
+        Assert.Equal(initialCount, finalCount);
+    }
+
+    [SkippableFact]
+    public async Task Twenty_concurrent_requests_with_same_actor_key_and_bytes_returns_one_packageId_and_creates_one_package_row()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        var (_, userId) = await SignInAsync(client);
+        await GrantExactPermissionsAsync(userId, "author", "package.upload", "exam.create");
+        var (access, _) = await SignInAsync(client);
+
+        var key = Guid.NewGuid().ToString("n");
+        var bytes = TinyJsonPackage();
+
+        var tasks = Enumerable.Range(0, 20).Select(_ =>
+        {
+            var req = UploadRequest(access, "demo.json", bytes, key);
+            return client.SendAsync(req);
+        }).ToArray();
+
+        var responses = await Task.WhenAll(tasks);
+        foreach (var response in responses)
+        {
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        }
+
+        var packageIds = new HashSet<string>();
+        foreach (var response in responses)
+        {
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+            packageIds.Add(body.GetProperty("packageId").GetString()!);
+        }
+
+        Assert.Single(packageIds);
+        var pkgId = packageIds.Single();
+
+        var stored = await Db().GetCollection<BsonDocument>("exam_packages")
+            .Find(Builders<BsonDocument>.Filter.Eq("_id", pkgId))
+            .ToListAsync();
+        Assert.Single(stored);
+    }
+
+    [SkippableFact]
+    public async Task Concurrent_same_key_with_different_bytes_returns_one_success_one_conflict_and_creates_one_package_row()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        var (_, userId) = await SignInAsync(client);
+        await GrantExactPermissionsAsync(userId, "author", "package.upload", "exam.create");
+        var (access, _) = await SignInAsync(client);
+
+        var key = Guid.NewGuid().ToString("n");
+        var bytes1 = Encoding.UTF8.GetBytes("""{"title":"first"}""");
+        var bytes2 = Encoding.UTF8.GetBytes("""{"title":"second"}""");
+
+        var task1 = client.SendAsync(UploadRequest(access, "demo.json", bytes1, key));
+        var task2 = client.SendAsync(UploadRequest(access, "demo.json", bytes2, key));
+
+        var responses = await Task.WhenAll(task1, task2);
+        var statusCodes = responses.Select(r => r.StatusCode).OrderBy(s => s).ToArray();
+
+        Assert.Equal([HttpStatusCode.Accepted, HttpStatusCode.Conflict], statusCodes);
+
+        var successResponse = responses.First(r => r.StatusCode == HttpStatusCode.Accepted);
+        var successBody = await successResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var packageId = successBody.GetProperty("packageId").GetString()!;
+
+        var successStored = await Db().GetCollection<BsonDocument>("exam_packages")
+            .Find(Builders<BsonDocument>.Filter.Eq("_id", packageId))
+            .ToListAsync();
+        Assert.Single(successStored);
     }
 }

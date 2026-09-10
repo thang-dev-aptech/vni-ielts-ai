@@ -101,7 +101,7 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         var content = new MultipartFormDataContent();
         var part = new ByteArrayContent(zip);
         part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-        content.Add(part, "file", "package.zip");
+        content.Add(part, "package", "package.zip");
         return content;
     }
 
@@ -180,32 +180,20 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     """;
 
     [SkippableFact]
-    public async Task Uploading_a_valid_structured_package_creates_an_unapproved_draft()
+    public async Task Legacy_upload_route_returns_gone_with_the_moved_contract()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
         var (client, access) = await SignInAsAdminAsync();
-
         var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
         request.Content = ValidStructuredPackage();
 
         var response = await client.SendAsync(request);
         var body = await BodyOf(response);
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal("structuredpackage", body.GetProperty("route").GetString());
-        Assert.Equal("reviewrequired", body.GetProperty("approvalState").GetString());
-        Assert.Equal(0, body.GetProperty("findings").GetArrayLength());
-        Assert.Equal(0, body.GetProperty("warnings").GetArrayLength());
-
-        var draftId = body.GetProperty("draftId").GetString();
-        Assert.False(string.IsNullOrWhiteSpace(draftId));
-
-        // The draft the upload just made is really persisted and reachable
-        // by a caller with package.read — not just echoed in the response.
-        var getResponse = await client.SendAsync(
-            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
-        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+        Assert.Equal("IMPORT_UPLOAD_MOVED", body.GetProperty("code").GetString());
+        Assert.Contains("POST /api/v1/admin/packages", body.GetProperty("detail").GetString());
     }
 
     [SkippableFact]
@@ -224,24 +212,21 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     }
 
     [SkippableFact]
-    public async Task A_compression_bomb_is_refused_before_anything_is_persisted()
+    public async Task Legacy_upload_route_requires_package_upload_permission()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
-        var (client, access) = await SignInAsAdminAsync();
+        var client = NewClient();
+        var phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var (_, userId) = await RegisterAsync(client, phone);
+        await GrantExactPermissionsAsync(userId, "legacy-upload-exam-create-only", PermissionKeys.ExamCreate);
+        var access = await LoginAsync(client, phone);
 
         var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
-        request.Content = BombPackage();
-
+        request.Content = ValidStructuredPackage();
         var response = await client.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
-        var body = await BodyOf(response);
-        Assert.Equal("PACKAGE_REJECTED", body.GetProperty("code").GetString());
-        Assert.True(body.GetProperty("findings").GetArrayLength() > 0);
-
-        // No draft id is even offered — there is nothing for a caller to look up.
-        Assert.False(body.TryGetProperty("draftId", out _));
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [SkippableFact]
@@ -249,37 +234,14 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
-        // A signed-in learner has no package.upload — the server enforces
-        // this, not just the CMS hiding a button. The stub SSO provider
-        // always authenticates the same account, and another test in this
-        // class may already have promoted it to Admin, so the role is
-        // explicitly stripped here rather than assumed absent — this test
-        // must hold regardless of what ran before it.
         var client = NewClient();
-        await SsoRoundTripAsync(client);
-
-        using (var scope = app.Services.CreateScope())
-        {
-            var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-            var roles = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
-            var admin = await roles.FindByNameAsync(SystemRoles.Admin, default);
-            var user = await users.FindByEmailAsync(
-                Vni.Ielts.Domain.Identity.Email.Create("stub.learner@example.com"), default);
-
-            if (admin is not null && user is not null && user.HasRole(admin.Id))
-            {
-                user.RemoveRole(admin.Id);
-                await users.SaveAsync(user, default);
-            }
-        }
-
-        // Permissions are resolved when the token is minted, so a fresh
-        // sign-in is taken after the role removal lands.
-        var access = await SsoRoundTripAsync(client);
+        var phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var (_, userId) = await RegisterAsync(client, phone);
+        await GrantExactPermissionsAsync(userId, "legacy-upload-exam-create-only", PermissionKeys.ExamCreate);
+        var access = await LoginAsync(client, phone);
 
         var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
         request.Content = ValidStructuredPackage();
-
         var response = await client.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -427,44 +389,22 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     ];
 
     [SkippableFact]
-    public async Task Uploading_with_checklistRequired_false_skips_the_checklist_gate()
+    public async Task Legacy_upload_route_does_not_persist_an_import_draft()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
         var (client, access) = await SignInAsAdminAsync();
-        var json = ValidPackageJson.Replace("admin-import-test", $"skip-checklist-{Guid.NewGuid():n}");
-        var zip = BuildZip(("reading/exam.json", json));
-        var content = new MultipartFormDataContent();
-        var part = new ByteArrayContent(zip);
-        part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-        content.Add(part, "file", "package.zip");
-        content.Add(new StringContent("false"), "checklistRequired");
+        using var scope = app.Services.CreateScope();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+        var before = await drafts.ListAsync(default);
 
-        var upload = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
-        upload.Content = content;
-        var uploadResponse = await client.SendAsync(upload);
-        var uploadBody = await BodyOf(uploadResponse);
+        var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        request.Content = ValidStructuredPackage();
+        var response = await client.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.Created, uploadResponse.StatusCode);
-        Assert.False(uploadBody.GetProperty("checklistRequired").GetBoolean());
-        Assert.False(uploadBody.GetProperty("checklistComplete").GetBoolean());
-
-        var draftId = uploadBody.GetProperty("draftId").GetString();
-        Assert.False(string.IsNullOrWhiteSpace(draftId));
-
-        var get = await client.SendAsync(
-            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
-        var getBody = await BodyOf(get);
-        Assert.False(getBody.GetProperty("checklistRequired").GetBoolean());
-
-        await ResolveOpenWarningsAsync(client, access, draftId!);
-
-        var approve = await client.SendAsync(
-            Request(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access));
-        var approveBody = await BodyOf(approve);
-
-        Assert.Equal(HttpStatusCode.OK, approve.StatusCode);
-        Assert.Equal("approved", approveBody.GetProperty("approvalState").GetString());
+        var after = await drafts.ListAsync(default);
+        Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+        Assert.Equal(before.Select(d => d.Id), after.Select(d => d.Id));
     }
 
     [SkippableFact]
@@ -585,31 +525,21 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     }
 
     [SkippableFact]
-    public async Task Upload_stamps_the_authenticated_uploader_and_ignores_a_forged_createdBy_field()
+    public async Task Legacy_upload_route_requires_exam_create_permission()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
-        var (client, access) = await SignInAsAdminAsync();
-        var userId = await MeUserIdAsync(client, access);
-
-        var zip = BuildZip(("reading/exam.json", ValidPackageJson.Replace(
-            "admin-import-test", $"forged-{Guid.NewGuid():n}")));
-        var content = new MultipartFormDataContent();
-        var part = new ByteArrayContent(zip);
-        part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-        content.Add(part, "file", "package.zip");
-        content.Add(new StringContent("forged-uploader"), "createdBy");
-        content.Add(new StringContent("2000-01-01T00:00:00Z"), "createdAt");
+        var client = NewClient();
+        var phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var (_, userId) = await RegisterAsync(client, phone);
+        await GrantExactPermissionsAsync(userId, "legacy-upload-package-only", PermissionKeys.PackageUpload);
+        var access = await LoginAsync(client, phone);
 
         var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
-        request.Content = content;
+        request.Content = ValidStructuredPackage();
         var response = await client.SendAsync(request);
-        var body = await BodyOf(response);
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal(userId, body.GetProperty("createdBy").GetString());
-        Assert.NotEqual("forged-uploader", body.GetProperty("createdBy").GetString());
-        Assert.NotEqual("2000-01-01T00:00:00Z", body.GetProperty("createdAt").GetString());
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [SkippableFact]
@@ -653,7 +583,7 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         Assert.NotEqual(userA, userB);
 
         await GrantExactPermissionsAsync(userA, "import-uploader",
-            PermissionKeys.PackageUpload, PermissionKeys.ExamReadOwn);
+            PermissionKeys.PackageUpload, PermissionKeys.ExamCreate, PermissionKeys.ExamReadOwn);
         await GrantExactPermissionsAsync(userB, "import-reviewer",
             PermissionKeys.ExamReview, PermissionKeys.ExamReadOwn);
 
@@ -781,15 +711,23 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
 
     private async Task<string> UploadDraftAsync(HttpClient client, string access)
     {
-        var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        var request = Request(HttpMethod.Post, "/api/v1/admin/packages", access);
         request.Content = ValidStructuredPackage();
         var response = await client.SendAsync(request);
         var body = await BodyOf(response);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        var packageId = body.GetProperty("packageId").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(packageId));
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var draftId = body.GetProperty("draftId").GetString();
-        Assert.False(string.IsNullOrWhiteSpace(draftId));
-        return draftId!;
+        using var scope = app.Services.CreateScope();
+        var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+        var processor = scope.ServiceProvider.GetRequiredService<Vni.Ielts.Infrastructure.Content.PackageIngestionProcessor>();
+        var package = await packages.FindAsync(packageId!, CancellationToken.None);
+        await processor.ProcessAsync(package!, CancellationToken.None);
+        var processed = await packages.FindAsync(packageId!, CancellationToken.None);
+        Assert.Equal(PackageImportStatus.NeedsReview, processed!.Status);
+        Assert.False(string.IsNullOrWhiteSpace(processed.ImportDraftId));
+        return processed.ImportDraftId!;
     }
 
     private static async Task ResolveOpenWarningsAsync(HttpClient client, string access, string draftId)

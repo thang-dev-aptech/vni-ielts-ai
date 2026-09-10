@@ -76,7 +76,8 @@ public sealed record ExamImportDraft(
     bool ChecklistRequired = true,
     UserId? CreatedBy = null,
     DateTimeOffset? CreatedAt = null,
-    IReadOnlyList<ImportAssetManifestEntry>? AssetManifest = null)
+    IReadOnlyList<ImportAssetManifestEntry>? AssetManifest = null,
+    string? PackageId = null)
 {
     public IReadOnlyList<ImportAssetManifestEntry> Assets => AssetManifest ?? [];
 }
@@ -110,7 +111,9 @@ public sealed class ExamImportWorkflow(
         CancellationToken ct,
         UserId? createdBy = null,
         DateTimeOffset? createdAt = null,
-        IReadOnlyList<ImportAssetManifestEntry>? assetManifest = null) =>
+        IReadOnlyList<ImportAssetManifestEntry>? assetManifest = null,
+        string? packageId = null,
+        bool saveDraft = true) =>
         ValidateAndSaveAsync(
             packageJson,
             definitionId,
@@ -123,7 +126,9 @@ public sealed class ExamImportWorkflow(
             ct,
             createdBy,
             createdAt,
-            assetManifest);
+            assetManifest,
+            packageId,
+            saveDraft);
 
     public async Task<ExamImportAttempt> ImportExtractedAsync(
         ExtractedImportSource source,
@@ -132,7 +137,9 @@ public sealed class ExamImportWorkflow(
         bool checklistRequired,
         CancellationToken ct,
         UserId? createdBy = null,
-        DateTimeOffset? createdAt = null)
+        DateTimeOffset? createdAt = null,
+        string? packageId = null,
+        bool saveDraft = true)
     {
         var observedHash = Hash(source.Text);
         if (!FixedTimeEquals(source.TextSha256, observedHash))
@@ -157,7 +164,9 @@ public sealed class ExamImportWorkflow(
             checklistRequired,
             ct,
             createdBy,
-            createdAt);
+            createdAt,
+            packageId: packageId,
+            saveDraft: saveDraft);
     }
 
     private async Task<ExamImportAttempt> ValidateAndSaveAsync(
@@ -172,7 +181,9 @@ public sealed class ExamImportWorkflow(
         CancellationToken ct,
         UserId? createdBy = null,
         DateTimeOffset? createdAt = null,
-        IReadOnlyList<ImportAssetManifestEntry>? assetManifest = null)
+        IReadOnlyList<ImportAssetManifestEntry>? assetManifest = null,
+        string? packageId = null,
+        bool saveDraft = true)
     {
         var validation = validator.Validate(packageJson, definitionId, versionNumber);
         if (!validation.IsValid || validation.Version is null)
@@ -186,16 +197,32 @@ public sealed class ExamImportWorkflow(
             }
             : [];
         var packageHash = Hash(packageJson);
+        Guid draftId;
+        if (!string.IsNullOrWhiteSpace(packageId))
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(
+                $"{definitionId.Value}\n{versionNumber}\n{route}\n{packageHash}\n{packageId}"));
+            draftId = new Guid(bytes.AsSpan(0, 16));
+        }
+        else
+        {
+            draftId = StableDraftId(definitionId, versionNumber, route, packageHash);
+        }
+
         var draft = new ExamImportDraft(
-            StableDraftId(definitionId, versionNumber, route, packageHash),
+            draftId,
             definitionId, versionNumber, route, sourceHash, packageHash,
             validation.Version, parserMetadata, ImportApprovalState.ReviewRequired,
             validation.Findings, sourceText,
             packageJson, ImportReviewChecklist.Empty, warnings, 0, null,
             checklistRequired, createdBy, createdAt,
-            assetManifest ?? []);
+            assetManifest ?? [],
+            packageId);
 
-        await drafts.SaveAsync(draft, ct);
+        if (saveDraft)
+        {
+            await drafts.SaveAsync(draft, ct);
+        }
         return ExamImportAttempt.Accepted(draft);
     }
 

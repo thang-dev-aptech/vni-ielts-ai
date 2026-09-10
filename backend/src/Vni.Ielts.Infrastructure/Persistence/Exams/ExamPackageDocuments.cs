@@ -58,6 +58,33 @@ internal sealed class ExamPackageDocument
 
     [BsonElement("updatedAt")]
     public DateTime UpdatedAt { get; set; }
+
+    [BsonElement("importDraftId")]
+    [BsonIgnoreIfNull]
+    public string? ImportDraftId { get; set; }
+
+    [BsonElement("failureCode")]
+    [BsonIgnoreIfNull]
+    public string? FailureCode { get; set; }
+
+    [BsonElement("failureDetail")]
+    [BsonIgnoreIfNull]
+    public string? FailureDetail { get; set; }
+
+    [BsonElement("claimOwner")]
+    [BsonIgnoreIfNull]
+    public string? ClaimOwner { get; set; }
+
+    [BsonElement("claimFence")]
+    public long ClaimFence { get; set; }
+
+    [BsonElement("claimedAt")]
+    [BsonIgnoreIfNull]
+    public DateTime? ClaimedAt { get; set; }
+
+    [BsonElement("leaseUntil")]
+    [BsonIgnoreIfNull]
+    public DateTime? LeaseUntil { get; set; }
 }
 
 [BsonIgnoreExtraElements]

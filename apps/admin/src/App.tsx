@@ -162,7 +162,9 @@ function Routed() {
           path={AdminPaths.import}
           element={
             <Gate permission="package.upload">
-              <ImportPage />
+              <Gate permission="exam.create">
+                <ImportPage />
+              </Gate>
             </Gate>
           }
         />
@@ -177,7 +179,7 @@ function Routed() {
         <Route
           path={AdminPaths.packages}
           element={
-            <Gate permission="package.read">
+            <Gate permission={['package.read', 'exam.review']}>
               <PackagesPage />
             </Gate>
           }
@@ -185,7 +187,7 @@ function Routed() {
         <Route
           path={AdminPaths.candidatePattern}
           element={
-            <Gate permission="package.read">
+            <Gate permission={['package.read', 'exam.review']}>
               <CandidateReviewPage />
             </Gate>
           }
@@ -193,7 +195,7 @@ function Routed() {
         <Route
           path={AdminPaths.packagePattern}
           element={
-            <Gate permission="package.read">
+            <Gate permission={['package.read', 'exam.review']}>
               <PackageReviewPage />
             </Gate>
           }

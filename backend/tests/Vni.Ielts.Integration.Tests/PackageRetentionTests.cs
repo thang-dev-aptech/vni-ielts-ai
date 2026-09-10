@@ -111,6 +111,45 @@ public sealed class PackageRetentionTests(SsoAppFactory app) : IClassFixture<Sso
     }
 
     [SkippableFact]
+    public async Task Retention_purges_raw_upload_while_preserving_package_history_and_linkage()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+        _ = NewClient();
+
+        using var scope = app.Services.CreateScope();
+        var old = DateTimeOffset.UtcNow.AddDays(-30);
+        var uploads = scope.ServiceProvider.GetRequiredService<IPackageUploadStore>();
+        var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+
+        var uploadRef = await uploads.SaveAsync(
+            new MemoryStream("""{"title":"demo"}"""u8.ToArray()), "linked-demo.json", "application/json", CancellationToken.None);
+
+        var draftId = Guid.NewGuid().ToString("D");
+        var versionId = $"ev-{Guid.NewGuid():n}";
+
+        var package = ExamPackage.Create(
+            Guid.NewGuid().ToString("n"), ExamPackageSourceKind.Json, UserId.New(),
+            sha256: "abc", fileName: "linked-demo.json", uploadRef, old);
+        package.MarkValidating(old);
+        package.MarkNeedsReview(draftId, old);
+        package.MarkImported([versionId], old);
+
+        await packages.SaveAsync(package, CancellationToken.None);
+
+        await ProcessorWith(scope.ServiceProvider, retentionDays: 7).RunOnceAsync(CancellationToken.None);
+
+        var reloaded = await packages.FindAsync(package.Id, CancellationToken.None);
+        Assert.NotNull(reloaded);
+        Assert.True(reloaded.UploadPurged);
+        Assert.Equal(PackageImportStatus.Imported, reloaded.Status);
+        Assert.Equal(draftId, reloaded.ImportDraftId);
+        Assert.Equal([versionId], reloaded.CreatedVersionIds);
+
+        await Assert.ThrowsAsync<GridFSFileNotFoundException>(
+            () => uploads.OpenAsync(package.UploadRef, CancellationToken.None));
+    }
+
+    [SkippableFact]
     public async Task Retention_is_idempotent_when_object_already_gone_after_failed_mark()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);

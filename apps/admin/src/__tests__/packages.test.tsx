@@ -113,4 +113,47 @@ describe('PackagesPage', () => {
       '/packages/pkg-review',
     );
   });
+
+  it('renders safe failure reason for failed package and findings count for rejected package', async () => {
+    listPackages.mockResolvedValue([
+      {
+        packageId: 'pkg-failed',
+        sourceKind: 'zip',
+        fileName: 'broken.zip',
+        status: 'failed',
+        failureCode: 'INGESTION_FAILED',
+        failureDetail: 'An unexpected error occurred during package processing.',
+        uploadedByName: 'Người vận hành',
+        findings: [],
+        entries: [],
+        createdVersionIds: [],
+        createdAt: '2026-08-28T00:00:00.000Z',
+        updatedAt: '2026-08-28T00:00:00.000Z',
+      },
+      {
+        packageId: 'pkg-rejected',
+        sourceKind: 'zip',
+        fileName: 'corrupt.zip',
+        status: 'rejected',
+        uploadedByName: 'Người vận hành',
+        findings: [
+          { stage: 'limits', code: 'FILE_TOO_LARGE', message: 'Exceeds size limit' },
+          { stage: 'schema', code: 'INVALID_JSON', message: 'Bad JSON' },
+        ],
+        entries: [],
+        createdVersionIds: [],
+        createdAt: '2026-08-28T00:00:00.000Z',
+        updatedAt: '2026-08-28T00:00:00.000Z',
+      },
+    ]);
+    renderPage();
+
+    await waitFor(() => expect(screen.getByText('broken.zip')).toBeInTheDocument());
+    expect(screen.getByText('Lỗi xử lý')).toBeInTheDocument();
+    expect(screen.getByText('INGESTION_FAILED')).toBeInTheDocument();
+
+    expect(screen.getByText('corrupt.zip')).toBeInTheDocument();
+    expect(screen.getByText('Bị từ chối')).toBeInTheDocument();
+    expect(screen.getByText('2 findings')).toBeInTheDocument();
+  });
 });

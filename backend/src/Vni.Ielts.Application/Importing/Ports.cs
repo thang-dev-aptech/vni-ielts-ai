@@ -97,6 +97,22 @@ public interface IImportApprovalCommitHooks
     Task AfterAssetPromotionAsync(Guid draftId, CancellationToken ct) => Task.CompletedTask;
 }
 
+/// <summary>
+/// Test seam around import draft linkage. Production registers a no-op hook;
+/// only a test host may replace it.
+/// </summary>
+public interface IImportLinkageCommitHooks
+{
+    Task AfterDraftInsertAsync(Guid draftId, string packageId, CancellationToken ct);
+    Task AfterPackageUpdateAsync(Guid draftId, string packageId, CancellationToken ct);
+}
+
+public sealed class NoOpImportLinkageCommitHooks : IImportLinkageCommitHooks
+{
+    public Task AfterDraftInsertAsync(Guid draftId, string packageId, CancellationToken ct) => Task.CompletedTask;
+    public Task AfterPackageUpdateAsync(Guid draftId, string packageId, CancellationToken ct) => Task.CompletedTask;
+}
+
 public sealed record SourceExtractionLimits(
     long MaxSourceBytes,
     int MaxPages,

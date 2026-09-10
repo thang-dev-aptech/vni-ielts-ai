@@ -533,15 +533,32 @@ public sealed class ContentRightsPublishTests(SsoAppFactory app) : IClassFixture
         HttpClient client, string access, IExamCatalogue catalogue, IImportDraftStore drafts,
         string sourceId)
     {
-        var upload = AdminRequest(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        var upload = AdminRequest(HttpMethod.Post, "/api/v1/admin/packages", access);
         upload.Content = StructuredPackage(sourceId);
         var uploaded = await client.SendAsync(upload);
-        Assert.Equal(HttpStatusCode.Created, uploaded.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, uploaded.StatusCode);
 
-        var draftId = (await BodyOf(uploaded)).GetProperty("draftId").GetString();
-        Assert.False(string.IsNullOrWhiteSpace(draftId));
+        var packageId = (await BodyOf(uploaded)).GetProperty("packageId").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(packageId));
 
-        await ResolveOpenWarningsAsync(client, access, draftId!);
+        string draftId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var processor = scope.ServiceProvider.GetRequiredService<
+                Vni.Ielts.Infrastructure.Content.PackageIngestionProcessor>();
+            var package = await packages.FindAsync(packageId!, default);
+            Assert.NotNull(package);
+
+            await processor.ProcessAsync(package!, default);
+
+            package = await packages.FindAsync(packageId!, default);
+            Assert.NotNull(package);
+            Assert.False(string.IsNullOrWhiteSpace(package!.ImportDraftId));
+            draftId = package.ImportDraftId!;
+        }
+
+        await ResolveOpenWarningsAsync(client, access, draftId);
 
         var checklist = AdminRequest(
             HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
@@ -615,7 +632,7 @@ public sealed class ContentRightsPublishTests(SsoAppFactory app) : IClassFixture
         var content = new MultipartFormDataContent();
         var part = new ByteArrayContent(stream.ToArray());
         part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-        content.Add(part, "file", "package.zip");
+        content.Add(part, "package", "package.zip");
         return content;
     }
 

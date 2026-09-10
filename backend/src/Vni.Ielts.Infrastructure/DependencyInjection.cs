@@ -92,8 +92,12 @@ public static class DependencyInjection
 
         services.AddScoped<IExamCatalogue, MongoExamCatalogue>();
         services.AddScoped<IExamPackageRepository, MongoExamPackageRepository>();
+        services.AddScoped<IPackageUploadIdempotencyStore, MongoPackageUploadIdempotencyStore>();
         services.AddScoped<IPackageUploadStore, GridFsPackageUploadStore>();
         services.AddScoped<IPackageImportTransaction, MongoPackageImportTransaction>();
+        services.AddScoped<IRawPackageParsingTransaction, MongoRawPackageParsingTransaction>();
+        services.AddScoped<IPackageUploadTransaction, MongoPackageUploadTransaction>();
+        services.AddScoped<IPackageUploadReconciliationStore, MongoPackageUploadReconciliationStore>();
         services.AddSingleton<IPackageCascadeDeleteHooks, NoOpPackageCascadeDeleteHooks>();
         services.AddScoped<IPackageCascadeDelete, MongoPackageCascadeDelete>();
         services.AddSingleton<IPackageRetentionHooks, NoOpPackageRetentionHooks>();
@@ -164,7 +168,15 @@ public static class DependencyInjection
         services.AddSingleton<DirectoryAdjacentDocumentGrouper>();
         // ExamPackageReader is registered once below (S6b / LocateExamSchemaPath).
         services.AddSingleton<PackageStructuralValidator>();
-        services.AddScoped<RawPackageParsingProcessor>();
+        services.AddScoped<RawPackageParsingProcessor>(sp => new RawPackageParsingProcessor(
+            sp.GetRequiredService<IExamPackageRepository>(),
+            sp.GetRequiredService<IPackageUploadStore>(),
+            sp.GetRequiredService<PackageStructuralValidator>(),
+            sp.GetRequiredService<SourceDocumentExtractor>(),
+            sp.GetRequiredService<DirectoryAdjacentDocumentGrouper>(),
+            sp.GetRequiredService<IExamContentParser>(),
+            sp.GetRequiredService<IRawPackageParsingTransaction>(),
+            sp.GetRequiredService<IClock>()));
         services.AddScoped<PackageIngestionProcessor>();
         services.AddScoped<PackageRetentionProcessor>();
         services.AddScoped<IExamSessionRepository, MongoExamSessionRepository>();
@@ -486,6 +498,7 @@ public static class DependencyInjection
         services.AddScoped<ImportReviewWorkflow>();
         services.AddScoped<IImportDraftStore, MongoImportDraftStore>();
         services.AddSingleton<IImportApprovalCommitHooks, NoOpImportApprovalCommitHooks>();
+        services.AddSingleton<IImportLinkageCommitHooks, NoOpImportLinkageCommitHooks>();
         services.AddScoped<IImportApprovalCommitter, MongoImportApprovalCommitter>();
         services.AddScoped<IImportBatchCheckpointStore, MongoImportBatchCheckpointStore>();
         services.AddScoped<ExamPackageImportPipeline>();

@@ -158,7 +158,7 @@ public static class AdminPackageEndpoints
     private static async Task<IResult> PackagesEndpoint(
         ClaimsPrincipal principal, IExamPackageRepository packages, IUserRepository users, CancellationToken ct)
     {
-        if (Denied(principal, PermissionKeys.PackageRead) is { } denied) return denied;
+        if (DeniedUnlessCanReadPackage(principal) is { } denied) return denied;
 
         var all = await packages.ListAllAsync(ct);
         var names = await DisplayNamesOf(users, all.Select(p => p.UploadedBy.Value), ct);
@@ -174,7 +174,7 @@ public static class AdminPackageEndpoints
         string packageId, ClaimsPrincipal principal,
         IExamPackageRepository packages, IUserRepository users, CancellationToken ct)
     {
-        if (Denied(principal, PermissionKeys.PackageRead) is { } denied) return denied;
+        if (DeniedUnlessCanReadPackage(principal) is { } denied) return denied;
 
         var package = await packages.FindAsync(packageId, ct);
         if (package is null) return Results.NotFound();
@@ -272,6 +272,9 @@ public static class AdminPackageEndpoints
             questionCount = e.QuestionCount,
         }),
         createdVersionIds = package.CreatedVersionIds,
+        importDraftId = package.ImportDraftId,
+        failureCode = package.FailureCode,
+        failureDetail = package.FailureDetail,
         createdAt = package.CreatedAt,
         updatedAt = package.UpdatedAt,
     };
@@ -284,6 +287,9 @@ public static class AdminPackageEndpoints
         ClaimsPrincipal principal,
         IExamPackageRepository packages,
         IPackageUploadStore uploads,
+        IPackageUploadIdempotencyStore idempotency,
+        IPackageUploadTransaction uploadTx,
+        IPackageUploadReconciliationStore reconciliations,
         IAuditLog audit,
         IClock clock,
         CancellationToken ct)
@@ -295,19 +301,11 @@ public static class AdminPackageEndpoints
             return Problem(
                 ErrorCodes.ValidationFailed, "Expected a multipart upload.", StatusCodes.Status400BadRequest);
 
-        // Raised before ReadFormAsync reads the body — see AdminImportEndpoints
-        // for the identical reasoning. Program.cs's global 1 MB Kestrel default
-        // would otherwise refuse every package over that before this code runs.
-        //
-        // Multipart is exempt from IdempotencyMiddleware (the boundary changes
-        // on every browser send). This handler does not yet dedupe by content
-        // hash — a retried upload creates a second package row. Known residual,
-        // same shape as MediaEndpoints.UploadEndpoint; not fixed here.
         if (request.HttpContext.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } cap)
             cap.MaxRequestBodySize = MaxPackageBytes + MultipartOverheadBytes;
 
         var form = await request.ReadFormAsync(
-            new FormOptions { MultipartBodyLengthLimit = MaxPackageBytes },
+            new FormOptions { MultipartBodyLengthLimit = MaxPackageBytes + MultipartOverheadBytes },
             ct);
         var file = form.Files.GetFile("package");
         if (file is null || file.Length == 0)
@@ -316,36 +314,191 @@ public static class AdminPackageEndpoints
                 "A package needs a file part named \"package\".",
                 StatusCodes.Status400BadRequest);
 
-        if (file.Length > MaxPackageBytes)
-            return Problem(
-                ErrorCodes.PayloadTooLarge,
-                "That package is larger than this pipeline accepts.",
-                StatusCodes.Status413PayloadTooLarge);
-
-        ExamPackageSourceKind? sourceKind =
-            file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? ExamPackageSourceKind.Json
-            : file.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ? ExamPackageSourceKind.Zip
+        var idempotencyKey = request.Headers.TryGetValue(IdempotencyMiddleware.HeaderName, out var headerValues)
+            ? headerValues.ToString()
             : null;
-
-        if (sourceKind is null)
-            return Problem(
-                ErrorCodes.ValidationFailed,
-                "A package must be a .json or .zip file.",
-                StatusCodes.Status400BadRequest);
-
-        var contentType = sourceKind == ExamPackageSourceKind.Json ? "application/json" : "application/zip";
+        if (string.IsNullOrWhiteSpace(idempotencyKey) && request.Headers.TryGetValue("Idempotency-Key", out var altValues))
+            idempotencyKey = altValues.ToString();
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+            idempotencyKey = null;
 
         await using var content = file.OpenReadStream();
         var sha256 = Convert.ToHexString(await SHA256.HashDataAsync(content, ct)).ToLowerInvariant();
         content.Position = 0;
-        var uploadRef = await uploads.SaveAsync(content, file.FileName, contentType, ct);
+
+        var actorId = principal.UserId()!;
+
+        string packageId;
+        string? claimToken = null;
+        if (idempotencyKey is not null)
+        {
+            var candidatePackageId = Guid.NewGuid().ToString("n");
+            var claim = await idempotency.ClaimOrGetAsync(
+                actorId, idempotencyKey, sha256, candidatePackageId, clock.UtcNow, TimeSpan.FromSeconds(60), ct);
+
+            if (claim.Status == PackageUploadClaimStatus.ConflictMismatch)
+            {
+                return Problem(
+                    ErrorCodes.IdempotencyKeyReused,
+                    "Idempotency key was already used with different content.",
+                    StatusCodes.Status409Conflict);
+            }
+
+            if (claim.Status == PackageUploadClaimStatus.AlreadyCompleted)
+            {
+                return Results.Json(
+                    new { packageId = claim.Record.PackageId, status = claim.Record.Status },
+                    statusCode: claim.Record.StatusCode ?? StatusCodes.Status202Accepted);
+            }
+
+            if (claim.Status == PackageUploadClaimStatus.PendingWait)
+            {
+                var deadline = DateTimeOffset.UtcNow.AddSeconds(30);
+                while (DateTimeOffset.UtcNow < deadline && !ct.IsCancellationRequested)
+                {
+                    await Task.Delay(100, ct);
+                    var current = await idempotency.FindAsync(actorId, idempotencyKey, ct);
+                    if (current is null) break;
+
+                    if (!string.Equals(current.Sha256, sha256, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return Problem(
+                            ErrorCodes.IdempotencyKeyReused,
+                            "Idempotency key was already used with different content.",
+                            StatusCodes.Status409Conflict);
+                    }
+
+                    if (current.State == PackageUploadClaimState.Completed)
+                    {
+                        return Results.Json(
+                            new { packageId = current.PackageId, status = current.Status },
+                            statusCode: current.StatusCode ?? StatusCodes.Status202Accepted);
+                    }
+                }
+
+                return Problem(
+                    ErrorCodes.IdempotencyKeyInFlight,
+                    "Another upload with this idempotency key is currently being processed.",
+                    StatusCodes.Status409Conflict);
+            }
+
+            packageId = claim.Record.PackageId;
+            claimToken = claim.Record.ClaimToken;
+        }
+        else
+        {
+            packageId = Guid.NewGuid().ToString("n");
+        }
 
         var now = clock.UtcNow;
+
+        var isJson = file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
+        var isZip = file.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
+        var sourceKind = isJson ? ExamPackageSourceKind.Json
+            : isZip ? ExamPackageSourceKind.Zip
+            : ExamPackageSourceKind.Unknown;
+
+        if (file.Length > MaxPackageBytes)
+        {
+            var rejectedPackage = ExamPackage.Create(
+                packageId, sourceKind, new UserId(actorId),
+                sha256, file.FileName, uploadRef: $"rejected:{packageId}", now);
+            rejectedPackage.Reject(
+                [new PackageFinding("intake", "PAYLOAD_TOO_LARGE", null, "That package is larger than this pipeline accepts.")],
+                now);
+
+            await uploadTx.CommitUploadAsync(
+                rejectedPackage, actorId, idempotencyKey, claimToken,
+                StatusCodes.Status413PayloadTooLarge, ct);
+
+            await Record(
+                audit, principal, AuditAction.PackageUploaded,
+                "package", rejectedPackage.Id, rejectedPackage.FileName, now, ct,
+                new Dictionary<string, string> { ["sourceKind"] = rejectedPackage.SourceKind.ToString(), ["rejected"] = "true" });
+
+            return Results.Json(
+                new
+                {
+                    packageId = rejectedPackage.Id,
+                    status = "rejected",
+                    findings = rejectedPackage.Findings.Select(f => new { stage = f.Stage, code = f.Code, pointer = f.Pointer, message = f.Message })
+                },
+                statusCode: StatusCodes.Status413PayloadTooLarge);
+        }
+
+        if (sourceKind == ExamPackageSourceKind.Unknown)
+        {
+            var rejectedPackage = ExamPackage.Create(
+                packageId, sourceKind, new UserId(actorId),
+                sha256, file.FileName, uploadRef: $"rejected:{packageId}", now);
+            rejectedPackage.Reject(
+                [new PackageFinding("intake", "INVALID_EXTENSION", null, "A package must be a .json or .zip file.")],
+                now);
+
+            await uploadTx.CommitUploadAsync(
+                rejectedPackage, actorId, idempotencyKey, claimToken,
+                StatusCodes.Status400BadRequest, ct);
+
+            await Record(
+                audit, principal, AuditAction.PackageUploaded,
+                "package", rejectedPackage.Id, rejectedPackage.FileName, now, ct,
+                new Dictionary<string, string> { ["sourceKind"] = rejectedPackage.SourceKind.ToString(), ["rejected"] = "true" });
+
+            return Results.Json(
+                new
+                {
+                    packageId = rejectedPackage.Id,
+                    status = "rejected",
+                    findings = rejectedPackage.Findings.Select(f => new { stage = f.Stage, code = f.Code, pointer = f.Pointer, message = f.Message })
+                },
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var uploadRef = $"pkg-upload:{packageId}";
+        try
+        {
+            var contentType = sourceKind == ExamPackageSourceKind.Json ? "application/json" : "application/zip";
+            uploadRef = await uploads.SaveAsync(content, file.FileName, contentType, uploadRef, ct);
+        }
+        catch
+        {
+            if (idempotencyKey is not null && claimToken is not null)
+            {
+                try
+                {
+                    using var releaseCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                    await idempotency.ReleaseClaimAsync(actorId, idempotencyKey, claimToken, sha256, packageId, releaseCts.Token);
+                }
+                catch { }
+            }
+            throw;
+        }
+
         var package = ExamPackage.Create(
-            Guid.NewGuid().ToString("n"), sourceKind.Value, new UserId(principal.UserId()!),
+            packageId, sourceKind, new UserId(actorId),
             sha256, file.FileName, uploadRef, now);
 
-        await packages.SaveAsync(package, ct);
+        try
+        {
+            await uploadTx.CommitUploadAsync(
+                package, actorId, idempotencyKey, claimToken,
+                StatusCodes.Status202Accepted, ct);
+        }
+        catch
+        {
+            await PackageUploadCompensation.RunAsync(
+                idempotency,
+                uploads,
+                reconciliations,
+                actorId,
+                idempotencyKey,
+                claimToken,
+                sha256,
+                packageId,
+                uploadRef,
+                clock.UtcNow);
+            throw;
+        }
 
         await Record(
             audit, principal, AuditAction.PackageUploaded,
@@ -433,7 +586,7 @@ public static class AdminPackageEndpoints
         ListParsedExamCandidates listHandler,
         CancellationToken ct)
     {
-        if (Denied(principal, PermissionKeys.PackageRead) is { } denied) return denied;
+        if (DeniedUnlessCanReadPackage(principal) is { } denied) return denied;
 
         var actor = new ParsedCandidateActor(
             new UserId(principal.UserId()!),
@@ -453,7 +606,7 @@ public static class AdminPackageEndpoints
         GetParsedExamCandidate getHandler,
         CancellationToken ct)
     {
-        if (Denied(principal, PermissionKeys.PackageRead) is { } denied) return denied;
+        if (DeniedUnlessCanReadPackage(principal) is { } denied) return denied;
 
         var actor = new ParsedCandidateActor(
             new UserId(principal.UserId()!),
@@ -942,6 +1095,16 @@ public static class AdminPackageEndpoints
             detail: detail,
             statusCode: status,
             extensions: new Dictionary<string, object?> { ["code"] = code });
+
+    private static IResult? DeniedUnlessCanReadPackage(ClaimsPrincipal principal)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+        var held = principal.Permissions();
+        if (held.Contains(PermissionKeys.PackageRead) || held.Contains(PermissionKeys.ExamReview))
+            return null;
+
+        return Forbidden($"{PermissionKeys.PackageRead}|{PermissionKeys.ExamReview}");
+    }
 
     private static IResult? Denied(ClaimsPrincipal principal, string permission)
     {

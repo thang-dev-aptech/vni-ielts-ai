@@ -124,6 +124,10 @@ internal sealed class ExamImportDraftDocument
     [BsonIgnoreIfNull]
     public string? ExamVersionId { get; set; }
 
+    [BsonElement("packageId")]
+    [BsonIgnoreIfNull]
+    public string? PackageId { get; set; }
+
     [BsonElement("assetManifest")]
     public List<ImportAssetManifestDocument> AssetManifest { get; set; } = [];
 }
@@ -299,7 +303,8 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
             doc.CreatedAt is { } createdAt
                 ? new DateTimeOffset(DateTime.SpecifyKind(createdAt, DateTimeKind.Utc))
                 : null,
-            (doc.AssetManifest ?? []).Select(a => a.ToEntry()).ToArray());
+            (doc.AssetManifest ?? []).Select(a => a.ToEntry()).ToArray(),
+            doc.PackageId);
     }
 
     internal static ExamImportDraftDocument ToDocument(ExamImportDraft draft) => new()
@@ -334,6 +339,7 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
         CreatedBy = draft.CreatedBy?.Value,
         CreatedAt = draft.CreatedAt?.UtcDateTime,
         ExamVersionId = draft.Version.Id.Value,
+        PackageId = draft.PackageId,
         AssetManifest = draft.Assets.Select(ImportAssetManifestDocument.From).ToList(),
     };
 }

@@ -15,17 +15,55 @@ public sealed class RawPackageParsingProcessor(
     PackageStructuralValidator validator,
     SourceDocumentExtractor extractor,
     DirectoryAdjacentDocumentGrouper grouper,
-    ISourceDocumentGroupingProposalRepository groupingProposals,
     IExamContentParser parser,
-    IParsedExamCandidateRepository candidates,
+    IRawPackageParsingTransaction transaction,
     IClock clock)
 {
-    public async Task ProcessAsync(ExamPackage package, CancellationToken ct)
+    public RawPackageParsingProcessor(
+        IExamPackageRepository packages,
+        IPackageUploadStore uploads,
+        PackageStructuralValidator validator,
+        SourceDocumentExtractor extractor,
+        DirectoryAdjacentDocumentGrouper grouper,
+        ISourceDocumentGroupingProposalRepository groupingProposals,
+        IExamContentParser parser,
+        IParsedExamCandidateRepository candidates,
+        IClock clock)
+        : this(packages, uploads, validator, extractor, grouper, parser,
+            new RepositoryRawPackageParsingTransaction(packages, groupingProposals, candidates, clock), clock)
+    {
+    }
+
+    private sealed class RepositoryRawPackageParsingTransaction(
+        IExamPackageRepository packages,
+        ISourceDocumentGroupingProposalRepository proposals,
+        IParsedExamCandidateRepository candidates,
+        IClock clock) : IRawPackageParsingTransaction
+    {
+        public async Task CommitAsync(
+            ExamPackage package, int expectedVersion, PackageClaim claim,
+            SourceDocumentGroupingProposal proposal, ParsedExamCandidate candidate,
+            IReadOnlyList<PackageFinding> findings, CancellationToken ct)
+        {
+            await proposals.SaveAsync(proposal, proposal.Version, ct);
+            await candidates.SaveAsync(candidate, candidate.Version, ct);
+            package.MarkNeedsReview(clock.UtcNow, findings);
+            await packages.ReplaceClaimedAsync(package, expectedVersion, claim, clock.UtcNow, ct);
+        }
+    }
+    public Task ProcessAsync(ExamPackage package, CancellationToken ct) =>
+        ProcessAsync(package, "default-worker", null, ct);
+
+    public async Task ProcessAsync(
+        ExamPackage package, string workerId, TimeSpan? leaseDuration, CancellationToken ct)
     {
         if (package.Status != PackageImportStatus.Uploaded) return;
 
-        package.MarkValidating(clock.UtcNow);
-        await packages.SaveAsync(package, ct);
+        var duration = leaseDuration ?? TimeSpan.FromMinutes(5);
+        var claimed = await packages.TryClaimAsync(package.Id, workerId, clock.UtcNow, duration, ct);
+        if (claimed is null) return;
+        package = claimed;
+        var claim = new PackageClaim(package.Id, workerId, package.ClaimFence, package.LeaseUntil!.Value);
 
         await using var uploaded = await uploads.OpenAsync(package.UploadRef, ct);
         await PackageContentStaging.WithStagedContentAsync(uploaded, async staged =>
@@ -33,60 +71,66 @@ public sealed class RawPackageParsingProcessor(
             var outcome = validator.ValidateZip(staged, package.UploadedBy);
             if (!outcome.IsValid)
             {
+                var expectedVersion = package.Version;
                 package.Reject(outcome.Findings, clock.UtcNow);
-                await packages.SaveAsync(package, ct);
+                await packages.ReplaceClaimedAsync(package, expectedVersion, claim, clock.UtcNow, ct);
                 return false;
             }
 
             if (outcome.Classification != PackageSourceClassification.RawSource)
                 return false;
 
-            await ProcessValidatedAsync(package, staged, outcome.RawInventory!, ct);
+            await ProcessValidatedAsync(package, staged, outcome.RawInventory!, claim, ct);
             return true;
         }, ct);
     }
 
-    public async Task ProcessValidatedAsync(
-        ExamPackage package, Stream staged, RawPackageInventory inventory, CancellationToken ct)
+    public Task ProcessValidatedAsync(
+        ExamPackage package, Stream staged, RawPackageInventory inventory, PackageClaim claim, CancellationToken ct) =>
+        ProcessValidatedCoreAsync(package, staged, inventory, claim, ct);
+
+    private async Task ProcessValidatedCoreAsync(
+        ExamPackage package,
+        Stream staged,
+        RawPackageInventory inventory,
+        PackageClaim claim,
+        CancellationToken ct)
     {
-            package.MarkParsing(clock.UtcNow);
-            await packages.SaveAsync(package, ct);
+        var expectedVersion = package.Version;
+        package.MarkParsing(clock.UtcNow);
+        await packages.ReplaceClaimedAsync(package, expectedVersion, claim, clock.UtcNow, ct);
 
-            staged.Position = 0;
-            using var archive = new ZipArchive(staged, ZipArchiveMode.Read, leaveOpen: true);
-            var documents = new List<ExtractedSourceDocument>();
-            foreach (var source in inventory.Entries.Where(entry =>
-                entry.MediaType is "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or "application/pdf"))
-            {
-                var archiveEntry = archive.Entries.Single(entry =>
-                    string.Equals(entry.FullName.Replace('\\', '/').TrimStart('/'), source.Path, StringComparison.Ordinal));
-                await using var content = archiveEntry.Open();
-                documents.Add(extractor.Extract(
-                    package.Id, source.Path, source.MediaType, source.Sha256, content, ct));
-            }
+        staged.Position = 0;
+        using var archive = new ZipArchive(staged, ZipArchiveMode.Read, leaveOpen: true);
+        var documents = new List<ExtractedSourceDocument>();
+        foreach (var source in inventory.Entries.Where(entry =>
+            entry.MediaType is "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or "application/pdf"))
+        {
+            var archiveEntry = archive.Entries.Single(entry =>
+                string.Equals(entry.FullName.Replace('\\', '/').TrimStart('/'), source.Path, StringComparison.Ordinal));
+            await using var content = archiveEntry.Open();
+            documents.Add(extractor.Extract(
+                package.Id, source.Path, source.MediaType, source.Sha256, content, ct));
+        }
 
-            var proposal = grouper.Propose(documents);
-            if (!string.Equals(proposal.PackageId, package.Id, StringComparison.Ordinal))
-                throw new InvalidDataException("Source document grouping package id does not match the source package.");
+        var candidate = await parser.ParseAsync(documents, ct);
+        if (!string.Equals(candidate.PackageId, package.Id, StringComparison.Ordinal))
+            throw new InvalidDataException("Parsed candidate package id does not match the source package.");
 
-            // Both review artifacts must exist before the package becomes visible as reviewable.
-            await groupingProposals.SaveAsync(proposal, proposal.Version, ct);
+        var proposal = grouper.Propose(documents);
+        if (!string.Equals(proposal.PackageId, package.Id, StringComparison.Ordinal))
+            throw new InvalidDataException("Source document grouping package id does not match the source package.");
 
-            var candidate = await parser.ParseAsync(documents, ct);
-            if (!string.Equals(candidate.PackageId, package.Id, StringComparison.Ordinal))
-                throw new InvalidDataException("Parsed candidate package id does not match the source package.");
+        var findings = documents
+            .Where(document => !document.HasText)
+            .Select(document => new PackageFinding(
+                "extraction",
+                $"DOCUMENT_{document.Outcome.ToString().ToUpperInvariant()}",
+                document.EntryPath,
+                ExtractionMessage(document.Outcome)))
+            .ToArray();
 
-            await candidates.SaveAsync(candidate, candidate.Version, ct);
-            var findings = documents
-                .Where(document => !document.HasText)
-                .Select(document => new PackageFinding(
-                    "extraction",
-                    $"DOCUMENT_{document.Outcome.ToString().ToUpperInvariant()}",
-                    document.EntryPath,
-                    ExtractionMessage(document.Outcome)))
-                .ToArray();
-            package.MarkNeedsReview(clock.UtcNow, findings);
-            await packages.SaveAsync(package, ct);
+        await transaction.CommitAsync(package, package.Version, claim, proposal, candidate, findings, ct);
     }
 
     private static string ExtractionMessage(DocumentExtractionOutcome outcome) => outcome switch

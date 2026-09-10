@@ -12,8 +12,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
+using Vni.Ielts.Infrastructure.Content;
 
 namespace Vni.Ielts.Integration.Tests;
 
@@ -61,6 +63,230 @@ public sealed class ImportApprovalAtomicityTests(SsoAppFactory app) : IClassFixt
     }
 
     [SkippableFact]
+    public async Task Approval_atomically_updates_linked_package_to_imported_with_created_version_ids()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+
+        var json = ValidPackageJson.Replace("admin-import-test", $"atomic-pkg-{Guid.NewGuid():n}");
+        var zip = BuildZip(("reading/exam.json", json));
+        var upload = Request(HttpMethod.Post, "/api/v1/admin/packages", access);
+        var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(zip), "package", "package.zip");
+        upload.Content = form;
+        var uploaded = await client.SendAsync(upload);
+        Assert.Equal(HttpStatusCode.Accepted, uploaded.StatusCode);
+        var uploadBody = await BodyOf(uploaded);
+        var packageId = uploadBody.GetProperty("packageId").GetString()!;
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var proc = scope.ServiceProvider.GetRequiredService<PackageIngestionProcessor>();
+            var pkg = await repo.FindAsync(packageId, default);
+            await proc.ProcessAsync(pkg!, default);
+        }
+
+        string draftId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var pkg = await repo.FindAsync(packageId, default);
+            Assert.Equal(PackageImportStatus.NeedsReview, pkg!.Status);
+            Assert.False(string.IsNullOrWhiteSpace(pkg.ImportDraftId));
+            draftId = pkg.ImportDraftId!;
+        }
+
+        var checklist = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = FullChecklist });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(checklist)).StatusCode);
+
+        var approve = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        var approved = await client.SendAsync(approve);
+        Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
+        var approveBody = await BodyOf(approved);
+        var examVersionId = approveBody.GetProperty("examVersionId").GetString()!;
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var pkg = await repo.FindAsync(packageId, default);
+            Assert.NotNull(pkg);
+            Assert.Equal(PackageImportStatus.Imported, pkg!.Status);
+            Assert.Contains(examVersionId, pkg.CreatedVersionIds);
+        }
+
+        var retryApprove = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        var retryResponse = await client.SendAsync(retryApprove);
+        Assert.Equal(HttpStatusCode.OK, retryResponse.StatusCode);
+        var retryBody = await BodyOf(retryResponse);
+        Assert.Equal(examVersionId, retryBody.GetProperty("examVersionId").GetString());
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var pkg = await repo.FindAsync(packageId, default);
+            Assert.Equal(PackageImportStatus.Imported, pkg!.Status);
+            Assert.Single(pkg.CreatedVersionIds);
+        }
+    }
+
+    [SkippableFact]
+    public async Task Approval_retry_repairs_historical_partial_state_where_package_was_still_NeedsReview()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+
+        var json = ValidPackageJson.Replace("admin-import-test", $"repair-pkg-{Guid.NewGuid():n}");
+        var zip = BuildZip(("reading/exam.json", json));
+        var upload = Request(HttpMethod.Post, "/api/v1/admin/packages", access);
+        var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(zip), "package", "package.zip");
+        upload.Content = form;
+        var uploaded = await client.SendAsync(upload);
+        Assert.Equal(HttpStatusCode.Accepted, uploaded.StatusCode);
+        var uploadBody = await BodyOf(uploaded);
+        var packageId = uploadBody.GetProperty("packageId").GetString()!;
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var proc = scope.ServiceProvider.GetRequiredService<PackageIngestionProcessor>();
+            var pkg = await repo.FindAsync(packageId, default);
+            await proc.ProcessAsync(pkg!, default);
+        }
+
+        string draftId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var pkg = await repo.FindAsync(packageId, default);
+            Assert.Equal(PackageImportStatus.NeedsReview, pkg!.Status);
+            draftId = pkg.ImportDraftId!;
+        }
+
+        var checklist = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = FullChecklist });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(checklist)).StatusCode);
+
+        var approve = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        var approved = await client.SendAsync(approve);
+        Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
+        var approveBody = await BodyOf(approved);
+        var examVersionId = approveBody.GetProperty("examVersionId").GetString()!;
+
+        // Artificially reset package to NeedsReview to simulate historical partial commit
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var pkg = await repo.FindAsync(packageId, default);
+            Assert.NotNull(pkg);
+            // Replace with NeedsReview status
+            var reverted = ExamPackage.Create(
+                pkg.Id, pkg.SourceKind, pkg.UploadedBy, pkg.Sha256, pkg.FileName, pkg.UploadRef, pkg.CreatedAt);
+            reverted.ClaimForValidation("fixture", DateTimeOffset.UtcNow, TimeSpan.FromMinutes(5));
+            reverted.MarkNeedsReview(pkg.ImportDraftId!, DateTimeOffset.UtcNow);
+            await repo.ReplaceVersionAsync(reverted, pkg.Version, default);
+        }
+
+        // Verify package is currently NeedsReview
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var pkg = await repo.FindAsync(packageId, default);
+            Assert.Equal(PackageImportStatus.NeedsReview, pkg!.Status);
+            Assert.Empty(pkg.CreatedVersionIds);
+        }
+
+        // Retry approval
+        var retryApprove = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        var retryResponse = await client.SendAsync(retryApprove);
+        Assert.Equal(HttpStatusCode.OK, retryResponse.StatusCode);
+        var retryBody = await BodyOf(retryResponse);
+        Assert.Equal(examVersionId, retryBody.GetProperty("examVersionId").GetString());
+
+        // Verify package was repaired to Imported with CreatedVersionIds
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var pkg = await repo.FindAsync(packageId, default);
+            Assert.Equal(PackageImportStatus.Imported, pkg!.Status);
+            Assert.Contains(examVersionId, pkg.CreatedVersionIds);
+        }
+    }
+
+    [SkippableFact]
+    public async Task Approval_retry_refuses_when_package_linkage_is_mismatched()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+
+        var json = ValidPackageJson.Replace("admin-import-test", $"mismatch-pkg-{Guid.NewGuid():n}");
+        var zip = BuildZip(("reading/exam.json", json));
+        var upload = Request(HttpMethod.Post, "/api/v1/admin/packages", access);
+        var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(zip), "package", "package.zip");
+        upload.Content = form;
+        var uploaded = await client.SendAsync(upload);
+        Assert.Equal(HttpStatusCode.Accepted, uploaded.StatusCode);
+        var uploadBody = await BodyOf(uploaded);
+        var packageId = uploadBody.GetProperty("packageId").GetString()!;
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var proc = scope.ServiceProvider.GetRequiredService<PackageIngestionProcessor>();
+            var pkg = await repo.FindAsync(packageId, default);
+            await proc.ProcessAsync(pkg!, default);
+        }
+
+        string draftId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var pkg = await repo.FindAsync(packageId, default);
+            draftId = pkg!.ImportDraftId!;
+        }
+
+        var checklist = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = FullChecklist });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(checklist)).StatusCode);
+
+        var approve = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        var approved = await client.SendAsync(approve);
+        Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
+
+        // Break reverse linkage on package
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var pkg = await repo.FindAsync(packageId, default);
+            var tampered = ExamPackage.Create(
+                pkg!.Id, pkg.SourceKind, pkg.UploadedBy, pkg.Sha256, pkg.FileName, pkg.UploadRef, pkg.CreatedAt);
+            tampered.ClaimForValidation("fixture", DateTimeOffset.UtcNow, TimeSpan.FromMinutes(5));
+            tampered.MarkNeedsReview("different-draft-id", DateTimeOffset.UtcNow);
+            await repo.ReplaceVersionAsync(tampered, pkg.Version, default);
+        }
+
+        // Retry approval on mismatched package
+        var retryApprove = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        var retryResponse = await client.SendAsync(retryApprove);
+        Assert.Equal(HttpStatusCode.Conflict, retryResponse.StatusCode);
+    }
+
+    [SkippableFact]
     public async Task A_stale_revision_creates_no_catalogue_version()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
@@ -92,6 +318,152 @@ public sealed class ImportApprovalAtomicityTests(SsoAppFactory app) : IClassFixt
         Assert.Equal(
             ImportApprovalState.ReviewRequired,
             (await draftsAfter.FindAsync(Guid.Parse(draftId), default))!.ApprovalState);
+    }
+
+    [SkippableFact]
+    public async Task Approval_with_no_linked_package_is_refused_and_writes_no_catalogue_version()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadReadyDraftAsync(client, access);
+
+        ExamVersionId versionId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var draft = await drafts.FindAsync(Guid.Parse(draftId), default);
+            Assert.NotNull(draft);
+            versionId = draft!.Version.Id;
+            // Delete the package so no package exists for this draft
+            if (!string.IsNullOrWhiteSpace(draft.PackageId))
+            {
+                await repo.DeleteAsync(draft.PackageId, default);
+            }
+        }
+
+        var approve = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        var response = await client.SendAsync(approve);
+
+        // Approval must be refused!
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+
+        // And no catalogue version must have been written
+        using (var scope = app.Services.CreateScope())
+        {
+            var catalogue = scope.ServiceProvider.GetRequiredService<IExamCatalogue>();
+            var version = await catalogue.FindAsync(versionId, default);
+            Assert.Null(version);
+        }
+    }
+
+    [SkippableFact]
+    public async Task Approval_with_wrong_package_draft_id_is_refused()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadReadyDraftAsync(client, access);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var draft = await drafts.FindAsync(Guid.Parse(draftId), default);
+            Assert.NotNull(draft);
+
+            // Create a package whose ImportDraftId points to something else
+            var wrongPkg = ExamPackage.Create(
+                draft!.PackageId!, ExamPackageSourceKind.Zip, UserId.New(), "sha256", "wrong.zip", "ref", DateTimeOffset.UtcNow);
+            wrongPkg.ClaimForValidation("test", DateTimeOffset.UtcNow, TimeSpan.FromMinutes(5));
+            wrongPkg.MarkNeedsReview(Guid.NewGuid().ToString("D"), DateTimeOffset.UtcNow);
+            await repo.SaveAsync(wrongPkg, default);
+        }
+
+        var approve = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        var response = await client.SendAsync(approve);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [SkippableFact]
+    public async Task Approval_with_stale_package_version_is_refused()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadReadyDraftAsync(client, access);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var draft = await drafts.FindAsync(Guid.Parse(draftId), default);
+            Assert.NotNull(draft);
+
+            // Move the package to a non-NeedsReview status
+            var pkg = await repo.FindAsync(draft!.PackageId!, default);
+            Assert.NotNull(pkg);
+            var version = pkg!.Version;
+            pkg.MarkFailed("STALE", "Concurrent failure", DateTimeOffset.UtcNow);
+            await repo.ReplaceVersionAsync(pkg, version, default);
+        }
+
+        var approve = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        var response = await client.SendAsync(approve);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [SkippableFact]
+    public async Task Approval_updates_only_its_own_linked_package_not_all_sharing_draft_id()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadReadyDraftAsync(client, access);
+
+        var siblingPkgId = Guid.NewGuid().ToString("n");
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+            var draft = await drafts.FindAsync(Guid.Parse(draftId), default);
+            Assert.NotNull(draft);
+
+            // Create a sibling package pointing to the same draftId
+            var sibling = ExamPackage.Create(
+                siblingPkgId, ExamPackageSourceKind.Zip, UserId.New(), "sha256", "sibling.zip", "ref", DateTimeOffset.UtcNow);
+            sibling.ClaimForValidation("test", DateTimeOffset.UtcNow, TimeSpan.FromMinutes(5));
+            sibling.MarkNeedsReview(draftId, DateTimeOffset.UtcNow);
+            await repo.SaveAsync(sibling, default);
+        }
+
+        var approve = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        var response = await client.SendAsync(approve);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+            var draft = await drafts.FindAsync(Guid.Parse(draftId), default);
+
+            // Linked package is imported
+            var linkedPkg = await repo.FindAsync(draft!.PackageId!, default);
+            Assert.NotNull(linkedPkg);
+            Assert.Equal(PackageImportStatus.Imported, linkedPkg!.Status);
+
+            // Sibling package was NOT updated! It remains NeedsReview!
+            var siblingPkg = await repo.FindAsync(siblingPkgId, default);
+            Assert.NotNull(siblingPkg);
+            Assert.Equal(PackageImportStatus.NeedsReview, siblingPkg!.Status);
+        }
     }
 
     private async Task<(HttpClient Client, string Access)> SignInAsAdminAsync()
@@ -153,14 +525,24 @@ public sealed class ImportApprovalAtomicityTests(SsoAppFactory app) : IClassFixt
         var content = new MultipartFormDataContent();
         var part = new ByteArrayContent(zip);
         part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-        content.Add(part, "file", "package.zip");
+        content.Add(part, "package", "package.zip");
 
-        var upload = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        var upload = Request(HttpMethod.Post, "/api/v1/admin/packages", access);
         upload.Content = content;
         var uploaded = await client.SendAsync(upload);
         var body = await BodyOf(uploaded);
-        Assert.Equal(HttpStatusCode.Created, uploaded.StatusCode);
-        var draftId = body.GetProperty("draftId").GetString()!;
+        Assert.Equal(HttpStatusCode.Accepted, uploaded.StatusCode);
+        var packageId = body.GetProperty("packageId").GetString()!;
+        string draftId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var processor = scope.ServiceProvider.GetRequiredService<Vni.Ielts.Infrastructure.Content.PackageIngestionProcessor>();
+            await processor.ProcessAsync((await packages.FindAsync(packageId, default))!, default);
+            var linked = await packages.FindAsync(packageId, default);
+            Assert.Equal(PackageImportStatus.NeedsReview, linked!.Status);
+            draftId = linked.ImportDraftId!;
+        }
 
         var checklist = Request(
             HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
@@ -313,18 +695,34 @@ public sealed class ImportApprovalAtomicityFaultTests(ImportApprovalFaultFactory
                 writer.Write(json);
             }
 
-            var upload = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/import/packages");
+            var upload = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/packages");
             upload.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
             upload.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
             var form = new MultipartFormDataContent();
             var part = new ByteArrayContent(zipStream.ToArray());
             part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-            form.Add(part, "file", "package.zip");
+            form.Add(part, "package", "package.zip");
             upload.Content = form;
             var uploaded = await client.SendAsync(upload);
             var body = await uploaded.Content.ReadFromJsonAsync<JsonElement>();
-            Assert.Equal(HttpStatusCode.Created, uploaded.StatusCode);
-            var draftId = body.GetProperty("draftId").GetString()!;
+            Assert.Equal(HttpStatusCode.Accepted, uploaded.StatusCode);
+            var packageId = body.GetProperty("packageId").GetString()!;
+
+            string draftId;
+            using (var scope = app.Services.CreateScope())
+            {
+                var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+                var processor = scope.ServiceProvider.GetRequiredService<PackageIngestionProcessor>();
+                var package = await packages.FindAsync(packageId, default);
+                Assert.NotNull(package);
+                await processor.ProcessAsync(package!, default);
+
+                var processed = await packages.FindAsync(packageId, default);
+                Assert.NotNull(processed);
+                Assert.Equal(PackageImportStatus.NeedsReview, processed!.Status);
+                Assert.False(string.IsNullOrWhiteSpace(processed.ImportDraftId));
+                draftId = processed.ImportDraftId!;
+            }
 
             var checklist = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist");
             checklist.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
@@ -354,6 +752,12 @@ public sealed class ImportApprovalAtomicityFaultTests(ImportApprovalFaultFactory
             var still = await after.ServiceProvider.GetRequiredService<IImportDraftStore>()
                 .FindAsync(Guid.Parse(draftId), default);
             Assert.Equal(ImportApprovalState.ReviewRequired, still!.ApprovalState);
+
+            var pkgRepoAfter = after.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var pkgStill = await pkgRepoAfter.FindAsync(packageId, default);
+            Assert.NotNull(pkgStill);
+            Assert.Equal(PackageImportStatus.NeedsReview, pkgStill!.Status);
+            Assert.Empty(pkgStill.CreatedVersionIds);
         }
         finally
         {

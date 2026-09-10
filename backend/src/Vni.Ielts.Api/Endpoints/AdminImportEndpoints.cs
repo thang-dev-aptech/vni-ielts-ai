@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Common;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Application.Importing;
 using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
@@ -12,6 +13,7 @@ using Vni.Ielts.Domain.Audit;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
+using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Content.Import;
 
 namespace Vni.Ielts.Api.Endpoints;
@@ -81,7 +83,7 @@ public static class AdminImportEndpoints
 
         group.MapPost("/packages", UploadPackageEndpoint)
             .WithName("AdminImportPackage")
-            .WithSummary("Upload one exam package ZIP; validates and creates a review draft synchronously")
+            .WithSummary("Legacy upload route; use POST /api/v1/admin/packages")
             .DisableAntiforgery();
 
         group.MapGet("/packages", ListDraftsEndpoint)
@@ -117,69 +119,17 @@ public static class AdminImportEndpoints
     /// large a single package can be (S6a), so the request completes inside
     /// an ordinary HTTP timeout.
     /// </summary>
-    private static async Task<IResult> UploadPackageEndpoint(
-        HttpRequest request, ClaimsPrincipal principal, ExamPackageImportPipeline pipeline,
-        IOptions<ImportArchiveOptions> archiveOptions, IClock clock, HttpContext http, CancellationToken ct)
+    private static IResult UploadPackageEndpoint(ClaimsPrincipal principal, HttpContext http)
     {
         if (principal.UserId() is null) return Results.Unauthorized();
-        if (Denied(principal, PermissionKeys.PackageUpload) is { } denial) return denial;
+        if (Denied(principal, PermissionKeys.PackageUpload) is { } denialUpload) return denialUpload;
+        if (Denied(principal, PermissionKeys.ExamCreate) is { } denialCreate) return denialCreate;
 
-        if (!request.HasFormContentType)
-            return Problem(ErrorCodes.ValidationFailed, "Expected a multipart upload.", 400, http);
-
-        // Raised before ReadFormAsync reads the body — the feature is
-        // read-only once reading starts. See ExamEndpoints.UploadRecordingEndpoint
-        // for the identical reasoning and the same "not covered under
-        // TestServer" caveat.
-        if (request.HttpContext.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } cap)
-            cap.MaxRequestBodySize = archiveOptions.Value.MaxArchiveBytes + MultipartOverheadBytes;
-
-        var form = await request.ReadFormAsync(ct);
-        var file = form.Files.GetFile("file");
-        if (file is null || file.Length == 0)
-            return Problem(ErrorCodes.ValidationFailed, "A package needs a non-empty 'file' part.", 400, http);
-
-        var definitionId = form["definitionId"].ToString() is { Length: > 0 } supplied
-            ? new ExamDefinitionId(supplied)
-            : ExamDefinitionId.New();
-        var versionNumber = int.TryParse(form["versionNumber"], out var parsed) && parsed > 0 ? parsed : 1;
-        var checklistRequired =
-            !bool.TryParse(form["checklistRequired"], out var explicitFlag) || explicitFlag;
-
-        await using var uploadStream = file.OpenReadStream();
-        var seekable = uploadStream;
-        FileStream? spooled = null;
-
-        try
-        {
-            if (!seekable.CanSeek)
-            {
-                // Belt and braces: buffered form parts are seekable in every
-                // configuration this deployment runs today, but a caller must
-                // never get a wrong read of a truncated archive if that ever
-                // stops being true.
-                spooled = new FileStream(
-                    Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.None,
-                    81_920, FileOptions.DeleteOnClose | FileOptions.Asynchronous);
-                await uploadStream.CopyToAsync(spooled, ct);
-                spooled.Position = 0;
-                seekable = spooled;
-            }
-
-            var attempt = await pipeline.ImportAsync(
-                seekable, definitionId, versionNumber, checklistRequired, ct,
-                createdBy: new UserId(principal.UserId()!), createdAt: clock.UtcNow);
-
-            if (!attempt.IsAccepted || attempt.Draft is null)
-                return Rejected(attempt.Findings, http);
-
-            return Results.Created(
-                $"/api/v1/admin/import/packages/{attempt.Draft.Id:D}", ToView(attempt.Draft));
-        }
-        finally
-        {
-            if (spooled is not null) await spooled.DisposeAsync();
-        }
+        return Problem(
+            "IMPORT_UPLOAD_MOVED",
+            "Package uploads moved to POST /api/v1/admin/packages.",
+            StatusCodes.Status410Gone,
+            http);
     }
 
     private static async Task<IResult> ListDraftsEndpoint(

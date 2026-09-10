@@ -1,29 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { ImportDraft } from '../lib/adminApi.js';
 
-/**
- * `ImportPage`, wired to the real `POST /api/v1/admin/import/packages` this
- * session — the button used to be permanently `disabled` with a comment
- * saying the ZIP door had not been built.
- *
- * <b>`ImportApiError` is the real class, not a mock.</b> `importOriginal` pulls
- * it through unmocked so `error instanceof ImportApiError` in `ImportPage`
- * still works against the errors these tests construct — only the four
- * network-calling functions are replaced.
- */
+const navigateMock = vi.fn();
+
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>();
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  };
+});
 
 vi.mock('../lib/AdminAuth.js', () => ({
   useAdminAuth: () => ({ accessToken: 'token-1' }),
 }));
 
+const operatorCan = vi.fn((p: string) => p === 'package.upload' || p === 'exam.create');
+
 vi.mock('../lib/operator.js', () => ({
   useOperator: () => ({
-    can: (p: string) => p === 'exam.review',
+    can: (p: string) => operatorCan(p),
     isOperator: true,
-    name: 'Người duyệt',
-    email: 'lead@vni.test',
+    name: 'Người vận hành',
+    email: 'ops@vni.test',
     previewing: false,
     previewLabel: null,
   }),
@@ -33,44 +33,12 @@ vi.mock('../lib/adminApi.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../lib/adminApi.js')>();
   return {
     ...actual,
-    uploadImportPackage: vi.fn(),
-    overrideImportWarning: vi.fn(),
-    setImportChecklist: vi.fn(),
-    approveImportDraft: vi.fn(),
-    listImportDrafts: vi.fn(),
-    getImportDraft: vi.fn(),
+    uploadPackage: vi.fn(),
   };
 });
 
-const {
-  uploadImportPackage,
-  overrideImportWarning,
-  setImportChecklist,
-  approveImportDraft,
-  listImportDrafts,
-  getImportDraft,
-  ImportApiError,
-} = await import('../lib/adminApi.js');
+const { uploadPackage, ImportApiError } = await import('../lib/adminApi.js');
 const { ImportPage } = await import('../screens/ImportPage.js');
-
-function draft(overrides: Partial<ImportDraft> = {}): ImportDraft {
-  return {
-    draftId: 'draft-1',
-    definitionId: 'def-1',
-    versionNumber: 1,
-    route: 'structuredpackage',
-    approvalState: 'reviewrequired',
-    revision: 1,
-    reviewedBy: null,
-    presentSkills: ['reading'],
-    findings: [],
-    warnings: [],
-    checklistConfirmed: [],
-    checklistComplete: false,
-    checklistRequired: true,
-    ...overrides,
-  };
-}
 
 function chooseFile(name = 'package.zip') {
   const file = new File(['zip bytes'], name, { type: 'application/zip' });
@@ -87,62 +55,36 @@ function renderPage() {
 }
 
 describe('ImportPage', () => {
-  const checklistLabels = [
-    'Câu hỏi',
-    'Lựa chọn',
-    'Giới hạn từ',
-    'Biến thể đáp án chấp nhận',
-    'Transcript và bằng chứng',
-    'Ánh xạ tài nguyên',
-  ];
-
   beforeEach(() => {
-    vi.mocked(uploadImportPackage).mockReset();
-    vi.mocked(overrideImportWarning).mockReset();
-    vi.mocked(setImportChecklist).mockReset();
-    vi.mocked(approveImportDraft).mockReset();
-    vi.mocked(listImportDrafts).mockReset().mockResolvedValue({ drafts: [] });
-    vi.mocked(getImportDraft).mockReset();
+    navigateMock.mockReset();
+    vi.mocked(uploadPackage).mockReset();
+    operatorCan.mockImplementation((p: string) => p === 'package.upload' || p === 'exam.create');
   });
 
-  it('renders the returned draft\'s findings and warnings on a successful upload', async () => {
-    vi.mocked(uploadImportPackage).mockResolvedValue(
-      draft({
-        warnings: [
-          {
-            id: 'w1',
-            category: 'transcriptandevidence',
-            path: '/sections/0/parts/1',
-            message: 'Thiếu transcript.',
-            resolved: false,
-            overrideReason: null,
-          },
-        ],
-      }),
-    );
-
+  it('does not render the "Bản nháp đã nhập" draft table', () => {
     renderPage();
-    chooseFile();
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
-
-    expect(await screen.findByText('Bản nháp draft-1')).toBeInTheDocument();
-    expect(screen.getByText(/Thiếu transcript\./)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Bỏ qua, có lý do' })).toBeInTheDocument();
+    expect(screen.queryByText('Bản nháp đã nhập')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Danh sách này là draft/)).not.toBeInTheDocument();
   });
 
-  it('shows the bound asset count on a successful upload', async () => {
-    vi.mocked(uploadImportPackage).mockResolvedValue(draft({ assetCount: 1 }));
+  it('uploads chosen package via uploadPackage and navigates to package detail', async () => {
+    vi.mocked(uploadPackage).mockResolvedValue({
+      packageId: 'pkg-durable-123',
+      status: 'uploaded',
+    });
 
     renderPage();
-    chooseFile();
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+    chooseFile('cambridge19.zip');
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và xử lý' }));
 
-    const label = await screen.findByText('Tài nguyên');
-    expect(label.closest('div')).toHaveTextContent('1');
+    await waitFor(() => {
+      expect(uploadPackage).toHaveBeenCalledWith('token-1', expect.any(File));
+    });
+    expect(navigateMock).toHaveBeenCalledWith('/packages/pkg-durable-123');
   });
 
   it('renders the specific PACKAGE_REJECTED message, not a generic failure', async () => {
-    vi.mocked(uploadImportPackage).mockRejectedValue(
+    vi.mocked(uploadPackage).mockRejectedValue(
       new ImportApiError(
         {
           title: 'Package refused',
@@ -163,25 +105,19 @@ describe('ImportPage', () => {
 
     renderPage();
     chooseFile();
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và xử lý' }));
 
     expect(await screen.findByText(/Path traversal detected/)).toBeInTheDocument();
     expect(screen.queryByText(/Không thực hiện được/)).not.toBeInTheDocument();
   });
 
-  /**
-   * Part C's red-when-removed target: reverting `RejectionPanel`'s
-   * `AI_PARSER_UNAVAILABLE` branch to a generic fallback makes this fail —
-   * the raw-document-package case must read as "no AI parser wired in", not
-   * as an ordinary package rejection.
-   */
   it('renders the AI_PARSER_UNAVAILABLE case as its own specific message', async () => {
     const message =
       'AI-assisted parsing of raw exam source documents (docx/pdf/txt) is not wired into this ' +
       'deployment. Upload a package that already contains a single ready exam.json instead, ' +
       'or produce one with the operator CLI (backend/tools/Vni.Ielts.ExamImporter) and upload that.';
 
-    vi.mocked(uploadImportPackage).mockRejectedValue(
+    vi.mocked(uploadPackage).mockRejectedValue(
       new ImportApiError(
         { title: 'Package refused', status: 422, detail: message, code: 'PACKAGE_REJECTED' },
         [{ severity: 'error', code: 'AI_PARSER_UNAVAILABLE', path: '/', message }],
@@ -190,240 +126,22 @@ describe('ImportPage', () => {
 
     renderPage();
     chooseFile('raw-documents.zip');
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và xử lý' }));
 
     expect(await screen.findByText('Chỉ nhận gói đã có sẵn exam.json.')).toBeInTheDocument();
     expect(screen.getByText(new RegExp(message.slice(0, 40)))).toBeInTheDocument();
   });
 
-  it('blocks a warning override until a reason is typed', async () => {
-    const withWarning = draft({
-      warnings: [
-        {
-          id: 'w1',
-          category: 'assetmapping',
-          path: '/sections/0',
-          message: 'Asset không khớp.',
-          resolved: false,
-          overrideReason: null,
-        },
-      ],
-    });
-    vi.mocked(uploadImportPackage).mockResolvedValue(withWarning);
-    vi.mocked(overrideImportWarning).mockResolvedValue(
-      draft({
-        warnings: [
-          {
-            id: 'w1',
-            category: 'assetmapping',
-            path: '/sections/0',
-            message: 'Asset không khớp.',
-            resolved: true,
-            overrideReason: 'Đã đối chiếu thủ công với file gốc.',
-          },
-        ],
-      }),
-    );
+  it('disables upload button when operator lacks exam.create or package.upload', () => {
+    operatorCan.mockImplementation((p: string) => p === 'package.upload'); // lacks exam.create
 
     renderPage();
     chooseFile();
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
-    await screen.findByText(/Asset không khớp\./);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Bỏ qua, có lý do' }));
-
-    const confirm = screen.getByRole('dialog').querySelector('.cms-primary');
-    expect(confirm).toBeDisabled();
-
-    fireEvent.change(screen.getByRole('textbox'), {
-      target: { value: 'Đã đối chiếu thủ công với file gốc.' },
-    });
-    expect(confirm).toBeEnabled();
-
-    fireEvent.click(confirm!);
-    await waitFor(() =>
-      expect(overrideImportWarning).toHaveBeenCalledWith(
-        'token-1',
-        'draft-1',
-        'w1',
-        'Đã đối chiếu thủ công với file gốc.',
-      ),
+    const uploadBtn = screen.getByRole('button', { name: 'Tải lên và xử lý' });
+    expect(uploadBtn).toBeDisabled();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      /Bạn cần cả hai quyền package\.upload và exam\.create để tải gói lên\./,
     );
-  });
-
-  it('enables Duyệt after every checklist item is confirmed', async () => {
-    vi.mocked(uploadImportPackage).mockResolvedValue(draft({ checklistComplete: false }));
-    vi.mocked(setImportChecklist).mockImplementation(async (_token, _draftId, confirmed) =>
-      draft({
-        checklistConfirmed: confirmed,
-        checklistComplete: confirmed.length === 6,
-      }),
-    );
-
-    renderPage();
-    chooseFile();
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
-    await screen.findByText('Bản nháp draft-1');
-
-    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeDisabled();
-
-    for (const label of checklistLabels) {
-      fireEvent.click(screen.getByRole('checkbox', { name: label }));
-      await waitFor(() => expect(screen.getByRole('checkbox', { name: label })).toBeChecked());
-    }
-
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Duyệt' })).toBeEnabled());
-    const lastConfirmed = vi.mocked(setImportChecklist).mock.calls.at(-1)?.[2] ?? [];
-    expect(lastConfirmed).toHaveLength(6);
-    expect(lastConfirmed).toEqual(
-      expect.arrayContaining([
-        'questions',
-        'options',
-        'wordlimits',
-        'acceptedvariants',
-        'transcriptandevidence',
-        'assetmapping',
-      ]),
-    );
-  });
-
-  it('keeps Duyệt disabled and reports remaining checklist items', async () => {
-    vi.mocked(uploadImportPackage).mockResolvedValue(draft({ checklistComplete: false }));
-    vi.mocked(setImportChecklist).mockResolvedValue(
-      draft({ checklistConfirmed: ['questions'], checklistComplete: false }),
-    );
-
-    renderPage();
-    chooseFile();
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
-    await screen.findByText('Bản nháp draft-1');
-
-    expect(screen.getByText('Còn 6 mục checklist chưa xác nhận.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeDisabled();
-
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Câu hỏi' }));
-
-    expect(await screen.findByText('Còn 5 mục checklist chưa xác nhận.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeDisabled();
-    expect(setImportChecklist).toHaveBeenCalledWith('token-1', 'draft-1', ['questions']);
-  });
-
-  it('ticks the review-required toggle by default before upload', () => {
-    renderPage();
-    expect(
-      screen.getByRole('checkbox', {
-        name: /Cần rà soát trước khi công bố \(khuyến nghị cho nội dung mới hoặc chưa có ai kiểm tra\)/,
-      }),
-    ).toBeChecked();
-  });
-
-  it('enables Duyệt immediately when the uploaded draft does not require the checklist', async () => {
-    vi.mocked(uploadImportPackage).mockResolvedValue(
-      draft({ checklistRequired: false, checklistComplete: false }),
-    );
-
-    renderPage();
-    fireEvent.click(
-      screen.getByRole('checkbox', {
-        name: /Cần rà soát trước khi công bố \(khuyến nghị cho nội dung mới hoặc chưa có ai kiểm tra\)/,
-      }),
-    );
-    chooseFile();
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
-    await screen.findByText('Bản nháp draft-1');
-
-    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeEnabled();
-    expect(screen.queryByRole('heading', { name: /Checklist chuyên môn/ })).not.toBeInTheDocument();
-    expect(uploadImportPackage).toHaveBeenCalledWith('token-1', expect.any(File), {
-      checklistRequired: false,
-    });
-  });
-
-  it('keeps Duyệt locked and shows the checklist when the draft still requires review', async () => {
-    vi.mocked(uploadImportPackage).mockResolvedValue(
-      draft({ checklistRequired: true, checklistComplete: false }),
-    );
-
-    renderPage();
-    chooseFile();
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
-    await screen.findByText('Bản nháp draft-1');
-
-    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeDisabled();
-    expect(screen.getByRole('heading', { name: /Checklist chuyên môn/ })).toBeInTheDocument();
-    expect(uploadImportPackage).toHaveBeenCalledWith('token-1', expect.any(File), {
-      checklistRequired: true,
-    });
-  });
-
-  it('lists import drafts after remount so a left page is recoverable', async () => {
-    vi.mocked(listImportDrafts).mockResolvedValue({
-      drafts: [
-        draft({
-          title: 'Cam 19 Test 1',
-          createdBy: 'uploader-1',
-          createdAt: '2026-09-09T10:00:00Z',
-          unresolvedWarningCount: 1,
-        }),
-      ],
-    });
-
-    const { unmount } = renderPage();
-    expect(await screen.findByRole('button', { name: 'Cam 19 Test 1' })).toBeInTheDocument();
-    expect(screen.getByText('Lịch sử gói')).toBeInTheDocument();
-    unmount();
-
-    renderPage();
-    expect(await screen.findByRole('button', { name: 'Cam 19 Test 1' })).toBeInTheDocument();
-    expect(listImportDrafts).toHaveBeenCalledWith('token-1');
-  });
-
-  it('opens a listed draft into the existing review panel', async () => {
-    vi.mocked(listImportDrafts).mockResolvedValue({
-      drafts: [draft({ title: 'Cam 19 Test 1' })],
-    });
-    vi.mocked(getImportDraft).mockResolvedValue(
-      draft({
-        warnings: [
-          {
-            id: 'w1',
-            category: 'questions',
-            path: '/q/1',
-            message: 'Thiếu transcript.',
-            resolved: false,
-            overrideReason: null,
-          },
-        ],
-      }),
-    );
-
-    renderPage();
-    fireEvent.click(await screen.findByRole('button', { name: 'Cam 19 Test 1' }));
-
-    expect(await screen.findByText('Bản nháp draft-1')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Bỏ qua, có lý do' })).toBeInTheDocument();
-    expect(getImportDraft).toHaveBeenCalledWith('token-1', 'draft-1');
-  });
-
-  it('shows a builder link after approval', async () => {
-    vi.mocked(uploadImportPackage).mockResolvedValue(
-      draft({ checklistRequired: false, checklistComplete: false }),
-    );
-    vi.mocked(approveImportDraft).mockResolvedValue(
-      draft({
-        approvalState: 'approved',
-        checklistRequired: false,
-        examVersionId: 'ev-promoted-1',
-      }),
-    );
-
-    renderPage();
-    chooseFile();
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
-    await screen.findByText('Bản nháp draft-1');
-    fireEvent.click(screen.getByRole('button', { name: 'Duyệt' }));
-
-    const link = await screen.findByRole('link', { name: 'Mở đề trong soạn thảo' });
-    expect(link).toHaveAttribute('href', '/my-exams/ev-promoted-1/builder');
   });
 });

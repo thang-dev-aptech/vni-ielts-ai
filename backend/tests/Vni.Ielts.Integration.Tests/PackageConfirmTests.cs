@@ -317,6 +317,9 @@ public sealed class PackageConfirmTests(SsoAppFactory app) : IClassFixture<SsoAp
         Assert.Equal("ready-to-import", body.GetProperty("status").GetString());
         Assert.Equal(2, body.GetProperty("entries").GetArrayLength());
         Assert.Empty(body.GetProperty("findings").EnumerateArray());
+        Assert.True(body.TryGetProperty("importDraftId", out _));
+        Assert.True(body.TryGetProperty("failureCode", out _));
+        Assert.True(body.TryGetProperty("failureDetail", out _));
     }
 
     [SkippableFact]

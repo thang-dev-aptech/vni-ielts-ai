@@ -76,6 +76,12 @@ public sealed class MongoContext
     internal IMongoCollection<Exams.ExamPackageDocument> ExamPackages =>
         _db.GetCollection<Exams.ExamPackageDocument>("exam_packages");
 
+    internal IMongoCollection<Exams.PackageUploadIdempotencyDocument> PackageUploadIdempotency =>
+        _db.GetCollection<Exams.PackageUploadIdempotencyDocument>("package_upload_idempotency");
+
+    internal IMongoCollection<Exams.PackageUploadReconciliationDocument> PackageUploadReconciliation =>
+        _db.GetCollection<Exams.PackageUploadReconciliationDocument>("package_upload_reconciliation");
+
     internal IMongoCollection<Exams.ParsedExamCandidateDocument> ParsedExamCandidates =>
         _db.GetCollection<Exams.ParsedExamCandidateDocument>("parsed_exam_candidates");
 
@@ -570,6 +576,14 @@ public sealed class MongoContext
             new CreateIndexModel<Media.MediaAssetDocument>(
                 Builders<Media.MediaAssetDocument>.IndexKeys.Descending(a => a.UploadedAt),
                 new CreateIndexOptions { Name = "ix_media_assets_uploaded_at" }),
+            cancellationToken: ct);
+
+        await PackageUploadIdempotency.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.PackageUploadIdempotencyDocument>(
+                Builders<Exams.PackageUploadIdempotencyDocument>.IndexKeys
+                    .Ascending(d => d.ActorId)
+                    .Ascending(d => d.IdempotencyKey),
+                new CreateIndexOptions { Name = "ix_package_upload_idempotency_actor_key", Unique = true }),
             cancellationToken: ct);
     }
 }

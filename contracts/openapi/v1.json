@@ -3946,7 +3946,7 @@
         "tags": [
           "Admin"
         ],
-        "summary": "Upload one exam package ZIP; validates and creates a review draft synchronously",
+        "summary": "Legacy upload route; use POST /api/v1/admin/packages",
         "operationId": "AdminImportPackage",
         "responses": {
           "200": {

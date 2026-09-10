@@ -92,6 +92,9 @@ export interface AdminPackage {
   createdVersionIds: string[];
   createdAt: string;
   updatedAt: string;
+  importDraftId?: string | null;
+  failureCode?: string | null;
+  failureDetail?: string | null;
 }
 
 export interface AdminAcceptedAnswer {
@@ -838,19 +841,42 @@ export const listPackages = (accessToken: string) =>
 export const getPackage = (accessToken: string, packageId: string) =>
   request<AdminPackage>(`/api/v1/admin/packages/${packageId}`, { accessToken });
 
-/** Upload to `/api/v1/admin/packages` (AI/raw package pipeline), not `/import/packages`. */
+/** Upload to `/api/v1/admin/packages` (durable package intake endpoint). */
 export const uploadPackage = async (
   accessToken: string,
   file: File,
-): Promise<{ packageId: string }> => {
+  idempotencyKey?: string,
+): Promise<{ packageId: string; status?: string }> => {
   const form = new FormData();
   form.append('package', file, file.name);
   const response = await authedFetch(`${apiBase()}/api/v1/admin/packages`, accessToken, {
     method: 'POST',
-    headers: { 'Idempotency-Key': key() },
+    headers: { 'Idempotency-Key': idempotencyKey ?? key() },
     body: form,
   });
-  return parseJsonResponse<{ packageId: string }>(response);
+  const bodyText = await response.text();
+  let payload: any = null;
+  if (bodyText) {
+    try {
+      payload = JSON.parse(bodyText);
+    } catch {
+      // non-json
+    }
+  }
+  if (!response.ok) {
+    if (payload?.packageId) {
+      return { packageId: payload.packageId, status: payload.status };
+    }
+    const problem = (payload ?? {}) as Partial<ApiProblem>;
+    throw new ApiError({
+      title: problem.title ?? 'Request failed',
+      status: response.status,
+      detail: problem.detail ?? `HTTP ${response.status}`,
+      code: problem.code ?? 'UNKNOWN',
+      ...(problem.errors !== undefined ? { errors: problem.errors } : {}),
+    });
+  }
+  return payload as { packageId: string; status?: string };
 };
 
 export const confirmPackage = (accessToken: string, packageId: string) =>

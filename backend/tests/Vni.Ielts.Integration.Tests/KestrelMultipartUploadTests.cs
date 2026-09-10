@@ -137,17 +137,17 @@ public sealed class KestrelMultipartUploadTests(KestrelAdminAppFactory app)
         var zip = StoredZip(("reading/exam.json", OversizedExamJson()));
         Assert.True(zip.Length > 1024 * 1024);
 
-        var request = Authed(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        var request = Authed(HttpMethod.Post, "/api/v1/admin/packages", access);
         var part = new ByteArrayContent(zip);
         part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-        var form = new MultipartFormDataContent { { part, "file", "package.zip" } };
+        var form = new MultipartFormDataContent { { part, "package", "package.zip" } };
         request.Content = form;
 
         var response = await client.SendAsync(request);
 
         Assert.True(
-            response.StatusCode == HttpStatusCode.Created,
-            $"expected 201, got {(int)response.StatusCode} {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
+            response.StatusCode == HttpStatusCode.Accepted,
+            $"expected 202, got {(int)response.StatusCode} {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
     }
 
     [SkippableFact]

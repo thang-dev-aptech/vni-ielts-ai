@@ -114,11 +114,12 @@ public sealed class ExamPackageTests
     }
 
     [Fact]
-    public void Rejecting_from_uploaded_throws()
+    public void Rejecting_from_uploaded_moves_it_to_rejected()
     {
         var package = Uploaded();
+        package.Reject([SomeFinding], T1);
 
-        Assert.Throws<InvalidOperationException>(() => package.Reject([SomeFinding], T1));
+        Assert.Equal(PackageImportStatus.Rejected, package.Status);
     }
 
     [Fact]

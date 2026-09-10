@@ -61,6 +61,56 @@ internal sealed class MongoImportApprovalCommitter(
                             return ImportApprovalCommitResult.IdentityConflict();
                         }
 
+                        if (string.IsNullOrWhiteSpace(current.PackageId))
+                        {
+                            await session.AbortTransactionAsync(leaseCt);
+                            return ImportApprovalCommitResult.RevisionConflict();
+                        }
+
+                        var retryPackageDoc = await context.ExamPackages
+                            .Find(session, Builders<ExamPackageDocument>.Filter.Eq(p => p.Id, current.PackageId))
+                            .FirstOrDefaultAsync(leaseCt);
+
+                        if (retryPackageDoc is null)
+                        {
+                            await session.AbortTransactionAsync(leaseCt);
+                            return ImportApprovalCommitResult.RevisionConflict();
+                        }
+
+                        var retryPackage = retryPackageDoc.ToDomain();
+                        if (retryPackage.ImportDraftId != approvedDraft.Id.ToString("D"))
+                        {
+                            await session.AbortTransactionAsync(leaseCt);
+                            return ImportApprovalCommitResult.RevisionConflict();
+                        }
+
+                        var hasVersion = retryPackage.CreatedVersionIds.Contains(catalogueDraft.Id.Value);
+                        if (retryPackage.Status == PackageImportStatus.NeedsReview && !hasVersion)
+                        {
+                            retryPackage.MarkImported([catalogueDraft.Id.Value], DateTimeOffset.UtcNow);
+                            var repaired = await context.ExamPackages.ReplaceOneAsync(
+                                session,
+                                Builders<ExamPackageDocument>.Filter.And(
+                                    Builders<ExamPackageDocument>.Filter.Eq(p => p.Id, retryPackageDoc.Id),
+                                    Builders<ExamPackageDocument>.Filter.Eq(p => p.Version, retryPackageDoc.Version),
+                                    Builders<ExamPackageDocument>.Filter.Eq(p => p.ImportDraftId, approvedDraft.Id.ToString("D"))),
+                                retryPackage.ToDocument(),
+                                cancellationToken: leaseCt);
+                            if (repaired.MatchedCount != 1)
+                            {
+                                await session.AbortTransactionAsync(leaseCt);
+                                return ImportApprovalCommitResult.RevisionConflict();
+                            }
+                            await session.CommitTransactionAsync(leaseCt);
+                            return ImportApprovalCommitResult.AlreadyCommitted(mapper.ToDraft(current));
+                        }
+
+                        if (retryPackage.Status != PackageImportStatus.Imported || !hasVersion)
+                        {
+                            await session.AbortTransactionAsync(leaseCt);
+                            return ImportApprovalCommitResult.RevisionConflict();
+                        }
+
                         await session.AbortTransactionAsync(leaseCt);
                         return ImportApprovalCommitResult.AlreadyCommitted(mapper.ToDraft(current));
                     }
@@ -98,6 +148,57 @@ internal sealed class MongoImportApprovalCommitter(
                         await session.AbortTransactionAsync(leaseCt);
                         await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
                         return ImportApprovalCommitResult.RevisionConflict();
+                    }
+
+                    if (string.IsNullOrWhiteSpace(approvedDraft.PackageId))
+                    {
+                        await session.AbortTransactionAsync(leaseCt);
+                        await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
+                        return ImportApprovalCommitResult.RevisionConflict();
+                    }
+
+                    var packageDoc = await context.ExamPackages
+                        .Find(session, Builders<ExamPackageDocument>.Filter.Eq(p => p.Id, approvedDraft.PackageId))
+                        .FirstOrDefaultAsync(leaseCt);
+
+                    if (packageDoc is null)
+                    {
+                        await session.AbortTransactionAsync(leaseCt);
+                        await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
+                        return ImportApprovalCommitResult.RevisionConflict();
+                    }
+
+                    var package = packageDoc.ToDomain();
+                    if (package.ImportDraftId != approvedDraft.Id.ToString("D"))
+                    {
+                        await session.AbortTransactionAsync(leaseCt);
+                        await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
+                        return ImportApprovalCommitResult.RevisionConflict();
+                    }
+
+                    if (package.Status != PackageImportStatus.NeedsReview)
+                    {
+                        await session.AbortTransactionAsync(leaseCt);
+                        await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
+                        return ImportApprovalCommitResult.RevisionConflict();
+                    }
+
+                    {
+                        package.MarkImported([catalogueDraft.Id.Value], DateTimeOffset.UtcNow);
+                        var pkgReplaced = await context.ExamPackages.ReplaceOneAsync(
+                            session,
+                            Builders<ExamPackageDocument>.Filter.And(
+                                Builders<ExamPackageDocument>.Filter.Eq(p => p.Id, packageDoc.Id),
+                                Builders<ExamPackageDocument>.Filter.Eq(p => p.Version, packageDoc.Version)),
+                            package.ToDocument(),
+                            cancellationToken: leaseCt);
+
+                        if (pkgReplaced.MatchedCount == 0)
+                        {
+                            await session.AbortTransactionAsync(leaseCt);
+                            await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
+                            return ImportApprovalCommitResult.RevisionConflict();
+                        }
                     }
 
                     await session.CommitTransactionAsync(leaseCt);

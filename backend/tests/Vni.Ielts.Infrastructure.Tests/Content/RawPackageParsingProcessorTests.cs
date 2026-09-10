@@ -29,8 +29,8 @@ public sealed class RawPackageParsingProcessorTests
         Assert.True(proposals.Proposal.NeedsReview);
         Assert.Equal(DocumentExtractionOutcome.Extracted, parser.Received.Single().Outcome);
         Assert.Equal("Synthetic", parser.Received.Single().Chunks.Single().Text);
-        Assert.Equal(PackageImportStatus.NeedsReview, package.Status);
-        Assert.Equal([PackageImportStatus.Validating, PackageImportStatus.Parsing, PackageImportStatus.NeedsReview], packages.SavedStatuses);
+        Assert.Equal(PackageImportStatus.NeedsReview, packages.SavedStatuses.Last());
+        Assert.Equal([PackageImportStatus.Validating, PackageImportStatus.Parsing, PackageImportStatus.NeedsReview], packages.SavedStatuses.Distinct().ToArray());
     }
 
 
@@ -44,7 +44,7 @@ public sealed class RawPackageParsingProcessorTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => processor.ProcessAsync(package, default));
 
-        Assert.Equal(PackageImportStatus.Parsing, package.Status);
+        Assert.Equal(PackageImportStatus.Parsing, packages.SavedStatuses.Last());
         Assert.DoesNotContain(PackageImportStatus.NeedsReview, packages.SavedStatuses);
     }
 
@@ -69,7 +69,7 @@ public sealed class RawPackageParsingProcessorTests
 
         Assert.Equal(ExamExtractionRejection.SchemaInvalid, rejected.Code);
         Assert.False(candidates.Saved);
-        Assert.Equal(PackageImportStatus.Parsing, package.Status);
+        Assert.Equal(PackageImportStatus.Parsing, packages.SavedStatuses.Last());
         Assert.DoesNotContain(PackageImportStatus.NeedsReview, packages.SavedStatuses);
     }
 
@@ -88,7 +88,7 @@ public sealed class RawPackageParsingProcessorTests
             () => processor.ProcessAsync(package, default));
 
         Assert.False(candidates.Saved);
-        Assert.Equal(PackageImportStatus.Parsing, package.Status);
+        Assert.Equal(PackageImportStatus.Parsing, packages.SavedStatuses.Last());
         Assert.DoesNotContain(PackageImportStatus.NeedsReview, packages.SavedStatuses);
     }
 
@@ -111,7 +111,25 @@ public sealed class RawPackageParsingProcessorTests
             () => processor.ProcessAsync(package, default));
 
         Assert.False(candidates.Saved);
-        Assert.Equal(PackageImportStatus.Parsing, package.Status);
+        Assert.Equal(PackageImportStatus.Parsing, packages.SavedStatuses.Last());
+        Assert.DoesNotContain(PackageImportStatus.NeedsReview, packages.SavedStatuses);
+    }
+
+    [Fact]
+    public async Task Stale_worker_with_mismatched_claim_cannot_advance_to_parsing_or_save_candidates()
+    {
+        var package = Package();
+        var packages = new FencedPackages("worker-1");
+        var candidates = new Candidates(packages);
+        var proposals = new Proposals(packages);
+        var processor = new RawPackageParsingProcessor(
+            packages, new Uploads(RawZip()), Validator(), Extractor(), new DirectoryAdjacentDocumentGrouper(), proposals, new Parser(), candidates, new Clock());
+
+        await Assert.ThrowsAsync<PackageConcurrencyException>(
+            () => processor.ProcessAsync(package, "worker-2", TimeSpan.FromMinutes(5), default));
+
+        Assert.False(candidates.Saved);
+        Assert.False(proposals.Saved);
         Assert.DoesNotContain(PackageImportStatus.NeedsReview, packages.SavedStatuses);
     }
 
@@ -156,29 +174,57 @@ public sealed class RawPackageParsingProcessorTests
         return outer.ToArray();
     }
 
-    private static void Add(ZipArchive archive, string path, string text)
+    private static void Add(ZipArchive zip, string name, string content)
     {
-        var entry = archive.CreateEntry(path);
-        using var writer = new StreamWriter(entry.Open(), Encoding.UTF8);
-        writer.Write(text);
+        var entry = zip.CreateEntry(name);
+        using var stream = entry.Open();
+        using var writer = new StreamWriter(stream, Encoding.UTF8);
+        writer.Write(content);
     }
 
     private sealed class Clock : IClock { public DateTimeOffset UtcNow => DateTimeOffset.UtcNow; }
     private sealed class Uploads(byte[] content) : IPackageUploadStore
     {
-        public Task<string> SaveAsync(Stream content, string fileName, string contentType, CancellationToken ct) => throw new NotSupportedException();
+        public Task<string> SaveAsync(Stream content, string fileName, string contentType, CancellationToken ct) =>
+            throw new NotSupportedException();
+        public Task<string> SaveAsync(Stream content, string fileName, string contentType, string? uploadRef, CancellationToken ct) =>
+            throw new NotSupportedException();
         public Task<Stream> OpenAsync(string uploadRef, CancellationToken ct) => Task.FromResult<Stream>(new MemoryStream(content));
         public Task DeleteAsync(string uploadRef, CancellationToken ct) => Task.CompletedTask;
     }
-    private sealed class Packages : IExamPackageRepository
+    private class Packages : IExamPackageRepository
     {
         public List<PackageImportStatus> SavedStatuses { get; } = [];
         public Task SaveAsync(ExamPackage package, CancellationToken ct) { SavedStatuses.Add(package.Status); return Task.CompletedTask; }
+        public Task ReplaceVersionAsync(ExamPackage package, int expectedVersion, CancellationToken ct) { SavedStatuses.Add(package.Status); return Task.CompletedTask; }
+        public virtual Task<ExamPackage?> TryClaimAsync(string packageId, string owner, DateTimeOffset now, TimeSpan leaseDuration, CancellationToken ct)
+        {
+            var package = RawPackageParsingProcessorTests.Package();
+            package.ClaimForValidation(owner, now, leaseDuration);
+            SavedStatuses.Add(package.Status);
+            return Task.FromResult<ExamPackage?>(package);
+        }
+        public virtual Task ReplaceClaimedAsync(ExamPackage package, int expectedVersion, PackageClaim claim, DateTimeOffset now, CancellationToken ct)
+        {
+            SavedStatuses.Add(package.Status);
+            return Task.CompletedTask;
+        }
+        public virtual Task ReplaceVersionWithClaimAsync(ExamPackage package, int expectedVersion, string claimOwner, CancellationToken ct) { SavedStatuses.Add(package.Status); return Task.CompletedTask; }
+        public Task<ExamPackage?> FindByImportDraftIdAsync(string importDraftId, CancellationToken ct) => Task.FromResult<ExamPackage?>(null);
         public Task<ExamPackage?> FindAsync(string packageId, CancellationToken ct) => Task.FromResult<ExamPackage?>(null);
         public Task<IReadOnlyList<ExamPackage>> ListByStatusAsync(PackageImportStatus status, CancellationToken ct) => Task.FromResult<IReadOnlyList<ExamPackage>>([]);
         public Task<IReadOnlyList<ExamPackage>> ListAllAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<ExamPackage>>([]);
+        public Task<IReadOnlyList<ExamPackage>> ListClaimableAsync(DateTimeOffset now, CancellationToken ct) => Task.FromResult<IReadOnlyList<ExamPackage>>([]);
         public Task<IReadOnlyList<ExamPackage>> ListUnpurgedTerminalAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<ExamPackage>>([]);
         public Task DeleteAsync(string packageId, CancellationToken ct) => Task.CompletedTask;
+    }
+
+    private sealed class FencedPackages(string validWorker) : Packages
+    {
+        public override Task<ExamPackage?> TryClaimAsync(string packageId, string owner, DateTimeOffset now, TimeSpan leaseDuration, CancellationToken ct) =>
+            owner == validWorker
+                ? base.TryClaimAsync(packageId, owner, now, leaseDuration, ct)
+                : throw new PackageConcurrencyException(packageId, 0);
     }
     private sealed class Proposals(Packages packages, bool fail = false) : ISourceDocumentGroupingProposalRepository
     {

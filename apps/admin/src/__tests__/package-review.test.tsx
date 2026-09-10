@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AdminPaths } from '../routes/paths.js';
 import type { AdminPackage, ParsedCandidateSummary } from '../lib/adminApi.js';
 
@@ -28,12 +28,20 @@ const getPackage = vi.fn();
 const listPackageCandidates = vi.fn();
 const listExams = vi.fn();
 const deletePackage = vi.fn();
+const getImportDraft = vi.fn();
+const setImportChecklist = vi.fn();
+const overrideImportWarning = vi.fn();
+const approveImportDraft = vi.fn();
 
 vi.mock('../lib/adminApi.js', () => ({
   getPackage: (...args: unknown[]) => getPackage(...args),
   listPackageCandidates: (...args: unknown[]) => listPackageCandidates(...args),
   listExams: (...args: unknown[]) => listExams(...args),
   deletePackage: (...args: unknown[]) => deletePackage(...args),
+  getImportDraft: (...args: unknown[]) => getImportDraft(...args),
+  setImportChecklist: (...args: unknown[]) => setImportChecklist(...args),
+  overrideImportWarning: (...args: unknown[]) => overrideImportWarning(...args),
+  approveImportDraft: (...args: unknown[]) => approveImportDraft(...args),
 }));
 
 const { PackageReviewPage } = await import('../screens/PackageReviewPage.js');
@@ -176,5 +184,291 @@ describe('PackageReviewPage', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/Lý do bị từ chối/)).not.toBeInTheDocument();
     expect(screen.queryByText(/parse đã từ chối/)).not.toBeInTheDocument();
+  });
+
+  it('renders safe failure reason when package status is failed', async () => {
+    getPackage.mockResolvedValue(
+      packageOf({
+        status: 'failed',
+        failureCode: 'INGESTION_FAILED',
+        failureDetail: 'An unexpected error occurred during package processing.',
+      }),
+    );
+    listPackageCandidates.mockResolvedValue([]);
+    renderPage();
+
+    await waitFor(() => expect(screen.getByText(/Lỗi xử lý gói/)).toBeInTheDocument());
+    expect(
+      screen.getByText(/An unexpected error occurred during package processing\./),
+    ).toBeInTheDocument();
+  });
+
+  it('opens linked import draft review when package has importDraftId and allows approval', async () => {
+    permissions.add('exam.review');
+    getPackage.mockResolvedValue(
+      packageOf({
+        status: 'needs-review',
+        importDraftId: 'draft-abc-123',
+      }),
+    );
+    listPackageCandidates.mockResolvedValue([]);
+    getImportDraft.mockResolvedValue({
+      draftId: 'draft-abc-123',
+      definitionId: 'def-1',
+      versionNumber: 1,
+      route: 'structuredpackage',
+      approvalState: 'reviewrequired',
+      presentSkills: ['reading'],
+      findings: [],
+      warnings: [],
+      checklistConfirmed: [
+        'questions',
+        'options',
+        'wordlimits',
+        'acceptedvariants',
+        'transcriptandevidence',
+      ],
+      checklistComplete: false,
+      checklistRequired: true,
+      assetCount: 2,
+    });
+    setImportChecklist.mockResolvedValue({
+      draftId: 'draft-abc-123',
+      definitionId: 'def-1',
+      versionNumber: 1,
+      route: 'structuredpackage',
+      approvalState: 'reviewrequired',
+      presentSkills: ['reading'],
+      findings: [],
+      warnings: [],
+      checklistConfirmed: [
+        'questions',
+        'options',
+        'wordlimits',
+        'acceptedvariants',
+        'transcriptandevidence',
+        'assetmapping',
+      ],
+      checklistComplete: true,
+      checklistRequired: true,
+      assetCount: 2,
+    });
+    approveImportDraft.mockResolvedValue({
+      draftId: 'draft-abc-123',
+      approvalState: 'approved',
+      examVersionId: 'ev-created-999',
+    });
+
+    renderPage();
+
+    await waitFor(() => expect(screen.getByText('Bản nháp draft-abc-123')).toBeInTheDocument());
+    expect(screen.getByText(/Tài nguyên/)).toBeInTheDocument();
+    expect(screen.getByText('Ánh xạ tài nguyên')).toBeInTheDocument();
+
+    const approveBtn = screen.getByRole('button', { name: 'Duyệt' });
+    expect(approveBtn).toBeDisabled();
+
+    // Check the last checklist item
+    const lastCheckbox = screen.getByLabelText('Ánh xạ tài nguyên');
+    fireEvent.click(lastCheckbox);
+
+    await waitFor(() =>
+      expect(setImportChecklist).toHaveBeenCalledWith(
+        'test-token',
+        'draft-abc-123',
+        expect.arrayContaining(['assetmapping']),
+      ),
+    );
+  });
+
+  it('updates from uploaded to needs-review without page reload', async () => {
+    getPackage
+      .mockResolvedValueOnce(packageOf({ status: 'uploaded' }))
+      .mockResolvedValue(
+        packageOf({
+          status: 'needs-review',
+          importDraftId: 'draft-polled',
+        }),
+      );
+    listPackageCandidates.mockResolvedValue([]);
+    getImportDraft.mockResolvedValue({
+      draftId: 'draft-polled',
+      definitionId: 'def-polled',
+      versionNumber: 1,
+      route: 'structuredpackage',
+      approvalState: 'reviewrequired',
+      presentSkills: ['reading'],
+      findings: [],
+      warnings: [],
+      checklistConfirmed: [],
+      checklistComplete: false,
+      checklistRequired: false,
+      assetCount: 0,
+    });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'raw.zip' })).toBeInTheDocument(),
+    );
+    expect(screen.queryByText('Bản nháp draft-polled')).not.toBeInTheDocument();
+
+    await waitFor(
+      () => expect(screen.getByText('Bản nháp draft-polled')).toBeInTheDocument(),
+      { timeout: 3000 },
+    );
+  });
+
+  it('draft load failure displays retry UI while keeping package details visible', async () => {
+    getPackage.mockResolvedValue(
+      packageOf({
+        status: 'needs-review',
+        importDraftId: 'draft-fail-test',
+      }),
+    );
+    listPackageCandidates.mockResolvedValue([]);
+    getImportDraft
+      .mockRejectedValueOnce(new Error('Network error loading draft'))
+      .mockResolvedValueOnce({
+        draftId: 'draft-fail-test',
+        definitionId: 'def-fail',
+        versionNumber: 1,
+        route: 'structuredpackage',
+        approvalState: 'reviewrequired',
+        presentSkills: ['reading'],
+        findings: [],
+        warnings: [],
+        checklistConfirmed: [],
+        checklistComplete: false,
+        checklistRequired: false,
+        assetCount: 0,
+      });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'raw.zip' })).toBeInTheDocument(),
+    );
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(
+      screen.getByText('Không tải được bản nháp nhập đề. Vui lòng thử lại.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument();
+    // Package details still visible
+    expect(screen.getByRole('heading', { name: 'raw.zip' })).toBeInTheDocument();
+
+    // Click retry
+    fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
+
+    await waitFor(() => expect(screen.getByText('Bản nháp draft-fail-test')).toBeInTheDocument());
+    expect(
+      screen.queryByText('Không tải được bản nháp nhập đề. Vui lòng thử lại.'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('route switch ignores slow response from previous package', async () => {
+    let resolvePkg1: (pkg: AdminPackage) => void;
+    const pkg1Promise = new Promise<AdminPackage>((resolve) => {
+      resolvePkg1 = resolve;
+    });
+
+    getPackage.mockImplementation((_token: string, id: string) => {
+      if (id === 'pkg-1') return pkg1Promise;
+      if (id === 'pkg-2') return Promise.resolve(packageOf({ packageId: 'pkg-2', fileName: 'package-2.zip' }));
+      return Promise.resolve(packageOf());
+    });
+    listPackageCandidates.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter initialEntries={['/packages/pkg-1', '/packages/pkg-2']} initialIndex={0}>
+        <Routes>
+          <Route
+            path="/packages/:packageId"
+            element={
+              <>
+                <Link to="/packages/pkg-2" data-testid="nav-pkg-2">Go to 2</Link>
+                <PackageReviewPage />
+              </>
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    // Navigate to pkg-2 before pkg-1 resolves
+    fireEvent.click(screen.getByTestId('nav-pkg-2'));
+
+    // Pkg-2 renders
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'package-2.zip' })).toBeInTheDocument(),
+    );
+
+    // Now resolve pkg-1
+    resolvePkg1!(packageOf({ packageId: 'pkg-1', fileName: 'package-1-late.zip' }));
+
+    // Verify pkg-2 remains on screen and package-1-late.zip never replaces it
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.getByRole('heading', { name: 'package-2.zip' })).toBeInTheDocument();
+    expect(screen.queryByText('package-1-late.zip')).not.toBeInTheDocument();
+  });
+
+  it('forces draft refresh after IMPORT_REVISION_CONFLICT on approval', async () => {
+    const { ApiError } = await import('@vni/auth');
+    permissions.add('exam.review');
+    getPackage.mockResolvedValue(
+      packageOf({
+        status: 'needs-review',
+        importDraftId: 'draft-conflict-test',
+      }),
+    );
+    listPackageCandidates.mockResolvedValue([]);
+
+    let draftFetchCount = 0;
+    getImportDraft.mockImplementation(() => {
+      draftFetchCount++;
+      return Promise.resolve({
+        draftId: 'draft-conflict-test',
+        definitionId: 'def-1',
+        versionNumber: draftFetchCount,
+        route: 'structuredpackage',
+        approvalState: 'reviewrequired',
+        presentSkills: ['reading'],
+        findings: [],
+        warnings: [],
+        checklistConfirmed: [
+          'questions',
+          'options',
+          'wordlimits',
+          'acceptedvariants',
+          'transcriptandevidence',
+          'assetmapping',
+        ],
+        checklistComplete: true,
+        checklistRequired: true,
+        assetCount: 0,
+      });
+    });
+
+    approveImportDraft.mockRejectedValueOnce(
+      new ApiError({
+        title: 'Revision conflict',
+        status: 409,
+        code: 'IMPORT_REVISION_CONFLICT',
+        detail: 'Bản nháp đã bị thay đổi bởi phiên làm việc khác.',
+      }),
+    );
+
+    renderPage();
+
+    await waitFor(() => expect(screen.getByText('Bản nháp draft-conflict-test')).toBeInTheDocument());
+    expect(draftFetchCount).toBe(1);
+
+    const approveBtn = screen.getByRole('button', { name: 'Duyệt' });
+    expect(approveBtn).not.toBeDisabled();
+    fireEvent.click(approveBtn);
+
+    await waitFor(() => expect(draftFetchCount).toBe(2));
+    expect(screen.getByText(/Dữ liệu mới nhất đã được tải/)).toBeInTheDocument();
+    expect(screen.getByText(/v2/)).toBeInTheDocument();
   });
 });

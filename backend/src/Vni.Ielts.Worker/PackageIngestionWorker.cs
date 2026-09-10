@@ -9,6 +9,7 @@ public sealed class PackageIngestionWorker(
     ILogger<PackageIngestionWorker> logger) : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(2);
+    private readonly string _workerId = $"worker-{Environment.ProcessId}-{Guid.NewGuid():N}";
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -19,8 +20,9 @@ public sealed class PackageIngestionWorker(
                 using var scope = scopes.CreateScope();
                 var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
                 var processor = scope.ServiceProvider.GetRequiredService<PackageIngestionProcessor>();
-                foreach (var package in await packages.ListByStatusAsync(PackageImportStatus.Uploaded, stoppingToken))
-                    await processor.ProcessAsync(package, stoppingToken);
+                var clock = scope.ServiceProvider.GetRequiredService<Vni.Ielts.Domain.Common.IClock>();
+                foreach (var package in await packages.ListClaimableAsync(clock.UtcNow, stoppingToken))
+                    await processor.ProcessAsync(package, _workerId, TimeSpan.FromMinutes(5), stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

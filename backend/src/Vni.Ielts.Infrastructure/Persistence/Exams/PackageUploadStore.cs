@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
@@ -32,12 +34,14 @@ internal sealed class GridFsPackageUploadStore(IMongoDatabase database, IClock c
         ChunkSizeBytes = 1024 * 1024,
     });
 
+    public Task<string> SaveAsync(
+        Stream content, string fileName, string contentType, CancellationToken ct) =>
+        SaveAsync(content, fileName, contentType, null, ct);
+
     public async Task<string> SaveAsync(
-        Stream content, string fileName, string contentType, CancellationToken ct)
+        Stream content, string fileName, string contentType, string? uploadRef, CancellationToken ct)
     {
-        // Server-generated, and it carries no client input — the declared file
-        // name is metadata, not a path segment. → `zip-ingestion-security.md` A4
-        var id = Guid.NewGuid().ToString("n");
+        var id = !string.IsNullOrWhiteSpace(uploadRef) ? uploadRef : Guid.NewGuid().ToString("n");
 
         var metadata = new BsonDocument
         {
@@ -47,29 +51,29 @@ internal sealed class GridFsPackageUploadStore(IMongoDatabase database, IClock c
         };
 
         await _bucket.UploadFromStreamAsync(
-            id, content, new GridFSUploadOptions { Metadata = metadata }, ct);
+            DeterministicId(id), id, content, new GridFSUploadOptions { Metadata = metadata }, ct);
 
         return id;
     }
 
-    // By name, not by ObjectId: SaveAsync above passes the server-generated id
-    // as the GridFS *filename*, not as `_id` (there is no overload of
-    // UploadFromStreamAsync that pins a caller-supplied `_id`) — the ObjectId
-    // GridFS actually assigns is discarded. Opening by name is therefore the
-    // correct counterpart, not a shortcut.
     public async Task<Stream> OpenAsync(string uploadRef, CancellationToken ct) =>
-        await _bucket.OpenDownloadStreamByNameAsync(uploadRef, cancellationToken: ct);
+        await _bucket.OpenDownloadStreamAsync(DeterministicId(uploadRef), cancellationToken: ct);
 
     public async Task DeleteAsync(string uploadRef, CancellationToken ct)
     {
-        // GridFS deletes by `_id`, not by name — the same asymmetry as
-        // OpenAsync above. One lookup to find the id this filename resolves
-        // to, then delete that.
-        var filter = Builders<GridFSFileInfo>.Filter.Eq(f => f.Filename, uploadRef);
-        using var cursor = await _bucket.FindAsync(filter, cancellationToken: ct);
-        var file = await cursor.FirstOrDefaultAsync(ct);
-        if (file is null) return;
+        try
+        {
+            await _bucket.DeleteAsync(DeterministicId(uploadRef), ct);
+        }
+        catch (GridFSFileNotFoundException)
+        {
+            // Compensation is idempotent.
+        }
+    }
 
-        await _bucket.DeleteAsync(file.Id, ct);
+    private static ObjectId DeterministicId(string uploadRef)
+    {
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(uploadRef));
+        return new ObjectId(hash.AsSpan(0, 12).ToArray());
     }
 }

@@ -48,6 +48,13 @@ internal static class ExamPackageMappers
         UploadPurgeClaimedAt = package.UploadPurgeClaimedAt?.UtcDateTime,
         CreatedAt = Utc(package.CreatedAt),
         UpdatedAt = Utc(package.UpdatedAt),
+        ImportDraftId = package.ImportDraftId,
+        FailureCode = package.FailureCode,
+        FailureDetail = package.FailureDetail,
+        ClaimOwner = package.ClaimOwner,
+        ClaimFence = package.ClaimFence,
+        ClaimedAt = package.ClaimedAt?.UtcDateTime,
+        LeaseUntil = package.LeaseUntil?.UtcDateTime,
     };
 
     public static ExamPackage ToDomain(this ExamPackageDocument document) => ExamPackage.Rehydrate(
@@ -68,5 +75,12 @@ internal static class ExamPackageMappers
         Offset(document.UpdatedAt),
         document.UploadPurgeState,
         document.UploadPurgeClaimId,
-        document.UploadPurgeClaimedAt is { } claimedAt ? Offset(claimedAt) : null);
+        document.UploadPurgeClaimedAt is { } claimedAt ? Offset(claimedAt) : null,
+        document.ImportDraftId,
+        document.FailureCode,
+        document.FailureDetail,
+        document.ClaimOwner,
+        document.ClaimFence,
+        document.ClaimedAt is { } pkgClaimedAt ? Offset(pkgClaimedAt) : null,
+        document.LeaseUntil is { } pkgLeaseUntil ? Offset(pkgLeaseUntil) : null);
 }

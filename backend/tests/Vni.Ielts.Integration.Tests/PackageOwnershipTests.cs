@@ -223,4 +223,41 @@ public sealed class PackageOwnershipTests(SsoAppFactory app) : IClassFixture<Sso
             Authed(HttpMethod.Post, $"/api/v1/admin/packages/{packageId}/confirm", accessB));
         Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
     }
+
+    [SkippableFact]
+    public async Task Reviewer_holding_exam_review_can_read_package()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        var phoneA = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var phoneR = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var (accessA, userA) = await RegisterAsync(client, phoneA);
+        var (accessR, userR) = await RegisterAsync(client, phoneR);
+
+        await GrantExactPermissionsAsync(userA, "uploader", "package.upload", "exam.create", "package.read");
+        await GrantExactPermissionsAsync(userR, "reviewer", "exam.review");
+
+        var loginA = await client.PostAsJsonAsync("/api/v1/auth/login",
+            new { identifier = phoneA, password = Password });
+        loginA.EnsureSuccessStatusCode();
+        accessA = (await loginA.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("accessToken").GetString()!;
+
+        var loginR = await client.PostAsJsonAsync("/api/v1/auth/login",
+            new { identifier = phoneR, password = Password });
+        loginR.EnsureSuccessStatusCode();
+        accessR = (await loginR.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("accessToken").GetString()!;
+
+        var upload = await client.SendAsync(UploadRequest(accessA, TwoExamZip()));
+        upload.EnsureSuccessStatusCode();
+        var packageId = (await upload.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("packageId").GetString()!;
+
+        // Reviewer can read the package
+        var getPkg = await client.SendAsync(Authed(HttpMethod.Get, $"/api/v1/admin/packages/{packageId}", accessR));
+        Assert.Equal(HttpStatusCode.OK, getPkg.StatusCode);
+
+        // Reviewer can list packages
+        var listPkg = await client.SendAsync(Authed(HttpMethod.Get, "/api/v1/admin/packages", accessR));
+        Assert.Equal(HttpStatusCode.OK, listPkg.StatusCode);
+    }
 }

@@ -37,6 +37,8 @@ interface Entry {
   label: string;
   /** Null means every signed-in operator sees it. */
   permission: string | string[] | null;
+  /** When true, operator must hold all permissions in the array. Default is false (any). */
+  requireAll?: boolean;
   /** Shown beside an entry whose screen is not built. */
   pending?: string;
 }
@@ -57,8 +59,17 @@ const GROUPS: { title: string | null; entries: Entry[] }[] = [
       { to: AdminPaths.exams, label: 'Tất cả đề', permission: ['exam.read', 'exam.read.any'] },
       { to: AdminPaths.reviewQueue, label: 'Hàng chờ duyệt', permission: 'exam.review' },
       { to: AdminPaths.pendingPublish, label: 'Chờ xuất bản', permission: 'exam.publish' },
-      { to: AdminPaths.import, label: 'Nhập đề', permission: 'package.upload' },
-      { to: AdminPaths.packages, label: 'Lịch sử gói', permission: 'package.read' },
+      {
+        to: AdminPaths.import,
+        label: 'Nhập đề',
+        permission: ['package.upload', 'exam.create'],
+        requireAll: true,
+      },
+      {
+        to: AdminPaths.packages,
+        label: 'Lịch sử gói',
+        permission: ['package.read', 'exam.review'],
+      },
       {
         to: AdminPaths.contentRights,
         label: 'Quyền nội dung',
@@ -131,11 +142,14 @@ export function AdminShell() {
   const { preset, setPreset, available } = useViewAs();
   const { reset } = useMediaLibrary();
 
-  const holds = (permission: Entry['permission']) => {
-    if (permission === null) return true;
-    return typeof permission === 'string'
-      ? operator.can(permission)
-      : permission.some(operator.can);
+  const holds = (entry: Entry) => {
+    if (entry.permission === null) return true;
+    if (typeof entry.permission === 'string') {
+      return operator.can(entry.permission);
+    }
+    return entry.requireAll
+      ? entry.permission.every(operator.can)
+      : entry.permission.some(operator.can);
   };
 
   return (
@@ -151,7 +165,7 @@ export function AdminShell() {
 
         <nav className="cms-nav" aria-label="Điều hướng quản trị">
           {GROUPS.map((group) => {
-            const visible = group.entries.filter((entry) => holds(entry.permission));
+            const visible = group.entries.filter(holds);
             if (visible.length === 0) return null;
 
             return (

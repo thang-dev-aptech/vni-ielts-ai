@@ -2,7 +2,7 @@ using Vni.Ielts.Domain.Common;
 
 namespace Vni.Ielts.Domain.Exams;
 
-public enum ExamPackageSourceKind { Json, Zip }
+public enum ExamPackageSourceKind { Json, Zip, Unknown }
 
 /// <summary>
 /// One exam found inside a package, surfaced so an operator can confirm before
@@ -53,7 +53,14 @@ public sealed class ExamPackage
         string? uploadPurgeClaimId,
         DateTimeOffset? uploadPurgeClaimedAt,
         DateTimeOffset createdAt,
-        DateTimeOffset updatedAt)
+        DateTimeOffset updatedAt,
+        string? importDraftId = null,
+        string? failureCode = null,
+        string? failureDetail = null,
+        string? claimOwner = null,
+        long claimFence = 0,
+        DateTimeOffset? claimedAt = null,
+        DateTimeOffset? leaseUntil = null)
     {
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("A package needs an id.", nameof(id));
         if (string.IsNullOrWhiteSpace(sha256)) throw new ArgumentException("A package needs a content hash.", nameof(sha256));
@@ -78,6 +85,13 @@ public sealed class ExamPackage
         UploadPurgeClaimedAt = uploadPurgeClaimedAt;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
+        ImportDraftId = importDraftId;
+        FailureCode = failureCode;
+        FailureDetail = failureDetail;
+        ClaimOwner = claimOwner;
+        ClaimFence = claimFence;
+        ClaimedAt = claimedAt;
+        LeaseUntil = leaseUntil;
     }
 
     public string Id { get; }
@@ -110,6 +124,15 @@ public sealed class ExamPackage
     public DateTimeOffset CreatedAt { get; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
+    public string? ImportDraftId { get; private set; }
+    public string? FailureCode { get; private set; }
+    public string? FailureDetail { get; private set; }
+
+    public string? ClaimOwner { get; private set; }
+    public long ClaimFence { get; private set; }
+    public DateTimeOffset? ClaimedAt { get; private set; }
+    public DateTimeOffset? LeaseUntil { get; private set; }
+
     public static ExamPackage Create(
         string id,
         ExamPackageSourceKind sourceKind,
@@ -139,10 +162,18 @@ public sealed class ExamPackage
         DateTimeOffset updatedAt,
         string? uploadPurgeState = null,
         string? uploadPurgeClaimId = null,
-        DateTimeOffset? uploadPurgeClaimedAt = null) =>
+        DateTimeOffset? uploadPurgeClaimedAt = null,
+        string? importDraftId = null,
+        string? failureCode = null,
+        string? failureDetail = null,
+        string? claimOwner = null,
+        long claimFence = 0,
+        DateTimeOffset? claimedAt = null,
+        DateTimeOffset? leaseUntil = null) =>
         new(id, sourceKind, uploadedBy, sha256, fileName, uploadRef,
             status, findings, entries, createdVersionIds, version, uploadPurged,
-            uploadPurgeState, uploadPurgeClaimId, uploadPurgeClaimedAt, createdAt, updatedAt);
+            uploadPurgeState, uploadPurgeClaimId, uploadPurgeClaimedAt, createdAt, updatedAt,
+            importDraftId, failureCode, failureDetail, claimOwner, claimFence, claimedAt, leaseUntil);
 
     /// <summary>Uploaded → Scanning. Malware/AV scanning, ahead of structural validation. → Plan 03</summary>
     public void MarkScanning(DateTimeOffset now)
@@ -153,31 +184,85 @@ public sealed class ExamPackage
         Version++;
     }
 
-    /// <summary>Scanning or Uploaded → Validating. JSON with no media has nothing to scan, so it may skip straight here.</summary>
-    public void MarkValidating(DateTimeOffset now)
+    /// <summary>Claims a package for processing with an expiring lease.</summary>
+    public void ClaimForValidation(string workerId, DateTimeOffset now, TimeSpan leaseDuration)
     {
+        if (string.IsNullOrWhiteSpace(workerId))
+            throw new ArgumentException("A claim needs a worker id.", nameof(workerId));
+
         if (Status is not (PackageImportStatus.Uploaded or PackageImportStatus.Scanning))
         {
-            throw new InvalidOperationException(
-                $"Cannot be moved to validating from {Status} — this package must be Uploaded or Scanning.");
+            if (Status is PackageImportStatus.Validating or PackageImportStatus.Parsing)
+            {
+                if (LeaseUntil is not null && LeaseUntil > now)
+                {
+                    throw new InvalidOperationException(
+                        $"Package is currently claimed by '{ClaimOwner}' until {LeaseUntil}.");
+                }
+                // Stale claim: allowed to recover!
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Cannot be moved to validating from {Status} — this package must be Uploaded or Scanning.");
+            }
         }
 
         Status = PackageImportStatus.Validating;
+        ClaimOwner = workerId;
+        ClaimFence++;
+        ClaimedAt = now;
+        LeaseUntil = now + leaseDuration;
         UpdatedAt = now;
         Version++;
     }
 
+    /// <summary>Extends an active processing lease (in Validating or Parsing) for the current claim owner.</summary>
+    public void RenewLease(string workerId, DateTimeOffset now, TimeSpan leaseDuration)
+    {
+        if (string.IsNullOrWhiteSpace(workerId))
+            throw new ArgumentException("A claim needs a worker id.", nameof(workerId));
+        if (ClaimOwner != workerId)
+            throw new InvalidOperationException($"Cannot renew lease: claimed by '{ClaimOwner}', not '{workerId}'.");
+        if (Status is not (PackageImportStatus.Validating or PackageImportStatus.Parsing))
+            throw new InvalidOperationException($"Cannot renew lease from status {Status}.");
+
+        LeaseUntil = now + leaseDuration;
+        UpdatedAt = now;
+    }
+
+    /// <summary>Releases an active validation or parsing claim back to Uploaded status.</summary>
+    public void ReleaseClaim(DateTimeOffset now)
+    {
+        if (Status != PackageImportStatus.Validating && Status != PackageImportStatus.Parsing) return;
+        Status = PackageImportStatus.Uploaded;
+        ClaimOwner = null;
+        ClaimedAt = null;
+        LeaseUntil = null;
+        UpdatedAt = now;
+        Version++;
+    }
+
+    /// <summary>Scanning or Uploaded → Validating. JSON with no media has nothing to scan, so it may skip straight here.</summary>
+    public void MarkValidating(DateTimeOffset now) =>
+        ClaimForValidation("legacy-worker", now, TimeSpan.FromMinutes(5));
+
     /// <summary>
-    /// Scanning or Validating → Rejected. Findings are required — a rejection
+    /// Uploaded, Scanning or Validating → Rejected. Findings are required — a rejection
     /// with nothing to show the uploader is not actionable.
     /// </summary>
     public void Reject(IReadOnlyList<PackageFinding> findings, DateTimeOffset now)
     {
-        if (Status is not (PackageImportStatus.Scanning or PackageImportStatus.Validating))
+        if (Status is not (PackageImportStatus.Uploaded or PackageImportStatus.Scanning or PackageImportStatus.Validating))
         {
             throw new InvalidOperationException(
-                $"Cannot be rejected from {Status} — this package must be Scanning or Validating.");
+                $"Cannot be rejected from {Status} — this package must be Uploaded, Scanning, or Validating.");
         }
+
+        Status = PackageImportStatus.Rejected;
+        ClaimOwner = null;
+        ClaimedAt = null;
+        LeaseUntil = null;
 
         if (findings.Count == 0)
             throw new ArgumentException("A rejection requires at least one finding.", nameof(findings));
@@ -196,14 +281,30 @@ public sealed class ExamPackage
         Version++;
     }
 
-    public void MarkNeedsReview(DateTimeOffset now, IReadOnlyList<PackageFinding>? findings = null)
+    public void MarkNeedsReview(string? importDraftId, DateTimeOffset now, IReadOnlyList<PackageFinding>? findings = null)
     {
-        RequireStatus(PackageImportStatus.Parsing, "marked as needing review");
+        if (string.IsNullOrWhiteSpace(importDraftId))
+        {
+            RequireStatus(PackageImportStatus.Parsing, "marked as needing review");
+        }
+        else if (Status is not (PackageImportStatus.Validating or PackageImportStatus.Parsing))
+        {
+            throw new InvalidOperationException(
+                $"Cannot be marked as needing review from {Status} — this package must be Validating or Parsing.");
+        }
+
+        ImportDraftId = importDraftId;
         if (findings is not null) _findings.AddRange(findings);
         Status = PackageImportStatus.NeedsReview;
+        ClaimOwner = null;
+        ClaimedAt = null;
+        LeaseUntil = null;
         UpdatedAt = now;
         Version++;
     }
+
+    public void MarkNeedsReview(DateTimeOffset now, IReadOnlyList<PackageFinding>? findings = null) =>
+        MarkNeedsReview(null, now, findings);
 
     /// <summary>Validating → ReadyToImport. A multi-exam ZIP, waiting for the operator to confirm before N drafts are created.</summary>
     public void MarkReadyToImport(IReadOnlyList<ExamPackageEntry> entries, DateTimeOffset now)
@@ -213,6 +314,9 @@ public sealed class ExamPackage
             throw new ArgumentException("Ready-to-import requires at least one entry.", nameof(entries));
 
         Status = PackageImportStatus.ReadyToImport;
+        ClaimOwner = null;
+        ClaimedAt = null;
+        LeaseUntil = null;
         _entries.AddRange(entries);
         UpdatedAt = now;
         Version++;
@@ -237,6 +341,9 @@ public sealed class ExamPackage
             throw new ArgumentException("Importing requires at least one created version id.", nameof(createdVersionIds));
 
         Status = PackageImportStatus.Imported;
+        ClaimOwner = null;
+        ClaimedAt = null;
+        LeaseUntil = null;
         foreach (var id in createdVersionIds)
         {
             if (!_createdVersionIds.Contains(id))
@@ -260,7 +367,7 @@ public sealed class ExamPackage
     }
 
     /// <summary>Any non-terminal state → Failed. An unexpected processing error, not a validation rejection.</summary>
-    public void MarkFailed(DateTimeOffset now)
+    public void MarkFailed(string? failureCode, string? failureDetail, DateTimeOffset now)
     {
         if (Status is PackageImportStatus.Imported or PackageImportStatus.Rejected or PackageImportStatus.Failed)
         {
@@ -268,9 +375,32 @@ public sealed class ExamPackage
                 $"Cannot be marked failed from {Status} — this package has already reached a terminal state.");
         }
 
+        FailureCode = SanitizeFailureCode(failureCode);
+        FailureDetail = SanitizeFailureDetail(failureDetail);
         Status = PackageImportStatus.Failed;
+        ClaimOwner = null;
+        ClaimedAt = null;
+        LeaseUntil = null;
         UpdatedAt = now;
         Version++;
+    }
+
+    public void MarkFailed(DateTimeOffset now) =>
+        MarkFailed(null, null, now);
+
+    private static string SanitizeFailureCode(string? code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return "PROCESSING_FAILED";
+        var trimmed = code.Trim();
+        var sanitized = new string(trimmed.Where(c => char.IsLetterOrDigit(c) || c is '_' or '-').ToArray());
+        return sanitized.Length is > 0 and <= 64 ? sanitized : "PROCESSING_FAILED";
+    }
+
+    private static string SanitizeFailureDetail(string? detail)
+    {
+        if (string.IsNullOrWhiteSpace(detail)) return "An unexpected processing error occurred.";
+        var sanitized = detail.Replace("\r", " ").Replace("\n", " ").Trim();
+        return sanitized.Length <= 500 ? sanitized : sanitized[..500];
     }
 
     /// <summary>

@@ -14,6 +14,7 @@ using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
+using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Persistence;
 using Vni.Ielts.Infrastructure.Persistence.Importing;
 
@@ -40,13 +41,11 @@ public sealed class ImportAssetTests(ImportZipAssetAppFactory app) : IClassFixtu
         var mp3 = SyntheticMp3();
         var upload = await UploadZipAsync(client, access, PackageJson(reference, mp3), reference, mp3);
 
-        Assert.Equal(HttpStatusCode.Created, upload.Status.StatusCode);
-        var body = upload.Body;
-        Assert.Equal("structuredpackage", body.GetProperty("route").GetString());
-        Assert.DoesNotContain(
-            body.GetProperty("findings").EnumerateArray(),
-            f => f.GetProperty("code").GetString() == "AI_PARSER_UNAVAILABLE");
-        Assert.True(body.GetProperty("assetCount").GetInt32() >= 1);
+        Assert.Equal(HttpStatusCode.Accepted, upload.Status.StatusCode);
+        Assert.NotNull(upload.Draft);
+        Assert.Equal(ExamImportRoute.StructuredPackage, upload.Draft.Route);
+        Assert.DoesNotContain(upload.Package.Findings, f => f.Code == "AI_PARSER_UNAVAILABLE");
+        Assert.True(upload.Draft.Assets.Count >= 1);
     }
 
     [SkippableFact]
@@ -59,8 +58,8 @@ public sealed class ImportAssetTests(ImportZipAssetAppFactory app) : IClassFixtu
         var reference = UniqueAudioRef("served");
         var mp3 = SyntheticMp3("served");
         var upload = await UploadZipAsync(client, access, PackageJson(reference, mp3), reference, mp3);
-        Assert.Equal(HttpStatusCode.Created, upload.Status.StatusCode);
-        var draftId = upload.Body.GetProperty("draftId").GetString()!;
+        Assert.Equal(HttpStatusCode.Accepted, upload.Status.StatusCode);
+        var draftId = upload.Package.ImportDraftId!;
 
         await ConfirmFullChecklistAsync(client, access, draftId);
         var approve = await SendAsync(client, HttpMethod.Post,
@@ -85,15 +84,13 @@ public sealed class ImportAssetTests(ImportZipAssetAppFactory app) : IClassFixtu
         var (client, access) = await SignInAsAdminAsync();
         var reference = UniqueAudioRef("missing");
         var zip = ZipOf(("reading/exam.json", PackageJson(reference, SyntheticMp3("declared-absent"))));
-        var response = await PostZipAsync(client, access, zip);
-        var body = await BodyOf(response);
+        var upload = await PostZipAsync(client, access, zip);
 
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
-        Assert.Equal("PACKAGE_REJECTED", body.GetProperty("code").GetString());
-        var finding = body.GetProperty("findings").EnumerateArray()
-            .Single(f => f.GetProperty("code").GetString() == "ASSET_MISSING");
-        Assert.Contains(reference, finding.GetProperty("path").GetString(), StringComparison.Ordinal);
-        Assert.DoesNotContain('\\', finding.GetProperty("message").GetString() ?? "");
+        Assert.Equal(HttpStatusCode.Accepted, upload.Status.StatusCode);
+        Assert.Equal(PackageImportStatus.Rejected, upload.Package.Status);
+        var finding = upload.Package.Findings.Single(f => f.Code == "ASSET_MISSING");
+        Assert.Contains(reference, finding.Pointer, StringComparison.Ordinal);
+        Assert.DoesNotContain('\\', finding.Message);
     }
 
     [SkippableFact]
@@ -106,8 +103,8 @@ public sealed class ImportAssetTests(ImportZipAssetAppFactory app) : IClassFixtu
         var reference = UniqueAudioRef("conflict");
         var original = SyntheticMp3("original");
         var first = await UploadZipAsync(client, access, PackageJson(reference, original, "firstowner"), reference, original);
-        Assert.Equal(HttpStatusCode.Created, first.Status.StatusCode);
-        var firstId = first.Body.GetProperty("draftId").GetString()!;
+        Assert.Equal(HttpStatusCode.Accepted, first.Status.StatusCode);
+        var firstId = first.Package.ImportDraftId!;
         await ConfirmFullChecklistAsync(client, access, firstId);
         Assert.Equal(HttpStatusCode.OK, (await SendAsync(client, HttpMethod.Post,
             $"/api/v1/admin/import/packages/{firstId}/approve", access)).StatusCode);
@@ -115,8 +112,8 @@ public sealed class ImportAssetTests(ImportZipAssetAppFactory app) : IClassFixtu
         var conflicting = SyntheticMp3("conflict");
         Assert.NotEqual(original, conflicting);
         var second = await UploadZipAsync(client, access, PackageJson(reference, conflicting, "secondowner"), reference, conflicting);
-        Assert.Equal(HttpStatusCode.Created, second.Status.StatusCode);
-        var secondId = second.Body.GetProperty("draftId").GetString()!;
+        Assert.Equal(HttpStatusCode.Accepted, second.Status.StatusCode);
+        var secondId = second.Package.ImportDraftId!;
         await ConfirmFullChecklistAsync(client, access, secondId);
         var approve = await SendAsync(client, HttpMethod.Post,
             $"/api/v1/admin/import/packages/{secondId}/approve", access);
@@ -193,23 +190,42 @@ public sealed class ImportAssetTests(ImportZipAssetAppFactory app) : IClassFixtu
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(checklist)).StatusCode);
     }
 
-    private static async Task<(HttpResponseMessage Status, JsonElement Body)> UploadZipAsync(
+    private async Task<(HttpResponseMessage Status, ExamPackage Package, ExamImportDraft? Draft)> UploadZipAsync(
         HttpClient client, string access, string json, string audioRef, byte[] mp3)
     {
         var zip = ZipOf(("reading/exam.json", json), (audioRef, mp3));
-        var response = await PostZipAsync(client, access, zip);
-        return (response, await BodyOf(response));
+        return await PostZipAsync(client, access, zip);
     }
 
-    private static async Task<HttpResponseMessage> PostZipAsync(HttpClient client, string access, byte[] zip)
+    private async Task<(HttpResponseMessage Status, ExamPackage Package, ExamImportDraft? Draft)> PostZipAsync(
+        HttpClient client, string access, byte[] zip)
     {
-        var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        var request = Request(HttpMethod.Post, "/api/v1/admin/packages", access);
         var form = new MultipartFormDataContent();
         var part = new ByteArrayContent(zip);
         part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-        form.Add(part, "file", "package.zip");
+        form.Add(part, "package", "package.zip");
         request.Content = form;
-        return await client.SendAsync(request);
+        var response = await client.SendAsync(request);
+        var packageId = (await BodyOf(response)).GetProperty("packageId").GetString()!;
+
+        using var scope = app.Services.CreateScope();
+        var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+        var processor = scope.ServiceProvider.GetRequiredService<PackageIngestionProcessor>();
+        var package = await packages.FindAsync(packageId, default);
+        Assert.NotNull(package);
+        await processor.ProcessAsync(package!, default);
+        package = await packages.FindAsync(packageId, default);
+        Assert.NotNull(package);
+
+        ExamImportDraft? draft = null;
+        if (package!.ImportDraftId is not null)
+        {
+            var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+            draft = await drafts.FindAsync(Guid.Parse(package.ImportDraftId), default);
+        }
+
+        return (response, package, draft);
     }
 
     private static byte[] ZipOf(params (string Name, object Content)[] entries)
@@ -398,17 +414,29 @@ public sealed class ImportAssetFaultTests(ImportAssetFaultFactory app) : IClassF
                 output.Write(mp3);
             }
 
-            var upload = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/import/packages");
+            var upload = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/packages");
             upload.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
             upload.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
             var form = new MultipartFormDataContent();
             var part = new ByteArrayContent(zipStream.ToArray());
             part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-            form.Add(part, "file", "package.zip");
+            form.Add(part, "package", "package.zip");
             upload.Content = form;
             var uploaded = await client.SendAsync(upload);
-            Assert.Equal(HttpStatusCode.Created, uploaded.StatusCode);
-            var draftId = (await uploaded.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("draftId").GetString()!;
+            Assert.Equal(HttpStatusCode.Accepted, uploaded.StatusCode);
+            var packageId = (await uploaded.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("packageId").GetString()!;
+            string draftId;
+            using (var scope = app.Services.CreateScope())
+            {
+                var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+                var processor = scope.ServiceProvider.GetRequiredService<PackageIngestionProcessor>();
+                var package = await packages.FindAsync(packageId, default);
+                Assert.NotNull(package);
+                await processor.ProcessAsync(package!, default);
+                package = await packages.FindAsync(packageId, default);
+                Assert.NotNull(package?.ImportDraftId);
+                draftId = package!.ImportDraftId!;
+            }
 
             var checklist = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist");
             checklist.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
@@ -535,17 +563,29 @@ public sealed class ImportAssetFaultTests(ImportAssetFaultFactory app) : IClassF
             output.Write(mp3);
         }
 
-        var upload = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/import/packages");
+        var upload = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/packages");
         upload.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
         upload.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
         var form = new MultipartFormDataContent();
         var part = new ByteArrayContent(zipStream.ToArray());
         part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-        form.Add(part, "file", "package.zip");
+        form.Add(part, "package", "package.zip");
         upload.Content = form;
         var uploaded = await client.SendAsync(upload);
-        Assert.Equal(HttpStatusCode.Created, uploaded.StatusCode);
-        var draftId = (await uploaded.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("draftId").GetString()!;
+        Assert.Equal(HttpStatusCode.Accepted, uploaded.StatusCode);
+        var packageId = (await uploaded.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("packageId").GetString()!;
+        string draftId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var processor = scope.ServiceProvider.GetRequiredService<PackageIngestionProcessor>();
+            var package = await packages.FindAsync(packageId, default);
+            Assert.NotNull(package);
+            await processor.ProcessAsync(package!, default);
+            package = await packages.FindAsync(packageId, default);
+            Assert.NotNull(package?.ImportDraftId);
+            draftId = package!.ImportDraftId!;
+        }
 
         var checklist = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist");
         checklist.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
