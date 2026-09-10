@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Importing;
 
@@ -56,7 +57,18 @@ public static class AnswerKeyInjection
         public bool IsSuccess => Findings.All(f => f.Severity != "error");
     }
 
-    public static Result Apply(string packageJson, IReadOnlyList<AnswerKeyEntry> entries)
+    /// <param name="module">
+    /// When given, only questions in sections of this module are keyed, and
+    /// coverage is counted within it. <b>Required whenever the package holds more
+    /// than one skill:</b> Reading and Listening both number their questions 1 to
+    /// 40, so an unfiltered apply writes Reading's answers onto Listening's
+    /// questions and reports nothing wrong. The operator CLI avoids this by
+    /// running one skill at a time (<c>--keep-module</c>); the HTTP door cannot.
+    /// </param>
+    public static Result Apply(
+        string packageJson,
+        IReadOnlyList<AnswerKeyEntry> entries,
+        ExamModule? module = null)
     {
         ArgumentNullException.ThrowIfNull(entries);
 
@@ -64,8 +76,8 @@ public static class AnswerKeyInjection
             ?? throw new ArgumentException("The package did not parse as an object.", nameof(packageJson));
 
         var findings = new List<PackageFinding>();
-        FoldMultiMarkChoices(package, entries, findings);
-        var questions = Questions(package).OrderBy(q => Order(q.Node)).ToList();
+        FoldMultiMarkChoices(package, entries, findings, module);
+        var questions = Questions(package, module).OrderBy(q => Order(q.Node)).ToList();
         var byFirst = entries.ToDictionary(e => e.First);
         var used = new HashSet<int>();
         var retypedGroups = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -157,15 +169,20 @@ public static class AnswerKeyInjection
     /// questions, they are one question. Fold them before the key is written.
     /// </summary>
     private static void FoldMultiMarkChoices(
-        JsonObject package, IReadOnlyList<AnswerKeyEntry> entries, List<PackageFinding> findings)
+        JsonObject package, IReadOnlyList<AnswerKeyEntry> entries, List<PackageFinding> findings,
+        ExamModule? module)
     {
         if (package["sections"] is not JsonArray sections) return;
+
+        var wanted = module?.ToString().ToLowerInvariant();
 
         foreach (var entry in entries.Where(e => e.Marks > 1))
         {
             for (var s = 0; s < sections.Count; s++)
             {
-                if (sections[s]?["parts"] is not JsonArray parts) continue;
+                if (sections[s] is not JsonObject section) continue;
+                if (wanted is not null && section["module"]?.GetValue<string>() != wanted) continue;
+                if (section["parts"] is not JsonArray parts) continue;
 
                 for (var p = 0; p < parts.Count; p++)
                 {
@@ -602,13 +619,18 @@ public static class AnswerKeyInjection
         return collapsed is "NOTGIVEN" or "NOT-GIVEN" ? "NOT GIVEN" : collapsed;
     }
 
-    private static IEnumerable<(JsonObject Node, string Path)> Questions(JsonObject package)
+    private static IEnumerable<(JsonObject Node, string Path)> Questions(
+        JsonObject package, ExamModule? module)
     {
         if (package["sections"] is not JsonArray sections) yield break;
 
+        var wanted = module?.ToString().ToLowerInvariant();
+
         for (var s = 0; s < sections.Count; s++)
         {
-            if (sections[s]?["parts"] is not JsonArray parts) continue;
+            if (sections[s] is not JsonObject section) continue;
+            if (wanted is not null && section["module"]?.GetValue<string>() != wanted) continue;
+            if (section["parts"] is not JsonArray parts) continue;
 
             for (var p = 0; p < parts.Count; p++)
             {

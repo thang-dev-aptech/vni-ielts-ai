@@ -1,4 +1,6 @@
+using System.Text.Json.Nodes;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Tests.Importing;
 
@@ -511,6 +513,74 @@ public sealed class AnswerKeyTests
         Assert.Contains("r-mc-36-40-36", result.PackageJson, StringComparison.Ordinal);
         Assert.Contains("r-mc-36-40-37", result.PackageJson, StringComparison.Ordinal);
     }
+
+    /// <summary>
+    /// Reading 1-40 and Listening 1-40 are different questions with the same
+    /// numbers. Without a module filter the first key written wins both.
+    /// </summary>
+    [Fact]
+    public void A_key_applies_only_to_the_skill_it_belongs_to()
+    {
+        var package = TwoSkillPackage();
+        var readingKey = new[] { new AnswerKeyEntry(1, 1, "TRUE") };
+
+        var result = AnswerKeyInjection.Apply(package, readingKey, ExamModule.Reading);
+
+        Assert.True(result.IsSuccess, Describe(result.Findings));
+        var doc = JsonNode.Parse(result.PackageJson)!.AsObject();
+        Assert.Equal("TRUE", AnswerAt(doc, ExamModule.Reading, order: 1));
+        Assert.Null(AnswerAt(doc, ExamModule.Listening, order: 1));
+    }
+
+    /// <summary>
+    /// Coverage is counted inside the filtered skill. A Reading key that covers
+    /// Reading completely must not be reported short because Listening exists.
+    /// </summary>
+    [Fact]
+    public void Coverage_is_counted_within_the_filtered_skill_only()
+    {
+        var package = TwoSkillPackage();
+        var readingKey = new[] { new AnswerKeyEntry(1, 1, "TRUE") };
+
+        var result = AnswerKeyInjection.Apply(package, readingKey, ExamModule.Reading);
+
+        Assert.DoesNotContain(
+            result.Findings, f => f.Code == AnswerKeyInjection.CoverageCode);
+    }
+
+    /// <summary>One Reading and one Listening question, both numbered 1.</summary>
+    private static string TwoSkillPackage() =>
+        """
+        {
+          "formatVersion": "2.0",
+          "sections": [
+            { "module": "reading", "order": 1, "parts": [ { "order": 1, "kind": "passage",
+              "questions": [ { "id": "r1", "order": 1, "type": "true-false-notgiven" } ] } ] },
+            { "module": "listening", "order": 2, "parts": [ { "order": 1, "kind": "recording",
+              "questions": [ { "id": "l1", "order": 1, "type": "true-false-notgiven" } ] } ] }
+          ]
+        }
+        """;
+
+    private static string? AnswerAt(JsonObject package, ExamModule module, int order)
+    {
+        var wanted = module.ToString().ToLowerInvariant();
+        foreach (var section in package["sections"]!.AsArray())
+        {
+            if (section!["module"]!.GetValue<string>() != wanted) continue;
+            foreach (var part in section["parts"]!.AsArray())
+            foreach (var question in part!["questions"]!.AsArray())
+            {
+                if (question!["order"]!.GetValue<int>() != order) continue;
+                return question["answerKey"]?["accepted"]?.AsArray()[0]?.GetValue<string>();
+            }
+        }
+
+        return null;
+    }
+
+    private static string Describe(IReadOnlyList<PackageFinding> findings) =>
+        string.Join("\n", findings.Select(f => $"{f.Severity} {f.Code} {f.Path}"));
 
     private static string Summarise(AnswerKeyInjection.Result result) =>
         string.Join(" | ", result.Findings.Select(f => $"{f.Severity} {f.Code}: {f.Message}"));
