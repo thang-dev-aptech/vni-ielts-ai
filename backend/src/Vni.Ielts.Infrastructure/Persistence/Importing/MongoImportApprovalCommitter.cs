@@ -78,22 +78,25 @@ internal sealed class MongoImportApprovalCommitter(
                         }
 
                         var retryPackage = retryPackageDoc.ToDomain();
-                        if (retryPackage.ImportDraftId != approvedDraft.Id.ToString("D"))
+                        var retryDraftKey = approvedDraft.Id.ToString("D");
+                        if (!retryPackage.ImportDraftIds.Contains(retryDraftKey)
+                            && retryPackage.ImportDraftId != retryDraftKey)
                         {
                             await session.AbortTransactionAsync(leaseCt);
                             return ImportApprovalCommitResult.RevisionConflict();
                         }
 
                         var hasVersion = retryPackage.CreatedVersionIds.Contains(catalogueDraft.Id.Value);
-                        if (retryPackage.Status == PackageImportStatus.NeedsReview && !hasVersion)
+                        if ((retryPackage.Status == PackageImportStatus.NeedsReview
+                             || retryPackage.Status == PackageImportStatus.Imported)
+                            && !hasVersion)
                         {
-                            retryPackage.MarkImported([catalogueDraft.Id.Value], DateTimeOffset.UtcNow);
+                            retryPackage.RecordDraftImported(catalogueDraft.Id.Value, DateTimeOffset.UtcNow);
                             var repaired = await context.ExamPackages.ReplaceOneAsync(
                                 session,
                                 Builders<ExamPackageDocument>.Filter.And(
                                     Builders<ExamPackageDocument>.Filter.Eq(p => p.Id, retryPackageDoc.Id),
-                                    Builders<ExamPackageDocument>.Filter.Eq(p => p.Version, retryPackageDoc.Version),
-                                    Builders<ExamPackageDocument>.Filter.Eq(p => p.ImportDraftId, approvedDraft.Id.ToString("D"))),
+                                    Builders<ExamPackageDocument>.Filter.Eq(p => p.Version, retryPackageDoc.Version)),
                                 retryPackage.ToDocument(),
                                 cancellationToken: leaseCt);
                             if (repaired.MatchedCount != 1)
@@ -169,14 +172,16 @@ internal sealed class MongoImportApprovalCommitter(
                     }
 
                     var package = packageDoc.ToDomain();
-                    if (package.ImportDraftId != approvedDraft.Id.ToString("D"))
+                    var draftKey = approvedDraft.Id.ToString("D");
+                    if (!package.ImportDraftIds.Contains(draftKey)
+                        && package.ImportDraftId != draftKey)
                     {
                         await session.AbortTransactionAsync(leaseCt);
                         await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
                         return ImportApprovalCommitResult.RevisionConflict();
                     }
 
-                    if (package.Status != PackageImportStatus.NeedsReview)
+                    if (package.Status is not (PackageImportStatus.NeedsReview or PackageImportStatus.Imported))
                     {
                         await session.AbortTransactionAsync(leaseCt);
                         await RecordCleanupBestEffortAsync(approvedDraft.Id, promotion.PromotedThisAttempt);
@@ -184,7 +189,7 @@ internal sealed class MongoImportApprovalCommitter(
                     }
 
                     {
-                        package.MarkImported([catalogueDraft.Id.Value], DateTimeOffset.UtcNow);
+                        package.RecordDraftImported(catalogueDraft.Id.Value, DateTimeOffset.UtcNow);
                         var pkgReplaced = await context.ExamPackages.ReplaceOneAsync(
                             session,
                             Builders<ExamPackageDocument>.Filter.And(

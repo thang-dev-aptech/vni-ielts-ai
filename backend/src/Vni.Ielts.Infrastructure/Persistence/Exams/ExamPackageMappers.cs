@@ -49,6 +49,7 @@ internal static class ExamPackageMappers
         CreatedAt = Utc(package.CreatedAt),
         UpdatedAt = Utc(package.UpdatedAt),
         ImportDraftId = package.ImportDraftId,
+        ImportDraftIds = package.ImportDraftIds.Count > 0 ? [.. package.ImportDraftIds] : null,
         FailureCode = package.FailureCode,
         FailureDetail = package.FailureDetail,
         ClaimOwner = package.ClaimOwner,
@@ -76,11 +77,14 @@ internal static class ExamPackageMappers
         document.UploadPurgeState,
         document.UploadPurgeClaimId,
         document.UploadPurgeClaimedAt is { } claimedAt ? Offset(claimedAt) : null,
-        document.ImportDraftId,
-        document.FailureCode,
-        document.FailureDetail,
-        document.ClaimOwner,
-        document.ClaimFence,
-        document.ClaimedAt is { } pkgClaimedAt ? Offset(pkgClaimedAt) : null,
-        document.LeaseUntil is { } pkgLeaseUntil ? Offset(pkgLeaseUntil) : null);
+        importDraftId: document.ImportDraftId,
+        importDraftIds: document.ImportDraftIds is { Count: > 0 }
+            ? document.ImportDraftIds
+            : null,
+        failureCode: document.FailureCode,
+        failureDetail: document.FailureDetail,
+        claimOwner: document.ClaimOwner,
+        claimFence: document.ClaimFence,
+        claimedAt: document.ClaimedAt is { } pkgClaimedAt ? Offset(pkgClaimedAt) : null,
+        leaseUntil: document.LeaseUntil is { } pkgLeaseUntil ? Offset(pkgLeaseUntil) : null);
 }

@@ -102,7 +102,7 @@ public sealed class PackageIngestionProcessorTests(SsoAppFactory app) : IClassFi
             foreach (var (name, text) in entries)
             {
                 var entry = archive.CreateEntry(name, CompressionLevel.Optimal);
-                using var writer = new StreamWriter(entry.Open(), Encoding.UTF8);
+                using var writer = new StreamWriter(entry.Open(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 writer.Write(text);
             }
         }
@@ -131,6 +131,42 @@ public sealed class PackageIngestionProcessorTests(SsoAppFactory app) : IClassFi
 
         var package = await repository.FindAsync(packageId, CancellationToken.None);
         await processor.ProcessAsync(package!, CancellationToken.None);
+    }
+
+    [SkippableFact]
+    public async Task Valid_manifest_single_exam_zip_transitions_package_to_needs_review()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        var (_, userId) = await SignInAsync(client);
+        await GrantExactPermissionsAsync(userId, "author", "package.upload", "exam.create");
+        var (access, _) = await SignInAsync(client);
+
+        var zipBytes = BuildZip(
+            ("manifest.json", """{ "formatVersion": "1.0", "exams": ["exam.json"], "assets": [] }"""),
+            ("exam.json", ValidPackageJson));
+        var response = await client.SendAsync(
+            UploadRequest(access, "manifest-one.zip", zipBytes, Guid.NewGuid().ToString("n")));
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var packageId = body.GetProperty("packageId").GetString()!;
+
+        await ProcessOnceAsync(packageId);
+
+        using var scope = app.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+
+        var package = await repository.FindAsync(packageId, CancellationToken.None);
+        Assert.NotNull(package);
+        Assert.Equal(PackageImportStatus.NeedsReview, package.Status);
+        Assert.False(string.IsNullOrWhiteSpace(package.ImportDraftId));
+
+        var draft = await drafts.FindAsync(Guid.Parse(package.ImportDraftId!), CancellationToken.None);
+        Assert.NotNull(draft);
+        Assert.Equal(ImportApprovalState.ReviewRequired, draft.ApprovalState);
     }
 
     [SkippableFact]
@@ -495,7 +531,7 @@ public sealed class PackageIngestionFaultTests(PackageIngestionFaultFactory app)
             foreach (var (name, text) in entries)
             {
                 var entry = archive.CreateEntry(name, CompressionLevel.Optimal);
-                using var writer = new StreamWriter(entry.Open(), Encoding.UTF8);
+                using var writer = new StreamWriter(entry.Open(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 writer.Write(text);
             }
         }

@@ -155,7 +155,40 @@ public sealed class PackageOwnershipTests(SsoAppFactory app) : IClassFixture<Sso
         var storedPackage = await Db().GetCollection<BsonDocument>("exam_packages")
             .Find(Builders<BsonDocument>.Filter.Eq("_id", packageId)).FirstAsync();
         Assert.Equal(userA, storedPackage["uploadedBy"].AsString);
-        Assert.Equal("ReadyToImport", storedPackage["status"].AsString);
+        Assert.Equal("NeedsReview", storedPackage["status"].AsString);
+
+        // Legacy confirm ownership: seed ReadyToImport then confirm as B.
+        using (var scope = app.Services.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var uploads = scope.ServiceProvider.GetRequiredService<IPackageUploadStore>();
+            var structural = scope.ServiceProvider.GetRequiredService<PackageStructuralValidator>();
+            var clock = scope.ServiceProvider.GetRequiredService<Vni.Ielts.Domain.Common.IClock>();
+            var package = await repository.FindAsync(packageId, CancellationToken.None);
+            Assert.NotNull(package);
+            // Force legacy state for confirm authorship coverage.
+            await using var stream = await uploads.OpenAsync(package!.UploadRef, CancellationToken.None);
+            MemoryStream buffered = new();
+            await stream.CopyToAsync(buffered);
+            buffered.Position = 0;
+            var outcome = structural.ValidateZip(buffered, package.UploadedBy);
+            Assert.True(outcome.IsValid);
+            var doc = await Db().GetCollection<BsonDocument>("exam_packages")
+                .Find(Builders<BsonDocument>.Filter.Eq("_id", packageId)).FirstAsync();
+            await Db().GetCollection<BsonDocument>("exam_packages").UpdateOneAsync(
+                Builders<BsonDocument>.Filter.Eq("_id", packageId),
+                Builders<BsonDocument>.Update
+                    .Set("status", "ReadyToImport")
+                    .Set("entries", new BsonArray(outcome.Entries.Select(e => new BsonDocument
+                    {
+                        ["proposedDefinitionId"] = e.ProposedDefinitionId,
+                        ["title"] = e.Title,
+                        ["module"] = e.Module.ToString(),
+                        ["questionCount"] = e.QuestionCount,
+                    })))
+                    .Unset("importDraftId")
+                    .Unset("importDraftIds"));
+        }
 
         var confirm = Authed(HttpMethod.Post, $"/api/v1/admin/packages/{packageId}/confirm", accessB);
         var confirmed = await client.SendAsync(confirm);
@@ -218,6 +251,35 @@ public sealed class PackageOwnershipTests(SsoAppFactory app) : IClassFixture<Sso
         upload.EnsureSuccessStatusCode();
         var packageId = (await upload.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("packageId").GetString()!;
         await ProcessOnceAsync(packageId);
+
+        // Seed legacy ReadyToImport so confirm permission is still exercised.
+        using (var scope = app.Services.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var uploads = scope.ServiceProvider.GetRequiredService<IPackageUploadStore>();
+            var structural = scope.ServiceProvider.GetRequiredService<PackageStructuralValidator>();
+            var package = await repository.FindAsync(packageId, CancellationToken.None);
+            Assert.NotNull(package);
+            await using var stream = await uploads.OpenAsync(package!.UploadRef, CancellationToken.None);
+            using var buffered = new MemoryStream();
+            await stream.CopyToAsync(buffered);
+            buffered.Position = 0;
+            var outcome = structural.ValidateZip(buffered, package.UploadedBy);
+            Assert.True(outcome.IsValid);
+            await Db().GetCollection<BsonDocument>("exam_packages").UpdateOneAsync(
+                Builders<BsonDocument>.Filter.Eq("_id", packageId),
+                Builders<BsonDocument>.Update
+                    .Set("status", "ReadyToImport")
+                    .Set("entries", new BsonArray(outcome.Entries.Select(e => new BsonDocument
+                    {
+                        ["proposedDefinitionId"] = e.ProposedDefinitionId,
+                        ["title"] = e.Title,
+                        ["module"] = e.Module.ToString(),
+                        ["questionCount"] = e.QuestionCount,
+                    })))
+                    .Unset("importDraftId")
+                    .Unset("importDraftIds"));
+        }
 
         var denied = await client.SendAsync(
             Authed(HttpMethod.Post, $"/api/v1/admin/packages/{packageId}/confirm", accessB));

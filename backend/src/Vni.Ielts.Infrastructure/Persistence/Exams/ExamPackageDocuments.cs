@@ -63,6 +63,10 @@ internal sealed class ExamPackageDocument
     [BsonIgnoreIfNull]
     public string? ImportDraftId { get; set; }
 
+    [BsonElement("importDraftIds")]
+    [BsonIgnoreIfNull]
+    public List<string>? ImportDraftIds { get; set; }
+
     [BsonElement("failureCode")]
     [BsonIgnoreIfNull]
     public string? FailureCode { get; set; }

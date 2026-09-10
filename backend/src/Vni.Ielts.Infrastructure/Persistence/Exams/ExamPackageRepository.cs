@@ -140,8 +140,12 @@ internal sealed class MongoExamPackageRepository(MongoContext context) : IExamPa
     {
         if (string.IsNullOrWhiteSpace(importDraftId)) return null;
 
+        var filter = Builders<ExamPackageDocument>.Filter.Or(
+            Builders<ExamPackageDocument>.Filter.Eq(p => p.ImportDraftId, importDraftId),
+            Builders<ExamPackageDocument>.Filter.AnyEq(p => p.ImportDraftIds, importDraftId));
+
         var document = await context.ExamPackages
-            .Find(package => package.ImportDraftId == importDraftId)
+            .Find(filter)
             .FirstOrDefaultAsync(ct);
 
         return document?.ToDomain();

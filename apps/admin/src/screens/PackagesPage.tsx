@@ -22,7 +22,8 @@ const STATUS_LABEL: Record<AdminPackage['status'], string> = {
   validating: 'Đang kiểm tra',
   parsing: 'Đang phân tích',
   'needs-review': 'Cần rà soát',
-  'ready-to-import': 'Sẵn sàng tạo',
+  /** @deprecated H1 — legacy in-flight only; new packages go straight to needs-review. */
+  'ready-to-import': 'Sẵn sàng tạo (cũ)',
   imported: 'Đã tạo bản nháp',
   rejected: 'Bị từ chối',
   failed: 'Lỗi xử lý',

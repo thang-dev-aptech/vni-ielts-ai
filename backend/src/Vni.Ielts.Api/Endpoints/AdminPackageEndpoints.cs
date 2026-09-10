@@ -273,6 +273,7 @@ public static class AdminPackageEndpoints
         }),
         createdVersionIds = package.CreatedVersionIds,
         importDraftId = package.ImportDraftId,
+        importDraftIds = package.ImportDraftIds,
         failureCode = package.FailureCode,
         failureDetail = package.FailureDetail,
         createdAt = package.CreatedAt,

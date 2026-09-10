@@ -96,6 +96,10 @@ beforeEach(() => {
   listPackageCandidates.mockReset();
   listExams.mockReset().mockResolvedValue({ exams: [] });
   deletePackage.mockReset();
+  getImportDraft.mockReset();
+  setImportChecklist.mockReset();
+  overrideImportWarning.mockReset();
+  approveImportDraft.mockReset();
 });
 
 describe('PackageReviewPage', () => {
@@ -470,5 +474,110 @@ describe('PackageReviewPage', () => {
     await waitFor(() => expect(draftFetchCount).toBe(2));
     expect(screen.getByText(/Dữ liệu mới nhất đã được tải/)).toBeInTheDocument();
     expect(screen.getByText(/v2/)).toBeInTheDocument();
+  });
+
+  it('shows N draft cards with progress 1/3 and two remaining approve buttons', async () => {
+    permissions.add('exam.review');
+    getPackage.mockResolvedValue(
+      packageOf({
+        status: 'needs-review',
+        importDraftId: 'draft-a',
+        importDraftIds: ['draft-a', 'draft-b', 'draft-c'],
+      }),
+    );
+    listPackageCandidates.mockResolvedValue([]);
+
+    const draftOf = (id: string, approved: boolean) => ({
+      draftId: id,
+      definitionId: `def-${id}`,
+      versionNumber: 1,
+      route: 'structuredpackage',
+      approvalState: approved ? 'approved' : 'reviewrequired',
+      presentSkills: ['reading'],
+      findings: [],
+      warnings: [],
+      checklistConfirmed: [],
+      checklistComplete: true,
+      checklistRequired: false,
+      assetCount: 1,
+      examVersionId: approved ? `ev-${id}` : null,
+    });
+
+    getImportDraft.mockImplementation((_token: string, id: string) =>
+      Promise.resolve(draftOf(id, id === 'draft-a')),
+    );
+
+    renderPage();
+
+    await waitFor(() => expect(screen.getByTestId('draft-progress')).toHaveTextContent('Đã duyệt 1/3'));
+    expect(screen.getByText('Bản nháp draft-a')).toBeInTheDocument();
+    expect(screen.getByText('Bản nháp draft-b')).toBeInTheDocument();
+    expect(screen.getByText('Bản nháp draft-c')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Duyệt' })).toHaveLength(2);
+  });
+
+  it('updates progress to 3/3 after the last draft is approved', async () => {
+    permissions.add('exam.review');
+    getPackage.mockResolvedValue(
+      packageOf({
+        status: 'needs-review',
+        importDraftId: 'draft-a',
+        importDraftIds: ['draft-a', 'draft-b', 'draft-c'],
+      }),
+    );
+    listPackageCandidates.mockResolvedValue([]);
+
+    const state = new Map([
+      ['draft-a', 'approved'],
+      ['draft-b', 'approved'],
+      ['draft-c', 'reviewrequired'],
+    ]);
+
+    getImportDraft.mockImplementation((_token: string, id: string) =>
+      Promise.resolve({
+        draftId: id,
+        definitionId: `def-${id}`,
+        versionNumber: 1,
+        route: 'structuredpackage',
+        approvalState: state.get(id)!,
+        presentSkills: ['listening'],
+        findings: [],
+        warnings: [],
+        checklistConfirmed: [],
+        checklistComplete: true,
+        checklistRequired: false,
+        assetCount: 1,
+        examVersionId: state.get(id) === 'approved' ? `ev-${id}` : null,
+      }),
+    );
+
+    approveImportDraft.mockImplementation(async (_token: string, id: string) => {
+      state.set(id, 'approved');
+      return {
+        draftId: id,
+        definitionId: `def-${id}`,
+        versionNumber: 1,
+        route: 'structuredpackage',
+        approvalState: 'approved',
+        presentSkills: ['listening'],
+        findings: [],
+        warnings: [],
+        checklistConfirmed: [],
+        checklistComplete: true,
+        checklistRequired: false,
+        assetCount: 1,
+        examVersionId: `ev-${id}`,
+      };
+    });
+
+    renderPage();
+
+    await waitFor(() => expect(screen.getByTestId('draft-progress')).toHaveTextContent('Đã duyệt 2/3'));
+    fireEvent.click(screen.getByRole('button', { name: 'Duyệt' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('draft-progress')).toHaveTextContent('Đã duyệt 3/3'),
+    );
+    expect(screen.queryByRole('button', { name: 'Duyệt' })).not.toBeInTheDocument();
   });
 });

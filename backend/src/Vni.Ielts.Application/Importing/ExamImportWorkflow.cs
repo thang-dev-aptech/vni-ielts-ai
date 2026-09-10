@@ -113,7 +113,8 @@ public sealed class ExamImportWorkflow(
         DateTimeOffset? createdAt = null,
         IReadOnlyList<ImportAssetManifestEntry>? assetManifest = null,
         string? packageId = null,
-        bool saveDraft = true) =>
+        bool saveDraft = true,
+        string? draftStabilityKey = null) =>
         ValidateAndSaveAsync(
             packageJson,
             definitionId,
@@ -128,7 +129,8 @@ public sealed class ExamImportWorkflow(
             createdAt,
             assetManifest,
             packageId,
-            saveDraft);
+            saveDraft,
+            draftStabilityKey);
 
     public async Task<ExamImportAttempt> ImportExtractedAsync(
         ExtractedImportSource source,
@@ -183,7 +185,8 @@ public sealed class ExamImportWorkflow(
         DateTimeOffset? createdAt = null,
         IReadOnlyList<ImportAssetManifestEntry>? assetManifest = null,
         string? packageId = null,
-        bool saveDraft = true)
+        bool saveDraft = true,
+        string? draftStabilityKey = null)
     {
         var validation = validator.Validate(packageJson, definitionId, versionNumber);
         if (!validation.IsValid || validation.Version is null)
@@ -200,8 +203,10 @@ public sealed class ExamImportWorkflow(
         Guid draftId;
         if (!string.IsNullOrWhiteSpace(packageId))
         {
-            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(
-                $"{definitionId.Value}\n{versionNumber}\n{route}\n{packageHash}\n{packageId}"));
+            var material = string.IsNullOrWhiteSpace(draftStabilityKey)
+                ? $"{definitionId.Value}\n{versionNumber}\n{route}\n{packageHash}\n{packageId}"
+                : $"{definitionId.Value}\n{versionNumber}\n{route}\n{packageHash}\n{packageId}\n{draftStabilityKey}";
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(material));
             draftId = new Guid(bytes.AsSpan(0, 16));
         }
         else

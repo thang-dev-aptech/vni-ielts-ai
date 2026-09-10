@@ -35,6 +35,7 @@ public sealed class ExamPackage
     private readonly List<PackageFinding> _findings;
     private readonly List<ExamPackageEntry> _entries;
     private readonly List<string> _createdVersionIds;
+    private readonly List<string> _importDraftIds;
 
     private ExamPackage(
         string id,
@@ -54,7 +55,7 @@ public sealed class ExamPackage
         DateTimeOffset? uploadPurgeClaimedAt,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
-        string? importDraftId = null,
+        IEnumerable<string>? importDraftIds = null,
         string? failureCode = null,
         string? failureDetail = null,
         string? claimOwner = null,
@@ -78,6 +79,9 @@ public sealed class ExamPackage
         _findings = [.. findings];
         _entries = [.. entries];
         _createdVersionIds = [.. createdVersionIds];
+        _importDraftIds = importDraftIds is null
+            ? []
+            : [.. importDraftIds.Where(draftId => !string.IsNullOrWhiteSpace(draftId))];
         Version = version;
         UploadPurged = uploadPurged;
         UploadPurgeState = uploadPurgeState;
@@ -85,7 +89,6 @@ public sealed class ExamPackage
         UploadPurgeClaimedAt = uploadPurgeClaimedAt;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
-        ImportDraftId = importDraftId;
         FailureCode = failureCode;
         FailureDetail = failureDetail;
         ClaimOwner = claimOwner;
@@ -124,7 +127,12 @@ public sealed class ExamPackage
     public DateTimeOffset CreatedAt { get; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
-    public string? ImportDraftId { get; private set; }
+    /// <summary>All import drafts linked to this package (one per exam for multi-exam ZIPs).</summary>
+    public IReadOnlyList<string> ImportDraftIds => _importDraftIds;
+
+    /// <summary>Alias for the first draft id — keeps single-draft callers working.</summary>
+    public string? ImportDraftId => _importDraftIds.Count > 0 ? _importDraftIds[0] : null;
+
     public string? FailureCode { get; private set; }
     public string? FailureDetail { get; private set; }
 
@@ -164,6 +172,7 @@ public sealed class ExamPackage
         string? uploadPurgeClaimId = null,
         DateTimeOffset? uploadPurgeClaimedAt = null,
         string? importDraftId = null,
+        IEnumerable<string>? importDraftIds = null,
         string? failureCode = null,
         string? failureDetail = null,
         string? claimOwner = null,
@@ -173,7 +182,16 @@ public sealed class ExamPackage
         new(id, sourceKind, uploadedBy, sha256, fileName, uploadRef,
             status, findings, entries, createdVersionIds, version, uploadPurged,
             uploadPurgeState, uploadPurgeClaimId, uploadPurgeClaimedAt, createdAt, updatedAt,
-            importDraftId, failureCode, failureDetail, claimOwner, claimFence, claimedAt, leaseUntil);
+            ResolveImportDraftIds(importDraftIds, importDraftId),
+            failureCode, failureDetail, claimOwner, claimFence, claimedAt, leaseUntil);
+
+    private static IEnumerable<string> ResolveImportDraftIds(
+        IEnumerable<string>? importDraftIds, string? importDraftId)
+    {
+        if (importDraftIds is not null)
+            return importDraftIds;
+        return string.IsNullOrWhiteSpace(importDraftId) ? [] : [importDraftId];
+    }
 
     /// <summary>Uploaded → Scanning. Malware/AV scanning, ahead of structural validation. → Plan 03</summary>
     public void MarkScanning(DateTimeOffset now)
@@ -281,9 +299,23 @@ public sealed class ExamPackage
         Version++;
     }
 
-    public void MarkNeedsReview(string? importDraftId, DateTimeOffset now, IReadOnlyList<PackageFinding>? findings = null)
+    public void MarkNeedsReview(string? importDraftId, DateTimeOffset now, IReadOnlyList<PackageFinding>? findings = null) =>
+        MarkNeedsReview(
+            string.IsNullOrWhiteSpace(importDraftId) ? [] : [importDraftId],
+            now,
+            findings);
+
+    public void MarkNeedsReview(
+        IReadOnlyList<string> importDraftIds,
+        DateTimeOffset now,
+        IReadOnlyList<PackageFinding>? findings = null)
     {
-        if (string.IsNullOrWhiteSpace(importDraftId))
+        var ids = importDraftIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        if (ids.Length == 0)
         {
             RequireStatus(PackageImportStatus.Parsing, "marked as needing review");
         }
@@ -293,7 +325,8 @@ public sealed class ExamPackage
                 $"Cannot be marked as needing review from {Status} — this package must be Validating or Parsing.");
         }
 
-        ImportDraftId = importDraftId;
+        _importDraftIds.Clear();
+        _importDraftIds.AddRange(ids);
         if (findings is not null) _findings.AddRange(findings);
         Status = PackageImportStatus.NeedsReview;
         ClaimOwner = null;
@@ -304,7 +337,7 @@ public sealed class ExamPackage
     }
 
     public void MarkNeedsReview(DateTimeOffset now, IReadOnlyList<PackageFinding>? findings = null) =>
-        MarkNeedsReview(null, now, findings);
+        MarkNeedsReview((string?)null, now, findings);
 
     /// <summary>Validating → ReadyToImport. A multi-exam ZIP, waiting for the operator to confirm before N drafts are created.</summary>
     public void MarkReadyToImport(IReadOnlyList<ExamPackageEntry> entries, DateTimeOffset now)
@@ -349,6 +382,36 @@ public sealed class ExamPackage
             if (!_createdVersionIds.Contains(id))
                 _createdVersionIds.Add(id);
         }
+        UpdatedAt = now;
+        Version++;
+    }
+
+    /// <summary>
+    /// Records one catalogue version from approving a linked import draft.
+    /// Stays <see cref="PackageImportStatus.NeedsReview"/> until every linked
+    /// draft has produced a version, then becomes Imported.
+    /// </summary>
+    public void RecordDraftImported(string createdVersionId, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(createdVersionId))
+            throw new ArgumentException("Created version id cannot be empty.", nameof(createdVersionId));
+
+        if (Status is not (PackageImportStatus.NeedsReview or PackageImportStatus.Imported))
+        {
+            throw new InvalidOperationException(
+                $"Cannot record an imported draft from {Status} — this package must be NeedsReview or Imported.");
+        }
+
+        if (!_createdVersionIds.Contains(createdVersionId))
+            _createdVersionIds.Add(createdVersionId);
+
+        var required = Math.Max(1, _importDraftIds.Count);
+        if (_createdVersionIds.Count >= required)
+            Status = PackageImportStatus.Imported;
+
+        ClaimOwner = null;
+        ClaimedAt = null;
+        LeaseUntil = null;
         UpdatedAt = now;
         Version++;
     }

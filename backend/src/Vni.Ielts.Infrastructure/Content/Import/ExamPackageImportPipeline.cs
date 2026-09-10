@@ -39,7 +39,7 @@ public sealed class ExamPackageImportPipeline(
     public async Task<ExamImportAttempt> ImportAsync(
         Stream zip, ExamDefinitionId definitionId, int versionNumber, bool checklistRequired,
         CancellationToken ct, UserId? createdBy = null, DateTimeOffset? createdAt = null,
-        string? packageId = null, bool saveDraft = true)
+        string? packageId = null, bool saveDraft = true, string? draftStabilityKey = null)
     {
         if (!zip.CanSeek)
         {
@@ -64,7 +64,7 @@ public sealed class ExamPackageImportPipeline(
 
             return await ImportFromSandboxAsync(
                 inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber,
-                checklistRequired, createdBy, createdAt, ct, packageId, saveDraft);
+                checklistRequired, createdBy, createdAt, ct, packageId, saveDraft, draftStabilityKey);
         }
         catch (ExamSourceParsingUnavailableException e)
         {
@@ -95,7 +95,8 @@ public sealed class ExamPackageImportPipeline(
         DateTimeOffset? createdAt,
         CancellationToken ct,
         string? packageId = null,
-        bool saveDraft = true)
+        bool saveDraft = true,
+        string? draftStabilityKey = null)
     {
         var skillFiles = layout.EntriesBySkill.Values.SelectMany(e => e).ToArray();
         var jsonFiles = skillFiles
@@ -112,7 +113,7 @@ public sealed class ExamPackageImportPipeline(
             return await ImportStructuredWithAssetsAsync(
                 packageJson, layout.AssetEntries ?? [], sandboxDirectory,
                 definitionId, versionNumber, checklistRequired, createdBy, createdAt, ct,
-                packageId, saveDraft);
+                packageId, saveDraft, draftStabilityKey);
         }
 
         var combined = new StringBuilder();
@@ -156,7 +157,8 @@ public sealed class ExamPackageImportPipeline(
         DateTimeOffset? createdAt,
         CancellationToken ct,
         string? packageId = null,
-        bool saveDraft = true)
+        bool saveDraft = true,
+        string? draftStabilityKey = null)
     {
         var validation = validator.Validate(packageJson, definitionId, versionNumber);
         if (!validation.IsValid || validation.Version is null)
@@ -166,8 +168,10 @@ public sealed class ExamPackageImportPipeline(
         Guid draftId;
         if (!string.IsNullOrWhiteSpace(packageId))
         {
-            var bytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(
-                $"{definitionId.Value}\n{versionNumber}\n{ExamImportRoute.StructuredPackage}\n{packageHash}\n{packageId}"));
+            var material = string.IsNullOrWhiteSpace(draftStabilityKey)
+                ? $"{definitionId.Value}\n{versionNumber}\n{ExamImportRoute.StructuredPackage}\n{packageHash}\n{packageId}"
+                : $"{definitionId.Value}\n{versionNumber}\n{ExamImportRoute.StructuredPackage}\n{packageHash}\n{packageId}\n{draftStabilityKey}";
+            var bytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(material));
             draftId = new Guid(bytes.AsSpan(0, 16));
         }
         else
@@ -190,7 +194,7 @@ public sealed class ExamPackageImportPipeline(
         {
             return await workflow.ImportStructuredAsync(
                 packageJson, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt, manifest,
-                packageId, saveDraft);
+                packageId, saveDraft, draftStabilityKey);
         }
         catch
         {

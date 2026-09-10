@@ -82,6 +82,7 @@ export interface AdminPackage {
     | 'validating'
     | 'parsing'
     | 'needs-review'
+    /** @deprecated H1 — new packages never enter this status; keep for legacy in-flight only. */
     | 'ready-to-import'
     | 'imported'
     | 'rejected'
@@ -92,7 +93,10 @@ export interface AdminPackage {
   createdVersionIds: string[];
   createdAt: string;
   updatedAt: string;
+  /** First linked draft; prefer `importDraftIds` when present. */
   importDraftId?: string | null;
+  /** All drafts linked from a (possibly multi-exam) package. */
+  importDraftIds?: string[];
   failureCode?: string | null;
   failureDetail?: string | null;
 }
@@ -879,6 +883,11 @@ export const uploadPackage = async (
   return payload as { packageId: string; status?: string };
 };
 
+/**
+ * @deprecated H1 — Worker creates N drafts for every new manifest ZIP.
+ * Keep for legacy packages stuck in `ready-to-import` until they drain; do not
+ * call from new CMS UI.
+ */
 export const confirmPackage = (accessToken: string, packageId: string) =>
   request<{ packageId: string; createdVersionIds: string[] }>(
     `/api/v1/admin/packages/${packageId}/confirm`,

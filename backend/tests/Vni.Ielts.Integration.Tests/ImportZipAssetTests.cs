@@ -126,6 +126,253 @@ public sealed class ImportAssetTests(ImportZipAssetAppFactory app) : IClassFixtu
         Assert.Equal(original, await served.Content.ReadAsByteArrayAsync());
     }
 
+    [SkippableFact]
+    public async Task Manifest_zip_audio_is_served_after_package_review_approval()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+        Skip.IfNot(ObjectStorageAppFactory.MinioAvailable, ObjectStorageAppFactory.MinioSkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var reference = UniqueAudioRef("manifest-served");
+        var mp3 = SyntheticMp3("manifest-served");
+        var zip = ManifestZip(PackageJson(reference, mp3, "manifestserved"), reference, mp3);
+        var upload = await PostZipAsync(client, access, zip);
+
+        Assert.Equal(HttpStatusCode.Accepted, upload.Status.StatusCode);
+        Assert.Equal(PackageImportStatus.NeedsReview, upload.Package.Status);
+        Assert.False(string.IsNullOrWhiteSpace(upload.Package.ImportDraftId));
+        Assert.NotNull(upload.Draft);
+        Assert.True(upload.Draft!.Assets.Count >= 1);
+
+        var draftId = upload.Package.ImportDraftId!;
+        await ConfirmFullChecklistAsync(client, access, draftId);
+        var approve = await SendAsync(client, HttpMethod.Post,
+            $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        Assert.Equal(HttpStatusCode.OK, approve.StatusCode);
+
+        var asset = await SendAsync(client, HttpMethod.Get,
+            $"/api/v1/exams/{reference}", access);
+        Assert.True(
+            asset.StatusCode is HttpStatusCode.OK or HttpStatusCode.PartialContent,
+            $"expected 200/206, got {asset.StatusCode}");
+        Assert.Equal("audio/mpeg", asset.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(mp3, await asset.Content.ReadAsByteArrayAsync());
+    }
+
+    [SkippableFact]
+    public async Task Manifest_zip_missing_embedded_mp3_is_rejected()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+        Skip.IfNot(ObjectStorageAppFactory.MinioAvailable, ObjectStorageAppFactory.MinioSkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var reference = UniqueAudioRef("manifest-missing");
+        var phantom = SyntheticMp3("declared-absent");
+        var sha = Convert.ToHexStringLower(SHA256.HashData(phantom));
+        var zip = ZipOf(
+            ("manifest.json", $$"""
+            {
+              "formatVersion": "1.0",
+              "exams": ["exam.json"],
+              "assets": [{ "path": "{{reference}}", "sha256": "{{sha}}" }]
+            }
+            """),
+            ("exam.json", PackageJson(reference, phantom, "manifestmissing")));
+
+        var upload = await PostZipAsync(client, access, zip);
+
+        Assert.Equal(HttpStatusCode.Accepted, upload.Status.StatusCode);
+        Assert.Equal(PackageImportStatus.Rejected, upload.Package.Status);
+        Assert.Contains(
+            upload.Package.Findings,
+            f => f.Code is "ASSET_NOT_FOUND" or "ASSET_MISSING");
+        Assert.Null(upload.Package.ImportDraftId);
+    }
+
+    [SkippableFact]
+    public async Task Real_aptis_listening_test_10_manifest_zip_audio_is_served_after_approval()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+        Skip.IfNot(ObjectStorageAppFactory.MinioAvailable, ObjectStorageAppFactory.MinioSkipReason);
+
+        const string aptisPath =
+            "/home/phat/Projects/1. Projects/aptis_de_zip/aptis-listening-test-10.zip";
+        Skip.IfNot(File.Exists(aptisPath), $"Aptis fixture missing at {aptisPath}");
+
+        var (client, access) = await SignInAsAdminAsync();
+        var upload = await PostZipAsync(client, access, await File.ReadAllBytesAsync(aptisPath));
+
+        Assert.Equal(HttpStatusCode.Accepted, upload.Status.StatusCode);
+        Assert.Equal(PackageImportStatus.NeedsReview, upload.Package.Status);
+        Assert.False(string.IsNullOrWhiteSpace(upload.Package.ImportDraftId));
+        Assert.NotNull(upload.Draft);
+        Assert.True(upload.Draft!.Assets.Count >= 4, $"expected ≥4 staged assets, got {upload.Draft.Assets.Count}");
+
+        var draftId = upload.Package.ImportDraftId!;
+        await ConfirmFullChecklistAsync(client, access, draftId);
+        await ResolveOpenWarningsAsync(client, access, draftId);
+
+        var approve = await SendAsync(client, HttpMethod.Post,
+            $"/api/v1/admin/import/packages/{draftId}/approve", access);
+        Assert.True(
+            approve.StatusCode is HttpStatusCode.OK or HttpStatusCode.Conflict,
+            $"approve returned {approve.StatusCode}: {await approve.Content.ReadAsStringAsync()}");
+
+        const string reference = "assets/aptis-listening-t10/1.mp3";
+        var expected = await ReadZipEntryAsync(aptisPath, reference);
+        var asset = await SendAsync(client, HttpMethod.Get, $"/api/v1/exams/{reference}", access);
+        Assert.True(
+            asset.StatusCode is HttpStatusCode.OK or HttpStatusCode.PartialContent,
+            $"expected 200/206 for {reference}, got {asset.StatusCode}");
+        Assert.Equal("audio/mpeg", asset.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(expected, await asset.Content.ReadAsByteArrayAsync());
+    }
+
+    [SkippableFact]
+    public async Task Multi_exam_manifest_stages_per_exam_assets_and_serves_all_after_approval()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+        Skip.IfNot(ObjectStorageAppFactory.MinioAvailable, ObjectStorageAppFactory.MinioSkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var refA = UniqueAudioRef("multi-a");
+        var refB = UniqueAudioRef("multi-b");
+        var mp3A = SyntheticMp3("multi-a");
+        var mp3B = SyntheticMp3("multi-b");
+        var zip = MultiExamManifestZip(
+            ("listening-a.json", PackageJson(refA, mp3A, "multia"), refA, mp3A),
+            ("listening-b.json", PackageJson(refB, mp3B, "multib"), refB, mp3B));
+
+        var upload = await PostZipAsync(client, access, zip);
+        Assert.Equal(HttpStatusCode.Accepted, upload.Status.StatusCode);
+        Assert.Equal(PackageImportStatus.NeedsReview, upload.Package.Status);
+        Assert.Equal(2, upload.Package.ImportDraftIds.Count);
+
+        var drafts = await LoadAllDraftsAsync(upload.Package);
+        Assert.Equal(2, drafts.Count);
+        Assert.All(drafts, d => Assert.True(d.Assets.Count >= 1));
+
+        foreach (var draftId in upload.Package.ImportDraftIds)
+        {
+            await ConfirmFullChecklistAsync(client, access, draftId);
+            var approve = await SendAsync(client, HttpMethod.Post,
+                $"/api/v1/admin/import/packages/{draftId}/approve", access);
+            Assert.Equal(HttpStatusCode.OK, approve.StatusCode);
+        }
+
+        await AssertAssetServedAsync(client, access, refA, mp3A);
+        await AssertAssetServedAsync(client, access, refB, mp3B);
+    }
+
+    [SkippableFact]
+    public async Task Multi_exam_manifest_missing_one_mp3_rejects_whole_package()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+        Skip.IfNot(ObjectStorageAppFactory.MinioAvailable, ObjectStorageAppFactory.MinioSkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var refA = UniqueAudioRef("multi-miss-a");
+        var refB = UniqueAudioRef("multi-miss-b");
+        var mp3A = SyntheticMp3("multi-miss-a");
+        var phantomB = SyntheticMp3("multi-miss-b-absent");
+        var shaA = Convert.ToHexStringLower(SHA256.HashData(mp3A));
+        var shaB = Convert.ToHexStringLower(SHA256.HashData(phantomB));
+        var zip = ZipOf(
+            ("manifest.json", $$"""
+            {
+              "formatVersion": "1.0",
+              "exams": ["listening-a.json", "listening-b.json"],
+              "assets": [
+                { "path": "{{refA}}", "sha256": "{{shaA}}" },
+                { "path": "{{refB}}", "sha256": "{{shaB}}" }
+              ]
+            }
+            """),
+            ("listening-a.json", PackageJson(refA, mp3A, "multimissa")),
+            ("listening-b.json", PackageJson(refB, phantomB, "multimissb")),
+            (refA, mp3A));
+
+        var upload = await PostZipAsync(client, access, zip);
+        Assert.Equal(HttpStatusCode.Accepted, upload.Status.StatusCode);
+        Assert.Equal(PackageImportStatus.Rejected, upload.Package.Status);
+        Assert.Empty(upload.Package.ImportDraftIds);
+        Assert.Null(upload.Package.ImportDraftId);
+        Assert.Contains(
+            upload.Package.Findings,
+            f => f.Code is "ASSET_NOT_FOUND" or "ASSET_MISSING");
+    }
+
+    [SkippableFact]
+    public async Task Multi_exam_shared_asset_promotes_once()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+        Skip.IfNot(ObjectStorageAppFactory.MinioAvailable, ObjectStorageAppFactory.MinioSkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var shared = UniqueAudioRef("multi-shared");
+        var mp3 = SyntheticMp3("multi-shared");
+        var zip = MultiExamManifestZip(
+            ("listening-a.json", PackageJson(shared, mp3, "shareda"), shared, mp3),
+            ("listening-b.json", PackageJson(shared, mp3, "sharedb"), shared, mp3));
+
+        var upload = await PostZipAsync(client, access, zip);
+        Assert.Equal(HttpStatusCode.Accepted, upload.Status.StatusCode);
+        Assert.Equal(PackageImportStatus.NeedsReview, upload.Package.Status);
+        Assert.Equal(2, upload.Package.ImportDraftIds.Count);
+
+        foreach (var draftId in upload.Package.ImportDraftIds)
+        {
+            await ConfirmFullChecklistAsync(client, access, draftId);
+            var approve = await SendAsync(client, HttpMethod.Post,
+                $"/api/v1/admin/import/packages/{draftId}/approve", access);
+            Assert.Equal(HttpStatusCode.OK, approve.StatusCode);
+        }
+
+        await AssertAssetServedAsync(client, access, shared, mp3);
+
+        using var scope = app.Services.CreateScope();
+        var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+        var refreshed = await packages.FindAsync(upload.Package.Id, default);
+        Assert.NotNull(refreshed);
+        Assert.Equal(PackageImportStatus.Imported, refreshed!.Status);
+        Assert.Equal(2, refreshed.CreatedVersionIds.Count);
+    }
+
+    private static async Task ResolveOpenWarningsAsync(HttpClient client, string access, string draftId)
+    {
+        var get = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        get.EnsureSuccessStatusCode();
+        var body = await BodyOf(get);
+        if (!body.TryGetProperty("warnings", out var warnings)) return;
+        foreach (var warning in warnings.EnumerateArray())
+        {
+            if (warning.GetProperty("resolved").GetBoolean()) continue;
+            var overrideRequest = Request(
+                HttpMethod.Post,
+                $"/api/v1/admin/import/packages/{draftId}/warnings/{warning.GetProperty("id").GetString()}/override",
+                access);
+            overrideRequest.Content = JsonContent.Create(new
+            {
+                reason = "M5 aptis audio verify — override open warnings.",
+            });
+            var overrideResponse = await client.SendAsync(overrideRequest);
+            Assert.Equal(HttpStatusCode.OK, overrideResponse.StatusCode);
+        }
+    }
+
+    private static async Task<byte[]> ReadZipEntryAsync(string zipPath, string entryName)
+    {
+        await using var file = File.OpenRead(zipPath);
+        using var archive = new ZipArchive(file, ZipArchiveMode.Read);
+        var entry = archive.GetEntry(entryName);
+        Assert.NotNull(entry);
+        await using var stream = entry!.Open();
+        using var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer);
+        return buffer.ToArray();
+    }
+
     private async Task<(HttpClient Client, string Access)> SignInAsAdminAsync()
     {
         var client = NewClient();
@@ -228,6 +475,82 @@ public sealed class ImportAssetTests(ImportZipAssetAppFactory app) : IClassFixtu
         return (response, package, draft);
     }
 
+    private async Task<IReadOnlyList<ExamImportDraft>> LoadAllDraftsAsync(ExamPackage package)
+    {
+        using var scope = app.Services.CreateScope();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+        var loaded = new List<ExamImportDraft>();
+        foreach (var id in package.ImportDraftIds)
+        {
+            var draft = await drafts.FindAsync(Guid.Parse(id), default);
+            Assert.NotNull(draft);
+            loaded.Add(draft!);
+        }
+
+        return loaded;
+    }
+
+    private static async Task AssertAssetServedAsync(
+        HttpClient client, string access, string reference, byte[] expected)
+    {
+        var asset = await SendAsync(client, HttpMethod.Get, $"/api/v1/exams/{reference}", access);
+        Assert.True(
+            asset.StatusCode is HttpStatusCode.OK or HttpStatusCode.PartialContent,
+            $"expected 200/206 for {reference}, got {asset.StatusCode}");
+        Assert.Equal("audio/mpeg", asset.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(expected, await asset.Content.ReadAsByteArrayAsync());
+    }
+
+    private static byte[] MultiExamManifestZip(
+        params (string ExamName, string ExamJson, string AudioRef, byte[] Mp3)[] exams)
+    {
+        var assets = exams
+            .GroupBy(e => e.AudioRef, StringComparer.Ordinal)
+            .Select(g =>
+            {
+                var mp3 = g.First().Mp3;
+                var sha = Convert.ToHexStringLower(SHA256.HashData(mp3));
+                return (Path: g.Key, Sha: sha, Bytes: mp3);
+            })
+            .ToList();
+
+        var examList = string.Join(", ", exams.Select(e => $"\"{e.ExamName}\""));
+        var assetList = string.Join(", ", assets.Select(a =>
+            $$"""{ "path": "{{a.Path}}", "sha256": "{{a.Sha}}" }"""));
+
+        var entries = new List<(string Name, object Content)>
+        {
+            ("manifest.json", $$"""
+            {
+              "formatVersion": "1.0",
+              "exams": [{{examList}}],
+              "assets": [{{assetList}}]
+            }
+            """),
+        };
+        foreach (var exam in exams)
+            entries.Add((exam.ExamName, exam.ExamJson));
+        foreach (var asset in assets)
+            entries.Add((asset.Path, asset.Bytes));
+
+        return ZipOf(entries.ToArray());
+    }
+
+    private static byte[] ManifestZip(string examJson, string audioRef, byte[] mp3)
+    {
+        var sha = Convert.ToHexStringLower(SHA256.HashData(mp3));
+        return ZipOf(
+            ("manifest.json", $$"""
+            {
+              "formatVersion": "1.0",
+              "exams": ["exam.json"],
+              "assets": [{ "path": "{{audioRef}}", "sha256": "{{sha}}" }]
+            }
+            """),
+            ("exam.json", examJson),
+            (audioRef, mp3));
+    }
+
     private static byte[] ZipOf(params (string Name, object Content)[] entries)
     {
         using var stream = new MemoryStream();
@@ -239,7 +562,7 @@ public sealed class ImportAssetTests(ImportZipAssetAppFactory app) : IClassFixtu
                 using var output = entry.Open();
                 if (content is string text)
                 {
-                    using var writer = new StreamWriter(output, Encoding.UTF8);
+                    using var writer = new StreamWriter(output, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                     writer.Write(text);
                 }
                 else

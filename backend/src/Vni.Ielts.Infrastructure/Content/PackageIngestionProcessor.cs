@@ -17,19 +17,15 @@ using PackageFinding = Vni.Ielts.Domain.Exams.PackageFinding;
 namespace Vni.Ielts.Infrastructure.Content;
 
 /// <summary>
-/// Drives one <see cref="ExamPackage"/> through Plan 03's structural gate and,
-/// for a single-source package, straight into Plan 05's import: <c>Uploaded →
-/// Validating → {Rejected, Imported (one exam), ReadyToImport (multi-exam
-/// ZIP, waits for <c>POST .../confirm</c>)}</c>.
+/// Drives one <see cref="ExamPackage"/> through structural validation into
+/// review: <c>Uploaded → Validating → {Rejected, NeedsReview (ZIP via
+/// <see cref="ExamPackageImportPipeline"/>), Imported (JSON-only)}</c>.
 ///
-/// <b>No separate confirm for one exam.</b> A single JSON upload — or a ZIP
-/// that turns out to contain exactly one exam — has nothing "uncertain" left
-/// to ask a human about once validation passes, per the plan's own reasoning
-/// for why Phase 2 content skips the review-candidate step Phase 6's AI
-/// output needs. A thin, synchronous piece of logic on purpose — the
-/// polling/scheduling half lives in <c>Vni.Ielts.Worker</c>'s
-/// <c>PackageIngestionWorker</c>, so this class can be tested without a timer
-/// or a real host.
+/// <b>Every manifest ZIP (1 or N exams) is split into one-exam sub-ZIPs</b>
+/// then imported to N drafts under <see cref="PackageImportStatus.NeedsReview"/>
+/// (Hướng 1, 2026-09-10). <c>ReadyToImport</c>/<c>/confirm</c> remain only
+/// for legacy in-flight packages. Instant <c>ImportClaimedAsync</c> remains
+/// only for bare JSON uploads.
 /// </summary>
 public sealed class PackageIngestionProcessor(
     IExamPackageRepository packages,
@@ -38,6 +34,8 @@ public sealed class PackageIngestionProcessor(
     RawPackageParsingProcessor rawParsing,
     IPackageImportTransaction import,
     ExamPackageImportPipeline pipeline,
+    IExamPackageValidator examValidator,
+    IImportExamAssetStore examAssets,
     IUserRepository users,
     IClock clock,
     ILogger<PackageIngestionProcessor> logger,
@@ -109,16 +107,11 @@ public sealed class PackageIngestionProcessor(
                             return;
                         }
 
-                        if (outcome.Entries.Count > 1)
-                        {
-                            var expectedVersion = package.Version;
-                            package.MarkReadyToImport(outcome.Entries, clock.UtcNow);
-                            await packages.ReplaceClaimedAsync(package, expectedVersion, claim, clock.UtcNow, processingCt);
-                            return;
-                        }
-
-                        var auditEntry = await ImportAuditAsync(package, package.UploadedBy, outcome.Versions.Select(v => v.Id).ToArray(), processingCt);
-                        await import.ImportClaimedAsync(package, package.Version, claim, outcome.Versions, auditEntry, processingCt);
+                        // Hướng 1: every manifest ZIP (1 or N exams) → split → N drafts → NeedsReview.
+                        // ReadyToImport /confirm is deprecated for newly processed packages.
+                        stream.Position = 0;
+                        await ImportManifestZipAsync(
+                            package, stream, claim, checklistRequired, processingCt);
                         return;
                     }
 
@@ -165,116 +158,9 @@ public sealed class PackageIngestionProcessor(
                     }
 
                     // Structured import package (exam.json / skill folders)
-                    ExamDefinitionId definitionId = new ExamDefinitionId($"pkg-{package.Sha256[..16]}");
-                    using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
-                    {
-                        var jsonEntry = archive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".json", StringComparison.OrdinalIgnoreCase));
-                        if (jsonEntry is not null)
-                        {
-                            try
-                            {
-                                using var entryStream = jsonEntry.Open();
-                                var doc = JsonNode.Parse(entryStream);
-                                if (doc?["definitionId"]?.GetValue<string>() is { Length: > 0 } defStr)
-                                {
-                                    definitionId = new ExamDefinitionId(defStr);
-                                }
-                            }
-                            catch
-                            {
-                                // Ignore JSON parse errors here; pipeline.ImportAsync will handle validation
-                            }
-                        }
-                    }
-                    stream.Position = 0;
-
-                    var attempt = await pipeline.ImportAsync(
-                        stream,
-                        definitionId: definitionId,
-                        versionNumber: 1,
-                        checklistRequired: checklistRequired,
-                        processingCt,
-                        createdBy: package.UploadedBy,
-                        createdAt: clock.UtcNow,
-                        packageId: package.Id,
-                        saveDraft: false);
-
-                    var mappedFindings = attempt.Findings
-                        .Select(f => new PackageFinding(f.Severity, f.Code, f.Path, f.Message))
-                        .ToList();
-
-                    if (!attempt.IsAccepted || attempt.Draft is null)
-                    {
-                        var expectedVersion = package.Version;
-                        package.Reject(mappedFindings, clock.UtcNow);
-                        await packages.ReplaceClaimedAsync(package, expectedVersion, claim, clock.UtcNow, processingCt);
-                        return;
-                    }
-
-                    var draft = attempt.Draft;
-                    using var session = await mongoContext.Database.Client.StartSessionAsync(cancellationToken: processingCt);
-                    session.StartTransaction();
-                    try
-                    {
-                        var draftDoc = MongoImportDraftStore.ToDocument(draft);
-                        var existingDoc = await mongoContext.ImportDrafts
-                            .Find(session, Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, draftDoc.Id))
-                            .FirstOrDefaultAsync(processingCt);
-
-                        if (existingDoc is null)
-                        {
-                            await mongoContext.ImportDrafts.InsertOneAsync(session, draftDoc, cancellationToken: processingCt);
-                        }
-                        else if (string.IsNullOrWhiteSpace(existingDoc.PackageId))
-                        {
-                            await mongoContext.ImportDrafts.UpdateOneAsync(
-                                session,
-                                Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, draftDoc.Id),
-                                Builders<ExamImportDraftDocument>.Update.Set(d => d.PackageId, package.Id),
-                                cancellationToken: processingCt);
-                        }
-                        else if (existingDoc.PackageId != package.Id)
-                        {
-                            // F13: If an existing draft has PackageId different from current package, do not link it!
-                            await session.AbortTransactionAsync(processingCt);
-                            throw new InvalidOperationException(
-                                $"Draft {draftDoc.Id} is owned by package {existingDoc.PackageId} and cannot be linked to package {package.Id}.");
-                        }
-
-                        await linkageHooks.AfterDraftInsertAsync(draft.Id, package.Id, processingCt);
-
-                        var expectedVersion = package.Version;
-                        package.MarkNeedsReview(draft.Id.ToString("D"), clock.UtcNow, mappedFindings);
-                        var pkgDoc = package.ToDocument();
-
-                        var replaceResult = await mongoContext.ExamPackages.ReplaceOneAsync(
-                            session,
-                            Builders<ExamPackageDocument>.Filter.And(
-                                Builders<ExamPackageDocument>.Filter.Eq(p => p.Id, package.Id),
-                                Builders<ExamPackageDocument>.Filter.Eq(p => p.Version, expectedVersion),
-                                Builders<ExamPackageDocument>.Filter.Eq(p => p.ClaimOwner, claim.Owner),
-                                Builders<ExamPackageDocument>.Filter.Eq(p => p.ClaimFence, claim.Fence),
-                                Builders<ExamPackageDocument>.Filter.Gt(p => p.LeaseUntil, clock.UtcNow.UtcDateTime)),
-                            pkgDoc,
-                            cancellationToken: processingCt);
-
-                        if (replaceResult.MatchedCount == 0)
-                        {
-                            await session.AbortTransactionAsync(processingCt);
-                            throw new PackageConcurrencyException(package.Id, expectedVersion);
-                        }
-
-                        await linkageHooks.AfterPackageUpdateAsync(draft.Id, package.Id, processingCt);
-
-                        await session.CommitTransactionAsync(processingCt);
-                        return;
-                    }
-                    catch
-                    {
-                        if (session.IsInTransaction)
-                            await session.AbortTransactionAsync(processingCt);
-                        throw;
-                    }
+                    await ImportZipViaPipelineAsync(
+                        package, stream, claim, checklistRequired, processingCt);
+                    return;
                 }
                 else // Json package
                 {
@@ -326,6 +212,272 @@ public sealed class PackageIngestionProcessor(
             catch (Exception replaceEx)
             {
                 logger.LogError(replaceEx, "Failed to persist Failed status for package {PackageId}.", package.Id);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Manifest ZIP (1 or N exams): split into one-exam sub-ZIPs, create drafts,
+    /// then mark the package NeedsReview with the full draft id list.
+    /// </summary>
+    private async Task ImportManifestZipAsync(
+        ExamPackage package,
+        Stream stream,
+        PackageClaim claim,
+        bool checklistRequired,
+        CancellationToken processingCt)
+    {
+        var split = ManifestPackageSplitter.Split(stream, examValidator, package.UploadedBy);
+        if (!split.IsSuccess)
+        {
+            var expectedVersion = package.Version;
+            package.Reject(split.Findings, clock.UtcNow);
+            await packages.ReplaceClaimedAsync(package, expectedVersion, claim, clock.UtcNow, processingCt);
+            return;
+        }
+
+        var multiExam = split.Packages.Count > 1;
+        var accepted = new List<ExamImportDraft>();
+        var aggregatedFindings = new List<PackageFinding>();
+
+        try
+        {
+            foreach (var sub in split.Packages)
+            {
+                var definitionId = new ExamDefinitionId($"pkg-{package.Sha256[..16]}-{sub.RootExamFileName}");
+                try
+                {
+                    sub.Zip.Position = 0;
+                    using var archive = new ZipArchive(sub.Zip, ZipArchiveMode.Read, leaveOpen: true);
+                    var examEntry = archive.GetEntry(sub.RootExamFileName);
+                    if (examEntry is not null)
+                    {
+                        using var entryStream = examEntry.Open();
+                        var doc = JsonNode.Parse(entryStream);
+                        if (doc?["definitionId"]?.GetValue<string>() is { Length: > 0 } defStr)
+                            definitionId = new ExamDefinitionId(defStr);
+                    }
+                }
+                catch
+                {
+                    // pipeline validates
+                }
+
+                sub.Zip.Position = 0;
+                var attempt = await pipeline.ImportAsync(
+                    sub.Zip,
+                    definitionId: definitionId,
+                    versionNumber: 1,
+                    checklistRequired: checklistRequired,
+                    processingCt,
+                    createdBy: package.UploadedBy,
+                    createdAt: clock.UtcNow,
+                    packageId: package.Id,
+                    saveDraft: false,
+                    draftStabilityKey: multiExam ? sub.ExamPath : null);
+
+                aggregatedFindings.AddRange(attempt.Findings.Select(f =>
+                    new PackageFinding(f.Severity, f.Code, f.Path, f.Message)));
+
+                if (!attempt.IsAccepted || attempt.Draft is null)
+                {
+                    await CompensateStagedDraftsAsync(accepted, processingCt);
+                    var expectedVersion = package.Version;
+                    package.Reject(
+                        aggregatedFindings.Count > 0
+                            ? aggregatedFindings
+                            : [new PackageFinding("error", "IMPORT_REJECTED", "/", "Sub-package import was refused.")],
+                        clock.UtcNow);
+                    await packages.ReplaceClaimedAsync(package, expectedVersion, claim, clock.UtcNow, processingCt);
+                    return;
+                }
+
+                accepted.Add(attempt.Draft);
+            }
+
+            await PersistDraftsAndMarkNeedsReviewAsync(
+                package, claim, accepted, aggregatedFindings, processingCt);
+        }
+        finally
+        {
+            foreach (var sub in split.Packages)
+                await sub.Zip.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Skill-folder ZIP (no manifest): one pipeline pass → one draft → NeedsReview.
+    /// </summary>
+    private async Task ImportZipViaPipelineAsync(
+        ExamPackage package,
+        Stream stream,
+        PackageClaim claim,
+        bool checklistRequired,
+        CancellationToken processingCt)
+    {
+        ExamDefinitionId definitionId = new ExamDefinitionId($"pkg-{package.Sha256[..16]}");
+        using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+        {
+            var jsonEntry = archive.Entries.FirstOrDefault(e =>
+                e.FullName.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(
+                    Path.GetFileName(e.FullName),
+                    "manifest.json",
+                    StringComparison.OrdinalIgnoreCase));
+            if (jsonEntry is not null)
+            {
+                try
+                {
+                    using var entryStream = jsonEntry.Open();
+                    var doc = JsonNode.Parse(entryStream);
+                    if (doc?["definitionId"]?.GetValue<string>() is { Length: > 0 } defStr)
+                        definitionId = new ExamDefinitionId(defStr);
+                }
+                catch
+                {
+                    // pipeline validates
+                }
+            }
+        }
+        stream.Position = 0;
+
+        var attempt = await pipeline.ImportAsync(
+            stream,
+            definitionId: definitionId,
+            versionNumber: 1,
+            checklistRequired: checklistRequired,
+            processingCt,
+            createdBy: package.UploadedBy,
+            createdAt: clock.UtcNow,
+            packageId: package.Id,
+            saveDraft: false);
+
+        var mappedFindings = attempt.Findings
+            .Select(f => new PackageFinding(f.Severity, f.Code, f.Path, f.Message))
+            .ToList();
+
+        if (!attempt.IsAccepted || attempt.Draft is null)
+        {
+            var expectedVersion = package.Version;
+            package.Reject(mappedFindings, clock.UtcNow);
+            await packages.ReplaceClaimedAsync(package, expectedVersion, claim, clock.UtcNow, processingCt);
+            return;
+        }
+
+        await PersistDraftsAndMarkNeedsReviewAsync(
+            package, claim, [attempt.Draft], mappedFindings, processingCt);
+    }
+
+    private async Task PersistDraftsAndMarkNeedsReviewAsync(
+        ExamPackage package,
+        PackageClaim claim,
+        IReadOnlyList<ExamImportDraft> drafts,
+        IReadOnlyList<PackageFinding> findings,
+        CancellationToken processingCt)
+    {
+        using var session = await mongoContext.Database.Client.StartSessionAsync(cancellationToken: processingCt);
+        session.StartTransaction();
+        try
+        {
+            foreach (var draft in drafts)
+            {
+                var draftDoc = MongoImportDraftStore.ToDocument(draft);
+                var existingDoc = await mongoContext.ImportDrafts
+                    .Find(session, Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, draftDoc.Id))
+                    .FirstOrDefaultAsync(processingCt);
+
+                if (existingDoc is null)
+                {
+                    await mongoContext.ImportDrafts.InsertOneAsync(session, draftDoc, cancellationToken: processingCt);
+                }
+                else if (string.IsNullOrWhiteSpace(existingDoc.PackageId))
+                {
+                    await mongoContext.ImportDrafts.UpdateOneAsync(
+                        session,
+                        Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Id, draftDoc.Id),
+                        Builders<ExamImportDraftDocument>.Update.Set(d => d.PackageId, package.Id),
+                        cancellationToken: processingCt);
+                }
+                else if (existingDoc.PackageId != package.Id)
+                {
+                    await session.AbortTransactionAsync(processingCt);
+                    throw new InvalidOperationException(
+                        $"Draft {draftDoc.Id} is owned by package {existingDoc.PackageId} and cannot be linked to package {package.Id}.");
+                }
+
+                await linkageHooks.AfterDraftInsertAsync(draft.Id, package.Id, processingCt);
+            }
+
+            var expectedVersion = package.Version;
+            var draftIds = drafts.Select(d => d.Id.ToString("D")).ToArray();
+            package.MarkNeedsReview(draftIds, clock.UtcNow, findings);
+            var pkgDoc = package.ToDocument();
+
+            var replaceResult = await mongoContext.ExamPackages.ReplaceOneAsync(
+                session,
+                Builders<ExamPackageDocument>.Filter.And(
+                    Builders<ExamPackageDocument>.Filter.Eq(p => p.Id, package.Id),
+                    Builders<ExamPackageDocument>.Filter.Eq(p => p.Version, expectedVersion),
+                    Builders<ExamPackageDocument>.Filter.Eq(p => p.ClaimOwner, claim.Owner),
+                    Builders<ExamPackageDocument>.Filter.Eq(p => p.ClaimFence, claim.Fence),
+                    Builders<ExamPackageDocument>.Filter.Gt(p => p.LeaseUntil, clock.UtcNow.UtcDateTime)),
+                pkgDoc,
+                cancellationToken: processingCt);
+
+            if (replaceResult.MatchedCount == 0)
+            {
+                await session.AbortTransactionAsync(processingCt);
+                throw new PackageConcurrencyException(package.Id, expectedVersion);
+            }
+
+            foreach (var draft in drafts)
+                await linkageHooks.AfterPackageUpdateAsync(draft.Id, package.Id, processingCt);
+
+            await session.CommitTransactionAsync(processingCt);
+        }
+        catch
+        {
+            if (session.IsInTransaction)
+                await session.AbortTransactionAsync(processingCt);
+            await CompensateStagedDraftsAsync(drafts, CancellationToken.None);
+            throw;
+        }
+    }
+
+    private async Task CompensateStagedDraftsAsync(
+        IReadOnlyList<ExamImportDraft> drafts, CancellationToken ct)
+    {
+        foreach (var draft in drafts)
+        {
+            var staged = ImportAssetPaths.StagedReferences(draft.Assets);
+            if (staged.Count > 0)
+            {
+                try
+                {
+                    using var compensation = ImportAssetCompensation.Start();
+                    await examAssets.RecordCleanupIntentAsync(
+                        draft.Id,
+                        staged,
+                        ImportAssetCleanupReason.DraftSaveFailed,
+                        compensation.Token);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex,
+                        "Failed to record asset cleanup for draft {DraftId} during manifest import compensation.",
+                        draft.Id);
+                }
+            }
+
+            try
+            {
+                await mongoContext.ImportDrafts.DeleteOneAsync(d => d.Id == draft.Id.ToString("D"), ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex,
+                    "Failed to delete orphan draft {DraftId} during manifest import compensation.",
+                    draft.Id);
             }
         }
     }

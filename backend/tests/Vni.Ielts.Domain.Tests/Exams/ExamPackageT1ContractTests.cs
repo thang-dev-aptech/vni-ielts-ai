@@ -27,6 +27,7 @@ public sealed class ExamPackageT1ContractTests
 
         Assert.Equal(PackageImportStatus.NeedsReview, package.Status);
         Assert.Equal("draft-abc-123", package.ImportDraftId);
+        Assert.Equal(new[] { "draft-abc-123" }, package.ImportDraftIds);
         Assert.Single(package.Findings);
         Assert.Equal(T1, package.UpdatedAt);
         Assert.Equal(initialVersion + 1, package.Version);
@@ -119,7 +120,21 @@ public sealed class ExamPackageT1ContractTests
             failureDetail: "Safe message");
 
         Assert.Equal("draft-xyz", rehydrated.ImportDraftId);
+        Assert.Equal(new[] { "draft-xyz" }, rehydrated.ImportDraftIds);
         Assert.Equal("PROCESSING_FAILED", rehydrated.FailureCode);
         Assert.Equal("Safe message", rehydrated.FailureDetail);
+    }
+
+    [Fact]
+    public void MarkNeedsReview_with_multiple_draft_ids_preserves_order()
+    {
+        var package = CreatePackage();
+        package.MarkValidating(T0);
+
+        package.MarkNeedsReview(["draft-1", "draft-2", "draft-3"], T1);
+
+        Assert.Equal(PackageImportStatus.NeedsReview, package.Status);
+        Assert.Equal("draft-1", package.ImportDraftId);
+        Assert.Equal(new[] { "draft-1", "draft-2", "draft-3" }, package.ImportDraftIds);
     }
 }

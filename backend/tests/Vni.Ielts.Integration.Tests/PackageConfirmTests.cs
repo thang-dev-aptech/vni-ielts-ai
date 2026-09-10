@@ -86,24 +86,48 @@ public sealed class PackageConfirmTests(SsoAppFactory app) : IClassFixture<SsoAp
             Builders<BsonDocument>.Update.Set("roleIds", new BsonArray { roleId }));
     }
 
+    private static string MiniExam(string title) =>
+        $$"""
+        {
+          "formatVersion": "2.0", "formatProfile": "vni-practice",
+          "scoringProfileRef": "pkg-confirm-{{Guid.NewGuid():n}}",
+          "contentSourceRef": { "sourceId": "synthetic-validation", "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+          "title": "{{title}}", "variant": "academic",
+          "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+          "scoringProfile": { "rawToBand": { "reading": [
+            { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 }, { "minRaw": 2, "band": 2 } ] } },
+          "sequenceProfile": { "modules": ["reading"] },
+          "sections": [{ "module": "reading", "order": 1, "parts": [{
+            "order": 1, "kind": "passage", "body": "Evidence here.",
+            "questions": [{
+              "id": "q-1", "order": 1, "type": "multiple-select", "marks": 2,
+              "options": [{ "key": "A", "text": "Alpha" }, { "key": "B", "text": "Beta" }],
+              "group": { "id": "bank-1", "instruction": "Choose." },
+              "slots": [
+                { "id": "slot-1", "number": 1, "answerKey": { "accepted": ["A"] } },
+                { "id": "slot-2", "number": 2, "answerKey": { "accepted": ["B"] } }
+              ],
+              "explanation": { "shortReason": "Both are stated.", "evidence": ["Evidence here."] }
+            }]
+          }]}]
+        }
+        """;
+
     private static byte[] BuildTwoExamZip()
     {
-        var reading = File.ReadAllText(Path.Combine(RepoRoot, "fixtures/exams/reading-demo.json"));
-        var full = File.ReadAllText(Path.Combine(RepoRoot, "fixtures/exams/full-demo.json"));
-
         using var stream = new MemoryStream();
         using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
         {
             void Add(string path, string text)
             {
                 var entry = zip.CreateEntry(path, CompressionLevel.Optimal);
-                using var writer = new StreamWriter(entry.Open());
+                using var writer = new StreamWriter(entry.Open(), new System.Text.UTF8Encoding(false));
                 writer.Write(text);
             }
 
             Add("manifest.json", """{ "formatVersion": "1.0", "exams": ["exams/reading.json", "exams/full.json"], "assets": [] }""");
-            Add("exams/reading.json", reading);
-            Add("exams/full.json", full);
+            Add("exams/reading.json", MiniExam("Confirm Reading"));
+            Add("exams/full.json", MiniExam("Confirm Full"));
         }
 
         return stream.ToArray();
@@ -139,6 +163,51 @@ public sealed class PackageConfirmTests(SsoAppFactory app) : IClassFixture<SsoAp
         await processor.ProcessAsync(package!, CancellationToken.None);
     }
 
+    /// <summary>
+    /// Legacy ReadyToImport seed — Hướng 1 no longer reaches this status via the Worker.
+    /// Confirm endpoint remains for in-flight packages already waiting.
+    /// </summary>
+    private async Task<string> UploadAndSeedReadyToImportAsync(string access)
+    {
+        var upload = await NewClient().SendAsync(
+            UploadRequest(access, BuildTwoExamZip(), Guid.NewGuid().ToString("n")));
+        var packageId = (await upload.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("packageId").GetString()!;
+
+        using var scope = app.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+        var uploads = scope.ServiceProvider.GetRequiredService<IPackageUploadStore>();
+        var structural = scope.ServiceProvider.GetRequiredService<PackageStructuralValidator>();
+
+        var package = await repository.FindAsync(packageId, CancellationToken.None);
+        Assert.NotNull(package);
+        await using var stream = await uploads.OpenAsync(package!.UploadRef, CancellationToken.None);
+        using var buffered = new MemoryStream();
+        await stream.CopyToAsync(buffered);
+        buffered.Position = 0;
+        var outcome = structural.ValidateZip(buffered, package.UploadedBy);
+        Assert.True(outcome.IsValid, string.Join(" | ", outcome.Findings.Select(f => f.Code)));
+
+        await Db().GetCollection<BsonDocument>("exam_packages").UpdateOneAsync(
+            Builders<BsonDocument>.Filter.Eq("_id", packageId),
+            Builders<BsonDocument>.Update
+                .Set("status", "ReadyToImport")
+                .Set("entries", new BsonArray(outcome.Entries.Select(e => new BsonDocument
+                {
+                    ["proposedDefinitionId"] = e.ProposedDefinitionId,
+                    ["title"] = e.Title,
+                    ["module"] = e.Module.ToString(),
+                    ["questionCount"] = e.QuestionCount,
+                })))
+                .Unset("importDraftId")
+                .Unset("importDraftIds")
+                .Unset("claimOwner")
+                .Unset("claimedAt")
+                .Unset("leaseUntil"));
+
+        return packageId;
+    }
+
     private async Task<string> UploadAndProcessAsync(string access)
     {
         var upload = await NewClient().SendAsync(
@@ -150,8 +219,11 @@ public sealed class PackageConfirmTests(SsoAppFactory app) : IClassFixture<SsoAp
         return packageId;
     }
 
+    /// <summary>
+    /// Hướng 1: Worker creates N drafts immediately. ReadyToImport is legacy-only.
+    /// </summary>
     [SkippableFact]
-    public async Task Uploading_a_two_exam_zip_and_processing_it_reaches_ready_to_import()
+    public async Task Uploading_a_two_exam_zip_and_processing_it_reaches_needs_review_with_two_drafts()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
@@ -165,11 +237,12 @@ public sealed class PackageConfirmTests(SsoAppFactory app) : IClassFixture<SsoAp
 
         await ProcessOnceAsync(packageId);
 
-        var stored = await Db().GetCollection<BsonDocument>("exam_packages")
-            .Find(Builders<BsonDocument>.Filter.Eq("_id", packageId))
-            .FirstOrDefaultAsync();
-        Assert.Equal("ReadyToImport", stored["status"].AsString);
-        Assert.Equal(2, stored["entries"].AsBsonArray.Count);
+        using var scope = app.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+        var package = await repository.FindAsync(packageId, CancellationToken.None);
+        Assert.NotNull(package);
+        Assert.Equal(PackageImportStatus.NeedsReview, package.Status);
+        Assert.Equal(2, package.ImportDraftIds.Count);
     }
 
     [SkippableFact]
@@ -181,7 +254,7 @@ public sealed class PackageConfirmTests(SsoAppFactory app) : IClassFixture<SsoAp
         var (_, userId) = await SignInAsync(client);
         await GrantExactPermissionsAsync(userId, "author", "package.upload", "exam.create");
         var (access, _) = await SignInAsync(client);
-        var packageId = await UploadAndProcessAsync(access);
+        var packageId = await UploadAndSeedReadyToImportAsync(access);
 
         await GrantExactPermissionsAsync(userId, "no-confirm", "package.upload", "exam.create");
         var (weakerAccess, _) = await SignInAsync(client);
@@ -200,7 +273,7 @@ public sealed class PackageConfirmTests(SsoAppFactory app) : IClassFixture<SsoAp
         var (_, userId) = await SignInAsync(client);
         await GrantExactPermissionsAsync(userId, "confirmer", "package.upload", "package.confirm", "exam.create");
         var (access, _) = await SignInAsync(client);
-        var packageId = await UploadAndProcessAsync(access);
+        var packageId = await UploadAndSeedReadyToImportAsync(access);
 
         var response = await client.SendAsync(ConfirmRequest(access, packageId, Guid.NewGuid().ToString("n")));
 
@@ -235,7 +308,7 @@ public sealed class PackageConfirmTests(SsoAppFactory app) : IClassFixture<SsoAp
         var (_, userId) = await SignInAsync(client);
         await GrantExactPermissionsAsync(userId, "confirmer", "package.upload", "package.confirm", "exam.create");
         var (access, _) = await SignInAsync(client);
-        var packageId = await UploadAndProcessAsync(access);
+        var packageId = await UploadAndSeedReadyToImportAsync(access);
 
         var first = await client.SendAsync(ConfirmRequest(access, packageId, Guid.NewGuid().ToString("n")));
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
@@ -265,7 +338,7 @@ public sealed class PackageConfirmTests(SsoAppFactory app) : IClassFixture<SsoAp
         var (_, userId) = await SignInAsync(client);
         await GrantExactPermissionsAsync(userId, "confirmer", "package.upload", "package.confirm", "exam.create");
         var (access, _) = await SignInAsync(client);
-        var packageId = await UploadAndProcessAsync(access);
+        var packageId = await UploadAndSeedReadyToImportAsync(access);
 
         var key = Guid.NewGuid().ToString("n");
         var first = await client.SendAsync(ConfirmRequest(access, packageId, key));
@@ -314,9 +387,8 @@ public sealed class PackageConfirmTests(SsoAppFactory app) : IClassFixture<SsoAp
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal("ready-to-import", body.GetProperty("status").GetString());
-        Assert.Equal(2, body.GetProperty("entries").GetArrayLength());
-        Assert.Empty(body.GetProperty("findings").EnumerateArray());
+        Assert.Equal("needs-review", body.GetProperty("status").GetString());
+        Assert.Equal(2, body.GetProperty("importDraftIds").GetArrayLength());
         Assert.True(body.TryGetProperty("importDraftId", out _));
         Assert.True(body.TryGetProperty("failureCode", out _));
         Assert.True(body.TryGetProperty("failureDetail", out _));
