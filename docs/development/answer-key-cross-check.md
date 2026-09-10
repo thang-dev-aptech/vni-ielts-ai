@@ -104,6 +104,31 @@ Every layer in this document checks **consistency between two files** — the pa
 
 ---
 
+## Two operational traps, known and left in
+
+Neither is caused by this work; both now sit on one more code path because of it, and both are the
+kind of thing that is cheap to know and expensive to rediscover.
+
+**A blocking warning can be dropped by a lost revision race.** Every helper that attaches findings or
+warnings to a draft ends with `drafts.ReplaceAsync(updated, draft.Revision, ct)` and, when that
+compare-and-set loses to a concurrent write, returns the *un-warned* draft rather than retrying or
+failing. Two administrators acting on one draft at the same moment can therefore lose a warning that
+was meant to block approval. The idiom predates this work — it is identical in the pre-branch
+pipeline — but a lost warning matters more now that warnings are what stop a contradicted package
+being published. Do not read this as a bypass: the store still holds whichever draft won, and an
+error-severity finding on that draft still blocks.
+
+**Warning ids are positional, so a re-import appends duplicates.** Every id is `{CODE}:{index}` over
+the occurrences in one call. Re-importing the same package onto the same stable draft id appends a
+second set rather than replacing the first, so a reviewer sees each warning twice and must clear both.
+Also true of the fabrication warnings, which have carried this shape since before this work.
+
+**A consequence worth stating plainly:** do not hard-code an expected draft revision in a test. A
+package with a misspelled role folder now gains one extra revision, because the role-folder warnings
+are attached in a second save after the keying pass has already written one.
+
+---
+
 ## What this plan did not touch
 
 - `docs/ai/writing-marking.md` — Writing marking is unrelated to this work; Part B of the design (marking notes, model answers) is a later plan.
