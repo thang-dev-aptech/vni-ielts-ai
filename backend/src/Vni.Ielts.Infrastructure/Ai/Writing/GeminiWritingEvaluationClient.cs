@@ -27,7 +27,14 @@ public sealed class GeminiWritingEvaluationClient(
 
         var schema = WritingEvaluationSchema.LoadNode();
         var system = WritingEvaluationPromptBuilder.SystemPrompt(
-            request.DescriptorText, request.RubricVersion, request.DescriptorSource, request.PromptVersion);
+            request.DescriptorText,
+            request.RubricVersion,
+            request.DescriptorSource,
+            request.PromptVersion,
+            request.FeedbackLanguage,
+            request.TaskNumber,
+            request.Variant,
+            request.WholeBandCriteria);
         var user = WritingEvaluationPromptBuilder.UserPrompt(
             request.TaskPrompt, request.LearnerSubmission, request.WordCount, request.MinWords);
 
@@ -96,9 +103,10 @@ public sealed class GeminiWritingEvaluationClient(
         }
 
         var json = ExtractCandidateText(payload);
-        var (inputTokens, outputTokens, requestId) = ExtractUsage(payload, ticket.Model);
+        var (inputTokens, outputTokens, requestId, servedModel) = ExtractUsage(payload, ticket.Model);
 
-        return new WritingEvaluationResponse(json, Provider, ticket.Model, requestId, inputTokens, outputTokens);
+        return new WritingEvaluationResponse(
+            json, Provider, servedModel, requestId, inputTokens, outputTokens, ticket.Model);
     }
 
     internal static readonly AsyncLocal<AiEgressTicket?> CurrentTicket = new();
@@ -127,16 +135,20 @@ public sealed class GeminiWritingEvaluationClient(
         throw new MarkingRejectedException("Gemini response did not contain structured output text.");
     }
 
-    private static (long Input, long Output, string RequestId) ExtractUsage(string payload, string model)
+    private static (long Input, long Output, string RequestId, string Model) ExtractUsage(string payload, string requestedModel)
     {
         using var doc = JsonDocument.Parse(payload);
         var root = doc.RootElement;
 
-        if (!root.TryGetProperty("usageMetadata", out var usage)) return (0, 0, model);
+        var served = root.TryGetProperty("modelVersion", out var version) && version.ValueKind == JsonValueKind.String
+            ? version.GetString() ?? requestedModel
+            : requestedModel;
+
+        if (!root.TryGetProperty("usageMetadata", out var usage)) return (0, 0, requestedModel, served);
 
         var input = usage.TryGetProperty("promptTokenCount", out var inTok) ? inTok.GetInt64() : 0L;
         var output = usage.TryGetProperty("candidatesTokenCount", out var outTok) ? outTok.GetInt64() : 0L;
 
-        return (input, output, model);
+        return (input, output, requestedModel, served);
     }
 }

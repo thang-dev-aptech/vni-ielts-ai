@@ -770,6 +770,18 @@ internal sealed class MongoSectionMarkingStore(MongoContext context, IClock cloc
             ],
             Flags = [.. marking.Flags.Select(f => f.ToString())],
             UngroundedEvidence = [.. marking.UngroundedEvidence],
+            Advisories = marking.Advisories is { Count: > 0 } ? [.. marking.Advisories] : null,
+            Provenance = marking.Provenance is { } provenance
+                ? new WritingMarkingProvenanceDocument
+                {
+                    PromptVersion = provenance.PromptVersion,
+                    ProviderSection = provenance.ProviderSection,
+                    ModelRequested = provenance.ModelRequested,
+                    ModelReported = provenance.ModelReported,
+                    ModelMismatch = provenance.ModelMismatch,
+                    RequestId = provenance.RequestId,
+                }
+                : null,
             MarkedAt = clock.UtcNow.UtcDateTime,
         };
 

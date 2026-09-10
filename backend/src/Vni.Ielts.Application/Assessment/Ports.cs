@@ -55,7 +55,9 @@ public interface ISectionEvaluator
 public sealed record EvaluationRequest(
     Rubric Rubric,
     string LearnerSubmission,
-    string Prompt);
+    string Prompt,
+    int? TaskNumber = null,
+    ExamVariant? Variant = null);
 
 /// <summary>
 /// A model's unvalidated claim about one section.
@@ -67,7 +69,9 @@ public sealed record EvaluationRequest(
 /// </summary>
 public sealed record ClaimedEvaluation(
     IReadOnlyList<ClaimedCriterion> Criteria,
-    decimal? ReportedBand);
+    decimal? ReportedBand,
+    IReadOnlyList<string>? Advisories = null,
+    WritingMarkingProvenance? Provenance = null);
 
 /// <summary>
 /// The rubric in force for a module.
@@ -83,6 +87,13 @@ public interface IRubricSource
 {
     /// <summary>Null when no rubric is configured for the module. Never a fabricated one.</summary>
     Rubric? For(ExamModule module);
+
+    /// <summary>
+    /// Writing v2 carries two criterion sets. Task 1 is Task Achievement;
+    /// Task 2 is Task Response. A source that has not split them returns
+    /// <see cref="For(ExamModule)"/> for every task.
+    /// </summary>
+    Rubric? For(ExamModule module, int? taskNumber) => For(module);
 }
 
 /// <summary>

@@ -124,8 +124,27 @@ public static class DependencyInjection
                     ?.Writing.TaskWeights));
         services.AddSingleton<ITranscriptSource, NoTranscriptSource>();
 
-        services.AddHttpClient(nameof(OpenAiWritingEvaluationClient));
-        services.AddHttpClient(nameof(GeminiWritingEvaluationClient));
+        /*
+         * <b>The 100 s HttpClient default is shorter than a Writing evaluation.</b>
+         * A four-criterion essay with quoted evidence routinely outlives it on
+         * the reseller: headers arrive, the body streams, and `SendAsync` does
+         * not return until the JSON is finished. The live test already uses
+         * three minutes for that reason. Without this, the worker records
+         * `OpenAI request timed out`, burns a job attempt, and the results
+         * screen stays on "đang chấm". → Assessment:WritingMarking:TimeoutSeconds
+         */
+        // Floor 180s: apithat.dev chat/completions regularly outlives the 120s
+        // secrets.example value (measured 2026-09-09). Clamp still caps at 300.
+        var writingHttpTimeout = TimeSpan.FromSeconds(
+            WritingSectionEvaluator.ClampTimeoutSeconds(
+                Math.Max(
+                    180,
+                    configuration.GetSection(AssessmentOptions.SectionName).Get<AssessmentOptions>()
+                        ?.WritingMarking.TimeoutSeconds ?? new WritingMarkingOptions().TimeoutSeconds)));
+        services.AddHttpClient(nameof(OpenAiWritingEvaluationClient), client =>
+            client.Timeout = writingHttpTimeout);
+        services.AddHttpClient(nameof(GeminiWritingEvaluationClient), client =>
+            client.Timeout = writingHttpTimeout);
         services.AddHttpClient(nameof(OpenAiExplanationGenerator), client =>
         {
             // A hung provider fails as EXPLANATION_PROVIDER_TIMEOUT within a

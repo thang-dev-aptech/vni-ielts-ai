@@ -43,6 +43,17 @@ public sealed class WritingSectionEvaluator(
         var sanitized = WritingEvaluationPromptBuilder.SanitizeLearnerText(request.LearnerSubmission);
         var wordCount = WritingEvaluationPromptBuilder.CountWords(sanitized);
         var idempotencyKey = ComputeIdempotencyKey(request, _artifact.Version);
+        var generalTraining = request.Variant == ExamVariant.General;
+        var descriptors = WritingRubricLoader.FormatDescriptorsForPrompt(
+            _artifact, request.TaskNumber, generalTraining);
+        var language = string.IsNullOrWhiteSpace(assessmentOptions.Value.Writing.FeedbackLanguage)
+            ? "vi"
+            : assessmentOptions.Value.Writing.FeedbackLanguage;
+        var wholeBands = _artifact.IsV2
+            && !string.Equals(
+                assessmentOptions.Value.Writing.CriterionGranularity, "half-step",
+                StringComparison.OrdinalIgnoreCase);
+        var requestedModel = ResolveProvider(aiOptions.Value, provider)?.Model;
 
         var evalRequest = new WritingEvaluationRequest(
             request.Prompt,
@@ -51,15 +62,24 @@ public sealed class WritingSectionEvaluator(
             MinWords: null,
             _artifact.Version,
             _artifact.DescriptorSource,
-            WritingRubricLoader.FormatDescriptorsForPrompt(_artifact),
+            descriptors,
             marking.PromptVersion ?? _artifact.PromptVersion,
             idempotencyKey,
-            Attempt: 1);
+            Attempt: 1,
+            request.TaskNumber,
+            generalTraining ? "generalTraining" : "academic",
+            language,
+            wholeBands,
+            requestedModel);
 
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeout.CancelAfter(TimeSpan.FromSeconds(ClampTimeoutSeconds(marking.TimeoutSeconds)));
-
-        var response = await router.EvaluateAsync(evalRequest, ticket, timeout.Token);
+        /*
+         * Per-call bound is the named HttpClient's Timeout, not a CTS around
+         * the whole router. Wrapping `EvaluateAsync` in `TimeoutSeconds` (120)
+         * while HttpClient defaulted to 100 s meant the first attempt ate
+         * the budget and the router's retry was cancelled mid-flight — which
+         * the worker then recorded as a failed job, not a transient.
+         */
+        var response = await router.EvaluateAsync(evalRequest, ticket, ct);
 
         logger.LogInformation(
             "Writing evaluation completed via {Provider} model {Model}, request {RequestId}, "
@@ -70,13 +90,36 @@ public sealed class WritingSectionEvaluator(
             _artifact.Version,
             evalRequest.PromptVersion);
 
-        return WritingEvaluationValidator.ToClaimedEvaluation(response.Json);
+        var claim = WritingEvaluationValidator.ToClaimedEvaluation(response.Json, wholeBands);
+        var limiterInput = WritingEvaluationValidator.LimitersFrom(
+            response.Json,
+            request.TaskNumber,
+            generalTraining,
+            WritingAdmission.LooksLikeNotes(sanitized),
+            insufficientSentenceControl: wordCount < 50);
+        var limited = WritingLimiters.Apply(claim.Criteria, limiterInput);
+
+        var requested = response.RequestedModel ?? requestedModel ?? response.Model;
+        var mismatch = !string.Equals(requested, response.Model, StringComparison.OrdinalIgnoreCase);
+
+        return new ClaimedEvaluation(
+            limited.Criteria,
+            claim.ReportedBand,
+            limited.Advisories,
+            new WritingMarkingProvenance(
+                evalRequest.PromptVersion,
+                response.Provider,
+                requested,
+                response.Model,
+                mismatch,
+                response.RequestId));
     }
 
     /// <summary>
-    /// Per-call provider budget. Floor 10s so a typo cannot race the round-trip;
-    /// ceiling 300s so a hung provider cannot hold a worker lease forever.
-    /// Values are configuration, not production SLOs. → nfr.md FS9.3
+    /// Per-call provider budget, applied to the named HttpClient Timeout.
+    /// Floor 10s so a typo cannot race the round-trip; ceiling 300s so a hung
+    /// provider cannot hold a worker lease forever. Values are configuration,
+    /// not production SLOs. → nfr.md FS9.3
     /// </summary>
     internal static int ClampTimeoutSeconds(int configured) => Math.Clamp(configured, 10, 300);
 

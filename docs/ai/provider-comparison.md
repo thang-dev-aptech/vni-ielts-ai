@@ -19,9 +19,9 @@
 
 ## What choosing two providers changes
 
-Selecting **two** LLM vendors rather than one has consequences worth stating before any adapter is written.
+Selecting **two** LLM vendors rather than one has consequences worth stating.
 
-**The port abstraction is now load-bearing.** [ADR-0005](../decisions/0005-ai-provider-abstraction.md) mandated `IWritingEvaluator` as insurance against vendor lock-in. With two vendors it stops being insurance and becomes the thing that makes the design work — there will be two adapters behind one port, and Application code must not be able to tell them apart.
+**The port abstraction is load-bearing.** [ADR-0005](../decisions/0005-ai-provider-abstraction.md) mandated a provider-neutral port. Application talks to `ISectionEvaluator`; `WritingEvaluationRouter` selects `OpenAiWritingEvaluationClient` or `GeminiWritingEvaluationClient`. Application code cannot tell them apart. → [`writing-marking.md`](writing-marking.md)
 
 **Both offer OpenAI-compatible endpoints, and that is a trap worth naming.** Gemini exposes an OpenAI-compatible surface, so one SDK with a swapped `baseURL` appears to reach both. That convenience is real for a spike and misleading for production:
 

@@ -228,7 +228,7 @@ Every row carries a status. Nothing here is implemented; the repository has no p
 |---|---|---|
 | `B-1` | AI provider (Claude API excluded) | Product |
 | `B-11` | Data residency — must learner data stay in Vietnam? | Product / Legal |
-| `H-9` | Accept a MongoDB-backed queue, or adopt a broker now? | Engineering |
+| `H-9` | ~~MongoDB-backed queue vs broker~~ **Closed in code:** MongoDB outbox (`MarkingWorker`) | Engineering — revisit on measured latency, not prediction |
 | `H-10` | MongoDB topology — standalone or single-node replica set? Decides the transaction design | Engineering |
 | `H-11` | Object storage vendor and hosting, **after** `B-11` | Engineering |
 | `R13` | Version control for this repository | Engineering |
@@ -305,7 +305,7 @@ Run MongoDB as a **single-node replica set even locally** (`rs0`), so transactio
 | API | Container, ×N | Stateless, scales horizontally |
 | Worker | Container, ×M | **Separate process** — scales independently of the API |
 | Database | MongoDB, replica set | Topology per `H-10`; hosting per `B-11` |
-| Queue | **MongoDB-backed** | No broker at MVP → `H-9` |
+| Queue | **MongoDB-backed outbox** | `MarkingWorker` / `marking_jobs` — `H-9` closed |
 | Object storage | S3-compatible behind `IObjectStorage` | Vendor per `H-11` |
 | Reverse proxy | TLS termination, rate limiting | A proxy, not an API-gateway product |
 | Secrets | Environment configuration; a secret manager once a host is chosen | Never committed — enforced by the `.env*` hook |

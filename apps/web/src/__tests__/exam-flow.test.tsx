@@ -1158,7 +1158,7 @@ it('shows both Writing task bands rather than an average of them', async () => {
   // four elements and says nothing about the one that matters.
   expect(document.querySelector('.result-overall-value')).toHaveTextContent('—');
 
-  await userEvent.click(screen.getByRole('button', { name: /Xem nhận xét · Writing/ }));
+  expect(screen.getByRole('heading', { name: 'Nhận xét Writing' })).toBeInTheDocument();
   expect(screen.getByText('Task 1')).toBeInTheDocument();
   expect(screen.getAllByText('Bộ tiêu chí: ielts-writing-2023.1')).toHaveLength(2);
   expect(screen.getByText('Covers the task.')).toBeInTheDocument();
@@ -1201,9 +1201,7 @@ it('shows the combined Writing band beside the two task bands, once it exists', 
 
   open('/results/sit-1');
 
-  await userEvent.click(await screen.findByRole('button', { name: /Xem nhận xét · Writing/ }));
-
-  expect(screen.getByText('Band Writing tổng')).toBeInTheDocument();
+  expect(await screen.findByText('Band Writing tổng')).toBeInTheDocument();
   expect(screen.getByText('8.5')).toBeInTheDocument();
   // The two task bands are still there, unreplaced.
   expect(screen.getByText('6.5 · 7.0')).toBeInTheDocument();
@@ -1242,11 +1240,140 @@ it.each([
 
   open('/results/sit-1');
 
-  await userEvent.click(await screen.findByRole('button', { name: /Xem nhận xét · Writing/ }));
-
-  const combinedCard = screen.getByText('Band Writing tổng').closest('article')!;
+  const combinedCard = (await screen.findByText('Band Writing tổng')).closest('article')!;
   expect(within(combinedCard).getByText('—')).toBeInTheDocument();
   expect(within(combinedCard).getByText(message)).toBeInTheDocument();
+});
+
+/**
+ * Writing results are not a Reading page with empty 40-question chrome.
+ *
+ * The hero shows the combined band (`P-12`), not Task 1's number, and the
+ * review is the two task cards — never `AnswerReviewList` or a question-type
+ * breakdown built from nothing.
+ */
+it('draws Writing results as task cards, not a 40-question review', async () => {
+  resultsPayload = {
+    ...results,
+    mode: 'single',
+    sections: [],
+    markings: [
+      {
+        module: 'writing',
+        taskNumber: 1,
+        rubricVersion: 'vni-writing-v2',
+        band: 6.5,
+        criteria: [
+          {
+            criterion: 'taskAchievement',
+            band: 6,
+            feedback: 'Covers the main features.',
+            evidence: ['overall increase'],
+          },
+        ],
+        flags: [],
+      },
+      {
+        module: 'writing',
+        taskNumber: 2,
+        rubricVersion: 'vni-writing-v2',
+        band: 7,
+        criteria: [
+          {
+            criterion: 'taskResponse',
+            band: 7,
+            feedback: 'Clear position.',
+            evidence: ['I believe'],
+          },
+        ],
+        flags: [],
+      },
+    ],
+    markingStatuses: [],
+    explanationStatuses: [],
+    overallBand: null,
+    writingBand: 6.5,
+    writingBandReason: null,
+    content: [
+      {
+        module: 'writing',
+        parts: [
+          {
+            order: 1,
+            kind: 'task',
+            title: 'Task 1',
+            body: 'The chart shows energy use.',
+            audioKey: null,
+            imageKey: null,
+            taskNumber: 1,
+            partNumber: null,
+            cueCard: null,
+            minWords: 150,
+            questions: [
+              {
+                id: 'w-1',
+                order: 1,
+                type: 'essay-task',
+                prompt: null,
+                options: [],
+                maxWords: null,
+                group: null,
+                slots: [],
+              },
+            ],
+          },
+        ],
+        submissions: {
+          'w-1': 'The chart shows an overall increase in renewable energy.',
+        },
+      },
+    ],
+  };
+
+  open('/results/sit-1');
+
+  expect(await screen.findByRole('heading', { name: 'Kết quả Writing' })).toBeInTheDocument();
+  expect(document.querySelector('.exs-score-value')).toHaveTextContent('6.5');
+  expect(document.querySelector('.exs-write-combined-band')).toHaveTextContent('6.5');
+  expect(screen.getAllByText('AI · tham khảo').length).toBeGreaterThan(0);
+  expect(screen.getByRole('heading', { name: 'Nhận xét Writing' })).toBeInTheDocument();
+  expect(screen.getByText('Task Achievement (TA)')).toBeInTheDocument();
+  expect(screen.getByText('Task Response (TR)')).toBeInTheDocument();
+  expect(screen.getByText('The chart shows an overall increase in renewable energy.')).toBeInTheDocument();
+
+  expect(screen.queryByRole('heading', { name: 'Kết quả theo dạng câu hỏi' })).toBeNull();
+  expect(screen.queryByRole('heading', { name: 'Chi tiết câu trả lời' })).toBeNull();
+  expect(screen.queryByRole('heading', { name: 'Tổng quan kết quả' })).toBeNull();
+  expect(screen.queryByRole('button', { name: /Xem nhận xét · Writing/ })).toBeNull();
+});
+
+it('keeps a Writing sitting identifiable while marking is still running', async () => {
+  resultsPayload = {
+    ...results,
+    mode: 'single',
+    sections: [],
+    markings: [],
+    markingStatuses: [
+      {
+        module: 'writing',
+        state: 'running',
+        attempts: 1,
+        reason: null,
+        code: null,
+      },
+    ],
+    explanationStatuses: [],
+    overallBand: null,
+    writingBand: null,
+    writingBandReason: 'awaiting-tasks',
+    content: [{ module: 'writing', parts: [], submissions: {} }],
+  };
+
+  open('/results/sit-1');
+
+  expect(await screen.findByRole('heading', { name: 'Kết quả Writing' })).toBeInTheDocument();
+  expect(screen.getByText(/Task 1 và Task 2 được chấm lần lượt/)).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: 'Chưa có kết quả nào cho buổi này' })).toBeNull();
 });
 
 /**
@@ -1472,8 +1599,8 @@ it.each([
 
   open('/results/sit-1');
 
-  expect(await screen.findByText(/Writing:/)).toBeInTheDocument();
-  expect(screen.getByText(message)).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'Nhận xét Writing' })).toBeInTheDocument();
+  expect(screen.getAllByText(message).length).toBeGreaterThan(0);
 });
 
 it('puts the Speaking pending reason beside its dash', async () => {

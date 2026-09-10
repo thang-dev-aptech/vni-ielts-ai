@@ -840,8 +840,39 @@ internal sealed class SectionMarkingDocument
     [BsonElement("ungroundedEvidence")]
     public List<string> UngroundedEvidence { get; set; } = [];
 
+    [BsonElement("advisories")]
+    [BsonIgnoreIfNull]
+    public List<string>? Advisories { get; set; }
+
+    [BsonElement("provenance")]
+    [BsonIgnoreIfNull]
+    public WritingMarkingProvenanceDocument? Provenance { get; set; }
+
     [BsonElement("markedAt")]
     public DateTime MarkedAt { get; set; }
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class WritingMarkingProvenanceDocument
+{
+    [BsonElement("promptVersion")]
+    public string PromptVersion { get; set; } = string.Empty;
+
+    [BsonElement("providerSection")]
+    public string ProviderSection { get; set; } = string.Empty;
+
+    [BsonElement("modelRequested")]
+    public string ModelRequested { get; set; } = string.Empty;
+
+    [BsonElement("modelReported")]
+    public string ModelReported { get; set; } = string.Empty;
+
+    [BsonElement("modelMismatch")]
+    public bool ModelMismatch { get; set; }
+
+    [BsonElement("requestId")]
+    [BsonIgnoreIfNull]
+    public string? RequestId { get; set; }
 }
 
 [BsonIgnoreExtraElements]

@@ -115,7 +115,7 @@ Requirement C-13 states these examples are **not final**. Permissions are seeded
 
 ### AI ports
 
-Domain and Application know only ports. Vendor SDKs appear solely in `Infrastructure/Ai/`, and none exists yet.
+Domain and Application know only ports. Vendor SDKs appear solely in `Infrastructure/Ai/`. Writing adapters (`OpenAiWritingEvaluationClient`, `GeminiWritingEvaluationClient`) are wired behind `ISectionEvaluator`. Speaking has no transcript source (`NoTranscriptSource`).
 
 ```csharp
 public interface ISpeechRecognizer
@@ -123,13 +123,15 @@ public interface ISpeechRecognizer
     Task<TranscriptResult> TranscribeAsync(AudioReference audio, CancellationToken ct);
 }
 
-public interface IWritingEvaluator
+public interface ISectionEvaluator
 {
-    Task<EvaluationOutput> EvaluateAsync(WritingEvaluationRequest request, CancellationToken ct);
+    ExamModule Module { get; }
+    bool IsConfigured { get; }
+    Task<ClaimedEvaluation> EvaluateAsync(EvaluationRequest request, CancellationToken ct);
 }
 ```
 
-`TranscriptResult` must expose **word-level timings**, because the deterministic fluency features depend on them. A provider without word timestamps is not a viable choice. → [`../ai/speaking-pipeline.md`](../ai/speaking-pipeline.md)
+`TranscriptResult` must expose **word-level timings**, because the deterministic fluency features depend on them. A provider without word timestamps is not a viable choice. → [`../ai/speaking-pipeline.md`](../ai/speaking-pipeline.md) · [`../ai/writing-marking.md`](../ai/writing-marking.md)
 
 ### Library choices — `PROPOSED`, 2026-08-20
 
@@ -144,11 +146,11 @@ The layering above is settled. The concrete libraries were not named anywhere, w
 | **Metrics and tracing** | OpenTelemetry | Vendor-neutral, so the monitoring backend can be chosen later without rewriting instrumentation — which matters because `B-11` may constrain where telemetry can be sent |
 | **Media probe** | Out-of-process, sandboxed | Media parsing is a classic memory-safety surface, and the input is untrusted by definition (`I-13`). `[NEEDS VALIDATION]` whether a managed alternative covers the needed formats |
 
-None of these is implemented. They are recommendations awaiting the requirement freeze.
+JWT bearer, Google OIDC, structured logging, and the MongoDB marking outbox are running. The table below is the 2026-08-20 proposal for the remaining library choices — do not read a blank cell as "not built".
 
 ### Configuration and secrets
 
-Environment-based with strongly-typed options. **No AI credentials may be added until the owner selects a provider** ([CLAUDE.md](../../CLAUDE.md) rule 6) — and a PreToolUse hook blocks writes to `.env*` files to enforce this mechanically.
+Environment-based with strongly-typed options. **No AI credentials in this repository** ([CLAUDE.md](../../CLAUDE.md) rule 6). Keys live in environment / gitignored secrets. A PreToolUse hook blocks writes to `.env*` files.
 
 ### Background jobs
 
@@ -159,13 +161,9 @@ Worker host, separate process. Every job is:
 - **Dead-lettered** on final failure, never silently dropped
 - **Observable** — records provider, latency, usage, `modelVersion`, `rubricVersion`
 
-#### Queue technology — `PROPOSED`: MongoDB-backed at MVP
+#### Queue technology — `EXISTING`: MongoDB-backed outbox
 
-`[OPEN QUESTION]` **H-9.** Previously recorded only as "undecided"; here is the reasoning that should inform the decision.
-
-At the MVP target of a few hundred concurrent sessions ([`../development/nfr.md`](../development/nfr.md)), the job volume is **tens per minute** — Writing evaluations, plus Speaking if `M-26` keeps it. That does not justify operating a separate broker with its own availability, backup, and monitoring story.
-
-A MongoDB-backed queue satisfies every property required above: an atomic find-and-modify gives at-least-once delivery, the attempt count and dead-letter state live on the job document, and the queue is backed up with everything else.
+`H-9` is closed in code: `MarkingWorker` claims jobs with leases from MongoDB (`marking_jobs`). Idempotent enqueue per `(session, module, rubric)`; exponential backoff; dead-letter after 5 attempts. Not a separate broker.
 
 **Upgrade trigger, stated so it is not a judgement call later:** when *measured* queue depth or job latency exceeds the `nfr.md` targets. Not when someone predicts it will.
 

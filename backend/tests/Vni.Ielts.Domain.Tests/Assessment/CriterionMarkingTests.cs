@@ -72,6 +72,37 @@ public sealed class CriterionMarkingTests
     }
 
     [Fact]
+    public void Task_1_rejects_a_task_2_criterion_set()
+    {
+        var task1 = Rubric.Create(
+            "vni-writing-v2", ExamModule.Writing, CriterionKeys.WritingTask1, "vni-authored");
+
+        var ex = Assert.Throws<MarkingRejectedException>(
+            () => CriterionMarking.Mark(task1, FourClaims(), null, Submission, 1));
+
+        Assert.Contains("taskAchievement", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("taskResponse", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Task_2_rejects_a_task_1_criterion_set()
+    {
+        var claims = new List<ClaimedCriterion>
+        {
+            Claim(CriterionKeys.TaskAchievement, 6),
+            Claim(CriterionKeys.CoherenceAndCohesion, 6),
+            Claim(CriterionKeys.LexicalResource, 6),
+            Claim(CriterionKeys.GrammaticalRangeAndAccuracy, 6),
+        };
+
+        var ex = Assert.Throws<MarkingRejectedException>(
+            () => CriterionMarking.Mark(Writing, claims, null, Submission, 2));
+
+        Assert.Contains("taskResponse", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("taskAchievement", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void A_criterion_the_rubric_does_not_have_is_refused()
     {
         var claims = FourClaims();

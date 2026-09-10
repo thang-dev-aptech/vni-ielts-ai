@@ -71,6 +71,19 @@ public sealed class RubricOptions
     /// decision 06/09/2026): 1 : 2. → `G-11`
     /// </summary>
     public WritingTaskWeightOptions? TaskWeights { get; set; }
+
+    /// <summary>
+    /// Learner-facing feedback language for Writing. Default <c>vi</c>:
+    /// Vietnamese explanation, English criterion acronyms, English evidence.
+    /// </summary>
+    public string FeedbackLanguage { get; set; } = "vi";
+
+    /// <summary>
+    /// <c>whole</c> (v2 default) or <c>half-step</c> (v1). Whole-band
+    /// criterion scores are an inference from descriptors existing only at
+    /// whole bands, so this is a seam. → `G-11`, `W-Q2` sibling
+    /// </summary>
+    public string CriterionGranularity { get; set; } = "whole";
 }
 
 /// <summary>
@@ -143,50 +156,82 @@ public sealed class WritingTaskWeightOptions
 public sealed class ConfiguredRubricSource : IRubricSource
 {
     private readonly Dictionary<ExamModule, Rubric> _rubrics = [];
+    private Rubric? _writingTask1;
+    private Rubric? _writingTask2;
 
     public ConfiguredRubricSource(IOptions<AssessmentOptions> options)
     {
         var assessment = options.Value;
-        ApplyArtifactMetadata(assessment);
+        var artifact = TryLoadArtifact(assessment);
+        ApplyArtifactMetadata(assessment, artifact);
 
-        Add(ExamModule.Writing, assessment.Writing, CriterionKeys.Writing);
+        var writingCriteria = artifact is { IsV2: true }
+            ? WritingRubricLoader.CriteriaFor(artifact, 2)
+            : CriterionKeys.Writing;
+
+        Add(ExamModule.Writing, assessment.Writing, writingCriteria);
         Add(ExamModule.Speaking, assessment.Speaking, CriterionKeys.Speaking);
+
+        if (artifact is { IsV2: true } && _rubrics.TryGetValue(ExamModule.Writing, out var writing))
+        {
+            _writingTask1 = Rubric.Create(
+                writing.Version, ExamModule.Writing,
+                WritingRubricLoader.CriteriaFor(artifact, 1), writing.DescriptorSource);
+            _writingTask2 = Rubric.Create(
+                writing.Version, ExamModule.Writing,
+                WritingRubricLoader.CriteriaFor(artifact, 2), writing.DescriptorSource);
+        }
+    }
+
+    public Rubric? For(ExamModule module) => _rubrics.GetValueOrDefault(module);
+
+    public Rubric? For(ExamModule module, int? taskNumber)
+    {
+        if (module == ExamModule.Writing && taskNumber == 1 && _writingTask1 is not null)
+            return _writingTask1;
+        if (module == ExamModule.Writing && taskNumber == 2 && _writingTask2 is not null)
+            return _writingTask2;
+
+        return For(module);
+    }
+
+    private static WritingRubricArtifact? TryLoadArtifact(AssessmentOptions assessment)
+    {
+        if (!assessment.WritingMarking.Enabled) return null;
+
+        try
+        {
+            return WritingRubricLoader.Load(
+                assessment.WritingMarking.RubricArtifactPath ?? assessment.Writing.ArtifactPath,
+                assessment.WritingMarking.RubricContentHash);
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+        catch (FileNotFoundException)
+        {
+            return null;
+        }
     }
 
     /// <summary>
     /// When a rubric artifact is configured, stamp version and provenance from it
     /// so configuration and prompt content stay aligned.
     /// </summary>
-    private static void ApplyArtifactMetadata(AssessmentOptions assessment)
+    private static void ApplyArtifactMetadata(AssessmentOptions assessment, WritingRubricArtifact? artifact)
     {
-        if (!assessment.WritingMarking.Enabled) return;
+        if (artifact is null) return;
 
-        try
-        {
-            var artifact = WritingRubricLoader.Load(
-                assessment.WritingMarking.RubricArtifactPath ?? assessment.Writing.ArtifactPath,
-                assessment.WritingMarking.RubricContentHash);
+        if (string.IsNullOrWhiteSpace(assessment.Writing.Version))
+            assessment.Writing.Version = artifact.Version;
 
-            if (string.IsNullOrWhiteSpace(assessment.Writing.Version))
-                assessment.Writing.Version = artifact.Version;
+        if (string.IsNullOrWhiteSpace(assessment.Writing.DescriptorSource))
+            assessment.Writing.DescriptorSource = artifact.DescriptorSource;
 
-            if (string.IsNullOrWhiteSpace(assessment.Writing.DescriptorSource))
-                assessment.Writing.DescriptorSource = artifact.DescriptorSource;
-
-            if (string.IsNullOrWhiteSpace(assessment.WritingMarking.PromptVersion))
-                assessment.WritingMarking.PromptVersion = artifact.PromptVersion;
-        }
-        catch (InvalidOperationException)
-        {
-            // Artifact missing — rubric remains unset until configured explicitly.
-        }
-        catch (FileNotFoundException)
-        {
-            // Development may enable marking later; do not fail DI construction.
-        }
+        if (string.IsNullOrWhiteSpace(assessment.WritingMarking.PromptVersion))
+            assessment.WritingMarking.PromptVersion = artifact.PromptVersion;
     }
-
-    public Rubric? For(ExamModule module) => _rubrics.GetValueOrDefault(module);
 
     private void Add(ExamModule module, RubricOptions options, IReadOnlyList<string> criteria)
     {

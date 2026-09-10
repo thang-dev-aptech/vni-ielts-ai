@@ -44,6 +44,9 @@ public sealed class WritingMarkingOptions
     /// <summary>Maximum attempts <b>per provider</b> before moving to the fallback.</summary>
     public int MaxAttempts { get; set; } = 3;
 
-    /// <summary>Per-call timeout in seconds.</summary>
-    public int TimeoutSeconds { get; set; } = 120;
+    /// <summary>
+    /// Per-call timeout in seconds. Default 180 — a four-criterion essay with
+    /// quoted evidence regularly outlives 120s on the reseller.
+    /// </summary>
+    public int TimeoutSeconds { get; set; } = 180;
 }

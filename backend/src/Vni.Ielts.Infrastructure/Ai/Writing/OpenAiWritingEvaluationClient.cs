@@ -27,7 +27,14 @@ public sealed class OpenAiWritingEvaluationClient(
                 "OpenAiWritingEvaluationClient requires an AiEgressTicket in AsyncLocal scope.");
 
         var system = WritingEvaluationPromptBuilder.SystemPrompt(
-            request.DescriptorText, request.RubricVersion, request.DescriptorSource, request.PromptVersion);
+            request.DescriptorText,
+            request.RubricVersion,
+            request.DescriptorSource,
+            request.PromptVersion,
+            request.FeedbackLanguage,
+            request.TaskNumber,
+            request.Variant,
+            request.WholeBandCriteria);
         var user = WritingEvaluationPromptBuilder.UserPrompt(
             request.TaskPrompt, request.LearnerSubmission, request.WordCount, request.MinWords);
 
@@ -75,11 +82,12 @@ public sealed class OpenAiWritingEvaluationClient(
         var json = useResponsesApi
             ? ExtractOutputText(payload)
             : ExtractChatMessageContent(payload);
-        var (inputTokens, outputTokens, requestId) = useResponsesApi
+        var (inputTokens, outputTokens, requestId, servedModel) = useResponsesApi
             ? ExtractResponsesUsage(payload, ticket.Model)
             : ExtractChatUsage(payload, ticket.Model);
 
-        return new WritingEvaluationResponse(json, Provider, ticket.Model, requestId, inputTokens, outputTokens);
+        return new WritingEvaluationResponse(
+            json, Provider, servedModel, requestId, inputTokens, outputTokens, ticket.Model);
     }
 
     internal static readonly AsyncLocal<AiEgressTicket?> CurrentTicket = new();
@@ -228,39 +236,47 @@ public sealed class OpenAiWritingEvaluationClient(
         throw new MarkingRejectedException("OpenAI chat response did not contain assistant content.");
     }
 
-    private static (long Input, long Output, string RequestId) ExtractResponsesUsage(
-        string payload, string model)
+    private static (long Input, long Output, string RequestId, string Model) ExtractResponsesUsage(
+        string payload, string requestedModel)
     {
         using var doc = JsonDocument.Parse(payload);
         var root = doc.RootElement;
 
         var requestId = root.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String
-            ? id.GetString() ?? model
-            : model;
+            ? id.GetString() ?? requestedModel
+            : requestedModel;
 
-        if (!root.TryGetProperty("usage", out var usage)) return (0, 0, requestId);
+        var served = root.TryGetProperty("model", out var model) && model.ValueKind == JsonValueKind.String
+            ? model.GetString() ?? requestedModel
+            : requestedModel;
+
+        if (!root.TryGetProperty("usage", out var usage)) return (0, 0, requestId, served);
 
         var input = usage.TryGetProperty("input_tokens", out var inTok) ? inTok.GetInt64() : 0L;
         var output = usage.TryGetProperty("output_tokens", out var outTok) ? outTok.GetInt64() : 0L;
 
-        return (input, output, requestId);
+        return (input, output, requestId, served);
     }
 
-    private static (long Input, long Output, string RequestId) ExtractChatUsage(
-        string payload, string model)
+    private static (long Input, long Output, string RequestId, string Model) ExtractChatUsage(
+        string payload, string requestedModel)
     {
         using var doc = JsonDocument.Parse(payload);
         var root = doc.RootElement;
 
         var requestId = root.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String
-            ? id.GetString() ?? model
-            : model;
+            ? id.GetString() ?? requestedModel
+            : requestedModel;
 
-        if (!root.TryGetProperty("usage", out var usage)) return (0, 0, requestId);
+        var served = root.TryGetProperty("model", out var model) && model.ValueKind == JsonValueKind.String
+            ? model.GetString() ?? requestedModel
+            : requestedModel;
+
+        if (!root.TryGetProperty("usage", out var usage)) return (0, 0, requestId, served);
 
         var input = usage.TryGetProperty("prompt_tokens", out var inTok) ? inTok.GetInt64() : 0L;
         var output = usage.TryGetProperty("completion_tokens", out var outTok) ? outTok.GetInt64() : 0L;
 
-        return (input, output, requestId);
+        return (input, output, requestId, served);
     }
 }

@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { isUnreachable, ApiError } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { Breadcrumb } from '../chrome/Breadcrumb.js';
 import { useI18n } from '../../i18n/index.js';
-import type { StringKey } from '../../i18n/strings.js';
 import { Paths } from '../../routes/paths.js';
 import {
   getResults,
@@ -31,6 +30,13 @@ import { BandComparisonChart } from './result/BandComparisonChart.js';
 import { AnswerReviewList } from './result/AnswerReviewList.js';
 import { ListeningSectionBreakdown } from './result/ListeningSectionBreakdown.js';
 import { PracticeRecommendations, SuggestedDocuments } from './result/PracticeRecommendations.js';
+import { WritingMarkingPanel, WritingPaperReview, writingWordCounts } from './result/WritingResults.js';
+import {
+  isMarkingInFlight,
+  MARKING_POLL_MAX,
+  MARKING_POLL_MS,
+  markingStatusText,
+} from './result/markingStatus.js';
 import {
   labelForType,
   listeningAudioIndex,
@@ -123,6 +129,7 @@ export function ExamResultsPage() {
   const [retakeFailed, setRetakeFailed] = useState(false);
   const [explainSignal, setExplainSignal] = useState(0);
   const alive = useAlive();
+  const pollCount = useRef(0);
 
   const load = useCallback(async () => {
     if (accessToken === null) return;
@@ -160,6 +167,31 @@ export function ExamResultsPage() {
       }
     })();
   }, [accessToken, sessionId, alive]);
+
+  /*
+   * Writing marking is asynchronous. A screen that will not change on its
+   * own used to make the learner press "Kiểm tra lại". Poll only while the
+   * job is alive; a completed or failed job stops — failed is a button, not
+   * a loop. Cap the retries so a stuck `running` cannot hammer the API.
+   */
+  useEffect(() => {
+    const writing = results?.markingStatuses?.find((status) => status.module === 'writing');
+    if (!isMarkingInFlight(writing)) {
+      pollCount.current = 0;
+      return;
+    }
+
+    const id = window.setInterval(() => {
+      pollCount.current += 1;
+      if (pollCount.current > MARKING_POLL_MAX) {
+        window.clearInterval(id);
+        return;
+      }
+      void load();
+    }, MARKING_POLL_MS);
+
+    return () => window.clearInterval(id);
+  }, [load, results?.markingStatuses]);
 
   if (failed !== null) {
     return (
@@ -248,26 +280,34 @@ export function ExamResultsPage() {
       ? results.overallBand === null
         ? null
         : results.overallBand.toFixed(1)
-      : primarySection !== undefined
-        ? primarySection.band !== null && primarySection.bandVerified
-          ? formatBand(primarySection.band as Band)
-          : null
-        : markedBy.get(primaryModule ?? 'reading') !== undefined
-          ? (markedBy.get(primaryModule ?? 'reading')?.[0]?.band.toFixed(1) ?? null)
-          : null;
+      : primaryModule === 'writing'
+        ? results.writingBand == null
+          ? null
+          : results.writingBand.toFixed(1)
+        : primarySection !== undefined
+          ? primarySection.band !== null && primarySection.bandVerified
+            ? formatBand(primarySection.band as Band)
+            : null
+          : markedBy.get(primaryModule ?? 'reading') !== undefined
+            ? (markedBy.get(primaryModule ?? 'reading')?.[0]?.band.toFixed(1) ?? null)
+            : null;
 
   const heroBandNote =
     heroBand !== null
       ? null
       : results.mode === 'full'
         ? t('exam.overallPending')
-        : primarySection !== undefined && primarySection.band !== null
-          ? t('exam.bandUnverified')
-          : markingStatusText(
-              statusByModule.get(primaryModule ?? 'reading') ??
-                fallbackStatus(primaryModule ?? 'reading'),
-              t,
-            );
+        : primaryModule === 'writing' && results.writingBandReason === 'awaiting-tasks'
+          ? t('exam.writingBandReasonAwaitingTasks')
+          : primaryModule === 'writing' && results.writingBandReason === 'weighting-not-configured'
+            ? t('exam.writingBandReasonWeightingNotConfigured')
+            : primarySection !== undefined && primarySection.band !== null
+              ? t('exam.bandUnverified')
+              : markingStatusText(
+                  statusByModule.get(primaryModule ?? 'reading') ??
+                    fallbackStatus(primaryModule ?? 'reading'),
+                  t,
+                );
 
   /**
    * "Làm lại đề này" — a new sitting, never the finished one reopened.
@@ -341,6 +381,11 @@ export function ExamResultsPage() {
   const listeningSectionOf = listeningSectionIndex(listeningContent);
   const listeningAudioOf = listeningAudioIndex(listeningContent);
 
+  const writingContent = (results.content ?? []).find((c) => c.module === 'writing');
+  const writingMarkings = markedBy.get('writing') ?? [];
+  const isWritingLayout = primaryModule === 'writing';
+  const wordCounts = isWritingLayout ? writingWordCounts(writingContent) : undefined;
+
   return (
     <ResultsChrome examTitle={results.examTitle}>
       <ResultHero
@@ -352,10 +397,25 @@ export function ExamResultsPage() {
         stats={stats}
         retakeBusy={retakeBusy || sitting === null}
         onRetake={() => void retake()}
-        onExplain={() => setExplainSignal((n) => n + 1)}
+        onExplain={() => {
+          if (isWritingLayout) {
+            document
+              .getElementById('writing-feedback')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+          }
+          setExplainSignal((n) => n + 1);
+        }}
         practiceHref={
           only === null ? Paths.practice : `${Paths.practice}?skill=${only}&mode=single`
         }
+        {...(isWritingLayout
+          ? {
+              advisory: true,
+              explainLabel: t('exam.seeFeedback'),
+              ...(wordCounts !== undefined && wordCounts.length > 0 ? { wordCounts } : {}),
+            }
+          : {})}
       />
 
       {retakeFailed && (
@@ -366,32 +426,40 @@ export function ExamResultsPage() {
 
       {results.status === 'expired' && <p className="dash-notice">{t('exam.resultsExpired')}</p>}
 
-      <div className="exs-section-head">
-        <h2>{t('exam.overviewTitle')}</h2>
-        <p>{t('exam.overviewLead')}</p>
-      </div>
+      {!isWritingLayout && (
+        <>
+          <div className="exs-section-head">
+            <h2>{t('exam.overviewTitle')}</h2>
+            <p>{t('exam.overviewLead')}</p>
+          </div>
 
-      <ResultSummaryCards stats={stats} examTitle={results.examTitle} />
+          <ResultSummaryCards stats={stats} examTitle={results.examTitle} />
 
-      {/* Listening only — one card per part, joined from `content` and the
-          answer-key section rather than split evenly by fiat. */}
-      {primaryModule === 'listening' && <ListeningSectionBreakdown rows={listeningSections} />}
+          {primaryModule === 'listening' && <ListeningSectionBreakdown rows={listeningSections} />}
 
-      <div className="exs-two">
-        <QuestionTypeBreakdown rows={stats.breakdown} />
-        {/*
-          `distribution={null}`: nothing in this product measures a cohort, and
-          the panel says so rather than drawing a shape from nothing. The prop
-          is the seam — `G-11`, a configured seam with a null implementation.
-        */}
-        <BandComparisonChart distribution={null} myBand={heroBand} skillName={skillName} />
-      </div>
+          <div className="exs-two">
+            <QuestionTypeBreakdown rows={stats.breakdown} />
+            <BandComparisonChart distribution={null} myBand={heroBand} skillName={skillName} />
+          </div>
+        </>
+      )}
 
       <div className="exs-main-two">
         <div className="exs-stack">
-          {primaryModule !== null &&
-          primarySection !== undefined &&
-          primarySection.questions.length > 0 ? (
+          {isWritingLayout ? (
+            <>
+              <WritingMarkingPanel
+                markings={writingMarkings}
+                writingBand={results.writingBand}
+                writingBandReason={results.writingBandReason}
+                status={statusByModule.get('writing')}
+                onRetry={() => void load()}
+              />
+              {writingContent !== undefined && <WritingPaperReview content={writingContent} />}
+            </>
+          ) : primaryModule !== null &&
+            primarySection !== undefined &&
+            primarySection.questions.length > 0 ? (
             <AnswerReviewList
               module={primaryModule}
               section={primarySection}
@@ -424,7 +492,7 @@ export function ExamResultsPage() {
                   }
                 : {})}
             />
-          ) : marked.size === 0 && markedBy.size === 0 ? (
+          ) : !isWritingLayout && marked.size === 0 && markedBy.size === 0 ? (
             /*
               <b>A sitting with nothing at all still has to say something.</b>
               A single-skill Writing or Speaking sitting has nothing to review
@@ -557,6 +625,7 @@ export function ExamResultsPage() {
           */}
           {(results.markingStatuses ?? [])
             .filter((status) => status.state !== 'completed')
+            .filter((status) => status.module !== 'writing')
             .map((status) => (
               <p className="dash-notice" key={status.module}>
                 <strong>{SKILLS[status.module].name}: </strong>
@@ -591,42 +660,33 @@ export function ExamResultsPage() {
               </>
             )}
 
-          {[...markedBy.entries()].map(([moduleId, moduleMarkings]) => (
-            <MarkingReview
-              key={moduleId}
-              module={moduleId}
-              markings={moduleMarkings}
-              {...(moduleId === 'writing'
-                ? { writingBand: results.writingBand, writingBandReason: results.writingBandReason }
-                : {})}
-            />
+          {(isWritingLayout
+            ? []
+            : [...markedBy.entries()].filter(([moduleId]) => moduleId !== 'writing')
+          ).map(([moduleId, moduleMarkings]) => (
+            <MarkingReview key={moduleId} module={moduleId} markings={moduleMarkings} />
           ))}
 
-          {/*
-            Writing sat, nothing marked yet at all — `markedBy` has no entry, so
-            the loop above never runs, and the combined band's own reason
-            (`awaiting-tasks`) would otherwise have nowhere to appear. `P-12`
-            still owes an answer to "why no combined band" even before the
-            first task marking lands.
-          */}
-          {!markedBy.has('writing') &&
-            shown.includes('writing') &&
-            results.writingBandReason !== null && (
-              <MarkingReview
-                module="writing"
-                markings={[]}
-                writingBand={results.writingBand}
-                writingBandReason={results.writingBandReason}
-              />
-            )}
+          {!isWritingLayout && shown.includes('writing') && (
+            <WritingMarkingPanel
+              markings={writingMarkings}
+              writingBand={results.writingBand}
+              writingBandReason={results.writingBandReason}
+              status={statusByModule.get('writing')}
+              onRetry={() => void load()}
+            />
+          )}
 
           {/*
             The paper itself — `P-06`…`P-09`, `S2`. Empty while the sitting was
             still in progress when this loaded (the server's own gate, not a
             client guess), so this renders nothing for that case rather than an
-            empty accordion nobody can open.
+            empty accordion nobody can open. Writing-only sittings use
+            `WritingPaperReview` above instead of this accordion.
           */}
-          {(results.content ?? []).map((content) => (
+          {(results.content ?? [])
+            .filter((content) => !(isWritingLayout && content.module === 'writing'))
+            .map((content) => (
             <SectionContentReview
               key={content.module}
               module={content.module}
@@ -679,14 +739,9 @@ export function ExamResultsPage() {
 function MarkingReview({
   module: moduleId,
   markings,
-  writingBand = null,
-  writingBandReason = null,
 }: {
   module: ExamModule;
   markings: SectionMarkingView[];
-  /** Writing only — the combined band, `P-12`. Ignored for every other module. */
-  writingBand?: number | null;
-  writingBandReason?: 'awaiting-tasks' | 'weighting-not-configured' | null;
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -763,35 +818,6 @@ function MarkingReview({
               </ul>
             </article>
           ))}
-
-          {/*
-              `P-12`: additive to the two task cards above, never a
-              replacement — the same reasoning `bandCell` already carries for
-              never averaging them. Shown only for Writing, and only once at
-              least one task marking exists (that is when the reason codes are
-              meaningful; before any marking arrives the "đang chấm" notice
-              elsewhere already says what is happening).
-            */}
-          {moduleId === 'writing' && (
-            <article className="result-marking-card ai-advisory-card result-writing-combined">
-              <div className="ai-advisory-header">
-                <span className="dash-tag dash-tag-ai">{t('exam.aiAdvisory')}</span>
-              </div>
-              <header className="result-marking-head">
-                <h3>{t('exam.writingBandCombined')}</h3>
-                <span className="result-marking-band num">
-                  {writingBand === null ? '—' : writingBand.toFixed(1)}
-                </span>
-              </header>
-              {writingBand === null && writingBandReason !== null && (
-                <p className="result-marking-rubric">
-                  {writingBandReason === 'awaiting-tasks'
-                    ? t('exam.writingBandReasonAwaitingTasks')
-                    : t('exam.writingBandReasonWeightingNotConfigured')}
-                </p>
-              )}
-            </article>
-          )}
         </div>
       )}
     </section>
@@ -989,26 +1015,6 @@ function RecordingReview({
       )}
     </div>
   );
-}
-
-function markingStatusText(
-  status: { state: string; reason: string | null; code?: string | null },
-  t: (key: StringKey, values?: Record<string, string | number>) => string,
-): string {
-  if (status.reason !== null) return status.reason;
-
-  if (status.code === 'AwaitingEvaluator') return t('exam.markingAwaitingEvaluator');
-  if (status.code === 'AwaitingRubric') return t('exam.markingAwaitingRubric');
-  if (status.code === 'AwaitingVoiceProvider' || status.code === 'AwaitingTranscript') {
-    return t('exam.markingAwaitingVoiceProvider');
-  }
-  if (status.code === 'NothingSubmitted') return t('exam.markingNothingSubmitted');
-  if (status.code === 'Rejected') return t('exam.markingRejected');
-
-  if (status.state === 'running') return t('exam.markingRunning');
-  if (status.state === 'retryable') return t('exam.markingRetryable');
-  if (status.state === 'failed') return t('exam.markingFailed');
-  return t('exam.markingWaiting');
 }
 
 function isAiMarked(moduleId: ExamModule): boolean {

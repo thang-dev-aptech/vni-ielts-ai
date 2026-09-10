@@ -1450,12 +1450,9 @@ Two further points for the decision:
 costs either a migration or a database team.
 Full comparison: [`../architecture/system-architecture.md`](../architecture/system-architecture.md) § Infrastructure plan.
 
-### H-9 · Queue technology `[OPEN QUESTION]`
-Accept a **MongoDB-backed queue** for MVP, or adopt a dedicated broker now?
+### H-9 · Queue technology — **RESOLVED in code 2026-08-29** `[QUYẾT ĐỊNH kỹ thuật]`
 
-**Recommendation: MongoDB-backed.** At a few hundred concurrent sessions the job volume is tens per
-minute, which does not justify operating a separate broker. Revisit when *measured* queue depth or job
-latency exceeds the targets in [`../development/nfr.md`](../development/nfr.md) — not on prediction.
+MongoDB-backed outbox (`MarkingWorker`, collection `marking_jobs`, lease claim, 5 attempts, dead-letter). Not a dedicated broker. Revisit when *measured* queue depth or job latency exceeds [`../development/nfr.md`](../development/nfr.md) — not on prediction. → [`../architecture/backend-architecture.md`](../architecture/backend-architecture.md) · [`../ai/writing-marking.md`](../ai/writing-marking.md)
 
 ### H-10 · MongoDB deployment topology — **RESOLVED 2026-08-20** ✅ → [ADR-0011](../decisions/0011-mongodb-single-node-replica-set.md)
 

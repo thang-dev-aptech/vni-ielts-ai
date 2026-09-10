@@ -405,7 +405,17 @@ public sealed record SectionMarkingView(
     /// that does not occur in the learner's submission. The band is still
     /// reportable; flagged means "usable, and worth a look".
     /// </summary>
-    IReadOnlyList<string> Flags);
+    IReadOnlyList<string> Flags,
+    IReadOnlyList<string>? Advisories = null,
+    WritingMarkingProvenanceView? Provenance = null);
+
+public sealed record WritingMarkingProvenanceView(
+    string PromptVersion,
+    string ProviderSection,
+    string ModelRequested,
+    string ModelReported,
+    bool ModelMismatch,
+    string? RequestId);
 
 public sealed record CriterionAssessmentView(
     string Criterion,
@@ -556,7 +566,17 @@ internal static class ExamViewMapping
                 .. marking.Criteria.Select(c => new CriterionAssessmentView(
                     c.Criterion, c.Band.Value, c.Feedback, c.Evidence)),
             ],
-            [.. marking.Flags.Select(f => f.ToString())]);
+            [.. marking.Flags.Select(f => f.ToString())],
+            marking.Advisories,
+            marking.Provenance is { } provenance
+                ? new WritingMarkingProvenanceView(
+                    provenance.PromptVersion,
+                    provenance.ProviderSection,
+                    provenance.ModelRequested,
+                    provenance.ModelReported,
+                    provenance.ModelMismatch,
+                    provenance.RequestId)
+                : null);
 
     public static SectionResultView ToView(
         this SectionScore score,

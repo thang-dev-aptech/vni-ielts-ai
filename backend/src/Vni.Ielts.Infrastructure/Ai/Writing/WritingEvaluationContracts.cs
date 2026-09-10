@@ -10,7 +10,12 @@ public sealed record WritingEvaluationRequest(
     string DescriptorText,
     string PromptVersion,
     string IdempotencyKey,
-    int Attempt);
+    int Attempt,
+    int? TaskNumber = null,
+    string? Variant = null,
+    string FeedbackLanguage = "en",
+    bool WholeBandCriteria = false,
+    string? RequestedModel = null);
 
 public sealed record WritingEvaluationResponse(
     string Json,
@@ -18,7 +23,8 @@ public sealed record WritingEvaluationResponse(
     string Model,
     string RequestId,
     long InputTokens,
-    long OutputTokens);
+    long OutputTokens,
+    string? RequestedModel = null);
 
 public sealed class TransientWritingEvaluationException(string message) : Exception(message);
 

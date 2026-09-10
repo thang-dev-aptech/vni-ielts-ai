@@ -1,9 +1,9 @@
 # Writing marking — rubric v2 and the three-layer pipeline
 
-**Status:** design, awaiting owner review
-**Date:** 2026-09-08
+**Status:** implemented in code 2026-09-09. Canonical description of what runs today: [`../../ai/writing-marking.md`](../../ai/writing-marking.md).
+**Date:** 2026-09-08 (design); implementation verified 2026-09-09
 **Owner decisions recorded here:** `W-1` (architecture), `W-2` (descriptor authorship)
-**Supersedes:** `fixtures/assessment/writing-rubric-v1.json` (`ielts-writing-synthetic-v1`)
+**Operator pin:** develop secrets still load `fixtures/assessment/writing-rubric-v1.json` (`ielts-writing-synthetic-v1`). The v2 file exists; its `contentHash` is `sha256:pending` until the operator computes one. This spec is not a licence to retarget secrets.
 
 ---
 
@@ -324,6 +324,6 @@ nothing.
 |---|---|---|
 | `W-Q1` | Rounding rule inside the Writing component | Configured seam, defaulting to the .25/.75 convention |
 | `W-Q2` | Whether the served model differing from the requested one should ever block a band | Records and flags only. Owner decision |
-| `W-Q3` | Feedback language for Vietnamese learners | Market norm is Vietnamese explanation, English criterion acronyms, English corrections. Not decided here |
+| `W-Q3` | Feedback language for Vietnamese learners | Settled in code as the default, not a new numbered `P-*`: `Assessment:Writing:FeedbackLanguage` = `vi` — Vietnamese explanation, English criterion acronyms, evidence copied verbatim from the English essay. Seam accepts `en`. Owner approved with the 2026-09-09 Writing plan |
 | `W-Q4` | Calibration set and target agreement | Follow-up work. Literature suggests ~45% within ±0.5 band is realistic |
 | `W-Q5` | Memorised-response detection (band 0) | Not implemented. Needs a maintained template bank; best published detector reaches 58% recall at zero false positives. Omitted rather than guessed |

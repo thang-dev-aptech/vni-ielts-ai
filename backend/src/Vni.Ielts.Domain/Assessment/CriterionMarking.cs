@@ -50,6 +50,42 @@ public sealed record CriterionAssessment
 
         return new CriterionAssessment(criterion, band, feedback, [.. evidence]);
     }
+
+    /// <summary>
+    /// A terminal admission mark: the basis is the absence of assessable
+    /// English, not a quotation. Persistence round-trips through
+    /// <see cref="Restore"/>.
+    /// </summary>
+    public static CriterionAssessment ForAdmission(
+        string criterion, BandScore band, string feedback)
+    {
+        if (string.IsNullOrWhiteSpace(criterion))
+            throw new ArgumentException("A mark must name its criterion.", nameof(criterion));
+
+        if (string.IsNullOrWhiteSpace(feedback))
+            throw new ArgumentException(
+                "A band with no feedback tells the learner nothing they can act on.",
+                nameof(feedback));
+
+        return new CriterionAssessment(criterion, band, feedback, []);
+    }
+
+    /// <summary>
+    /// Rehydrates a stored row, including admission rows that cite no learner span.
+    /// </summary>
+    public static CriterionAssessment Restore(
+        string criterion, BandScore band, string feedback, IReadOnlyList<string> evidence)
+    {
+        if (string.IsNullOrWhiteSpace(criterion))
+            throw new ArgumentException("A mark must name its criterion.", nameof(criterion));
+
+        if (string.IsNullOrWhiteSpace(feedback))
+            throw new ArgumentException(
+                "A band with no feedback tells the learner nothing they can act on.",
+                nameof(feedback));
+
+        return new CriterionAssessment(criterion, band, feedback, [.. evidence]);
+    }
 }
 
 /// <summary>
@@ -76,6 +112,13 @@ public enum MarkingFlag
     /// reads as verifiable.
     /// </summary>
     EvidenceNotGrounded,
+
+    /// <summary>
+    /// The model name configuration asked for differs from the name the
+    /// provider reported serving. The band still stands; the flag is for
+    /// calibration and dispute. → writing-marking-rubric-v2 §6
+    /// </summary>
+    ModelNameMismatch,
 }
 
 /// <summary>
@@ -107,7 +150,9 @@ public sealed record SectionMarking(
     BandScore? ReportedBand,
     IReadOnlyList<MarkingFlag> Flags,
     IReadOnlyList<string> UngroundedEvidence,
-    int? TaskNumber = null)
+    int? TaskNumber = null,
+    IReadOnlyList<string>? Advisories = null,
+    WritingMarkingProvenance? Provenance = null)
 {
     /// <summary>
     /// Whether anything here needs a human to look at it.

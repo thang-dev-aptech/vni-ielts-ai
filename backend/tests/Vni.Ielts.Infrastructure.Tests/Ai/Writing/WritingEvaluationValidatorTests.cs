@@ -24,6 +24,57 @@ public sealed class WritingEvaluationValidatorTests
     }
 
     [Fact]
+    public void Task_1_payload_maps_task_achievement_not_task_response()
+    {
+        var json = """
+            {
+              "criteria": {
+                "taskAchievement": {"band": 6, "feedback": "ok", "evidence": ["the chart"]},
+                "coherenceAndCohesion": {"band": 6, "feedback": "ok", "evidence": ["the chart"]},
+                "lexicalResource": {"band": 6, "feedback": "ok", "evidence": ["the chart"]},
+                "grammaticalRangeAndAccuracy": {"band": 6, "feedback": "ok", "evidence": ["the chart"]}
+              },
+              "sectionBand": 6,
+              "summary": "ok",
+              "limiters": { "whollyUnrelated": false, "entirelyOffTopic": true }
+            }
+            """;
+
+        var claim = WritingEvaluationValidator.ToClaimedEvaluation(json, wholeBandCriteria: true);
+
+        Assert.Contains(claim.Criteria, c => c.Criterion == CriterionKeys.TaskAchievement);
+        Assert.DoesNotContain(claim.Criteria, c => c.Criterion == CriterionKeys.TaskResponse);
+
+        var limiters = WritingEvaluationValidator.LimitersFrom(
+            json, taskNumber: 1, generalTraining: false, formatNotProse: false,
+            insufficientSentenceControl: false);
+        Assert.True(limiters.EntirelyOffTopic);
+        Assert.False(limiters.WhollyUnrelated);
+    }
+
+    [Fact]
+    public void Whole_band_granularity_refuses_a_half_step_criterion()
+    {
+        var json = """
+            {
+              "criteria": {
+                "taskResponse": {"band": 6.5, "feedback": "ok", "evidence": ["hello"]},
+                "coherenceAndCohesion": {"band": 6, "feedback": "ok", "evidence": ["hello"]},
+                "lexicalResource": {"band": 6, "feedback": "ok", "evidence": ["hello"]},
+                "grammaticalRangeAndAccuracy": {"band": 6, "feedback": "ok", "evidence": ["hello"]}
+              },
+              "sectionBand": 6.5,
+              "summary": "ok"
+            }
+            """;
+
+        var ex = Assert.Throws<MarkingRejectedException>(() =>
+            WritingEvaluationValidator.ToClaimedEvaluation(json, wholeBandCriteria: true));
+
+        Assert.Contains("whole-band", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Band_6_3_is_refused_by_schema_validation()
     {
         var ex = Assert.Throws<MarkingRejectedException>(() =>
@@ -55,6 +106,19 @@ public sealed class WritingEvaluationValidatorTests
             rubric, claim.Criteria, claim.ReportedBand, "Completely unrelated essay with no matching quotes.", 2);
 
         Assert.Contains(MarkingFlag.EvidenceNotGrounded, marking.Flags);
+    }
+
+    [Fact]
+    public void Vietnamese_feedback_prompt_keeps_english_criterion_names()
+    {
+        var prompt = WritingEvaluationPromptBuilder.SystemPrompt(
+            "descriptors", "vni-writing-v2", "vni-authored", "writing-eval-prompt-v2",
+            "vi", 1, "academic", true);
+
+        Assert.Contains("tiếng Việt", prompt, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("TA, TR, CC, LR, GRA", prompt, StringComparison.Ordinal);
+        Assert.Contains("band nguyên", prompt, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Assign half-step bands", prompt, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -2,7 +2,7 @@
 
 How each of the four IELTS modules is evaluated, and the rules that govern the AI subsystem as a whole.
 
-> **LLM providers selected 2026-08-20: GPT (OpenAI) and Gemini (Google).** The Claude API remains excluded by owner decision. **Speech-to-text is still unselected.** No vendor SDK, no credentials, and no hosted AI call exists in this repository yet, and everything below stays expressed in terms of ports — with two vendors, that abstraction is now load-bearing rather than precautionary. → [`provider-comparison.md`](provider-comparison.md) · [ADR-0005](../decisions/0005-ai-provider-abstraction.md)
+> **LLM providers selected 2026-08-20: GPT (OpenAI) and Gemini (Google).** The Claude API remains excluded by owner decision. **Speech-to-text is still unselected.** Writing adapters live in `Infrastructure/Ai/Writing`; Application talks to `ISectionEvaluator`. Credentials never enter the repository — they live in environment / `secrets.develop.json` (gitignored). Real learner essays have gone through the `api.vietapi.tech` / `apithat.dev` reseller since 2026-09-03 (`B-2`, `M-28`). → [`writing-marking.md`](writing-marking.md) · [`provider-comparison.md`](provider-comparison.md) · [ADR-0005](../decisions/0005-ai-provider-abstraction.md)
 
 ---
 
@@ -62,18 +62,23 @@ An LLM may optionally generate an *explanation* of why an answer was wrong. That
 
 Answer matching rules (case, whitespace, accepted alternates, word limits) live in the `ScoringProfile`, not in code. → [`../domain/band-scoring.md`](../domain/band-scoring.md)
 
-### Writing — LLM against four criteria
+### Writing — LLM against four criteria, three code layers
 
-Input: task prompt, learner's text, rubric, word count, and any task-specific constraints.
-Output: a band per criterion (Task Response/Achievement, Coherence and Cohesion, Lexical Resource, Grammatical Range and Accuracy) with feedback, plus an aggregated section band.
+Canonical implementation: [`writing-marking.md`](writing-marking.md).
 
-Deterministic pre-processing done **in code**, not by the model:
+Input: task prompt, learner's text, the loaded rubric artifact, a server-computed word count, task number, and Academic / GT variant.
+Output: a band per criterion with feedback and evidence, plus an aggregated task band. Combined Writing band is **not** the model's `sectionBand` — Application recomputes it at 1:2 (`P-12`).
 
-- Word count and minimum-word-count violation
-- Paragraph count and structure
-- Off-topic detection is *not* pre-computed — that is a Task Response judgement
+Task 1's construct is **Task Achievement**; Task 2's is **Task Response**. They are not interchangeable. The operator-pinned v1 artifact still uses `taskResponse` for both tasks until secrets point at v2.
 
-Sending a pre-computed word count matters: models count words unreliably, and "under 150 words" is a scored penalty condition that must be exact.
+Deterministic work done **in code**, not by the model:
+
+- Admission (`WritingAdmission`): empty / not English → band 0; ≤20 remaining words after discounting copied prompt → band 1; no provider call
+- Word count sent in the user turn (models count unreliably)
+- Limiter caps from boolean flags after the response (`WritingLimiters`)
+- `sectionBand` recomputed; evidence spans grounded in the submission
+
+Off-topic and "wholly unrelated" are **judgements** the model flags; code applies the ceiling. They are not regexes over the rationale.
 
 ### Speaking — the expensive path
 
@@ -83,7 +88,7 @@ Audio → ASR → deterministic features → LLM → validated band. Detail in [
 
 ## Ports
 
-Domain and Application know only these interfaces. Vendor SDKs live solely in `Infrastructure/Ai/`.
+Domain and Application know only these interfaces. Vendor SDKs live solely in `Infrastructure/Ai/`. Writing is wired today: `WritingSectionEvaluator` → `WritingEvaluationRouter` → OpenAI or Gemini clients. Speaking's evaluator port exists; the transcript source is the null implementation (`P-02`).
 
 ```csharp
 public interface ISpeechRecognizer
@@ -91,19 +96,28 @@ public interface ISpeechRecognizer
     Task<TranscriptResult> TranscribeAsync(AudioReference audio, CancellationToken ct);
 }
 
-public interface IWritingEvaluator
+public interface ISectionEvaluator   // Application port — Writing and (later) Speaking
 {
-    Task<EvaluationOutput> EvaluateAsync(WritingEvaluationRequest request, CancellationToken ct);
+    ExamModule Module { get; }
+    bool IsConfigured { get; }
+    Task<ClaimedEvaluation> EvaluateAsync(EvaluationRequest request, CancellationToken ct);
 }
 
-public interface ISpeakingEvaluator
+// Infrastructure only — vendor clients behind WritingEvaluationRouter
+public interface IWritingEvaluationClient
 {
-    Task<EvaluationOutput> EvaluateAsync(SpeakingEvaluationRequest request, CancellationToken ct);
+    string Provider { get; }
+    Task<WritingEvaluationResponse> EvaluateAsync(WritingEvaluationRequest request, CancellationToken ct);
 }
 
 public interface IFeedbackGenerator   // optional, non-blocking
 {
     Task<string> ExplainAsync(AnswerExplanationRequest request, CancellationToken ct);
+}
+
+public interface ITranscriptSource   // Speaking; null implementation in the MVP (`P-02`)
+{
+    Task<string?> ForAsync(ExamSessionId sessionId, IReadOnlyList<RecordingRef> recordings, CancellationToken ct);
 }
 ```
 
@@ -111,7 +125,7 @@ public interface IFeedbackGenerator   // optional, non-blocking
 
 **`IFeedbackGenerator` is the Reading/Listening explanation port**, and its "optional, non-blocking" annotation is now a confirmed requirement rather than a design preference. `A-11` states the band comes from the answer key and an explanation can never modify it. The port returns a `string` — it has no way to express a band, which is exactly the property to preserve. → [`output-contracts.md`](output-contracts.md)
 
-**`ISpeakingEvaluator` is currently unscoped.** `A-14` (Speaking AI scoring) is `UNCONFIRMED` as of 2026-08-20 → `M-26`. The port stays defined because removing and re-adding it would be churn, but do not read its existence as confirmation that Speaking AI is in scope.
+**`ISpeakingEvaluator` is not a type in this tree.** Speaking marking, if it ever runs, uses the same `ISectionEvaluator` as Writing. What is missing is a transcript (`ITranscriptSource` → `NoTranscriptSource`, `P-02`). `A-14` remains `UNCONFIRMED` → `M-26`.
 
 ### Ports needed by the 2026-08-20 brief — all `PROPOSED`
 

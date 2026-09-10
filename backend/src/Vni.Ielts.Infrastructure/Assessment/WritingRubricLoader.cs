@@ -19,7 +19,23 @@ public sealed record WritingRubricArtifact(
     string ContentHash,
     string PromptVersion,
     IReadOnlyList<string> Criteria,
-    IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Descriptors);
+    IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Descriptors,
+    bool IsV2 = false,
+    WritingTaskTypeArtifact? Task1 = null,
+    WritingTaskTypeArtifact? Task2 = null);
+
+public sealed record WritingTaskTypeArtifact(
+    IReadOnlyList<string> Criteria,
+    IReadOnlyDictionary<string, WritingDescriptorSet> Descriptors);
+
+/// <summary>
+/// Shared bands, or a variant split (Task 1 Task Achievement only).
+/// </summary>
+public sealed record WritingDescriptorSet(
+    IReadOnlyDictionary<string, string> Shared,
+    IReadOnlyDictionary<string, string>? Academic = null,
+    IReadOnlyDictionary<string, string>? GeneralTraining = null);
+
 
 /// <summary>Loads and validates rubric artifacts from disk.</summary>
 public static class WritingRubricLoader
@@ -60,10 +76,14 @@ public static class WritingRubricLoader
 
         dto.Validate();
 
-        var descriptors = dto.Descriptors.ToDictionary(
-            kv => kv.Key,
-            kv => (IReadOnlyDictionary<string, string>)kv.Value,
-            StringComparer.Ordinal);
+        if (dto.TaskTypes is not null)
+            return dto.ToV2();
+
+        var descriptors = (dto.Descriptors ?? [])
+            .ToDictionary(
+                kv => kv.Key,
+                kv => (IReadOnlyDictionary<string, string>)kv.Value,
+                StringComparer.Ordinal);
 
         return new WritingRubricArtifact(
             dto.Version,
@@ -71,7 +91,7 @@ public static class WritingRubricLoader
             DateOnly.Parse(dto.EffectiveDate),
             dto.ContentHash,
             dto.PromptVersion,
-            dto.Criteria,
+            dto.Criteria ?? [],
             descriptors);
     }
 
@@ -184,23 +204,68 @@ public static class WritingRubricLoader
     }
 
     /// <summary>Formats descriptors for inclusion in a model prompt.</summary>
-    public static string FormatDescriptorsForPrompt(WritingRubricArtifact artifact)
-    {
-        var sb = new StringBuilder();
+    public static string FormatDescriptorsForPrompt(WritingRubricArtifact artifact) =>
+        FormatDescriptorsForPrompt(artifact, taskNumber: 2, generalTraining: false);
 
+    public static IReadOnlyList<string> CriteriaFor(WritingRubricArtifact artifact, int? taskNumber)
+    {
+        if (artifact.IsV2)
+        {
+            if (taskNumber == 1 && artifact.Task1 is { } t1) return t1.Criteria;
+            if (artifact.Task2 is { } t2) return t2.Criteria;
+        }
+
+        return artifact.Criteria;
+    }
+
+    public static string FormatDescriptorsForPrompt(
+        WritingRubricArtifact artifact, int? taskNumber, bool generalTraining)
+    {
+        if (artifact.IsV2)
+        {
+            var task = taskNumber == 1 ? artifact.Task1 : artifact.Task2;
+            if (task is null) return string.Empty;
+
+            var sb = new StringBuilder();
+            foreach (var criterion in task.Criteria)
+            {
+                if (!task.Descriptors.TryGetValue(criterion, out var set)) continue;
+
+                sb.AppendLine($"## {criterion}");
+                var bands = SelectBands(set, taskNumber == 1 && criterion == "taskAchievement", generalTraining);
+                foreach (var (band, text) in bands.OrderByDescending(b => decimal.Parse(b.Key)))
+                    sb.AppendLine($"- Band {band}: {text}");
+
+                sb.AppendLine();
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+
+        var flat = new StringBuilder();
         foreach (var criterion in artifact.Criteria)
         {
-            sb.AppendLine($"## {criterion}");
+            flat.AppendLine($"## {criterion}");
 
             if (!artifact.Descriptors.TryGetValue(criterion, out var bands)) continue;
 
             foreach (var (band, text) in bands.OrderByDescending(b => decimal.Parse(b.Key)))
-                sb.AppendLine($"- Band {band}: {text}");
+                flat.AppendLine($"- Band {band}: {text}");
 
-            sb.AppendLine();
+            flat.AppendLine();
         }
 
-        return sb.ToString().TrimEnd();
+        return flat.ToString().TrimEnd();
+    }
+
+    private static IReadOnlyDictionary<string, string> SelectBands(
+        WritingDescriptorSet set, bool variantSplit, bool generalTraining)
+    {
+        if (!variantSplit) return set.Shared;
+
+        return generalTraining
+            ? set.GeneralTraining ?? set.Shared
+            : set.Academic ?? set.Shared;
     }
 
     private sealed class RubricArtifactDto
@@ -210,21 +275,127 @@ public static class WritingRubricLoader
         public required string EffectiveDate { get; init; }
         public required string ContentHash { get; init; }
         public required string PromptVersion { get; init; }
-        public required List<string> Criteria { get; init; }
+        public List<string>? Criteria { get; init; }
 
         [JsonPropertyName("descriptors")]
-        public required Dictionary<string, Dictionary<string, string>> Descriptors { get; init; }
+        public Dictionary<string, Dictionary<string, string>>? Descriptors { get; init; }
+
+        [JsonPropertyName("taskTypes")]
+        public TaskTypesDto? TaskTypes { get; init; }
 
         public void Validate()
         {
             if (string.IsNullOrWhiteSpace(Version))
                 throw new InvalidOperationException("Rubric artifact must name a version.");
 
-            if (Criteria.Count == 0)
-                throw new InvalidOperationException("Rubric artifact must list criteria.");
-
             if (string.IsNullOrWhiteSpace(DescriptorSource))
                 throw new InvalidOperationException("Rubric artifact must record descriptorSource.");
+
+            if (ClaimsOfficialScale(DescriptorSource))
+            {
+                throw new InvalidOperationException(
+                    "Rubric artifact descriptorSource must not claim to be the official IELTS scale. "
+                    + "VNI authors its own descriptors (W-2).");
+            }
+
+            if (TaskTypes is not null)
+            {
+                if (TaskTypes.Task1 is null || TaskTypes.Task2 is null)
+                    throw new InvalidOperationException("A v2 rubric must declare both task1 and task2.");
+
+                return;
+            }
+
+            if (Criteria is null || Criteria.Count == 0)
+                throw new InvalidOperationException("Rubric artifact must list criteria.");
+        }
+
+        public WritingRubricArtifact ToV2()
+        {
+            var task1 = TaskTypes!.Task1!.ToArtifact();
+            var task2 = TaskTypes.Task2!.ToArtifact();
+
+            return new WritingRubricArtifact(
+                Version,
+                DescriptorSource,
+                DateOnly.Parse(EffectiveDate),
+                ContentHash,
+                PromptVersion,
+                task2.Criteria,
+                Flatten(task2),
+                IsV2: true,
+                Task1: task1,
+                Task2: task2);
+        }
+
+        private static bool ClaimsOfficialScale(string source)
+        {
+            var text = source.Trim();
+            if (text.Contains("vni-authored", StringComparison.OrdinalIgnoreCase)) return false;
+
+            return text.Contains("official", StringComparison.OrdinalIgnoreCase)
+                && text.Contains("ielts", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Flatten(
+            WritingTaskTypeArtifact task) =>
+            task.Descriptors.ToDictionary(
+                kv => kv.Key,
+                kv => kv.Value.Shared,
+                StringComparer.Ordinal);
+    }
+
+    private sealed class TaskTypesDto
+    {
+        public TaskTypeDto? Task1 { get; init; }
+        public TaskTypeDto? Task2 { get; init; }
+    }
+
+    private sealed class TaskTypeDto
+    {
+        public required List<string> Criteria { get; init; }
+        public required Dictionary<string, JsonElement> Descriptors { get; init; }
+
+        public WritingTaskTypeArtifact ToArtifact()
+        {
+            var sets = new Dictionary<string, WritingDescriptorSet>(StringComparer.Ordinal);
+
+            foreach (var (key, node) in Descriptors)
+                sets[key] = ParseDescriptorSet(node);
+
+            return new WritingTaskTypeArtifact(Criteria, sets);
+        }
+
+        private static WritingDescriptorSet ParseDescriptorSet(JsonElement node)
+        {
+            if (node.ValueKind != JsonValueKind.Object)
+                return new WritingDescriptorSet(new Dictionary<string, string>());
+
+            if (node.TryGetProperty("academic", out _) || node.TryGetProperty("generalTraining", out _))
+            {
+                return new WritingDescriptorSet(
+                    Shared: ReadBandMap(node.TryGetProperty("academic", out var ac) ? ac : default)
+                            ?? new Dictionary<string, string>(),
+                    Academic: ReadBandMap(node.TryGetProperty("academic", out var a) ? a : default),
+                    GeneralTraining: ReadBandMap(
+                        node.TryGetProperty("generalTraining", out var gt) ? gt : default));
+            }
+
+            return new WritingDescriptorSet(ReadBandMap(node) ?? new Dictionary<string, string>());
+        }
+
+        private static Dictionary<string, string>? ReadBandMap(JsonElement node)
+        {
+            if (node.ValueKind != JsonValueKind.Object) return null;
+
+            var map = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var prop in node.EnumerateObject())
+            {
+                if (prop.Value.ValueKind == JsonValueKind.String)
+                    map[prop.Name] = prop.Value.GetString() ?? string.Empty;
+            }
+
+            return map;
         }
     }
 }

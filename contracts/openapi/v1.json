@@ -4685,6 +4685,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "advisories": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "provenance": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/WritingMarkingProvenanceView"
+              }
+            ]
           }
         }
       },
@@ -5204,6 +5223,40 @@
             "items": {
               "$ref": "#/components/schemas/UsageEntryView"
             }
+          }
+        }
+      },
+      "WritingMarkingProvenanceView": {
+        "required": [
+          "promptVersion",
+          "providerSection",
+          "modelRequested",
+          "modelReported",
+          "modelMismatch",
+          "requestId"
+        ],
+        "type": "object",
+        "properties": {
+          "promptVersion": {
+            "type": "string"
+          },
+          "providerSection": {
+            "type": "string"
+          },
+          "modelRequested": {
+            "type": "string"
+          },
+          "modelReported": {
+            "type": "string"
+          },
+          "modelMismatch": {
+            "type": "boolean"
+          },
+          "requestId": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       }
