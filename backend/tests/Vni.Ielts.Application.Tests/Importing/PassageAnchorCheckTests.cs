@@ -47,6 +47,13 @@ public sealed class PassageAnchorCheckTests
     /// The shift this whole layer exists for. Answers 1 and 2 are each in the
     /// passage, and each is legal for its question type, so layers 1 to 3 see
     /// nothing. Only their order gives it away.
+    ///
+    /// <b>Reported via <see cref="AnchorReport.OrderIssues"/>, not
+    /// <see cref="AnchorReport.Findings"/>.</b> Unlike containment and a
+    /// whole-group mismatch, the order convention has rare genuine
+    /// exceptions, so its result is a distinct type the caller files as a
+    /// clearable <c>ImportReviewWarning</c> rather than a blocking
+    /// <c>PackageFinding</c> — see <see cref="AnchorOrderIssue"/>'s remarks.
     /// </summary>
     [Fact]
     public void Answers_running_backwards_within_a_group_are_reported_at_the_shift()
@@ -55,10 +62,9 @@ public sealed class PassageAnchorCheckTests
             Completion(1, "stained glass"),
             Completion(2, "slate roof")));
 
-        var finding = Assert.Single(report.Findings);
-        Assert.Equal(PassageAnchorCheck.OutOfOrderCode, finding.Code);
-        Assert.Equal("warning", finding.Severity);
-        Assert.Contains("2", finding.Message);
+        Assert.Empty(report.Findings);
+        var issue = Assert.Single(report.OrderIssues);
+        Assert.Contains("2", issue.Message);
     }
 
     /// <summary>
@@ -76,6 +82,7 @@ public sealed class PassageAnchorCheckTests
             Completion(2, "roof")));
 
         Assert.Empty(report.Findings);
+        Assert.Empty(report.OrderIssues);
     }
 
     /// <summary>

@@ -181,6 +181,39 @@ public sealed class ExamPackageImportPipelineTests
                   "answerKey": { "accepted": ["copper roof"] } } ] } ] } ]
             }
             """;
+
+        /// <summary>
+        /// Two completion questions in the same group, both answers present in
+        /// the passage, but numbered the wrong way round against where they sit
+        /// in the text — the shape of a key shifted by a line. No key folder
+        /// involved, so these are the model's own answers, and this is what
+        /// reaches <see cref="PassageAnchorCheck"/> as an out-of-order result.
+        /// </summary>
+        public static string TwoCompletionQuestionsOutOfPassageOrder() =>
+            """
+            {
+              "formatVersion": "2.0", "formatProfile": "vni-practice",
+              "scoringProfileRef": "validation-v1",
+              "contentSourceRef": { "sourceId": "recording-parser",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+              "title": "T",
+              "variant": "academic",
+              "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+              "scoringProfile": { "rawToBand": { "reading": [
+                { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 },
+                { "minRaw": 2, "band": 2 } ] } },
+              "sections": [ { "module": "reading", "order": 1, "parts": [ { "order": 1,
+                "kind": "passage",
+                "body": "The hall has a slate roof. The west window was replaced with stained glass.",
+                "questions": [
+                  { "id": "r1", "order": 1, "type": "completion",
+                    "group": { "id": "g1" },
+                    "answerKey": { "accepted": ["stained glass"] } },
+                  { "id": "r2", "order": 2, "type": "completion",
+                    "group": { "id": "g1" },
+                    "answerKey": { "accepted": ["slate roof"] } } ] } ] } ]
+            }
+            """;
     }
 
     /// <summary>
@@ -460,6 +493,100 @@ public sealed class ExamPackageImportPipelineTests
             f => f.Code == PassageAnchorCheck.NotInPassageCode);
     }
 
+    /// <summary>
+    /// The defect this pins: before the fix, Layer 4b's out-of-order result
+    /// was filed as a "warning"-severity <see cref="PackageFinding"/>.
+    /// <see cref="ImportReviewWorkflow.ApproveAsync"/> only blocks on
+    /// <c>Severity == "error"</c> findings, and there is no resolve path for
+    /// a finding at all — so the result fell between both gates and a key
+    /// running backwards mid-group could be approved with nobody having seen
+    /// it. It now has to reach <c>draft.Warnings</c> as an unresolved
+    /// <see cref="ImportReviewWarning"/>, which does block.
+    ///
+    /// The AI-parsed route always carries a second, unrelated warning
+    /// (<c>AI_PARSE_REVIEW</c> — compare source against parsed output) — it is
+    /// resolved here so the refusal below is provably about the order result,
+    /// not incidental noise from the route.
+    /// </summary>
+    [Fact]
+    public async Task A_draft_carrying_an_out_of_order_result_cannot_be_approved()
+    {
+        var (pipeline, drafts, validator) = PipelineWithStore(
+            new RecordingParser(RecordingParser.TwoCompletionQuestionsOutOfPassageOrder()));
+        var archive = Build(
+            File(
+                "reading/de/passage.txt",
+                "The hall has a slate roof. The west window was replaced with stained glass."),
+            File("reading/dap-an/key.txt", "Câu số 1: stained glass\nCâu số 2: slate roof"));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+
+        var order = Assert.Single(
+            attempt.Draft!.Warnings,
+            w => w.Id.StartsWith(PassageAnchorCheck.OutOfOrderCode, StringComparison.Ordinal));
+        Assert.False(order.Resolved);
+        Assert.DoesNotContain(attempt.Draft.Findings, f => f.Code == PassageAnchorCheck.OutOfOrderCode);
+
+        var review = new ImportReviewWorkflow(drafts, validator);
+        var checklisted = await review.SetChecklistAsync(
+            attempt.Draft.Id, attempt.Draft.Revision,
+            Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
+        var resolvedParseReview = await review.ResolveWarningAsync(
+            attempt.Draft.Id, checklisted.Draft!.Revision, "AI_PARSE_REVIEW",
+            "source and parsed package compared", ReviewerActor, default);
+        Assert.True(resolvedParseReview.IsSuccess, resolvedParseReview.ErrorCode);
+
+        var result = await review.ApproveAsync(
+            attempt.Draft.Id, resolvedParseReview.Draft!.Revision, ReviewerActor, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_WARNINGS_UNRESOLVED", result.ErrorCode);
+    }
+
+    /// <summary>
+    /// The other half of the fix: once the reviewer's gate can see the
+    /// warning at all, `P-19`'s override path — resolve with a recorded
+    /// reason — has to actually unblock it.
+    /// </summary>
+    [Fact]
+    public async Task Resolving_the_out_of_order_warning_then_permits_approval()
+    {
+        var (pipeline, drafts, validator) = PipelineWithStore(
+            new RecordingParser(RecordingParser.TwoCompletionQuestionsOutOfPassageOrder()));
+        var archive = Build(
+            File(
+                "reading/de/passage.txt",
+                "The hall has a slate roof. The west window was replaced with stained glass."),
+            File("reading/dap-an/key.txt", "Câu số 1: stained glass\nCâu số 2: slate roof"));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        var order = Assert.Single(
+            attempt.Draft!.Warnings,
+            w => w.Id.StartsWith(PassageAnchorCheck.OutOfOrderCode, StringComparison.Ordinal));
+
+        var review = new ImportReviewWorkflow(drafts, validator);
+        var checklisted = await review.SetChecklistAsync(
+            attempt.Draft.Id, attempt.Draft.Revision,
+            Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
+        var resolvedParseReview = await review.ResolveWarningAsync(
+            attempt.Draft.Id, checklisted.Draft!.Revision, "AI_PARSE_REVIEW",
+            "source and parsed package compared", ReviewerActor, default);
+        Assert.True(resolvedParseReview.IsSuccess, resolvedParseReview.ErrorCode);
+        var resolved = await review.ResolveWarningAsync(
+            attempt.Draft.Id, resolvedParseReview.Draft!.Revision, order.Id,
+            "checked against the original key", ReviewerActor, default);
+        Assert.True(resolved.IsSuccess, resolved.ErrorCode);
+
+        var approved = await review.ApproveAsync(attempt.Draft.Id, resolved.Draft!.Revision, ReviewerActor, default);
+
+        Assert.True(approved.IsSuccess, approved.ErrorCode);
+        Assert.Equal(ImportApprovalState.Approved, approved.Draft!.ApprovalState);
+    }
+
+    private static readonly ImportReviewActor ReviewerActor = new("reviewer", false, true, false);
+
     // ── Wiring ───────────────────────────────────────────────────────────
 
     /// <summary>
@@ -474,14 +601,25 @@ public sealed class ExamPackageImportPipelineTests
     /// needed. The asset store is a no-op because a .txt source carries no
     /// embedded media.
     /// </summary>
-    private static ExamPackageImportPipeline PipelineWith(IExamSourceParser parser)
+    private static ExamPackageImportPipeline PipelineWith(IExamSourceParser parser) =>
+        PipelineWithStore(parser).Pipeline;
+
+    /// <summary>
+    /// Same production pipeline as <see cref="PipelineWith"/>, but also hands
+    /// back the draft store and validator it was built with — so a test that
+    /// needs to run the result through <see cref="ImportReviewWorkflow"/> too
+    /// (approve, resolve) does that against the very draft the pipeline
+    /// saved, not a copy built by hand.
+    /// </summary>
+    private static (ExamPackageImportPipeline Pipeline, IImportDraftStore Drafts, IExamPackageValidator Validator)
+        PipelineWithStore(IExamSourceParser parser)
     {
         var drafts = new InMemoryDraftStore();
         var validator = new ExamPackageValidator(
             ExamPackageReader.FromSchemaFile(
                 Path.Combine(RepoRoot, "contracts", "schemas", "exam.schema.json")));
 
-        return new ExamPackageImportPipeline(
+        var pipeline = new ExamPackageImportPipeline(
             new ExamPackageArchiveInspector(),
             new SafeSourceDocumentExtractor(new NoAssets()),
             new ExamImportWorkflow(validator, drafts, parser),
@@ -490,6 +628,8 @@ public sealed class ExamPackageImportPipelineTests
             // Generous on purpose: these fixtures are a few hundred bytes, and
             // the caps are not what this suite is testing.
             Options.Create(new ImportArchiveOptions()));
+
+        return (pipeline, drafts, validator);
     }
 
     private static string Describe(IReadOnlyList<PackageFinding> findings) =>

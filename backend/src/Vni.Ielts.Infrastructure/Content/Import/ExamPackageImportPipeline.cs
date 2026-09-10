@@ -228,8 +228,6 @@ public sealed class ExamPackageImportPipeline(
             changed = true;
         }
 
-        var warnings = FabricatedWarnings(json, keyed);
-
         /*
          * <b>Layer 3 of the cross-check, run on every route.</b> A package with
          * no key folder gets checked too, deliberately: its answers were
@@ -247,8 +245,27 @@ public sealed class ExamPackageImportPipeline(
          * catches it by searching for the answer in the text it must have
          * come from, and by checking that a group's answers appear in the
          * passage in question order. → PassageAnchorCheck
+         *
+         * <b>4a and 4c stay PackageFindings; 4b (order) does not.</b>
+         * Containment and a whole-group passage mismatch are contradictions
+         * between two documents with no judgement to exercise — they have no
+         * override, exactly like layers 1–3. The order convention has rare
+         * genuine exceptions, so it is filed as an ImportReviewWarning
+         * instead: a reviewer can clear it with a recorded reason (P-19),
+         * the same shape FabricatedWarnings above already uses. Filing it as
+         * a "warning"-severity PackageFinding instead — as this line once
+         * did — falls between both gates: ApproveAsync's blocking check only
+         * reads Severity == "error", and there is no resolve path for a
+         * finding at all, so the result would never block and could never be
+         * cleared. → docs/development/answer-key-cross-check.md
          */
-        findings.AddRange(PassageAnchorCheck.Inspect(json).Findings);
+        var anchorReport = PassageAnchorCheck.Inspect(json);
+        findings.AddRange(anchorReport.Findings);
+        IReadOnlyList<ImportReviewWarning> warnings =
+        [
+            .. FabricatedWarnings(json, keyed),
+            .. OrderWarnings(anchorReport.OrderIssues),
+        ];
 
         if (!changed && warnings.Count == 0 && findings.Count == 0) return ExamImportAttempt.Accepted(draft);
 
@@ -359,6 +376,22 @@ public sealed class ExamPackageImportPipeline(
                 $"FABRICATED_ANSWER_KEY:{i}", ImportReviewCategory.AcceptedVariants, f.Path, f.Message, false))
             .ToArray();
     }
+
+    /// <summary>
+    /// Turns <see cref="PassageAnchorCheck"/>'s Layer 4b result — a group
+    /// whose answers stop following the passage's order — into the same
+    /// review-warning shape <see cref="FabricatedWarnings"/> already uses,
+    /// rather than a <see cref="PackageFinding"/>. The stable id follows the
+    /// same <c>CODE:index</c> idiom so <c>ResolveWarningAsync</c> has
+    /// something to key on.
+    /// </summary>
+    private static IReadOnlyList<ImportReviewWarning> OrderWarnings(
+        IReadOnlyList<AnchorOrderIssue> issues) =>
+        issues
+            .Select((issue, i) => new ImportReviewWarning(
+                $"{PassageAnchorCheck.OutOfOrderCode}:{i}", ImportReviewCategory.AcceptedVariants,
+                issue.Path, issue.Message, false))
+            .ToArray();
 
     /// <summary>
     /// <c>/sections/{index}/</c> for every section no key was supplied for.

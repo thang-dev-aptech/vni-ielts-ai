@@ -112,12 +112,19 @@ public sealed class ImportReviewWorkflowTests
     /// <summary>
     /// Warnings stay clearable — that is `P-19`, and the transcript case depends
     /// on it. Only errors are absolute.
+    ///
+    /// A generic, made-up code on purpose: this pins <c>ApproveAsync</c>'s own
+    /// gate ("a `PackageFinding` only blocks at `Severity == "error"`"), not
+    /// any particular check. <see cref="PassageAnchorCheck"/>'s own order
+    /// result never reaches <c>draft.Findings</c> at all any more — see
+    /// <c>ExamPackageImportPipelineTests.A_draft_carrying_an_out_of_order_result_cannot_be_approved</c>
+    /// for that.
     /// </summary>
     [Fact]
     public async Task A_warning_severity_finding_does_not_block_approval()
     {
         var store = new Store(Draft(complete: true, findings:
-            [new PackageFinding("warning", PassageAnchorCheck.OutOfOrderCode, "/q/2", "out of order")]));
+            [new PackageFinding("warning", "SOME_NON_BLOCKING_FINDING", "/q/2", "worth a look")]));
         var review = new ImportReviewWorkflow(store, new Validator());
 
         var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);

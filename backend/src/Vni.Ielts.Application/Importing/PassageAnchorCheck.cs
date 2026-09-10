@@ -6,8 +6,27 @@ namespace Vni.Ielts.Application.Importing;
 /// <summary>Whether one question's key answer was found in its own passage.</summary>
 public sealed record QuestionAnchor(string QuestionId, int Order, bool Anchored);
 
+/// <summary>
+/// A group whose answers stop following the passage's order at
+/// <paramref name="Message"/>'s named question.
+///
+/// <b>Deliberately not a <see cref="PackageFinding"/>.</b> A finding has only
+/// a severity string, and a caller that has to read <c>"warning"</c> to know
+/// this belongs in <c>draft.Warnings</c> rather than <c>draft.Findings</c> is
+/// exactly how the two fell out of sync before: filed as a
+/// <c>PackageFinding</c> of severity <c>"warning"</c>, this result never
+/// blocked (<see cref="ImportReviewWorkflow.ApproveAsync"/> only checks
+/// <c>Severity == "error"</c>) and could never be cleared (there is no
+/// resolve path for a finding at all) — a key running backwards mid-group
+/// could be approved with nobody having seen it. A distinct type forces the
+/// caller to decide, once, which collection this goes in.
+/// </summary>
+public sealed record AnchorOrderIssue(string Path, string Message);
+
 public sealed record AnchorReport(
-    IReadOnlyList<PackageFinding> Findings, IReadOnlyList<QuestionAnchor> Anchors);
+    IReadOnlyList<PackageFinding> Findings,
+    IReadOnlyList<QuestionAnchor> Anchors,
+    IReadOnlyList<AnchorOrderIssue> OrderIssues);
 
 /// <summary>
 /// Layer 4 of the cross-check: anchors each answer in the text it must have
@@ -47,6 +66,7 @@ public static class PassageAnchorCheck
 
         var findings = new List<PackageFinding>();
         var anchors = new List<QuestionAnchor>();
+        var orderIssues = new List<AnchorOrderIssue>();
 
         foreach (var (part, path, source) in Parts(package))
         {
@@ -96,8 +116,16 @@ public static class PassageAnchorCheck
 
                 if (FirstBackwardsAt(positions) is { } culprit)
                 {
-                    findings.Add(new PackageFinding(
-                        "warning", OutOfOrderCode, path,
+                    /*
+                     * Order has a rare genuine exception; containment and a
+                     * whole-group mismatch do not. So this result is not a
+                     * PackageFinding at all — it is filed by the caller as an
+                     * ImportReviewWarning, which a reviewer can clear with a
+                     * recorded reason (P-19), the same shape a missing
+                     * transcript already uses.
+                     */
+                    orderIssues.Add(new AnchorOrderIssue(
+                        path,
                         $"Answers in this group stop following the passage's order at question "
                         + $"{culprit}. That is the shape of a key shifted by a line. Rare "
                         + "exceptions exist, so check against the original key before clearing."));
@@ -105,7 +133,7 @@ public static class PassageAnchorCheck
             }
         }
 
-        return new AnchorReport(findings, anchors);
+        return new AnchorReport(findings, anchors, orderIssues);
     }
 
     /// <summary>
