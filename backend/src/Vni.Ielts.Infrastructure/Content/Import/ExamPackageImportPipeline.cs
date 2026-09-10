@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Exams;
@@ -166,7 +168,7 @@ public sealed class ExamPackageImportPipeline(
     {
         var json = draft.PackageJson;
         var findings = new List<PackageFinding>();
-        var applied = false;
+        var changed = false;
 
         foreach (var skill in layout.PresentSkills)
         {
@@ -191,20 +193,36 @@ public sealed class ExamPackageImportPipeline(
                     "error", "ANSWER_KEY_UNREADABLE", $"/sections/{skill}",
                     $"The {skill} key folder holds no answers this reader recognises. "
                     + "Two formats are read: numbered lines, and a bare ordered list."));
+
+                /*
+                 * <b>The model's answers go with it.</b> A key folder was
+                 * supplied, so whatever the model wrote was never meant to
+                 * stand — and nothing readable arrived to replace it. Leaving
+                 * the guesses persists the 2026-09-02 failure to disk: forty
+                 * well-formed, unverifiable answers on a draft a reviewer sees
+                 * as finished. The package may now be schema-incomplete for
+                 * these questions, because an auto-scored question is supposed
+                 * to carry a key; that is the safer half of the trade, since
+                 * the error finding above blocks approval either way and a
+                 * blocked draft holding no answers beats one holding invented
+                 * ones.
+                 */
+                json = StripModelAnswers(json, skill);
+                changed = true;
                 continue;
             }
 
             // A key is about to be written over every question, so a guess the
             // model left behind is worthless. Strip first, key second.
-            (json, _) = FabricatedAnswerKeyGuard.Strip(json);
+            json = StripModelAnswers(json, skill);
 
             var result = AnswerKeyInjection.Apply(json, entries, skill);
             json = result.PackageJson;
             findings.AddRange(result.Findings);
-            applied = true;
+            changed = true;
         }
 
-        if (!applied) return ExamImportAttempt.Accepted(draft);
+        if (!changed) return ExamImportAttempt.Accepted(draft);
 
         var updated = draft with
         {
@@ -216,6 +234,40 @@ public sealed class ExamPackageImportPipeline(
 
         var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
         return ExamImportAttempt.Accepted(replaced ? updated : draft);
+    }
+
+    /// <summary>
+    /// Removes every answer the model wrote for <b>one skill</b>, leaving the
+    /// other skills' questions exactly as they were.
+    ///
+    /// <b>Scoped, where <see cref="FabricatedAnswerKeyGuard.Strip"/> is not.</b>
+    /// That one clears the whole package, which is what the operator CLI wants
+    /// because it runs a single skill per invocation. The HTTP door does not:
+    /// a package can carry a readable Reading key and an unreadable Listening
+    /// one, and the loop visits them in turn — an unscoped strip on the second
+    /// pass would delete the answers the first pass had just written from
+    /// Reading's own key, silently. Reading and Listening also both number 1
+    /// to 40, so the skill has to be named here for the same reason
+    /// <see cref="AnswerKeyInjection.Apply"/> takes a module.
+    /// </summary>
+    private static string StripModelAnswers(string packageJson, ExamModule module)
+    {
+        var package = JsonNode.Parse(packageJson)?.AsObject()
+            ?? throw new ArgumentException(
+                "The package did not parse as an object.", nameof(packageJson));
+
+        var wanted = module.ToString().ToLowerInvariant();
+
+        foreach (var section in package["sections"]?.AsArray() ?? [])
+        {
+            if (section?["module"]?.GetValue<string>() != wanted) continue;
+
+            foreach (var part in section["parts"]?.AsArray() ?? [])
+            foreach (var question in part?["questions"]?.AsArray() ?? [])
+                (question as JsonObject)?.Remove("answerKey");
+        }
+
+        return package.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
     }
 
     /// <summary>

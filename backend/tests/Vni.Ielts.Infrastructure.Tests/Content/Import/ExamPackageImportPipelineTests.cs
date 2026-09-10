@@ -99,7 +99,50 @@ public sealed class ExamPackageImportPipelineTests
                     "answerKey": { "accepted": ["FALSE"] } } ] } ] } ]
             }
             """;
+
+        /// <summary>
+        /// A Reading question and a Listening question, both answered by the
+        /// model, both numbered 1. The pair is what proves a strip aimed at one
+        /// skill does not reach into the other.
+        /// </summary>
+        public static string ReadingAndListening() =>
+            """
+            {
+              "formatVersion": "2.0", "formatProfile": "vni-practice",
+              "scoringProfileRef": "validation-v1",
+              "contentSourceRef": { "sourceId": "recording-parser",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+              "title": "T",
+              "variant": "academic",
+              "timingProfile": { "sections": {
+                "reading": { "durationSeconds": 3600 },
+                "listening": { "durationSeconds": 1800 } } },
+              "scoringProfile": { "rawToBand": {
+                "reading": [ { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 } ],
+                "listening": [ { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 } ] } },
+              "sections": [
+                { "module": "reading", "order": 1, "parts": [ { "order": 1,
+                  "kind": "passage", "body": "The roof is made of slate.",
+                  "questions": [ { "id": "r1", "order": 1, "type": "true-false-notgiven",
+                    "answerKey": { "accepted": ["FALSE"] } } ] } ] },
+                { "module": "listening", "order": 2, "parts": [ { "order": 1,
+                  "kind": "recording", "transcript": "The bell rings at noon.",
+                  "questions": [ { "id": "l1", "order": 1, "type": "true-false-notgiven",
+                    "answerKey": { "accepted": ["FALSE"] } } ] } ] } ]
+            }
+            """;
     }
+
+    /// <summary>
+    /// A key file whose text layer carries only its own headings — the shape a
+    /// scanned or image-only key arrives in, where every printed answer is a
+    /// picture and nothing survives extraction.
+    /// </summary>
+    private const string UnreadableKey = """
+        ĐÁP ÁN
+        READING 1
+        ........
+        """;
 
     [Fact]
     public async Task The_answer_key_never_reaches_the_parser()
@@ -136,29 +179,6 @@ public sealed class ExamPackageImportPipelineTests
     }
 
     /// <summary>
-    /// With a key document in hand, an answer the model invented is worthless and
-    /// is about to be overwritten. Stripping first is what stops a model that
-    /// solved the paper anyway from leaving a guess on a question the key does
-    /// not cover. → FabricatedAnswerKeyGuard.Strip
-    /// </summary>
-    [Fact]
-    public async Task Model_written_answers_are_stripped_before_the_real_key_is_applied()
-    {
-        var parser = new RecordingParser();
-        var pipeline = PipelineWith(parser);
-        var archive = Build(
-            File("reading/de/passage.txt", "The roof is made of slate."),
-            File("reading/dap-an/key.txt", "Câu số 1: TRUE"));
-
-        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
-
-        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
-        Assert.DoesNotContain(
-            attempt.Draft!.Warnings,
-            w => w.Id.StartsWith("FABRICATED_ANSWER_KEY", StringComparison.Ordinal));
-    }
-
-    /// <summary>
     /// The strip, proven where it actually bites: a question the key does not
     /// cover. <see cref="AnswerKeyInjection"/> overwrites the questions it
     /// keys, so a guess on those is replaced either way — the guess that
@@ -181,6 +201,65 @@ public sealed class ExamPackageImportPipelineTests
 
         Assert.Equal("TRUE", questions[0]!["answerKey"]!["accepted"]!.AsArray()[0]!.GetValue<string>());
         Assert.Null(questions[1]!["answerKey"]);
+    }
+
+    /// <summary>
+    /// A key folder that exists but yields nothing readable.
+    ///
+    /// <b>The model's answers go with it.</b> The caller supplied a key, so the
+    /// guesses were never meant to stand, and nothing arrived to replace them.
+    /// Persisting them is the 2026-09-02 failure written to disk — well-formed,
+    /// unverifiable answers on a draft that looks finished. The finding blocks
+    /// approval; the missing keys are the safer half of that trade.
+    /// </summary>
+    [Fact]
+    public async Task An_unreadable_key_folder_takes_the_model_written_answers_with_it()
+    {
+        var pipeline = PipelineWith(new RecordingParser());
+        var archive = Build(
+            File("reading/de/passage.txt", "The roof is made of slate."),
+            File("reading/dap-an/key.txt", UnreadableKey));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.Contains(
+            attempt.Draft!.Findings,
+            f => f.Code == "ANSWER_KEY_UNREADABLE" && f.Severity == "error");
+
+        var question = JsonNode.Parse(attempt.Draft.PackageJson)!
+            .AsObject()["sections"]![0]!["parts"]![0]!["questions"]![0]!;
+
+        Assert.Null(question["answerKey"]);
+    }
+
+    /// <summary>
+    /// Reading's key is readable, Listening's is not, and the loop visits
+    /// Reading first. An unscoped strip on the Listening pass would delete the
+    /// answer Reading's own key had just written — a silent loss of exactly the
+    /// verified data this whole task exists to protect.
+    /// </summary>
+    [Fact]
+    public async Task An_unreadable_key_for_one_skill_does_not_disturb_another_skills_answers()
+    {
+        var pipeline = PipelineWith(new RecordingParser(RecordingParser.ReadingAndListening()));
+        var archive = Build(
+            File("reading/de/passage.txt", "The roof is made of slate."),
+            File("reading/dap-an/key.txt", "Câu số 1: TRUE"),
+            File("listening/de/section-1.txt", "The bell rings at noon."),
+            File("listening/dap-an/key.txt", UnreadableKey));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        var sections = JsonNode.Parse(attempt.Draft!.PackageJson)!.AsObject()["sections"]!.AsArray();
+
+        var reading = sections[0]!["parts"]![0]!["questions"]![0]!;
+        var listening = sections[1]!["parts"]![0]!["questions"]![0]!;
+
+        Assert.NotNull(reading["answerKey"]);
+        Assert.Equal("TRUE", reading["answerKey"]!["accepted"]!.AsArray()[0]!.GetValue<string>());
+        Assert.Null(listening["answerKey"]);
     }
 
     /// <summary>
