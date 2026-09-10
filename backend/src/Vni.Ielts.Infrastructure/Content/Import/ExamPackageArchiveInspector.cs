@@ -193,6 +193,12 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             var bySkill = new Dictionary<ExamModule, (List<string> Paper, List<string> Key, List<string> Audio)>();
             var unknown = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
+            // Second-level folders under a recognised skill folder that match
+            // no role name. Kept apart from `unknown` on purpose: those
+            // entries are ignored, these are not — they are still imported as
+            // paper. Only the finding is new; the layout is unchanged.
+            var unknownRoles = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var entry in entries)
             {
                 ct.ThrowIfCancellationRequested();
@@ -227,6 +233,33 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                         ? found
                         : PackageEntryRole.Paper;
 
+                    /*
+                     * <b>An unrecognised role folder must not degrade in
+                     * silence.</b> `reading/dap_an/key.txt` — an underscore
+                     * instead of a hyphen, or a diacritic mangled by a ZIP
+                     * tool writing CP437 — is not in `RoleFolders`, so the
+                     * lookup above falls through to `Paper` and the answer key
+                     * is concatenated and sent to the model. That is the
+                     * 2026-09-02 configuration reached by a typo, and until
+                     * now nothing said so: `unknown` below is populated only
+                     * for an unrecognised *top-level* folder, so an operator
+                     * who believed they had supplied a key saw only the
+                     * fabrication warnings that followed and cleared them as
+                     * false alarms.
+                     *
+                     * The classification is deliberately left alone —
+                     * `reading/figures/map.png` is a legitimate subdirectory
+                     * and has always been paper. What changes is that the
+                     * fall-through is named. `verdict.Path` is the
+                     * canonicalised path `Examine` has already cleared, the
+                     * same value the role lookup reads.
+                     */
+                    if (segments.Length >= 3 && !RoleFolders.ContainsKey(segments[1]))
+                    {
+                        var folder = segments[0] + "/" + segments[1] + "/";
+                        unknownRoles[folder] = unknownRoles.GetValueOrDefault(folder) + 1;
+                    }
+
                     switch (role)
                     {
                         case PackageEntryRole.Key: lists.Key.Add(verdict.Path); break;
@@ -253,6 +286,19 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                     key.EndsWith('/')
                         ? $"Top-level folder is not one of reading/, listening/, writing/ or speaking/; its {count} file(s) are ignored."
                         : "File at the root of the package is not inside a skill folder; it is ignored."));
+            }
+
+            foreach (var (folder, count) in unknownRoles.OrderBy(u => u.Key, StringComparer.Ordinal))
+            {
+                findings.Add(Finding(
+                    Warning,
+                    ArchiveFindingCodes.LayoutUnknownEntry,
+                    Display(folder),
+                    $"Folder under a skill folder is not one of de/, paper/, questions/ (the paper) "
+                    + $"or dap-an/, dapan/, key/, answers/ (the answer key) or audio/; its {count} "
+                    + "file(s) are treated as paper, which means they are sent to the parser. "
+                    + "If this folder holds an answer key, rename it to one of the key spellings "
+                    + "and upload again."));
             }
 
             if (bySkill.Count == 0)

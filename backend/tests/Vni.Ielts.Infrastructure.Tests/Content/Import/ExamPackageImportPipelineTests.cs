@@ -585,6 +585,100 @@ public sealed class ExamPackageImportPipelineTests
         Assert.Equal(ImportApprovalState.Approved, approved.Draft!.ApprovalState);
     }
 
+    /// <summary>
+    /// <b>An injection warning has to reach a gate a person can see.</b>
+    /// <see cref="AnswerKeyInjection"/> returns six things at severity
+    /// <c>"warning"</c> — here <c>ANSWER_KEY_TYPE_RETYPED</c>: the model typed
+    /// question 1 as True/False/Not Given and the supplier's key answers YES,
+    /// so the question's own type is rewritten to make the key fit.
+    ///
+    /// Added to <c>draft.Findings</c>, as this branch first did, that fell
+    /// between both gates: <see cref="ImportReviewWorkflow.ApproveAsync"/>
+    /// blocks only on <c>Severity == "error"</c>, and
+    /// <see cref="ImportReviewWorkflow.ResolveWarningAsync"/> operates only on
+    /// <c>draft.Warnings</c> — so it never blocked, could never be cleared and
+    /// was never audited. Before this branch the HTTP pipeline never called
+    /// <see cref="AnswerKeyInjection"/> at all, so this branch is what makes
+    /// it reachable.
+    ///
+    /// The unrelated <c>AI_PARSE_REVIEW</c> warning the AI-parsed route always
+    /// carries is resolved first, so the refusal below is provably about the
+    /// injection warning rather than incidental noise from the route.
+    /// </summary>
+    [Fact]
+    public async Task A_draft_carrying_an_answer_key_injection_warning_cannot_be_approved()
+    {
+        var (pipeline, drafts, validator) = PipelineWithStore(new RecordingParser());
+        var archive = Build(
+            File("reading/de/passage.txt", "The roof is made of slate."),
+            File("reading/dap-an/key.txt", "Câu số 1: YES"));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+
+        var retyped = Assert.Single(
+            attempt.Draft!.Warnings,
+            w => w.Id.StartsWith(AnswerKeyInjection.TypeRetypedCode, StringComparison.Ordinal));
+        Assert.False(retyped.Resolved);
+        Assert.DoesNotContain(
+            attempt.Draft.Findings, f => f.Code == AnswerKeyInjection.TypeRetypedCode);
+
+        var review = new ImportReviewWorkflow(drafts, validator);
+        var checklisted = await review.SetChecklistAsync(
+            attempt.Draft.Id, attempt.Draft.Revision,
+            Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
+        var resolvedParseReview = await review.ResolveWarningAsync(
+            attempt.Draft.Id, checklisted.Draft!.Revision, "AI_PARSE_REVIEW",
+            "source and parsed package compared", ReviewerActor, default);
+        Assert.True(resolvedParseReview.IsSuccess, resolvedParseReview.ErrorCode);
+
+        var result = await review.ApproveAsync(
+            attempt.Draft.Id, resolvedParseReview.Draft!.Revision, ReviewerActor, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_WARNINGS_UNRESOLVED", result.ErrorCode);
+    }
+
+    /// <summary>
+    /// The other half of the same fix: `P-19`'s override path — resolve with a
+    /// recorded reason — has to actually unblock it once the gate can see it.
+    /// A warning that blocks and can never be cleared is the other way to make
+    /// a check worthless.
+    /// </summary>
+    [Fact]
+    public async Task Resolving_the_injection_warning_then_permits_approval()
+    {
+        var (pipeline, drafts, validator) = PipelineWithStore(new RecordingParser());
+        var archive = Build(
+            File("reading/de/passage.txt", "The roof is made of slate."),
+            File("reading/dap-an/key.txt", "Câu số 1: YES"));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        var retyped = Assert.Single(
+            attempt.Draft!.Warnings,
+            w => w.Id.StartsWith(AnswerKeyInjection.TypeRetypedCode, StringComparison.Ordinal));
+
+        var review = new ImportReviewWorkflow(drafts, validator);
+        var checklisted = await review.SetChecklistAsync(
+            attempt.Draft.Id, attempt.Draft.Revision,
+            Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
+        var resolvedParseReview = await review.ResolveWarningAsync(
+            attempt.Draft.Id, checklisted.Draft!.Revision, "AI_PARSE_REVIEW",
+            "source and parsed package compared", ReviewerActor, default);
+        Assert.True(resolvedParseReview.IsSuccess, resolvedParseReview.ErrorCode);
+        var resolved = await review.ResolveWarningAsync(
+            attempt.Draft.Id, resolvedParseReview.Draft!.Revision, retyped.Id,
+            "printed rubric checked: the group is YES/NO/NOT GIVEN", ReviewerActor, default);
+        Assert.True(resolved.IsSuccess, resolved.ErrorCode);
+
+        var approved = await review.ApproveAsync(
+            attempt.Draft.Id, resolved.Draft!.Revision, ReviewerActor, default);
+
+        Assert.True(approved.IsSuccess, approved.ErrorCode);
+        Assert.Equal(ImportApprovalState.Approved, approved.Draft!.ApprovalState);
+    }
+
     private static readonly ImportReviewActor ReviewerActor = new("reviewer", false, true, false);
 
     // ── Wiring ───────────────────────────────────────────────────────────

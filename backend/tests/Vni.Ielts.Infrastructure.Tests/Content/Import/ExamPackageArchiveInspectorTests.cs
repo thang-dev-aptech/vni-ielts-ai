@@ -331,6 +331,55 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
     }
 
     /// <summary>
+    /// <b>A misspelled key folder must not degrade in silence.</b>
+    /// <c>reading/dap_an/</c> — an underscore where the hyphen belongs, or a
+    /// diacritic mangled by a ZIP tool writing CP437 — matches no role name,
+    /// so the file is classified as paper and concatenated into the text sent
+    /// to the model. That is the 2026-09-02 configuration reached by a typo,
+    /// and nothing said so: the unknown-entry warning was raised only for an
+    /// unrecognised <i>top-level</i> folder. An operator who believed they had
+    /// supplied a key then saw the fabrication warnings that followed and
+    /// cleared them as false alarms.
+    ///
+    /// The classification is deliberately unchanged — <c>reading/figures/</c>
+    /// is a legitimate subdirectory and has always been paper. What this pins
+    /// is that the fall-through is named.
+    /// </summary>
+    [Fact]
+    public async Task A_second_level_folder_that_matches_no_role_is_reported_rather_than_silently_paper()
+    {
+        var archive = Build(File("reading/de/passage.txt"), File("reading/dap_an/key.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.True(result.IsAcceptable, Describe(result));
+        var finding = Assert.Single(
+            result.Findings,
+            f => f.Code == ArchiveFindingCodes.LayoutUnknownEntry);
+        Assert.Equal(Warning, finding.Severity);
+        Assert.Equal("reading/dap_an/", finding.Path);
+
+        // Behaviour unchanged: the file is still imported, still as paper.
+        var reading = result.Layout.EntriesBySkill[ExamModule.Reading];
+        Assert.Contains("reading/dap_an/key.txt", reading.Paper);
+        Assert.Empty(reading.Key);
+    }
+
+    /// <summary>
+    /// The other half: a folder that <i>is</i> a role name raises nothing. A
+    /// warning on a correctly named package is how a check gets switched off.
+    /// </summary>
+    [Fact]
+    public async Task A_recognised_role_folder_raises_no_unknown_entry_warning()
+    {
+        var archive = Build(File("reading/de/passage.txt"), File("reading/dap-an/key.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.DoesNotContain(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutUnknownEntry);
+    }
+
+    /// <summary>
     /// The role is read from the canonicalised path, after every traversal check
     /// has already run. A package that tries to reach a role folder by climbing
     /// must still be refused as traversal, not quietly filed as a key.

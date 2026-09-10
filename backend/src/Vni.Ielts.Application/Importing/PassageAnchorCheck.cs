@@ -77,10 +77,9 @@ public static class PassageAnchorCheck
             {
                 var positions = new List<(int Order, string Id, IReadOnlyList<int> At)>();
 
-                foreach (var (question, order, id, answer) in group)
+                foreach (var (question, order, id, answers) in group)
                 {
-                    var needle = AnswerMatcher.Normalise(answer, AnswerMatchingRules.Default);
-                    var at = Occurrences(haystack, needle);
+                    var at = Anchor(haystack, answers);
                     positions.Add((order, id, at));
                     anchors.Add(new QuestionAnchor(id, order, at.Count > 0));
                 }
@@ -161,6 +160,61 @@ public static class PassageAnchorCheck
         return null;
     }
 
+    /// <summary>
+    /// Every position at which <b>any</b> accepted alternative for one
+    /// question occurs, ascending.
+    ///
+    /// <b>Reading only the first accepted value blocked correct papers.</b> An
+    /// answer key routinely lists more than one form of the same answer, and
+    /// this repository's own VOL 9 packages land them as one comma-joined
+    /// string: <c>"one hour,1 hour"</c>, <c>"5 years,five years"</c>,
+    /// <c>"color coding, color coding system"</c>. The passage prints one of
+    /// them, so measuring against the first alone raised a non-overridable
+    /// <see cref="NotInPassageCode"/> on an answer a learner can read straight
+    /// off the page. A false block is not the lesser failure: a check that
+    /// refuses correct papers gets switched off, and the wrong papers it
+    /// existed to catch then sail through with the false alarms.
+    ///
+    /// <b>The comma split is a fallback, never the first reading.</b>
+    /// <c>"large office, good pay"</c> is one completion answer containing a
+    /// comma and <c>"1,000 kg"</c> is one number, so the whole value is always
+    /// tried first and the pieces are considered only once nothing was found —
+    /// the same shape <see cref="AnswerKeyInjection"/> uses for <c>/</c>, whose
+    /// own deliberate refusal to split on commas (it decides what a learner is
+    /// marked against, which is a different question from what a passage
+    /// contains) is left exactly as it is.
+    ///
+    /// Positions are unioned rather than taken per alternative because the
+    /// order walk needs one ascending list per question: an answer sits
+    /// wherever any of its accepted forms sits.
+    /// </summary>
+    private static IReadOnlyList<int> Anchor(string haystack, IReadOnlyList<string> accepted)
+    {
+        var found = new SortedSet<int>();
+
+        foreach (var value in accepted)
+            found.UnionWith(Occurrences(haystack, AnswerMatcher.Normalise(value, AnswerMatchingRules.Default)));
+
+        if (found.Count > 0) return [.. found];
+
+        foreach (var value in accepted)
+        foreach (var piece in SplitOnCommas(value))
+            found.UnionWith(Occurrences(haystack, AnswerMatcher.Normalise(piece, AnswerMatchingRules.Default)));
+
+        return [.. found];
+    }
+
+    /// <summary>
+    /// The pieces of a comma-joined key value, or nothing when there is no
+    /// comma to split on. Shaped after
+    /// <c>AnswerKeyInjection.SplitAlternatives</c>, which does the same for
+    /// <c>/</c>.
+    /// </summary>
+    private static IEnumerable<string> SplitOnCommas(string raw) =>
+        raw.Contains(',')
+            ? raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            : [];
+
     private static IReadOnlyList<int> Occurrences(string haystack, string needle)
     {
         if (needle.Length == 0) return [];
@@ -190,19 +244,43 @@ public static class PassageAnchorCheck
                 partIndex++;
                 if (part is not JsonObject p) continue;
 
-                // Reading anchors in the passage body; Listening in the
-                // transcript, when one was supplied (a missing transcript is
-                // a warning under P-19, not a reason to refuse the package).
-                var source = p["body"]?.GetValue<string>() ?? p["transcript"]?.GetValue<string>();
+                /*
+                 * The source is chosen by what the part *is*, never by
+                 * whichever field happens to be populated. `kind` is declared
+                 * and required by contracts/schemas/exam.schema.json
+                 * ("passage" | "recording" | "task" | "speaking-part"), so
+                 * there is no need to guess: a passage anchors in its body, a
+                 * recording in its transcript.
+                 *
+                 * <b>Preferring `body` blocked correct Listening papers.</b>
+                 * A recording's `body` is the printed rubric or a one-line
+                 * context blurb — "HEALTH ON THE NIGHT SHIFT" — and the
+                 * answers are in the audio, not in that. Measured on this
+                 * repository's own VOL 9 packages: 12 of 24 Listening parts
+                 * carry such a body and *none* carries a transcript, so every
+                 * anchorable Listening group was measured against a blurb,
+                 * anchored nothing, and raised PASSAGE_DOES_NOT_MATCH_QUESTIONS
+                 * — severity "error", no override, permanently unapprovable.
+                 *
+                 * A recording with no transcript is skipped instead. A missing
+                 * transcript is a warning elsewhere in this system (P-19),
+                 * never a reason to refuse a package, and a check that refuses
+                 * correct papers is a check that gets switched off.
+                 */
+                var kind = p["kind"]?.GetValue<string>();
+                var source = kind == "recording"
+                    ? p["transcript"]?.GetValue<string>()
+                    : p["body"]?.GetValue<string>();
+
                 yield return (p, $"/sections/{module}/parts/{partIndex}", source);
             }
         }
     }
 
-    private static IEnumerable<List<(JsonObject Question, int Order, string Id, string Answer)>>
+    private static IEnumerable<List<(JsonObject Question, int Order, string Id, IReadOnlyList<string> Answers)>>
         AnchorableQuestionsByGroup(JsonObject part)
     {
-        var groups = new Dictionary<string, List<(JsonObject, int, string, string)>>(
+        var groups = new Dictionary<string, List<(JsonObject, int, string, IReadOnlyList<string>)>>(
             StringComparer.Ordinal);
 
         foreach (var node in part["questions"]?.AsArray() ?? [])
@@ -211,7 +289,18 @@ public static class PassageAnchorCheck
             if (question["type"]?.GetValue<string>() is not { } type) continue;
             if (!Anchorable.Contains(type)) continue;
             if (question["answerKey"]?["accepted"]?.AsArray() is not { Count: > 0 } accepted) continue;
-            if (accepted[0] is not JsonValue first) continue;
+
+            // Every accepted alternative, not just the first — see Anchor.
+            // A non-string entry is a multiple-select set, which is not an
+            // anchorable shape and is left out rather than stringified.
+            var answers = accepted
+                .OfType<JsonValue>()
+                .Select(v => v.TryGetValue<string>(out var s) ? s : null)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s!)
+                .ToArray();
+
+            if (answers.Length == 0) continue;
 
             var id = question["id"]?.GetValue<string>() ?? string.Empty;
             var order = question["order"]?.GetValue<int>() ?? 0;
@@ -223,7 +312,7 @@ public static class PassageAnchorCheck
             if (!groups.TryGetValue(groupId, out var members))
                 groups[groupId] = members = [];
 
-            members.Add((question, order, id, first.GetValue<string>()));
+            members.Add((question, order, id, answers));
         }
 
         return groups.Values;

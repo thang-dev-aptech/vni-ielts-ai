@@ -118,11 +118,125 @@ public sealed class PassageAnchorCheckTests
         Assert.Empty(report.Anchors);
     }
 
+    /// <summary>
+    /// A Listening part carries its answers in the audio. Its <c>body</c> is
+    /// the printed rubric or a one-line context blurb, and nothing a learner
+    /// hears is in it.
+    ///
+    /// <b>The false block this pins.</b> Preferring <c>body</c> regardless of
+    /// <c>part.kind</c> measured every anchorable Listening group against that
+    /// blurb, anchored nothing, and raised
+    /// <see cref="PassageAnchorCheck.PassageMismatchCode"/> — severity
+    /// "error", no override, permanently unapprovable. Measured on this
+    /// repository's own VOL 9 packages: 12 of 24 Listening parts carry such a
+    /// body and none carries a transcript, so this fired on nine correct
+    /// groups in that corpus alone. A missing transcript is a warning under
+    /// `P-19`, never a reason to refuse a package — so the part is skipped and
+    /// nothing at all is reported for it.
+    /// </summary>
+    [Fact]
+    public void A_recording_with_no_transcript_is_skipped_rather_than_measured_against_its_blurb()
+    {
+        var report = PassageAnchorCheck.Inspect(Recording(
+            body: "HEALTH ON THE NIGHT SHIFT",
+            transcript: null,
+            Completion(1, "internal clock"),
+            Completion(2, "one hour")));
+
+        Assert.Empty(report.Findings);
+        Assert.Empty(report.OrderIssues);
+        Assert.Empty(report.Anchors);
+    }
+
+    /// <summary>
+    /// The other half of the same choice: a recording that <i>did</i> ship a
+    /// transcript is still checked, and against the transcript rather than
+    /// whatever its body says.
+    /// </summary>
+    [Fact]
+    public void A_recording_with_a_transcript_is_anchored_against_the_transcript()
+    {
+        var report = PassageAnchorCheck.Inspect(Recording(
+            body: "HEALTH ON THE NIGHT SHIFT",
+            transcript: "Your internal clock takes about a week to adjust.",
+            Completion(1, "internal clock"),
+            Completion(2, "a week")));
+
+        Assert.Empty(report.Findings);
+        Assert.All(report.Anchors, a => Assert.True(a.Anchored));
+    }
+
+    /// <summary>
+    /// <b>A key alternative is an answer, not decoration.</b> Real keys in
+    /// this repository land as one comma-joined string — <c>"one hour,1
+    /// hour"</c>, <c>"5 years,five years"</c>, <c>"color coding, color coding
+    /// system"</c> all appear in the VOL 9 packages. Reading only
+    /// <c>accepted[0]</c> raised a non-overridable
+    /// <see cref="PassageAnchorCheck.NotInPassageCode"/> against a passage
+    /// that prints the other form — a correct paper permanently refused.
+    /// </summary>
+    [Fact]
+    public void An_answer_anchored_by_its_second_alternative_raises_nothing()
+    {
+        const string passage = "The journey from the station takes 1 hour on foot.";
+
+        var report = PassageAnchorCheck.Inspect(Package(passage,
+            Completion(1, "one hour,1 hour")));
+
+        Assert.Empty(report.Findings);
+        Assert.True(Assert.Single(report.Anchors).Anchored);
+    }
+
+    /// <summary>
+    /// An alternative listed as its own <c>accepted</c> entry, rather than
+    /// comma-joined inside one — the same fix, the other spelling of it.
+    /// </summary>
+    [Fact]
+    public void An_answer_anchored_by_a_later_accepted_entry_raises_nothing()
+    {
+        const string passage = "The journey from the station takes 1 hour on foot.";
+
+        var report = PassageAnchorCheck.Inspect(Package(passage, """
+            { "id": "q1", "order": 1, "type": "completion",
+              "group": { "id": "g1" },
+              "answerKey": { "accepted": [ "one hour", "1 hour" ] } }
+            """));
+
+        Assert.Empty(report.Findings);
+        Assert.True(Assert.Single(report.Anchors).Anchored);
+    }
+
+    /// <summary>
+    /// The fix must not blunt the check it lives in: an answer none of whose
+    /// alternatives — whole or comma-split — is in the passage is still
+    /// refused.
+    /// </summary>
+    [Fact]
+    public void An_answer_no_alternative_of_which_is_present_is_still_refused()
+    {
+        var report = PassageAnchorCheck.Inspect(Package(Passage,
+            Completion(1, "copper roof,bronze roof")));
+
+        var finding = Assert.Single(report.Findings);
+        Assert.Equal(PassageAnchorCheck.NotInPassageCode, finding.Code);
+        Assert.Equal("error", finding.Severity);
+    }
+
     private static string Completion(int order, string answer) =>
         $$"""
           { "id": "q{{order}}", "order": {{order}}, "type": "completion",
             "group": { "id": "g1" },
             "answerKey": { "accepted": [ "{{answer}}" ] } }
+          """;
+
+    /// <summary>A Listening part: <c>kind: "recording"</c>, with or without a transcript.</summary>
+    private static string Recording(string body, string? transcript, params string[] questions) =>
+        $$"""
+          { "formatVersion": "2.0",
+            "sections": [ { "module": "listening", "order": 1, "parts": [ { "order": 1,
+              "kind": "recording", "body": "{{body}}",
+              {{(transcript is null ? string.Empty : $"\"transcript\": \"{transcript}\",")}}
+              "questions": [ {{string.Join(",", questions)}} ] } ] } ] }
           """;
 
     private static string Package(string body, params string[] questions) =>

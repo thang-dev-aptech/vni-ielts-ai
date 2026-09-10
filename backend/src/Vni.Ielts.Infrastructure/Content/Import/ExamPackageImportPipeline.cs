@@ -171,6 +171,7 @@ public sealed class ExamPackageImportPipeline(
     {
         var json = draft.PackageJson;
         var findings = new List<PackageFinding>();
+        var injectionWarnings = new List<PackageFinding>();
         var keyed = new HashSet<ExamModule>();
         var changed = false;
 
@@ -224,7 +225,43 @@ public sealed class ExamPackageImportPipeline(
 
             var result = AnswerKeyInjection.Apply(json, entries, skill);
             json = result.PackageJson;
-            findings.AddRange(result.Findings);
+
+            /*
+             * <b>An injection warning is a judgement, so it goes where
+             * judgements are made.</b> `AnswerKeyInjection` reports six things
+             * at severity "warning" — a question retyped to match its group
+             * (ANSWER_KEY_TYPE_RETYPED), sibling choice questions folded into
+             * one (ANSWER_KEY_FOLDED_CHOICE), a rubric letter added as an
+             * option (ANSWER_KEY_OPTION_ADDED), a bank label accepted
+             * alongside its word (ANSWER_KEY_BANK_LABEL_ALTERNATIVES), and a
+             * question whose printed options contradicted its declared type,
+             * whose answer was reinterpreted as an option key
+             * (ANSWER_KEY_TYPE_MISMATCH at warning severity).
+             *
+             * Every one of those says the code changed the paper's own
+             * description of a question in order to make the key fit. Filed on
+             * `draft.Findings` they fall between both gates:
+             * `ImportReviewWorkflow.ApproveAsync` blocks only on
+             * `Severity == "error"`, and `ResolveWarningAsync` operates only
+             * on `draft.Warnings` — so they never block, can never be cleared,
+             * and are never audited. Before this branch they were unreachable
+             * from the HTTP door (the pipeline did not call
+             * `AnswerKeyInjection` at all), so this is the branch that makes
+             * them matter.
+             *
+             * They become `ImportReviewWarning`s instead — the `P-19` shape:
+             * approval is refused until a reviewer clears each one with a
+             * recorded reason, audited as `WarningOverridden`. Error-severity
+             * findings from the same call keep going to `draft.Findings`
+             * unchanged: those are contradictions between two documents, and
+             * no amount of reviewer authority makes them consistent.
+             */
+            foreach (var finding in result.Findings)
+            {
+                if (finding.Severity == "warning") injectionWarnings.Add(finding);
+                else findings.Add(finding);
+            }
+
             changed = true;
         }
 
@@ -264,6 +301,7 @@ public sealed class ExamPackageImportPipeline(
         IReadOnlyList<ImportReviewWarning> warnings =
         [
             .. FabricatedWarnings(json, keyed),
+            .. InjectionWarnings(injectionWarnings),
             .. OrderWarnings(anchorReport.OrderIssues),
         ];
 
@@ -376,6 +414,21 @@ public sealed class ExamPackageImportPipeline(
                 $"FABRICATED_ANSWER_KEY:{i}", ImportReviewCategory.AcceptedVariants, f.Path, f.Message, false))
             .ToArray();
     }
+
+    /// <summary>
+    /// Turns the warning-severity findings <see cref="AnswerKeyInjection.Apply"/>
+    /// returns into review warnings a reviewer must actually clear, using the
+    /// same <c>CODE:index</c> id idiom <see cref="OrderWarnings"/> uses. The
+    /// index is per call rather than per code so that two occurrences of the
+    /// same code get two ids: resolving one must never clear the other, since
+    /// each names a different question.
+    /// </summary>
+    private static IReadOnlyList<ImportReviewWarning> InjectionWarnings(
+        IReadOnlyList<PackageFinding> warnings) =>
+        warnings
+            .Select((f, i) => new ImportReviewWarning(
+                $"{f.Code}:{i}", ImportReviewCategory.AcceptedVariants, f.Path, f.Message, false))
+            .ToArray();
 
     /// <summary>
     /// Turns <see cref="PassageAnchorCheck"/>'s Layer 4b result — a group
