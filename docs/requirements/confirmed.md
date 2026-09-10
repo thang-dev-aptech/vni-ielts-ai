@@ -280,6 +280,28 @@ are `CONFIRMED`.
 | P-21 | **Publish only content VNI owns or has confirmed rights to.** Already enforced by `ContentRightsPolicy`; the two existing packages stay at internal level | CONFIRMED | Owner decision 06/09/2026 |
 | P-22 | **Documents and Articles are two independent libraries** — two collections; `relatedExamIds` reserved and left `null`; articles addressed by slug | CONFIRMED | Owner decision 06/09/2026 |
 
+### Import-time exam preparation — `IP-01`…`IP-06`, 10/09/2026
+
+The owner reopened the four-skill practice and exam flows on 10/09/2026, dissatisfied that answer
+explanations were generated while a learner waited rather than prepared in advance. The six rows
+below settle it. The design derived from them is
+[`../superpowers/specs/2026-09-10-import-time-exam-preparation-design.md`](../superpowers/specs/2026-09-10-import-time-exam-preparation-design.md),
+which is `PROPOSED`; only the rows here are `CONFIRMED`.
+
+> **The prefix is `IP-` with a leading zero.** It is unrelated to `I-1`…`I-10` under *Bulk import*
+> below, which number the steps of the import pipeline rather than decisions.
+
+| ID | Decision | Status | Source |
+|---|---|---|---|
+| IP-01 | **Writing marking criteria stay the fixed IELTS four.** AI does not invent a criterion set per task; it produces per-task *marking notes* saying how those four apply to this prompt. Consistent with `P-13` and `H-8a` | CONFIRMED | Owner decision 10/09/2026 |
+| IP-02 | **The upload is one ZIP with a downloadable skeleton.** Four skill folders (`P-18`); inside `reading/` and `listening/`, two further folders separate the paper from the answer key | CONFIRMED | Owner decision 10/09/2026 — *"1 button tải format file zip về… trong listenning, reading lại tách là thêm 2 folder con là đề và đáp án"* |
+| IP-03 | **A paper that disagrees with its answer key is reported on screen and cannot be approved.** The draft is still saved so an administrator can see what happened. Distinct from `P-19`, whose warnings an administrator may override with a reason | CONFIRMED | Owner decision 10/09/2026 — *"khi không khớp sẽ báo trên client để admin biết và không cho duyệt"* |
+| IP-04 | **Reading and Listening are finished end to end first**, Writing second, Speaking not at all in this wave (`P-02`) | CONFIRMED | Owner decision 10/09/2026 |
+| IP-05 | **Answer explanations are generated at import time**, stored on the exam version, reviewed in the CMS before publication, and displayed at results with no learner action and no AI call | CONFIRMED | Owner decision 10/09/2026 |
+| IP-06 | **A model answer is prepared per Writing task**, reviewed before publication, and shown to the learner beside their own essay. It is never sent to the marker | CONFIRMED | Owner decision 10/09/2026 |
+
+---
+
 ### What the 06/09 decisions close, supersede, or leave open
 
 | Item | Effect |
