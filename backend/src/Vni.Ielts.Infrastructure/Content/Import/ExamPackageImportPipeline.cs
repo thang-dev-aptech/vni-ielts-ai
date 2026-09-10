@@ -230,7 +230,18 @@ public sealed class ExamPackageImportPipeline(
 
         var warnings = FabricatedWarnings(json, keyed);
 
-        if (!changed && warnings.Count == 0) return ExamImportAttempt.Accepted(draft);
+        /*
+         * <b>Layer 3 of the cross-check, run on every route.</b> A package with
+         * no key folder gets checked too, deliberately: its answers were
+         * written by the model, and a fabricated answer that contradicts its
+         * own question type or exceeds the paper's stated word limit is caught
+         * by exactly these checks. The fabrication warning above says a key
+         * was invented; these findings say which of the invented answers are
+         * impossible. → PaperKeyConsistency
+         */
+        findings.AddRange(PaperKeyConsistency.Inspect(json));
+
+        if (!changed && warnings.Count == 0 && findings.Count == 0) return ExamImportAttempt.Accepted(draft);
 
         /*
          * `Version` was materialised by the validator from the *parser's*

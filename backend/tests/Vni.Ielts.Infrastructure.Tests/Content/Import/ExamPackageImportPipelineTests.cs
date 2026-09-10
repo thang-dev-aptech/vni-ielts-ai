@@ -131,6 +131,31 @@ public sealed class ExamPackageImportPipelineTests
                     "answerKey": { "accepted": ["FALSE"] } } ] } ] } ]
             }
             """;
+
+        /// <summary>
+        /// A completion question the model answered with five words against its
+        /// own two-word limit — no key folder involved, so the invented answer is
+        /// exactly what reaches <see cref="PaperKeyConsistency"/>.
+        /// </summary>
+        public static string OneCompletionQuestionOverItsOwnWordLimit() =>
+            """
+            {
+              "formatVersion": "2.0", "formatProfile": "vni-practice",
+              "scoringProfileRef": "validation-v1",
+              "contentSourceRef": { "sourceId": "recording-parser",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+              "title": "T",
+              "variant": "academic",
+              "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+              "scoringProfile": { "rawToBand": { "reading": [
+                { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 } ] } },
+              "sections": [ { "module": "reading", "order": 1, "parts": [ { "order": 1,
+                "kind": "passage", "body": "The roof is made of slate.",
+                "questions": [ { "id": "r1", "order": 1, "type": "completion",
+                  "constraints": { "maxWords": 2 },
+                  "answerKey": { "accepted": ["a very long answer"] } } ] } ] } ]
+            }
+            """;
     }
 
     /// <summary>
@@ -279,6 +304,28 @@ public sealed class ExamPackageImportPipelineTests
         Assert.Contains(
             attempt.Draft!.Warnings,
             w => w.Id.StartsWith("FABRICATED_ANSWER_KEY", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// <see cref="PaperKeyConsistency"/> runs from inside the pipeline, not
+    /// only against a hand-built JSON string in isolation. No key folder is
+    /// supplied, so the model's own invented answer — five words against a
+    /// two-word limit the paper itself states — is what the checker sees, and
+    /// the pipeline must persist the finding on the draft it saves.
+    /// </summary>
+    [Fact]
+    public async Task The_papers_own_word_limit_is_checked_against_the_key_the_pipeline_saves()
+    {
+        var pipeline = PipelineWith(
+            new RecordingParser(RecordingParser.OneCompletionQuestionOverItsOwnWordLimit()));
+        var archive = Build(File("reading/de/passage.txt", "The roof is made of slate."));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.Contains(
+            attempt.Draft!.Findings,
+            f => f.Code == PaperKeyConsistency.WordLimitCode && f.Severity == "error");
     }
 
     /// <summary>
