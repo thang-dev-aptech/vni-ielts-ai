@@ -91,11 +91,15 @@ public sealed class ExamPackageImportPipeline(
     /// <b>AI-parsed route:</b> every other shape. <c>P-18</c>: the folder name
     /// alone decides the skill, and a missing folder is simply not present —
     /// <see cref="PackageLayout.PresentSkills"/> already encodes exactly that.
-    /// Every file under every present skill folder is extracted and
-    /// concatenated under a heading per file, the same way the operator CLI
-    /// concatenates a paper and its answer key under headings rather than
-    /// sending two requests: a model asked to align content across two calls
-    /// has to remember the first, which is what it is worst at.
+    /// <b>Only the paper is concatenated and sent.</b> Every file whose role is
+    /// <see cref="PackageEntryRole.Paper"/> is extracted under a heading per
+    /// file; a key document is never part of that text. Until 2026-09-10 the
+    /// loop read <c>.All</c>, so a key dropped into <c>reading/</c> went
+    /// straight into the prompt — the configuration measured on 2026-09-02,
+    /// where a model shown a paper with no key produced forty answers, five of
+    /// them wrong, and every one passed schema validation. The key is read by
+    /// <see cref="AnswerKeyDocument"/> in <see cref="ApplySuppliedKeysAsync"/>
+    /// and written on afterwards. → CLAUDE.md rule 9
     /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
         PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
@@ -112,7 +116,7 @@ public sealed class ExamPackageImportPipeline(
         var combined = new StringBuilder();
         foreach (var skill in layout.PresentSkills)
         {
-            foreach (var relativePath in layout.EntriesBySkill[skill].All)
+            foreach (var relativePath in layout.For(skill).Paper)
             {
                 var extracted = await extractor.ExtractAsync(
                     sandboxDirectory, relativePath, SourceExtractionLimits.Default, ct);
@@ -134,7 +138,84 @@ public sealed class ExamPackageImportPipeline(
         var attempt = await workflow.ImportExtractedAsync(source, definitionId, versionNumber, ct);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
-        return await GuardAgainstFabricatedAnswersAsync(attempt.Draft, ct);
+        var suppliedAKey = layout.PresentSkills.Any(s => layout.For(s).Key.Count > 0);
+
+        /*
+         * Derived from the layout, never from the package. Inferring "a key was
+         * supplied" from the presence of answer keys would make the check vacuous —
+         * the guard's own remarks say so, and the caller is the only party that
+         * actually knows.
+         */
+        return suppliedAKey
+            ? await ApplySuppliedKeysAsync(attempt.Draft, layout, sandboxDirectory, ct)
+            : await GuardAgainstFabricatedAnswersAsync(attempt.Draft, ct);
+    }
+
+    /// <summary>
+    /// Reads every key document, one skill at a time, and writes it onto the
+    /// parsed package.
+    ///
+    /// <b>The model is never shown any of this.</b> Measured on VOL 9: with the
+    /// key in the prompt a model scored 36 of 38 and both misses were alignment
+    /// failures — the right answer on the wrong question. With the key read by
+    /// code the same paper scored 34 of 38 exactly, and refused on the other
+    /// four rather than guessing. Counting is what code does better.
+    /// </summary>
+    private async Task<ExamImportAttempt> ApplySuppliedKeysAsync(
+        ExamImportDraft draft, PackageLayout layout, string sandboxDirectory, CancellationToken ct)
+    {
+        var json = draft.PackageJson;
+        var findings = new List<PackageFinding>();
+        var applied = false;
+
+        foreach (var skill in layout.PresentSkills)
+        {
+            var keyFiles = layout.For(skill).Key;
+            if (keyFiles.Count == 0) continue;
+
+            var entries = new List<AnswerKeyEntry>();
+            foreach (var relativePath in keyFiles)
+            {
+                var extracted = await extractor.ExtractAsync(
+                    sandboxDirectory, relativePath, SourceExtractionLimits.Default, ct);
+
+                if (!extracted.IsSuccess || extracted.Source is null)
+                    return ExamImportAttempt.Rejected(extracted.Findings);
+
+                entries.AddRange(AnswerKeyDocument.Parse(extracted.Source.Text));
+            }
+
+            if (entries.Count == 0)
+            {
+                findings.Add(new PackageFinding(
+                    "error", "ANSWER_KEY_UNREADABLE", $"/sections/{skill}",
+                    $"The {skill} key folder holds no answers this reader recognises. "
+                    + "Two formats are read: numbered lines, and a bare ordered list."));
+                continue;
+            }
+
+            // A key is about to be written over every question, so a guess the
+            // model left behind is worthless. Strip first, key second.
+            (json, _) = FabricatedAnswerKeyGuard.Strip(json);
+
+            var result = AnswerKeyInjection.Apply(json, entries, skill);
+            json = result.PackageJson;
+            findings.AddRange(result.Findings);
+            applied = true;
+        }
+
+        if (!applied) return ExamImportAttempt.Accepted(draft);
+
+        var updated = draft with
+        {
+            PackageJson = json,
+            PackageHash = ExamImportWorkflow.Hash(json),
+            Findings = [.. draft.Findings, .. findings],
+            Revision = draft.Revision + 1,
+        };
+
+        var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
+        return ExamImportAttempt.Accepted(replaced ? updated : draft);
     }
 
     /// <summary>
