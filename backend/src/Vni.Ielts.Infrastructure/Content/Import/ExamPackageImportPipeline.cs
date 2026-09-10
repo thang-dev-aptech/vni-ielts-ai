@@ -241,6 +241,15 @@ public sealed class ExamPackageImportPipeline(
          */
         findings.AddRange(PaperKeyConsistency.Inspect(json));
 
+        /*
+         * <b>Layer 4 of the cross-check, run on every route.</b> Counting and
+         * shape checks accept a legal answer on the wrong question; this one
+         * catches it by searching for the answer in the text it must have
+         * come from, and by checking that a group's answers appear in the
+         * passage in question order. → PassageAnchorCheck
+         */
+        findings.AddRange(PassageAnchorCheck.Inspect(json).Findings);
+
         if (!changed && warnings.Count == 0 && findings.Count == 0) return ExamImportAttempt.Accepted(draft);
 
         /*

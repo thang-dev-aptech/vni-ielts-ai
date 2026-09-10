@@ -156,6 +156,31 @@ public sealed class ExamPackageImportPipelineTests
                   "answerKey": { "accepted": ["a very long answer"] } } ] } ] } ]
             }
             """;
+
+        /// <summary>
+        /// A completion question whose invented answer is nowhere in its own
+        /// passage — no key folder involved, so the model's guess is exactly
+        /// what reaches <see cref="PassageAnchorCheck"/>.
+        /// </summary>
+        public static string OneCompletionQuestionWithAnAnswerNotInThePassage() =>
+            """
+            {
+              "formatVersion": "2.0", "formatProfile": "vni-practice",
+              "scoringProfileRef": "validation-v1",
+              "contentSourceRef": { "sourceId": "recording-parser",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+              "title": "T",
+              "variant": "academic",
+              "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+              "scoringProfile": { "rawToBand": { "reading": [
+                { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 } ] } },
+              "sections": [ { "module": "reading", "order": 1, "parts": [ { "order": 1,
+                "kind": "passage", "body": "The hall has a slate roof.",
+                "questions": [ { "id": "r1", "order": 1, "type": "completion",
+                  "group": { "id": "g1" },
+                  "answerKey": { "accepted": ["copper roof"] } } ] } ] } ]
+            }
+            """;
     }
 
     /// <summary>
@@ -414,6 +439,25 @@ public sealed class ExamPackageImportPipelineTests
         Assert.Contains(
             attempt.Draft!.Findings,
             f => f.Code == ExamPackageImportPipeline.RevalidationFailedCode && f.Severity == "error");
+    }
+
+    /// <summary>
+    /// No key folder means the answers came from the model. Those are exactly
+    /// the answers most worth checking.
+    /// </summary>
+    [Fact]
+    public async Task A_package_with_no_key_folder_is_still_cross_checked_for_passage_anchors()
+    {
+        var pipeline = PipelineWith(
+            new RecordingParser(RecordingParser.OneCompletionQuestionWithAnAnswerNotInThePassage()));
+        var archive = Build(File("reading/de/passage.txt", "The hall has a slate roof."));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.Contains(
+            attempt.Draft!.Findings,
+            f => f.Code == PassageAnchorCheck.NotInPassageCode);
     }
 
     // ── Wiring ───────────────────────────────────────────────────────────
