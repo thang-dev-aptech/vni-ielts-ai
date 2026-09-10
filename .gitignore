@@ -183,3 +183,8 @@ _workspace/cambridge/batch/
 _workspace/cambridge/*.log
 _workspace/cambridge/*.txt
 !_workspace/cambridge/STATUS.md
+
+# Personal Claude Code overrides for this checkout. `.claude/settings.json` is
+# the team file and stays tracked; this one holds per-developer permission
+# grants and must not be pushed onto a teammate's machine.
+.claude/settings.local.json
