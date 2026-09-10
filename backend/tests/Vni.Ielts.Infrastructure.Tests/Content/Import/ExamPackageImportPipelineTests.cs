@@ -281,6 +281,94 @@ public sealed class ExamPackageImportPipelineTests
             w => w.Id.StartsWith("FABRICATED_ANSWER_KEY", StringComparison.Ordinal));
     }
 
+    /// <summary>
+    /// A key folder for Reading and none for Listening.
+    ///
+    /// <b>The decision has to be per skill.</b> A package-wide "a key was
+    /// supplied" flag sends the whole import down the keyed route, so
+    /// Listening gets neither a real key nor the fabrication guard and the
+    /// model's invented Listening answers are persisted with nothing said about
+    /// them — worse than a package with no key folder at all, which always
+    /// flagged them.
+    /// </summary>
+    [Fact]
+    public async Task A_skill_with_no_key_folder_still_meets_the_fabrication_guard()
+    {
+        var pipeline = PipelineWith(new RecordingParser(RecordingParser.ReadingAndListening()));
+        var archive = Build(
+            File("reading/de/passage.txt", "The roof is made of slate."),
+            File("reading/dap-an/key.txt", "Câu số 1: TRUE"),
+            File("listening/de/section-1.txt", "The bell rings at noon."));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        var sections = JsonNode.Parse(attempt.Draft!.PackageJson)!.AsObject()["sections"]!.AsArray();
+
+        Assert.Equal(
+            "TRUE",
+            sections[0]!["parts"]![0]!["questions"]![0]!["answerKey"]!["accepted"]!
+                .AsArray()[0]!.GetValue<string>());
+
+        var fabricated = attempt.Draft.Warnings
+            .Where(w => w.Id.StartsWith("FABRICATED_ANSWER_KEY", StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.NotEmpty(fabricated);
+        Assert.All(fabricated, w => Assert.StartsWith("/sections/1/", w.Path, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// <c>Version</c> is materialised from the parser's output, so a draft that
+    /// is not re-validated after the key is written carries the model's guess in
+    /// one field and the supplier's key in another — one record, two answers to
+    /// "what is correct for question 1".
+    /// </summary>
+    [Fact]
+    public async Task The_materialised_version_agrees_with_the_keyed_package()
+    {
+        var pipeline = PipelineWith(new RecordingParser());
+        var archive = Build(
+            File("reading/de/passage.txt", "The roof is made of slate."),
+            File("reading/dap-an/key.txt", "Câu số 1: TRUE"));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.DoesNotContain(
+            attempt.Draft!.Findings,
+            f => f.Code == ExamPackageImportPipeline.RevalidationFailedCode);
+
+        var question = attempt.Draft.Version.Sections
+            .Single(sec => sec.Module == ExamModule.Reading)
+            .Parts.Single()
+            .Questions.Single();
+
+        Assert.Equal("TRUE", Assert.Single(question.AnswerKey!.Accepted).Single);
+    }
+
+    /// <summary>
+    /// The unreadable-key path leaves the package deliberately schema-invalid:
+    /// its questions carry no answer at all. The version is then left as it was
+    /// and the state is named, rather than a version being invented for a
+    /// package that does not validate.
+    /// </summary>
+    [Fact]
+    public async Task A_package_that_stops_validating_says_so_instead_of_inventing_a_version()
+    {
+        var pipeline = PipelineWith(new RecordingParser());
+        var archive = Build(
+            File("reading/de/passage.txt", "The roof is made of slate."),
+            File("reading/dap-an/key.txt", UnreadableKey));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.Contains(
+            attempt.Draft!.Findings,
+            f => f.Code == ExamPackageImportPipeline.RevalidationFailedCode && f.Severity == "error");
+    }
+
     // ── Wiring ───────────────────────────────────────────────────────────
 
     /// <summary>
@@ -306,6 +394,7 @@ public sealed class ExamPackageImportPipelineTests
             new ExamPackageArchiveInspector(),
             new SafeSourceDocumentExtractor(new NoAssets()),
             new ExamImportWorkflow(validator, drafts, parser),
+            validator,
             drafts,
             // Generous on purpose: these fixtures are a few hundred bytes, and
             // the caps are not what this suite is testing.

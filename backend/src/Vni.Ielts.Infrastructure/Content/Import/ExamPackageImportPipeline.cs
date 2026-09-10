@@ -20,6 +20,7 @@ public sealed class ExamPackageImportPipeline(
     IExamPackageArchiveInspector inspector,
     ISourceDocumentExtractor extractor,
     ExamImportWorkflow workflow,
+    IExamPackageValidator validator,
     IImportDraftStore drafts,
     IOptions<ImportArchiveOptions> archiveOptions)
 {
@@ -87,7 +88,7 @@ public sealed class ExamPackageImportPipeline(
     /// itself before anyone would upload its output here. Running the guard
     /// again on a package the CLI has already keyed would flag every
     /// legitimate answer key it wrote, so this route deliberately does not
-    /// call it — see <see cref="GuardAgainstFabricatedAnswersAsync"/> for
+    /// call it — see <see cref="FabricatedWarnings"/> for
     /// where the guard actually runs.
     ///
     /// <b>AI-parsed route:</b> every other shape. <c>P-18</c>: the folder name
@@ -100,7 +101,7 @@ public sealed class ExamPackageImportPipeline(
     /// straight into the prompt — the configuration measured on 2026-09-02,
     /// where a model shown a paper with no key produced forty answers, five of
     /// them wrong, and every one passed schema validation. The key is read by
-    /// <see cref="AnswerKeyDocument"/> in <see cref="ApplySuppliedKeysAsync"/>
+    /// <see cref="AnswerKeyDocument"/> in <see cref="ApplyKeysAndGuardAsync"/>
     /// and written on afterwards. → CLAUDE.md rule 9
     /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
@@ -140,40 +141,45 @@ public sealed class ExamPackageImportPipeline(
         var attempt = await workflow.ImportExtractedAsync(source, definitionId, versionNumber, ct);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
-        var suppliedAKey = layout.PresentSkills.Any(s => layout.For(s).Key.Count > 0);
-
-        /*
-         * Derived from the layout, never from the package. Inferring "a key was
-         * supplied" from the presence of answer keys would make the check vacuous —
-         * the guard's own remarks say so, and the caller is the only party that
-         * actually knows.
-         */
-        return suppliedAKey
-            ? await ApplySuppliedKeysAsync(attempt.Draft, layout, sandboxDirectory, ct)
-            : await GuardAgainstFabricatedAnswersAsync(attempt.Draft, ct);
+        return await ApplyKeysAndGuardAsync(attempt.Draft, layout, sandboxDirectory, ct);
     }
 
     /// <summary>
-    /// Reads every key document, one skill at a time, and writes it onto the
-    /// parsed package.
+    /// Reads every key document, one skill at a time, writes it onto the parsed
+    /// package, and turns the model's own answers loose on the fabrication
+    /// guard wherever no key was supplied.
     ///
     /// <b>The model is never shown any of this.</b> Measured on VOL 9: with the
     /// key in the prompt a model scored 36 of 38 and both misses were alignment
     /// failures — the right answer on the wrong question. With the key read by
     /// code the same paper scored 34 of 38 exactly, and refused on the other
     /// four rather than guessing. Counting is what code does better.
+    ///
+    /// <b>The choice is per skill, never per package.</b> A package can carry
+    /// <c>reading/dap-an/</c> and no Listening key at all, and a package-wide
+    /// "a key was supplied" flag then sends the whole import down the keyed
+    /// route: Listening gets neither a real key nor the guard, and the model's
+    /// invented Listening answers are persisted with nothing said about them —
+    /// strictly worse than having no key folder anywhere, which at least always
+    /// flagged them. Which skill has a key folder is a fact about the
+    /// <b>layout</b>; it is never inferred from the package, because inferring
+    /// it from the presence of answer keys is exactly the vacuous check
+    /// <see cref="FabricatedAnswerKeyGuard"/>'s own remarks warn against.
     /// </summary>
-    private async Task<ExamImportAttempt> ApplySuppliedKeysAsync(
+    private async Task<ExamImportAttempt> ApplyKeysAndGuardAsync(
         ExamImportDraft draft, PackageLayout layout, string sandboxDirectory, CancellationToken ct)
     {
         var json = draft.PackageJson;
         var findings = new List<PackageFinding>();
+        var keyed = new HashSet<ExamModule>();
         var changed = false;
 
         foreach (var skill in layout.PresentSkills)
         {
             var keyFiles = layout.For(skill).Key;
             if (keyFiles.Count == 0) continue;
+
+            keyed.Add(skill);
 
             var entries = new List<AnswerKeyEntry>();
             foreach (var relativePath in keyFiles)
@@ -190,7 +196,7 @@ public sealed class ExamPackageImportPipeline(
             if (entries.Count == 0)
             {
                 findings.Add(new PackageFinding(
-                    "error", "ANSWER_KEY_UNREADABLE", $"/sections/{skill}",
+                    "error", "ANSWER_KEY_UNREADABLE", $"/sections/{Name(skill)}",
                     $"The {skill} key folder holds no answers this reader recognises. "
                     + "Two formats are read: numbered lines, and a bare ordered list."));
 
@@ -222,19 +228,156 @@ public sealed class ExamPackageImportPipeline(
             changed = true;
         }
 
-        if (!changed) return ExamImportAttempt.Accepted(draft);
+        var warnings = FabricatedWarnings(json, keyed);
+
+        if (!changed && warnings.Count == 0) return ExamImportAttempt.Accepted(draft);
+
+        /*
+         * `Version` was materialised by the validator from the *parser's*
+         * output, so leaving it alone here would put the model's guess and the
+         * supplier's key in the same record: `PackageJson` saying TRUE and
+         * `Version` saying FALSE, two different answers to "what is correct for
+         * question 1". Nothing publishes from `Version` today, but
+         * `AdminImportEndpoints` already reads it, and something well-formed and
+         * wrong sitting where a consumer will eventually find it is precisely
+         * how 2026-09-02 happened.
+         */
+        var version = draft.Version;
+        if (changed)
+        {
+            var revalidated = Revalidate(json, draft);
+
+            if (revalidated is not null) version = revalidated;
+            else
+                findings.Add(new PackageFinding(
+                    "error", RevalidationFailedCode, "/sections",
+                    "The package no longer validates once the supplied key was applied, so the "
+                    + "materialised exam version still reflects what the model produced. Read the "
+                    + "package itself, not the version, until this is resolved. An unreadable key "
+                    + "folder reaches this state on purpose: its questions are left with no answer "
+                    + "at all, which the schema refuses, and no answer is safer than an invented one."));
+        }
 
         var updated = draft with
         {
             PackageJson = json,
             PackageHash = ExamImportWorkflow.Hash(json),
+            Version = version,
             Findings = [.. draft.Findings, .. findings],
+            Warnings = [.. draft.Warnings, .. warnings],
             Revision = draft.Revision + 1,
         };
 
         var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
         return ExamImportAttempt.Accepted(replaced ? updated : draft);
     }
+
+    public const string RevalidationFailedCode = "ANSWER_KEY_REVALIDATION_FAILED";
+
+    /// <summary>
+    /// The materialised version for a package the key has just been written
+    /// onto, or <c>null</c> when it no longer validates.
+    ///
+    /// <b>Never throws.</b> A refusal here is a finding, not an exception: the
+    /// draft is already on disk and the whole point of reaching this line is
+    /// that the package changed after it was saved.
+    /// </summary>
+    private ExamVersion? Revalidate(string packageJson, ExamImportDraft draft)
+    {
+        try
+        {
+            var result = validator.Validate(packageJson, draft.DefinitionId, draft.VersionNumber);
+            return result.IsValid ? result.Version : null;
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// The fabrication guard, run only over the skills nobody supplied a key
+    /// for.
+    ///
+    /// <b>Scoped at the call site, not inside the guard.</b>
+    /// <see cref="FabricatedAnswerKeyGuard.Inspect"/> is a whole-package
+    /// question and stays one; what changes per skill is whether its answer
+    /// means anything, and the finding path already names the section it came
+    /// from. A section whose module is not in <paramref name="keyed"/> is
+    /// guarded — including a module the model invented that the layout never
+    /// carried a folder for, which is the case a "present skills" loop alone
+    /// would walk straight past.
+    ///
+    /// <b>Every finding becomes a review warning, not a silent rejection.</b>
+    /// That reuses exactly the "cảnh báo, bắt buộc ghi lý do khi bỏ qua" shape
+    /// `P-19` already requires for every other import warning: a fabricated
+    /// answer key blocks approval (<see cref="ImportReviewWorkflow.ApproveAsync"/>
+    /// refuses while any warning is unresolved) until a reviewer overrides it
+    /// with a reason, and that override is what
+    /// <c>AuditAction.WarningOverridden</c> records. A draft that is on disk
+    /// with the problem named and gated is more useful to an operator than one
+    /// silently discarded after a paid AI call — the same judgement
+    /// <see cref="FabricatedAnswerKeyGuard"/>'s own remarks make about the CLI
+    /// path ("the draft is on disk for inspection"). It also runs after the
+    /// draft is saved rather than before, because the parser runs exactly once
+    /// inside <see cref="ExamImportWorkflow.ImportExtractedAsync"/> and calling
+    /// it again to check its output would double the AI cost of every upload
+    /// and — the model not being deterministic — could check different output
+    /// from what was actually saved.
+    /// </summary>
+    private static IReadOnlyList<ImportReviewWarning> FabricatedWarnings(
+        string packageJson, IReadOnlySet<ExamModule> keyed)
+    {
+        var unkeyed = UnkeyedSectionPrefixes(packageJson, keyed);
+        if (unkeyed.Count == 0) return [];
+
+        return FabricatedAnswerKeyGuard
+            .Inspect(packageJson, sourceIncludesAnswerKey: false)
+            .Where(f => f.Path.EndsWith("/answerKey", StringComparison.Ordinal))
+            .Where(f => unkeyed.Any(prefix => f.Path.StartsWith(prefix, StringComparison.Ordinal)))
+            .Select((f, i) => new ImportReviewWarning(
+                $"FABRICATED_ANSWER_KEY:{i}", ImportReviewCategory.AcceptedVariants, f.Path, f.Message, false))
+            .ToArray();
+    }
+
+    /// <summary>
+    /// <c>/sections/{index}/</c> for every section no key was supplied for.
+    /// The guard reports positions, not modules, so the mapping has to be made
+    /// here from the package's own section order.
+    /// </summary>
+    private static IReadOnlyList<string> UnkeyedSectionPrefixes(
+        string packageJson, IReadOnlySet<ExamModule> keyed)
+    {
+        var wanted = keyed.Select(Name).ToHashSet(StringComparer.Ordinal);
+        var prefixes = new List<string>();
+
+        JsonArray? sections;
+        try
+        {
+            sections = JsonNode.Parse(packageJson)?["sections"]?.AsArray();
+        }
+        catch (JsonException)
+        {
+            // The validator reports malformed JSON; this is not that job.
+            return prefixes;
+        }
+
+        if (sections is null) return prefixes;
+
+        for (var i = 0; i < sections.Count; i++)
+        {
+            var module = sections[i]?["module"]?.GetValue<string>();
+            if (module is not null && wanted.Contains(module)) continue;
+            prefixes.Add($"/sections/{i}/");
+        }
+
+        return prefixes;
+    }
+
+    /// <summary>
+    /// The module name as the schema and every neighbouring path spell it.
+    /// </summary>
+    private static string Name(ExamModule module) => module.ToString().ToLowerInvariant();
 
     /// <summary>
     /// Removes every answer the model wrote for <b>one skill</b>, leaving the
@@ -268,53 +411,5 @@ public sealed class ExamPackageImportPipeline(
         }
 
         return package.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
-    }
-
-    /// <summary>
-    /// <b>Runs after the draft is already saved, not before.</b> The parser
-    /// runs exactly once, inside <see cref="ExamImportWorkflow.ImportExtractedAsync"/>.
-    /// Calling it a second time here to check its output before persisting
-    /// would double the AI cost of every AI-parsed upload, and — because the
-    /// model is not deterministic — could check different output from what
-    /// actually got saved. <see cref="ExamImportWorkflow"/> itself is off
-    /// limits to this slice (touched only by the review-lifecycle work this
-    /// session) and exposes no hook between parsing and persisting, so this
-    /// is the seam that exists.
-    ///
-    /// <b>Every finding becomes a review warning, not a silent rejection.</b>
-    /// That reuses exactly the "cảnh báo, bắt buộc ghi lý do khi bỏ qua" shape
-    /// `P-19` already requires for every other import warning: a fabricated
-    /// answer key blocks approval (<see cref="ImportReviewWorkflow.ApproveAsync"/>
-    /// refuses while any warning is unresolved) until a reviewer overrides it
-    /// with a reason, and that override is what
-    /// <c>AuditAction.WarningOverridden</c> records. A draft that is on disk
-    /// with the problem named and gated is more useful to an operator than
-    /// one silently discarded after a paid AI call — the same judgement
-    /// <c>FabricatedAnswerKeyGuard</c>'s own remarks make about the CLI path
-    /// ("the draft is on disk for inspection").
-    /// </summary>
-    private async Task<ExamImportAttempt> GuardAgainstFabricatedAnswersAsync(
-        ExamImportDraft draft, CancellationToken ct)
-    {
-        var fabricated = FabricatedAnswerKeyGuard
-            .Inspect(draft.PackageJson, sourceIncludesAnswerKey: false)
-            .Where(f => f.Path.EndsWith("/answerKey", StringComparison.Ordinal))
-            .ToArray();
-
-        if (fabricated.Length == 0) return ExamImportAttempt.Accepted(draft);
-
-        var asWarnings = fabricated
-            .Select((f, i) => new ImportReviewWarning(
-                $"FABRICATED_ANSWER_KEY:{i}", ImportReviewCategory.AcceptedVariants, f.Path, f.Message, false))
-            .ToArray();
-
-        var updated = draft with
-        {
-            Warnings = [.. draft.Warnings, .. asWarnings],
-            Revision = draft.Revision + 1,
-        };
-
-        var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
-        return ExamImportAttempt.Accepted(replaced ? updated : draft);
     }
 }
