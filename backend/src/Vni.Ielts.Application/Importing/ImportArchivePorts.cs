@@ -159,6 +159,26 @@ public static class ArchiveFindingCodes
     public const string EntryNotRegular = "ENTRY_NOT_REGULAR";
     public const string NestedArchive = "NESTED_ARCHIVE";
     public const string LayoutUnknownEntry = "LAYOUT_UNKNOWN_ENTRY";
+
+    /// <summary>
+    /// A folder directly under a recognised skill folder whose name matches no
+    /// role — <c>reading/dap_an/</c>, an underscore where the hyphen belongs,
+    /// or a diacritic mangled by a ZIP tool writing CP437.
+    ///
+    /// <b>Its own code because it is not the same event as
+    /// <see cref="LayoutUnknownEntry"/>.</b> An unknown top-level folder means
+    /// the files are <i>ignored</i>: <c>__MACOSX/</c> is the case, it is noise,
+    /// and it stays an inspection finding that reaches no gate. An unrecognised
+    /// role folder means the file <i>is</i> used, as paper — so a mislabelled
+    /// key folder sends the answer key to the model, which is the 2026-09-02
+    /// configuration reached by a typo. That is consequential and specific, so
+    /// <c>ExamPackageImportPipeline</c> carries this one, and only this one,
+    /// onto the draft as a blocking, clearable review warning. Sharing a code
+    /// with <c>__MACOSX/</c> is what made the routing look like a choice
+    /// between two traps.
+    /// </summary>
+    public const string LayoutUnknownRoleFolder = "LAYOUT_UNKNOWN_ROLE_FOLDER";
+
     public const string LayoutEmpty = "LAYOUT_EMPTY";
     public const string ExtractionQuotaExceeded = "EXTRACTION_QUOTA_EXCEEDED";
     public const string ExtractionTimeout = "EXTRACTION_TIMEOUT";

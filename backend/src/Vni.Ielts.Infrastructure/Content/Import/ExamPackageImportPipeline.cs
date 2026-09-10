@@ -59,8 +59,10 @@ public sealed class ExamPackageImportPipeline(
             if (!extraction.IsSuccess || extraction.SandboxDirectory is null)
                 return ExamImportAttempt.Rejected(extraction.Findings);
 
-            return await ImportFromSandboxAsync(
+            var attempt = await ImportFromSandboxAsync(
                 inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber, ct);
+
+            return await AttachRoleFolderWarningsAsync(attempt, inspection.Findings, ct);
         }
         catch (ExamSourceParsingUnavailableException e)
         {
@@ -283,18 +285,28 @@ public sealed class ExamPackageImportPipeline(
          * come from, and by checking that a group's answers appear in the
          * passage in question order. → PassageAnchorCheck
          *
-         * <b>4a and 4c stay PackageFindings; 4b (order) does not.</b>
-         * Containment and a whole-group passage mismatch are contradictions
-         * between two documents with no judgement to exercise — they have no
-         * override, exactly like layers 1–3. The order convention has rare
-         * genuine exceptions, so it is filed as an ImportReviewWarning
-         * instead: a reviewer can clear it with a recorded reason (P-19),
-         * the same shape FabricatedWarnings above already uses. Filing it as
-         * a "warning"-severity PackageFinding instead — as this line once
-         * did — falls between both gates: ApproveAsync's blocking check only
-         * reads Severity == "error", and there is no resolve path for a
-         * finding at all, so the result would never block and could never be
-         * cleared. → docs/development/answer-key-cross-check.md
+         * <b>Only 4c stays a PackageFinding.</b> A whole group anchoring
+         * nothing against a passage that is present is a clean, strong signal
+         * the paper was parsed wrong, and it is the one case where reporting
+         * the individual misses would send an administrator to fix twelve
+         * answers that are all correct. It has no override, like layers 1–3.
+         *
+         * 4b (order) and, since 2026-09-10, 4a (containment) are
+         * ImportReviewWarnings: both still block approval, and both can be
+         * cleared with a recorded, audited reason (P-19) — the same shape
+         * FabricatedWarnings above already uses. 4a moved because its premise
+         * turned out to be false: "the answer is not in the passage" depends
+         * on normalisation choices that do not round-trip ("some 800km"
+         * against a passage printing "800 km"; "35,000" against a passage
+         * keeping the comma, since numeric equivalence applies to a short
+         * answer and not to a whole passage), so a genuinely absent answer
+         * cannot be told apart from one the matcher cannot see.
+         *
+         * Neither may be filed as a "warning"-severity PackageFinding — as
+         * this line once did for 4b — because that falls between both gates:
+         * ApproveAsync's blocking check reads only Severity == "error", and
+         * there is no resolve path for a finding at all.
+         * → docs/development/answer-key-cross-check.md
          */
         var anchorReport = PassageAnchorCheck.Inspect(json);
         findings.AddRange(anchorReport.Findings);
@@ -302,6 +314,7 @@ public sealed class ExamPackageImportPipeline(
         [
             .. FabricatedWarnings(json, keyed),
             .. InjectionWarnings(injectionWarnings),
+            .. NotInPassageWarnings(anchorReport.MissingAnswerIssues),
             .. OrderWarnings(anchorReport.OrderIssues),
         ];
 
@@ -348,6 +361,54 @@ public sealed class ExamPackageImportPipeline(
     }
 
     public const string RevalidationFailedCode = "ANSWER_KEY_REVALIDATION_FAILED";
+
+    /// <summary>
+    /// Carries <see cref="ArchiveFindingCodes.LayoutUnknownRoleFolder"/> — and
+    /// nothing else from the inspection — onto the saved draft, as a blocking
+    /// but clearable review warning.
+    ///
+    /// <b>Why this one finding and not the rest of the inspection.</b> On an
+    /// acceptable inspection every other finding is either a refusal (the
+    /// package never got here) or <c>LAYOUT_UNKNOWN_ENTRY</c>, which says a
+    /// top-level folder or a root file was <i>ignored</i>. <c>__MACOSX/</c> is
+    /// that case; routing it here would put an unresolved warning on every
+    /// package a macOS ZIP tool wrote, and a check that blocks correct
+    /// packages is a check somebody switches off. An unrecognised <i>role</i>
+    /// folder is the opposite: the file was <b>used</b>, as paper, so a key
+    /// folder spelled <c>dap_an</c> put the answer key in front of the model.
+    /// The administrator who typed it needs to learn that, and the draft must
+    /// not be approvable until they have.
+    ///
+    /// <b>Placed here rather than inside <see cref="ApplyKeysAndGuardAsync"/>
+    /// on purpose.</b> The structured route (one accepted <c>.json</c> entry)
+    /// never reaches that method, and <c>reading/dap_an/exam.json</c> is a
+    /// package that takes it. One call site covers both routes; the cost is
+    /// one extra draft revision on a package that has the problem, and none
+    /// on a package that does not.
+    /// </summary>
+    private async Task<ExamImportAttempt> AttachRoleFolderWarningsAsync(
+        ExamImportAttempt attempt, IReadOnlyList<PackageFinding> inspectionFindings, CancellationToken ct)
+    {
+        if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
+
+        var warnings = inspectionFindings
+            .Where(f => f.Code == ArchiveFindingCodes.LayoutUnknownRoleFolder)
+            .Select((f, i) => new ImportReviewWarning(
+                $"{f.Code}:{i}", ImportReviewCategory.AcceptedVariants, f.Path, f.Message, false))
+            .ToArray();
+
+        if (warnings.Length == 0) return attempt;
+
+        var draft = attempt.Draft;
+        var updated = draft with
+        {
+            Warnings = [.. draft.Warnings, .. warnings],
+            Revision = draft.Revision + 1,
+        };
+
+        var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
+        return ExamImportAttempt.Accepted(replaced ? updated : draft);
+    }
 
     /// <summary>
     /// The materialised version for a package the key has just been written
@@ -428,6 +489,22 @@ public sealed class ExamPackageImportPipeline(
         warnings
             .Select((f, i) => new ImportReviewWarning(
                 $"{f.Code}:{i}", ImportReviewCategory.AcceptedVariants, f.Path, f.Message, false))
+            .ToArray();
+
+    /// <summary>
+    /// Turns <see cref="PassageAnchorCheck"/>'s Layer 4a result — a key answer
+    /// not found in its own passage or transcript — into a blocking but
+    /// clearable review warning, the same idiom
+    /// <see cref="OrderWarnings"/> uses. See
+    /// <see cref="AnchorMissingAnswerIssue"/> for why it is no longer an
+    /// error with no override.
+    /// </summary>
+    private static IReadOnlyList<ImportReviewWarning> NotInPassageWarnings(
+        IReadOnlyList<AnchorMissingAnswerIssue> issues) =>
+        issues
+            .Select((issue, i) => new ImportReviewWarning(
+                $"{PassageAnchorCheck.NotInPassageCode}:{i}", ImportReviewCategory.AcceptedVariants,
+                issue.Path, issue.Message, false))
             .ToArray();
 
     /// <summary>

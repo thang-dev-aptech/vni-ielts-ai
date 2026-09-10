@@ -194,9 +194,13 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             var unknown = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             // Second-level folders under a recognised skill folder that match
-            // no role name. Kept apart from `unknown` on purpose: those
-            // entries are ignored, these are not — they are still imported as
-            // paper. Only the finding is new; the layout is unchanged.
+            // no role name. Kept apart from `unknown`, and given their own
+            // finding code, because they are not the same event: an unknown
+            // top-level folder means the files are *ignored* (`__MACOSX/` is
+            // the case, and it is noise), while an unrecognised role folder
+            // means the file *is* used, as paper — so a mislabelled key folder
+            // sends the answer key to the model. Only the finding is new; the
+            // layout and the classification are unchanged.
             var unknownRoles = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var entry in entries)
@@ -292,7 +296,7 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             {
                 findings.Add(Finding(
                     Warning,
-                    ArchiveFindingCodes.LayoutUnknownEntry,
+                    ArchiveFindingCodes.LayoutUnknownRoleFolder,
                     Display(folder),
                     $"Folder under a skill folder is not one of de/, paper/, questions/ (the paper) "
                     + $"or dap-an/, dapan/, key/, answers/ (the answer key) or audio/; its {count} "

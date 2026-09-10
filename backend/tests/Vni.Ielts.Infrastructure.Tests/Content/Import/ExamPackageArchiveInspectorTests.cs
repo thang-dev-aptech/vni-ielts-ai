@@ -355,7 +355,7 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
         Assert.True(result.IsAcceptable, Describe(result));
         var finding = Assert.Single(
             result.Findings,
-            f => f.Code == ArchiveFindingCodes.LayoutUnknownEntry);
+            f => f.Code == ArchiveFindingCodes.LayoutUnknownRoleFolder);
         Assert.Equal(Warning, finding.Severity);
         Assert.Equal("reading/dap_an/", finding.Path);
 
@@ -376,7 +376,28 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
 
         var result = await inspector.InspectAsync(archive, Tight, default);
 
+        Assert.DoesNotContain(
+            result.Findings, f => f.Code == ArchiveFindingCodes.LayoutUnknownRoleFolder);
         Assert.DoesNotContain(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutUnknownEntry);
+    }
+
+    /// <summary>
+    /// The two codes are not interchangeable, and this is the reason: an
+    /// unknown <i>top-level</i> folder means the files were <b>ignored</b>, and
+    /// <c>__MACOSX/</c> is that case on every package a macOS ZIP tool wrote.
+    /// It keeps <c>LAYOUT_UNKNOWN_ENTRY</c> and is not routed to the draft, so
+    /// it cannot block a correct package. Only the role-folder code is.
+    /// </summary>
+    [Fact]
+    public async Task An_ignored_top_level_folder_keeps_the_unknown_entry_code()
+    {
+        var archive = Build(File("reading/p1.txt"), File("__MACOSX/._p1.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        var finding = Assert.Single(result.Findings);
+        Assert.Equal(ArchiveFindingCodes.LayoutUnknownEntry, finding.Code);
+        Assert.NotEqual(ArchiveFindingCodes.LayoutUnknownRoleFolder, finding.Code);
     }
 
     /// <summary>

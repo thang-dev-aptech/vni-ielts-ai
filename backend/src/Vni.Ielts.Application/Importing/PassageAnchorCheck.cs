@@ -23,10 +23,37 @@ public sealed record QuestionAnchor(string QuestionId, int Order, bool Anchored)
 /// </summary>
 public sealed record AnchorOrderIssue(string Path, string Message);
 
+/// <summary>
+/// One question whose key answer was not found in its own passage or
+/// transcript.
+///
+/// <b>Also deliberately not a <see cref="PackageFinding"/>, since
+/// 2026-09-10.</b> It was an error with no override, on the argument that
+/// "the answer is not in the passage" is a clean fact about two documents
+/// with no judgement to exercise. Measurement against this repository's own
+/// material broke that premise: <c>"some 800km"</c> against a passage
+/// printing <c>"800 km"</c> is a correct answer this cannot see, and
+/// <c>"35,000"</c> failed only because <see cref="AnswerMatcher.Normalise"/>
+/// applies numeric equivalence to a short answer and not to a whole passage.
+/// "Appears in the passage" therefore depends on normalisation choices that
+/// do not round-trip, and a genuinely absent answer cannot be told apart from
+/// one the matcher cannot see. So it keeps blocking — nothing publishes until
+/// a person looks — but a reviewer may clear it with a written, audited
+/// reason, exactly like the order result.
+///
+/// <b><see cref="PassageAnchorCheck.PassageMismatchCode"/> did not move.</b> A
+/// whole group anchoring nothing against a passage that is present is a clean,
+/// strong signal the paper was parsed wrong, and it is precisely the case where
+/// reporting the individual misses would send an administrator to fix twelve
+/// answers that are all correct.
+/// </summary>
+public sealed record AnchorMissingAnswerIssue(string Path, string Message);
+
 public sealed record AnchorReport(
     IReadOnlyList<PackageFinding> Findings,
     IReadOnlyList<QuestionAnchor> Anchors,
-    IReadOnlyList<AnchorOrderIssue> OrderIssues);
+    IReadOnlyList<AnchorOrderIssue> OrderIssues,
+    IReadOnlyList<AnchorMissingAnswerIssue> MissingAnswerIssues);
 
 /// <summary>
 /// Layer 4 of the cross-check: anchors each answer in the text it must have
@@ -67,6 +94,7 @@ public static class PassageAnchorCheck
         var findings = new List<PackageFinding>();
         var anchors = new List<QuestionAnchor>();
         var orderIssues = new List<AnchorOrderIssue>();
+        var missingAnswers = new List<AnchorMissingAnswerIssue>();
 
         foreach (var (part, path, source) in Parts(package))
         {
@@ -104,11 +132,21 @@ public static class PassageAnchorCheck
 
                 foreach (var (order, _, _) in missing)
                 {
-                    findings.Add(new PackageFinding(
-                        "error", NotInPassageCode, path,
-                        $"The key answer for question {order} does not appear in the passage. "
-                        + "This question type takes its answer from the text, so no learner "
-                        + "could produce it."));
+                    /*
+                     * Clearable since 2026-09-10 — see AnchorMissingAnswerIssue.
+                     * The message has to say why a reviewer might legitimately
+                     * clear it, or the override becomes a reflex: the matcher
+                     * cannot see a spacing or punctuation difference between
+                     * the key and the passage, and that looks identical to a
+                     * genuinely absent answer from here.
+                     */
+                    missingAnswers.Add(new AnchorMissingAnswerIssue(
+                        path,
+                        $"The key answer for question {order} was not found in this part's own "
+                        + "text. This question type takes its answer from the text, so a truly "
+                        + "absent answer is one no learner could produce — but a difference in "
+                        + "spacing or punctuation between the key and the paper reads the same "
+                        + "way from here. Check the passage against the key before clearing."));
                 }
 
                 if (missing.Length > 0) continue;
@@ -132,7 +170,7 @@ public static class PassageAnchorCheck
             }
         }
 
-        return new AnchorReport(findings, anchors, orderIssues);
+        return new AnchorReport(findings, anchors, orderIssues, missingAnswers);
     }
 
     /// <summary>

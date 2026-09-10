@@ -18,15 +18,23 @@ public sealed class PassageAnchorCheckTests
         Assert.True(Assert.Single(report.Anchors).Anchored);
     }
 
+    /// <summary>
+    /// <b>Reported via <see cref="AnchorReport.MissingAnswerIssues"/>, not
+    /// <see cref="AnchorReport.Findings"/>, since 2026-09-10.</b> It still
+    /// blocks approval, but a reviewer may clear it with a written reason:
+    /// "appears in the passage" depends on normalisation choices that do not
+    /// round-trip, so a genuinely absent answer cannot be told apart from one
+    /// the matcher cannot see. See <see cref="AnchorMissingAnswerIssue"/>.
+    /// </summary>
     [Fact]
-    public void A_completion_answer_absent_from_the_passage_is_refused()
+    public void A_completion_answer_absent_from_the_passage_is_reported_as_a_clearable_issue()
     {
         var report = PassageAnchorCheck.Inspect(Package(Passage,
             Completion(1, "copper roof")));
 
-        var finding = Assert.Single(report.Findings);
-        Assert.Equal(PassageAnchorCheck.NotInPassageCode, finding.Code);
-        Assert.Equal("error", finding.Severity);
+        Assert.Empty(report.Findings);
+        var issue = Assert.Single(report.MissingAnswerIssues);
+        Assert.Contains("question 1", issue.Message, StringComparison.Ordinal);
         Assert.False(Assert.Single(report.Anchors).Anchored);
     }
 
@@ -212,14 +220,37 @@ public sealed class PassageAnchorCheckTests
     /// refused.
     /// </summary>
     [Fact]
-    public void An_answer_no_alternative_of_which_is_present_is_still_refused()
+    public void An_answer_no_alternative_of_which_is_present_is_still_reported()
     {
         var report = PassageAnchorCheck.Inspect(Package(Passage,
             Completion(1, "copper roof,bronze roof")));
 
+        Assert.Empty(report.Findings);
+        Assert.Single(report.MissingAnswerIssues);
+    }
+
+    /// <summary>
+    /// The split between the two codes, pinned rather than assumed. 4a became
+    /// clearable because the matcher cannot always see an answer that is
+    /// present; 4c did not, because a whole group anchoring nothing against a
+    /// passage that <i>is</i> present says the paper was parsed wrong, and
+    /// reporting the individual misses would send an administrator to fix
+    /// twelve answers that are all correct.
+    /// </summary>
+    [Fact]
+    public void A_whole_group_mismatch_stays_a_blocking_finding_with_no_override()
+    {
+        var report = PassageAnchorCheck.Inspect(Package("An unrelated passage entirely.",
+            Completion(1, "slate roof"),
+            Completion(2, "stained glass")));
+
         var finding = Assert.Single(report.Findings);
-        Assert.Equal(PassageAnchorCheck.NotInPassageCode, finding.Code);
+        Assert.Equal(PassageAnchorCheck.PassageMismatchCode, finding.Code);
         Assert.Equal("error", finding.Severity);
+
+        // Not also reported as clearable: one group, one verdict, and the
+        // clearable one would let it be waved through.
+        Assert.Empty(report.MissingAnswerIssues);
     }
 
     private static string Completion(int order, string answer) =>

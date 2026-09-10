@@ -136,12 +136,18 @@ public sealed class ImportReviewWorkflowTests
     /// There is no override. A reviewer with every permission still cannot clear
     /// a contradiction between a paper and its key — the fix is a corrected file,
     /// not a recorded reason.
+    ///
+    /// <c>PASSAGE_DOES_NOT_MATCH_QUESTIONS</c>, on purpose: it is one of the
+    /// codes that is still filed as an error. <c>KEY_ANSWER_NOT_IN_PASSAGE</c>
+    /// stood here until 2026-09-10 and no longer belongs — it is now a
+    /// blocking but clearable warning, so using it as the example would have
+    /// described a shape the code no longer produces.
     /// </summary>
     [Fact]
     public async Task Resolving_every_warning_does_not_clear_a_blocking_finding()
     {
         var store = new Store(Draft(complete: true, findings:
-            [new PackageFinding("error", PassageAnchorCheck.NotInPassageCode, "/q/1", "absent")]));
+            [new PackageFinding("error", PassageAnchorCheck.PassageMismatchCode, "/q/1", "absent")]));
         var review = new ImportReviewWorkflow(store, new Validator());
 
         var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);

@@ -183,6 +183,36 @@ public sealed class ExamPackageImportPipelineTests
             """;
 
         /// <summary>
+        /// Two completion questions in one group, neither answer anywhere in a
+        /// passage that is nonetheless present and intact — the shape of a
+        /// paper parsed wrong, which stays a blocking error with no override.
+        /// </summary>
+        public static string TwoCompletionQuestionsNotInTheirPassage() =>
+            """
+            {
+              "formatVersion": "2.0", "formatProfile": "vni-practice",
+              "scoringProfileRef": "validation-v1",
+              "contentSourceRef": { "sourceId": "recording-parser",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+              "title": "T",
+              "variant": "academic",
+              "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+              "scoringProfile": { "rawToBand": { "reading": [
+                { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 },
+                { "minRaw": 2, "band": 2 } ] } },
+              "sections": [ { "module": "reading", "order": 1, "parts": [ { "order": 1,
+                "kind": "passage", "body": "An unrelated passage entirely.",
+                "questions": [
+                  { "id": "r1", "order": 1, "type": "completion",
+                    "group": { "id": "g1" },
+                    "answerKey": { "accepted": ["slate roof"] } },
+                  { "id": "r2", "order": 2, "type": "completion",
+                    "group": { "id": "g1" },
+                    "answerKey": { "accepted": ["stained glass"] } } ] } ] } ]
+            }
+            """;
+
+        /// <summary>
         /// Two completion questions in the same group, both answers present in
         /// the passage, but numbered the wrong way round against where they sit
         /// in the text — the shape of a key shifted by a line. No key folder
@@ -477,6 +507,11 @@ public sealed class ExamPackageImportPipelineTests
     /// <summary>
     /// No key folder means the answers came from the model. Those are exactly
     /// the answers most worth checking.
+    ///
+    /// <b>Filed as a blocking, clearable warning since 2026-09-10</b>, not as
+    /// an error with no override — see <see cref="AnchorMissingAnswerIssue"/>.
+    /// It must still reach a gate: this asserts the warning is unresolved on
+    /// the draft and absent from <c>draft.Findings</c>.
     /// </summary>
     [Fact]
     public async Task A_package_with_no_key_folder_is_still_cross_checked_for_passage_anchors()
@@ -488,9 +523,162 @@ public sealed class ExamPackageImportPipelineTests
         var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
 
         Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        var missing = Assert.Single(
+            attempt.Draft!.Warnings,
+            w => w.Id.StartsWith(PassageAnchorCheck.NotInPassageCode, StringComparison.Ordinal));
+        Assert.False(missing.Resolved);
+        Assert.DoesNotContain(
+            attempt.Draft.Findings, f => f.Code == PassageAnchorCheck.NotInPassageCode);
+    }
+
+    /// <summary>
+    /// The ruling of 2026-09-10, end to end: a key answer the matcher cannot
+    /// find still stops the draft being approved, and a reviewer with a
+    /// written reason can clear it. The premise that made it an
+    /// un-overridable error — "the answer is not in the passage" being a clean
+    /// fact — is false: normalisation choices do not round-trip, so a correct
+    /// answer the matcher cannot see looks exactly like an absent one.
+    /// </summary>
+    [Fact]
+    public async Task An_answer_not_found_in_the_passage_blocks_approval_until_a_reviewer_clears_it()
+    {
+        var (pipeline, drafts, validator) = PipelineWithStore(
+            new RecordingParser(RecordingParser.OneCompletionQuestionWithAnAnswerNotInThePassage()));
+        var archive = Build(File("reading/de/passage.txt", "The hall has a slate roof."));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        var missing = Assert.Single(
+            attempt.Draft!.Warnings,
+            w => w.Id.StartsWith(PassageAnchorCheck.NotInPassageCode, StringComparison.Ordinal));
+
+        var review = new ImportReviewWorkflow(drafts, validator);
+        var checklisted = await review.SetChecklistAsync(
+            attempt.Draft.Id, attempt.Draft.Revision,
+            Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
+        var revision = checklisted.Draft!.Revision;
+
+        foreach (var other in checklisted.Draft.Warnings.Where(w => !w.Resolved && w.Id != missing.Id))
+        {
+            var step = await review.ResolveWarningAsync(
+                attempt.Draft.Id, revision, other.Id, "checked", ReviewerActor, default);
+            Assert.True(step.IsSuccess, step.ErrorCode);
+            revision = step.Draft!.Revision;
+        }
+
+        var blocked = await review.ApproveAsync(attempt.Draft.Id, revision, ReviewerActor, default);
+        Assert.False(blocked.IsSuccess);
+        Assert.Equal("IMPORT_WARNINGS_UNRESOLVED", blocked.ErrorCode);
+
+        var resolved = await review.ResolveWarningAsync(
+            attempt.Draft.Id, revision, missing.Id,
+            "the paper prints the answer with different spacing", ReviewerActor, default);
+        Assert.True(resolved.IsSuccess, resolved.ErrorCode);
+
+        var approved = await review.ApproveAsync(
+            attempt.Draft.Id, resolved.Draft!.Revision, ReviewerActor, default);
+
+        Assert.True(approved.IsSuccess, approved.ErrorCode);
+        Assert.Equal(ImportApprovalState.Approved, approved.Draft!.ApprovalState);
+    }
+
+    /// <summary>
+    /// The other half of the same split, at the pipeline boundary: a whole
+    /// group anchoring nothing is still an error on <c>draft.Findings</c>, and
+    /// `ApproveAsync` refuses it with no override at all. Resolving every
+    /// warning does not help.
+    /// </summary>
+    [Fact]
+    public async Task A_whole_group_passage_mismatch_still_refuses_with_no_override()
+    {
+        var (pipeline, drafts, validator) = PipelineWithStore(
+            new RecordingParser(RecordingParser.TwoCompletionQuestionsNotInTheirPassage()));
+        var archive = Build(File("reading/de/passage.txt", "An unrelated passage entirely."));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
         Assert.Contains(
             attempt.Draft!.Findings,
-            f => f.Code == PassageAnchorCheck.NotInPassageCode);
+            f => f.Code == PassageAnchorCheck.PassageMismatchCode && f.Severity == "error");
+
+        var review = new ImportReviewWorkflow(drafts, validator);
+        var checklisted = await review.SetChecklistAsync(
+            attempt.Draft.Id, attempt.Draft.Revision,
+            Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
+        var revision = checklisted.Draft!.Revision;
+
+        foreach (var warning in checklisted.Draft.Warnings.Where(w => !w.Resolved))
+        {
+            var step = await review.ResolveWarningAsync(
+                attempt.Draft.Id, revision, warning.Id, "checked", ReviewerActor, default);
+            Assert.True(step.IsSuccess, step.ErrorCode);
+            revision = step.Draft!.Revision;
+        }
+
+        var result = await review.ApproveAsync(attempt.Draft.Id, revision, ReviewerActor, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_FINDINGS_BLOCKING", result.ErrorCode);
+    }
+
+    /// <summary>
+    /// The ruling of 2026-09-10 on the layout: <c>reading/dap_an/</c> is not
+    /// the same event as <c>__MACOSX/</c>. The unknown role folder means the
+    /// file <b>was used</b>, as paper — so an answer key spelled with an
+    /// underscore went to the model — and the administrator who typed it has
+    /// to be told. It reaches the draft as a blocking, clearable warning under
+    /// its own code; <c>LAYOUT_UNKNOWN_ENTRY</c> is not routed and stays
+    /// exactly as it was.
+    /// </summary>
+    [Fact]
+    public async Task A_misspelled_key_folder_reaches_the_draft_as_a_blocking_clearable_warning()
+    {
+        var (pipeline, drafts, validator) = PipelineWithStore(new RecordingParser());
+        var archive = Build(
+            File("reading/de/passage.txt", "The roof is made of slate."),
+            File("reading/dap_an/key.txt", "Câu số 1: TRUE"),
+            File("notes.txt", "a stray root file, ignored"));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+
+        var layout = Assert.Single(
+            attempt.Draft!.Warnings,
+            w => w.Id.StartsWith(ArchiveFindingCodes.LayoutUnknownRoleFolder, StringComparison.Ordinal));
+        Assert.False(layout.Resolved);
+        Assert.Equal("reading/dap_an/", layout.Path);
+
+        // The ignored root file is noise and must not have been routed.
+        Assert.DoesNotContain(
+            attempt.Draft.Warnings,
+            w => w.Id.StartsWith(ArchiveFindingCodes.LayoutUnknownEntry, StringComparison.Ordinal));
+
+        var review = new ImportReviewWorkflow(drafts, validator);
+        var checklisted = await review.SetChecklistAsync(
+            attempt.Draft.Id, attempt.Draft.Revision,
+            Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
+        var revision = checklisted.Draft!.Revision;
+
+        foreach (var other in checklisted.Draft.Warnings.Where(w => !w.Resolved && w.Id != layout.Id))
+        {
+            var step = await review.ResolveWarningAsync(
+                attempt.Draft.Id, revision, other.Id, "checked", ReviewerActor, default);
+            Assert.True(step.IsSuccess, step.ErrorCode);
+            revision = step.Draft!.Revision;
+        }
+
+        var blocked = await review.ApproveAsync(attempt.Draft.Id, revision, ReviewerActor, default);
+        Assert.False(blocked.IsSuccess);
+        Assert.Equal("IMPORT_WARNINGS_UNRESOLVED", blocked.ErrorCode);
+
+        var resolved = await review.ResolveWarningAsync(
+            attempt.Draft.Id, revision, layout.Id,
+            "the folder holds figures, not a key", ReviewerActor, default);
+        Assert.True(resolved.IsSuccess, resolved.ErrorCode);
+
+        var approved = await review.ApproveAsync(
+            attempt.Draft.Id, resolved.Draft!.Revision, ReviewerActor, default);
+        Assert.True(approved.IsSuccess, approved.ErrorCode);
     }
 
     /// <summary>
