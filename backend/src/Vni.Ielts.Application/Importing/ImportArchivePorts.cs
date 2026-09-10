@@ -68,15 +68,54 @@ public sealed record ImportArchiveLimits(
     TimeSpan ExtractionTimeout);
 
 /// <summary>
+/// What an accepted file is <i>for</i>, decided by the folder directly under
+/// the skill folder (<c>IP-02</c>).
+///
+/// <b>This is what keeps the answer key away from the model.</b> Before it
+/// existed, every file under a skill folder was concatenated into one blob
+/// and sent to the parser, so a key dropped into <c>reading/</c> was read by
+/// it — the configuration measured wrong on 2026-09-02, where a model shown
+/// a paper produced forty answers for a paper that contained none.
+/// </summary>
+public enum PackageEntryRole
+{
+    /// <summary>Passages, questions, task prompts. The only role the model sees.</summary>
+    Paper,
+
+    /// <summary>The supplier's answer key. Read by code, never by a model.</summary>
+    Key,
+
+    /// <summary>Listening recordings.</summary>
+    Audio,
+}
+
+/// <summary>
+/// One skill's accepted files, split by role. Order within each list is the
+/// archive's own order, which is what an administrator reading a report sees.
+/// </summary>
+public sealed record SkillEntries(
+    IReadOnlyList<string> Paper,
+    IReadOnlyList<string> Key,
+    IReadOnlyList<string> Audio)
+{
+    public static SkillEntries Empty { get; } = new([], [], []);
+
+    /// <summary>Every accepted file for this skill, whatever its role.</summary>
+    public IEnumerable<string> All => Paper.Concat(Key).Concat(Audio);
+
+    public int Count => Paper.Count + Key.Count + Audio.Count;
+}
+
+/// <summary>
 /// Where each accepted file belongs, decided by its top-level folder name
 /// alone (<c>P-18</c>). A skill whose folder is absent is simply not present.
 /// </summary>
 public sealed record PackageLayout(
-    IReadOnlyDictionary<ExamModule, IReadOnlyList<string>> EntriesBySkill,
+    IReadOnlyDictionary<ExamModule, SkillEntries> EntriesBySkill,
     IReadOnlyList<string> UnknownEntries)
 {
     public static PackageLayout Empty { get; } =
-        new(new Dictionary<ExamModule, IReadOnlyList<string>>(), []);
+        new(new Dictionary<ExamModule, SkillEntries>(), []);
 
     /// <summary>Skills with at least one file. Order follows <see cref="ExamModule"/>.</summary>
     public IReadOnlyList<ExamModule> PresentSkills =>
@@ -84,8 +123,11 @@ public sealed record PackageLayout(
             .Where(m => EntriesBySkill.TryGetValue(m, out var e) && e.Count > 0)
             .ToArray();
 
-    /// <summary>Every relative path that would be extracted, across all skills.</summary>
-    public IEnumerable<string> AcceptedEntries => EntriesBySkill.Values.SelectMany(e => e);
+    /// <summary>Every relative path that would be extracted, across all skills and roles.</summary>
+    public IEnumerable<string> AcceptedEntries => EntriesBySkill.Values.SelectMany(e => e.All);
+
+    public SkillEntries For(ExamModule module) =>
+        EntriesBySkill.TryGetValue(module, out var e) ? e : SkillEntries.Empty;
 }
 
 public sealed record ArchiveInspection(

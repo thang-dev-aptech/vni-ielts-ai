@@ -78,6 +78,26 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
         ["speaking"] = ExamModule.Speaking,
     };
 
+    /// <summary>
+    /// The folder directly under a skill folder. Unaccented spellings only: a ZIP
+    /// stores entry names as CP437 or UTF-8 depending on a per-entry flag that
+    /// many Windows tools set wrongly, so an accented name arrives mangled often
+    /// enough that matching on it would fail unpredictably. The downloadable
+    /// skeleton ships the correct names so nobody has to type one.
+    /// </summary>
+    private static readonly Dictionary<string, PackageEntryRole> RoleFolders =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["de"] = PackageEntryRole.Paper,
+            ["paper"] = PackageEntryRole.Paper,
+            ["questions"] = PackageEntryRole.Paper,
+            ["dap-an"] = PackageEntryRole.Key,
+            ["dapan"] = PackageEntryRole.Key,
+            ["key"] = PackageEntryRole.Key,
+            ["answers"] = PackageEntryRole.Key,
+            ["audio"] = PackageEntryRole.Audio,
+        };
+
     private static readonly string ProbeRoot =
         Path.GetFullPath(Path.Combine(Path.GetTempPath(), "vni-package-probe"));
 
@@ -170,7 +190,7 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             // ── Per-entry checks, all of them, findings collected ────────
             var findings = new List<PackageFinding>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var bySkill = new Dictionary<ExamModule, List<string>>();
+            var bySkill = new Dictionary<ExamModule, (List<string> Paper, List<string> Key, List<string> Audio)>();
             var unknown = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var entry in entries)
@@ -190,9 +210,29 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                 var segments = verdict.Path.Split('/');
                 if (segments.Length >= 2 && SkillFolders.TryGetValue(segments[0], out var module))
                 {
-                    if (!bySkill.TryGetValue(module, out var list))
-                        bySkill[module] = list = [];
-                    list.Add(verdict.Path);
+                    if (!bySkill.TryGetValue(module, out var lists))
+                        bySkill[module] = lists = ([], [], []);
+
+                    /*
+                     * `verdict.Path` has already been through Examine: traversal, absolute
+                     * prefixes, reserved names, null bytes and non-regular entries are all
+                     * gone. Reading segments[1] here is a read of a cleared value. A role
+                     * must never be taken from a raw entry name — "../" is a legal substring
+                     * of a folder label, and the check that catches it runs above, not here.
+                     *
+                     * A file with no role folder (segments.Length == 2) is a paper, which is
+                     * what every package imported before IP-02 looks like.
+                     */
+                    var role = segments.Length >= 3 && RoleFolders.TryGetValue(segments[1], out var found)
+                        ? found
+                        : PackageEntryRole.Paper;
+
+                    switch (role)
+                    {
+                        case PackageEntryRole.Key: lists.Key.Add(verdict.Path); break;
+                        case PackageEntryRole.Audio: lists.Audio.Add(verdict.Path); break;
+                        default: lists.Paper.Add(verdict.Path); break;
+                    }
                 }
                 else
                 {
@@ -225,7 +265,12 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             }
 
             var layout = new PackageLayout(
-                bySkill.ToDictionary(p => p.Key, p => (IReadOnlyList<string>)p.Value.AsReadOnly()),
+                bySkill.ToDictionary(
+                    p => p.Key,
+                    p => new SkillEntries(
+                        p.Value.Paper.AsReadOnly(),
+                        p.Value.Key.AsReadOnly(),
+                        p.Value.Audio.AsReadOnly())),
                 unknown.Keys.OrderBy(k => k, StringComparer.Ordinal).ToArray());
 
             var acceptable = findings.All(f => f.Severity != Error);

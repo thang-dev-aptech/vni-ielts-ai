@@ -112,7 +112,7 @@ public sealed class ExamPackageImportPipeline(
         var combined = new StringBuilder();
         foreach (var skill in layout.PresentSkills)
         {
-            foreach (var relativePath in layout.EntriesBySkill[skill])
+            foreach (var relativePath in layout.EntriesBySkill[skill].All)
             {
                 var extracted = await extractor.ExtractAsync(
                     sandboxDirectory, relativePath, SourceExtractionLimits.Default, ct);

@@ -223,7 +223,7 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
         var both = await inspector.InspectAsync(Build(File(composed), File(decomposed)), Tight, default);
 
         Assert.True(single.IsAcceptable, Describe(single));
-        Assert.Equal(composed, single.Layout.EntriesBySkill[ExamModule.Reading].Single());
+        Assert.Equal(composed, single.Layout.EntriesBySkill[ExamModule.Reading].All.Single());
         AssertRefused(both, ArchiveFindingCodes.PathInvalid);
     }
 
@@ -280,7 +280,69 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
         var result = await inspector.InspectAsync(archive, Tight, default);
 
         Assert.True(result.IsAcceptable, Describe(result));
-        Assert.Equal(["reading/sub/x.txt"], result.Layout.EntriesBySkill[ExamModule.Reading]);
+        Assert.Equal(["reading/sub/x.txt"], result.Layout.EntriesBySkill[ExamModule.Reading].All);
+    }
+
+    // ── Roles (IP-02) ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task A_role_folder_separates_the_paper_from_its_answer_key()
+    {
+        var archive = Build(
+            File("reading/de/passage.txt"),
+            File("reading/dap-an/key.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.True(result.IsAcceptable, Describe(result));
+        var reading = result.Layout.EntriesBySkill[ExamModule.Reading];
+        Assert.Equal("reading/de/passage.txt", Assert.Single(reading.Paper));
+        Assert.Equal("reading/dap-an/key.txt", Assert.Single(reading.Key));
+    }
+
+    [Theory]
+    [InlineData("paper", "key")]
+    [InlineData("QUESTIONS", "ANSWERS")]
+    [InlineData("de", "dapan")]
+    public async Task Role_folder_names_are_accepted_in_every_spelling_and_case(string paper, string key)
+    {
+        var archive = Build(File($"listening/{paper}/q.txt"), File($"listening/{key}/k.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        var listening = result.Layout.EntriesBySkill[ExamModule.Listening];
+        Assert.Single(listening.Paper);
+        Assert.Single(listening.Key);
+    }
+
+    /// <summary>
+    /// Packages imported before role folders existed put their files straight
+    /// under the skill folder. Those are papers, and they must keep working —
+    /// otherwise this change silently empties every historical package.
+    /// </summary>
+    [Fact]
+    public async Task A_file_with_no_role_folder_is_still_a_paper()
+    {
+        var result = await inspector.InspectAsync(Build(File("reading/passage.txt")), Tight, default);
+
+        var reading = result.Layout.EntriesBySkill[ExamModule.Reading];
+        Assert.Equal("reading/passage.txt", Assert.Single(reading.Paper));
+        Assert.Empty(reading.Key);
+    }
+
+    /// <summary>
+    /// The role is read from the canonicalised path, after every traversal check
+    /// has already run. A package that tries to reach a role folder by climbing
+    /// must still be refused as traversal, not quietly filed as a key.
+    /// </summary>
+    [Fact]
+    public async Task A_traversal_attempt_through_a_role_folder_is_still_refused()
+    {
+        var archive = Build(File("reading/de/../../../dap-an/evil.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        AssertRefused(result, ArchiveFindingCodes.PathEscape);
     }
 
     // ── Layout (P-18) ────────────────────────────────────────────────────
@@ -295,7 +357,7 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
         Assert.Equal(
             [ExamModule.Reading, ExamModule.Listening, ExamModule.Writing, ExamModule.Speaking],
             result.Layout.PresentSkills);
-        Assert.Equal(["writing/task-1.txt"], result.Layout.EntriesBySkill[ExamModule.Writing]);
+        Assert.Equal(["writing/task-1.txt"], result.Layout.EntriesBySkill[ExamModule.Writing].All);
     }
 
     [Fact]
