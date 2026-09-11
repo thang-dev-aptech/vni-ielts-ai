@@ -9,7 +9,10 @@ namespace Vni.Ielts.Application.Tests.Exams;
 
 /// <summary>
 /// FS9.1 — sitting views and AI request shapes cannot carry answer keys,
-/// transcripts, explanations, or learner identity to a provider.
+/// explanations, or learner identity to a provider. <see cref="PartView"/>
+/// now carries a transcript field (`IP-09`), so its guarantee narrowed: the
+/// field exists, but stays null unless the one call site that builds
+/// <see cref="SessionResultsView.Content"/> deliberately populates it.
 /// </summary>
 public sealed class FunctionalCoreSecurityTests
 {
@@ -26,14 +29,27 @@ public sealed class FunctionalCoreSecurityTests
         Assert.DoesNotContain("Transcript", names);
     }
 
+    /// <summary>
+    /// `IP-09` gave <see cref="PartView"/> a transcript field on purpose —
+    /// the client needs it after submission. The security property that
+    /// matters now is not its absence but its default: a caller that does
+    /// not deliberately pass one gets null, the same as before the field
+    /// existed. <see cref="ExamHandlers"/> proves the one place that opts in.
+    /// </summary>
     [Fact]
-    public void Sitting_part_view_has_no_transcript_field()
+    public void Sitting_part_view_carries_a_transcript_field_that_defaults_to_null()
     {
         var names = typeof(PartView).GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Select(p => p.Name)
             .ToHashSet(StringComparer.Ordinal);
+        Assert.Contains("Transcript", names);
 
-        Assert.DoesNotContain("Transcript", names);
+        var part = new SectionPart(
+            1, "listening", "Part 1", null, "audio/1.mp3", null,
+            "SECRET_TRANSCRIPT_THE_CLIENT_MUST_NOT_SEE",
+            null, null, null, null, []);
+
+        Assert.Null(part.ToView().Transcript);
     }
 
     [Fact]

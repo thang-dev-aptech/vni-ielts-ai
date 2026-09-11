@@ -4255,6 +4255,12 @@
             "items": {
               "$ref": "#/components/schemas/QuestionView"
             }
+          },
+          "transcript": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

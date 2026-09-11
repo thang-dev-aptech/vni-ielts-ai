@@ -606,6 +606,111 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
         Assert.Equal("band", results.GetProperty("sections")[0].GetProperty("scoreLabel").GetString());
     }
 
+    // ── IP-09 · The transcript is the answer sheet ────────────────────────
+
+    /// <summary>
+    /// Starts a Full Test sitting and advances it until Listening is the
+    /// open section, leaving the sitting itself <c>InProgress</c>.
+    /// </summary>
+    private async Task<(HttpClient Client, string Access, string SessionId)> StartListeningSitting()
+    {
+        var (client, access) = await SignInAsync();
+        var examId = await FullExamIdAsync(client, access);
+        var started = await StartAsync(client, access, examId, "full");
+        var sessionId = started.GetProperty("sessionId").GetString()!;
+
+        await AdvanceToAsync(client, access, sessionId, started, "listening");
+        return (client, access, sessionId);
+    }
+
+    /// <summary>
+    /// A single-skill Listening sitting, answered and submitted, so its
+    /// results carry post-submit content.
+    /// </summary>
+    private async Task<(HttpClient Client, string Access, string SessionId)> CompleteListeningSitting()
+    {
+        var (client, access) = await SignInAsync();
+        var examId = await FullExamIdAsync(client, access);
+        var started = await StartAsync(client, access, examId, "single", "listening");
+        var sessionId = started.GetProperty("sessionId").GetString()!;
+        var questionId = FirstQuestionId(started);
+
+        var save = Authed(HttpMethod.Put, $"/api/v1/sessions/{sessionId}/answers", access);
+        save.Content = JsonContent.Create(new
+        {
+            module = "listening",
+            changes = new Dictionary<string, string?> { [questionId] = "walking" },
+            baseRevision = 0,
+        });
+        (await client.SendAsync(save)).EnsureSuccessStatusCode();
+
+        var submit = Authed(HttpMethod.Post, $"/api/v1/sessions/{sessionId}/submit", access);
+        submit.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        (await client.SendAsync(submit)).EnsureSuccessStatusCode();
+
+        return (client, access, sessionId);
+    }
+
+    /// <summary>
+    /// A Full Test sitting whose Reading attempt has already closed while
+    /// Listening is open — the sitting as a whole is still <c>InProgress</c>.
+    /// </summary>
+    private async Task<(HttpClient Client, string Access, string SessionId)>
+        FullTestWithReadingClosedAndListeningOpen() => await StartListeningSitting();
+
+    /// <summary>The answer sheet, handed out mid-exam. This must never pass.</summary>
+    [SkippableFact]
+    public async Task A_sitting_in_progress_carries_no_transcript()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access, sessionId) = await StartListeningSitting();
+
+        var run = await GetSessionAsync(client, access, sessionId);
+
+        var parts = run.GetProperty("current").GetProperty("parts").EnumerateArray().ToArray();
+        Assert.NotEmpty(parts);
+        Assert.All(parts, p =>
+            Assert.Equal(JsonValueKind.Null, p.GetProperty("transcript").ValueKind));
+    }
+
+    [SkippableFact]
+    public async Task After_submission_the_listening_transcript_is_returned()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access, sessionId) = await CompleteListeningSitting();
+
+        var results = await BodyOf(await client.SendAsync(
+            Authed(HttpMethod.Get, $"/api/v1/sessions/{sessionId}/results", access)));
+
+        var listening = results.GetProperty("content").EnumerateArray()
+            .Single(c => c.GetProperty("module").GetString() == "listening");
+        var transcript = listening.GetProperty("parts")[0].GetProperty("transcript").GetString();
+
+        Assert.False(string.IsNullOrWhiteSpace(transcript));
+    }
+
+    /// <summary>
+    /// A Full Test candidate still on Listening must not be handed Reading's
+    /// transcript because Reading's own section already closed.
+    /// </summary>
+    [SkippableFact]
+    public async Task A_closed_section_inside_an_open_sitting_still_carries_no_transcript()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+        app.Clock.Reset();
+
+        var (client, access, sessionId) = await FullTestWithReadingClosedAndListeningOpen();
+
+        var results = await BodyOf(await client.SendAsync(
+            Authed(HttpMethod.Get, $"/api/v1/sessions/{sessionId}/results", access)));
+
+        Assert.Empty(results.GetProperty("content").EnumerateArray());
+    }
+
     private static bool HasRevealedCorrectAnswer(JsonElement question)
     {
         if (question.TryGetProperty("correctAnswer", out var answer)

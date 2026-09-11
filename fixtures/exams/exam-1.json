@@ -1220,6 +1220,7 @@
           "kind": "recording",
           "title": "Tour Booking Enquiry",
           "audio": "assets/exam-1-listening-part1.mp3",
+          "transcript": "Good morning, thank you for calling Lakeside Tours. I understand you would like to book a walking holiday for two adults in the first week of September, staying in a guesthouse rather than a hotel, with breakfast included every day.",
           "questions": [
             {
               "id": "l-1",

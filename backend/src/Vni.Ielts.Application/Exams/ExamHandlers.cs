@@ -1559,6 +1559,11 @@ internal static class SessionProjection
     /// because the sitting they are inside of has not ended. Gating per
     /// section would hand that candidate Reading's passage while the exam
     /// they are taking is still running.
+    ///
+    /// <b>This is also the one place <see cref="PartView.Transcript"/> is
+    /// populated.</b> The guard above covers it for free: the method returns
+    /// before reaching the <c>ToView</c> call below for any in-progress
+    /// sitting, so there is no second gate to keep in sync. → `IP-09`
     /// </summary>
     private static IReadOnlyList<SectionContentView> BuildContent(
         ExamSession session, ExamVersion version,
@@ -1588,7 +1593,7 @@ internal static class SessionProjection
                             .Where(p => x.Attempt?.PartId is null
                                 || x.Attempt.PartId
                                     == $"{x.Module.ToString().ToLowerInvariant()}-part-{p.Order}")
-                            .Select(p => p.ToView()),
+                            .Select(p => p.ToView(p.Transcript)),
                     ],
                     x.Module == ExamModule.Writing
                         ? writingSubmissions ?? NoSubmissions
