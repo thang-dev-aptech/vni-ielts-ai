@@ -90,7 +90,45 @@ internal sealed class MongoImportOutbox(MongoContext context, IClock clock) : II
             },
             ct);
 
-        return claimed is null ? null : Map(claimed);
+        if (claimed is null) return null;
+
+        try
+        {
+            return Map(claimed);
+        }
+        catch (ImportJobStageUnreadableException e)
+        {
+            /*
+             * <b>The one path the <see cref="AdvanceAsync"/> guard does not
+             * cover.</b> That guard stops a caller from writing a stage
+             * earlier than the one already recorded; it cannot stop an older
+             * binary from failing to *read* a stage a newer one wrote and
+             * then rolled back. Left unhandled, the caller of `ClaimAsync`
+             * would receive a job silently reset to `Extracting` — an
+             * invented "start over" answer to a question this store cannot
+             * actually answer, and a resumed worker re-buys the parse it
+             * already paid for. `G-11`, and the same reasoning
+             * `FabricatedAnswerKeyGuard` already applies to an unreadable
+             * answer key: no answer is safer than an invented one.
+             *
+             * This job was already claimed by the update above — the lease
+             * and the Running state are already written. So "refuse" here
+             * means: keep it from ever being handed to a caller as workable,
+             * by immediately dead-lettering it under the very lease this call
+             * just took, and reporting nothing to claim. A person has to look
+             * at it; nobody re-parses a Cambridge paper to find out why.
+             */
+            await Jobs.UpdateOneAsync(
+                Mine(e.OperationId, leaseToken),
+                Builders<ImportJobDocument>.Update
+                    .Set(j => j.State, ImportJobState.Failed.ToString())
+                    .Set(j => j.LastError, Trim(e.Message))
+                    .Set(j => j.LeaseUntil, null)
+                    .Set(j => j.LeaseToken, null),
+                cancellationToken: ct);
+
+            return null;
+        }
     }
 
     /// <summary>Every lease-guarded transition names the job and the worker that owns it.</summary>
@@ -197,6 +235,14 @@ internal sealed class MongoImportOutbox(MongoContext context, IClock clock) : II
         return dead.MatchedCount > 0;
     }
 
+    /// <summary>
+    /// A read, not a claim. If the stored stage is unreadable this throws
+    /// <see cref="ImportJobStageUnreadableException"/> rather than inventing
+    /// `Extracting` — see the comment on that type. Unlike <see cref="ClaimAsync"/>,
+    /// there is no lease here to dead-letter the job under, so the explicit
+    /// failure is the whole of the guard: a caller finds out rather than
+    /// being shown a job that looks like it never started.
+    /// </summary>
     public async Task<ImportJob?> FindAsync(string operationId, CancellationToken ct)
     {
         var doc = await Jobs
@@ -244,7 +290,9 @@ internal sealed class MongoImportOutbox(MongoContext context, IClock clock) : II
         d.ParsePromptVersion,
         d.ArchiveKey,
         d.DraftId is null ? null : Guid.Parse(d.DraftId),
-        Enum.IsDefined(typeof(ImportJobStage), d.Stage) ? (ImportJobStage)d.Stage : ImportJobStage.Extracting,
+        Enum.IsDefined(typeof(ImportJobStage), d.Stage)
+            ? (ImportJobStage)d.Stage
+            : throw new ImportJobStageUnreadableException(d.OperationId, d.Stage),
         Enum.TryParse<ImportJobState>(d.State, ignoreCase: true, out var state)
             ? state
             : ImportJobState.Pending,
@@ -256,6 +304,33 @@ internal sealed class MongoImportOutbox(MongoContext context, IClock clock) : II
         d.LastError,
         d.CompletedAt is { } done ? new DateTimeOffset(done, TimeSpan.Zero) : null,
         d.TraceParent);
+}
+
+/// <summary>
+/// A stored <c>stage</c> integer that this binary's <see cref="ImportJobStage"/>
+/// does not define.
+///
+/// <b>Scenario this exists for.</b> A newer deployment adds a stage the
+/// enum does not yet have on an older binary — say, a split of `Keying` into
+/// two steps — writes it, and is then rolled back. The older binary reads
+/// the job back and, without this, would map the unrecognised integer to
+/// <c>ImportJobStage.Extracting</c>: a silent, invented "start over" for a
+/// job that has already paid for a parse. <c>MongoMarkingOutbox</c>'s own
+/// mapper has the same shape of fallback and is deliberately left alone — a
+/// marking job has no stage to rewind, one paid call is the whole cost, so
+/// nothing is at risk there. This store is different because
+/// <see cref="ImportJobStage"/> gates repeated, separately-paid work, which
+/// is exactly why <see cref="MongoImportOutbox.AdvanceAsync"/> guards it
+/// against being moved backwards on write — and an unreadable value on
+/// *read* is the one path that guard cannot see.
+/// </summary>
+internal sealed class ImportJobStageUnreadableException(string operationId, int rawStage)
+    : InvalidOperationException(
+        $"Import job '{operationId}' has stage {rawStage}, which this binary's "
+        + "ImportJobStage does not define. Refusing to treat it as Extracting.")
+{
+    public string OperationId { get; } = operationId;
+    public int RawStage { get; } = rawStage;
 }
 
 /// <summary>

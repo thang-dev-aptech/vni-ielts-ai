@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
@@ -27,7 +28,7 @@ public sealed class MongoImportOutboxTests
 {
     private static readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
 
-    private static async Task<MongoImportOutbox> NewOutboxAsync()
+    private static async Task<(MongoImportOutbox Outbox, MongoContext Context)> NewOutboxAsync()
     {
         var context = new MongoContext(Options.Create(new MongoOptions
         {
@@ -37,7 +38,7 @@ public sealed class MongoImportOutboxTests
 
         await context.EnsureIndexesAsync(default);
 
-        return new MongoImportOutbox(context, new SystemClock());
+        return (new MongoImportOutbox(context, new SystemClock()), context);
     }
 
     private static ImportJob NewJob(string sourceHash = "abc", string parsePromptVersion = "k") =>
@@ -57,7 +58,7 @@ public sealed class MongoImportOutboxTests
     [Fact]
     public async Task Only_one_worker_can_claim_a_job()
     {
-        var outbox = await NewOutboxAsync();
+        var (outbox, _) = await NewOutboxAsync();
         var job = NewJob();
         await outbox.EnqueueAsync(job, default);
 
@@ -82,7 +83,7 @@ public sealed class MongoImportOutboxTests
     [Fact]
     public async Task Enqueuing_the_same_upload_twice_creates_one_job()
     {
-        var outbox = await NewOutboxAsync();
+        var (outbox, _) = await NewOutboxAsync();
         var job = NewJob();
 
         Assert.True(await outbox.EnqueueAsync(job, default));
@@ -93,7 +94,7 @@ public sealed class MongoImportOutboxTests
     [Fact]
     public async Task An_expired_lease_lets_another_worker_take_over()
     {
-        var outbox = await NewOutboxAsync();
+        var (outbox, _) = await NewOutboxAsync();
         var job = NewJob();
         await outbox.EnqueueAsync(job, default);
         await outbox.ClaimAsync("dead-worker", TimeSpan.FromMilliseconds(1), default);
@@ -110,7 +111,7 @@ public sealed class MongoImportOutboxTests
     [Fact]
     public async Task A_recorded_stage_survives_a_retry()
     {
-        var outbox = await NewOutboxAsync();
+        var (outbox, _) = await NewOutboxAsync();
         var job = NewJob();
         await outbox.EnqueueAsync(job, default);
         var claimed = await outbox.ClaimAsync("w", TimeSpan.FromMinutes(5), default);
@@ -130,7 +131,7 @@ public sealed class MongoImportOutboxTests
     [Fact]
     public async Task A_worker_that_lost_its_lease_cannot_advance_complete_retry_or_fail_the_job()
     {
-        var outbox = await NewOutboxAsync();
+        var (outbox, _) = await NewOutboxAsync();
         var job = NewJob();
         await outbox.EnqueueAsync(job, default);
 
@@ -169,7 +170,7 @@ public sealed class MongoImportOutboxTests
     [Fact]
     public async Task A_stage_cannot_be_moved_backwards()
     {
-        var outbox = await NewOutboxAsync();
+        var (outbox, _) = await NewOutboxAsync();
         var job = NewJob();
         await outbox.EnqueueAsync(job, default);
         var claimed = await outbox.ClaimAsync("w", TimeSpan.FromMinutes(5), default);
@@ -184,5 +185,52 @@ public sealed class MongoImportOutboxTests
 
         var again = await outbox.FindAsync(claimed.OperationId, default);
         Assert.Equal(ImportJobStage.Keying, again!.Stage);
+    }
+
+    /// <summary>
+    /// A future deployment can write a stage integer this binary's
+    /// <see cref="ImportJobStage"/> does not define — say, behind a rollback.
+    /// Without the fix, `ClaimAsync` maps that back to `ImportJobStage.Extracting`
+    /// and hands the caller a job that looks like it never started; a resumed
+    /// worker then re-buys the parse it already paid for. `G-11`: no answer is
+    /// safer than an invented one. The document is written directly, bypassing
+    /// the store — this is what a rolled-back deployment's leftover write looks
+    /// like on disk, not something <see cref="ImportJob"/> can construct.
+    /// </summary>
+    [Fact]
+    public async Task A_stage_this_binary_does_not_recognise_is_refused_not_reset_to_extracting()
+    {
+        var (outbox, context) = await NewOutboxAsync();
+        var job = NewJob();
+
+        await context.ImportJobs.InsertOneAsync(new ImportJobDocument
+        {
+            OperationId = job.OperationId,
+            DefinitionId = job.DefinitionId.Value,
+            VersionNumber = job.VersionNumber,
+            SourceSha256 = job.SourceSha256,
+            ParsePromptVersion = job.ParsePromptVersion,
+            ArchiveKey = job.ArchiveKey,
+            Stage = 999, // not defined by ImportJobStage — a future stage, or corruption
+            State = ImportJobState.Pending.ToString(),
+            Attempts = 0,
+            CreatedAt = job.CreatedAt.UtcDateTime,
+            NextAttemptAt = job.CreatedAt.UtcDateTime,
+        });
+
+        var claimed = await outbox.ClaimAsync("w", TimeSpan.FromMinutes(5), default);
+
+        // Refused, not handed back as a fresh-looking job.
+        Assert.Null(claimed);
+
+        var raw = await context.ImportJobs
+            .Find(Builders<ImportJobDocument>.Filter.Eq(d => d.OperationId, job.OperationId))
+            .FirstOrDefaultAsync();
+
+        // Dead-lettered, not silently reset — and the unreadable stage
+        // integer is preserved rather than overwritten with 0 (Extracting).
+        Assert.Equal(ImportJobState.Failed.ToString(), raw!.State);
+        Assert.Contains("999", raw.LastError);
+        Assert.Equal(999, raw.Stage);
     }
 }
