@@ -166,6 +166,25 @@ public static class TranscriptionWarningCodes
     /// set. Nothing was transcribed. → <c>IP-09</c>
     /// </summary>
     public const string AudioReferencesMixed = "TRANSCRIPT_AUDIO_REFERENCES_MIXED";
+
+    /// <summary>
+    /// Two or more recordings were matched to their audio <b>by order</b>,
+    /// because no part named its own file. The warning names the assignment
+    /// that was made, one line per part, so a reviewer can recognise it or
+    /// catch it.
+    ///
+    /// <b>Why a guess that the counts agree with is still a guess.</b>
+    /// Deterministic is not the same as correct: a package whose files are
+    /// named by content rather than by number gets a confident wrong mapping,
+    /// and the cost of one is a whole section of false anchor warnings —
+    /// part 2's transcript under part 1's questions reports every anchorable
+    /// answer in both as absent. A reviewer who meets that once learns that
+    /// these warnings mean nothing, and the real ones go past them too. That
+    /// is the failure this entire checking layer exists to prevent, so the
+    /// assignment is shown rather than assumed. One glance and a click is
+    /// cheap. → <c>IP-09</c>
+    /// </summary>
+    public const string AudioMatchedByOrder = "TRANSCRIPT_AUDIO_MATCHED_BY_ORDER";
 }
 
 /// <param name="PackageJson">

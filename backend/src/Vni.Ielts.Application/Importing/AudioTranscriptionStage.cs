@@ -95,7 +95,15 @@ public static class AudioTranscriptionStage
         if (match.Refusal is { } refusal)
             return new AudioTranscriptionResult(packageJson, [refusal], supplied, 0);
 
+        /*
+         * The assignment goes in front of any per-part refusal, because it is
+         * the thing a reviewer has to judge before the rest means anything: a
+         * refusal on part 2 reads differently once you know part 2 was matched
+         * by order rather than by name.
+         */
         var warnings = new List<TranscriptionWarning>();
+        if (match.Assignment is { } assignment) warnings.Add(assignment);
+
         var transcribed = 0;
 
         foreach (var (recording, file) in match.Pairs)
@@ -200,8 +208,14 @@ public static class AudioTranscriptionStage
     /// entries from, and the result would be a confident mapping built on an
     /// assumption nothing in the package supports. → <c>IP-09</c>
     /// </summary>
+    /// <param name="needing">Recordings still without text, in package order.</param>
+    /// <returns>
+    /// <c>Pairs</c> — what to transcribe. <c>Refusal</c> — set when nothing may
+    /// be transcribed at all. <c>Assignment</c> — set on the positional route
+    /// with two or more recordings, naming the mapping that was guessed.
+    /// </returns>
     private static (IReadOnlyList<(Recording Recording, ImportAudioFile File)> Pairs,
-        TranscriptionWarning? Refusal) Match(
+        TranscriptionWarning? Refusal, TranscriptionWarning? Assignment) Match(
         IReadOnlyList<Recording> needing, IReadOnlyList<ImportAudioFile> audio)
     {
         var referenced = needing.Where(r => AudioReference(r.Part) is not null).ToArray();
@@ -232,14 +246,23 @@ public static class AudioTranscriptionStage
                         + "part puts a transcript against the wrong questions, which is the same "
                         + "failure as a shifted answer key and shows up as a wave of false "
                         + "warnings rather than as a mismatch anybody can read. Correct the "
-                        + "part's audio reference, or supply the transcripts in the package."));
+                        + "part's audio reference, or supply the transcripts in the package."),
+                        null);
                 }
 
                 claimed.Add(candidates[0].RelativePath);
                 pairs.Add((recording, candidates[0]));
             }
 
-            return (pairs, null);
+            /*
+             * <b>No assignment warning here, deliberately.</b> This mapping was
+             * stated by the package, not guessed by this code, so there is
+             * nothing for a reviewer to judge. A warning on a proven mapping
+             * would be noise, and noise is what teaches people to click
+             * through warnings — the same disease the assignment warning below
+             * exists to avoid, reached by the other route.
+             */
+            return (pairs, null, null);
         }
 
         if (referenced.Length > 0)
@@ -252,7 +275,8 @@ public static class AudioTranscriptionStage
                 + "unnamed ones by order against a file list the named ones have already drawn "
                 + "from is a guess, and a transcript against the wrong questions is the same "
                 + "failure as a shifted answer key. Name every recording's audio, or name none of "
-                + "them and supply exactly one audio file per recording."));
+                + "them and supply exactly one audio file per recording."),
+                null);
         }
 
         /*
@@ -260,10 +284,14 @@ public static class AudioTranscriptionStage
          * ZIP central directory's, which is whatever tool wrote the archive —
          * and a positional mapping that depends on that is a mapping that
          * changes when somebody re-zips the same folder on a different
-         * machine. An ordinal sort of the relative path is at least stable and
-         * is what an administrator looking at the folder would predict.
+         * machine.
+         *
+         * <b>Numeric-aware, because a plain ordinal sort puts `part10` before
+         * `part2`.</b> That is deterministic and wrong, which is the worst
+         * combination available: it repeats identically every time and lands
+         * two transcripts under the wrong questions. → NaturalPathComparer
          */
-        var ordered = audio.OrderBy(f => f.RelativePath, StringComparer.Ordinal).ToArray();
+        var ordered = audio.OrderBy(f => f.RelativePath, NaturalPath).ToArray();
 
         if (ordered.Length != needing.Count)
         {
@@ -276,10 +304,103 @@ public static class AudioTranscriptionStage
                 + "transcript against the wrong questions is the same failure as a shifted answer "
                 + "key — it shows up as a wave of false warnings rather than as a mismatch "
                 + "anybody can read. Supply one audio file per recording, name each part's own "
-                + "audio, or supply the transcripts in the package."));
+                + "audio, or supply the transcripts in the package."),
+                null);
         }
 
-        return ([.. needing.Zip(ordered)], null);
+        var pairsByOrder = needing.Zip(ordered).ToArray();
+
+        /*
+         * <b>Nothing to announce when there is only one of each.</b> One
+         * recording and one audio file admits exactly one assignment, so it is
+         * forced rather than guessed — the same reason the reference route
+         * above stays silent. Warning here would put a clearable warning on
+         * every single-part import in the system, and a warning everybody
+         * clears without reading is worse than no warning at all.
+         */
+        if (pairsByOrder.Length < 2) return (pairsByOrder, null, null);
+
+        /*
+         * <b>File names are shown, and that is safe.</b> A package-relative
+         * path is a name an administrator chose for their own file; it is not
+         * a transcript, an answer key, a passage or learner text. Showing the
+         * assignment is the entire point — a reviewer cannot catch a wrong
+         * mapping they are not shown.
+         */
+        var assignment = string.Join(
+            "; ", pairsByOrder.Select(p => $"{Describe(p.First)} \u2190 {p.Second.RelativePath}"));
+
+        return (pairsByOrder, null, new TranscriptionWarning(
+            TranscriptionWarningCodes.AudioMatchedByOrder,
+            needing[0].Path,
+            $"No part named its own audio file, so the {pairsByOrder.Length} recordings were "
+            + $"matched to the {ordered.Length} audio files by order: {assignment}. The counts "
+            + "agree, but agreeing counts are not a stated mapping — a package whose files are "
+            + "named by content rather than by number gets a confident wrong one, and a "
+            + "transcript under the wrong questions reports every answer in two parts as absent. "
+            + "Check this assignment against the recordings before clearing it."));
+    }
+
+    /// <summary>
+    /// Orders package-relative paths the way a person reading the folder
+    /// would: digit runs compare as numbers, everything else case-insensitively
+    /// character by character.
+    ///
+    /// <b><c>StringComparer.Ordinal</c> put <c>part10</c> before
+    /// <c>part2</c>.</b> That is deterministic and wrong at the same time,
+    /// which is the worst way for a positional mapping to fail: it repeats
+    /// identically on every re-import and puts transcripts under the wrong
+    /// questions. Leading zeros are ignored in the comparison (<c>01</c> and
+    /// <c>1</c> are the same number), and a pair that compares equal keeps the
+    /// caller's order, since <see cref="Enumerable.OrderBy{TSource,TKey}(IEnumerable{TSource},Func{TSource,TKey},IComparer{TKey})"/>
+    /// is stable.
+    /// </summary>
+    private static readonly IComparer<string> NaturalPath = new NaturalPathComparer();
+
+    private sealed class NaturalPathComparer : IComparer<string>
+    {
+        public int Compare(string? x, string? y)
+        {
+            if (ReferenceEquals(x, y)) return 0;
+            if (x is null) return -1;
+            if (y is null) return 1;
+
+            int i = 0, j = 0;
+
+            while (i < x.Length && j < y.Length)
+            {
+                if (char.IsAsciiDigit(x[i]) && char.IsAsciiDigit(y[j]))
+                {
+                    var startX = i;
+                    while (i < x.Length && char.IsAsciiDigit(x[i])) i++;
+
+                    var startY = j;
+                    while (j < y.Length && char.IsAsciiDigit(y[j])) j++;
+
+                    var numberX = x.AsSpan(startX, i - startX).TrimStart('0');
+                    var numberY = y.AsSpan(startY, j - startY).TrimStart('0');
+
+                    // More digits (after leading zeros) is a bigger number; the
+                    // same count compares lexicographically, which for equal-
+                    // length digit strings is numeric order.
+                    if (numberX.Length != numberY.Length) return numberX.Length - numberY.Length;
+
+                    var digits = numberX.SequenceCompareTo(numberY);
+                    if (digits != 0) return digits;
+
+                    continue;
+                }
+
+                var left = char.ToLowerInvariant(x[i]);
+                var right = char.ToLowerInvariant(y[j]);
+                if (left != right) return left.CompareTo(right);
+
+                i++;
+                j++;
+            }
+
+            return (x.Length - i) - (y.Length - j);
+        }
     }
 
     /// <summary>

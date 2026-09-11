@@ -299,6 +299,111 @@ public sealed class AudioTranscriptionStageTests
     }
 
     /// <summary>
+    /// <b>Deterministic is not the same as correct.</b> An ordinal sort puts
+    /// <c>part10</c> before <c>part2</c> — repeatably, on every re-import, and
+    /// wrong every time. Two transcripts then sit under the wrong questions
+    /// and every anchorable answer in both parts is reported absent.
+    /// </summary>
+    [Fact]
+    public async Task Positional_matching_orders_part2_before_part10()
+    {
+        var transcriber = new RecordingTranscriber();
+
+        await AudioTranscriptionStage.RunAsync(
+            ListeningPackage(transcript: null, recordings: 3),
+            AudioFiles(
+                "listening/audio/part10.mp3", "listening/audio/part2.mp3",
+                "listening/audio/part1.mp3"),
+            transcriber, default);
+
+        Assert.Equal(["part1.mp3", "part2.mp3", "part10.mp3"], transcriber.FileNames);
+    }
+
+    /// <summary>Leading zeros are a spelling of a number, not a different one.</summary>
+    [Fact]
+    public async Task Positional_matching_reads_a_zero_padded_number_as_a_number()
+    {
+        var transcriber = new RecordingTranscriber();
+
+        await AudioTranscriptionStage.RunAsync(
+            ListeningPackage(transcript: null, recordings: 3),
+            AudioFiles(
+                "listening/audio/09-part.mp3", "listening/audio/2-part.mp3",
+                "listening/audio/10-part.mp3"),
+            transcriber, default);
+
+        Assert.Equal(["2-part.mp3", "09-part.mp3", "10-part.mp3"], transcriber.FileNames);
+    }
+
+    /// <summary>
+    /// <b>A guess the counts agree with is still a guess, and it is shown.</b>
+    /// A package whose files are named by content rather than by number gets a
+    /// confident wrong mapping from the positional route, and the cost of one
+    /// is a whole section of false anchor warnings — which is how a reviewer
+    /// learns that these warnings mean nothing and stops reading the real
+    /// ones. So the assignment is named, one part per entry, and a reviewer
+    /// either recognises it or catches it.
+    /// </summary>
+    [Fact]
+    public async Task The_positional_route_names_the_assignment_it_made()
+    {
+        var result = await AudioTranscriptionStage.RunAsync(
+            ListeningPackage(transcript: null, recordings: 2),
+            AudioFiles("listening/audio/intro.mp3", "listening/audio/lecture.mp3"),
+            new RecordingTranscriber(), default);
+
+        var warning = Assert.Single(
+            result.Warnings, w => w.Code == TranscriptionWarningCodes.AudioMatchedByOrder);
+
+        // The mapping itself, both halves of both pairs — a reviewer cannot
+        // catch an assignment they are not shown.
+        Assert.Contains("listening part 1", warning.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("listening/audio/intro.mp3", warning.Message, StringComparison.Ordinal);
+        Assert.Contains("listening part 2", warning.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("listening/audio/lecture.mp3", warning.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// <b>And not on a mapping the package stated.</b> A reference route
+    /// mapping is proven, not guessed, so there is nothing to judge — and a
+    /// warning on a proven mapping is noise that teaches people to click
+    /// through warnings, which is the same disease the assignment warning
+    /// exists to prevent.
+    /// </summary>
+    [Fact]
+    public async Task The_reference_route_raises_no_assignment_warning()
+    {
+        var package = PackageWithParts(
+            Part(order: 1, kind: "recording", audioRef: "assets/listening/intro.mp3"),
+            Part(order: 2, kind: "recording", audioRef: "assets/listening/lecture.mp3"));
+
+        var result = await AudioTranscriptionStage.RunAsync(
+            package,
+            AudioFiles("listening/audio/intro.mp3", "listening/audio/lecture.mp3"),
+            new RecordingTranscriber(), default);
+
+        Assert.Equal("text of intro.mp3", TranscriptAt(result.PackageJson, part: 0));
+        Assert.Equal("text of lecture.mp3", TranscriptAt(result.PackageJson, part: 1));
+        Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>
+    /// One recording and one audio file admits exactly one assignment, so it
+    /// is forced rather than guessed. Warning here would put a clearable
+    /// warning on every single-part import in the system.
+    /// </summary>
+    [Fact]
+    public async Task A_single_recording_and_a_single_file_is_forced_not_guessed_and_is_not_warned()
+    {
+        var result = await AudioTranscriptionStage.RunAsync(
+            ListeningPackage(transcript: null, recordings: 1),
+            AudioFiles("listening/audio/only.mp3"), new RecordingTranscriber(), default);
+
+        Assert.Equal("text of only.mp3", TranscriptAt(result.PackageJson, part: 0));
+        Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>
     /// One unreadable recording is one part without a transcript, not a failed
     /// import. The parse has already been paid for and the next recording may
     /// be perfectly readable.
@@ -319,7 +424,14 @@ public sealed class AudioTranscriptionStageTests
 
         Assert.Null(TranscriptAt(result.PackageJson, part: 0));
         Assert.Equal("text of part2.mp3", TranscriptAt(result.PackageJson, part: 1));
-        Assert.Equal(TranscriptionWarningCodes.Refused, Assert.Single(result.Warnings).Code);
+
+        // Two warnings: the by-order assignment this package was given, and
+        // the one part that could not be read. The assignment comes first,
+        // because a refusal on a part reads differently once you know the part
+        // was matched by order rather than by name.
+        Assert.Equal(
+            [TranscriptionWarningCodes.AudioMatchedByOrder, TranscriptionWarningCodes.Refused],
+            result.Warnings.Select(w => w.Code));
     }
 
     /// <summary>
