@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Importing;
@@ -76,16 +74,37 @@ public interface IImportOutbox
     /// <summary>Takes one due job atomically, setting a lease. Null when none is due.</summary>
     Task<ImportJob?> ClaimAsync(string leaseToken, TimeSpan lease, CancellationToken ct);
 
-    Task RenewAsync(string operationId, string leaseToken, TimeSpan lease, CancellationToken ct);
+    /// <summary>
+    /// <b>False means "your lease is gone, stop."</b> A lease bounds a worker's
+    /// death, not its duration — the worker is expected to keep renewing while
+    /// it is still inside the job. If the renewal comes late enough that
+    /// another worker already reclaimed the job, a Cambridge parse is running
+    /// twice against the same draft and two processes think they own one
+    /// write. Filtering the update on the caller's own lease token, and
+    /// telling the caller whether it matched, is the only place that
+    /// double-run can be caught — a worker that ignores the bool has no other
+    /// way to find out it lost the job.
+    /// </summary>
+    Task<bool> RenewAsync(string operationId, string leaseToken, TimeSpan lease, CancellationToken ct);
 
-    Task AdvanceAsync(
+    /// <summary>
+    /// Records how far a job got. False for the same reason as
+    /// <see cref="RenewAsync"/>: an advance from a worker that no longer holds
+    /// the lease must not overwrite the stage a live worker is progressing —
+    /// that stage is what stops a resumed job from paying for a parse twice.
+    /// </summary>
+    Task<bool> AdvanceAsync(
         string operationId, string leaseToken, ImportJobStage stage, Guid? draftId,
         CancellationToken ct);
 
-    Task CompleteAsync(string operationId, string leaseToken, CancellationToken ct);
+    /// <summary>Marks the job done. False when this caller's lease no longer owns it.</summary>
+    Task<bool> CompleteAsync(string operationId, string leaseToken, CancellationToken ct);
 
-    /// <summary>Releases the lease and schedules a retry, or fails the job when out of attempts.</summary>
-    Task FailAsync(string operationId, string leaseToken, string error, CancellationToken ct);
+    /// <summary>
+    /// Releases the lease and schedules a retry, or fails the job when out of
+    /// attempts. False when this caller's lease no longer owns it.
+    /// </summary>
+    Task<bool> FailAsync(string operationId, string leaseToken, string error, CancellationToken ct);
 
     Task<ImportJob?> FindAsync(string operationId, CancellationToken ct);
 }

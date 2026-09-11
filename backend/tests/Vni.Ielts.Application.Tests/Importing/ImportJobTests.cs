@@ -54,4 +54,128 @@ public sealed class ImportJobTests
 
         Assert.False(exhausted.MayRetry);
     }
+
+    /// <summary>
+    /// The property <see cref="IImportOutbox.RenewAsync"/>'s bool exists to
+    /// prove: once another worker has reclaimed a job, the worker that lost
+    /// it can no longer act on it under its old lease. Without that signal a
+    /// worker whose lease has already expired carries on believing it still
+    /// owns the job, and a Cambridge parse runs twice against one draft.
+    ///
+    /// This drives <see cref="IImportOutbox"/> against a minimal in-memory
+    /// double built for this test alone — Task 1 defines the contract, not an
+    /// implementation, so there is nothing else yet to drive it against.
+    /// </summary>
+    [Fact]
+    public async Task A_worker_whose_lease_was_reclaimed_learns_it_from_the_return_value()
+    {
+        var outbox = new InMemoryImportOutbox();
+        var job = ImportJob.New(
+            new ExamDefinitionId("cam-16"), 1, "abc123", "uploads/abc123.zip", outbox.Now);
+        await outbox.EnqueueAsync(job, CancellationToken.None);
+
+        // Worker A claims it, but with a lease that is already in the past —
+        // standing in for A having gone silent before its first renewal.
+        var claimedByA = await outbox.ClaimAsync(
+            "worker-a", TimeSpan.FromSeconds(-1), CancellationToken.None);
+        Assert.NotNull(claimedByA);
+
+        // Worker B claims the same job once A's lease is due.
+        var claimedByB = await outbox.ClaimAsync(
+            "worker-b", TimeSpan.FromMinutes(5), CancellationToken.None);
+        Assert.NotNull(claimedByB);
+
+        // A, unaware it lost the job, tries to renew under its old token.
+        var stillOwnedByA = await outbox.RenewAsync(
+            job.OperationId, "worker-a", TimeSpan.FromMinutes(5), CancellationToken.None);
+
+        Assert.False(stillOwnedByA);
+    }
+
+    /// <summary>
+    /// Minimal in-memory <see cref="IImportOutbox"/> for
+    /// <see cref="A_worker_whose_lease_was_reclaimed_learns_it_from_the_return_value"/>
+    /// alone. It exists to make the interface's own contract — an operation
+    /// only succeeds under the lease token that currently owns the job —
+    /// something a test can drive; it is not the worker-facing implementation
+    /// Tasks 2 and 3 build.
+    /// </summary>
+    private sealed class InMemoryImportOutbox : IImportOutbox
+    {
+        public DateTimeOffset Now { get; } = DateTimeOffset.UtcNow;
+
+        private readonly Dictionary<string, ImportJob> _jobs = [];
+
+        public Task<bool> EnqueueAsync(ImportJob job, CancellationToken ct)
+        {
+            if (_jobs.ContainsKey(job.OperationId)) return Task.FromResult(false);
+            _jobs[job.OperationId] = job;
+            return Task.FromResult(true);
+        }
+
+        public Task<ImportJob?> ClaimAsync(string leaseToken, TimeSpan lease, CancellationToken ct)
+        {
+            var due = _jobs.Values
+                .Where(j => j.State is ImportJobState.Pending
+                    or ImportJobState.Retryable or ImportJobState.Running)
+                .Where(j => j.NextAttemptAt is null || j.NextAttemptAt <= Now)
+                .Where(j => j.LeaseUntil is null || j.LeaseUntil < Now)
+                .OrderBy(j => j.CreatedAt)
+                .FirstOrDefault();
+
+            if (due is null) return Task.FromResult<ImportJob?>(null);
+
+            var claimed = due with
+            {
+                State = ImportJobState.Running,
+                LeaseToken = leaseToken,
+                LeaseUntil = Now.Add(lease),
+                Attempts = due.Attempts + 1,
+            };
+
+            _jobs[claimed.OperationId] = claimed;
+            return Task.FromResult<ImportJob?>(claimed);
+        }
+
+        private bool Owned(string operationId, string leaseToken, Func<ImportJob, ImportJob> change)
+        {
+            if (!_jobs.TryGetValue(operationId, out var job)) return false;
+            if (job.LeaseToken != leaseToken) return false;
+
+            _jobs[operationId] = change(job);
+            return true;
+        }
+
+        public Task<bool> RenewAsync(
+            string operationId, string leaseToken, TimeSpan lease, CancellationToken ct) =>
+            Task.FromResult(Owned(operationId, leaseToken, j => j with { LeaseUntil = Now.Add(lease) }));
+
+        public Task<bool> AdvanceAsync(
+            string operationId, string leaseToken, ImportJobStage stage, Guid? draftId,
+            CancellationToken ct) =>
+            Task.FromResult(Owned(operationId, leaseToken,
+                j => j with { Stage = stage, DraftId = draftId ?? j.DraftId }));
+
+        public Task<bool> CompleteAsync(string operationId, string leaseToken, CancellationToken ct) =>
+            Task.FromResult(Owned(operationId, leaseToken, j => j with
+            {
+                State = ImportJobState.Completed,
+                CompletedAt = Now,
+                LeaseToken = null,
+                LeaseUntil = null,
+            }));
+
+        public Task<bool> FailAsync(
+            string operationId, string leaseToken, string error, CancellationToken ct) =>
+            Task.FromResult(Owned(operationId, leaseToken, j => j with
+            {
+                State = ImportJobState.Failed,
+                LastError = error,
+                LeaseToken = null,
+                LeaseUntil = null,
+            }));
+
+        public Task<ImportJob?> FindAsync(string operationId, CancellationToken ct) =>
+            Task.FromResult(_jobs.GetValueOrDefault(operationId));
+    }
 }
