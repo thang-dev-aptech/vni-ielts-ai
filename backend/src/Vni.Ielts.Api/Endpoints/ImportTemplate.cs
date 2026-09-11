@@ -16,8 +16,10 @@ namespace Vni.Ielts.Api.Endpoints;
 /// name is added or renamed there; this one reads
 /// <see cref="ExamPackageArchiveInspector.AcceptedSkillFolders"/> and
 /// <see cref="ExamPackageArchiveInspector.AcceptedRoleFolders"/> at call
-/// time, and <see cref="ValidateCanonicalNames"/> fails loudly the moment a
-/// name this builder still ships stops being one the inspector accepts.
+/// time. It does not pre-validate those names and fail loudly on drift —
+/// see <see cref="BuildZip"/> for why — so drift is caught by the real
+/// inspector, in the integration test that feeds the built ZIP back through
+/// it, not by this class.
 ///
 /// <b>Unaccented spellings only.</b> A ZIP stores entry names as CP437 or
 /// UTF-8 depending on a per-entry flag many tools set wrongly, so an accented
