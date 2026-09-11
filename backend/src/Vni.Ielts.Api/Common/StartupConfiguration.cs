@@ -468,6 +468,27 @@ public static class StartupConfiguration
         if (importParser.Problem(aiForImportParser) is { } importParserProblem)
             problems.Add(importParserProblem);
 
+        // ── Import:Transcription (Listening audio → text, at import time) ──
+        /*
+         * <b>Same gate, same reasoning, same refusal in every environment.</b>
+         * This section selects a provider for transcribing published exam
+         * audio; the credential stays at Ai:<Provider>:ApiKey. An entirely
+         * unset section is the supported "off" state and reports nothing —
+         * `UnconfiguredAudioTranscriber` is wired and `AudioTranscriptionStage`
+         * does nothing at all.
+         *
+         * <b>Nothing here concerns Speaking.</b> Transcribing a learner's own
+         * recording is deferred by `P-02` and its seam (`ITranscriptSource` /
+         * `NoTranscriptSource`) is untouched. → `IP-07`
+         * → `Vni.Ielts.Infrastructure.Ai.Importing.AudioTranscriptionOptions.Problem`
+         */
+        var importTranscription = builder.Configuration
+            .GetSection(AudioTranscriptionOptions.SectionName)
+            .Get<AudioTranscriptionOptions>() ?? new AudioTranscriptionOptions();
+
+        if (importTranscription.Problem(aiForImportParser) is { } importTranscriptionProblem)
+            problems.Add(importTranscriptionProblem);
+
         /*
          * ── Email ─────────────────────────────────────────────────────────
          *
@@ -806,6 +827,9 @@ public static class StartupConfiguration
             .Get<UsageOptions>() ?? new UsageOptions();
         var importParserDescribed = configuration.GetSection(ExamParserOptions.SectionName)
             .Get<ExamParserOptions>() ?? new ExamParserOptions();
+        var importTranscriptionDescribed = configuration
+            .GetSection(AudioTranscriptionOptions.SectionName)
+            .Get<AudioTranscriptionOptions>() ?? new AudioTranscriptionOptions();
 
         var lines = new List<string>
         {
@@ -880,6 +904,15 @@ public static class StartupConfiguration
             "Import:Parser:Model = " + (importParserDescribed.Model ?? "not set"),
             $"Import:Parser:BaseUrl = {SecretRedaction.Url(importParserDescribed.BaseUrl)}",
             $"Import:Parser:MaxAttempts = {importParserDescribed.MaxAttempts}",
+
+            // Same shape, same shared credential. "not set" means
+            // UnconfiguredAudioTranscriber is wired and the transcription
+            // stage leaves every package exactly as it found it. Unrelated to
+            // Speaking marking, which is deferred by P-02. → IP-07
+            "Import:Transcription:Provider = " + (importTranscriptionDescribed.Provider ?? "not set"),
+            "Import:Transcription:Model = " + (importTranscriptionDescribed.Model ?? "not set"),
+            $"Import:Transcription:BaseUrl = {SecretRedaction.Url(importTranscriptionDescribed.BaseUrl)}",
+            $"Import:Transcription:TimeoutSeconds = {importTranscriptionDescribed.TimeoutSeconds}",
         };
 
         foreach (var (section, provider) in new[] { ("OpenAi", ai.OpenAi), ("Gemini", ai.Gemini) })

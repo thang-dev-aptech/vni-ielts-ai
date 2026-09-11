@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Exams;
+using Vni.Ielts.Infrastructure.Ai.Importing;
 using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Content.Import;
 using static Vni.Ielts.Infrastructure.Tests.Content.Import.HostileArchives;
@@ -131,6 +132,33 @@ public sealed class ExamPackageImportPipelineTests
                   "kind": "recording", "transcript": "The bell rings at noon.",
                   "questions": [ { "id": "l1", "order": 1, "type": "true-false-notgiven",
                     "answerKey": { "accepted": ["FALSE"] } } ] } ] } ]
+            }
+            """;
+
+        /// <summary>
+        /// A Listening recording with <b>no transcript</b> and a completion
+        /// question — the shape every one of the 24 Listening parts in this
+        /// repository's Cambridge packages has, and the shape
+        /// <see cref="PassageAnchorCheck"/> skips entirely because a
+        /// <c>recording</c> part anchors in its <c>transcript</c> and there is
+        /// none.
+        /// </summary>
+        public static string ListeningRecordingWithNoTranscript() =>
+            """
+            {
+              "formatVersion": "2.0", "formatProfile": "vni-practice",
+              "scoringProfileRef": "validation-v1",
+              "contentSourceRef": { "sourceId": "recording-parser",
+                "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+              "title": "T",
+              "variant": "academic",
+              "timingProfile": { "sections": { "listening": { "durationSeconds": 1800 } } },
+              "scoringProfile": { "rawToBand": { "listening": [
+                { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 } ] } },
+              "sections": [ { "module": "listening", "order": 1, "parts": [ { "order": 1,
+                "kind": "recording",
+                "questions": [ { "id": "l1", "order": 1, "type": "completion",
+                  "answerKey": { "accepted": ["slate"] } } ] } ] } ]
             }
             """;
 
@@ -885,8 +913,152 @@ public sealed class ExamPackageImportPipelineTests
     /// needed. The asset store is a no-op because a .txt source carries no
     /// embedded media.
     /// </summary>
-    private static ExamPackageImportPipeline PipelineWith(IExamSourceParser parser) =>
-        PipelineWithStore(parser).Pipeline;
+    // ── Task 5: Listening audio becomes text, before the anchor check runs ──
+
+    /// <summary>
+    /// The measured state this task exists to end, pinned so it cannot be
+    /// mistaken for working. A Listening recording with no transcript is
+    /// <b>skipped entirely</b> by <see cref="PassageAnchorCheck"/> — an answer
+    /// nobody could have produced raises nothing at all, because there is no
+    /// text to search. 0 of 24 Listening parts in this repository's Cambridge
+    /// packages carry a transcript, so this is every one of them.
+    /// </summary>
+    [Fact]
+    public async Task Without_a_transcriber_a_listening_recording_is_not_anchor_checked_at_all()
+    {
+        var pipeline = PipelineWith(
+            new RecordingParser(RecordingParser.ListeningRecordingWithNoTranscript()),
+            new UnconfiguredAudioTranscriber());
+
+        var archive = Build(
+            File("listening/de/section-1.txt", "The station is old."),
+            Bytes("listening/audio/part1.mp3", [0x49, 0x44, 0x33, 0x04]));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+
+        var part = JsonNode.Parse(attempt.Draft!.PackageJson)!["sections"]![0]!["parts"]![0]!;
+        Assert.Null(part["transcript"]);
+
+        Assert.DoesNotContain(
+            attempt.Draft.Warnings,
+            w => w.Id.StartsWith(PassageAnchorCheck.NotInPassageCode, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// The same package, the same answer, one difference: a transcriber is
+    /// configured. The transcript is written onto the <b>persisted</b> package
+    /// and <see cref="PassageAnchorCheck"/> now has something to search — so
+    /// the answer that is nowhere in the recording is finally reported.
+    ///
+    /// <b>This is the whole point of running at
+    /// <see cref="ImportJobStage.Transcribing"/>, between the parse and the
+    /// keying.</b> A transcript produced after the anchor check would protect
+    /// nothing.
+    /// </summary>
+    [Fact]
+    public async Task A_transcribed_recording_is_persisted_and_the_anchor_check_then_reads_it()
+    {
+        var pipeline = PipelineWith(
+            new RecordingParser(RecordingParser.ListeningRecordingWithNoTranscript()),
+            new FixedTranscriber("The station roof is made of copper throughout."));
+
+        var archive = Build(
+            File("listening/de/section-1.txt", "The station is old."),
+            Bytes("listening/audio/part1.mp3", [0x49, 0x44, 0x33, 0x04]));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+
+        var part = JsonNode.Parse(attempt.Draft!.PackageJson)!["sections"]![0]!["parts"]![0]!;
+        Assert.Equal(
+            "The station roof is made of copper throughout.", part["transcript"]!.GetValue<string>());
+
+        Assert.Contains(
+            attempt.Draft.Warnings,
+            w => w.Id.StartsWith(PassageAnchorCheck.NotInPassageCode, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// <c>IP-08</c> reaching the pipeline, not only the stage: a package whose
+    /// parse already carried a transcript is left alone and no model is called.
+    /// </summary>
+    [Fact]
+    public async Task A_package_that_already_carries_a_transcript_calls_no_transcriber()
+    {
+        var transcriber = new FixedTranscriber("should never be used");
+        var pipeline = PipelineWith(
+            new RecordingParser(RecordingParser.ReadingAndListening()), transcriber);
+
+        var archive = Build(
+            File("reading/de/passage.txt", "The roof is made of slate."),
+            File("listening/de/section-1.txt", "The bell rings at noon."),
+            Bytes("listening/audio/part1.mp3", [0x49, 0x44, 0x33, 0x04]));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.Equal(0, transcriber.Calls);
+
+        var listening = JsonNode.Parse(attempt.Draft!.PackageJson)!["sections"]![1]!["parts"]![0]!;
+        Assert.Equal("The bell rings at noon.", listening["transcript"]!.GetValue<string>());
+    }
+
+    /// <summary>
+    /// <c>IP-09</c> reaching the pipeline. One recording needing text, two
+    /// audio files: nothing is transcribed, and the package carries a warning
+    /// a reviewer has to clear rather than a transcript that might belong to
+    /// the other recording.
+    /// </summary>
+    [Fact]
+    public async Task A_mismatched_audio_count_transcribes_nothing_and_raises_a_clearable_warning()
+    {
+        var transcriber = new FixedTranscriber("whatever this recording said");
+        var pipeline = PipelineWith(
+            new RecordingParser(RecordingParser.ListeningRecordingWithNoTranscript()), transcriber);
+
+        var archive = Build(
+            File("listening/de/section-1.txt", "The station is old."),
+            Bytes("listening/audio/part1.mp3", [0x49, 0x44, 0x33, 0x04]),
+            Bytes("listening/audio/part2.mp3", [0x49, 0x44, 0x33, 0x04]));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.Equal(0, transcriber.Calls);
+
+        var part = JsonNode.Parse(attempt.Draft!.PackageJson)!["sections"]![0]!["parts"]![0]!;
+        Assert.Null(part["transcript"]);
+
+        var warning = Assert.Single(
+            attempt.Draft.Warnings,
+            w => w.Id.StartsWith(
+                TranscriptionWarningCodes.AudioCountMismatch, StringComparison.Ordinal));
+
+        Assert.False(warning.Resolved);
+        Assert.Equal(ImportReviewCategory.AssetMapping, warning.Category);
+    }
+
+    /// <summary>A transcriber that answers the same text for every recording.</summary>
+    private sealed class FixedTranscriber(string text) : IAudioTranscriber
+    {
+        public int Calls { get; private set; }
+
+        public bool IsConfigured => true;
+
+        public Task<TranscriptionResult> TranscribeAsync(
+            Stream audio, string fileName, CancellationToken ct)
+        {
+            Calls++;
+            return Task.FromResult(TranscriptionResult.Transcribed(text));
+        }
+    }
+
+    private static ExamPackageImportPipeline PipelineWith(
+        IExamSourceParser parser, IAudioTranscriber? transcriber = null) =>
+        PipelineWithStore(parser, transcriber).Pipeline;
 
     /// <summary>
     /// Same production pipeline as <see cref="PipelineWith"/>, but also hands
@@ -896,7 +1068,7 @@ public sealed class ExamPackageImportPipelineTests
     /// saved, not a copy built by hand.
     /// </summary>
     private static (ExamPackageImportPipeline Pipeline, IImportDraftStore Drafts, IExamPackageValidator Validator)
-        PipelineWithStore(IExamSourceParser parser)
+        PipelineWithStore(IExamSourceParser parser, IAudioTranscriber? transcriber = null)
     {
         var drafts = new InMemoryDraftStore();
         var validator = new ExamPackageValidator(
@@ -911,7 +1083,10 @@ public sealed class ExamPackageImportPipelineTests
             drafts,
             // Generous on purpose: these fixtures are a few hundred bytes, and
             // the caps are not what this suite is testing.
-            Options.Create(new ImportArchiveOptions()));
+            Options.Create(new ImportArchiveOptions()),
+            // The production default: no transcription provider, so the stage
+            // is a no-op and every existing fact in this suite is unaffected.
+            transcriber ?? new UnconfiguredAudioTranscriber());
 
         return (pipeline, drafts, validator);
     }

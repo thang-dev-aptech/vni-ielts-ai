@@ -401,6 +401,7 @@ public static class DependencyInjection
         }
         services.AddScoped<ISourceDocumentExtractor, Content.SafeSourceDocumentExtractor>();
         AddExamSourceParser(services, configuration);
+        AddAudioTranscriber(services, configuration);
 
         services.AddScoped<ExamImportWorkflow>();
         services.AddScoped<ImportReviewWorkflow>();
@@ -577,6 +578,84 @@ public static class DependencyInjection
                 sp.GetServices<IStructuredExamAiClient>(),
                 sp.GetRequiredService<IAiImportCostMetric>(),
                 new ExamParserOptions(parser.Provider!, parser.PromptVersion, parser.MaxAttempts));
+        });
+    }
+
+    /// <summary>
+    /// The exam-audio transcriber, behind <c>Import:Transcription</c>.
+    ///
+    /// <para>
+    /// <b>With nothing configured, <see cref="Ai.Importing.UnconfiguredAudioTranscriber"/>
+    /// is wired</b> — today's every deployment, and correct for one nobody has
+    /// given keys to. <c>AudioTranscriptionStage</c> then returns the package
+    /// untouched: no call, no warning, no change.
+    /// <see cref="Ai.Importing.AudioTranscriptionOptions.Problem"/> is what
+    /// refuses to boot on any half-filled shape, so a section that looks
+    /// enabled never reaches an upload.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Not the Speaking seam.</b> <c>ITranscriptSource</c> stays on
+    /// <c>NoTranscriptSource</c> (<c>P-02</c>) and is registered elsewhere in
+    /// this file, unchanged. This one transcribes published exam audio, which
+    /// is third-party material rather than a learner's personal data.
+    /// → <c>IP-07</c>
+    /// </para>
+    ///
+    /// <b>Internal, not private, so the wiring itself has a direct test.</b>
+    /// → <c>AudioTranscriberWiringTests</c>
+    /// </summary>
+    internal static void AddAudioTranscriber(IServiceCollection services, IConfiguration configuration)
+    {
+        static Ai.Importing.AudioTranscriptionOptions ReadTranscriptionOptions(
+            IConfiguration configuration) =>
+            configuration.GetSection(Ai.Importing.AudioTranscriptionOptions.SectionName)
+                .Get<Ai.Importing.AudioTranscriptionOptions>()
+            ?? new Ai.Importing.AudioTranscriptionOptions();
+
+        static AiOptions ReadAiOptions(IConfiguration configuration) =>
+            configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+
+        // Clamped so a typo cannot produce a zero-second or an hour-long
+        // client. The startup gate refuses the same range outright; this is
+        // the second half of the same number, applied where the client is
+        // actually built.
+        var configuredTimeout = ReadTranscriptionOptions(configuration).TimeoutSeconds;
+        services.AddHttpClient(nameof(Ai.Importing.OpenAiAudioTranscriber))
+            .ConfigureHttpClient(client =>
+                client.Timeout = TimeSpan.FromSeconds(Math.Clamp(configuredTimeout, 30, 1800)));
+
+        services.AddScoped<IAudioTranscriber>(sp =>
+        {
+            var transcription = ReadTranscriptionOptions(configuration);
+            var ai = ReadAiOptions(configuration);
+
+            if (!transcription.IsConfigured(ai))
+                return new Ai.Importing.UnconfiguredAudioTranscriber();
+
+            /*
+             * <b>Model and BaseUrl from Import:Transcription; the key from the
+             * shared Ai:&lt;Provider&gt; registration.</b> Only the key is
+             * shared — see AudioTranscriptionOptions's own remarks for why a
+             * second copy of it was rejected, and ExamParserOptions for where
+             * that rule was settled. Provider is already checked to be
+             * "OpenAi" by Problem() before this reaches production.
+             */
+            return new Ai.Importing.OpenAiAudioTranscriber(
+                sp.GetRequiredService<IHttpClientFactory>(),
+                Options.Create(new AiOptions
+                {
+                    AllowCrossBorderTransfer = ai.AllowCrossBorderTransfer,
+                    OpenAi = new AiProviderOptions
+                    {
+                        Model = transcription.Model,
+                        ApiKey = ai.OpenAi.ApiKey,
+                        BaseUrl = transcription.BaseUrl,
+                        SyntheticDataOnly = ai.OpenAi.SyntheticDataOnly,
+                    },
+                }),
+                Options.Create(transcription),
+                sp.GetRequiredService<ILogger<Ai.Importing.OpenAiAudioTranscriber>>());
         });
     }
 

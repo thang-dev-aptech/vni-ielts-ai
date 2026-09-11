@@ -302,6 +302,45 @@ public sealed class SecretContractTests
         Assert.Null(Record.Exception(() => Validate(ProductionBuilder(config))));
     }
 
+    /// <summary>
+    /// Task 5's gate, at the level the API actually boots through. Same shape
+    /// as <c>Import:Parser</c> above and for the same reason: the section
+    /// selects a provider, the credential stays at <c>Ai:OpenAi:ApiKey</c>,
+    /// and a deployment that filled in everything here but never gave OpenAi a
+    /// key looks exactly as enabled as one that has.
+    /// </summary>
+    [Fact]
+    public void A_named_transcription_provider_without_a_shared_key_refuses_to_boot()
+    {
+        var config = ValidProductionConfig();
+        config["Import:Transcription:Provider"] = "OpenAi";
+        config["Import:Transcription:Model"] = "whisper-1";
+        // Ai:OpenAi:ApiKey deliberately absent — ValidProductionConfig sets no Ai section.
+
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => Validate(ProductionBuilder(config)));
+
+        Assert.Contains("Import:Transcription", refusal.Message, StringComparison.Ordinal);
+        Assert.Contains("Ai:OpenAi:ApiKey", refusal.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// <c>IP-07</c> at boot: turning exam-audio transcription on must not
+    /// require, imply, or disturb anything about Speaking marking, which stays
+    /// deferred by <c>P-02</c> on a different port.
+    /// </summary>
+    [Fact]
+    public void A_fully_configured_transcription_provider_boots_off_the_shared_key()
+    {
+        var config = ValidProductionConfig();
+        config["Import:Transcription:Provider"] = "OpenAi";
+        config["Import:Transcription:Model"] = "whisper-1";
+        config["Ai:OpenAi:ApiKey"] = OpenAiApiKey;
+        config["Ai:OpenAi:Model"] = "gpt-5.5";
+
+        Assert.Null(Record.Exception(() => Validate(ProductionBuilder(config))));
+    }
+
     [Fact]
     public void An_object_storage_endpoint_carrying_credentials_refuses_to_boot()
     {

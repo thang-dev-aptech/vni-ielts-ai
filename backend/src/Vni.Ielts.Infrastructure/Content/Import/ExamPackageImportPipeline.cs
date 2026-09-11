@@ -22,7 +22,8 @@ public sealed class ExamPackageImportPipeline(
     ExamImportWorkflow workflow,
     IExamPackageValidator validator,
     IImportDraftStore drafts,
-    IOptions<ImportArchiveOptions> archiveOptions)
+    IOptions<ImportArchiveOptions> archiveOptions,
+    IAudioTranscriber transcriber)
 {
     /// <param name="zip">
     /// Must be seekable. Inspection reads the archive's central directory,
@@ -174,8 +175,62 @@ public sealed class ExamPackageImportPipeline(
         var attempt = await workflow.ImportExtractedAsync(source, definitionId, versionNumber, ct);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
-        return await ApplyKeysAndGuardAsync(attempt.Draft, layout, sandboxDirectory, ct, progress);
+        /*
+         * <b>Between the parse and the keying, and that order is the point.</b>
+         * `PassageAnchorCheck` — layer 4, run at the end of
+         * `ApplyKeysAndGuardAsync` — reads a `recording` part's `transcript`
+         * and skips the part when there is none. 0 of 24 Listening parts in
+         * this repository's Cambridge packages carry one, so the strongest
+         * deterministic check in the pipeline protects nothing on Listening.
+         * Running here is what gives it text to search before it runs.
+         *
+         * <b>A supplied transcript wins and no model is called (`IP-08`);
+         * an uncertain audio-to-part mapping transcribes nothing at all
+         * (`IP-09`).</b> The stage decides both; this call site only supplies
+         * the recordings and reports the stage.
+         */
+        Report(progress, ImportJobStage.Transcribing);
+
+        var transcription = await AudioTranscriptionStage.RunAsync(
+            attempt.Draft.PackageJson, AudioFiles(layout, sandboxDirectory), transcriber, ct);
+
+        return await ApplyKeysAndGuardAsync(
+            attempt.Draft, layout, sandboxDirectory, ct, progress, transcription);
     }
+
+    /// <summary>
+    /// Every <see cref="PackageEntryRole.Audio"/> file in the package, across
+    /// every skill.
+    ///
+    /// <b>Across every skill on purpose, rather than Listening's folder
+    /// alone.</b> A part is selected for transcription by its declared
+    /// <c>kind</c> — <c>recording</c> — not by which section it sits in, and
+    /// the package's folder layout is a separate fact from the parsed
+    /// package's own structure. Gathering from one folder here while
+    /// selecting parts by kind there would silently transcribe nothing for a
+    /// recording whose audio an administrator filed under a different skill,
+    /// and the count gate in the stage is what turns any such surprise into a
+    /// warning rather than a wrong mapping. → <c>IP-09</c>
+    ///
+    /// <b>Opening the file happens here, in Infrastructure, and not on the
+    /// port.</b> <see cref="ImportAudioFile"/> carries a delegate rather than
+    /// a path-plus-directory precisely so that Application never touches a
+    /// filesystem. Combining these two values is only safe because the paths
+    /// came from <see cref="IExamPackageArchiveInspector"/>, which
+    /// canonicalised them and refused escape, traversal and non-regular
+    /// entries before a byte was written.
+    /// → docs/security/zip-ingestion-security.md
+    /// </summary>
+    private static IReadOnlyList<ImportAudioFile> AudioFiles(
+        PackageLayout layout, string sandboxDirectory) =>
+    [
+        .. layout.PresentSkills
+            .SelectMany(skill => layout.For(skill).Audio)
+            .Select(path => new ImportAudioFile(
+                path,
+                _ => Task.FromResult<Stream>(
+                    System.IO.File.OpenRead(Path.Combine(sandboxDirectory, path))))),
+    ];
 
     /// <summary>
     /// Reads every key document, one skill at a time, writes it onto the parsed
@@ -199,17 +254,35 @@ public sealed class ExamPackageImportPipeline(
     /// it from the presence of answer keys is exactly the vacuous check
     /// <see cref="FabricatedAnswerKeyGuard"/>'s own remarks warn against.
     /// </summary>
+    /// <param name="transcription">
+    /// What <see cref="AudioTranscriptionStage"/> produced, or null when the
+    /// caller ran no transcription (the structured route, which carries no
+    /// audio files by construction — a package holding a recording holds more
+    /// than one entry and therefore never takes that route).
+    ///
+    /// <b>Its package, not the draft's, is what gets keyed.</b> The draft was
+    /// persisted from the parser's output; the transcripts were written on
+    /// afterwards. Keying the draft's copy would drop them on the floor and
+    /// leave <see cref="PassageAnchorCheck"/> looking at the same empty
+    /// <c>transcript</c> fields this whole stage exists to fill.
+    /// </param>
     private async Task<ExamImportAttempt> ApplyKeysAndGuardAsync(
         ExamImportDraft draft, PackageLayout layout, string sandboxDirectory, CancellationToken ct,
-        IProgress<ImportJobStage>? progress = null)
+        IProgress<ImportJobStage>? progress = null,
+        AudioTranscriptionResult? transcription = null)
     {
         Report(progress, ImportJobStage.Keying);
 
-        var json = draft.PackageJson;
+        var json = transcription?.PackageJson ?? draft.PackageJson;
         var findings = new List<PackageFinding>();
         var injectionWarnings = new List<PackageFinding>();
         var keyed = new HashSet<ExamModule>();
-        var changed = false;
+
+        // A transcript written onto the package is a change to the package,
+        // so it takes the same revalidate-and-persist path a supplied answer
+        // key takes. Without this the transcripts would be computed, used by
+        // the anchor check, and then never saved.
+        var changed = transcription is { Changed: true };
 
         foreach (var skill in layout.PresentSkills)
         {
@@ -352,6 +425,7 @@ public sealed class ExamPackageImportPipeline(
             .. InjectionWarnings(injectionWarnings),
             .. NotInPassageWarnings(anchorReport.MissingAnswerIssues),
             .. OrderWarnings(anchorReport.OrderIssues),
+            .. TranscriptionWarnings(transcription),
         ];
 
         if (!changed && warnings.Count == 0 && findings.Count == 0) return ExamImportAttempt.Accepted(draft);
@@ -572,6 +646,41 @@ public sealed class ExamPackageImportPipeline(
     /// same <c>CODE:index</c> idiom so <c>ResolveWarningAsync</c> has
     /// something to key on.
     /// </summary>
+    /// <summary>
+    /// Turns <see cref="AudioTranscriptionStage"/>'s results into the same
+    /// blocking-but-clearable review-warning shape every other import
+    /// judgement uses (<c>P-19</c>), with the same <c>CODE:index</c> id idiom
+    /// so <c>ResolveWarningAsync</c> has something to key on.
+    ///
+    /// <b>They block approval rather than merely being reported.</b> A
+    /// Listening part with no transcript is a part <see cref="PassageAnchorCheck"/>
+    /// cannot check at all, which is the exact state this task exists to end —
+    /// and a package where the audio could not be matched to the parts is one
+    /// nobody should publish without having looked. A reviewer may still clear
+    /// either with a written, audited reason: a package that legitimately has
+    /// no recordings to transcribe is a real case, and a warning that cannot
+    /// be cleared is a package that can never be approved.
+    ///
+    /// <b>Two categories, because these are two different jobs.</b> A refused
+    /// transcription is something a reviewer reads the recording to settle
+    /// (<see cref="ImportReviewCategory.TranscriptAndEvidence"/>); an audio
+    /// file that cannot be matched to a part is something they settle by
+    /// looking at the folder (<see cref="ImportReviewCategory.AssetMapping"/>).
+    /// Filing both under one category would send both to the wrong person.
+    /// </summary>
+    private static IReadOnlyList<ImportReviewWarning> TranscriptionWarnings(
+        AudioTranscriptionResult? transcription) =>
+        transcription is null
+            ? []
+            : [.. transcription.Warnings.Select((w, i) => new ImportReviewWarning(
+                $"{w.Code}:{i}",
+                w.Code == TranscriptionWarningCodes.Refused
+                    ? ImportReviewCategory.TranscriptAndEvidence
+                    : ImportReviewCategory.AssetMapping,
+                w.Path,
+                w.Message,
+                false))];
+
     private static IReadOnlyList<ImportReviewWarning> OrderWarnings(
         IReadOnlyList<AnchorOrderIssue> issues) =>
         issues
