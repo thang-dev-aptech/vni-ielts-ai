@@ -250,8 +250,41 @@ public sealed class AudioTranscriptionStageTests
             AudioFiles("listening/audio/part1.mp3"), transcriber, default);
 
         Assert.Equal(0, transcriber.Calls);
-        Assert.Equal(TranscriptionWarningCodes.AudioReferenceUnresolved,
-            Assert.Single(result.Warnings).Code);
+
+        var warning = Assert.Single(result.Warnings);
+        Assert.Equal(TranscriptionWarningCodes.AudioReferenceUnresolved, warning.Code);
+
+        /*
+         * <b>The reference itself, not only the count.</b> "A reference could
+         * not be resolved" without saying which one is a warning nobody can
+         * act on, and an unactionable warning is one people click through —
+         * which is how the actionable ones stop being read too. The path is an
+         * administrator's own file name, already canonicalised by the archive
+         * inspector, shown to the administrator reviewing that package.
+         */
+        Assert.Contains("assets/listening/part9.mp3", warning.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The other half of the same rule: an <i>ambiguous</i> reference names
+    /// itself too. A reviewer sent to find a name that matches two files needs
+    /// the name as much as one sent to find a name that matches none.
+    /// </summary>
+    [Fact]
+    public async Task An_ambiguous_audio_reference_names_itself_and_transcribes_nothing()
+    {
+        var transcriber = new StubTranscriber("anything at all");
+
+        var result = await AudioTranscriptionStage.RunAsync(
+            ListeningPackage(transcript: null, recordings: 1, audioRef: "assets/listening/part1.mp3"),
+            AudioFiles("listening/audio/part1.mp3", "listening/extra/part1.mp3"),
+            transcriber, default);
+
+        Assert.Equal(0, transcriber.Calls);
+
+        var warning = Assert.Single(result.Warnings);
+        Assert.Equal(TranscriptionWarningCodes.AudioReferenceUnresolved, warning.Code);
+        Assert.Contains("assets/listening/part1.mp3", warning.Message, StringComparison.Ordinal);
     }
 
     /// <summary>

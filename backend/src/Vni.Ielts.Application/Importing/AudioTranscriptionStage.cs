@@ -235,18 +235,32 @@ public static class AudioTranscriptionStage
 
                 if (candidates.Length != 1)
                 {
-                    // The count, never the reference itself — an asset path is
-                    // package content and this message reaches a CMS screen.
+                    /*
+                     * <b>The reference is named.</b> An earlier version of this
+                     * message gave only the count, on the reasoning that an
+                     * asset path is package content. That was the wrong call:
+                     * "a reference could not be resolved" without saying which
+                     * reference is a warning nobody can act on, and an
+                     * unactionable warning is one people click through — the
+                     * exact disease this layer exists to prevent. The path is
+                     * safe to show. It was canonicalised and cleared by
+                     * `IExamPackageArchiveInspector` before extraction, it is
+                     * a name an administrator chose for their own file, and it
+                     * is being shown to the administrator reviewing that very
+                     * package. Withholding it protects nobody and costs them a
+                     * trip into the ZIP.
+                     */
                     return ([], new TranscriptionWarning(
                         TranscriptionWarningCodes.AudioReferenceUnresolved,
                         recording.Path,
-                        $"{Describe(recording)} names its own audio file, and that name matches "
-                        + $"{candidates.Length} of the {audio.Count} audio files in this package. "
-                        + "Nothing was transcribed for any part: a recording matched to the wrong "
-                        + "part puts a transcript against the wrong questions, which is the same "
-                        + "failure as a shifted answer key and shows up as a wave of false "
-                        + "warnings rather than as a mismatch anybody can read. Correct the "
-                        + "part's audio reference, or supply the transcripts in the package."),
+                        $"{Describe(recording)} names its own audio file as '{reference}', and "
+                        + $"that name matches {candidates.Length} of the {audio.Count} audio files "
+                        + "in this package. Nothing was transcribed for any part: a recording "
+                        + "matched to the wrong part puts a transcript against the wrong "
+                        + "questions, which is the same failure as a shifted answer key and shows "
+                        + "up as a wave of false warnings rather than as a mismatch anybody can "
+                        + "read. Correct the part's audio reference, or supply the transcripts in "
+                        + "the package."),
                         null);
                 }
 
