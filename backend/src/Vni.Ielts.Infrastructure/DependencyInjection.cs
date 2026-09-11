@@ -389,6 +389,11 @@ public static class DependencyInjection
         services.AddScoped<IImportBatchCheckpointStore, MongoImportBatchCheckpointStore>();
         services.AddScoped<ExamPackageImportPipeline>();
 
+        // The out-of-band import job's store — the twin of IMarkingOutbox,
+        // one layer earlier: an enqueued import is owed a parse the same way
+        // a closed section is owed a marking.
+        services.AddScoped<IImportOutbox, MongoImportOutbox>();
+
         return services;
     }
 

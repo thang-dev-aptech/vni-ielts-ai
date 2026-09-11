@@ -143,6 +143,15 @@ public sealed class MongoContext
         _db.GetCollection<Importing.ImportBatchCheckpointDocument>("import_batch_checkpoints");
 
     /// <summary>
+    /// Exam imports that are owed but not yet run — the twin of
+    /// <see cref="MarkingJobs"/>, one layer earlier: a parse and a key
+    /// extraction are also paid provider work that a crashed worker must not
+    /// pay for twice. → <c>IImportOutbox</c>
+    /// </summary>
+    internal IMongoCollection<Importing.ImportJobDocument> ImportJobs =>
+        _db.GetCollection<Importing.ImportJobDocument>("import_jobs");
+
+    /// <summary>
     /// Refuses to start against a node that cannot do transactions.
     ///
     /// <para>
@@ -475,6 +484,28 @@ public sealed class MongoContext
             new CreateIndexModel<Importing.ImportBatchCheckpointDocument>(
                 Builders<Importing.ImportBatchCheckpointDocument>.IndexKeys.Ascending(d => d.BatchId),
                 new CreateIndexOptions { Name = "ix_import_batch_checkpoints_batch" }),
+            cancellationToken: ct);
+
+        // The unique index that makes a retried upload harmless. Enqueuing the
+        // same (definitionId, version, sourceHash, parsePromptVersion) twice
+        // must create exactly one job, in the database rather than in a
+        // caller's memory — the same reason `usage_ledger` and `import_drafts`
+        // key their own idempotency on a stable id rather than a check-then-insert.
+        await ImportJobs.Indexes.CreateOneAsync(
+            new CreateIndexModel<Importing.ImportJobDocument>(
+                Builders<Importing.ImportJobDocument>.IndexKeys.Ascending(j => j.OperationId),
+                new CreateIndexOptions { Unique = true, Name = "ux_import_jobs_operation" }),
+            cancellationToken: ct);
+
+        // The worker's claim scans by state and due time on every poll —
+        // same shape as `ix_marking_jobs_due`, one layer earlier in the
+        // pipeline.
+        await ImportJobs.Indexes.CreateOneAsync(
+            new CreateIndexModel<Importing.ImportJobDocument>(
+                Builders<Importing.ImportJobDocument>.IndexKeys
+                    .Ascending(j => j.State)
+                    .Ascending(j => j.NextAttemptAt),
+                new CreateIndexOptions { Name = "ix_import_jobs_due" }),
             cancellationToken: ct);
 
         // Expired tokens remove themselves. A TTL index does this without a
