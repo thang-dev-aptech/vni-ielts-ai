@@ -25,6 +25,31 @@ public sealed class CanonicalExplanationWorkflowTests
     Assert.True(second.Cached >= 1);
   }
 
+  /// <summary>
+  /// The gate this task's coordinator asked to be enforced inside the
+  /// workflow, not only by whoever calls it. Called directly here — bypassing
+  /// <c>ExamPackageImportPipeline</c>'s own call-site check entirely — so the
+  /// proof is that the workflow refuses on its own, not that its one existing
+  /// caller happens to be careful.
+  /// </summary>
+  [Fact]
+  public async Task A_package_whose_policy_forbids_explanations_is_refused_even_called_directly()
+  {
+    var generator = new CountingExplanationGenerator();
+    var cache = new InMemoryCanonicalExplanationCache();
+    var workflow = new CanonicalExplanationWorkflow(generator, cache);
+    var version = SampleVersion();
+    var draft = SampleDraft(version, policyMode: "none");
+
+    var result = await workflow.EnrichDraftAsync(draft, default);
+
+    Assert.Equal(0, generator.CallCount);
+    Assert.Equal(0, result.Generated);
+    Assert.Equal(0, result.Cached);
+    Assert.Equal(0, result.Refused);
+    Assert.Same(draft, result.Draft);
+  }
+
   private static ExamVersion SampleVersion()
   {
     var question = new Question(
@@ -52,24 +77,27 @@ public sealed class CanonicalExplanationWorkflowTests
         [section]);
   }
 
-  private static ExamImportDraft SampleDraft(ExamVersion version) =>
-      new(
-          Guid.NewGuid(),
-          version.DefinitionId,
-          version.VersionNumber,
-          ExamImportRoute.StructuredPackage,
-          "hash",
-          "hash",
-          version,
-          null,
-          ImportApprovalState.ReviewRequired,
-          [],
-          "{}",
-          "{}",
-          ImportReviewChecklist.Empty,
-          [],
-          0,
-          null);
+  private static ExamImportDraft SampleDraft(ExamVersion version, string policyMode = "ai-generated")
+  {
+    var packageJson = $$"""{ "policyProfile": { "explanation": { "mode": "{{policyMode}}" } } }""";
+    return new(
+        Guid.NewGuid(),
+        version.DefinitionId,
+        version.VersionNumber,
+        ExamImportRoute.StructuredPackage,
+        "hash",
+        "hash",
+        version,
+        null,
+        ImportApprovalState.ReviewRequired,
+        [],
+        packageJson,
+        packageJson,
+        ImportReviewChecklist.Empty,
+        [],
+        0,
+        null);
+  }
 
   private sealed class CountingExplanationGenerator : IReadingListeningExplanationGenerator
   {
