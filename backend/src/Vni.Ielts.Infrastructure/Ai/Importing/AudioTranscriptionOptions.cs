@@ -70,6 +70,16 @@ public sealed class AudioTranscriptionOptions
     /// </summary>
     public int TimeoutSeconds { get; set; } = 300;
 
+    /// <summary>
+    /// The <see cref="AiProviderOptions"/> named by <see cref="Provider"/>, or
+    /// null when it names nothing this deployment knows.
+    ///
+    /// <b>Gemini is mapped here but is not a working option today.</b>
+    /// <see cref="Problem"/> refuses every provider but <c>OpenAi</c>, because
+    /// no Gemini transcription client is wired — this mapping is the seam for
+    /// adding one, not a setting that does anything if you type it. A
+    /// deployment that names Gemini refuses to boot, naming the section.
+    /// </summary>
     private AiProviderOptions? ResolveProvider(AiOptions ai) => Provider switch
     {
         _ when string.Equals(Provider, "OpenAi", StringComparison.OrdinalIgnoreCase) => ai.OpenAi,

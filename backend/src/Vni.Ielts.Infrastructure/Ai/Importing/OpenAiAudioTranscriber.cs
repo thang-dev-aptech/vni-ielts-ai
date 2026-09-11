@@ -155,7 +155,18 @@ public sealed class OpenAiAudioTranscriber(
             }
 
             var payload = await response.Content.ReadAsStringAsync(ct);
-            var text = ReadText(payload);
+            var text = ReadText(payload, response.Content.Headers.ContentType?.MediaType);
+
+            if (text is null)
+            {
+                logger.LogWarning(
+                    "Exam audio transcription for {FileName} returned {Status} with a body that "
+                    + "is not a transcript. Nothing was written.",
+                    fileName,
+                    (int)response.StatusCode);
+
+                return TranscriptionResult.Refused(TranscriptionRefusalCodes.EmptyResponse);
+            }
 
             // `Transcribed` turns blank into a refusal itself — see its own
             // remarks. Absent and empty are different states. → IP-09
@@ -185,38 +196,124 @@ public sealed class OpenAiAudioTranscriber(
     }
 
     /// <summary>
+    /// How long a plain-text body may be and still be believed as one
+    /// Listening part's speech.
+    ///
+    /// <b>The backstop, not the discriminator.</b> An IELTS Listening part is
+    /// roughly eight minutes of speech — on the order of 1,200 words, call it
+    /// 8 KB. 200,000 characters is more than twenty times a whole paper, so no
+    /// real transcript is refused by it; what it refuses is a bulk dump
+    /// (a stack trace, a debug page, a mirrored request) arriving where a
+    /// transcript should be. The content type and the leading <c>&lt;</c>
+    /// below are what actually tell a page from speech; this only bounds how
+    /// much of one could ever reach the package.
+    /// </summary>
+    private const int MaxPlainTextTranscriptChars = 200_000;
+
+    /// <summary>
     /// The <c>text</c> field of a transcription response, or null when the
-    /// response is not that shape.
+    /// response is not a transcript.
+    ///
+    /// ── Why the plain-text fallback is gated rather than trusted ──────────
     ///
     /// <b>A host that ignored <c>response_format</c> and answered in plain
-    /// text is accepted too</b> — several OpenAI-compatible resellers do, and
-    /// failing a whole recording over a content type when the text is sitting
-    /// right there would be a bad trade. Anything else returns null, which the
-    /// caller turns into a refusal rather than an empty transcript.
+    /// text is still accepted</b> — several OpenAI-compatible resellers do,
+    /// and failing a whole recording over a content type when the text is
+    /// sitting right there would be a bad trade.
+    ///
+    /// <b>But "not JSON" is not the same as "a transcript", and the earlier
+    /// version of this method treated them as the same thing.</b> It returned
+    /// any non-JSON 200 body verbatim, so a reseller or proxy answering 200
+    /// with an HTML error page — or with the words "Rate limited" — had that
+    /// written onto the package as <c>part.transcript</c>. Nothing would have
+    /// warned: the transcript would look present, <see cref="PassageAnchorCheck"/>
+    /// would run against a gateway error page, and every answer in that part
+    /// would be reported absent. A reviewer would then face a screen of "this
+    /// answer is not in the recording" against a perfectly correct paper —
+    /// the exact false-warning wave this whole layer exists to prevent, and a
+    /// plain breach of CLAUDE.md rule 2: a model's output is a claim, never
+    /// trusted application state.
+    ///
+    /// So three gates, all of which a genuine transcript passes: the response
+    /// must not be declared as markup, must not begin with <c>&lt;</c>, and
+    /// must not be longer than <see cref="MaxPlainTextTranscriptChars"/>.
+    /// Null goes back to the caller as a refusal, which is the safe direction
+    /// — a real transcript in an unusual shape gets refused and flagged on the
+    /// part, rather than a gateway page being silently believed. → <c>IP-09</c>
     /// </summary>
-    internal static string? ReadText(string payload)
+    internal static string? ReadText(string payload, string? mediaType = null)
     {
         if (string.IsNullOrWhiteSpace(payload)) return null;
 
-        if (!payload.TrimStart().StartsWith('{')) return payload;
+        /*
+         * Checked before anything is parsed, and for the whole response rather
+         * than only the fallback: a body served as text/html is a page,
+         * whatever its first character happens to be.
+         */
+        if (IsMarkup(mediaType)) return null;
 
-        try
-        {
-            using var document = JsonDocument.Parse(payload);
+        var trimmed = payload.TrimStart();
 
-            return document.RootElement.ValueKind == JsonValueKind.Object
-                && document.RootElement.TryGetProperty("text", out var text)
-                && text.ValueKind == JsonValueKind.String
-                    ? text.GetString()
-                    : null;
-        }
-        catch (JsonException)
+        if (trimmed.StartsWith('{'))
         {
-            // Not logged with the payload attached: it may be a partial
-            // transcript.
-            return null;
+            try
+            {
+                using var document = JsonDocument.Parse(payload);
+
+                return document.RootElement.ValueKind == JsonValueKind.Object
+                    && document.RootElement.TryGetProperty("text", out var text)
+                    && text.ValueKind == JsonValueKind.String
+                        ? text.GetString()
+                        : null;
+            }
+            catch (JsonException)
+            {
+                // Not logged with the payload attached: it may be a partial
+                // transcript.
+                return null;
+            }
         }
+
+        /*
+         * <b>A body opening with `<` is markup, whatever it was served as.</b>
+         * This is the gate that catches the common case: a proxy or WAF that
+         * answers 200 with an error page and either mislabels the content type
+         * or omits it. Speech does not begin with an angle bracket.
+         */
+        if (trimmed.StartsWith('<')) return null;
+
+        /*
+         * <b>And a body past this length is not a recording's speech.</b> A
+         * ten-minute IELTS Listening part runs to roughly fifteen hundred
+         * words; the cap is more than an order of magnitude above that, so it
+         * refuses only bodies no transcript could be — a dumped log, a
+         * stack trace, a page with its markup stripped.
+         *
+         * The bound exists because the two checks above are shape checks, and
+         * a gateway can answer with something that is neither markup nor JSON.
+         * Refusing produces the part-level warning; believing it produces a
+         * package whose Listening answers all report as absent.
+         */
+        return payload.Length > MaxTranscriptChars ? null : payload;
     }
+
+    /// <summary>
+    /// The ceiling on a plain-text body accepted as a transcript. Not a
+    /// provider limit — a sanity bound on the untrusted fallback path.
+    /// </summary>
+    private const int MaxTranscriptChars = 200_000;
+
+    /// <summary>
+    /// Whether a declared media type is a markup document rather than speech
+    /// rendered as text. <c>text/plain</c>, and an absent type, are not
+    /// refused here — an absent type is the commonest shape for a reseller
+    /// that ignored <c>response_format</c>, and the two checks in
+    /// <see cref="ReadText"/> still apply to it.
+    /// </summary>
+    private static bool IsMarkup(string? mediaType) =>
+        mediaType is not null
+        && (mediaType.Contains("html", StringComparison.OrdinalIgnoreCase)
+            || mediaType.Contains("xml", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// A container type for the upload, from the file's own extension.

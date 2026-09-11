@@ -1,8 +1,15 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json.Nodes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Infrastructure;
 using AiOptions = Vni.Ielts.Infrastructure.Ai.AiOptions;
+using AiProviderOptions = Vni.Ielts.Infrastructure.Ai.AiProviderOptions;
 using AudioTranscriptionOptions = Vni.Ielts.Infrastructure.Ai.Importing.AudioTranscriptionOptions;
 using OpenAiAudioTranscriber = Vni.Ielts.Infrastructure.Ai.Importing.OpenAiAudioTranscriber;
 using UnconfiguredAudioTranscriber = Vni.Ielts.Infrastructure.Ai.Importing.UnconfiguredAudioTranscriber;
@@ -22,8 +29,13 @@ namespace Vni.Ielts.Infrastructure.Tests.Content.Import;
 ///
 /// <b>Nothing here touches Speaking.</b> <c>ITranscriptSource</c> /
 /// <c>NoTranscriptSource</c> is a different port under a different deferral
-/// (<c>P-02</c>); that it stays wired regardless of this section is pinned by
-/// <see cref="The_speaking_marking_seam_is_a_different_port_and_is_untouched"/>.
+/// (<c>P-02</c>), registered elsewhere in <c>DependencyInjection</c>. What
+/// <see cref="The_speaking_marking_seam_is_a_different_port_and_is_untouched"/>
+/// pins is that <see cref="DependencyInjection.AddAudioTranscriber"/> does not
+/// register it: in a container where only the audio wiring ran, the Speaking
+/// port resolves to nothing. That goes red the moment this wiring reaches for
+/// the Speaking seam — which is the mistake worth catching, since the two
+/// ports are one careless read apart.
 /// </summary>
 public sealed class AudioTranscriberWiringTests
 {
@@ -163,6 +175,167 @@ public sealed class AudioTranscriberWiringTests
         // Not registered by AddAudioTranscriber at all — the whole point.
         Assert.Null(services.GetService<Vni.Ielts.Application.Assessment.ITranscriptSource>());
     }
+
+    // ── A 200 that is not a transcript must not become one ────────────────
+
+    /// <summary>
+    /// <b>CLAUDE.md rule 2, at the one place it was breachable.</b> The
+    /// plain-text fallback exists for resellers that ignore
+    /// <c>response_format</c>, and it used to return <i>any</i> non-JSON 200
+    /// body verbatim. A proxy answering 200 with an HTML error page therefore
+    /// had that page written onto the package as <c>part.transcript</c>.
+    ///
+    /// <b>And nothing would have warned.</b> The transcript would look
+    /// present, so <see cref="PassageAnchorCheck"/> would search a gateway
+    /// error page for the paper's answers and report every one of them absent
+    /// — a screen of "this answer is not in the recording" against a correct
+    /// paper, which is precisely the false-warning wave that teaches reviewers
+    /// to stop reading warnings.
+    ///
+    /// <b>Both halves are asserted.</b> No transcript on the part <i>and</i> a
+    /// refusal warning naming it: a version that refused and still wrote
+    /// something would pass on the warning alone, and a version that wrote
+    /// nothing silently would pass on the transcript alone. The failure being
+    /// pinned needs both to be true at once.
+    /// </summary>
+    [Theory]
+    [InlineData("text/html", "<!doctype html><html><body><h1>502 Bad Gateway</h1></body></html>")]
+    [InlineData("text/plain", "<html><head><title>Rate limited</title></head></html>")]
+    public async Task A_200_carrying_a_page_instead_of_speech_is_refused_and_writes_no_transcript(
+        string mediaType, string body)
+    {
+        var package = ListeningPackageWithOneRecording();
+
+        var result = await AudioTranscriptionStage.RunAsync(
+            package,
+            [new ImportAudioFile(
+                "listening/audio/part1.mp3",
+                _ => Task.FromResult<Stream>(new MemoryStream([1, 2, 3])))],
+            TranscriberAnswering(HttpStatusCode.OK, body, mediaType),
+            CancellationToken.None);
+
+        Assert.Null(TranscriptAt(result.PackageJson));
+
+        var warning = Assert.Single(result.Warnings);
+        Assert.Equal(TranscriptionWarningCodes.Refused, warning.Code);
+        Assert.Contains("part 1", warning.Message, StringComparison.OrdinalIgnoreCase);
+
+        // The page's own words never reach a message an administrator reads.
+        Assert.DoesNotContain("Bad Gateway", warning.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Rate limited", warning.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// The fallback still works, which is why it is gated rather than removed:
+    /// a reseller that ignores <c>response_format</c> and answers in plain
+    /// text is a real case and its transcript is real speech.
+    /// </summary>
+    [Fact]
+    public async Task A_200_carrying_plain_speech_is_still_accepted()
+    {
+        var result = await AudioTranscriptionStage.RunAsync(
+            ListeningPackageWithOneRecording(),
+            [new ImportAudioFile(
+                "listening/audio/part1.mp3",
+                _ => Task.FromResult<Stream>(new MemoryStream([1, 2, 3])))],
+            TranscriberAnswering(
+                HttpStatusCode.OK, "The train leaves at half past six.", "text/plain"),
+            CancellationToken.None);
+
+        Assert.Equal("The train leaves at half past six.", TranscriptAt(result.PackageJson));
+        Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>The declared shape, and the one a cooperating host sends.</summary>
+    [Fact]
+    public async Task A_200_carrying_the_declared_json_shape_is_accepted()
+    {
+        var result = await AudioTranscriptionStage.RunAsync(
+            ListeningPackageWithOneRecording(),
+            [new ImportAudioFile(
+                "listening/audio/part1.mp3",
+                _ => Task.FromResult<Stream>(new MemoryStream([1, 2, 3])))],
+            TranscriberAnswering(
+                HttpStatusCode.OK,
+                """{"text":"The train leaves at half past six."}""",
+                "application/json"),
+            CancellationToken.None);
+
+        Assert.Equal("The train leaves at half past six.", TranscriptAt(result.PackageJson));
+    }
+
+    /// <summary>
+    /// A body long enough to be a dump rather than eight minutes of speech.
+    /// The backstop behind the two real discriminators.
+    /// </summary>
+    [Fact]
+    public async Task A_200_carrying_a_bulk_dump_is_refused()
+    {
+        var result = await AudioTranscriptionStage.RunAsync(
+            ListeningPackageWithOneRecording(),
+            [new ImportAudioFile(
+                "listening/audio/part1.mp3",
+                _ => Task.FromResult<Stream>(new MemoryStream([1, 2, 3])))],
+            TranscriberAnswering(HttpStatusCode.OK, new string('x', 200_001), "text/plain"),
+            CancellationToken.None);
+
+        Assert.Null(TranscriptAt(result.PackageJson));
+        Assert.Equal(TranscriptionWarningCodes.Refused, Assert.Single(result.Warnings).Code);
+    }
+
+    /// <summary>
+    /// The real adapter, pointed at a handler that answers whatever the test
+    /// says. Everything but the socket is production code: the egress ticket,
+    /// the multipart build, the response reading and the gate.
+    /// </summary>
+    private static IAudioTranscriber TranscriberAnswering(
+        HttpStatusCode status, string body, string mediaType)
+    {
+        var content = new StringContent(body, Encoding.UTF8);
+        content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
+
+        return new OpenAiAudioTranscriber(
+            new StubHttpClientFactory(new StubHandler(status, content)),
+            Options.Create(new AiOptions
+            {
+                OpenAi = new AiProviderOptions { ApiKey = "test-key", Model = "whisper-1" },
+            }),
+            Options.Create(new AudioTranscriptionOptions
+            {
+                Provider = "OpenAi",
+                Model = "whisper-1",
+                BaseUrl = "https://transcription.invalid/v1",
+            }),
+            NullLogger<OpenAiAudioTranscriber>.Instance);
+    }
+
+    private sealed class StubHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
+    }
+
+    private sealed class StubHandler(HttpStatusCode status, HttpContent content) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(status) { Content = content });
+    }
+
+    private static string ListeningPackageWithOneRecording() =>
+        new JsonObject
+        {
+            ["sections"] = new JsonArray(
+                new JsonObject
+                {
+                    ["module"] = "listening",
+                    ["parts"] = new JsonArray(
+                        new JsonObject { ["order"] = 1, ["kind"] = "recording" }),
+                }),
+        }.ToJsonString();
+
+    private static string? TranscriptAt(string packageJson) =>
+        JsonNode.Parse(packageJson)?["sections"]?[0]?["parts"]?[0]?["transcript"]
+            ?.GetValue<string>();
 
     private static ServiceProvider Build(Dictionary<string, string?> config)
     {

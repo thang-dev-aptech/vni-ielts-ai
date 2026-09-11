@@ -646,6 +646,14 @@ public sealed class ExamPackageImportPipeline(
     /// same <c>CODE:index</c> idiom so <c>ResolveWarningAsync</c> has
     /// something to key on.
     /// </summary>
+    private static IReadOnlyList<ImportReviewWarning> OrderWarnings(
+        IReadOnlyList<AnchorOrderIssue> issues) =>
+        issues
+            .Select((issue, i) => new ImportReviewWarning(
+                $"{PassageAnchorCheck.OutOfOrderCode}:{i}", ImportReviewCategory.AcceptedVariants,
+                issue.Path, issue.Message, false))
+            .ToArray();
+
     /// <summary>
     /// Turns <see cref="AudioTranscriptionStage"/>'s results into the same
     /// blocking-but-clearable review-warning shape every other import
@@ -680,14 +688,6 @@ public sealed class ExamPackageImportPipeline(
                 w.Path,
                 w.Message,
                 false))];
-
-    private static IReadOnlyList<ImportReviewWarning> OrderWarnings(
-        IReadOnlyList<AnchorOrderIssue> issues) =>
-        issues
-            .Select((issue, i) => new ImportReviewWarning(
-                $"{PassageAnchorCheck.OutOfOrderCode}:{i}", ImportReviewCategory.AcceptedVariants,
-                issue.Path, issue.Message, false))
-            .ToArray();
 
     /// <summary>
     /// <c>/sections/{index}/</c> for every section no key was supplied for.

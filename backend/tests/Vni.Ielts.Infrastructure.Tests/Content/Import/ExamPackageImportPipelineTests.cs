@@ -901,18 +901,6 @@ public sealed class ExamPackageImportPipelineTests
 
     // ── Wiring ───────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// The production pipeline with exactly one seam replaced.
-    ///
-    /// Real: <see cref="ExamPackageArchiveInspector"/> (it decides the layout,
-    /// which is where <c>Paper</c> and <c>Key</c> come from),
-    /// <see cref="SafeSourceDocumentExtractor"/>,
-    /// <see cref="ExamImportWorkflow"/> over the real
-    /// <see cref="ExamPackageValidator"/> and the committed exam schema.
-    /// Faked: the AI parser, and an in-memory draft store so no database is
-    /// needed. The asset store is a no-op because a .txt source carries no
-    /// embedded media.
-    /// </summary>
     // ── Task 5: Listening audio becomes text, before the anchor check runs ──
 
     /// <summary>
@@ -1056,6 +1044,18 @@ public sealed class ExamPackageImportPipelineTests
         }
     }
 
+    /// <summary>
+    /// The production pipeline with exactly one seam replaced.
+    ///
+    /// Real: <see cref="ExamPackageArchiveInspector"/> (it decides the layout,
+    /// which is where <c>Paper</c> and <c>Key</c> come from),
+    /// <see cref="SafeSourceDocumentExtractor"/>,
+    /// <see cref="ExamImportWorkflow"/> over the real
+    /// <see cref="ExamPackageValidator"/> and the committed exam schema.
+    /// Faked: the AI parser, and an in-memory draft store so no database is
+    /// needed. The asset store is a no-op because a .txt source carries no
+    /// embedded media.
+    /// </summary>
     private static ExamPackageImportPipeline PipelineWith(
         IExamSourceParser parser, IAudioTranscriber? transcriber = null) =>
         PipelineWithStore(parser, transcriber).Pipeline;
