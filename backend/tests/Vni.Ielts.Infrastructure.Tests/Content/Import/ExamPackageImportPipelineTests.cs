@@ -1,5 +1,7 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
+using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Infrastructure.Ai.Importing;
@@ -1041,6 +1043,184 @@ public sealed class ExamPackageImportPipelineTests
         {
             Calls++;
             return Task.FromResult(TranscriptionResult.Transcribed(text));
+        }
+    }
+
+    /// <summary>
+    /// The complaint this plan exists for: a learner must not wait for an AI call
+    /// at results time.
+    /// </summary>
+    [Fact]
+    public async Task An_imported_package_carries_its_explanations_before_any_learner_sees_it()
+    {
+        var attempt = await ImportWithExplanations(AiGeneratedPolicyPackage());
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        var question = FirstAutoScoredQuestion(attempt.Draft!.PackageJson);
+        Assert.NotNull(question["explanation"]);
+        Assert.False(string.IsNullOrWhiteSpace(
+            question["explanation"]!["shortReason"]!.GetValue<string>()));
+    }
+
+    /// <summary>
+    /// Rights, not capability. A package nobody cleared for AI processing must not
+    /// be sent to one.
+    /// </summary>
+    [Fact]
+    public async Task A_package_whose_policy_forbids_explanations_gets_none_and_costs_nothing()
+    {
+        var generator = new CountingExplanationGenerator();
+
+        var attempt = await ImportWithExplanations(NoExplanationPolicyPackage(), generator);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.Equal(0, generator.Calls);
+        Assert.Null(FirstAutoScoredQuestion(attempt.Draft!.PackageJson)["explanation"]);
+    }
+
+    /// <summary>
+    /// A refused explanation is a review warning, not a lost import. Forty
+    /// questions and one refusal must not discard a paid parse.
+    /// </summary>
+    [Fact]
+    public async Task A_refused_explanation_becomes_a_warning_and_the_draft_survives()
+    {
+        var attempt = await ImportWithExplanations(
+            AiGeneratedPolicyPackage(), new RefusingExplanationGenerator());
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.Contains(attempt.Draft!.Warnings, w => w.Id.StartsWith("exp-", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Wires a full pipeline — the same production stack <see cref="PipelineWithStore"/>
+    /// builds — plus an <see cref="ImportReviewWorkflow"/> carrying a real
+    /// <see cref="CanonicalExplanationWorkflow"/>, so <c>ImportJobStage.Explaining</c> has
+    /// something to call. The paper carries no key folder answer for the parser to guess
+    /// right — the archive's own <c>reading/dap-an</c> key overrides it — so an explanation
+    /// generated on anything but the applied key would be caught by
+    /// <c>ExplanationOutputValidator</c>.
+    /// </summary>
+    private static async Task<ExamImportAttempt> ImportWithExplanations(
+        string packageJson, IReadingListeningExplanationGenerator? generator = null)
+    {
+        var drafts = new InMemoryDraftStore();
+        var validator = new ExamPackageValidator(
+            ExamPackageReader.FromSchemaFile(
+                Path.Combine(RepoRoot, "contracts", "schemas", "exam.schema.json")));
+        var canonical = new CanonicalExplanationWorkflow(
+            generator ?? new SucceedingExplanationGenerator(), new InMemoryExplanationCache());
+        var reviewWorkflow = new ImportReviewWorkflow(drafts, validator, canonical);
+
+        var pipeline = new ExamPackageImportPipeline(
+            new ExamPackageArchiveInspector(),
+            new SafeSourceDocumentExtractor(new NoAssets()),
+            new ExamImportWorkflow(validator, drafts, new RecordingParser(packageJson)),
+            validator,
+            drafts,
+            Options.Create(new ImportArchiveOptions()),
+            new UnconfiguredAudioTranscriber(),
+            reviewWorkflow);
+
+        var archive = Build(
+            File("reading/de/passage.txt", "The roof is made of slate."),
+            File("reading/dap-an/key.txt", "Câu số 1: TRUE"));
+
+        return await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+    }
+
+    /// <summary>
+    /// <see cref="RecordingParser.OneReadingQuestion"/>, with a
+    /// <c>policyProfile.explanation.mode</c> of <paramref name="mode"/> —
+    /// the only thing these two fixtures differ on.
+    /// </summary>
+    private static string ReadingPackageWithPolicy(string mode) =>
+        $$"""
+        {
+          "formatVersion": "2.0", "formatProfile": "vni-practice",
+          "scoringProfileRef": "validation-v1",
+          "contentSourceRef": { "sourceId": "recording-parser",
+            "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+          "title": "T",
+          "variant": "academic",
+          "policyProfile": { "explanation": { "mode": "{{mode}}" } },
+          "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+          "scoringProfile": { "rawToBand": { "reading": [
+            { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 } ] } },
+          "sections": [ { "module": "reading", "order": 1, "parts": [ { "order": 1,
+            "kind": "passage", "body": "The roof is made of slate.",
+            "questions": [ { "id": "r1", "order": 1, "type": "true-false-notgiven",
+              "answerKey": { "accepted": ["FALSE"] } } ] } ] } ]
+        }
+        """;
+
+    private static string AiGeneratedPolicyPackage() => ReadingPackageWithPolicy("ai-generated");
+
+    private static string NoExplanationPolicyPackage() => ReadingPackageWithPolicy("none");
+
+    private static JsonNode FirstAutoScoredQuestion(string packageJson) =>
+        JsonNode.Parse(packageJson)!["sections"]![0]!["parts"]![0]!["questions"]![0]!;
+
+    /// <summary>
+    /// Echoes the answer the caller was handed — which, once the archive's key
+    /// has been applied, is the key's answer and never the model's original guess
+    /// — and quotes the passage it was given so
+    /// <see cref="ExplanationOutputValidator"/> has real evidence to find.
+    /// </summary>
+    private sealed class SucceedingExplanationGenerator : IReadingListeningExplanationGenerator
+    {
+        public Task<ExplanationGenerationResult> GenerateAsync(
+            ExplanationGenerationRequest request, CancellationToken ct)
+        {
+            var json = JsonSerializer.Serialize(new
+            {
+                correctAnswer = request.ExpectedAnswer,
+                shortReason = "Because the passage says so.",
+                evidence = new[] { "The roof is made of slate." },
+            });
+
+            return Task.FromResult(new ExplanationGenerationResult(
+                true, json, new ExplanationProviderMetadata("test", "fixture", "v1", "req-1"), null));
+        }
+    }
+
+    /// <summary>Never expected to be called — see the policy-gate test.</summary>
+    private sealed class CountingExplanationGenerator : IReadingListeningExplanationGenerator
+    {
+        public int Calls { get; private set; }
+
+        public Task<ExplanationGenerationResult> GenerateAsync(
+            ExplanationGenerationRequest request, CancellationToken ct)
+        {
+            Calls++;
+            return Task.FromResult(new ExplanationGenerationResult(
+                true,
+                """{ "correctAnswer": "TRUE", "shortReason": "unused", "evidence": [] }""",
+                new ExplanationProviderMetadata("test", "fixture", "v1", "req-1"),
+                null));
+        }
+    }
+
+    /// <summary>A provider call that always refuses, the way a filtered or empty model reply does.</summary>
+    private sealed class RefusingExplanationGenerator : IReadingListeningExplanationGenerator
+    {
+        public Task<ExplanationGenerationResult> GenerateAsync(
+            ExplanationGenerationRequest request, CancellationToken ct) =>
+            Task.FromResult(new ExplanationGenerationResult(false, null, null, "test-refusal"));
+    }
+
+    private sealed class InMemoryExplanationCache : ICanonicalExplanationCache
+    {
+        private readonly Dictionary<string, StoredCanonicalExplanation> entries = new();
+
+        public Task<StoredCanonicalExplanation?> FindAsync(
+            ExamVersionId versionId, string questionId, CancellationToken ct) =>
+            Task.FromResult(entries.TryGetValue($"{versionId.Value}:{questionId}", out var e) ? e : null);
+
+        public Task SaveAsync(StoredCanonicalExplanation entry, CancellationToken ct)
+        {
+            entries[$"{entry.VersionId.Value}:{entry.QuestionId}"] = entry;
+            return Task.CompletedTask;
         }
     }
 

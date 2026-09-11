@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
+using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Exams;
 
@@ -23,7 +24,8 @@ public sealed class ExamPackageImportPipeline(
     IExamPackageValidator validator,
     IImportDraftStore drafts,
     IOptions<ImportArchiveOptions> archiveOptions,
-    IAudioTranscriber transcriber)
+    IAudioTranscriber transcriber,
+    ImportReviewWorkflow? reviewWorkflow = null)
 {
     /// <param name="zip">
     /// Must be seekable. Inspection reads the archive's central directory,
@@ -143,7 +145,8 @@ public sealed class ExamPackageImportPipeline(
             // which route their upload took.
             Report(progress, ImportJobStage.Parsing);
 
-            return await workflow.ImportStructuredAsync(packageJson, definitionId, versionNumber, ct);
+            var structured = await workflow.ImportStructuredAsync(packageJson, definitionId, versionNumber, ct);
+            return await EnrichExplanationsAsync(structured, ct, progress);
         }
 
         var combined = new StringBuilder();
@@ -428,7 +431,8 @@ public sealed class ExamPackageImportPipeline(
             .. TranscriptionWarnings(transcription),
         ];
 
-        if (!changed && warnings.Count == 0 && findings.Count == 0) return ExamImportAttempt.Accepted(draft);
+        if (!changed && warnings.Count == 0 && findings.Count == 0)
+            return await EnrichExplanationsAsync(ExamImportAttempt.Accepted(draft), ct, progress);
 
         /*
          * `Version` was materialised by the validator from the *parser's*
@@ -467,10 +471,79 @@ public sealed class ExamPackageImportPipeline(
         };
 
         var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
-        return ExamImportAttempt.Accepted(replaced ? updated : draft);
+        return await EnrichExplanationsAsync(
+            ExamImportAttempt.Accepted(replaced ? updated : draft), ct, progress);
     }
 
     public const string RevalidationFailedCode = "ANSWER_KEY_REVALIDATION_FAILED";
+
+    /// <summary>
+    /// Writes canonical Reading/Listening explanations onto the draft's
+    /// package before anyone ever sees it — the owner's original complaint
+    /// (results-time explanations should already be there, not generated
+    /// while a learner waits on a button press). Runs after the answer key
+    /// has been applied and revalidated, never before: an explanation is
+    /// generated against the answer the key supplied, never against the
+    /// model's guess. → <c>CanonicalExplanationWorkflow</c>,
+    /// <c>ImportReviewWorkflow.EnrichCanonicalExplanationsAsync</c>
+    ///
+    /// <b>The generation gate is enforced here, before the workflow is ever
+    /// called.</b> <c>policyProfile.explanation.mode</c> must be
+    /// <c>ai-generated</c> — a rights decision, not a capability one. A
+    /// package that has not cleared that gate must cost nothing, so the
+    /// check happens before <see cref="ImportReviewWorkflow"/> — and
+    /// therefore before the configured generator — is ever reached.
+    ///
+    /// <b>A refusal degrades to "no explanations this pass," never to a lost
+    /// import.</b> No generator configured, a revision race, or the reviewer
+    /// gate itself refusing all report through <c>ImportReviewResult</c>,
+    /// which is not an exception — the caller already has an accepted draft
+    /// and keeps it exactly as it was. A refusal a single question earns from
+    /// <see cref="ExplanationOutputValidator"/> is different and stays
+    /// inside a successful attempt: <c>CanonicalExplanationWorkflow</c> turns
+    /// that into an <c>exp-*</c> review warning on the surviving draft, not
+    /// into a failed call here.
+    /// </summary>
+    private async Task<ExamImportAttempt> EnrichExplanationsAsync(
+        ExamImportAttempt attempt, CancellationToken ct, IProgress<ImportJobStage>? progress)
+    {
+        Report(progress, ImportJobStage.Explaining);
+
+        if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
+        if (reviewWorkflow is null) return attempt;
+        if (!RequiresAiGeneratedExplanations(attempt.Draft.PackageJson)) return attempt;
+
+        var actor = new ImportReviewActor(
+            "system:import-pipeline", CanEdit: true, CanReview: true, CanPublish: false);
+
+        var result = await reviewWorkflow.EnrichCanonicalExplanationsAsync(
+            attempt.Draft.Id, attempt.Draft.Revision, actor, ct);
+
+        return result.IsSuccess && result.Draft is not null
+            ? ExamImportAttempt.Accepted(result.Draft)
+            : attempt;
+    }
+
+    /// <summary>
+    /// Reads the raw package rather than the materialised
+    /// <see cref="ExamVersion"/> — <c>policyProfile.explanation.mode</c> is a
+    /// rights decision the schema carries and the domain model does not, by
+    /// design (see <see cref="ExamPackageReader"/>'s own
+    /// <c>CheckAuthoredExplanations</c>, which reads it the same way for the
+    /// same reason).
+    /// </summary>
+    private static bool RequiresAiGeneratedExplanations(string packageJson)
+    {
+        try
+        {
+            return JsonNode.Parse(packageJson)?["policyProfile"]?["explanation"]?["mode"]
+                ?.GetValue<string>() == "ai-generated";
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
 
     /// <summary>
     /// Tells the caller where the import has got to, and never lets that

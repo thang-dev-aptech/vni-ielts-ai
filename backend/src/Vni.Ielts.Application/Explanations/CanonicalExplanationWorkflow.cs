@@ -186,11 +186,15 @@ public sealed class CanonicalExplanationWorkflow(
                         ["shortReason"] = explanation.ShortReason,
                         ["evidence"] = new JsonArray(
                             explanation.Evidence.Select(e => JsonValue.Create(e)).ToArray()),
-                        ["commonMistake"] = explanation.CommonMistake,
                     };
 
-                    // Only written when present: the package schema declares the
-                    // key as optional and a null would fail `type: string`.
+                    // Only written when present: the package schema declares both
+                    // keys as optional strings, and a JSON null fails `type:
+                    // string` — caught by the revalidation
+                    // ImportReviewWorkflow.EnrichCanonicalExplanationsAsync runs
+                    // right after this, once anything actually called it.
+                    if (explanation.CommonMistake is not null)
+                        node["commonMistake"] = explanation.CommonMistake;
                     if (explanation.Translation is not null)
                         node["translation"] = explanation.Translation;
 
