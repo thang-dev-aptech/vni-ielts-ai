@@ -152,13 +152,16 @@ public sealed class ExamImportWorkflow(
          *
          * The lookup is by source hash rather than draft id because the draft
          * id is derived from the parser's output, which is precisely what is
-         * not known yet. → IImportDraftStore.FindBySourceAsync
+         * not known yet. It is keyed on the prompt version this parser would
+         * run under — `parser.PromptVersion`, the same value the job's own id
+         * carries — so a draft produced by a superseded prompt is not adopted
+         * as though it were this run's work. → IImportDraftStore.FindBySourceAsync
          */
         if (resumeExistingDraft)
         {
             var existing = await drafts.FindBySourceAsync(
                 definitionId, versionNumber, ExamImportRoute.AiParsedSource,
-                source.SourceSha256.ToLowerInvariant(), ct);
+                source.SourceSha256.ToLowerInvariant(), parser.PromptVersion, ct);
 
             if (existing is not null) return ExamImportAttempt.Accepted(existing);
         }
@@ -192,7 +195,7 @@ public sealed class ExamImportWorkflow(
         var warnings = route == ExamImportRoute.AiParsedSource
             ? new ImportReviewWarning[]
             {
-                new("AI_PARSE_REVIEW", ImportReviewCategory.Questions, "/",
+                new(AiParseReviewWarningId, ImportReviewCategory.Questions, "/",
                     "AI-parsed content must be compared with its source before approval.", false),
             }
             : [];
@@ -207,6 +210,16 @@ public sealed class ExamImportWorkflow(
         await drafts.SaveAsync(draft, ct);
         return ExamImportAttempt.Accepted(draft);
     }
+
+    /// <summary>
+    /// The one warning this workflow writes, named rather than typed twice.
+    ///
+    /// <b>It is written here, at save, and never recomputed.</b>
+    /// <c>ExamPackageImportPipeline</c> has to be able to tell it apart from
+    /// the warnings it regenerates on every run, because a resumed import
+    /// replaces its own and must leave everybody else's alone.
+    /// </summary>
+    public const string AiParseReviewWarningId = "AI_PARSE_REVIEW";
 
     public static string Hash(string value) =>
         Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));

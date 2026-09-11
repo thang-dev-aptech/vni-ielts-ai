@@ -627,7 +627,22 @@ public sealed class ImportWorker(
         }
         catch (Exception e)
         {
-            logger.LogWarning(e, "Lease renewal failed; the lease will expire normally.");
+            /*
+             * <b>The second door out of this loop, and it has to shut the same
+             * way the first one does.</b> A renewal that <i>throws</i> leaves
+             * this loop for good — nothing renews the lease afterwards — so the
+             * lease expires, another worker claims the job, and this one keeps
+             * paying for every remaining stage exactly as it did before the
+             * lost-lease path was wired to cancellation. Logging "the lease
+             * will expire normally" described the problem rather than
+             * answering it.
+             */
+            logger.LogWarning(
+                e, "Lease renewal failed, so this lease can no longer be kept alive. Stopping the "
+                + "import before it buys anything else; the lease will expire and another worker "
+                + "will pick the job up.");
+
+            await lost.CancelAsync();
         }
     }
 

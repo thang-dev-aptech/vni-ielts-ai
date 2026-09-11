@@ -44,7 +44,11 @@ public sealed class ExamPackageImportPipelineTests
             // name a provider, because the draft records what produced it.
             return Task.FromResult(new ParsedExamPackage(
                 packageJson ?? OneReadingQuestion(),
-                new ParserRunMetadata("fake", "recording-parser", "test", "req-1")));
+                // The same value this parser reports on the port. A real one
+                // reads both off `ExamParserOptions.PromptVersion`, and the
+                // resume lookup matches a draft on what produced it — a fake
+                /// that disagreed with itself would never resume.
+                new ParserRunMetadata("fake", "recording-parser", PromptVersion, "req-1")));
         }
 
         /// <summary>
@@ -1031,6 +1035,153 @@ public sealed class ExamPackageImportPipelineTests
         Assert.Equal(ImportReviewCategory.AssetMapping, warning.Category);
     }
 
+    /// <summary>
+    /// A transcriber that refuses once and then answers — the shape a real one
+    /// has, since transcription is neither free nor deterministic.
+    /// </summary>
+    private sealed class RefusesOnceTranscriber(string text) : IAudioTranscriber
+    {
+        private bool _refused;
+
+        public bool IsConfigured => true;
+
+        public Task<TranscriptionResult> TranscribeAsync(
+            Stream audio, string fileName, CancellationToken ct)
+        {
+            if (_refused) return Task.FromResult(TranscriptionResult.Transcribed(text));
+
+            _refused = true;
+            return Task.FromResult(TranscriptionResult.Refused("PROVIDER_UNAVAILABLE"));
+        }
+    }
+
+    /// <summary>
+    /// <b>F-13: a warning on the draft describes the content on the draft.</b>
+    ///
+    /// A resumed import skips only the parse, so the transcription runs again —
+    /// and it is not deterministic. Run 1 is refused and leaves a
+    /// <c>TRANSCRIPT_REFUSED</c> warning on the draft with no transcript; run 2
+    /// succeeds and writes one. Merging by id and letting the stored copy win —
+    /// which is what the first fix wave did, to avoid reopening a warning a
+    /// reviewer had cleared — leaves run 2's transcript sitting beside run 1's
+    /// warning saying there is none. A reviewer is then asked to judge a
+    /// sentence about content that is not there.
+    ///
+    /// <b>The reviewer's decision is still not undone</b>; that half is pinned
+    /// by <see cref="A_resumed_run_keeps_a_reviewers_resolution_of_a_warning_that_recurs"/>.
+    /// The content belongs to this run, the decision belongs to the reviewer.
+    /// </summary>
+    [Fact]
+    public async Task A_resumed_run_drops_a_warning_whose_condition_no_longer_holds()
+    {
+        var (pipeline, drafts, _) = PipelineWithStore(
+            new RecordingParser(RecordingParser.ListeningRecordingWithNoTranscript()),
+            new RefusesOnceTranscriber("The station roof is made of copper throughout."));
+
+        var definitionId = ExamDefinitionId.New();
+
+        var first = await pipeline.ImportAsync(
+            Build(
+                File("listening/de/section-1.txt", "The station is old."),
+                Bytes("listening/audio/part1.mp3", [0x49, 0x44, 0x33, 0x04])),
+            definitionId, 1, default);
+
+        Assert.True(first.IsAccepted, Describe(first.Findings));
+        Assert.Null(JsonNode.Parse(first.Draft!.PackageJson)!["sections"]![0]!["parts"]![0]!["transcript"]);
+        Assert.Contains(
+            first.Draft.Warnings,
+            w => w.Id.StartsWith(TranscriptionWarningCodes.Refused, StringComparison.Ordinal));
+
+        // The retry, resuming past a parse it already paid for.
+        var second = await pipeline.ImportAsync(
+            Build(
+                File("listening/de/section-1.txt", "The station is old."),
+                Bytes("listening/audio/part1.mp3", [0x49, 0x44, 0x33, 0x04])),
+            definitionId, 1, default, null, ImportJobStage.Keying);
+
+        Assert.True(second.IsAccepted, Describe(second.Findings));
+
+        // The draft really did change under the warning — otherwise there is
+        // nothing for a stale warning to be stale about.
+        var stored = await drafts.FindAsync(second.Draft!.Id, default);
+        Assert.Equal(
+            "The station roof is made of copper throughout.",
+            JsonNode.Parse(stored!.PackageJson)!["sections"]![0]!["parts"]![0]!["transcript"]!
+                .GetValue<string>());
+
+        // The assertion this test exists for.
+        Assert.DoesNotContain(
+            stored.Warnings,
+            w => w.Id.StartsWith(TranscriptionWarningCodes.Refused, StringComparison.Ordinal));
+
+        // And the warnings nobody here recomputes are left exactly where they
+        // were: dropping "not in my new set" wholesale would delete a
+        // reviewer's outstanding work on the first retry.
+        Assert.Contains(
+            stored.Warnings,
+            w => w.Id.StartsWith(ExamImportWorkflow.AiParseReviewWarningId, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// The other half of <see cref="Reconcile"/>'s rule, and the reason the
+    /// first fix wave chose first-wins in the first place: a warning a reviewer
+    /// has cleared with a recorded, audited reason (<c>P-19</c>) must not come
+    /// back unresolved because a worker retried. The content is this run's; the
+    /// decision is the reviewer's.
+    /// </summary>
+    [Fact]
+    public async Task A_resumed_run_keeps_a_reviewers_resolution_of_a_warning_that_recurs()
+    {
+        var (pipeline, drafts, _) = PipelineWithStore(
+            new RecordingParser(RecordingParser.ListeningRecordingWithNoTranscript()),
+            new FixedTranscriber("Nothing in here matches the key."));
+
+        var definitionId = ExamDefinitionId.New();
+
+        var first = await pipeline.ImportAsync(
+            Build(
+                File("listening/de/section-1.txt", "The station is old."),
+                Bytes("listening/audio/part1.mp3", [0x49, 0x44, 0x33, 0x04])),
+            definitionId, 1, default);
+
+        Assert.True(first.IsAccepted, Describe(first.Findings));
+
+        var recurring = Assert.Single(
+            first.Draft!.Warnings,
+            w => w.Id.StartsWith(PassageAnchorCheck.NotInPassageCode, StringComparison.Ordinal));
+
+        // A reviewer clears it with a reason, exactly as ImportReviewWorkflow
+        // records one.
+        var reviewed = first.Draft with
+        {
+            Warnings =
+            [
+                .. first.Draft.Warnings.Select(w => w.Id == recurring.Id
+                    ? w with { Resolved = true, OverrideReason = "Đã đối chiếu với bản ghi." }
+                    : w),
+            ],
+            Revision = first.Draft.Revision + 1,
+        };
+
+        Assert.True(await drafts.ReplaceAsync(reviewed, first.Draft.Revision, default));
+
+        var second = await pipeline.ImportAsync(
+            Build(
+                File("listening/de/section-1.txt", "The station is old."),
+                Bytes("listening/audio/part1.mp3", [0x49, 0x44, 0x33, 0x04])),
+            definitionId, 1, default, null, ImportJobStage.Keying);
+
+        Assert.True(second.IsAccepted, Describe(second.Findings));
+
+        var stored = await drafts.FindAsync(second.Draft!.Id, default);
+        var after = Assert.Single(
+            stored!.Warnings,
+            w => w.Id.StartsWith(PassageAnchorCheck.NotInPassageCode, StringComparison.Ordinal));
+
+        Assert.True(after.Resolved);
+        Assert.Equal("Đã đối chiếu với bản ghi.", after.OverrideReason);
+    }
+
     /// <summary>A transcriber that answers the same text for every recording.</summary>
     private sealed class FixedTranscriber(string text) : IAudioTranscriber
     {
@@ -1344,10 +1495,11 @@ public sealed class ExamPackageImportPipelineTests
 
         public Task<ExamImportDraft?> FindBySourceAsync(
             ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route,
-            string sourceHash, CancellationToken ct) =>
+            string sourceHash, string parsePromptVersion, CancellationToken ct) =>
             Task.FromResult(saved.FirstOrDefault(d =>
                 d.DefinitionId == definitionId && d.VersionNumber == versionNumber
-                && d.Route == route && d.SourceHash == sourceHash));
+                && d.Route == route && d.SourceHash == sourceHash
+                && d.Parser?.PromptVersion == parsePromptVersion));
 
         public Task<bool> ReplaceAsync(ExamImportDraft draft, int expectedRevision, CancellationToken ct)
         {

@@ -25,9 +25,10 @@ public sealed class ExamImportWorkflowTests
         }
     }
 
-    private sealed class FakeParser(string packageJson) : IExamSourceParser
+    private sealed class FakeParser(string packageJson, string promptVersion = "test-parse-prompt")
+        : IExamSourceParser
     {
-        public string PromptVersion => "test-parse-prompt";
+        public string PromptVersion => promptVersion;
 
         public int Calls { get; private set; }
 
@@ -36,7 +37,11 @@ public sealed class ExamImportWorkflowTests
             Calls++;
             return Task.FromResult(new ParsedExamPackage(
                 packageJson,
-                new ParserRunMetadata("recorded", "parser-v1", "prompt-1", "req-1")));
+                // The same value reported on the port, as a real parser does:
+                // both are `ExamParserOptions.PromptVersion`. The resume lookup
+                // matches a draft on the prompt that produced it, so a fake
+                // disagreeing with itself would be testing nothing.
+                new ParserRunMetadata("recorded", "parser-v1", PromptVersion, "req-1")));
         }
     }
 
@@ -58,10 +63,11 @@ public sealed class ExamImportWorkflowTests
 
         public Task<ExamImportDraft?> FindBySourceAsync(
             ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route,
-            string sourceHash, CancellationToken ct) =>
+            string sourceHash, string parsePromptVersion, CancellationToken ct) =>
             Task.FromResult(Saved.FirstOrDefault(d =>
                 d.DefinitionId == definitionId && d.VersionNumber == versionNumber
-                && d.Route == route && d.SourceHash == sourceHash));
+                && d.Route == route && d.SourceHash == sourceHash
+                && d.Parser?.PromptVersion == parsePromptVersion));
 
         public Task<bool> ReplaceAsync(ExamImportDraft draft, int expectedRevision, CancellationToken ct)
         {
@@ -167,4 +173,55 @@ public sealed class ExamImportWorkflowTests
                 AnswerMatchingRules.Default),
             new TimingProfile(new Dictionary<ExamModule, int>(), null, []),
             [new Section(ExamModule.Reading, 1, [])]);
+
+    /// <summary>
+    /// <b>F-11 at the seam that decides it: a resume reuses a draft only when
+    /// the prompt that produced it is the prompt this parser would run
+    /// under.</b>
+    ///
+    /// <c>ImportJob.OperationIdFor</c> carries the parse prompt version for one
+    /// reason — when an improved prompt ships, the same bytes must be able to
+    /// re-parse instead of colliding with the job keyed to the old prompt. A
+    /// resume lookup blind to the prompt gives that back at the last step: it
+    /// finds the superseded draft and hands it over as this run's work.
+    ///
+    /// Both directions are pinned here, because either alone passes for the
+    /// wrong reason — always reusing, or never reusing.
+    /// </summary>
+    [Fact]
+    public async Task A_resume_reuses_the_draft_from_its_own_prompt_and_re_parses_under_a_new_one()
+    {
+        var store = new FakeDraftStore();
+        var definitionId = ExamDefinitionId.New();
+        const string text = "the same extracted paper, every time";
+        var source = new ExtractedImportSource(
+            "package", "text/plain", text,
+            ExamImportWorkflow.Hash("source bytes"), ExamImportWorkflow.Hash(text));
+
+        var first = new FakeParser("valid-ai-package", "prompt-a");
+        var underPromptA = new ExamImportWorkflow(new FakeValidator(), store, first);
+
+        // Nothing saved yet, so even a resume has to parse.
+        Assert.True((await underPromptA.ImportExtractedAsync(
+            source, definitionId, 1, default, resumeExistingDraft: true)).IsAccepted);
+        Assert.Equal(1, first.Calls);
+
+        // The same prompt again: the draft is reused and the parser is not
+        // called a second time. This is the assertion this test exists for.
+        Assert.True((await underPromptA.ImportExtractedAsync(
+            source, definitionId, 1, default, resumeExistingDraft: true)).IsAccepted);
+        Assert.Equal(1, first.Calls);
+
+        // An improved prompt over the same bytes is different work, and must
+        // not silently adopt what the old prompt produced.
+        var second = new FakeParser("valid-ai-package-v2", "prompt-b");
+        var underPromptB = new ExamImportWorkflow(new FakeValidator(), store, second);
+
+        var resumed = await underPromptB.ImportExtractedAsync(
+            source, definitionId, 1, default, resumeExistingDraft: true);
+
+        Assert.True(resumed.IsAccepted);
+        Assert.Equal(1, second.Calls);
+        Assert.Equal("prompt-b", resumed.Draft!.Parser!.PromptVersion);
+    }
 }

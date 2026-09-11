@@ -59,14 +59,27 @@ public interface IImportDraftStore
     /// version, the route, and the hash of the extracted source text. That is
     /// what makes a resumed import able to skip the parse it already bought.
     ///
+    /// <b><paramref name="parsePromptVersion"/> is the fifth term, and leaving
+    /// it out silently undid a decision this system already made.</b>
+    /// <see cref="ImportJob.OperationIdFor"/> carries the parse prompt version
+    /// for one reason: when an improved prompt ships, re-uploading identical
+    /// bytes must be able to re-parse rather than collide with the job keyed to
+    /// the old prompt. Two drafts can share the other four terms — the same
+    /// source parsed under two prompts — and they are different drafts with
+    /// different ids, because the id is derived from the package hash. A lookup
+    /// blind to the prompt takes whichever the database returns first and hands
+    /// back the parse the new prompt was shipped to supersede.
+    ///
     /// <b>Null is a normal answer</b>, not an error: it means no earlier run
-    /// got as far as saving a draft, so the parse genuinely has to happen.
+    /// under this prompt got as far as saving a draft, so the parse genuinely
+    /// has to happen.
     /// </summary>
     Task<ExamImportDraft?> FindBySourceAsync(
         ExamDefinitionId definitionId,
         int versionNumber,
         ExamImportRoute route,
         string sourceHash,
+        string parsePromptVersion,
         CancellationToken ct);
     Task<bool> ReplaceAsync(ExamImportDraft draft, int expectedRevision, CancellationToken ct);
 }

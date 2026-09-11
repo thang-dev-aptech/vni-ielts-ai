@@ -823,4 +823,109 @@ public sealed class ImportWorkerTests
         // Worker B owns the job and its archive; A must not have removed either.
         Assert.Empty(archives.Deleted);
     }
+
+    /// <summary>
+    /// The real outbox in every respect except that renewing throws.
+    ///
+    /// <b>A decorator over the registered implementation, not a hand-written
+    /// fake.</b> Every other operation in this test has to behave exactly as it
+    /// does in production — the claim, the stage writes, the settle — because
+    /// what is being pinned is that the worker stops, and a fake that got the
+    /// claim wrong would prove nothing about that.
+    /// </summary>
+    private sealed class RenewalFailsOutbox(IImportOutbox inner) : IImportOutbox
+    {
+        public Task<bool> EnqueueAsync(ImportJob job, CancellationToken ct) =>
+            inner.EnqueueAsync(job, ct);
+
+        public Task<ImportJob?> ClaimAsync(string leaseToken, TimeSpan lease, CancellationToken ct) =>
+            inner.ClaimAsync(leaseToken, lease, ct);
+
+        /// <summary>A database blip, a socket reset, a driver bug — the loop leaves either way.</summary>
+        public Task<bool> RenewAsync(
+            string operationId, string leaseToken, TimeSpan lease, CancellationToken ct) =>
+            throw new TimeoutException("the database did not answer the renewal");
+
+        public Task<bool> AdvanceAsync(
+            string operationId, string leaseToken, ImportJobStage stage, Guid? draftId,
+            CancellationToken ct) =>
+            inner.AdvanceAsync(operationId, leaseToken, stage, draftId, ct);
+
+        public Task<bool> CompleteAsync(string operationId, string leaseToken, CancellationToken ct) =>
+            inner.CompleteAsync(operationId, leaseToken, ct);
+
+        public Task<bool> RetryAsync(
+            string operationId, string leaseToken, DateTimeOffset nextAttemptAt, string error,
+            CancellationToken ct) =>
+            inner.RetryAsync(operationId, leaseToken, nextAttemptAt, error, ct);
+
+        public Task<bool> FailAsync(
+            string operationId, string leaseToken, string error, CancellationToken ct) =>
+            inner.FailAsync(operationId, leaseToken, error, ct);
+
+        public Task<bool> ReopenAsync(string operationId, CancellationToken ct) =>
+            inner.ReopenAsync(operationId, ct);
+
+        public Task<ImportJob?> FindAsync(string operationId, CancellationToken ct) =>
+            inner.FindAsync(operationId, ct);
+    }
+
+    /// <summary>
+    /// <b>F-12: the second door out of the heartbeat, shut.</b>
+    ///
+    /// C2 wired a <i>lost</i> lease to cancellation. A renewal that
+    /// <b>throws</b> took the other exit: the loop logged "the lease will
+    /// expire normally" and left for good, so nothing renewed the lease, it
+    /// expired, another worker claimed the job — and this one carried on paying
+    /// for every remaining stage. The same failure C2 described, reached
+    /// through the error path.
+    ///
+    /// <b>Interleaved, because it cannot be proved otherwise.</b> The worker is
+    /// held inside the archive read — before any paid stage — while the
+    /// heartbeat fires for real against an outbox whose renewal throws. The
+    /// gate is opened after a bounded wait so a worker that ignored the failure
+    /// fails this test by calling the parser rather than by hanging.
+    /// </summary>
+    [SkippableFact]
+    public async Task A_worker_whose_renewal_throws_stops_instead_of_paying_on_a_lease_nobody_renews()
+    {
+        Skip.IfNot(MongoAvailable, SkipReason);
+
+        var parser = new CountingParser();
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var archives = new FakeArchiveStore { Gate = gate, ObservesCancellation = true };
+
+        await using var harness = await NewHarnessAsync(
+            archives,
+            services =>
+            {
+                services.AddSingleton<IExamSourceParser>(parser);
+                services.AddSingleton<ISourceDocumentExtractor>(new KeyFailsOnceExtractor());
+
+                // Wrap whatever Infrastructure registered, rather than
+                // replacing it: the claim and the settle must stay real.
+                var registered = services.Last(d => d.ServiceType == typeof(IImportOutbox));
+                var implementation = registered.ImplementationType!;
+
+                services.AddScoped<IImportOutbox>(sp => new RenewalFailsOutbox(
+                    (IImportOutbox)ActivatorUtilities.CreateInstance(sp, implementation)));
+            },
+            heartbeat: TimeSpan.FromMilliseconds(25));
+
+        var (operationId, _) = await EnqueueAsync(harness, PaperAndKeyPackage());
+
+        var a = harness.Worker.RunOnceAsync(default);
+        await archives.Entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        await Task.WhenAny(a, Task.Delay(TimeSpan.FromSeconds(3)));
+        gate.TrySetResult();
+
+        await a.WaitAsync(TimeSpan.FromSeconds(60));
+
+        // The assertion this test exists for.
+        Assert.Equal(0, parser.Calls);
+
+        var job = await harness.Outbox.FindAsync(operationId, default);
+        Assert.NotEqual(ImportJobState.Completed, job!.State);
+    }
 }

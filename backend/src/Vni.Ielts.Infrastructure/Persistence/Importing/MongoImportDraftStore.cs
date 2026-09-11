@@ -173,22 +173,34 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
     }
 
     /// <summary>
-    /// The resume lookup. Four equality terms, no sort: the same
-    /// <c>(definitionId, versionNumber, route, sourceHash)</c> can only ever
-    /// name one draft, because <c>StableDraftId</c> makes a second parse of the
-    /// same text under the same prompt collide on <c>_id</c> — and a parse
-    /// under a <i>different</i> prompt is a different job with a different
-    /// operation id, which never asks this question.
+    /// The resume lookup. Five equality terms, no sort.
+    ///
+    /// <b>The prompt version is one of the five, and it is what makes "no
+    /// sort" honest.</b> Four terms do <i>not</i> name one draft: the same
+    /// source parsed under an improved prompt is a different draft with a
+    /// different id, sitting in this collection beside the old one, and a
+    /// four-term lookup would take whichever the server returned first — very
+    /// often the older document. That is exactly the collision
+    /// <c>ImportJob.OperationIdFor</c> put the prompt version into the job
+    /// identity to prevent, arriving one step later. With the prompt in the
+    /// filter the match is unique by construction, because
+    /// <c>StableDraftId</c> makes a second parse of the same text under the
+    /// same prompt collide on <c>_id</c>.
+    ///
+    /// <b>Read off the draft's recorded parser metadata</b>
+    /// (<c>parserPromptVersion</c>), which is the prompt that actually
+    /// produced it — not a value re-derived from anywhere else.
     /// </summary>
     public async Task<ExamImportDraft?> FindBySourceAsync(
         ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route, string sourceHash,
-        CancellationToken ct)
+        string parsePromptVersion, CancellationToken ct)
     {
         var filter = Builders<ExamImportDraftDocument>.Filter.And(
             Builders<ExamImportDraftDocument>.Filter.Eq(d => d.DefinitionId, definitionId.Value),
             Builders<ExamImportDraftDocument>.Filter.Eq(d => d.VersionNumber, versionNumber),
             Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Route, route.ToString()),
-            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.SourceHash, sourceHash));
+            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.SourceHash, sourceHash),
+            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.ParserPromptVersion, parsePromptVersion));
 
         var doc = await context.ImportDrafts.Find(filter).FirstOrDefaultAsync(ct);
         return doc is null ? null : ToDraft(doc);

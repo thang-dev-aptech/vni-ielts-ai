@@ -449,7 +449,9 @@ public sealed class ExamPackageImportPipeline(
             .. TranscriptionWarnings(transcription),
         ];
 
-        if (!changed && warnings.Count == 0 && findings.Count == 0)
+        var reconciled = Reconcile(draft.Warnings, warnings);
+
+        if (!changed && findings.Count == 0 && reconciled.SequenceEqual(draft.Warnings))
             return await EnrichExplanationsAsync(ExamImportAttempt.Accepted(draft), ct, progress);
 
         /*
@@ -483,24 +485,11 @@ public sealed class ExamPackageImportPipeline(
             PackageJson = json,
             PackageHash = ExamImportWorkflow.Hash(json),
             Version = version,
-            /*
-             * <b>Deduplicated, because this method can legitimately run
-             * twice over the same draft.</b> A resumed job skips only the
-             * parse; keying, the cross-checks and their warnings are re-run
-             * against the draft the first run left behind, which already
-             * carries them. Appending blindly would give a reviewer two
-             * copies of every warning — with the same `CODE:index` id, so
-             * `ResolveWarningAsync` could never clear the pair — and would
-             * grow the list again on every further attempt.
-             *
-             * Findings are value records, so `Distinct()` is exact. Warnings
-             * are deduplicated by id and the FIRST wins, which is the one
-             * already on the draft: if a reviewer has resolved it, or
-             * overridden it with a recorded reason, a re-run must not quietly
-             * reopen it.
-             */
+            // Findings are value records, so `Distinct()` is exact. It is
+            // there for the same reason `Reconcile` is: a resumed job re-runs
+            // this method over a draft that already carries its output.
             Findings = [.. draft.Findings.Concat(findings).Distinct()],
-            Warnings = [.. draft.Warnings.Concat(warnings).DistinctBy(w => w.Id)],
+            Warnings = reconciled,
             Revision = draft.Revision + 1,
         };
 
@@ -508,6 +497,71 @@ public sealed class ExamPackageImportPipeline(
         return await EnrichExplanationsAsync(
             ExamImportAttempt.Accepted(replaced ? updated : draft), ct, progress);
     }
+
+    /// <summary>
+    /// The warnings a re-run of this method should leave on the draft.
+    ///
+    /// <b>The rule this keeps: a warning on the draft describes the content on
+    /// the draft.</b> A resumed import skips only the parse, so this method
+    /// runs again — and transcription is re-run, is not deterministic, and
+    /// <c>IP-08</c> makes a second pass behave differently once a first pass
+    /// has persisted a transcript. Simply merging by id and letting the stored
+    /// copy win therefore leaves run 2's transcript beside run 1's warning
+    /// <i>about</i> that transcript: a sentence a reviewer is asked to judge
+    /// that describes content no longer present. The same applies to every
+    /// warning downstream of a transcript, because
+    /// <see cref="PassageAnchorCheck"/> reads it.
+    ///
+    /// <b>And the rule that has to survive alongside it: a reviewer's decision
+    /// is not undone by a retry.</b> Clearing a warning with a recorded,
+    /// audited reason (<c>P-19</c>) is a judgement a person made; a re-run
+    /// re-raising it unresolved would quietly reopen it.
+    ///
+    /// <b>They do not conflict, because they are about different halves of the
+    /// record.</b> The <i>content</i> — path, message, category, and whether
+    /// the condition still holds at all — belongs to this run, which computed
+    /// it against the package as it now stands. The <i>decision</i> —
+    /// <c>Resolved</c> and <c>OverrideReason</c> — belongs to the reviewer, and
+    /// is carried across by id. So a recurring warning keeps its cleared state
+    /// and gets this run's wording, and a warning whose condition no longer
+    /// fires disappears instead of standing as a stale sentence.
+    ///
+    /// <b>Everything this method did not compute is left exactly as it is.</b>
+    /// Only three places write an <see cref="ImportReviewWarning"/>, and the
+    /// other two are enumerable: <c>AI_PARSE_REVIEW</c>, written once by
+    /// <see cref="ExamImportWorkflow"/> at save, and
+    /// <see cref="ArchiveFindingCodes.LayoutUnknownRoleFolder"/>, written by
+    /// <see cref="AttachRoleFolderWarningsAsync"/> from the archive inspection.
+    /// Neither is recomputed here, so neither is this method's to drop —
+    /// treating "not in my new set" as "gone" for those would delete a
+    /// reviewer's outstanding work on the first retry.
+    /// </summary>
+    private static IReadOnlyList<ImportReviewWarning> Reconcile(
+        IReadOnlyList<ImportReviewWarning> stored, IReadOnlyList<ImportReviewWarning> computed)
+    {
+        // First occurrence wins, so a stored list that somehow carries a
+        // duplicate id does not throw here — this is bookkeeping over an
+        // already-paid import, not a place to fail one.
+        var decisions = new Dictionary<string, ImportReviewWarning>(StringComparer.Ordinal);
+        foreach (var warning in stored) decisions.TryAdd(warning.Id, warning);
+
+        return
+        [
+            .. stored.Where(NotWrittenHere),
+            .. computed.Select(w => decisions.TryGetValue(w.Id, out var prior)
+                ? w with { Resolved = prior.Resolved, OverrideReason = prior.OverrideReason }
+                : w),
+        ];
+    }
+
+    /// <summary>
+    /// The two warning ids <see cref="ApplyKeysAndGuardAsync"/> does not
+    /// produce, and therefore may not remove. → <see cref="Reconcile"/>
+    /// </summary>
+    private static bool NotWrittenHere(ImportReviewWarning warning) =>
+        warning.Id.StartsWith(ExamImportWorkflow.AiParseReviewWarningId, StringComparison.Ordinal)
+        || warning.Id.StartsWith(
+            ArchiveFindingCodes.LayoutUnknownRoleFolder, StringComparison.Ordinal);
 
     public const string RevalidationFailedCode = "ANSWER_KEY_REVALIDATION_FAILED";
 
