@@ -9,19 +9,18 @@ namespace Vni.Ielts.Infrastructure.Ai.Importing;
 /// every such upload fails with <c>AI_PARSER_UNAVAILABLE</c>.
 ///
 /// <para>
-/// <b>Deliberately its own section, not a read of <c>Ai:OpenAi</c>.</b> That
-/// section already exists and is already configured — it is what Writing
-/// marking, Reading/Listening explanations and coaching advice all call
-/// through. If this type read it too, configuring Writing marking would
-/// silently also turn on AI parsing of copyrighted exam papers nobody asked
-/// it to parse — exactly the "a fallback that picks a provider because one
-/// happens to be available" this task's brief forbids. So
-/// <see cref="OpenAiStructuredExamClient"/> is wired here from <b>this</b>
-/// section's own <see cref="Model"/>, <see cref="ApiKey"/> and
-/// <see cref="BaseUrl"/> — a deployment turns raw-document parsing on by
-/// filling in a value that only raw-document parsing reads, and completeness
-/// of this section is exactly what the runtime call needs. There is no way to
-/// half-fill this section and have the first upload discover it.
+/// <b>This section selects a provider; it does not hold a second copy of its
+/// key.</b> <c>Ai:OpenAi:ApiKey</c> / <c>Ai:Gemini:ApiKey</c> are the one
+/// place a provider credential lives — the same section
+/// <c>Assessment:WritingMarking</c> already selects from via
+/// <c>PrimaryProvider</c>/<c>FallbackProvider</c> without carrying its own
+/// key. Giving this section its own <c>ApiKey</c> would mean two places to
+/// rotate one secret, and this repository's own history has a credential
+/// that was committed, deleted, and never revoked — it does not need a
+/// second place to be forgotten. So the completeness this gate checks is
+/// <see cref="Provider"/> and <see cref="Model"/> here, <b>and</b> a
+/// non-empty key in the <c>Ai</c> section the resolved provider names — see
+/// <see cref="Problem"/>.
 /// </para>
 /// </summary>
 public sealed class ExamParserOptions
@@ -30,16 +29,19 @@ public sealed class ExamParserOptions
 
     /// <summary>
     /// <c>OpenAi</c> — the only <c>IStructuredExamAiClient</c> this
-    /// deployment wires today. Not defaulted: a default here would silently
+    /// deployment wires today, and the section under <c>Ai</c> this gate
+    /// reads the key from. Not defaulted: a default here would silently
     /// route a paper somewhere nobody chose. → `G-11`
     /// </summary>
     public string? Provider { get; set; }
 
-    /// <summary>Which model transcribes the paper. No default. → `G-11`</summary>
+    /// <summary>
+    /// Which model transcribes the paper. Independent of
+    /// <c>Ai:OpenAi:Model</c> — the model that marks a Writing essay is not
+    /// necessarily the model that should transcribe a paper. No default.
+    /// → `G-11`
+    /// </summary>
     public string? Model { get; set; }
-
-    /// <summary>Environment configuration only. Never committed. → CLAUDE.md rule 6</summary>
-    public string? ApiKey { get; set; }
 
     /// <summary>The API root. Left unset for the vendor's own endpoint.</summary>
     public string? BaseUrl { get; set; }
@@ -63,15 +65,28 @@ public sealed class ExamParserOptions
     public string PromptVersion { get; set; } = ExamSourceParsePrompt.Version;
 
     /// <summary>
-    /// Whether the real parser may be wired. <b>All three of
-    /// <see cref="Provider"/>, <see cref="Model"/> and <see cref="ApiKey"/>,
-    /// or none.</b> There is no reading of "some of them" that is safe to run
-    /// with — see <see cref="Problem"/>.
+    /// The <see cref="AiProviderOptions"/> named by <see cref="Provider"/>,
+    /// or null when <see cref="Provider"/> names nothing this deployment
+    /// knows — the same set <see cref="AiEgress.Authorise(AiOptions, string, AiDataClassification)"/>
+    /// switches on.
     /// </summary>
-    public bool IsConfigured =>
+    private AiProviderOptions? ResolveProvider(AiOptions ai) => Provider switch
+    {
+        _ when string.Equals(Provider, "OpenAi", StringComparison.OrdinalIgnoreCase) => ai.OpenAi,
+        _ when string.Equals(Provider, "Gemini", StringComparison.OrdinalIgnoreCase) => ai.Gemini,
+        _ => null,
+    };
+
+    /// <summary>
+    /// Whether the real parser may be wired: <see cref="Provider"/> and
+    /// <see cref="Model"/> both named here, <b>and</b> a key present in the
+    /// <c>Ai</c> section <see cref="Provider"/> names. There is no reading of
+    /// "some of that" that is safe to run with — see <see cref="Problem"/>.
+    /// </summary>
+    public bool IsConfigured(AiOptions ai) =>
         !string.IsNullOrWhiteSpace(Provider)
         && !string.IsNullOrWhiteSpace(Model)
-        && !string.IsNullOrWhiteSpace(ApiKey);
+        && ResolveProvider(ai) is { IsConfigured: true };
 
     /// <summary>
     /// What is wrong with this section, or null when it is usable — either
@@ -86,28 +101,28 @@ public sealed class ExamParserOptions
     /// package in and waited is the one who discovers otherwise. There is no
     /// Development reading of "will fail on the first upload" that is worth
     /// tolerating, the same call this codebase already makes for
-    /// <c>Assessment:Writing:TaskWeights</c>.
+    /// <c>Assessment:Writing:TaskWeights</c>. The checks intrinsic to this
+    /// section run first; the cross-section credential check — the one whose
+    /// message names a setting outside <c>Import:Parser</c> — runs last, so
+    /// a typo inside this section is never reported as a missing key
+    /// somewhere else.
     /// </para>
     /// </summary>
-    public string? Problem()
+    public string? Problem(AiOptions ai)
     {
-        var named = !string.IsNullOrWhiteSpace(Provider)
-            || !string.IsNullOrWhiteSpace(Model)
-            || !string.IsNullOrWhiteSpace(ApiKey);
+        var named = !string.IsNullOrWhiteSpace(Provider) || !string.IsNullOrWhiteSpace(Model);
 
         if (!named) return null; // Nothing configured: the null implementation, not a fault.
 
-        var missing = new List<string>(3);
+        var missing = new List<string>(2);
         if (string.IsNullOrWhiteSpace(Provider)) missing.Add(nameof(Provider));
         if (string.IsNullOrWhiteSpace(Model)) missing.Add(nameof(Model));
-        if (string.IsNullOrWhiteSpace(ApiKey)) missing.Add(nameof(ApiKey));
 
         if (missing.Count > 0)
         {
             return $"{SectionName} names a provider but is missing {string.Join(" and ", missing)}. "
                 + "A section that looks enabled and fails on the first upload is worse than one "
-                + "that is plainly unset — set Provider, Model and ApiKey together, or leave all "
-                + "three empty.";
+                + "that is plainly unset — set Provider and Model together, or leave both empty.";
         }
 
         if (!string.Equals(Provider, "OpenAi", StringComparison.OrdinalIgnoreCase))
@@ -137,11 +152,27 @@ public sealed class ExamParserOptions
                 + "vendor's own endpoint; it is not a hostname and not a key.";
         }
 
+        /*
+         * <b>The one check whose message names a setting outside this section.</b>
+         * Import:Parser:Provider selects OpenAi; the key itself still lives at
+         * Ai:OpenAi:ApiKey, the one place this deployment's OpenAI credential
+         * is written down. A deployment that filled in everything above but
+         * never gave OpenAi a key looks exactly as enabled as one that has —
+         * this is what tells them apart before the first upload rather than
+         * during it.
+         */
+        if (ResolveProvider(ai) is not { IsConfigured: true })
+        {
+            return $"{SectionName}:Provider names '{Provider}' but Ai:{Provider}:ApiKey is not "
+                + $"set. {SectionName} selects a provider; the credential still lives with "
+                + $"Ai:{Provider}, not with {SectionName}.";
+        }
+
         return null;
     }
 
     public override string ToString() =>
         $"Provider={Provider ?? "not set"}, Model={Model ?? "not set"}, "
-        + $"BaseUrl={SecretRedaction.Url(BaseUrl)}, ApiKey={SecretRedaction.Describe(ApiKey)}, "
-        + $"MaxAttempts={MaxAttempts}, PromptVersion={PromptVersion}";
+        + $"BaseUrl={SecretRedaction.Url(BaseUrl)}, MaxAttempts={MaxAttempts}, "
+        + $"PromptVersion={PromptVersion}";
 }

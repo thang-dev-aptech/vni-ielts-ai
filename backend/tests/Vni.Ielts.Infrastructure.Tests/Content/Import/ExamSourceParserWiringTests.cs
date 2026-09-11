@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Infrastructure;
 using Vni.Ielts.Infrastructure.Content.Import;
+using AiOptions = Vni.Ielts.Infrastructure.Ai.AiOptions;
 using ExamParserOptions = Vni.Ielts.Infrastructure.Ai.Importing.ExamParserOptions;
 
 namespace Vni.Ielts.Infrastructure.Tests.Content.Import;
@@ -12,6 +13,14 @@ namespace Vni.Ielts.Infrastructure.Tests.Content.Import;
 /// that is the whole point of the task: no code default, never a fallback
 /// that picks a provider because one happens to be available, and a
 /// half-filled section refused before it ever reaches an upload.
+///
+/// <b><c>Import:Parser</c> selects a provider; it does not hold a second copy
+/// of its key.</b> The credential lives at <c>Ai:OpenAi:ApiKey</c> — the same
+/// section Writing marking, explanations and coaching already read — so every
+/// "fully configured" fixture below sets that key, not one under
+/// <c>Import:Parser</c> itself. Fix round 1 moved this: an earlier version of
+/// this gate carried its own <c>Import:Parser:ApiKey</c>, which meant one
+/// credential with two places to rotate it.
 ///
 /// <b>Calls <see cref="DependencyInjection.AddExamSourceParser"/> directly</b>
 /// — the narrow slice of <c>AddInfrastructure</c> this task touches — rather
@@ -29,13 +38,13 @@ public sealed class ExamSourceParserWiringTests
     }
 
     [Fact]
-    public void A_configured_provider_and_model_wires_the_real_parser()
+    public void A_configured_provider_and_model_with_a_shared_key_wires_the_real_parser()
     {
         using var services = Build(new Dictionary<string, string?>
         {
             ["Import:Parser:Provider"] = "OpenAi",
             ["Import:Parser:Model"] = "gpt-5",
-            ["Import:Parser:ApiKey"] = "test-key",
+            ["Ai:OpenAi:ApiKey"] = "test-key",
         });
 
         Assert.IsType<ProviderNeutralExamSourceParser>(services.GetRequiredService<IExamSourceParser>());
@@ -43,20 +52,42 @@ public sealed class ExamSourceParserWiringTests
 
     /// <summary>
     /// Half-configured is worse than unconfigured: it looks enabled and fails at
-    /// the first upload, after the operator has already put a package in.
+    /// the first upload, after the operator has already put a package in. This
+    /// is also the shape a deployment takes if Writing marking's key is rotated
+    /// out of <c>Ai:OpenAi:ApiKey</c> without anyone remembering this gate reads
+    /// the same setting — exactly the failure a second, duplicated key would
+    /// have hidden instead of naming.
     /// </summary>
     [Fact]
-    public void A_provider_without_a_key_is_refused_at_startup_not_at_first_use()
+    public void A_provider_named_here_without_a_key_at_Ai_OpenAi_is_refused_at_startup_not_at_first_use()
     {
         var config = new Dictionary<string, string?>
         {
             ["Import:Parser:Provider"] = "OpenAi",
             ["Import:Parser:Model"] = "gpt-5",
+            // Ai:OpenAi:ApiKey deliberately absent.
         };
 
         var refusal = Assert.Throws<InvalidOperationException>(() => Validate(Build(config)));
 
         Assert.Contains("Import:Parser", refusal.Message, StringComparison.Ordinal);
+        Assert.Contains("Ai:OpenAi:ApiKey", refusal.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_missing_Model_is_refused_at_startup_even_with_a_shared_key_present()
+    {
+        var config = new Dictionary<string, string?>
+        {
+            ["Import:Parser:Provider"] = "OpenAi",
+            ["Ai:OpenAi:ApiKey"] = "test-key",
+            // Import:Parser:Model deliberately absent.
+        };
+
+        var refusal = Assert.Throws<InvalidOperationException>(() => Validate(Build(config)));
+
+        Assert.Contains("Import:Parser", refusal.Message, StringComparison.Ordinal);
+        Assert.Contains("Model", refusal.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -66,7 +97,6 @@ public sealed class ExamSourceParserWiringTests
         {
             ["Import:Parser:Provider"] = "Gemini",
             ["Import:Parser:Model"] = "gemini-3-pro",
-            ["Import:Parser:ApiKey"] = "test-key",
         };
 
         var refusal = Assert.Throws<InvalidOperationException>(() => Validate(Build(config)));
@@ -81,7 +111,6 @@ public sealed class ExamSourceParserWiringTests
         {
             ["Import:Parser:Provider"] = "OpenAi",
             ["Import:Parser:Model"] = "claude-4-opus",
-            ["Import:Parser:ApiKey"] = "test-key",
         };
 
         var refusal = Assert.Throws<InvalidOperationException>(() => Validate(Build(config)));
@@ -96,7 +125,6 @@ public sealed class ExamSourceParserWiringTests
         {
             ["Import:Parser:Provider"] = "OpenAi",
             ["Import:Parser:Model"] = "gpt-5",
-            ["Import:Parser:ApiKey"] = "test-key",
             ["Import:Parser:MaxAttempts"] = "9",
         };
 
@@ -128,8 +156,9 @@ public sealed class ExamSourceParserWiringTests
         var configuration = services.GetRequiredService<IConfiguration>();
         var options = configuration.GetSection(ExamParserOptions.SectionName)
             .Get<ExamParserOptions>() ?? new ExamParserOptions();
+        var ai = configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
 
-        if (options.Problem() is { } problem)
+        if (options.Problem(ai) is { } problem)
             throw new InvalidOperationException(problem);
     }
 }

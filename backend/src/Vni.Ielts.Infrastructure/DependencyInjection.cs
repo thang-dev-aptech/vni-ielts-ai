@@ -485,10 +485,14 @@ public static class DependencyInjection
     /// <para>
     /// <b>With nothing configured, <c>UnconfiguredExamSourceParser</c> stays</b>
     /// — today's behaviour, and correct for a deployment nobody has given
-    /// keys to. <c>Import:Parser:Provider</c>, <c>:Model</c> and <c>:ApiKey</c>
-    /// turn it on, together; <see cref="Ai.Importing.ExamParserOptions.Problem"/>
-    /// is what refuses to boot on any other combination, so a half-filled
-    /// section never reaches a learner-facing upload at all.
+    /// keys to. <c>Import:Parser:Provider</c> and <c>:Model</c>, together
+    /// with a non-empty key already sitting at <c>Ai:&lt;Provider&gt;:ApiKey</c>,
+    /// turn it on; <see cref="Ai.Importing.ExamParserOptions.Problem"/> is
+    /// what refuses to boot on any other combination, so a half-filled
+    /// section never reaches a learner-facing upload at all. The provider
+    /// credential itself is <b>not</b> duplicated under <c>Import:Parser</c>
+    /// — see <see cref="Ai.Importing.ExamParserOptions"/>'s own remarks —
+    /// so it is resolved from the shared <c>Ai</c> registration below.
     /// → <see cref="Vni.Ielts.Api.Common.StartupConfiguration"/>
     /// </para>
     ///
@@ -502,13 +506,27 @@ public static class DependencyInjection
             configuration.GetSection(Ai.Importing.ExamParserOptions.SectionName)
                 .Get<Ai.Importing.ExamParserOptions>() ?? new Ai.Importing.ExamParserOptions();
 
+        // The shared provider registration (Ai:OpenAi / Ai:Gemini) — already
+        // configured for Writing marking, explanations and coaching, and the
+        // one place this deployment's OpenAI credential is written down.
+        static AiOptions ReadAiOptions(IConfiguration configuration) =>
+            configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+
         /*
          * Ten minutes wide of the CLI's own eighteen-minute adapter deadline
          * (`OpenAiStructuredExamClient`'s own `CancelAfter`), for the same
          * reason the CLI states on its own HttpClient: `SendAsync` does not
          * return until the whole streamed body is read, and the default
          * hundred seconds fails in the most misleading way available — a
-         * `200` the client never gets to see.
+         * `200` the client never gets to see. Checked against `ImportWorker`'s
+         * own 10-minute lease (`ImportWorker.Lease`): it is safe, not because
+         * 20 minutes fits inside 10, but because `ImportWorker.RenewAsync`
+         * runs a background heartbeat every 40 seconds for the whole span of
+         * `ImportAsync` — not only between stages — and `MongoImportOutbox
+         * .RenewAsync` extends the lease unconditionally on lease-token
+         * ownership, never on whether the previous deadline already passed.
+         * → `MongoImportOutboxTests
+         * .A_renewal_after_the_old_deadline_has_passed_still_wins_and_blocks_a_competitor`
          */
         services.AddHttpClient(nameof(Ai.Importing.OpenAiStructuredExamClient))
             .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromMinutes(20));
@@ -521,16 +539,17 @@ public static class DependencyInjection
         services.AddSingleton(_ => new Ai.Importing.ExamParsePromptSources(LocateRepositoryRoot()));
 
         /*
-         * <b>Its own AiOptions, built from Import:Parser rather than resolved
-         * from the shared Ai:OpenAi registration.</b> See the type's own
-         * remarks for why: this section is what a deployment fills in to
-         * turn raw-document parsing on, and it must be what the adapter
-         * actually reads — not a second, disconnected switch that leaves
-         * Ai:OpenAi's own completeness to decide whether this one works.
+         * <b>Model and BaseUrl from Import:Parser; the key from the shared
+         * Ai:&lt;Provider&gt; registration.</b> Only the key is shared — see
+         * ExamParserOptions's own remarks for why a second copy of it was
+         * rejected. Provider is already checked to be "OpenAi" by
+         * ExamParserOptions.Problem before this ever reaches production, so
+         * ai.OpenAi is always the right half of AiOptions to read here.
          */
         services.AddSingleton<IStructuredExamAiClient>(sp =>
         {
             var parser = ReadParserOptions(configuration);
+            var ai = ReadAiOptions(configuration);
 
             return new Ai.Importing.OpenAiStructuredExamClient(
                 sp.GetRequiredService<IHttpClientFactory>(),
@@ -539,7 +558,7 @@ public static class DependencyInjection
                     OpenAi = new AiProviderOptions
                     {
                         Model = parser.Model,
-                        ApiKey = parser.ApiKey,
+                        ApiKey = ai.OpenAi.ApiKey,
                         BaseUrl = parser.BaseUrl,
                     },
                 }),
@@ -550,8 +569,9 @@ public static class DependencyInjection
         services.AddScoped<IExamSourceParser>(sp =>
         {
             var parser = ReadParserOptions(configuration);
+            var ai = ReadAiOptions(configuration);
 
-            if (!parser.IsConfigured) return new UnconfiguredExamSourceParser();
+            if (!parser.IsConfigured(ai)) return new UnconfiguredExamSourceParser();
 
             return new ProviderNeutralExamSourceParser(
                 sp.GetServices<IStructuredExamAiClient>(),

@@ -52,9 +52,17 @@ public sealed class SecretContractTests
     private const string OpenAiApiKey = "FAKE-NOT-A-REAL-KEY-openai-04";
     private const string GeminiApiKey = "FAKE-NOT-A-REAL-KEY-gemini-05";
     private const string MongoPassword = "FAKE-NOT-A-REAL-KEY-mongo-password-06";
-    private const string ImportParserApiKey = "FAKE-NOT-A-REAL-KEY-import-parser-07";
 
-    /// <summary>The setting each secret is supplied through, for the paired assertion.</summary>
+    /// <summary>
+    /// The setting each secret is supplied through, for the paired assertion.
+    ///
+    /// <b>No separate row for <c>Import:Parser</c>.</b> Fix round 1 on Task 4
+    /// removed its own <c>ApiKey</c> — the raw-document parser reads
+    /// <c>Ai:OpenAi:ApiKey</c>, already covered below, rather than holding a
+    /// second copy of the same secret with a second place to forget to rotate
+    /// it. <c>Import:Parser:Provider</c>/<c>:Model</c>/<c>:BaseUrl</c> are not
+    /// secrets and are printed by <c>Describe</c> in the open.
+    /// </summary>
     private static readonly (string Setting, string Secret)[] SecretSettings =
     [
         ("Jwt:SigningKey", JwtSigningKey),
@@ -63,7 +71,6 @@ public sealed class SecretContractTests
         ("Ai:OpenAi:ApiKey", OpenAiApiKey),
         ("Ai:Gemini:ApiKey", GeminiApiKey),
         ("Mongo:ConnectionString", MongoPassword),
-        ("Import:Parser:ApiKey", ImportParserApiKey),
     ];
 
     [Fact]
@@ -263,29 +270,34 @@ public sealed class SecretContractTests
     /// through — <c>StartupConfiguration.ValidateOrThrow</c> — rather than at
     /// <c>ExamParserOptions.Problem()</c> directly, which
     /// <c>ExamSourceParserWiringTests</c> in the Infrastructure suite already
-    /// covers. A section naming a provider and a model but no key looks
-    /// enabled and fails on the first upload; this is refused before that.
+    /// covers. A section naming a provider and a model, with no key at
+    /// <c>Ai:OpenAi:ApiKey</c> — the one place this credential lives, since
+    /// fix round 1 removed <c>Import:Parser</c>'s own copy — looks enabled
+    /// and fails on the first upload; this is refused before that.
     /// </summary>
     [Fact]
-    public void A_named_ai_parser_provider_without_a_key_refuses_to_boot()
+    public void A_named_ai_parser_provider_without_a_shared_key_refuses_to_boot()
     {
         var config = ValidProductionConfig();
         config["Import:Parser:Provider"] = "OpenAi";
         config["Import:Parser:Model"] = "gpt-5.5";
+        // Ai:OpenAi:ApiKey deliberately absent — ValidProductionConfig sets no Ai section.
 
         var refusal = Assert.Throws<InvalidOperationException>(
             () => Validate(ProductionBuilder(config)));
 
         Assert.Contains("Import:Parser", refusal.Message, StringComparison.Ordinal);
+        Assert.Contains("Ai:OpenAi:ApiKey", refusal.Message, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void A_fully_configured_ai_parser_provider_boots()
+    public void A_fully_configured_ai_parser_provider_boots_off_the_shared_key()
     {
         var config = ValidProductionConfig();
         config["Import:Parser:Provider"] = "OpenAi";
         config["Import:Parser:Model"] = "gpt-5.5";
-        config["Import:Parser:ApiKey"] = ImportParserApiKey;
+        config["Ai:OpenAi:ApiKey"] = OpenAiApiKey;
+        config["Ai:OpenAi:Model"] = "gpt-5.5";
 
         Assert.Null(Record.Exception(() => Validate(ProductionBuilder(config))));
     }
@@ -458,9 +470,11 @@ public sealed class SecretContractTests
         config["Ai:OpenAi:Model"] = "gpt-5.5";
         config["Ai:Gemini:ApiKey"] = GeminiApiKey;
         config["Ai:Gemini:Model"] = "gemini-3-pro";
+        // Provider + Model here, plus the Ai:OpenAi:ApiKey already set above —
+        // Import:Parser holds no key of its own. Fully configured, so this
+        // fixture stays a "boots clean" baseline.
         config["Import:Parser:Provider"] = "OpenAi";
         config["Import:Parser:Model"] = "gpt-5.5";
-        config["Import:Parser:ApiKey"] = ImportParserApiKey;
 
         return config;
     }

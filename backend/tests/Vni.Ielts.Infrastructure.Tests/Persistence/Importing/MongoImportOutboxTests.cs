@@ -105,6 +105,44 @@ public sealed class MongoImportOutboxTests
     }
 
     /// <summary>
+    /// The mechanism that makes <c>ImportWorker</c>'s 40-second heartbeat safe
+    /// against a raw-document parse that can run for tens of minutes
+    /// (Task 4: <c>Import:Parser</c>'s HttpClient ceiling is 20 minutes,
+    /// twice the 10-minute <c>ImportWorker.Lease</c>). <see cref="RenewAsync"/>
+    /// is gated on lease-token ownership alone — <c>Mine()</c>'s filter names
+    /// only <c>OperationId</c> and <c>LeaseToken</c> — never on whether the
+    /// previous deadline had already numerically passed. So a heartbeat that
+    /// fires on its own 40-second cadence, however far behind a mid-parse
+    /// worker's original claim has drifted, still wins as long as no
+    /// competitor claimed the job first — and the lease it writes then blocks
+    /// that competitor exactly the way a fresh claim would.
+    /// </summary>
+    [Fact]
+    public async Task A_renewal_after_the_old_deadline_has_passed_still_wins_and_blocks_a_competitor()
+    {
+        var (outbox, _) = await NewOutboxAsync();
+        var job = NewJob();
+        await outbox.EnqueueAsync(job, default);
+
+        var claimed = await outbox.ClaimAsync("worker-a", TimeSpan.FromMilliseconds(1), default);
+        Assert.NotNull(claimed);
+
+        // The claimed lease's own deadline is already behind us. A renewal
+        // gated on "is the old window still valid" would refuse here — this
+        // one does not check the old window at all.
+        await Task.Delay(50);
+
+        var renewed = await outbox.RenewAsync(
+            claimed!.OperationId, "worker-a", TimeSpan.FromMinutes(10), default);
+        Assert.True(renewed);
+
+        // The renewal just pushed the deadline ten minutes out from now; a
+        // competitor must not be able to steal the job immediately after.
+        var stolen = await outbox.ClaimAsync("worker-b", TimeSpan.FromMinutes(5), default);
+        Assert.Null(stolen);
+    }
+
+    /// <summary>
     /// A stage already reached is money already spent. A resumed job must not
     /// walk backwards into a paid stage.
     /// </summary>

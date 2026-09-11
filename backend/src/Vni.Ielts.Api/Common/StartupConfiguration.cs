@@ -451,18 +451,21 @@ public static class StartupConfiguration
         // ── Import:Parser (raw AI-assisted exam-source parsing) ────────────
         /*
          * <b>Refused in every environment, not warned.</b> A section that
-         * names a provider but is missing a field looks enabled and fails on
-         * the first upload — after an operator has already put a package in
-         * and waited. There is no Development reading of that which is worth
-         * tolerating, the same call already made for
-         * `Assessment:Writing:TaskWeights` above. An entirely unset section
-         * is the supported "off" state and reports nothing.
+         * names a provider but is missing a field — or names a provider whose
+         * Ai:<Provider>:ApiKey (checked above, by `ValidateAi`) is unset —
+         * looks enabled and fails on the first upload, after an operator has
+         * already put a package in and waited. There is no Development
+         * reading of that which is worth tolerating, the same call already
+         * made for `Assessment:Writing:TaskWeights` above. An entirely unset
+         * section is the supported "off" state and reports nothing.
          * → `Vni.Ielts.Infrastructure.Ai.Importing.ExamParserOptions.Problem`
          */
         var importParser = builder.Configuration.GetSection(ExamParserOptions.SectionName)
             .Get<ExamParserOptions>() ?? new ExamParserOptions();
+        var aiForImportParser = builder.Configuration.GetSection(AiOptions.SectionName)
+            .Get<AiOptions>() ?? new AiOptions();
 
-        if (importParser.Problem() is { } importParserProblem)
+        if (importParser.Problem(aiForImportParser) is { } importParserProblem)
             problems.Add(importParserProblem);
 
         /*
@@ -869,13 +872,13 @@ public static class StartupConfiguration
                 + $"archive {importArchiveDescribed.MaxArchiveBytes} B, "
                 + $"timeout {importArchiveDescribed.ExtractionTimeoutSeconds} s",
 
-            // A section of its own — see ExamParserOptions's own remarks for why it is not a
-            // read of Ai:OpenAi. "not set" here means UnconfiguredExamSourceParser is wired and
-            // every raw-document upload fails with AI_PARSER_UNAVAILABLE.
+            // Selects a provider; the key itself is Ai:OpenAi:ApiKey above, described there —
+            // see ExamParserOptions's own remarks for why it is not duplicated here. "not set"
+            // means UnconfiguredExamSourceParser is wired and every raw-document upload fails
+            // with AI_PARSER_UNAVAILABLE.
             "Import:Parser:Provider = " + (importParserDescribed.Provider ?? "not set"),
             "Import:Parser:Model = " + (importParserDescribed.Model ?? "not set"),
             $"Import:Parser:BaseUrl = {SecretRedaction.Url(importParserDescribed.BaseUrl)}",
-            $"Import:Parser:ApiKey = {SecretRedaction.Describe(importParserDescribed.ApiKey)}",
             $"Import:Parser:MaxAttempts = {importParserDescribed.MaxAttempts}",
         };
 
