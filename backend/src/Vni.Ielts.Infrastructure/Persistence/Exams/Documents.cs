@@ -288,7 +288,11 @@ internal sealed class PartDocument
     [BsonIgnoreIfNull]
     public string? ImageKey { get; set; }
 
-    /// <summary>Never leaves the server: a transcript is the answer sheet in prose.</summary>
+    /// <summary>
+    /// The answer sheet in prose. Reaches a client only through
+    /// <c>PartView.Transcript</c>, and there only post-submit (`IP-09`) —
+    /// never through the in-progress sitting view.
+    /// </summary>
     [BsonElement("transcript")]
     [BsonIgnoreIfNull]
     public string? Transcript { get; set; }

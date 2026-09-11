@@ -609,6 +609,56 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
     // ── IP-09 · The transcript is the answer sheet ────────────────────────
 
     /// <summary>
+    /// A marker string, not a real transcript of anything. It exists only in
+    /// this test's own ephemeral Mongo database (see
+    /// <see cref="SeedListeningTranscriptAsync"/>) and is never written to
+    /// <c>fixtures/exams</c> — that directory ships as-is to every learner,
+    /// and a paragraph invented for a test has no business becoming the
+    /// transcript of a recording it has nothing to do with. → `IP-09` review
+    /// note, 2026-09-11.
+    /// </summary>
+    private const string TestOwnedListeningTranscript =
+        "TEST-FIXTURE TRANSCRIPT — written by ExamRunContractTests, seeded "
+        + "directly into this run's throwaway Mongo database, never present "
+        + "in fixtures/exams or any shipped package.";
+
+    /// <summary>
+    /// Sets <c>sections[module=listening].parts[order=1].transcript</c> on
+    /// the already-seeded exam version, directly in Mongo.
+    ///
+    /// <b>Why a raw write instead of a second checked-in fixture.</b> The
+    /// package under <c>fixtures/exams</c> ships to real learners (it is not
+    /// gitignored — only its media assets are), so content invented for a
+    /// test has no home there. This write lands in the per-class database
+    /// <see cref="ExamAppFactory"/> creates and drops, and touches nothing a
+    /// learner, or `git`, will ever see.
+    /// </summary>
+    private async Task SeedListeningTranscriptAsync(string examVersionId)
+    {
+        var db = app.Services.GetRequiredService<MongoDB.Driver.IMongoDatabase>();
+        var versions = db.GetCollection<MongoDB.Bson.BsonDocument>("exam_versions");
+
+        var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter
+            .Eq("_id", examVersionId);
+        var update = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update
+            .Set("sections.$[section].parts.$[part].transcript", TestOwnedListeningTranscript);
+        var options = new MongoDB.Driver.UpdateOptions
+        {
+            ArrayFilters =
+            [
+                new MongoDB.Driver.BsonDocumentArrayFilterDefinition<MongoDB.Bson.BsonDocument>(
+                    new MongoDB.Bson.BsonDocument("section.module", "Listening")),
+                new MongoDB.Driver.BsonDocumentArrayFilterDefinition<MongoDB.Bson.BsonDocument>(
+                    new MongoDB.Bson.BsonDocument("part.order", 1)),
+            ],
+        };
+
+        var result = await versions.UpdateOneAsync(filter, update, options);
+        Assert.Equal(1, result.MatchedCount);
+        Assert.Equal(1, result.ModifiedCount);
+    }
+
+    /// <summary>
     /// Starts a Full Test sitting and advances it until Listening is the
     /// open section, leaving the sitting itself <c>InProgress</c>.
     /// </summary>
@@ -625,12 +675,16 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
 
     /// <summary>
     /// A single-skill Listening sitting, answered and submitted, so its
-    /// results carry post-submit content.
+    /// results carry post-submit content. Its Part 1 transcript is the
+    /// test-owned marker seeded by <see cref="SeedListeningTranscriptAsync"/>,
+    /// not shipped content.
     /// </summary>
     private async Task<(HttpClient Client, string Access, string SessionId)> CompleteListeningSitting()
     {
         var (client, access) = await SignInAsync();
         var examId = await FullExamIdAsync(client, access);
+        await SeedListeningTranscriptAsync(examId);
+
         var started = await StartAsync(client, access, examId, "single", "listening");
         var sessionId = started.GetProperty("sessionId").GetString()!;
         var questionId = FirstQuestionId(started);
@@ -690,7 +744,7 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
             .Single(c => c.GetProperty("module").GetString() == "listening");
         var transcript = listening.GetProperty("parts")[0].GetProperty("transcript").GetString();
 
-        Assert.False(string.IsNullOrWhiteSpace(transcript));
+        Assert.Equal(TestOwnedListeningTranscript, transcript);
     }
 
     /// <summary>
