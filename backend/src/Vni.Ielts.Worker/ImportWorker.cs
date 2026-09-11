@@ -42,11 +42,23 @@ namespace Vni.Ielts.Worker;
 /// A promise in a comment that no code keeps is how a budget quietly becomes
 /// infinite — and every retry here may be a paid parse.
 /// </summary>
+/// <param name="heartbeat">
+/// How often the lease is renewed. Forty seconds in production, against a ten
+/// minute lease.
+///
+/// <b>Settable only so a test can pin the lease-loss race.</b> "A worker that
+/// has lost its lease stops before it pays for anything" cannot be proved by a
+/// sequential test — the loss has to be discovered <i>while</i> the worker is
+/// inside a job — and a test that waited forty real seconds for the heartbeat
+/// would be a test nobody runs. The renewal interval is the one number here
+/// that a fake clock cannot move, because it is a real <c>Task.Delay</c>.
+/// </param>
 public sealed class ImportWorker(
     IServiceScopeFactory scopes,
     IClock clock,
     WorkerHealthState health,
-    ILogger<ImportWorker> logger) : BackgroundService
+    ILogger<ImportWorker> logger,
+    TimeSpan? heartbeat = null) : BackgroundService
 {
     /// <summary>
     /// How long to wait when there is nothing to do. Five seconds, matching
@@ -69,7 +81,9 @@ public sealed class ImportWorker(
     /// </summary>
     private static readonly TimeSpan Lease = TimeSpan.FromMinutes(10);
 
-    private static readonly TimeSpan Heartbeat = TimeSpan.FromSeconds(40);
+    private static readonly TimeSpan DefaultHeartbeat = TimeSpan.FromSeconds(40);
+
+    private readonly TimeSpan _heartbeat = heartbeat ?? DefaultHeartbeat;
 
     protected override async Task ExecuteAsync(CancellationToken stopping)
     {
@@ -154,7 +168,23 @@ public sealed class ImportWorker(
             job.DefinitionId.Value, job.VersionNumber, job.Attempts, ImportJob.MaxAttempts, job.Stage);
 
         using var beating = new CancellationTokenSource();
-        var heartbeat = RenewAsync(outbox, job, leaseToken, beating.Token);
+
+        /*
+         * <b>The lease, wired to the work it protects.</b> Until this existed,
+         * `RenewAsync` discovered the loss, logged that the parse was being
+         * performed twice, and returned — and the dispossessed worker carried
+         * on through every remaining paid stage, finding out at `CompleteAsync`
+         * that it had lost. That is precisely the two-workers-two-bills case
+         * the lease exists to prevent, and the log line describing it was the
+         * whole of the response.
+         *
+         * The pipeline's token derives from this source, so the moment the
+         * heartbeat finds the job is somebody else's, the parse, the
+         * transcription and the explanations stop where they are.
+         */
+        using var lost = new CancellationTokenSource();
+
+        var heartbeat = RenewAsync(outbox, job, leaseToken, beating.Token, lost);
 
         /*
          * <b>The trace the upload started, continued in another process.</b>
@@ -184,14 +214,39 @@ public sealed class ImportWorker(
         try
         {
             /*
-             * `CancellationToken.None`, not `stopping` — F2.3, exactly as the
-             * twin does it. Once a job is claimed, a deploy must not tear it
-             * out of the middle of a paid parse and have the catch below read
-             * that as a failure worth burning an attempt on. Claiming already
-             * stopped; `HostOptions.ShutdownTimeout` bounds the grace.
+             * <b>Not `stopping`</b> — F2.3, exactly as the twin does it. Once a
+             * job is claimed, a deploy must not tear it out of the middle of a
+             * paid parse and have the catch below read that as a failure worth
+             * burning an attempt on. Claiming already stopped;
+             * `HostOptions.ShutdownTimeout` bounds the grace.
+             *
+             * <b>Not `CancellationToken.None` either, any more.</b> A shutdown
+             * must not stop this work; a lost lease must, because the work is
+             * now somebody else's and everything left in it is billed twice.
+             * `lost` is cancelled by the heartbeat and by nothing else.
              */
             outcome = await ImportAsync(
-                outbox, archives, pipeline, job, leaseToken, span, CancellationToken.None);
+                outbox, archives, pipeline, job, leaseToken, span, lost.Token);
+        }
+        catch (Exception) when (lost.IsCancellationRequested)
+        {
+            /*
+             * <b>A lease loss, not a failure, and the difference is the
+             * attempt budget.</b> This worker was stopped on purpose because
+             * another worker owns the job; writing a retry or a failure here
+             * would burn an attempt on work that is in hand elsewhere — and
+             * every lease-guarded write would be refused anyway, since the
+             * token is no longer ours. Nothing is settled and, above all, the
+             * archive the new owner is about to read is left alone.
+             */
+            logger.LogError(
+                "Lost the lease on the import of {Definition} v{Version} and stopped at stage "
+                + "{Stage}. Another worker owns it now; nothing further was bought and the stored "
+                + "archive is being left alone.",
+                job.DefinitionId.Value, job.VersionNumber, job.Stage);
+
+            span?.SetStatus(ActivityStatusCode.Error, "LeaseLost");
+            outcome = "lease-lost";
         }
         catch (Exception e)
         {
@@ -263,12 +318,35 @@ public sealed class ImportWorker(
 
         var stages = new StageRecorder(outbox, job.OperationId, leaseToken, logger);
 
-        var attempt = await pipeline.ImportAsync(
-            seekable, job.DefinitionId, job.VersionNumber, ct, stages);
+        ExamImportAttempt attempt;
 
-        // Every stage report is a write; they are drained before the job is
-        // settled so a Done never lands ahead of the stage that preceded it.
-        await stages.DrainAsync();
+        try
+        {
+            /*
+             * <b>`job.Stage` is what stops a retry re-buying the parse.</b>
+             * It was written on every import and read by nothing: a transient
+             * failure, a worker restart or an expired lease paid for a
+             * Cambridge parse again, up to three times for one upload. The
+             * pipeline's own remarks say exactly what this does and does not
+             * skip — the parse, and nothing else.
+             */
+            attempt = await pipeline.ImportAsync(
+                seekable, job.DefinitionId, job.VersionNumber, ct, stages, job.Stage);
+        }
+        finally
+        {
+            /*
+             * <b>Drained in a `finally`, because a failed import is the run
+             * whose stage matters most.</b> Every stage report is a write
+             * chained on the thread pool; on the success path they are drained
+             * so a `Done` never lands ahead of the stage before it, and on the
+             * failure path they are drained so the stage the next attempt
+             * resumes from has actually been recorded before `RetryAsync`
+             * releases the job. Letting them race the retry is how a resumed
+             * job reads a stage of `Extracting` and pays again.
+             */
+            await stages.DrainAsync();
+        }
 
         if (!attempt.IsAccepted || attempt.Draft is null)
         {
@@ -504,14 +582,20 @@ public sealed class ImportWorker(
         return false;
     }
 
+    /// <param name="lost">
+    /// Cancelled when the lease is gone. This is the signal, not the log line
+    /// below it: a worker that only logged the loss went on to finish every
+    /// remaining paid stage of a job it no longer owned.
+    /// </param>
     private async Task RenewAsync(
-        IImportOutbox outbox, ImportJob job, string leaseToken, CancellationToken stop)
+        IImportOutbox outbox, ImportJob job, string leaseToken, CancellationToken stop,
+        CancellationTokenSource lost)
     {
         try
         {
             while (!stop.IsCancellationRequested)
             {
-                await Task.Delay(Heartbeat, stop);
+                await Task.Delay(_heartbeat, stop);
 
                 var kept = await outbox.RenewAsync(
                     job.OperationId, leaseToken, Lease, CancellationToken.None);
@@ -526,9 +610,13 @@ public sealed class ImportWorker(
 
                 logger.LogError(
                     "Lost the lease on the import of {Definition} v{Version}: another worker has "
-                    + "taken it over while this one is still running it. The parse is being "
-                    + "performed twice.",
+                    + "taken it over while this one is still running it. Stopping this one before "
+                    + "it buys anything else.",
                     job.DefinitionId.Value, job.VersionNumber);
+
+                // Cancelling, not merely reporting. Everything left in the
+                // pipeline is a second bill for work another worker is doing.
+                await lost.CancelAsync();
 
                 return;
             }

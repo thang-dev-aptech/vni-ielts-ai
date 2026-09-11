@@ -141,6 +141,14 @@ public sealed class CanonicalExplanationWorkflow(
     /// never AI processing. Malformed JSON also refuses rather than throws —
     /// this method is a gate, not a validator, and a draft whose package
     /// cannot be read is exactly the case that must not reach a provider.
+    ///
+    /// <b>Unreadable is wider than malformed.</b> A <c>mode</c> that exists but
+    /// is not a string — <c>"mode": 3</c> — parses fine and then throws
+    /// <see cref="InvalidOperationException"/> out of
+    /// <c>GetValue&lt;string&gt;()</c>. Catching only <see cref="JsonException"/>
+    /// let that escape a method whose whole contract is that it never throws,
+    /// which in the import pipeline reads as a transient failure and is
+    /// retried at full price. Every unreadable answer refuses.
     /// </summary>
     internal static bool AllowsAiGeneration(string packageJson)
     {
@@ -149,7 +157,7 @@ public sealed class CanonicalExplanationWorkflow(
             return JsonNode.Parse(packageJson)?["policyProfile"]?["explanation"]?["mode"]
                 ?.GetValue<string>() == "ai-generated";
         }
-        catch (JsonException)
+        catch (Exception)
         {
             return false;
         }

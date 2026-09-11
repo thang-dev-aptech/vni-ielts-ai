@@ -189,6 +189,12 @@ public sealed class ImportReviewWorkflowTests
         public Task SaveAsync(ExamImportDraft value, CancellationToken ct) { Draft = value; return Task.CompletedTask; }
         public Task<ExamImportDraft?> FindAsync(Guid id, CancellationToken ct) =>
             Task.FromResult<ExamImportDraft?>(Draft.Id == id ? Draft : null);
+        public Task<ExamImportDraft?> FindBySourceAsync(
+            ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route,
+            string sourceHash, CancellationToken ct) =>
+            Task.FromResult<ExamImportDraft?>(
+                Draft.DefinitionId == definitionId && Draft.VersionNumber == versionNumber
+                && Draft.Route == route && Draft.SourceHash == sourceHash ? Draft : null);
         public Task<bool> ReplaceAsync(ExamImportDraft value, int expected, CancellationToken ct)
         {
             if (Draft.Id != value.Id || Draft.Revision != expected) return Task.FromResult(false);

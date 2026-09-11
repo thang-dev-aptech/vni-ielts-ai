@@ -168,6 +168,42 @@ public interface IImportOutbox
     /// </summary>
     Task<bool> FailAsync(string operationId, string leaseToken, string error, CancellationToken ct);
 
+    /// <summary>
+    /// Puts a job that has permanently failed back in the queue, and refuses
+    /// to touch a job in any other state.
+    ///
+    /// <b>Why an operator needs this and cannot work around it.</b>
+    /// <see cref="EnqueueAsync"/> is idempotent on the operation id, and that
+    /// id is derived from the definition, the version, the bytes and the parse
+    /// prompt — so re-uploading the very package that failed is, correctly,
+    /// "already there". Without a way to reopen, the second upload is a silent
+    /// no-op: the door answers 202, the CMS polls, and it shows the old error
+    /// for ever. The only escape would be a version bump the operator has no
+    /// reason to guess. Re-uploading the package that failed is an unambiguous
+    /// instruction to try again, and this is that instruction, kept.
+    ///
+    /// <b><c>Stage</c> and <c>DraftId</c> are deliberately preserved.</b> The
+    /// attempt budget resets because the operator asked for a fresh try; the
+    /// stage does not, because it is the record of what was already bought —
+    /// resetting it would make the reopened job re-buy the parse, which is the
+    /// exact cost this outbox exists to avoid.
+    ///
+    /// <b>Only <see cref="ImportJobState.Failed"/> matches</b>, and the state
+    /// is in the filter rather than checked first, so the same rule applies
+    /// under a race. A <c>Running</c> job must never be reopened: it would
+    /// reset the attempt count under a worker that is mid-parse and invite a
+    /// second worker onto the same paid work. <c>Pending</c>, <c>Retryable</c>
+    /// and <c>Completed</c> need nothing — the first two are already owed, and
+    /// re-running a completed import is a new version, not a retry.
+    ///
+    /// <para>
+    /// Unlike every other transition here this takes no lease token: a failed
+    /// job holds no lease, and the caller is an HTTP request rather than a
+    /// worker. False means there was nothing in <c>Failed</c> to reopen.
+    /// </para>
+    /// </summary>
+    Task<bool> ReopenAsync(string operationId, CancellationToken ct);
+
     Task<ImportJob?> FindAsync(string operationId, CancellationToken ct);
 }
 

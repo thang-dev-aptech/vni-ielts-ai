@@ -53,9 +53,26 @@ public sealed class ExamPackageImportPipeline(
     /// recipient that throws must not be able to fail an import that has
     /// already been paid for, so every call is guarded.
     /// </param>
+    /// <param name="recordedStage">
+    /// How far a previous run of this same import is recorded as having got,
+    /// or null for a first run (and for every caller that has no job row — the
+    /// operator CLI and the synchronous tests).
+    ///
+    /// <b>What it actually changes, exactly.</b> A value strictly past
+    /// <see cref="ImportJobStage.Parsing"/> means an earlier run finished the
+    /// parse and saved a draft, so the AI-parsed route reuses that draft
+    /// instead of calling the parser again. <b>Nothing else is skipped.</b>
+    /// Extraction, transcription, key injection, the four cross-check layers
+    /// and the explanation pass all run again, because every one of them
+    /// persists its result only at the end of the step that produces it — a
+    /// stage is reported on entry, so it is evidence that a step <i>started</i>
+    /// and never that it finished. Skipping one on that evidence would leave a
+    /// draft carrying the model's invented answers with the supplied key never
+    /// applied, which is a far worse outcome than paying twice.
+    /// </param>
     public async Task<ExamImportAttempt> ImportAsync(
         Stream zip, ExamDefinitionId definitionId, int versionNumber, CancellationToken ct,
-        IProgress<ImportJobStage>? progress = null)
+        IProgress<ImportJobStage>? progress = null, ImportJobStage? recordedStage = null)
     {
         if (!zip.CanSeek)
         {
@@ -82,7 +99,7 @@ public sealed class ExamPackageImportPipeline(
 
             var attempt = await ImportFromSandboxAsync(
                 inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber, ct,
-                progress);
+                progress, recordedStage > ImportJobStage.Parsing);
 
             return await AttachRoleFolderWarningsAsync(attempt, inspection.Findings, ct);
         }
@@ -130,7 +147,7 @@ public sealed class ExamPackageImportPipeline(
     /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
         PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
-        CancellationToken ct, IProgress<ImportJobStage>? progress)
+        CancellationToken ct, IProgress<ImportJobStage>? progress, bool resumeExistingDraft)
     {
         var allEntries = layout.AcceptedEntries.ToArray();
 
@@ -175,7 +192,8 @@ public sealed class ExamPackageImportPipeline(
         var source = new ExtractedImportSource(
             "package", "text/plain", text, hash, hash, ImportDataClassification.Restricted);
 
-        var attempt = await workflow.ImportExtractedAsync(source, definitionId, versionNumber, ct);
+        var attempt = await workflow.ImportExtractedAsync(
+            source, definitionId, versionNumber, ct, resumeExistingDraft);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
         /*
@@ -465,8 +483,24 @@ public sealed class ExamPackageImportPipeline(
             PackageJson = json,
             PackageHash = ExamImportWorkflow.Hash(json),
             Version = version,
-            Findings = [.. draft.Findings, .. findings],
-            Warnings = [.. draft.Warnings, .. warnings],
+            /*
+             * <b>Deduplicated, because this method can legitimately run
+             * twice over the same draft.</b> A resumed job skips only the
+             * parse; keying, the cross-checks and their warnings are re-run
+             * against the draft the first run left behind, which already
+             * carries them. Appending blindly would give a reviewer two
+             * copies of every warning — with the same `CODE:index` id, so
+             * `ResolveWarningAsync` could never clear the pair — and would
+             * grow the list again on every further attempt.
+             *
+             * Findings are value records, so `Distinct()` is exact. Warnings
+             * are deduplicated by id and the FIRST wins, which is the one
+             * already on the draft: if a reviewer has resolved it, or
+             * overridden it with a recorded reason, a re-run must not quietly
+             * reopen it.
+             */
+            Findings = [.. draft.Findings.Concat(findings).Distinct()],
+            Warnings = [.. draft.Warnings.Concat(warnings).DistinctBy(w => w.Id)],
             Revision = draft.Revision + 1,
         };
 
@@ -532,14 +566,29 @@ public sealed class ExamPackageImportPipeline(
     /// <c>CheckAuthoredExplanations</c>, which reads it the same way for the
     /// same reason).
     /// </summary>
-    private static bool RequiresAiGeneratedExplanations(string packageJson)
+    /// <remarks>
+    /// <b>Catches everything, not just <see cref="JsonException"/>.</b> A
+    /// <c>mode</c> that exists but is not a string — <c>"mode": 3</c> — parses
+    /// fine and then throws <see cref="InvalidOperationException"/> out of
+    /// <c>GetValue&lt;string&gt;()</c>, straight through this pipeline and into
+    /// the worker's catch, which reads it as a transient failure and retries.
+    /// That was tolerable while a retry was free; it is not now that a resumed
+    /// job is meant to stop paying twice, and it was never the behaviour a
+    /// gate should have. A gate answers "may this package reach a provider",
+    /// and the only safe answer to a question it cannot read is no.
+    ///
+    /// <b>Internal so the gate itself can be tested.</b> Reaching it through
+    /// <c>ImportAsync</c> requires a wired <c>ImportReviewWorkflow</c> and a
+    /// configured generator, which would test the wiring rather than the gate.
+    /// </remarks>
+    internal static bool RequiresAiGeneratedExplanations(string packageJson)
     {
         try
         {
             return JsonNode.Parse(packageJson)?["policyProfile"]?["explanation"]?["mode"]
                 ?.GetValue<string>() == "ai-generated";
         }
-        catch (JsonException)
+        catch (Exception)
         {
             return false;
         }
@@ -606,7 +655,9 @@ public sealed class ExamPackageImportPipeline(
         var draft = attempt.Draft;
         var updated = draft with
         {
-            Warnings = [.. draft.Warnings, .. warnings],
+            // Same reasoning as ApplyKeysAndGuardAsync: a resumed job reaches
+            // this line again over a draft that already carries these.
+            Warnings = [.. draft.Warnings.Concat(warnings).DistinctBy(w => w.Id)],
             Revision = draft.Revision + 1,
         };
 

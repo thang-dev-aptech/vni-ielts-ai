@@ -110,7 +110,10 @@ public sealed class ImportWorkerTests
         public ValueTask DisposeAsync() => Provider.DisposeAsync();
     }
 
-    private static async Task<Harness> NewHarnessAsync(FakeArchiveStore archives)
+    private static async Task<Harness> NewHarnessAsync(
+        FakeArchiveStore archives,
+        Action<ServiceCollection>? configure = null,
+        TimeSpan? heartbeat = null)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -140,6 +143,12 @@ public sealed class ImportWorkerTests
         services.AddSingleton<IClock>(clock);
         services.AddSingleton<IImportArchiveStore>(archives);
 
+        // A test that needs to count paid calls replaces the parser here, last
+        // of all, for the same reason the clock and the bucket are replaced:
+        // a registration that did not win would make the test pass for the
+        // wrong reason.
+        configure?.Invoke(services);
+
         var provider = services.BuildServiceProvider();
         await provider.InitialiseInfrastructureAsync(default);
 
@@ -147,7 +156,8 @@ public sealed class ImportWorkerTests
             provider.GetRequiredService<IServiceScopeFactory>(),
             clock,
             provider.GetRequiredService<WorkerHealthState>(),
-            NullLogger<ImportWorker>.Instance);
+            NullLogger<ImportWorker>.Instance,
+            heartbeat);
 
         return new Harness(
             provider, worker, provider.GetRequiredService<IImportOutbox>(), archives, clock);
@@ -181,6 +191,16 @@ public sealed class ImportWorkerTests
         /// <summary>Thrown from <see cref="OpenAsync"/> when set — a transient storage failure.</summary>
         public Func<Exception>? Failure { get; init; }
 
+        /// <summary>
+        /// When true the gate is abandoned the moment the caller's token is
+        /// cancelled, the way a real object-storage read would be.
+        ///
+        /// <b>Opt-in, because most of this suite must not have it.</b> The
+        /// existing lease-loss test releases the gate itself and would
+        /// otherwise be testing a different thing.
+        /// </summary>
+        public bool ObservesCancellation { get; init; }
+
         public List<string> Deleted { get; } = [];
 
         public Task<string> SaveAsync(string sourceSha256, Stream archive, CancellationToken ct)
@@ -197,7 +217,13 @@ public sealed class ImportWorkerTests
         public async Task<Stream?> OpenAsync(string archiveKey, CancellationToken ct)
         {
             Entered.TrySetResult();
-            if (Gate is not null) await Gate.Task;
+
+            if (Gate is not null)
+            {
+                if (ObservesCancellation) await Gate.Task.WaitAsync(ct);
+                else await Gate.Task;
+            }
+
             if (Failure is not null) throw Failure();
 
             return _objects.TryGetValue(archiveKey, out var bytes)
@@ -572,6 +598,229 @@ public sealed class ImportWorkerTests
 
         Assert.NotEqual(ImportJobState.Completed, job!.State);
         Assert.Equal(2, job.Attempts);
+        Assert.Empty(archives.Deleted);
+    }
+
+    // ── The stage, doing the job it was built for ─────────────────────────
+
+    /// <summary>
+    /// A parser that counts what it costs, and produces a schema-valid paper.
+    ///
+    /// <b>Counting is the assertion.</b> A real parse of a Cambridge paper is
+    /// the single most expensive thing this system buys, and "a retry does not
+    /// pay again" is only provable by the number of times it was bought.
+    /// </summary>
+    private sealed class CountingParser : IExamSourceParser
+    {
+        private int _calls;
+
+        public int Calls => Volatile.Read(ref _calls);
+
+        public string PromptVersion => "test-parse-prompt";
+
+        public Task<ParsedExamPackage> ParseAsync(ExtractedImportSource source, CancellationToken ct)
+        {
+            Interlocked.Increment(ref _calls);
+
+            return Task.FromResult(new ParsedExamPackage(
+                OneReadingQuestion,
+                new ParserRunMetadata("fake", "counting-parser", "test-parse-prompt", "req-1")));
+        }
+
+        /// <summary>
+        /// One Reading question the model answered FALSE. The supplied key
+        /// says TRUE — the schema forces an auto-scored question to carry
+        /// <i>some</i> answer, which is exactly why a fabricated one is
+        /// invisible without a key.
+        /// </summary>
+        private const string OneReadingQuestion = """
+        {
+          "formatVersion": "2.0", "formatProfile": "vni-practice",
+          "scoringProfileRef": "worker-resume-test",
+          "contentSourceRef": { "sourceId": "counting-parser",
+            "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+          "title": "Resume", "variant": "academic",
+          "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+          "scoringProfile": { "rawToBand": { "reading": [
+            { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 } ] } },
+          "sections": [ { "module": "reading", "order": 1, "parts": [ { "order": 1,
+            "kind": "passage", "body": "The roof is made of slate.",
+            "questions": [ { "id": "r1", "order": 1, "type": "true-false-notgiven",
+              "answerKey": { "accepted": ["FALSE"] } } ] } ] } ]
+        }
+        """;
+    }
+
+    /// <summary>
+    /// A source extractor whose answer-key read fails once and then works.
+    ///
+    /// <b>The failure is placed after the parse on purpose.</b> Keying is the
+    /// first step past <c>Parsing</c>, so a failure there leaves a job whose
+    /// recorded stage says the parse is bought and whose draft is on disk —
+    /// the precise state a resumed worker has to recognise. A failure before
+    /// the parse would prove nothing, because there would be nothing to reuse.
+    /// </summary>
+    private sealed class KeyFailsOnceExtractor : ISourceDocumentExtractor
+    {
+        private bool _failedOnce;
+
+        public Task<SourceExtractionResult> ExtractAsync(
+            string sandboxRoot, string relativePath, SourceExtractionLimits limits, CancellationToken ct)
+        {
+            var isKey = relativePath.Contains("dap-an", StringComparison.Ordinal);
+
+            if (isKey && !_failedOnce)
+            {
+                _failedOnce = true;
+                throw new TimeoutException("the extractor did not answer");
+            }
+
+            var text = isKey ? "Câu số 1: TRUE" : "The roof is made of slate.";
+            var hash = Vni.Ielts.Application.Importing.ExamImportWorkflow.Hash(text);
+
+            return Task.FromResult(new SourceExtractionResult(
+                true,
+                new ExtractedImportSource(
+                    relativePath, "text/plain", text, hash, hash,
+                    ImportDataClassification.Restricted),
+                [],
+                []));
+        }
+    }
+
+    /// <summary>A paper and its answer key — the AI-parsed route, with a key folder.</summary>
+    private static byte[] PaperAndKeyPackage() =>
+        BuildZip(
+            ("reading/de/passage.txt", $"The roof is made of slate. {Guid.NewGuid():n}"),
+            ("reading/dap-an/key.txt", "Câu số 1: TRUE"));
+
+    /// <summary>
+    /// <b>C1: the recorded stage is read, and a retry does not re-buy the
+    /// parse.</b>
+    ///
+    /// <c>ImportJobStage</c>, <c>AdvanceAsync</c>'s forward-only filter and
+    /// <c>RetryAsync</c>'s refusal to reset the stage were all built, all
+    /// documented as the thing that stops an import paying twice — and nothing
+    /// read any of it. <c>ImportWorker</c> called the pipeline from the top on
+    /// every claim, and <c>ImportExtractedAsync</c> called the parser
+    /// unconditionally. One transient failure therefore bought a Cambridge
+    /// paper twice, and the attempt budget allowed three.
+    ///
+    /// The first run fails at <c>Keying</c>, which is the first step past
+    /// <c>Parsing</c>: the parse is paid for and its draft is on disk. The
+    /// second run must finish the import without calling the parser again.
+    /// </summary>
+    [SkippableFact]
+    public async Task A_retry_after_the_parse_resumes_from_the_draft_and_does_not_buy_it_again()
+    {
+        Skip.IfNot(MongoAvailable, SkipReason);
+
+        var parser = new CountingParser();
+
+        await using var harness = await NewHarnessAsync(
+            new FakeArchiveStore(),
+            services =>
+            {
+                services.AddSingleton<IExamSourceParser>(parser);
+                services.AddSingleton<ISourceDocumentExtractor>(new KeyFailsOnceExtractor());
+            });
+
+        var (operationId, _) = await EnqueueAsync(harness, PaperAndKeyPackage());
+
+        // Run one: parses, saves a draft, then fails reading the answer key.
+        Assert.True(await harness.Worker.RunOnceAsync(default));
+
+        var afterFirst = await harness.Outbox.FindAsync(operationId, default);
+        Assert.Equal(ImportJobState.Retryable, afterFirst!.State);
+        Assert.True(
+            afterFirst.Stage > ImportJobStage.Parsing,
+            $"The first run recorded stage {afterFirst.Stage}; nothing past Parsing means there is "
+            + "no evidence a resumed run could act on, and the rest of this test would prove "
+            + "nothing.");
+        Assert.Equal(1, parser.Calls);
+
+        // Past the backoff, so the second pass really is the next attempt.
+        harness.Clock.Advance(TimeSpan.FromMinutes(10));
+
+        Assert.True(await harness.Worker.RunOnceAsync(default));
+
+        var job = await harness.Outbox.FindAsync(operationId, default);
+        Assert.Equal(ImportJobState.Completed, job!.State);
+
+        // The assertion this test exists for: the second run added nothing to
+        // the bill for a stage the job already records as bought.
+        Assert.Equal(1, parser.Calls);
+
+        // And the resumed run really did finish the work, rather than merely
+        // skipping it: the supplied key is on the draft, over the model's guess.
+        var drafts = harness.Provider.GetRequiredService<IImportDraftStore>();
+        var draft = await drafts.FindAsync(job.DraftId!.Value, default);
+
+        Assert.Contains("TRUE", draft!.PackageJson);
+    }
+
+    /// <summary>
+    /// <b>C2: a worker that has lost its lease stops before it buys anything
+    /// else.</b>
+    ///
+    /// <c>RenewAsync</c> discovered the loss, logged that the parse was being
+    /// performed twice, and returned. The pipeline ran on
+    /// <c>CancellationToken.None</c>, so the dispossessed worker went on
+    /// through the parse, the transcription and the explanations and only found
+    /// out at <c>CompleteAsync</c> — which is the two-workers-two-bills case
+    /// the lease exists to prevent, with the log line as the whole response.
+    ///
+    /// <b>Genuinely interleaved.</b> Worker A is held inside the archive read —
+    /// before any paid stage — while a second claim takes the job over, and the
+    /// heartbeat has to notice on its own. The gate is released after a bounded
+    /// wait so that a worker which ignored its lease fails this test by
+    /// <i>calling the parser</i> rather than by hanging.
+    /// </summary>
+    [SkippableFact]
+    public async Task A_worker_that_loses_its_lease_is_cancelled_before_it_pays_for_the_parse()
+    {
+        Skip.IfNot(MongoAvailable, SkipReason);
+
+        var parser = new CountingParser();
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var archives = new FakeArchiveStore { Gate = gate, ObservesCancellation = true };
+
+        await using var harness = await NewHarnessAsync(
+            archives,
+            services =>
+            {
+                services.AddSingleton<IExamSourceParser>(parser);
+                services.AddSingleton<ISourceDocumentExtractor>(new KeyFailsOnceExtractor());
+            },
+            // The one number a fake clock cannot move: the renewal is a real
+            // Task.Delay. Forty seconds of waiting is a test nobody runs.
+            heartbeat: TimeSpan.FromMilliseconds(25));
+
+        var (operationId, _) = await EnqueueAsync(harness, PaperAndKeyPackage());
+
+        var a = harness.Worker.RunOnceAsync(default);
+        await archives.Entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        // A's lease runs out while it is still inside the job, and another
+        // worker takes it over.
+        harness.Clock.Advance(TimeSpan.FromMinutes(30));
+        Assert.NotNull(await harness.Outbox.ClaimAsync("worker-b", TimeSpan.FromMinutes(10), default));
+
+        // With the heartbeat wired to cancellation, A is already unwinding and
+        // this returns at once. Without it, A is still sitting on the gate —
+        // so the gate is opened, and A proves the bug by paying.
+        await Task.WhenAny(a, Task.Delay(TimeSpan.FromSeconds(3)));
+        gate.TrySetResult();
+
+        await a.WaitAsync(TimeSpan.FromSeconds(60));
+
+        // The assertion this test exists for.
+        Assert.Equal(0, parser.Calls);
+
+        var job = await harness.Outbox.FindAsync(operationId, default);
+        Assert.NotEqual(ImportJobState.Completed, job!.State);
+
+        // Worker B owns the job and its archive; A must not have removed either.
         Assert.Empty(archives.Deleted);
     }
 }

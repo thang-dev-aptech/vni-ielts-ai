@@ -72,6 +72,12 @@ public sealed class ImportBatchRunnerTests
         }
         public Task<ExamImportDraft?> FindAsync(Guid id, CancellationToken ct) =>
             Task.FromResult<ExamImportDraft?>(Items.SingleOrDefault(d => d.Id == id));
+        public Task<ExamImportDraft?> FindBySourceAsync(
+            ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route,
+            string sourceHash, CancellationToken ct) =>
+            Task.FromResult(Items.FirstOrDefault(d =>
+                d.DefinitionId == definitionId && d.VersionNumber == versionNumber
+                && d.Route == route && d.SourceHash == sourceHash));
         public Task<bool> ReplaceAsync(ExamImportDraft draft, int expected, CancellationToken ct) =>
             Task.FromResult(false);
     }

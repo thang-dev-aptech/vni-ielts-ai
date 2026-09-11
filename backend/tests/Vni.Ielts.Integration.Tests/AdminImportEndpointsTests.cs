@@ -346,6 +346,121 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     }
 
     /// <summary>
+    /// Writes straight onto the job document, by operation id.
+    ///
+    /// <b>Not through <c>ClaimAsync</c>, and the difference matters.</b> This
+    /// class shares one database across its tests, and a claim takes the
+    /// <i>oldest due</i> job — which is very often another test's. Staging a
+    /// state this way names the job it means, the same technique (and the same
+    /// reasoning about the internal document type) this file already uses to
+    /// stage an unreadable stage.
+    /// </summary>
+    private async Task SetJobFieldsAsync(string operationId, MongoDB.Bson.BsonDocument fields)
+    {
+        using var scope = app.Services.CreateScope();
+
+        var options = scope.ServiceProvider
+            .GetRequiredService<Microsoft.Extensions.Options.IOptions<MongoOptions>>().Value;
+
+        await new MongoClient(options.ConnectionString)
+            .GetDatabase(options.Database)
+            .GetCollection<MongoDB.Bson.BsonDocument>("import_jobs")
+            .UpdateOneAsync(
+                new MongoDB.Bson.BsonDocument("operationId", operationId),
+                new MongoDB.Bson.BsonDocument("$set", fields));
+    }
+
+    /// <summary>
+    /// <b>I1: a re-upload after a failed job re-runs it, rather than being a
+    /// silent no-op.</b>
+    ///
+    /// The operation id is derived from the definition, the version, the bytes
+    /// and the parse prompt, so re-uploading the package that failed is
+    /// correctly "already there" — and before this fix that swallowed it:
+    /// <c>EnqueueAsync</c> returned false, the door answered 202 anyway,
+    /// nothing re-ran, and the CMS showed the old error for ever. The only
+    /// escape was a version bump an operator has no reason to guess.
+    ///
+    /// <b>The recorded stage survives the reopen</b>, which is the half that
+    /// makes this affordable: the reopened job resumes from what it already
+    /// bought rather than paying for the parse again.
+    /// </summary>
+    [SkippableFact]
+    public async Task Re_uploading_a_package_whose_job_failed_puts_it_back_in_the_queue()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var zip = BuildZip(("reading/exam.json", UniquePackageJson()));
+        var definitionId = $"cam-{Guid.NewGuid():n}";
+
+        var operationId = await UploadAsync(client, access, zip, definitionId);
+
+        // The state an operator actually complains about: permanently failed,
+        // with a reason, having already paid for the parse.
+        await SetJobFieldsAsync(operationId, new MongoDB.Bson.BsonDocument
+        {
+            { "state", ImportJobState.Failed.ToString() },
+            { "stage", (int)ImportJobStage.Keying },
+            { "attempts", ImportJob.MaxAttempts },
+            { "lastError", "the parser did not answer" },
+        });
+
+        // The obvious thing an operator does next: upload the same package.
+        Assert.Equal(operationId, await UploadAsync(client, access, zip, definitionId));
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/jobs/{Uri.EscapeDataString(operationId)}", access));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await BodyOf(response);
+
+        // The assertion this test exists for: it is owed again.
+        Assert.Equal("Pending", body.GetProperty("state").GetString());
+        Assert.Equal(0, body.GetProperty("attempts").GetInt32());
+        Assert.Equal(JsonValueKind.Null, body.GetProperty("lastError").ValueKind);
+
+        // And it resumes rather than re-buying the parse.
+        Assert.Equal("Keying", body.GetProperty("stage").GetString());
+    }
+
+    /// <summary>
+    /// The other half of the same rule: a job a worker is <b>inside</b> must
+    /// never be reopened. Resetting its attempt count under a worker mid-parse
+    /// invites a second worker onto the same paid work — which is exactly what
+    /// the lease exists to prevent.
+    /// </summary>
+    [SkippableFact]
+    public async Task Re_uploading_a_package_whose_job_is_running_leaves_that_job_alone()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var zip = BuildZip(("reading/exam.json", UniquePackageJson()));
+        var definitionId = $"cam-{Guid.NewGuid():n}";
+
+        var operationId = await UploadAsync(client, access, zip, definitionId);
+
+        await SetJobFieldsAsync(operationId, new MongoDB.Bson.BsonDocument
+        {
+            { "state", ImportJobState.Running.ToString() },
+            { "attempts", 1 },
+            { "leaseToken", "worker-a" },
+            { "leaseUntil", DateTime.UtcNow.AddMinutes(10) },
+        });
+
+        Assert.Equal(operationId, await UploadAsync(client, access, zip, definitionId));
+
+        using var scope = app.Services.CreateScope();
+        var outbox = scope.ServiceProvider.GetRequiredService<IImportOutbox>();
+        var job = await outbox.FindAsync(operationId, default);
+
+        Assert.Equal(ImportJobState.Running, job!.State);
+        Assert.Equal(1, job.Attempts);
+        Assert.Equal("worker-a", job.LeaseToken);
+    }
+
+    /// <summary>
     /// "What happened to my import", answered.
     ///
     /// <b>The worker is not run here, and that is deliberate.</b> This

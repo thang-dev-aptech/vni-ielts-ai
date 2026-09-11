@@ -196,6 +196,26 @@ public sealed class ImportJobTests
                 LeaseUntil = null,
             }));
 
+        public Task<bool> ReopenAsync(string operationId, CancellationToken ct)
+        {
+            if (!_jobs.TryGetValue(operationId, out var job)) return Task.FromResult(false);
+            if (job.State != ImportJobState.Failed) return Task.FromResult(false);
+
+            // Stage and DraftId survive: they record what was already bought.
+            _jobs[operationId] = job with
+            {
+                State = ImportJobState.Pending,
+                Attempts = 0,
+                NextAttemptAt = Now,
+                LastError = null,
+                CompletedAt = null,
+                LeaseToken = null,
+                LeaseUntil = null,
+            };
+
+            return Task.FromResult(true);
+        }
+
         public Task<bool> FailAsync(
             string operationId, string leaseToken, string error, CancellationToken ct) =>
             Task.FromResult(Owned(operationId, leaseToken, j => j with

@@ -109,11 +109,27 @@ public sealed class ExamImportWorkflow(
             parserMetadata: null,
             ct);
 
+    /// <param name="resumeExistingDraft">
+    /// <b>True only when the caller has evidence the parse already happened.</b>
+    /// The import worker passes it when the job row records a stage strictly
+    /// past <c>Parsing</c> — and a stage is reported on <i>entry</i> to its
+    /// step, so "past Parsing" means Parsing finished, which means a draft was
+    /// saved. Nothing else may set it: a caller that guessed would hand back a
+    /// stale draft for a package it never actually read.
+    ///
+    /// <b>This is the whole of what resuming skips.</b> The parse is the one
+    /// step whose completion the recorded stage proves, because it is the only
+    /// one that persists its result before the next step begins. Transcription,
+    /// keying, the cross-checks and the explanations all write at the end of
+    /// the method that performs them, so a recorded stage says they <i>started</i>
+    /// and never that they finished — they are re-run, deliberately.
+    /// </param>
     public async Task<ExamImportAttempt> ImportExtractedAsync(
         ExtractedImportSource source,
         ExamDefinitionId definitionId,
         int versionNumber,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool resumeExistingDraft = false)
     {
         var observedHash = Hash(source.Text);
         if (!FixedTimeEquals(source.TextSha256, observedHash))
@@ -124,6 +140,27 @@ public sealed class ExamImportWorkflow(
                     "error", "SOURCE_HASH_MISMATCH", "/source/sha256",
                     "The extracted source bytes do not match the recorded SHA-256 hash."),
             ]);
+        }
+
+        /*
+         * <b>The short-circuit, and it is the point of the whole job record.</b>
+         * A Cambridge parse is the single most expensive thing this system
+         * buys. Before this existed, `ImportJobStage` was written on every
+         * import and read by nothing, so a transient failure, a worker restart
+         * or an expired lease paid for the parse again — up to three times for
+         * one upload.
+         *
+         * The lookup is by source hash rather than draft id because the draft
+         * id is derived from the parser's output, which is precisely what is
+         * not known yet. → IImportDraftStore.FindBySourceAsync
+         */
+        if (resumeExistingDraft)
+        {
+            var existing = await drafts.FindBySourceAsync(
+                definitionId, versionNumber, ExamImportRoute.AiParsedSource,
+                source.SourceSha256.ToLowerInvariant(), ct);
+
+            if (existing is not null) return ExamImportAttempt.Accepted(existing);
         }
 
         var parsed = await parser.ParseAsync(source, ct);

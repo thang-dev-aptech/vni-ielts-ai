@@ -46,6 +46,28 @@ public interface IImportDraftStore
     /// <summary>Idempotent for an existing draft id with identical import content.</summary>
     Task SaveAsync(ExamImportDraft draft, CancellationToken ct);
     Task<ExamImportDraft?> FindAsync(Guid draftId, CancellationToken ct);
+
+    /// <summary>
+    /// The draft an earlier run of this same import already produced, looked up
+    /// by what was known <b>before</b> the parser ran.
+    ///
+    /// <b>Why this cannot be <see cref="FindAsync"/>.</b>
+    /// <c>ExamImportWorkflow.StableDraftId</c> derives the draft id from the
+    /// <i>package</i> hash — the parser's own output — so a worker that has not
+    /// parsed yet cannot compute it. The only identity available before the
+    /// paid call is the one the job row already carries: the definition, the
+    /// version, the route, and the hash of the extracted source text. That is
+    /// what makes a resumed import able to skip the parse it already bought.
+    ///
+    /// <b>Null is a normal answer</b>, not an error: it means no earlier run
+    /// got as far as saving a draft, so the parse genuinely has to happen.
+    /// </summary>
+    Task<ExamImportDraft?> FindBySourceAsync(
+        ExamDefinitionId definitionId,
+        int versionNumber,
+        ExamImportRoute route,
+        string sourceHash,
+        CancellationToken ct);
     Task<bool> ReplaceAsync(ExamImportDraft draft, int expectedRevision, CancellationToken ct);
 }
 

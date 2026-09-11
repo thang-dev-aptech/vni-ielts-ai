@@ -236,6 +236,35 @@ internal sealed class MongoImportOutbox(MongoContext context, IClock clock) : II
     }
 
     /// <summary>
+    /// One filtered update, and the filter is the whole guard: the state term
+    /// is what makes it impossible to reopen a job a worker is currently
+    /// inside. Reading the state and then writing would be two statements with
+    /// a claim able to slip between them.
+    ///
+    /// <c>Stage</c> and <c>DraftId</c> are untouched — see the port's remarks.
+    /// </summary>
+    public async Task<bool> ReopenAsync(string operationId, CancellationToken ct)
+    {
+        var failed = Builders<ImportJobDocument>.Filter.And(
+            Builders<ImportJobDocument>.Filter.Eq(j => j.OperationId, operationId),
+            Builders<ImportJobDocument>.Filter.Eq(j => j.State, ImportJobState.Failed.ToString()));
+
+        var reopened = await Jobs.UpdateOneAsync(
+            failed,
+            Builders<ImportJobDocument>.Update
+                .Set(j => j.State, ImportJobState.Pending.ToString())
+                .Set(j => j.Attempts, 0)
+                .Set(j => j.NextAttemptAt, clock.UtcNow.UtcDateTime)
+                .Set(j => j.CompletedAt, null)
+                .Set(j => j.LastError, null)
+                .Set(j => j.LeaseUntil, null)
+                .Set(j => j.LeaseToken, null),
+            cancellationToken: ct);
+
+        return reopened.MatchedCount > 0;
+    }
+
+    /// <summary>
     /// A read, not a claim. If the stored stage is unreadable this throws
     /// <see cref="ImportJobStageUnreadableException"/> rather than inventing
     /// `Extracting` — see the comment on that type. Unlike <see cref="ClaimAsync"/>,

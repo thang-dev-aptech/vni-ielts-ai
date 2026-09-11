@@ -263,12 +263,33 @@ public static class AdminImportEndpoints
              */
             Activity.Current?.Id);
 
-        // False means the job was already there — a retried upload of
-        // identical bytes under the same definition, version and prompt. The
-        // unique index decided that, not this code, and the right answer is
-        // the same 202 with the same operation id rather than a conflict: the
-        // caller asked for this import and this import is owed.
-        await outbox.EnqueueAsync(job, ct);
+        /*
+         * False means the job was already there — a retried upload of
+         * identical bytes under the same definition, version and prompt. The
+         * unique index decided that, not this code, and the right answer is
+         * the same 202 with the same operation id rather than a conflict: the
+         * caller asked for this import and this import is owed.
+         *
+         * <b>Unless it already failed, in which case "already there" was a
+         * silent no-op.</b> An operator whose import failed re-uploads the
+         * package; that is the obvious thing to do and it is an unambiguous
+         * instruction to try again. Before this, the duplicate id swallowed
+         * it: 202, nothing re-runs, and the CMS shows the old error for ever,
+         * with a version bump nobody would guess as the only escape.
+         *
+         * `ReopenAsync` is chosen over answering with a distinct "this import
+         * already failed" response because the operator's next move after
+         * reading that response is to ask for exactly this, and a door that
+         * makes them ask twice is a door they work around. It resets the
+         * attempt budget and keeps the recorded stage, so the reopened job
+         * resumes rather than re-buying the parse, and its filter refuses
+         * anything that is not `Failed` — a `Running` job is never disturbed.
+         * The archive was deleted when the job failed and has just been
+         * written again above, under the same content-addressed key, so the
+         * reopened job has bytes to read.
+         */
+        if (!await outbox.EnqueueAsync(job, ct))
+            await outbox.ReopenAsync(job.OperationId, ct);
 
         var location = $"/api/v1/admin/import/jobs/{Uri.EscapeDataString(job.OperationId)}";
 

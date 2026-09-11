@@ -172,6 +172,28 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
         return doc is null ? null : ToDraft(doc);
     }
 
+    /// <summary>
+    /// The resume lookup. Four equality terms, no sort: the same
+    /// <c>(definitionId, versionNumber, route, sourceHash)</c> can only ever
+    /// name one draft, because <c>StableDraftId</c> makes a second parse of the
+    /// same text under the same prompt collide on <c>_id</c> — and a parse
+    /// under a <i>different</i> prompt is a different job with a different
+    /// operation id, which never asks this question.
+    /// </summary>
+    public async Task<ExamImportDraft?> FindBySourceAsync(
+        ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route, string sourceHash,
+        CancellationToken ct)
+    {
+        var filter = Builders<ExamImportDraftDocument>.Filter.And(
+            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.DefinitionId, definitionId.Value),
+            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.VersionNumber, versionNumber),
+            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.Route, route.ToString()),
+            Builders<ExamImportDraftDocument>.Filter.Eq(d => d.SourceHash, sourceHash));
+
+        var doc = await context.ImportDrafts.Find(filter).FirstOrDefaultAsync(ct);
+        return doc is null ? null : ToDraft(doc);
+    }
+
     public async Task<bool> ReplaceAsync(ExamImportDraft draft, int expectedRevision, CancellationToken ct)
     {
         var filter = Builders<ExamImportDraftDocument>.Filter.And(

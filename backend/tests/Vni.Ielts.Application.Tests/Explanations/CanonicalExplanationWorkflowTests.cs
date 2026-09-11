@@ -137,4 +137,21 @@ public sealed class CanonicalExplanationWorkflowTests
       return Task.CompletedTask;
     }
   }
+
+    /// <summary>
+    /// The twin of the import pipeline's own gate, and the same bug.
+    /// <c>"mode": 3</c> parses and then throws
+    /// <see cref="InvalidOperationException"/> out of
+    /// <c>GetValue&lt;string&gt;()</c>, escaping a method documented as never
+    /// throwing. Every unreadable answer refuses; the one value that means yes
+    /// still means yes.
+    /// </summary>
+    [Theory]
+    [InlineData("""{ "policyProfile": { "explanation": { "mode": 3 } } }""", false)]
+    [InlineData("""{ "policyProfile": { "explanation": { "mode": true } } }""", false)]
+    [InlineData("""{ "policyProfile": { "explanation": { "mode": "authored" } } }""", false)]
+    [InlineData("""not json at all""", false)]
+    [InlineData("""{ "policyProfile": { "explanation": { "mode": "ai-generated" } } }""", true)]
+    public void The_generation_gate_refuses_every_mode_it_cannot_read(string packageJson, bool allowed) =>
+        Assert.Equal(allowed, CanonicalExplanationWorkflow.AllowsAiGeneration(packageJson));
 }

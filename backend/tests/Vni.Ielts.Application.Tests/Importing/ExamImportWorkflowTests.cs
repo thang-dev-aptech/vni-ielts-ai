@@ -56,6 +56,13 @@ public sealed class ExamImportWorkflowTests
         public Task<ExamImportDraft?> FindAsync(Guid draftId, CancellationToken ct) =>
             Task.FromResult<ExamImportDraft?>(Saved.SingleOrDefault(d => d.Id == draftId));
 
+        public Task<ExamImportDraft?> FindBySourceAsync(
+            ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route,
+            string sourceHash, CancellationToken ct) =>
+            Task.FromResult(Saved.FirstOrDefault(d =>
+                d.DefinitionId == definitionId && d.VersionNumber == versionNumber
+                && d.Route == route && d.SourceHash == sourceHash));
+
         public Task<bool> ReplaceAsync(ExamImportDraft draft, int expectedRevision, CancellationToken ct)
         {
             var index = Saved.FindIndex(d => d.Id == draft.Id && d.Revision == expectedRevision);

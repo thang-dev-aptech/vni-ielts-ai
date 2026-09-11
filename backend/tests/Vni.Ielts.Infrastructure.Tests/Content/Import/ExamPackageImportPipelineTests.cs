@@ -1271,6 +1271,42 @@ public sealed class ExamPackageImportPipelineTests
         return (pipeline, drafts, validator);
     }
 
+    /// <summary>
+    /// <b>I2: the explanation policy gate refuses an unreadable mode instead of
+    /// throwing out of the pipeline.</b>
+    ///
+    /// <c>"mode": 3</c> parses as JSON perfectly well and then throws
+    /// <see cref="InvalidOperationException"/> out of <c>GetValue&lt;string&gt;()</c>.
+    /// The catch here read <c>JsonException</c> only, so that escaped a method
+    /// whose entire contract is that it is a gate and never throws. It reached
+    /// the worker's catch, which read it as a transient failure and retried —
+    /// so it did fail safe, three times, at full price.
+    ///
+    /// <b>Called directly rather than through <c>ImportAsync</c>.</b> Reaching
+    /// the gate needs a wired <c>ImportReviewWorkflow</c> and a configured
+    /// generator; that would test the wiring, and the assertion that matters is
+    /// about the gate's own answer to a value it cannot read.
+    /// </summary>
+    [Theory]
+    [InlineData("3")]
+    [InlineData("true")]
+    [InlineData("[\"ai-generated\"]")]
+    [InlineData("{ \"value\": \"ai-generated\" }")]
+    public void An_explanation_mode_that_is_not_a_string_refuses_rather_than_throwing(string mode)
+    {
+        var package = $$"""{ "policyProfile": { "explanation": { "mode": {{mode}} } } }""";
+
+        Assert.False(ExamPackageImportPipeline.RequiresAiGeneratedExplanations(package));
+    }
+
+    /// <summary>The gate still says yes to the one value that means yes.</summary>
+    [Fact]
+    public void The_explanation_gate_still_opens_for_a_real_ai_generated_mode()
+    {
+        Assert.True(ExamPackageImportPipeline.RequiresAiGeneratedExplanations(
+            """{ "policyProfile": { "explanation": { "mode": "ai-generated" } } }"""));
+    }
+
     private static string Describe(IReadOnlyList<PackageFinding> findings) =>
         findings.Count == 0
             ? "no findings"
@@ -1305,6 +1341,13 @@ public sealed class ExamPackageImportPipelineTests
 
         public Task<ExamImportDraft?> FindAsync(Guid draftId, CancellationToken ct) =>
             Task.FromResult<ExamImportDraft?>(saved.SingleOrDefault(d => d.Id == draftId));
+
+        public Task<ExamImportDraft?> FindBySourceAsync(
+            ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route,
+            string sourceHash, CancellationToken ct) =>
+            Task.FromResult(saved.FirstOrDefault(d =>
+                d.DefinitionId == definitionId && d.VersionNumber == versionNumber
+                && d.Route == route && d.SourceHash == sourceHash));
 
         public Task<bool> ReplaceAsync(ExamImportDraft draft, int expectedRevision, CancellationToken ct)
         {
