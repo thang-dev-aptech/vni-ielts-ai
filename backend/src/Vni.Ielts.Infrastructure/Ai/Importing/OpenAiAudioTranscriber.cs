@@ -294,14 +294,8 @@ public sealed class OpenAiAudioTranscriber(
          * Refusing produces the part-level warning; believing it produces a
          * package whose Listening answers all report as absent.
          */
-        return payload.Length > MaxTranscriptChars ? null : payload;
+        return payload.Length > MaxPlainTextTranscriptChars ? null : payload;
     }
-
-    /// <summary>
-    /// The ceiling on a plain-text body accepted as a transcript. Not a
-    /// provider limit — a sanity bound on the untrusted fallback path.
-    /// </summary>
-    private const int MaxTranscriptChars = 200_000;
 
     /// <summary>
     /// Whether a declared media type is a markup document rather than speech
