@@ -1,4 +1,6 @@
+using System.Net.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Application.Assessment;
@@ -371,14 +373,6 @@ public static class DependencyInjection
         services.AddSingleton<IExamPackageValidator>(
             _ => new Content.ExamPackageValidator(Content.ExamPackageReader.FromSchemaFile(LocateExamSchemaPath())));
 
-        /*
-         * <b>No AI parser is wired in here.</b> `IExamSourceParser` is
-         * registered as the null implementation until AI-assisted parsing of
-         * raw exam source documents is productised for an unattended HTTP
-         * caller — see `UnconfiguredExamSourceParser`'s own remarks. Only the
-         * structured route (an archive holding one ready `exam.json`) is
-         * unaffected by this; it never touches a parser.
-         */
         services.AddScoped<IPrivateImportAssetStore, DiscardedImportAssetStore>();
 
         /*
@@ -406,7 +400,7 @@ public static class DependencyInjection
                         .CreateLogger<Storage.LocalFileImportArchiveStore>()));
         }
         services.AddScoped<ISourceDocumentExtractor, Content.SafeSourceDocumentExtractor>();
-        services.AddScoped<IExamSourceParser, UnconfiguredExamSourceParser>();
+        AddExamSourceParser(services, configuration);
 
         services.AddScoped<ExamImportWorkflow>();
         services.AddScoped<ImportReviewWorkflow>();
@@ -450,6 +444,120 @@ public static class DependencyInjection
         throw new InvalidOperationException(
             "Could not locate contracts/schemas/exam.schema.json above " + AppContext.BaseDirectory
             + ". The exam-import validator (S6b) needs it to be resolvable at startup.");
+    }
+
+    /// <summary>
+    /// The same walk as <see cref="LocateExamSchemaPath"/>, one level up —
+    /// the directory that holds <c>contracts/</c> rather than the schema file
+    /// itself. Mirrors the operator CLI's own <c>FindRepositoryRoot</c>
+    /// (<c>backend/tools/Vni.Ielts.ExamImporter/Program.cs</c>), which
+    /// <see cref="Ai.Importing.ExamParsePromptSources"/> needs to load its
+    /// prompt template and shape example from <c>fixtures/</c>.
+    /// </summary>
+    private static string LocateRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (Directory.Exists(Path.Combine(directory.FullName, "contracts", "schemas")))
+                return directory.FullName;
+            directory = directory.Parent;
+        }
+
+        throw new InvalidOperationException(
+            "Could not locate the repository root (no contracts/schemas above "
+            + AppContext.BaseDirectory + "). The AI exam-source parser needs it to load its "
+            + "prompt template at startup.");
+    }
+
+    /// <summary>
+    /// The AI-assisted exam-source parser, behind <c>Import:Parser</c>.
+    ///
+    /// <para>
+    /// <b>Reused, not rewritten.</b> <c>ProviderNeutralExamSourceParser</c> and
+    /// <c>OpenAiStructuredExamClient</c> are exactly the types the operator
+    /// CLI (<c>backend/tools/Vni.Ielts.ExamImporter/Program.cs</c>) has
+    /// parsed real Cambridge material with for weeks; this wiring only gives
+    /// the HTTP door the same two types under a configuration gate instead of
+    /// an operator's own terminal.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>With nothing configured, <c>UnconfiguredExamSourceParser</c> stays</b>
+    /// — today's behaviour, and correct for a deployment nobody has given
+    /// keys to. <c>Import:Parser:Provider</c>, <c>:Model</c> and <c>:ApiKey</c>
+    /// turn it on, together; <see cref="Ai.Importing.ExamParserOptions.Problem"/>
+    /// is what refuses to boot on any other combination, so a half-filled
+    /// section never reaches a learner-facing upload at all.
+    /// → <see cref="Vni.Ielts.Api.Common.StartupConfiguration"/>
+    /// </para>
+    ///
+    /// <b>Internal, not private, so the DI wiring itself — not only its
+    /// effect on a fully-built container — has a direct test.</b>
+    /// → <c>ExamSourceParserWiringTests</c>
+    /// </summary>
+    internal static void AddExamSourceParser(IServiceCollection services, IConfiguration configuration)
+    {
+        static Ai.Importing.ExamParserOptions ReadParserOptions(IConfiguration configuration) =>
+            configuration.GetSection(Ai.Importing.ExamParserOptions.SectionName)
+                .Get<Ai.Importing.ExamParserOptions>() ?? new Ai.Importing.ExamParserOptions();
+
+        /*
+         * Ten minutes wide of the CLI's own eighteen-minute adapter deadline
+         * (`OpenAiStructuredExamClient`'s own `CancelAfter`), for the same
+         * reason the CLI states on its own HttpClient: `SendAsync` does not
+         * return until the whole streamed body is read, and the default
+         * hundred seconds fails in the most misleading way available — a
+         * `200` the client never gets to see.
+         */
+        services.AddHttpClient(nameof(Ai.Importing.OpenAiStructuredExamClient))
+            .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromMinutes(20));
+
+        services.AddSingleton<IAiImportCostMetric, Ai.Importing.NullAiImportCostMetric>();
+
+        // Lazy: only resolved (and only then walks the filesystem for
+        // contracts/ and fixtures/) the first time a caller actually needs
+        // the real client below — never when Import:Parser is unset.
+        services.AddSingleton(_ => new Ai.Importing.ExamParsePromptSources(LocateRepositoryRoot()));
+
+        /*
+         * <b>Its own AiOptions, built from Import:Parser rather than resolved
+         * from the shared Ai:OpenAi registration.</b> See the type's own
+         * remarks for why: this section is what a deployment fills in to
+         * turn raw-document parsing on, and it must be what the adapter
+         * actually reads — not a second, disconnected switch that leaves
+         * Ai:OpenAi's own completeness to decide whether this one works.
+         */
+        services.AddSingleton<IStructuredExamAiClient>(sp =>
+        {
+            var parser = ReadParserOptions(configuration);
+
+            return new Ai.Importing.OpenAiStructuredExamClient(
+                sp.GetRequiredService<IHttpClientFactory>(),
+                Options.Create(new AiOptions
+                {
+                    OpenAi = new AiProviderOptions
+                    {
+                        Model = parser.Model,
+                        ApiKey = parser.ApiKey,
+                        BaseUrl = parser.BaseUrl,
+                    },
+                }),
+                sp.GetRequiredService<Ai.Importing.ExamParsePromptSources>(),
+                sp.GetRequiredService<ILogger<Ai.Importing.OpenAiStructuredExamClient>>());
+        });
+
+        services.AddScoped<IExamSourceParser>(sp =>
+        {
+            var parser = ReadParserOptions(configuration);
+
+            if (!parser.IsConfigured) return new UnconfiguredExamSourceParser();
+
+            return new ProviderNeutralExamSourceParser(
+                sp.GetServices<IStructuredExamAiClient>(),
+                sp.GetRequiredService<IAiImportCostMetric>(),
+                new ExamParserOptions(parser.Provider!, parser.PromptVersion, parser.MaxAttempts));
+        });
     }
 
     /// <summary>

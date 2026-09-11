@@ -1,5 +1,6 @@
 using Vni.Ielts.Application.Usage;
 using Vni.Ielts.Infrastructure.Ai;
+using Vni.Ielts.Infrastructure.Ai.Importing;
 using Vni.Ielts.Infrastructure.Assessment;
 using Vni.Ielts.Infrastructure.Configuration;
 using Vni.Ielts.Infrastructure.Content.Import;
@@ -447,6 +448,23 @@ public static class StartupConfiguration
         // ── AI providers ──────────────────────────────────────────────────
         ValidateAi(builder, development, problems, warnings);
 
+        // ── Import:Parser (raw AI-assisted exam-source parsing) ────────────
+        /*
+         * <b>Refused in every environment, not warned.</b> A section that
+         * names a provider but is missing a field looks enabled and fails on
+         * the first upload — after an operator has already put a package in
+         * and waited. There is no Development reading of that which is worth
+         * tolerating, the same call already made for
+         * `Assessment:Writing:TaskWeights` above. An entirely unset section
+         * is the supported "off" state and reports nothing.
+         * → `Vni.Ielts.Infrastructure.Ai.Importing.ExamParserOptions.Problem`
+         */
+        var importParser = builder.Configuration.GetSection(ExamParserOptions.SectionName)
+            .Get<ExamParserOptions>() ?? new ExamParserOptions();
+
+        if (importParser.Problem() is { } importParserProblem)
+            problems.Add(importParserProblem);
+
         /*
          * ── Email ─────────────────────────────────────────────────────────
          *
@@ -783,6 +801,8 @@ public static class StartupConfiguration
             .Get<ImportArchiveOptions>() ?? new ImportArchiveOptions();
         var usageDescribed = configuration.GetSection(UsageOptions.SectionName)
             .Get<UsageOptions>() ?? new UsageOptions();
+        var importParserDescribed = configuration.GetSection(ExamParserOptions.SectionName)
+            .Get<ExamParserOptions>() ?? new ExamParserOptions();
 
         var lines = new List<string>
         {
@@ -848,6 +868,15 @@ public static class StartupConfiguration
                 + $"ratio {importArchiveDescribed.MaxCompressionRatio}:1, "
                 + $"archive {importArchiveDescribed.MaxArchiveBytes} B, "
                 + $"timeout {importArchiveDescribed.ExtractionTimeoutSeconds} s",
+
+            // A section of its own — see ExamParserOptions's own remarks for why it is not a
+            // read of Ai:OpenAi. "not set" here means UnconfiguredExamSourceParser is wired and
+            // every raw-document upload fails with AI_PARSER_UNAVAILABLE.
+            "Import:Parser:Provider = " + (importParserDescribed.Provider ?? "not set"),
+            "Import:Parser:Model = " + (importParserDescribed.Model ?? "not set"),
+            $"Import:Parser:BaseUrl = {SecretRedaction.Url(importParserDescribed.BaseUrl)}",
+            $"Import:Parser:ApiKey = {SecretRedaction.Describe(importParserDescribed.ApiKey)}",
+            $"Import:Parser:MaxAttempts = {importParserDescribed.MaxAttempts}",
         };
 
         foreach (var (section, provider) in new[] { ("OpenAi", ai.OpenAi), ("Gemini", ai.Gemini) })

@@ -52,6 +52,7 @@ public sealed class SecretContractTests
     private const string OpenAiApiKey = "FAKE-NOT-A-REAL-KEY-openai-04";
     private const string GeminiApiKey = "FAKE-NOT-A-REAL-KEY-gemini-05";
     private const string MongoPassword = "FAKE-NOT-A-REAL-KEY-mongo-password-06";
+    private const string ImportParserApiKey = "FAKE-NOT-A-REAL-KEY-import-parser-07";
 
     /// <summary>The setting each secret is supplied through, for the paired assertion.</summary>
     private static readonly (string Setting, string Secret)[] SecretSettings =
@@ -62,6 +63,7 @@ public sealed class SecretContractTests
         ("Ai:OpenAi:ApiKey", OpenAiApiKey),
         ("Ai:Gemini:ApiKey", GeminiApiKey),
         ("Mongo:ConnectionString", MongoPassword),
+        ("Import:Parser:ApiKey", ImportParserApiKey),
     ];
 
     [Fact]
@@ -256,6 +258,38 @@ public sealed class SecretContractTests
         Assert.Null(Record.Exception(() => Validate(ProductionBuilder(config))));
     }
 
+    /// <summary>
+    /// Task 4's own gate, exercised at the level the API actually boots
+    /// through — <c>StartupConfiguration.ValidateOrThrow</c> — rather than at
+    /// <c>ExamParserOptions.Problem()</c> directly, which
+    /// <c>ExamSourceParserWiringTests</c> in the Infrastructure suite already
+    /// covers. A section naming a provider and a model but no key looks
+    /// enabled and fails on the first upload; this is refused before that.
+    /// </summary>
+    [Fact]
+    public void A_named_ai_parser_provider_without_a_key_refuses_to_boot()
+    {
+        var config = ValidProductionConfig();
+        config["Import:Parser:Provider"] = "OpenAi";
+        config["Import:Parser:Model"] = "gpt-5.5";
+
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => Validate(ProductionBuilder(config)));
+
+        Assert.Contains("Import:Parser", refusal.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_fully_configured_ai_parser_provider_boots()
+    {
+        var config = ValidProductionConfig();
+        config["Import:Parser:Provider"] = "OpenAi";
+        config["Import:Parser:Model"] = "gpt-5.5";
+        config["Import:Parser:ApiKey"] = ImportParserApiKey;
+
+        Assert.Null(Record.Exception(() => Validate(ProductionBuilder(config))));
+    }
+
     [Fact]
     public void An_object_storage_endpoint_carrying_credentials_refuses_to_boot()
     {
@@ -424,6 +458,9 @@ public sealed class SecretContractTests
         config["Ai:OpenAi:Model"] = "gpt-5.5";
         config["Ai:Gemini:ApiKey"] = GeminiApiKey;
         config["Ai:Gemini:Model"] = "gemini-3-pro";
+        config["Import:Parser:Provider"] = "OpenAi";
+        config["Import:Parser:Model"] = "gpt-5.5";
+        config["Import:Parser:ApiKey"] = ImportParserApiKey;
 
         return config;
     }
