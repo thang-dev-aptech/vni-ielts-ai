@@ -170,3 +170,40 @@ public interface IImportOutbox
 
     Task<ImportJob?> FindAsync(string operationId, CancellationToken ct);
 }
+
+/// <summary>
+/// A stored <c>stage</c> value that this binary's <see cref="ImportJobStage"/>
+/// does not define. Thrown by <see cref="IImportOutbox.FindAsync"/>.
+///
+/// <b>Scenario this exists for.</b> A newer deployment adds a stage the enum
+/// does not yet have on an older binary — say, a split of <c>Keying</c> into
+/// two steps — writes it, and is then rolled back. The older binary reads the
+/// job back and, without this, would map the unrecognised value to
+/// <see cref="ImportJobStage.Extracting"/>: a silent, invented "start over"
+/// for a job that has already paid for a parse. <c>MongoMarkingOutbox</c>'s
+/// own mapper has the same shape of fallback and is deliberately left alone —
+/// a marking job has no stage to rewind, one paid call is the whole cost, so
+/// nothing is at risk there. An import is different because
+/// <see cref="ImportJobStage"/> gates repeated, separately-paid work, which is
+/// exactly why <see cref="IImportOutbox.AdvanceAsync"/> guards it against
+/// being moved backwards on write — and an unreadable value on *read* is the
+/// one path that guard cannot see. → `G-11`: never an invented default.
+///
+/// <para>
+/// <b>It lives in Application, beside the port that throws it, rather than in
+/// the Mongo store that raises it.</b> Task 2 traded a silent failure for a
+/// loud one; a loud failure nobody can read is only half that trade. The
+/// caller that has to turn this into a sentence an operator understands is the
+/// admin job-status endpoint, and an endpoint cannot catch a type that is
+/// internal to the persistence assembly. Carrying no persistence attribute and
+/// no driver type, it is a fact about the port's contract, not about Mongo.
+/// </para>
+/// </summary>
+public sealed class ImportJobStageUnreadableException(string operationId, int rawStage)
+    : InvalidOperationException(
+        $"Import job '{operationId}' has stage {rawStage}, which this binary's "
+        + "ImportJobStage does not define. Refusing to treat it as Extracting.")
+{
+    public string OperationId { get; } = operationId;
+    public int RawStage { get; } = rawStage;
+}

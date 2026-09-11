@@ -78,6 +78,8 @@ public sealed class ImportBatchRunnerTests
 
     private sealed class Parser : IExamSourceParser
     {
+        public string PromptVersion => "test-parse-prompt";
+
         public Task<ParsedExamPackage> ParseAsync(ExtractedImportSource source, CancellationToken ct) =>
             throw new NotSupportedException();
     }

@@ -137,6 +137,17 @@ builder.Services.AddSingleton<WorkerHealthState>();
 builder.Services.AddHostedService<MarkingWorker>();
 
 /*
+ * <b>The import queue's drain.</b> The upload endpoint stopped doing the work
+ * inside the request — a Cambridge parse costs money and takes minutes, and an
+ * HTTP timeout halfway through refunds none of it — so the job it enqueues
+ * needs a process that runs it. Registered beside the marking worker and in the
+ * same host for the same reason they share a composition root: they are the
+ * same shape of problem, and two hosts would be two answers to "what does a
+ * lease mean".
+ */
+builder.Services.AddHostedService<ImportWorker>();
+
+/*
  * <b>Off unless switched on</b> — see the class. A background process that
  * deletes audio is not something to enable by default in an environment nobody
  * has looked at, and the moment somebody enables it is the moment they decide

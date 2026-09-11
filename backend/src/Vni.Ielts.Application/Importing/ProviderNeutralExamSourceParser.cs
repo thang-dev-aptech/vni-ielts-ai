@@ -36,6 +36,10 @@ public sealed record ExamParserOptions(string Provider, string PromptVersion, in
 public sealed class ProviderNeutralExamSourceParser : IExamSourceParser
 {
     public const string ExamSchemaId = "https://vni.edu.vn/schemas/exam.schema.json";
+
+    /// <inheritdoc />
+    public string PromptVersion => options.PromptVersion;
+
     private readonly IStructuredExamAiClient client;
     private readonly IAiImportCostMetric costs;
     private readonly ExamParserOptions options;

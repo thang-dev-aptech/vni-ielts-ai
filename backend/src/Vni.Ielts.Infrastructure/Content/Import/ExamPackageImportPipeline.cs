@@ -35,8 +35,24 @@ public sealed class ExamPackageImportPipeline(
     /// forward-only request body would not, and is rejected here rather than
     /// silently mis-reading a truncated archive.
     /// </param>
+    /// <param name="progress">
+    /// Where the import has got to, reported as it happens.
+    ///
+    /// <b>Optional and null by default, so no existing caller changes.</b> The
+    /// operator CLI and the synchronous tests do not care; the import worker
+    /// does, because a stage is how far the money went. A resumed job that
+    /// cannot tell whether a paid parse already happened has to guess, and
+    /// guessing wrong buys a second parse of a Cambridge paper. →
+    /// <c>ImportJobStage</c>
+    ///
+    /// <b>Reported, never depended on.</b> This pipeline does not read the
+    /// stage back and does not change behaviour when nobody is listening: a
+    /// recipient that throws must not be able to fail an import that has
+    /// already been paid for, so every call is guarded.
+    /// </param>
     public async Task<ExamImportAttempt> ImportAsync(
-        Stream zip, ExamDefinitionId definitionId, int versionNumber, CancellationToken ct)
+        Stream zip, ExamDefinitionId definitionId, int versionNumber, CancellationToken ct,
+        IProgress<ImportJobStage>? progress = null)
     {
         if (!zip.CanSeek)
         {
@@ -44,6 +60,8 @@ public sealed class ExamPackageImportPipeline(
                 "The archive stream must be seekable — inspection and extraction both read it in full. "
                 + "Buffer the upload to a seekable stream before calling this.", nameof(zip));
         }
+
+        Report(progress, ImportJobStage.Extracting);
 
         var limits = archiveOptions.Value.ToLimits();
         var inspection = await inspector.InspectAsync(zip, limits, ct);
@@ -60,7 +78,8 @@ public sealed class ExamPackageImportPipeline(
                 return ExamImportAttempt.Rejected(extraction.Findings);
 
             var attempt = await ImportFromSandboxAsync(
-                inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber, ct);
+                inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber, ct,
+                progress);
 
             return await AttachRoleFolderWarningsAsync(attempt, inspection.Findings, ct);
         }
@@ -108,13 +127,21 @@ public sealed class ExamPackageImportPipeline(
     /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
         PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
-        CancellationToken ct)
+        CancellationToken ct, IProgress<ImportJobStage>? progress)
     {
         var allEntries = layout.AcceptedEntries.ToArray();
 
         if (allEntries.Length == 1 && allEntries[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
             var packageJson = await File.ReadAllTextAsync(Path.Combine(sandboxDirectory, allEntries[0]), ct);
+
+            // <b>Reported even though no parser runs.</b> The structured route
+            // reads a package somebody already assembled, so `Parsing` here
+            // costs nothing — but a job that jumped from `Extracting` to
+            // `Done` would leave an operator watching the CMS with no idea
+            // which route their upload took.
+            Report(progress, ImportJobStage.Parsing);
+
             return await workflow.ImportStructuredAsync(packageJson, definitionId, versionNumber, ct);
         }
 
@@ -135,6 +162,10 @@ public sealed class ExamPackageImportPipeline(
             }
         }
 
+        // Past here the parser is called, and a Cambridge parse is the single
+        // most expensive thing this pipeline does.
+        Report(progress, ImportJobStage.Parsing);
+
         var text = combined.ToString();
         var hash = ExamImportWorkflow.Hash(text);
         var source = new ExtractedImportSource(
@@ -143,7 +174,7 @@ public sealed class ExamPackageImportPipeline(
         var attempt = await workflow.ImportExtractedAsync(source, definitionId, versionNumber, ct);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
-        return await ApplyKeysAndGuardAsync(attempt.Draft, layout, sandboxDirectory, ct);
+        return await ApplyKeysAndGuardAsync(attempt.Draft, layout, sandboxDirectory, ct, progress);
     }
 
     /// <summary>
@@ -169,8 +200,11 @@ public sealed class ExamPackageImportPipeline(
     /// <see cref="FabricatedAnswerKeyGuard"/>'s own remarks warn against.
     /// </summary>
     private async Task<ExamImportAttempt> ApplyKeysAndGuardAsync(
-        ExamImportDraft draft, PackageLayout layout, string sandboxDirectory, CancellationToken ct)
+        ExamImportDraft draft, PackageLayout layout, string sandboxDirectory, CancellationToken ct,
+        IProgress<ImportJobStage>? progress = null)
     {
+        Report(progress, ImportJobStage.Keying);
+
         var json = draft.PackageJson;
         var findings = new List<PackageFinding>();
         var injectionWarnings = new List<PackageFinding>();
@@ -276,6 +310,8 @@ public sealed class ExamPackageImportPipeline(
          * was invented; these findings say which of the invented answers are
          * impossible. → PaperKeyConsistency
          */
+        Report(progress, ImportJobStage.Checking);
+
         findings.AddRange(PaperKeyConsistency.Inspect(json));
 
         /*
@@ -361,6 +397,27 @@ public sealed class ExamPackageImportPipeline(
     }
 
     public const string RevalidationFailedCode = "ANSWER_KEY_REVALIDATION_FAILED";
+
+    /// <summary>
+    /// Tells the caller where the import has got to, and never lets that
+    /// telling break the import.
+    ///
+    /// <b>Swallowed on purpose.</b> The recipient is a worker writing a row to
+    /// a database; a blip there must not throw out of a pipeline that has
+    /// already spent money on a parse. The worker's own bookkeeping is what
+    /// notices a lost stage — this call is a report, not a transaction.
+    /// </summary>
+    private static void Report(IProgress<ImportJobStage>? progress, ImportJobStage stage)
+    {
+        try
+        {
+            progress?.Report(stage);
+        }
+        catch (Exception)
+        {
+            // Deliberately nothing: see above.
+        }
+    }
 
     /// <summary>
     /// Carries <see cref="ArchiveFindingCodes.LayoutUnknownRoleFolder"/> — and

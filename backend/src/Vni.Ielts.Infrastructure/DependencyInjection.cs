@@ -380,6 +380,31 @@ public static class DependencyInjection
          * unaffected by this; it never touches a parser.
          */
         services.AddScoped<IPrivateImportAssetStore, DiscardedImportAssetStore>();
+
+        /*
+         * <b>Where the uploaded ZIP waits for the worker.</b> When object
+         * storage is configured, `AddObjectStorage` above already registered
+         * the S3-backed store and this is skipped — the last registration
+         * wins, and silently replacing a real bucket with a local directory is
+         * how an import works on one machine and vanishes on the next.
+         *
+         * <b>Not `IPrivateImportAssetStore`, however much the name invites
+         * it.</b> That port is write-only and the implementation registered on
+         * the line above discards what it is given; an import built on it
+         * would accept every upload and lose it. → `IImportArchiveStore`
+         */
+        if (!objectStorageRegistered)
+        {
+            var archiveRoot = configuration["Import:Archive:LocalRoot"] is { Length: > 0 } configured
+                ? configured
+                : Storage.LocalFileImportArchiveStore.DefaultRoot;
+
+            services.AddSingleton<IImportArchiveStore>(sp =>
+                new Storage.LocalFileImportArchiveStore(
+                    archiveRoot,
+                    sp.GetRequiredService<ILoggerFactory>()
+                        .CreateLogger<Storage.LocalFileImportArchiveStore>()));
+        }
         services.AddScoped<ISourceDocumentExtractor, Content.SafeSourceDocumentExtractor>();
         services.AddScoped<IExamSourceParser, UnconfiguredExamSourceParser>();
 

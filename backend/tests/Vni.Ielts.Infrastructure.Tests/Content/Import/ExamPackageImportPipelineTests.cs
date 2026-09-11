@@ -30,6 +30,8 @@ public sealed class ExamPackageImportPipelineTests
     /// </summary>
     private sealed class RecordingParser(string? packageJson = null) : IExamSourceParser
     {
+        public string PromptVersion => "test-parse-prompt";
+
         public string? LastSourceText { get; private set; }
 
         public Task<ParsedExamPackage> ParseAsync(ExtractedImportSource source, CancellationToken ct)

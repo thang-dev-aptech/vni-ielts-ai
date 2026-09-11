@@ -27,6 +27,8 @@ public sealed class ExamImportWorkflowTests
 
     private sealed class FakeParser(string packageJson) : IExamSourceParser
     {
+        public string PromptVersion => "test-parse-prompt";
+
         public int Calls { get; private set; }
 
         public Task<ParsedExamPackage> ParseAsync(ExtractedImportSource source, CancellationToken ct)
