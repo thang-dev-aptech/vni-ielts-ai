@@ -14,7 +14,7 @@ Procedural knowledge for modelling IELTS correctly in this product. Full detail:
 | Fixed in code | Configuration data |
 |---|---|
 | The four modules (R/L/W/S) | **Raw score → band boundaries** |
-| The four Writing criteria | Section durations |
+| The four Writing criteria (Task 1 = Task Achievement, Task 2 = Task Response) | Section durations |
 | The four Speaking criteria | Question counts, passage/recording counts |
 | Band scale 0–9 in 0.5 steps | Question types enabled |
 | Overall-band rounding rule | Word-count minimums, Speaking timings |

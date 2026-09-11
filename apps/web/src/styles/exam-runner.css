@@ -569,9 +569,12 @@
   align-items: stretch;
 }
 
-.exr-body-in[data-split='reading'],
-.exr-body-in[data-split='writing'] {
+.exr-body-in[data-split='reading'] {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+}
+
+.exr-body-in[data-split='writing'] {
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
 }
 
 .exr-body-in[data-split='single'] {

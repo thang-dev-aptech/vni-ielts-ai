@@ -1,3 +1,4 @@
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
@@ -135,6 +136,17 @@ public sealed class ImportReviewWorkflow(
         if (draft.ApprovalState == ImportApprovalState.Approved)
             return await CommitApprovedAsync(draft, expectedRevision, ct);
 
+        /*
+         * A blocking finding has no override, and that is the difference from a
+         * warning. `P-19`'s warnings are judgements a reviewer may make with a
+         * recorded reason. An error here is two documents in the same package
+         * contradicting each other — a key answer the passage does not contain, an
+         * answer over the paper's own word limit — and no amount of authority makes
+         * those consistent. The fix is a corrected file. → IP-03
+         */
+        if (draft.Findings.Any(f =>
+                string.Equals(f.Severity, "error", StringComparison.OrdinalIgnoreCase)))
+            return ImportReviewResult.Refused("IMPORT_FINDINGS_BLOCKING");
         if (draft.Warnings.Any(w => !w.Resolved))
             return ImportReviewResult.Refused("IMPORT_WARNINGS_UNRESOLVED");
         if (draft.ChecklistRequired && !draft.Checklist.IsComplete)

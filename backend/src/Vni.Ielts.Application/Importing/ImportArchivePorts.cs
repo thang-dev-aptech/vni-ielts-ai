@@ -68,16 +68,55 @@ public sealed record ImportArchiveLimits(
     TimeSpan ExtractionTimeout);
 
 /// <summary>
+/// What an accepted file is <i>for</i>, decided by the folder directly under
+/// the skill folder (<c>IP-02</c>).
+///
+/// <b>This is what keeps the answer key away from the model.</b> Before it
+/// existed, every file under a skill folder was concatenated into one blob
+/// and sent to the parser, so a key dropped into <c>reading/</c> was read by
+/// it — the configuration measured wrong on 2026-09-02, where a model shown
+/// a paper produced forty answers for a paper that contained none.
+/// </summary>
+public enum PackageEntryRole
+{
+    /// <summary>Passages, questions, task prompts. The only role the model sees.</summary>
+    Paper,
+
+    /// <summary>The supplier's answer key. Read by code, never by a model.</summary>
+    Key,
+
+    /// <summary>Listening recordings.</summary>
+    Audio,
+}
+
+/// <summary>
+/// One skill's accepted files, split by role. Order within each list is the
+/// archive's own order, which is what an administrator reading a report sees.
+/// </summary>
+public sealed record SkillEntries(
+    IReadOnlyList<string> Paper,
+    IReadOnlyList<string> Key,
+    IReadOnlyList<string> Audio)
+{
+    public static SkillEntries Empty { get; } = new([], [], []);
+
+    /// <summary>Every accepted file for this skill, whatever its role.</summary>
+    public IEnumerable<string> All => Paper.Concat(Key).Concat(Audio);
+
+    public int Count => Paper.Count + Key.Count + Audio.Count;
+}
+
+/// <summary>
 /// Where each accepted file belongs, decided by its top-level folder name
 /// alone (<c>P-18</c>). A skill whose folder is absent is simply not present.
 /// </summary>
 public sealed record PackageLayout(
-    IReadOnlyDictionary<ExamModule, IReadOnlyList<string>> EntriesBySkill,
+    IReadOnlyDictionary<ExamModule, SkillEntries> EntriesBySkill,
     IReadOnlyList<string> UnknownEntries,
     IReadOnlyList<string> AssetEntries = null!)
 {
     public static PackageLayout Empty { get; } =
-        new(new Dictionary<ExamModule, IReadOnlyList<string>>(), [], []);
+        new(new Dictionary<ExamModule, SkillEntries>(), [], []);
 
     /// <summary>Skills with at least one file. Order follows <see cref="ExamModule"/>.</summary>
     public IReadOnlyList<ExamModule> PresentSkills =>
@@ -87,7 +126,10 @@ public sealed record PackageLayout(
 
     /// <summary>Every relative path that would be extracted, across skills and <c>assets/**</c>.</summary>
     public IEnumerable<string> AcceptedEntries =>
-        EntriesBySkill.Values.SelectMany(e => e).Concat(AssetEntries ?? []);
+        EntriesBySkill.Values.SelectMany(e => e.All).Concat(AssetEntries ?? []);
+
+    public SkillEntries For(ExamModule module) =>
+        EntriesBySkill.TryGetValue(module, out var e) ? e : SkillEntries.Empty;
 }
 
 public sealed record ArchiveInspection(
@@ -119,6 +161,26 @@ public static class ArchiveFindingCodes
     public const string EntryNotRegular = "ENTRY_NOT_REGULAR";
     public const string NestedArchive = "NESTED_ARCHIVE";
     public const string LayoutUnknownEntry = "LAYOUT_UNKNOWN_ENTRY";
+
+    /// <summary>
+    /// A folder directly under a recognised skill folder whose name matches no
+    /// role — <c>reading/dap_an/</c>, an underscore where the hyphen belongs,
+    /// or a diacritic mangled by a ZIP tool writing CP437.
+    ///
+    /// <b>Its own code because it is not the same event as
+    /// <see cref="LayoutUnknownEntry"/>.</b> An unknown top-level folder means
+    /// the files are <i>ignored</i>: <c>__MACOSX/</c> is the case, it is noise,
+    /// and it stays an inspection finding that reaches no gate. An unrecognised
+    /// role folder means the file <i>is</i> used, as paper — so a mislabelled
+    /// key folder sends the answer key to the model, which is the 2026-09-02
+    /// configuration reached by a typo. That is consequential and specific, so
+    /// <c>ExamPackageImportPipeline</c> carries this one, and only this one,
+    /// onto the draft as a blocking, clearable review warning. Sharing a code
+    /// with <c>__MACOSX/</c> is what made the routing look like a choice
+    /// between two traps.
+    /// </summary>
+    public const string LayoutUnknownRoleFolder = "LAYOUT_UNKNOWN_ROLE_FOLDER";
+
     public const string LayoutEmpty = "LAYOUT_EMPTY";
     public const string ExtractionQuotaExceeded = "EXTRACTION_QUOTA_EXCEEDED";
     public const string ExtractionTimeout = "EXTRACTION_TIMEOUT";

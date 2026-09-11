@@ -1,0 +1,151 @@
+{
+  "version": "vni-writing-v2",
+  "descriptorSource": "vni-authored",
+  "effectiveDate": "2026-09-09",
+  "contentHash": "sha256:pending",
+  "promptVersion": "writing-eval-prompt-v2",
+  "taskTypes": {
+    "task1": {
+      "criteria": [
+        "taskAchievement",
+        "coherenceAndCohesion",
+        "lexicalResource",
+        "grammaticalRangeAndAccuracy"
+      ],
+      "descriptors": {
+        "taskAchievement": {
+          "academic": {
+            "9": "The response accounts for the whole graphic with numbers that match the source and without inventing causes the figure does not show. A short, separate summary of the graphic's dominant patterns sits above the supporting detail.",
+            "8": "The response captures the graphic's dominant patterns and nearly all supporting figures, staying inside what the source actually displays. The summary of main movements is present and reliable, with only an occasional missed comparison or a trivial numerical inaccuracy.",
+            "7": "The response covers the graphic's important patterns and includes a usable summary of those patterns, with figures that are mostly correct. A few salient points may be thin, and any comment remains close to what the figure actually shows.",
+            "6": "The response reports the graphic in a generally usable way: a summary of main movements is attempted and most prominent patterns appear, though some figures may be inexact or a lesser pattern omitted. Invented explanations, if they appear, stay limited.",
+            "5": "The response recounts some of what the graphic shows, but the account is incomplete: the summary of main movements may be missing or mixed into a raw list, and wrong figures or omitted patterns are noticeable. Claims that go beyond the source may appear.",
+            "4": "The response mentions the graphic but the account is fragmentary: important patterns are skipped, figures are often wrong, and there is little or no summary of main movements. Reasons the graphic does not support may be added.",
+            "3": "The response barely engages the graphic: a few isolated details appear, without a summary of main movements and with frequent inaccuracy. Most of the source is ignored.",
+            "2": "The response shows almost no usable description of the graphic. Isolated words or numbers do not form an account of the data.",
+            "1": "Almost no English related to the graphic is present. The text cannot be treated as a description of the source.",
+            "0": "Nothing assessable in English is offered: the script is blank, only the prompt is copied, or there is no attempt at the graphic."
+          },
+          "generalTraining": {
+            "9": "The letter fully meets its purpose: each of the three required points is covered with enough detail, and the register stays consistently suited to the reader. Why the letter is being written is unmistakable from the opening onward.",
+            "8": "The letter fulfils its purpose with all three required points covered and a register that is almost always right for the reader. A small gap in detail or a brief tonal wobble does not hide the reason for writing.",
+            "7": "The letter serves its purpose and covers the three required points, with a generally suitable register. One point may be thinner than the others, or the formality may waver briefly.",
+            "6": "The letter is recognisable as a response to the situation: the three required points are touched, the purpose can be inferred, and the register is mostly acceptable, though one point or the tone may be uneven.",
+            "5": "The letter only partly matches the situation: at least one of the three required points is weak or missing, the purpose may be slow to emerge, and the register may not fit the reader.",
+            "4": "The letter barely answers the situation: required points are largely skipped or misunderstood, the purpose is unclear, and the register is often wrong for the reader.",
+            "3": "The letter shows only a faint link to the required situation. The listed points are mostly absent and register is uncontrolled.",
+            "2": "Almost no usable letter content appears. Isolated phrases do not address the situation or the required points.",
+            "1": "Almost no English related to the letter task is present.",
+            "0": "Nothing assessable in English is offered: the script is blank, only the prompt is copied, or there is no attempt at a letter."
+          }
+        },
+        "coherenceAndCohesion": {
+          "9": "Information is sequenced so the reader never has to reconstruct the order: related points sit together, the account moves forward without backtracking, and connecting language is used only where it helps. Any paragraphing is driven by the content rather than by habit.",
+          "8": "The account is easy to follow, with clear grouping of related information and steady forward movement. Connecting devices are well chosen, with only rare mechanical or missing ties, and paragraphing is generally effective.",
+          "7": "The account has a clear overall shape and generally progresses; related information is grouped. Connecting language is usually helpful, though a few ties may be heavy or slightly misused, and paragraphing is adequate.",
+          "6": "The account can be followed as a whole: there is an overall sequence, though progression may be uneven. Connecting devices are used but sometimes mechanically or inaccurately, and paragraphing may be only roughly aligned with the content.",
+          "5": "Organisation is only partly successful: some sequencing is visible but the reader must often reassemble the account. Connecting language is limited, repetitive, or faulty, and paragraphing may be missing or unhelpful.",
+          "4": "Information is presented with little usable organisation: progression is hard to see, connecting language is scarce or confusing, and paragraphing is absent or arbitrary.",
+          "3": "There is almost no controlling organisation. Details appear in a jumble and connecting language, if present, does not guide the reader.",
+          "2": "The text cannot be followed as a connected account. Fragments sit side by side without sequence.",
+          "1": "Almost no connected English organisation is present.",
+          "0": "Nothing assessable in English is offered, so organisation cannot be judged."
+        },
+        "lexicalResource": {
+          "9": "Word choice is fully equal to describing the graphic or composing the letter: a wide, precise stock of items and collocations is used, less-common words are spelled and chosen accurately, and repetition is avoided because alternatives are available.",
+          "8": "Vocabulary is wide and generally precise for the figure or letter, with collocations that usually sound natural. Less-common items appear with only rare spelling or choice inaccuracies, and repetition is uncommon.",
+          "7": "Vocabulary is ample for describing the graphic or writing the letter, and is generally precise, with some less-common items and mostly natural collocations. Occasional inaccuracy or repetition does not impede meaning.",
+          "6": "Vocabulary is adequate for the task: meaning comes through, though the range is ordinary, collocations are sometimes awkward, and less-common items may be misspelled or slightly misused. Some repetition is noticeable.",
+          "5": "Vocabulary is limited for the task: basic words carry most of the load, repetition is frequent, and errors in word choice or spelling sometimes make the reader pause.",
+          "4": "Vocabulary is too narrow for the task: a small stock of simple words is reused, collocation is unreliable, and spelling or word-choice errors often interfere with meaning.",
+          "3": "Vocabulary is extremely limited. Only isolated words or short formulaic phrases appear, with errors that frequently block meaning.",
+          "2": "Almost no usable word stock is evident. Isolated items do not build a description or a letter.",
+          "1": "Almost no English vocabulary related to the task is present.",
+          "0": "Nothing assessable in English is offered, so lexical range cannot be judged."
+        },
+        "grammaticalRangeAndAccuracy": {
+          "9": "Sentence form is fully under control: simple and complex structures are chosen as the meaning requires, punctuation supports the grammar, and inaccuracies do not occur in a way that affects communication.",
+          "8": "A wide set of simple and complex structures is used with generally sure control. Punctuation is reliable, and inaccuracies are rare and do not hide meaning.",
+          "7": "Simple and complex structures both appear frequently, with generally good control. Errors and punctuation faults occur but seldom block communication.",
+          "6": "Both plain sentences and more nested ones are attempted and often succeed, though errors are noticeable and punctuation may be uneven. Meaning usually remains clear.",
+          "5": "Sentence forms are limited: nested structures are tried but often fail, error density is high, and punctuation problems sometimes obscure meaning.",
+          "4": "Control of sentence form is limited: plain sentences predominate, attempts at subordination frequently collapse, and errors plus weak punctuation often impede communication.",
+          "3": "There is too little reliable sentence-form control to judge a range. Fragments and errors dominate, and meaning is frequently lost.",
+          "2": "Almost no control of sentence form is evident. Words do not combine into readable sentences.",
+          "1": "Almost no English sentence structure is present.",
+          "0": "Nothing assessable in English is offered, so grammatical range cannot be judged."
+        }
+      }
+    },
+    "task2": {
+      "criteria": [
+        "taskResponse",
+        "coherenceAndCohesion",
+        "lexicalResource",
+        "grammaticalRangeAndAccuracy"
+      ],
+      "descriptors": {
+        "taskResponse": {
+          "9": "A clear stance runs through the whole essay, every part of the question is dealt with, and ideas are developed with relevant support. The argument is this writer's treatment of this prompt, not a recycled block that ignores what was asked.",
+          "8": "A clear stance is held throughout, all parts of the question are covered, and ideas are well developed with relevant support. Occasional thinning of an idea or a slight drift does not hide the position.",
+          "7": "A position is evident throughout, all parts of the question are addressed, and main ideas are extended with support. Some ideas may be more fully worked than others, or the support may be a little general.",
+          "6": "A position can be identified and the question is addressed in the main, with ideas that are relevant though unevenly developed. Support may be limited or partly repetitive, and one part of the question may be thinner than the rest.",
+          "5": "The essay only partly answers the question: the stance may be unclear or may shift, some parts of the prompt are neglected, and ideas are under-developed or only loosely supported.",
+          "4": "The essay has only a weak link to the question: a stance is hard to find, parts of the prompt are ignored, and ideas stay undeveloped or stray. Recycled material that does not serve this question may take over.",
+          "3": "The essay barely answers the question. A stance is not established and ideas are few, undeveloped, or largely away from the prompt.",
+          "2": "Almost no relevant response to the question appears. Isolated remarks do not form a stance or an argument.",
+          "1": "Almost no English related to the essay question is present.",
+          "0": "Nothing assessable in English is offered: the script is blank, only the question is copied, or there is no attempt."
+        },
+        "coherenceAndCohesion": {
+          "9": "The argument is arranged so each paragraph has a job and the line of thought never stalls: ideas progress, connecting language serves the meaning rather than decorating it, and paragraphing is a genuine organising tool.",
+          "8": "The argument is easy to follow, with clear paragraph purposes and steady progression. Connecting devices are well used, with only rare overuse or a slightly awkward join.",
+          "7": "The argument has a clear overall plan and generally progresses; paragraphs usually have a central idea. Connecting devices are generally effective, though a few may be heavy, repetitive, or slightly inaccurate.",
+          "6": "The argument can be followed as a whole, with an overall sequence, though progression and paragraph focus may be uneven. Connecting devices are used but sometimes mechanically, and paragraphing may be only roughly effective.",
+          "5": "Arrangement is only partly successful: some logical grouping appears, but overall progression is weak. Connecting devices are limited or faulty, and paragraphing may be inadequate for an essay of this kind.",
+          "4": "Ideas are set down with little usable arrangement: progression is obscure, connecting devices are scarce or confusing, and paragraphing is missing or does not group ideas.",
+          "3": "There is almost no controlling organisation. Remarks appear in a jumble and connecting language, if present, does not guide the reader.",
+          "2": "The text cannot be followed as a connected argument. Fragments sit side by side without sequence.",
+          "1": "Almost no connected English organisation is present.",
+          "0": "Nothing assessable in English is offered, so organisation cannot be judged."
+        },
+        "lexicalResource": {
+          "9": "Word choice is fully equal to arguing the question: a wide, precise stock of items and collocations is used, less-common words are spelled and chosen accurately, and repetition is avoided because alternatives are available.",
+          "8": "Vocabulary is wide and generally precise for an essay of this kind, with collocations that usually sound natural. Less-common items appear with only rare spelling or choice inaccuracies, and repetition is uncommon.",
+          "7": "Vocabulary is ample for the essay and generally precise, with some less-common items and mostly natural collocations. Occasional inaccuracy or repetition does not impede meaning.",
+          "6": "Vocabulary is adequate for the essay: meaning comes through, though the range is ordinary, collocations are sometimes awkward, and less-common items may be misspelled or slightly misused. Some repetition is noticeable.",
+          "5": "Vocabulary is limited for the essay: basic words carry most of the load, repetition is frequent, and errors in word choice or spelling sometimes make the reader pause.",
+          "4": "Vocabulary is too narrow for the essay: a small stock of simple words is reused, collocation is unreliable, and spelling or word-choice errors often interfere with meaning.",
+          "3": "Vocabulary is extremely limited. Only isolated words or short formulaic phrases appear, with errors that frequently block meaning.",
+          "2": "Almost no usable word stock is evident. Isolated items do not build an argument.",
+          "1": "Almost no English vocabulary related to the essay is present.",
+          "0": "Nothing assessable in English is offered, so lexical range cannot be judged."
+        },
+        "grammaticalRangeAndAccuracy": {
+          "9": "Sentence form is fully under control in the essay: simple and complex structures are chosen as the argument requires, punctuation supports the grammar, and inaccuracies do not occur in a way that affects communication.",
+          "8": "A wide set of simple and complex structures is used with generally sure control. Punctuation is reliable, and inaccuracies are rare and do not hide meaning.",
+          "7": "Simple and complex structures both appear frequently, with generally good control. Errors and punctuation faults occur but seldom block communication.",
+          "6": "Both plain sentences and more nested ones are attempted and often succeed, though errors are noticeable and punctuation may be uneven. Meaning usually remains clear.",
+          "5": "Sentence forms are limited: nested structures are tried but often fail, error density is high, and punctuation problems sometimes obscure meaning.",
+          "4": "Control of sentence form is limited: plain sentences predominate, attempts at subordination frequently collapse, and errors plus weak punctuation often impede communication.",
+          "3": "There is too little reliable sentence-form control to judge a range. Fragments and errors dominate, and meaning is frequently lost.",
+          "2": "Almost no control of sentence form is evident. Words do not combine into readable sentences.",
+          "1": "Almost no English sentence structure is present.",
+          "0": "Nothing assessable in English is offered, so grammatical range cannot be judged."
+        }
+      }
+    }
+  },
+  "limiters": [
+    { "id": "empty-or-not-english", "detect": "code", "caps": "all", "to": 0, "when": "empty or not written in English" },
+    { "id": "under-20-words", "detect": "code", "caps": "all", "to": 1, "when": "≤20 words after discounting copied prompt" },
+    { "id": "wholly-unrelated", "detect": "model", "caps": "task", "to": 1, "when": "content wholly unrelated to the prompt" },
+    { "id": "entirely-off-topic", "detect": "model", "caps": "cc", "to": 2, "when": "entire response off-topic" },
+    { "id": "format-not-prose", "detect": "code", "caps": "task", "to": 4, "when": "bullets/notes, not connected text" },
+    { "id": "insufficient-sentence-control", "detect": "code", "caps": "gra", "to": 3, "when": "too short to evidence sentence-form control" },
+    { "id": "simple-sentences-predominate", "detect": "model", "caps": "gra", "to": 4, "when": "subordinate clauses rare" },
+    { "id": "gt-bullets-or-tone", "detect": "model", "caps": "task", "to": 4, "when": "GT Task 1: missing bullets or inappropriate tone" },
+    { "id": "t2-paragraphing", "detect": "model", "caps": "cc", "to": 5, "when": "Task 2 paragraphing inadequate or missing" },
+    { "id": "ac-t1-no-data", "detect": "model", "caps": "task", "to": 5, "when": "Academic Task 1: no data supporting the description" }
+  ]
+}

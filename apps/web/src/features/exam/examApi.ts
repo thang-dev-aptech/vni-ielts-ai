@@ -288,6 +288,18 @@ export interface SectionMarkingView {
   criteria: CriterionAssessmentView[];
   /** Non-empty when validation found something worth a human's attention. */
   flags: string[];
+  /** Limiter and admission ids. Absent on historical v1 markings. */
+  advisories?: string[] | null;
+  provenance?: WritingMarkingProvenanceView | null;
+}
+
+export interface WritingMarkingProvenanceView {
+  promptVersion: string;
+  providerSection: string;
+  modelRequested: string;
+  modelReported: string;
+  modelMismatch: boolean;
+  requestId: string | null;
 }
 
 export interface SessionResultsView {

@@ -9,9 +9,9 @@ Full detail: `docs/ai/output-contracts.md` · `docs/security/ai-security.md`
 
 ## Hard constraint
 
-> **No AI provider is selected. The Claude API is excluded by owner decision. No credentials exist in this repository and none may be added.**
+> **Providers: GPT + Gemini (owner 2026-08-20). Claude API excluded. No credentials in this repository.**
 >
-> Design schemas, prompts, validation, and cost models — all provider-independent. Do **not** write a provider adapter, add a vendor SDK, or make an API call. If a task requires one, stop and report it blocked on owner decision B-1.
+> Design schemas, prompts, and validation against `docs/ai/output-contracts.md` and [`docs/ai/writing-marking.md`](../../../docs/ai/writing-marking.md). Adapters live in `Infrastructure/Ai`. Do **not** write a credential file. If a task requires a live provider call, stop and say so.
 
 ## The governing principle
 
@@ -45,7 +45,7 @@ Also set `additionalProperties: false` throughout — it prevents the model inve
 }
 ```
 
-Writing criteria: `taskResponse` · `coherenceAndCohesion` · `lexicalResource` · `grammaticalRangeAndAccuracy`
+Writing criteria: Task 1 `taskAchievement` **xor** Task 2 `taskResponse`, plus `coherenceAndCohesion` · `lexicalResource` · `grammaticalRangeAndAccuracy`. Schema `oneOf` — never both task keys. v1 artifacts still list `taskResponse` for both tasks until the operator pins v2. → `docs/ai/writing-marking.md`
 Speaking criteria: `fluencyAndCoherence` · `lexicalResource` · `grammaticalRangeAndAccuracy` · `pronunciation`
 
 ## Server-side validation — assume provider enforcement failed

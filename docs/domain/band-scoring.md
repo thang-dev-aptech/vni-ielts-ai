@@ -61,12 +61,17 @@ Both are assessed against four equally-weighted criteria, each scored on the 0�
 
 ### Writing criteria (requirement A-3)
 
-| Criterion | Assesses |
-|---|---|
-| Task Response / Task Achievement | Whether the task was addressed fully and appropriately |
-| Coherence and Cohesion | Organisation, paragraphing, linking |
-| Lexical Resource | Vocabulary range and accuracy |
-| Grammatical Range and Accuracy | Structure variety and correctness |
+Four equally-weighted criteria, each scored on the 0–9 scale. **Task 1 and Task 2 do not share the task-fulfilment key.**
+
+| Criterion | Wire key | Assesses |
+|---|---|---|
+| Task Achievement | `taskAchievement` | Task 1 only — whether the graphic / letter was addressed fully and appropriately |
+| Task Response | `taskResponse` | Task 2 only — whether the essay addressed the question |
+| Coherence and Cohesion | `coherenceAndCohesion` | Organisation, paragraphing, linking |
+| Lexical Resource | `lexicalResource` | Vocabulary range and accuracy |
+| Grammatical Range and Accuracy | `grammaticalRangeAndAccuracy` | Structure variety and correctness |
+
+The v1 fixture still lists `taskResponse` for both tasks. The v2 artifact (`fixtures/assessment/writing-rubric-v2.json`) splits them. Domain refuses a payload whose keys do not match the loaded rubric exactly. Pipeline: [`../ai/writing-marking.md`](../ai/writing-marking.md).
 
 Task 2 is weighted more heavily than Task 1 in the official Writing band. IELTS does not publish the exact ratio the way it publishes the overall-band rule, so it was an open question (`H-8b`) until the owner settled it.
 

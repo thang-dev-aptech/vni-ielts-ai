@@ -170,6 +170,7 @@ All `[BUSINESS DECISION]` and `[OPEN QUESTION]` items are collected in
 - [`ai/cost-model.md`](ai/cost-model.md) — cost drivers and optimisation levers
 - [`ai/provider-comparison.md`](ai/provider-comparison.md) — **LLM: GPT + Gemini, selected 2026-08-20**. Speech-to-text still open
 - [`ai/output-contracts.md`](ai/output-contracts.md) — structured output schemas and validation rules
+- [`ai/writing-marking.md`](ai/writing-marking.md) — Writing pipeline as implemented: admission, evaluator, limiters, v1/v2 artifacts, results UI
 
 ### Security & privacy
 - [`security/threat-model.md`](security/threat-model.md) — threats and mitigations

@@ -175,8 +175,11 @@
 
 ## FS6 — Writing runner và GPT/Gemini marking
 
-- Trạng thái: **đóng** — recorded-response phase gate xanh 29/08/2026; live synthetic smoke **conditional pending** (no keys)
-- Thay đổi:
+- Trạng thái: **đóng 29/08/2026** (recorded-response gate). **Không còn là mô tả pipeline hiện tại.**
+  Chấm Writing 2026-09-09: admission + limiter + schema `oneOf` TA/TR, timeout 180s, results UI —
+  [`../ai/writing-marking.md`](../ai/writing-marking.md). Rubric v1 trong đoạn dưới là snapshot ngày đóng FS6;
+  develop secrets vẫn pin v1 cho tới khi operator chọn v2.
+- Thay đổi (đóng 29/08):
   - **FS6.1** — `fixtures/assessment/writing-rubric-v1.json` (version, descriptorSource, effectiveDate, contentHash, promptVersion, synthetic descriptors); `WritingRubricLoader` + `ConfiguredRubricSource` artifact metadata sync.
   - **FS6.2** — Writing editor already in `QuestionInput` (spellCheck/autoCorrect off), `PracticeRunnerPage`/`ExamRunnerPage` (word count, autosave via `useAnswerSheet`, submit confirm in practice via `SubmitConfirmCard`).
   - **FS6.3/6.4** — `OpenAiWritingEvaluationClient` (Responses API + JSON Schema), `GeminiWritingEvaluationClient` (generateContent + responseSchema), shared `WritingEvaluationValidator`, `WritingEvaluationRouter` (primary/fallback + transient retry), `WritingSectionEvaluator` implementing `ISectionEvaluator`.

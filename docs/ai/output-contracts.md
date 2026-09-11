@@ -21,6 +21,10 @@ graph LR
 
 ## Writing evaluation
 
+The live schema is [`../../contracts/schemas/writing-evaluation.schema.json`](../../contracts/schemas/writing-evaluation.schema.json). Do not treat the sketch below as a second source — it is a reading aid. Pipeline, admission, limiters, and the v1/v2 operator pin: [`writing-marking.md`](writing-marking.md).
+
+Task 1 and Task 2 are **different constructs**. The criteria object is `oneOf`: `taskAchievement` (Task 1) **xor** `taskResponse` (Task 2), plus CC · LR · GRA. Both keys in one payload fail validation. Optional `limiters` are booleans the model sets; code applies the caps.
+
 ```jsonc
 {
   "type": "object",
@@ -30,41 +34,30 @@ graph LR
     "criteria": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["taskResponse", "coherenceAndCohesion",
-                   "lexicalResource", "grammaticalRangeAndAccuracy"],
       "properties": {
+        "taskAchievement":             { "$ref": "#/$defs/criterion" },
         "taskResponse":                { "$ref": "#/$defs/criterion" },
         "coherenceAndCohesion":        { "$ref": "#/$defs/criterion" },
         "lexicalResource":             { "$ref": "#/$defs/criterion" },
         "grammaticalRangeAndAccuracy": { "$ref": "#/$defs/criterion" }
-      }
+      },
+      "oneOf": [
+        { "required": ["taskAchievement", "coherenceAndCohesion",
+                       "lexicalResource", "grammaticalRangeAndAccuracy"],
+          "not": { "required": ["taskResponse"] } },
+        { "required": ["taskResponse", "coherenceAndCohesion",
+                       "lexicalResource", "grammaticalRangeAndAccuracy"],
+          "not": { "required": ["taskAchievement"] } }
+      ]
     },
     "sectionBand": { "$ref": "#/$defs/band" },
-    "summary":     { "type": "string" }
-  },
-  "$defs": {
-    "band": {
-      "type": "number",
-      "enum": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5,
-               5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9]
-    },
-    "criterion": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["band", "feedback", "evidence"],
-      "properties": {
-        "band":     { "$ref": "#/$defs/band" },
-        "feedback": { "type": "string", "minLength": 1 },
-        "evidence": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "type": "string", "minLength": 1 }
-        }
-      }
-    }
+    "summary":     { "type": "string", "minLength": 1, "maxLength": 1200 },
+    "limiters":    { "$ref": "#/$defs/limiters" }
   }
 }
 ```
+
+Criterion `feedback` is bounded (`minLength` 1, `maxLength` 800); `evidence` is 1–6 verbatim spans. Bands remain the closed enum in `$defs.band`. The adapter (`WritingEvaluationValidator`) runs this schema **before** `CriterionMarking`; the Domain check then demands an exact match to the loaded rubric's keys — so a v1 artifact that only lists `taskResponse` still rejects a well-formed Task Achievement object.
 
 ## Speaking evaluation
 
@@ -177,8 +170,10 @@ Whether a human reviews an evaluation before a band is published is a separate, 
 
 | Mechanism | Status |
 |---|---|
-| Checks 3, 4, 5 and 9 | `EXISTING` — implemented in `Vni.Ielts.Domain.Assessment.CriterionMarking`, with tests. No provider involved: the rules take the criterion keys, the claimed decimals, the cited strings and the learner's text as primitives |
-| Checks 1, 2, 6, 7, 8 | `PROPOSED` — specified here, not implemented. They belong to the adapter, which does not exist |
+| Checks 1, 2, 6 | `EXISTING` — `WritingEvaluationValidator` parses JSON, runs `contracts/schemas/writing-evaluation.schema.json`, and the schema already requires non-empty bounded feedback |
+| Checks 3, 4, 5 and 9 | `EXISTING` — `CriterionMarking` (exact criterion set, closed band enum, recomputed `sectionBand`, grounded evidence). No provider involved: the rules take the criterion keys, the claimed decimals, the cited strings and the learner's text as primitives |
+| Check 7 (injected-instruction patterns in feedback) | `PROPOSED` — specified here; the adapter does not yet pattern-scan feedback |
+| Check 8 (PII echoed beyond the submission) | `PROPOSED` — specified here; identity is not sent (`PDPL`), but echoed PII is not scanned |
 | Human review before publication | `UNCONFIRMED` → `M-28`, interacting with `H-5` (appeals) and `M-19` (admin access to learner content) |
 
 [`../domain/domain-model.md`](../domain/domain-model.md) says `Result` is computed "from validated evaluations". Read that as *schema-validated* until `M-28` is answered — do not read it as naming an existing review process.
@@ -244,4 +239,4 @@ The validation layer is tested against deliberately hostile payloads, not just h
 | Feedback echoing injected instructions | Flagged |
 | Empty feedback | Rejected |
 
-**These tests never call a live provider.** They run against recorded and synthesised fixtures, which makes them fast, deterministic, and runnable with no credentials — which matters, because there are no credentials.
+**These tests never call a live provider.** They run against recorded and synthesised fixtures. Live reseller marking is an ops path (`writing-marking.md`), not a unit-test dependency — there are still no credentials in git.

@@ -129,8 +129,16 @@ public static partial class AnswerMatcher
     /// Both sides of a comparison go through this, so the rules apply
     /// symmetrically. Normalising only the learner's side would make the key
     /// itself sensitive to how it was typed.
+    ///
+    /// <b>Public because the import-time anchor check needs the same normalisation
+    /// for both sides of its comparison.</b> Searching a raw passage for a
+    /// normalised answer finds nothing whenever the passage differs in case or
+    /// spacing, which is most of the time; duplicating the rules in a second
+    /// place is how two normalisers drift apart. Note that normalising a whole
+    /// passage moves character offsets, so a caller wanting a highlight position
+    /// in the original text must re-find it there.
     /// </summary>
-    private static string Normalise(string value, AnswerMatchingRules rules)
+    public static string Normalise(string value, AnswerMatchingRules rules)
     {
         var result = value;
 

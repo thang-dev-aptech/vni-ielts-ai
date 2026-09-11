@@ -223,7 +223,7 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
         var both = await inspector.InspectAsync(Build(File(composed), File(decomposed)), Tight, default);
 
         Assert.True(single.IsAcceptable, Describe(single));
-        Assert.Equal(composed, single.Layout.EntriesBySkill[ExamModule.Reading].Single());
+        Assert.Equal(composed, single.Layout.EntriesBySkill[ExamModule.Reading].All.Single());
         AssertRefused(both, ArchiveFindingCodes.PathInvalid);
     }
 
@@ -275,12 +275,144 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
         // trailing-slash name pairs with empty content — the default text
         // would make these look like a folder secretly carrying a payload,
         // which the inspector correctly refuses (`ENTRY_NOT_REGULAR`).
-        var archive = Build(File("reading/", ""), File("reading/sub/", ""), File("reading/sub/x.txt"));
+        var archive = Build(File("reading/", ""), File("reading/de/", ""), File("reading/de/x.txt"));
 
         var result = await inspector.InspectAsync(archive, Tight, default);
 
         Assert.True(result.IsAcceptable, Describe(result));
-        Assert.Equal(["reading/sub/x.txt"], result.Layout.EntriesBySkill[ExamModule.Reading]);
+        Assert.Equal(["reading/de/x.txt"], result.Layout.EntriesBySkill[ExamModule.Reading].All);
+    }
+
+    // ── Roles (IP-02) ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task A_role_folder_separates_the_paper_from_its_answer_key()
+    {
+        var archive = Build(
+            File("reading/de/passage.txt"),
+            File("reading/dap-an/key.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.True(result.IsAcceptable, Describe(result));
+        var reading = result.Layout.EntriesBySkill[ExamModule.Reading];
+        Assert.Equal("reading/de/passage.txt", Assert.Single(reading.Paper));
+        Assert.Equal("reading/dap-an/key.txt", Assert.Single(reading.Key));
+    }
+
+    [Theory]
+    [InlineData("paper", "key")]
+    [InlineData("QUESTIONS", "ANSWERS")]
+    [InlineData("de", "dapan")]
+    public async Task Role_folder_names_are_accepted_in_every_spelling_and_case(string paper, string key)
+    {
+        var archive = Build(File($"listening/{paper}/q.txt"), File($"listening/{key}/k.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        var listening = result.Layout.EntriesBySkill[ExamModule.Listening];
+        Assert.Single(listening.Paper);
+        Assert.Single(listening.Key);
+    }
+
+    /// <summary>
+    /// Packages imported before role folders existed put their files straight
+    /// under the skill folder. Those are papers, and they must keep working —
+    /// otherwise this change silently empties every historical package.
+    /// </summary>
+    [Fact]
+    public async Task A_file_with_no_role_folder_is_still_a_paper()
+    {
+        var result = await inspector.InspectAsync(Build(File("reading/passage.txt")), Tight, default);
+
+        var reading = result.Layout.EntriesBySkill[ExamModule.Reading];
+        Assert.Equal("reading/passage.txt", Assert.Single(reading.Paper));
+        Assert.Empty(reading.Key);
+    }
+
+    /// <summary>
+    /// <b>A misspelled key folder must not degrade in silence.</b>
+    /// <c>reading/dap_an/</c> — an underscore where the hyphen belongs, or a
+    /// diacritic mangled by a ZIP tool writing CP437 — matches no role name,
+    /// so the file is classified as paper and concatenated into the text sent
+    /// to the model. That is the 2026-09-02 configuration reached by a typo,
+    /// and nothing said so: the unknown-entry warning was raised only for an
+    /// unrecognised <i>top-level</i> folder. An operator who believed they had
+    /// supplied a key then saw the fabrication warnings that followed and
+    /// cleared them as false alarms.
+    ///
+    /// The classification is deliberately unchanged — <c>reading/figures/</c>
+    /// is a legitimate subdirectory and has always been paper. What this pins
+    /// is that the fall-through is named.
+    /// </summary>
+    [Fact]
+    public async Task A_second_level_folder_that_matches_no_role_fails_closed_and_is_excluded_from_paper()
+    {
+        var archive = Build(File("reading/de/passage.txt"), File("reading/dap_an/key.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.False(result.IsAcceptable, "Inspection must fail closed for unknown role folder.");
+        var finding = Assert.Single(
+            result.Findings,
+            f => f.Code == ArchiveFindingCodes.LayoutUnknownRoleFolder);
+        Assert.Equal(Error, finding.Severity);
+        Assert.Equal("reading/dap_an/", finding.Path);
+
+        // Security guarantee: unknown role folder content NEVER enters Paper (and thus never enters AI)
+        var reading = result.Layout.EntriesBySkill[ExamModule.Reading];
+        Assert.DoesNotContain("reading/dap_an/key.txt", reading.Paper);
+        Assert.Empty(reading.Key);
+    }
+
+    /// <summary>
+    /// The other half: a folder that <i>is</i> a role name raises nothing. A
+    /// warning on a correctly named package is how a check gets switched off.
+    /// </summary>
+    [Fact]
+    public async Task A_recognised_role_folder_raises_no_unknown_entry_warning()
+    {
+        var archive = Build(File("reading/de/passage.txt"), File("reading/dap-an/key.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.DoesNotContain(
+            result.Findings, f => f.Code == ArchiveFindingCodes.LayoutUnknownRoleFolder);
+        Assert.DoesNotContain(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutUnknownEntry);
+    }
+
+    /// <summary>
+    /// The two codes are not interchangeable, and this is the reason: an
+    /// unknown <i>top-level</i> folder means the files were <b>ignored</b>, and
+    /// <c>__MACOSX/</c> is that case on every package a macOS ZIP tool wrote.
+    /// It keeps <c>LAYOUT_UNKNOWN_ENTRY</c> and is not routed to the draft, so
+    /// it cannot block a correct package. Only the role-folder code is.
+    /// </summary>
+    [Fact]
+    public async Task An_ignored_top_level_folder_keeps_the_unknown_entry_code()
+    {
+        var archive = Build(File("reading/p1.txt"), File("__MACOSX/._p1.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        var finding = Assert.Single(result.Findings);
+        Assert.Equal(ArchiveFindingCodes.LayoutUnknownEntry, finding.Code);
+        Assert.NotEqual(ArchiveFindingCodes.LayoutUnknownRoleFolder, finding.Code);
+    }
+
+    /// <summary>
+    /// The role is read from the canonicalised path, after every traversal check
+    /// has already run. A package that tries to reach a role folder by climbing
+    /// must still be refused as traversal, not quietly filed as a key.
+    /// </summary>
+    [Fact]
+    public async Task A_traversal_attempt_through_a_role_folder_is_still_refused()
+    {
+        var archive = Build(File("reading/de/../../../dap-an/evil.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        AssertRefused(result, ArchiveFindingCodes.PathEscape);
     }
 
     // ── Layout (P-18) ────────────────────────────────────────────────────
@@ -295,7 +427,7 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
         Assert.Equal(
             [ExamModule.Reading, ExamModule.Listening, ExamModule.Writing, ExamModule.Speaking],
             result.Layout.PresentSkills);
-        Assert.Equal(["writing/task-1.txt"], result.Layout.EntriesBySkill[ExamModule.Writing]);
+        Assert.Equal(["writing/task-1.txt"], result.Layout.EntriesBySkill[ExamModule.Writing].All);
     }
 
     [Fact]

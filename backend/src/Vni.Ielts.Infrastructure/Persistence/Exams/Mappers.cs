@@ -515,14 +515,24 @@ internal static class ExamMappers
             Enum.Parse<ExamModule>(doc.Module),
             doc.RubricVersion,
             [
-                .. doc.Criteria.Select(c => CriterionAssessment.Create(
+                .. doc.Criteria.Select(c => CriterionAssessment.Restore(
                     c.Criterion, BandScore.Create(c.Band), c.Feedback, [.. c.Evidence])),
             ],
             BandScore.Create(doc.Band),
             doc.ReportedBand is { } reported ? BandScore.Create(reported) : null,
             [.. doc.Flags.Select(Enum.Parse<MarkingFlag>)],
             [.. doc.UngroundedEvidence],
-            doc.TaskNumber);
+            doc.TaskNumber,
+            doc.Advisories,
+            doc.Provenance is { } provenance
+                ? new WritingMarkingProvenance(
+                    provenance.PromptVersion,
+                    provenance.ProviderSection,
+                    provenance.ModelRequested,
+                    provenance.ModelReported,
+                    provenance.ModelMismatch,
+                    provenance.RequestId)
+                : null);
 
     public static SectionScore ToDomain(this SectionResultDocument doc) =>
         new(

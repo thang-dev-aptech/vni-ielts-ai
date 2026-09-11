@@ -176,23 +176,20 @@ Layout thống nhất (`P-06`…`P-09`): dải tổng quan ngang phía trên, b�
 
 | Kỹ năng | Dải trên | Cột trái | Cột phải | Dữ liệu |
 |---|---|---|---|---|
-| Reading, Listening | Điểm thô, độ chính xác, biểu đồ đúng/sai/bỏ trống, band nếu bảng quy đổi đã xác minh (`P-11`) | Đoạn văn hoặc audio + danh sách câu | Câu hỏi → đáp án của bạn → đáp án đúng → giải thích | có `correctAnswer`; **thiếu đề bài** |
-| Writing | Band bài + 4 tiêu chí, nhãn "AI · tham khảo" (`P-13`) | Đề bài + bài viết của bạn | Band từng tiêu chí → nhận xét → dẫn chứng trích từ chính bài viết | đủ |
-| Speaking | Chưa chấm — trạng thái chờ (`P-02`) | Nghe lại bản ghi | Trống cho tới khi có ASR | **thiếu endpoint nghe lại** |
+| Reading, Listening | Điểm thô, độ chính xác, biểu đồ đúng/sai/bỏ trống, band nếu bảng quy đổi đã xác minh (`P-11`) | Đoạn văn hoặc audio + danh sách câu (`SessionResultsView.Content`) | Câu hỏi → đáp án của bạn → đáp án đúng → giải thích | có `correctAnswer` và nội dung đề sau nộp |
+| Writing | Band từng task + 4 tiêu chí, nhãn "AI · tham khảo" (`P-13`); band tổng 1:2 từ server `writingBand` — client không trung bình hai task | Đề bài + hình + bài viết + số từ | Band từng tiêu chí → nhận xét (mặc định tiếng Việt) → dẫn chứng verbatim; advisory/limiter nếu có; poll 8s × 40 khi job còn `pending`/`running`/`retryable` | `WritingResults.tsx`; `SectionMarkingView` + `advisories` / `provenance` |
+| Speaking | Chưa chấm — trạng thái chờ (`P-02`) | Nghe lại bản ghi (`GET …/recordings/{questionId}/playback`) | Trống cho tới khi có ASR | **thiếu transcript** |
 | Dictation | Số câu đúng, tỉ lệ | Câu đã nghe | Nội dung bạn gõ → đáp án đúng → từ sai | **chưa lưu kết quả** |
 
 **Ba mảnh còn thiếu:**
 
-1. **Nội dung đề sau khi nộp.** `QuestionResultView` chỉ có `questionId`, không có đề bài, đoạn văn
-   hay các lựa chọn. Đây là mảnh chặn cột trái của cả bốn loại bài. Chỉ trả khi `status != inprogress`
-   — e2e *pre-submit payloads carry no keys/explanations/transcripts* phải giữ xanh.
-2. **Endpoint nghe lại ghi âm.** Hiện chỉ có upload. Presigned, kiểm quyền sở hữu.
-3. **Transcript Speaking.** Chặn bởi ASR — không sửa được bằng code.
+1. ~~**Nội dung đề sau khi nộp.**~~ **Đã có** (`SessionResultsView.Content`, chỉ khi `status != inprogress`).
+2. ~~**Endpoint nghe lại ghi âm.**~~ **Đã có** (`GET …/sessions/{id}/recordings/{questionId}/playback`).
+3. **Transcript Speaking.** Chặn bởi ASR — không sửa được bằng code (`P-02`).
 
-**Đã có sẵn, dùng ngay:** `SectionResultView` (`rawScore`, `maxScore`, `accuracy`, `band`,
-`scoreLabel`) · `QuestionResultView` (`submitted`, `isCorrect`, `correctAnswer`,
-`canonicalExplanation`) · `CriterionAssessmentView` (`criterion`, `band`, `feedback`, `evidence`) ·
-trạng thái chờ chấm `AwaitingEvaluator`, `AwaitingRubric`, `AwaitingVoiceProvider`.
+Writing results UI landed 2026-09-09: [`../ai/writing-marking.md`](../ai/writing-marking.md). Combined band is always the server's `writingBand`.
+
+**Đã có sẵn, dùng ngay:** `SectionResultView` · `QuestionResultView` · `CriterionAssessmentView` · `SectionMarkingView` (`advisories`, `provenance`) · trạng thái chờ chấm `AwaitingEvaluator`, `AwaitingRubric`, `AwaitingVoiceProvider`. Failed job: nút kiểm tra lại chỉ tải lại kết quả, không mở lại outbox.
 
 ---
 
@@ -267,6 +264,11 @@ lô · màn preview và nút bỏ qua cảnh báo có ghi nhật ký kèm lý do
 RAR, upload folder, file rời: không làm trong MVP. Thiết kế bước "nhận đầu vào" tách khỏi bước
 "phân tích" để thêm nguồn sau không đụng lõi.
 
+> **Đã cài đặt 2026-09-07 (`S6`).** `POST /api/v1/admin/import/packages` nhận multipart `file`;
+> ZIP đi qua inspector (magic bytes, caps, path canonicalisation) trước khi trích. Parser AI trên
+> HTTP vẫn là `UnconfiguredExamSourceParser` (`AI_PARSER_UNAVAILABLE`) — gói phải đã có `exam.json`.
+> Batch HTTP (`/admin/import/batches`) vẫn chưa có. Đoạn "phải làm" phía trên là snapshot trước S6.
+
 ---
 
 ## 08 · Bổ sung mô hình dữ liệu `PROPOSED`
@@ -279,10 +281,9 @@ Ba thứ mới, tất cả đều là thêm chứ không sửa cái đang chạy
 | Documents | `P-22` | Chừa `relatedExamIds` để `null` — nối với đề sau này không phải migration |
 | Articles | `P-22` | Như trên. Địa chỉ theo slug, không theo id |
 
-> **Một cấu hình đừng để quên.** `P-02` khiến hệ thống bắt đầu lưu giọng nói thật của người thật mà
-> chưa dùng vào việc gì. `ObjectStorage:SpeakingRecordingRetentionDays` hiện để trống — nghĩa là giữ
-> vĩnh viễn — và `Recordings:SweepEnabled` mặc định tắt. Đặt một con số (tài liệu giả định 90 ngày,
-> `M-2`) và bật dọn dẹp. Mất năm phút, quên thì thành rủi ro thật.
+> **Retention đã cấu hình (T17).** `ObjectStorage:SpeakingRecordingRetentionDays` là **90** và
+> `Recordings:SweepEnabled` là **true** trong `appsettings.json`. Override theo môi trường nếu chủ
+> sản phẩm chọn cửa sổ khác (`M-2`).
 
 ---
 

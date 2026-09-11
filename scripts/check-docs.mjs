@@ -41,7 +41,9 @@ const ROOT = process.env.VNI_DOCS_CHECK_ROOT
 // at a path that only exists next to the original. Linting a generated copy
 // of a file that is already linted in place reports the same document twice
 // and fails on the second one for no reason a human can fix by hand.
-const SKIP_DIRS = new Set(['.git', 'node_modules', 'bin', 'obj', 'dist', 'ds-bundle']);
+// `worktrees/` under `.claude/` is the same class of copy: agent checkouts
+// that duplicate `docs/README.md` and trip the "taxonomy defined once" rule.
+const SKIP_DIRS = new Set(['.git', 'node_modules', 'bin', 'obj', 'dist', 'ds-bundle', 'worktrees']);
 const DOC_SUFFIXES = new Set(['.md', '.mdc']);
 
 // Files deleted on 2026-08-20. They targeted a discontinued Claude Design

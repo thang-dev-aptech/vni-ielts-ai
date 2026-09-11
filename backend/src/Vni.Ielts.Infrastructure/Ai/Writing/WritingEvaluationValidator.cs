@@ -32,37 +32,75 @@ public static class WritingEvaluationValidator
         }
     }
 
-    public static ClaimedEvaluation ToClaimedEvaluation(string json)
+    public static ClaimedEvaluation ToClaimedEvaluation(string json, bool wholeBandCriteria = false)
     {
         EnsureSchemaValid(json);
 
         var dto = JsonSerializer.Deserialize<WritingEvaluationDto>(json, Json)
             ?? throw new MarkingRejectedException("Writing evaluation JSON did not deserialize.");
 
-        var criteria = new List<ClaimedCriterion>(4)
+        var criteria = new List<ClaimedCriterion>(4);
+
+        if (dto.Criteria.TaskAchievement is { } ta)
+            criteria.Add(Map(CriterionKeys.TaskAchievement, ta, wholeBandCriteria));
+        if (dto.Criteria.TaskResponse is { } tr)
+            criteria.Add(Map(CriterionKeys.TaskResponse, tr, wholeBandCriteria));
+
+        criteria.Add(Map(CriterionKeys.CoherenceAndCohesion, dto.Criteria.CoherenceAndCohesion, wholeBandCriteria));
+        criteria.Add(Map(CriterionKeys.LexicalResource, dto.Criteria.LexicalResource, wholeBandCriteria));
+        criteria.Add(Map(CriterionKeys.GrammaticalRangeAndAccuracy, dto.Criteria.GrammaticalRangeAndAccuracy, wholeBandCriteria));
+
+        if (criteria.Count != 4)
         {
-            Map(CriterionKeys.TaskResponse, dto.Criteria.TaskResponse),
-            Map(CriterionKeys.CoherenceAndCohesion, dto.Criteria.CoherenceAndCohesion),
-            Map(CriterionKeys.LexicalResource, dto.Criteria.LexicalResource),
-            Map(CriterionKeys.GrammaticalRangeAndAccuracy, dto.Criteria.GrammaticalRangeAndAccuracy),
-        };
+            throw new MarkingRejectedException(
+                "Writing evaluation must carry exactly one of taskAchievement or taskResponse, plus CC, LR and GRA.");
+        }
 
         return new ClaimedEvaluation(criteria, dto.SectionBand);
     }
 
-    private static ClaimedCriterion Map(string key, CriterionDto c) =>
-        new(key, c.Band, c.Feedback, c.Evidence);
+    public static WritingLimiterInput LimitersFrom(
+        string json, int? taskNumber, bool generalTraining, bool formatNotProse, bool insufficientSentenceControl)
+    {
+        var dto = JsonSerializer.Deserialize<WritingEvaluationDto>(json, Json);
+        var flags = dto?.Limiters;
+
+        return new WritingLimiterInput(
+            flags?.WhollyUnrelated ?? false,
+            flags?.EntirelyOffTopic ?? false,
+            formatNotProse,
+            insufficientSentenceControl,
+            flags?.SimpleSentencesPredominate ?? false,
+            flags?.GtBulletsOrTone ?? false,
+            flags?.Task2ParagraphingInadequate ?? false,
+            flags?.AcademicTask1NoData ?? false,
+            taskNumber,
+            generalTraining);
+    }
+
+    private static ClaimedCriterion Map(string key, CriterionDto c, bool wholeBandCriteria)
+    {
+        if (wholeBandCriteria && c.Band != decimal.Truncate(c.Band))
+        {
+            throw new MarkingRejectedException(
+                $"Criterion '{key}' was awarded {c.Band}, but this rubric only publishes whole-band descriptors.");
+        }
+
+        return new ClaimedCriterion(key, c.Band, c.Feedback, c.Evidence);
+    }
 
     private sealed class WritingEvaluationDto
     {
         public required CriteriaBlockDto Criteria { get; init; }
         public required decimal SectionBand { get; init; }
         public required string Summary { get; init; }
+        public LimitersDto? Limiters { get; init; }
     }
 
     private sealed class CriteriaBlockDto
     {
-        public required CriterionDto TaskResponse { get; init; }
+        public CriterionDto? TaskAchievement { get; init; }
+        public CriterionDto? TaskResponse { get; init; }
         public required CriterionDto CoherenceAndCohesion { get; init; }
         public required CriterionDto LexicalResource { get; init; }
         public required CriterionDto GrammaticalRangeAndAccuracy { get; init; }
@@ -73,5 +111,15 @@ public static class WritingEvaluationValidator
         public required decimal Band { get; init; }
         public required string Feedback { get; init; }
         public required List<string> Evidence { get; init; }
+    }
+
+    private sealed class LimitersDto
+    {
+        public bool WhollyUnrelated { get; init; }
+        public bool EntirelyOffTopic { get; init; }
+        public bool SimpleSentencesPredominate { get; init; }
+        public bool GtBulletsOrTone { get; init; }
+        public bool Task2ParagraphingInadequate { get; init; }
+        public bool AcademicTask1NoData { get; init; }
     }
 }

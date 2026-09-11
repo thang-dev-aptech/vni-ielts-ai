@@ -157,11 +157,10 @@ public sealed class SectionMarkingRunnerTests
     }
 
     [Fact]
-    public async Task An_unanswered_task_is_reported_as_unanswered_not_as_a_zero()
+    public async Task An_unanswered_writing_task_is_band_zero_with_no_provider_call()
     {
-        // A blank task scored 0 and a blank task never marked look identical on
-        // a results screen, and only one of them is true. Product law L3 wants
-        // the dash; this is what keeps the dash distinguishable from a mark.
+        // W-1: empty Writing is a terminal band 0, not a dash. The reason
+        // travels as feedback, so it is still distinguishable from a silent zero.
         var evaluator = new StubEvaluator(ExamModule.Writing, _ => new(FourClaims(), null));
         var store = new FakeMarkingStore();
 
@@ -169,9 +168,9 @@ public sealed class SectionMarkingRunnerTests
             .RunAsync(Version(), ExamModule.Writing, Session, WritingSheet(task2: "  "), default);
 
         Assert.Equal(MarkingAvailability.Marked, outcomes[0].Availability);
-        Assert.Equal(MarkingAvailability.NothingSubmitted, outcomes[1].Availability);
-
-        // And the unanswered one never cost a provider call.
+        Assert.Equal(MarkingAvailability.Marked, outcomes[1].Availability);
+        Assert.Equal(0m, outcomes[1].Marking!.Band.Value);
+        Assert.Contains("empty-or-not-english", outcomes[1].Marking!.Advisories!);
         Assert.Single(evaluator.Requests);
     }
 
@@ -405,7 +404,7 @@ public sealed class SectionMarkingRunnerTests
         await Runner(new FakeRubricSource(WritingRubric), store, [evaluator])
             .RunAsync(Version(), ExamModule.Writing, Session, WritingSheet(task2: null), default);
 
-        var marking = Assert.Single(store.Saved);
+        var marking = Assert.Single(store.Saved, m => m.TaskNumber == 1);
         Assert.Equal(6.0m, marking.Band.Value);
         Assert.Equal(8.0m, marking.ReportedBand!.Value.Value);
         Assert.Contains(MarkingFlag.ArithmeticMismatch, marking.Flags);
@@ -428,7 +427,7 @@ public sealed class SectionMarkingRunnerTests
         await Runner(new FakeRubricSource(WritingRubric), store, [evaluator])
             .RunAsync(Version(), ExamModule.Writing, Session, WritingSheet(task2: null), default);
 
-        var marking = Assert.Single(store.Saved);
+        var marking = Assert.Single(store.Saved, m => m.TaskNumber == 1);
         Assert.Contains(MarkingFlag.EvidenceNotGrounded, marking.Flags);
         Assert.Single(marking.UngroundedEvidence);
     }

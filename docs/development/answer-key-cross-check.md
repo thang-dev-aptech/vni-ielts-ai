@@ -1,0 +1,150 @@
+# Answer-key cross-check — what the code does
+
+Verified against the tree on **2026-09-10**. This page describes implementation, not a proposal.
+
+The design is [`../superpowers/specs/2026-09-10-import-time-exam-preparation-design.md`](../superpowers/specs/2026-09-10-import-time-exam-preparation-design.md) § A2–A5. This page covers only Part A of that design — the six commits that landed the paper/key layout split and the deterministic checking layers. Part B (Writing marking notes, model answers), the CMS review panel, the background-job shape for `POST /api/v1/admin/import/packages`, and Layer 5's own finding code are a later plan and are not described here.
+
+---
+
+## Why this exists
+
+Measured on 2026-09-02: a model shown a Reading paper with no answer key produced forty answers, five of them wrong, and all forty passed schema validation. Before this work, `ExamPackageImportPipeline` concatenated every file under every skill folder — paper and key alike — into one text blob and sent it to `IExamSourceParser`. An answer key dropped into `reading/` was read by the model along with the paper.
+
+**The fix is not "ask the model more carefully." It is: stop sending the key to the model, read it with code, and check the two documents against each other.**
+
+---
+
+## The layout gains a role
+
+Inside `reading/` and `listening/`, a second folder level says paper or key: `de` · `paper` · `questions` for the paper, `dap-an` · `dapan` · `key` · `answers` for the key, and `audio` for audio recordings — case-insensitive, unaccented spellings only (a ZIP stores entry names as CP437 or UTF-8 depending on a per-entry flag many Windows tools set wrongly, so an accented folder name arrives mangled unpredictably). A file directly under a skill folder with no role folder is still paper, so legacy single-folder packages keep working.
+
+Top-level `assets/**` folders are recognized and collected as `PackageLayout.AssetEntries` for durable media staging on upload and promotion on approval (closing learner audio 404s). Root `manifest.json` + `exam.json` packages are also accepted directly.
+
+The role is read from `verdict.Path` in `ExamPackageArchiveInspector` — the canonicalised path the existing security checks have already cleared of traversal, absolute prefixes, symlinks and non-regular entries. The role read is a security-boundary addition placed *after* those checks, never before them; a role is never derived from a raw, attacker-controlled entry name. `PackageLayout` carries the split as `EntriesBySkill: ExamModule → SkillEntries(Paper, Key, Audio)`, `UnknownEntries`, and `AssetEntries`.
+
+**A second-level folder that matches no role name fails closed and is excluded from paper.** `reading/dap_an/key.txt` — an underscore where the hyphen belongs, or a diacritic mangled by a ZIP tool writing CP437 — is not in the role list. To guarantee that unclassified files never silently reach the AI parser, unknown second-level role folders emit **`LAYOUT_UNKNOWN_ROLE_FOLDER`** with **Error** severity and fail closed at inspection (`ArchiveInspection.IsAcceptable == false`). Their entries are excluded from `SkillEntries.Paper`, ensuring that mislabelled keys or unexpected files never enter AI.
+
+**It has its own code because it is not the same event as `LAYOUT_UNKNOWN_ENTRY`.** An unknown *top-level* folder means the files were **ignored** — `__MACOSX/`, on every package a macOS ZIP tool wrote — and that keeps its old code, is warning severity, is not routed to the draft, and reaches no approval gate. An unrecognised *second-level role* folder is an error that rejects the package so the operator can fix the folder spelling.
+
+**Only paper-role files are concatenated and sent to `IExamSourceParser`.** Key files, audio tracks, asset files, and unclassified entries are never sent to the model. Key files are extracted separately and parsed by `AnswerKeyDocument.Parse`. This is `ExamPackageImportPipeline.ImportFromSandboxAsync`, which walks `layout.For(skill).Paper`.
+
+---
+
+## Distinguishing Owner Requirements from the Engineering Protocol
+
+| Requirement / Protocol | Level | Exact Scope & Invariant |
+|---|---|---|
+| **`P-18`** | Product Owner Requirement | Exam import accepts a ZIP with four skill folders: `reading/`, `listening/`, `writing/`, `speaking/`. The top-level folder name determines the skill without AI guessing. Missing skill folders represent valid partial packages. |
+| **`P-19`** | Product Owner Requirement | Review warnings (e.g. `FABRICATED_ANSWER_KEY`, `MISSING_LISTENING_TRANSCRIPT`, retyped answers) can be overridden by an authorized reviewer with a mandatory recorded reason ("bắt buộc ghi lý do và vào nhật ký"). In contrast, `Severity == "error"` findings are non-overridable blockers (`IMPORT_FINDINGS_BLOCKING`). |
+| **`A-11`** | Product & Domain Requirement | Reading and Listening bands are computed deterministically from the answer key, never from AI. AI explanations are purely advisory and can never alter a band score. |
+| **Role Protocol** | Engineering Implementation | Additive per-skill classification (`de/`, `dap-an/`, `audio/`). Unknown second-level folders fail closed with `LAYOUT_UNKNOWN_ROLE_FOLDER` (Error). Only `Paper` is sent to AI; `Key` is applied in application code. |
+| **Durable Asset Protocol** | Engineering Implementation | Top-level `assets/**` entries staged on upload, promoted on approval, and cleaned up on conflict or cancellation, ensuring media is reliably served without 404s. |
+
+**The key route is decided per skill, never per package.** Reading and Listening both number their questions 1 to 40, so a package-wide "a key was supplied" flag would apply Reading's key to Listening's questions, or silently skip Listening's fabrication guard because Reading carried a key. `ExamPackageImportPipeline.ApplyKeysAndGuardAsync` loops `layout.PresentSkills` and asks, for each one, whether *that skill's* `SkillEntries.Key` is non-empty — a fact read from the layout, never inferred from the package. A skill with a key folder gets its model-written answers stripped (`StripModelAnswers`) and the real key applied (`AnswerKeyInjection.Apply(json, entries, skill)`, scoped with the `ExamModule` parameter so it only touches that skill's questions). A skill with no key folder meets `FabricatedAnswerKeyGuard.Inspect(packageJson, sourceIncludesAnswerKey: false)` instead — every finding becomes an unresolved review warning (`P-19` shape), not a silent rejection.
+
+---
+
+## After keying, the draft is re-validated
+
+Once a skill's package JSON changes, `ExamPackageImportPipeline.Revalidate` re-runs `IExamPackageValidator` against the updated JSON and, on success, replaces `draft.Version` with the freshly materialised `ExamVersion`. This keeps `PackageJson` (the source of truth for what was actually written) and `Version` (what `AdminImportEndpoints` reads today, and what a future consumer might) from disagreeing about an answer.
+
+When re-validation fails, the draft is **not** left holding a stale, now-wrong `Version`. It records finding code `ANSWER_KEY_REVALIDATION_FAILED` (error) and leaves `Version` untouched at its previous value, with the finding telling a reader to read the package JSON rather than trust the version until the problem is fixed. This is the deliberate outcome of an unreadable key folder too: `StripModelAnswers` removes the model's guesses and nothing valid replaces them, so the schema legitimately refuses — no answer is judged safer than an invented one.
+
+---
+
+## The checking layers
+
+There is no single check. Six layers are named in the design; four are deterministic code and ship in this plan. Layer 5 (semantic verification via the explanation pipeline) predates this plan and is unchanged by it — its refusal is still filed under the generic `TranscriptAndEvidence` review category rather than its own finding code, which is explicitly left for the next plan. Layer 6 is the person — see [Residual cases](#three-residual-cases-no-layer-covers) below.
+
+| Layer | What it checks | Finding code(s) | Severity | Question types reached | Where |
+|---|---|---|---|---|---|
+| 1 — Counting | A numbered key matches by number; a bare positional key advances a counter by each entry's own width (`"24-26. A, B, D"` consumes three positions). Catches a short key, a long key, a heading misread as an answer | `ANSWER_KEY_COVERAGE` | error | Every question type — this is alignment, not content | `AnswerKeyInjection.Apply` |
+| 2 — Shape legality | The question's own type constrains the legal answer set: True/False/Not Given accepts three values, multiple-choice only the option keys printed on that question, matching only labels in the group's bank | `ANSWER_KEY_TYPE_MISMATCH` (error on three branches; warning on the fourth — a question typed against its own printed options, where the paper's options are trusted over the model's type label and the answer is reinterpreted as an option key); `ANSWER_KEY_TYPE_RETYPED`, `ANSWER_KEY_OPTION_ADDED`, `ANSWER_KEY_BANK_LABEL_ALTERNATIVES`, `ANSWER_KEY_FOLDED_CHOICE` (warning). **The error-severity ones go to `draft.Findings`; the warning-severity ones are filed by `ExamPackageImportPipeline` as `ImportReviewWarning`s (`InjectionWarnings`, id `{CODE}:{index}`), because each says the code rewrote the paper's own description of a question to make the key fit, and that is a judgement somebody has to sign for** | mixed | True/False/Not Given, Yes/No/Not Given, multiple-choice, matching, multiple-select, and any question printing options regardless of its declared type | `AnswerKeyInjection.Apply` |
+| 3 — The paper's own stated rules | Three contradictions the paper states about itself: `question.marks` vs. the key's answer count; `question.constraints.maxWords` vs. the key's word count; the group's `eachLetterOnce` flag vs. a repeated label | `KEY_MARK_COUNT_MISMATCH`, `KEY_EXCEEDS_WORD_LIMIT`, `KEY_LABEL_REUSED` | error | Any question that declares `marks > 1`, a `maxWords` constraint, or belongs to a group with `eachLetterOnce` | `PaperKeyConsistency.Inspect` |
+| 4 — Passage anchoring | 4a: the answer must appear in its part's own text, normalised with the same rules `AnswerMatcher` uses to mark a learner. **The text is chosen by the schema's `part.kind`: `passage` → `body`, `recording` → `transcript`.** A recording with no transcript is skipped entirely and reports nothing — this repository's own VOL 9 packages carry a printed rubric or a one-line context blurb in a Listening part's `body` (12 of 24 parts) and no transcript at all (0 of 24), so falling back to `body` measured every anchorable Listening group against a blurb and raised a non-overridable `PASSAGE_DOES_NOT_MATCH_QUESTIONS` on correct papers. A missing transcript is a warning under `P-19`, never a reason to refuse a package. **Every accepted alternative is tried, not just `accepted[0]`**, and a value that anchors nowhere is retried split on commas before being called absent — VOL 9 keys land alternatives as one comma-joined string (`"one hour,1 hour"`, `"5 years,five years"`, `"color coding, color coding system"`), and reading the first alone refused answers a learner can read off the page. The comma split is a fallback only, so `"large office, good pay"` and `"1,000 kg"` are still tried whole first; `AnswerKeyInjection.SplitAlternatives`, which decides what a learner is *marked* against, is untouched and still does not split on commas. 4b: within a group, answers must appear in passage order — reported via a greedy earliest-legal-occurrence walk, so a repeated word does not false-alarm. 4c: a whole group with zero anchored answers is reported as a probable *paper* defect (wrong or truncated passage), distinct from a few missing answers, which point at the key | 4c: `PASSAGE_DOES_NOT_MATCH_QUESTIONS`, a `PackageFinding` of severity `error` with no override — the only one of the three. 4a `KEY_ANSWER_NOT_IN_PASSAGE` (since 2026-09-10) and 4b `KEY_ANSWERS_OUT_OF_PASSAGE_ORDER` are **not** `PackageFinding`s: `PassageAnchorCheck.Inspect` returns them as distinct `AnchorMissingAnswerIssue` and `AnchorOrderIssue` types on `AnchorReport`, and `ExamPackageImportPipeline.ApplyKeysAndGuardAsync` files each as an `ImportReviewWarning` (id `{CODE}:{index}`, category `AcceptedVariants`). Both still block approval; both are clearable with a recorded reason | mixed | `completion`, `short-answer`, `labelling` only — roughly half a Reading paper and most of a Listening paper. Skipped entirely: True/False/Not Given, Yes/No/Not Given, multiple-choice, matching | `PassageAnchorCheck.Inspect` |
+| 5 — Semantic verification | `CanonicalExplanationWorkflow` sends the model the question, the passage, and the answer code read from the key, and requires an explanation naming that answer with verbatim evidence. `ExplanationOutputValidator` refuses when the model names a different answer | `EXPLANATION_ANSWER_MISMATCH`, filed under review category `TranscriptAndEvidence` (not its own finding code yet) | warning | True/False/Not Given, Yes/No/Not Given, multiple-choice, matching — the types layers 1–4 cannot speak to, since their answers are not passage strings | `Explanations/ExplanationOutputValidator.cs` (pre-existing; unchanged by this plan) |
+| 6 — The person | The CMS review panel, per-question anchors, the coverage statement | — | — | Everything the automated layers could not resolve | Not built by this plan — see A5 in the design |
+
+Layer 5's own limit, stated in the design and worth repeating here: the validator checks that a quoted passage span is *in* the passage, not that it *supports* the answer. A model can agree and cite something real but irrelevant. It raises the floor; it does not make a key certain.
+
+### What blocks, and what a person can clear
+
+Checked line by line against the code on 2026-09-10. Every gate an import actually meets is listed, not only the six layers.
+
+| What | Code(s) | Filed as | Blocks approval? | Clearable? |
+|---|---|---|---|---|
+| 1 Counting | `ANSWER_KEY_COVERAGE` | `PackageFinding`, error | Yes | No |
+| 2 Shape, the three branches that report a contradiction the paper cannot resolve | `ANSWER_KEY_TYPE_MISMATCH` | `PackageFinding`, error | Yes | No |
+| 2 Shape, the branches that resolve the contradiction by rewriting the question | `ANSWER_KEY_TYPE_RETYPED`, `ANSWER_KEY_FOLDED_CHOICE`, `ANSWER_KEY_OPTION_ADDED`, `ANSWER_KEY_BANK_LABEL_ALTERNATIVES`, `ANSWER_KEY_TYPE_MISMATCH` at warning severity | `ImportReviewWarning`, id `{CODE}:{index}` (`ExamPackageImportPipeline.InjectionWarnings`) | Yes | Yes, with a recorded reason |
+| 3 Paper's own rules | `KEY_MARK_COUNT_MISMATCH`, `KEY_EXCEEDS_WORD_LIMIT`, `KEY_LABEL_REUSED` | `PackageFinding`, error | Yes | No |
+| 4a Answer not found in its passage or transcript | `KEY_ANSWER_NOT_IN_PASSAGE` | `ImportReviewWarning`, id `{CODE}:{index}` (`NotInPassageWarnings`) | Yes | Yes, with a recorded reason |
+| 4b Order goes backwards | `KEY_ANSWERS_OUT_OF_PASSAGE_ORDER` | `ImportReviewWarning`, id `{CODE}:{index}` (`OrderWarnings`) | Yes | Yes, with a recorded reason |
+| 4c Whole group anchors nothing against a passage that is present | `PASSAGE_DOES_NOT_MATCH_QUESTIONS` | `PackageFinding`, error | Yes | No |
+| 5 Model disputes the answer | — (generic, see the layers table) | `ImportReviewWarning`, id `exp-{questionId}` (`CanonicalExplanationWorkflow`) | Yes | Yes, with a recorded reason |
+| The model invented a key for a skill nobody supplied one for | `FABRICATED_ANSWER_KEY` | `ImportReviewWarning`, id `FABRICATED_ANSWER_KEY:{index}` (`FabricatedWarnings`) | Yes | Yes, with a recorded reason |
+| Everything the AI parser produced needs comparing against its source | `AI_PARSE_REVIEW` | `ImportReviewWarning` (`ExamImportWorkflow`, AI-parsed route only) | Yes | Yes, with a recorded reason |
+| A key folder was supplied but nothing readable came out of it | `ANSWER_KEY_UNREADABLE` | `PackageFinding`, error | Yes | No |
+| The package stopped validating once the key was written on | `ANSWER_KEY_REVALIDATION_FAILED` | `PackageFinding`, error | Yes | No |
+| A folder under a skill folder matches no role name | `LAYOUT_UNKNOWN_ROLE_FOLDER` | `PackageFinding`, error | Yes (inspection fails closed, package rejected) | No |
+| A top-level folder or a root file matches no known name, so its files were ignored | `LAYOUT_UNKNOWN_ENTRY` | `PackageFinding`, warning, on `ArchiveInspection.Findings` | No — see below | No |
+
+**`LAYOUT_UNKNOWN_ENTRY` is the one row that reaches no gate, and that is now deliberate.** `ExamPackageImportPipeline.ImportAsync` returns `inspection.Findings` only when the inspection is *unacceptable*; on an accepted package they are dropped. `LAYOUT_UNKNOWN_ROLE_FOLDER` emits an error finding that causes `ArchiveInspection.IsAcceptable` to be false, immediately rejecting the package. `LAYOUT_UNKNOWN_ENTRY` stays where it was, on purpose: it means the files were ignored, `__MACOSX/` is the case on every package a macOS ZIP tool wrote, and an unresolved warning on every such package is how a check gets switched off — after which the wrong packages it existed to catch sail through with the false alarms.
+
+`ImportReviewWorkflow.ApproveAsync` refuses with `IMPORT_FINDINGS_BLOCKING` when `draft.Findings` contains any entry with `Severity == "error"` — checked before the existing unresolved-warning and checklist gates, and with **no override**: there is no equivalent of `ResolveWarningAsync` for a `PackageFinding`. An error here means two documents in the same package contradict each other in a way no normalisation choice could explain away: an answer over the paper's own stated word limit, a key that answers a question the paper does not contain, a whole group anchoring nothing against a passage that is present. Those are not judgement calls a reviewer's authority can settle — the fix is a corrected source file, re-uploaded. (A *single* answer the matcher cannot find in its passage was in this list until 2026-09-10 and is not any more: see the `KEY_ANSWER_NOT_IN_PASSAGE` row.) Warnings keep the `P-19` shape already in place: `ResolveWarningAsync` records who cleared it and why, audited as `WarningOverridden`.
+
+**4a, 4b, and every warning-severity result `AnswerKeyInjection` returns, is deliberately not a `PackageFinding`.** `PackageFinding` carries only a severity string, and `ApproveAsync`'s blocking check reads only `Severity == "error"` — a `"warning"`-severity finding is invisible to it, and there is no resolve path for a finding of any severity. Filed that way, an out-of-order result would neither block approval nor ever be clearable: a key running backwards mid-group could be approved with nobody having seen it. That was true of the code from when Layer 4 first landed on 2026-09-10 and was corrected the same day (`PassageAnchorCheck.Inspect` now returns each result as a distinct type on `AnchorReport` — `AnchorOrderIssue` for 4b, `AnchorMissingAnswerIssue` for 4a — and the pipeline files both as `ImportReviewWarning`s exactly like the fabrication guard's warnings; see `ExamPackageImportPipeline.OrderWarnings` and `NotInPassageWarnings`). **4a joined them later the same day and for a different reason:** not because containment has rare exceptions, but because it cannot be measured exactly — "appears in the passage" depends on normalisation choices that do not round-trip, so a correct answer the matcher cannot see (`"some 800km"` against a passage printing `"800 km"`) is indistinguishable from a genuinely absent one. A whole-group mismatch (4c) is not treated this way, on purpose: a group anchoring nothing against a passage that is present is a contradiction between two documents with no judgement to exercise, so it keeps the error/no-override shape layers 1–3 use.
+
+The same argument is why the injection warnings moved. `AnswerKeyInjection.Apply` emits warning severity from six call sites across five codes — a question retyped to match its group, sibling choice questions folded into one, a rubric letter added as an option, a bank label accepted alongside its word, and a question whose printed options contradicted its declared type, whose answer was reinterpreted as an option key. Every one says the code changed the paper's own description of a question so the key would fit; `ANSWER_KEY_TYPE_MISMATCH` at warning severity says the model mistyped a question and its answer was reinterpreted. Added to `draft.Findings` they fell between both gates and nobody was ever forced to read them. They are now `ImportReviewWarning`s (`ExamPackageImportPipeline.InjectionWarnings`, id `{CODE}:{index}` so one occurrence can be cleared without clearing another); the error-severity findings from the same call still go to `draft.Findings` unchanged. Before this branch the HTTP pipeline never called `AnswerKeyInjection` at all, so this branch is what made them reachable.
+
+Three further finding codes sit outside the six-layer table because they fire before or around it rather than as a layer of the cross-check itself: `ANSWER_KEY_UNREADABLE` (error — a key folder was supplied but `AnswerKeyDocument.Parse` found nothing it recognises; the model's answers are stripped regardless, since a key folder existing means they were never meant to stand), `LAYOUT_UNKNOWN_ENTRY` (warning — a top-level folder or a root file whose name matches no known name, so its files are ignored; it reaches no approval gate, deliberately) and `LAYOUT_UNKNOWN_ROLE_FOLDER` (error — a folder under a skill folder whose name matches no role; fails closed at inspection to prevent mislabelled keys or unknown files from entering the AI parser).
+
+---
+
+## Three residual cases no layer covers
+
+Taken from `docs/superpowers/specs/2026-09-10-import-time-exam-preparation-design.md` § A5. These are **named, not eliminated** — no layer above closes them, and none is coming in this plan:
+
+1. **A run of unanchorable questions with no anchored question after it.** Layer 4 can only place a question relative to passage positions found for other questions in its group. A trailing run of True/False/Not Given or multiple-choice questions with nothing anchorable after them has nothing to be checked against.
+2. **A passage containing no anchorable question at all.** If every question in a part is True/False/Not Given or multiple-choice, layer 4 never runs against that passage — it has nothing to search for.
+3. **A single non-propagating error, such as a typo in the official key.** The layers above exist for the failure mode that propagates — a shift that corrupts everything after it. An isolated, one-off wrong answer in an otherwise correctly aligned key produces no count mismatch, no shape violation, no rule contradiction, and (if the wrong answer still happens to appear in the passage) no anchor failure either.
+
+The review screen's coverage statement (A5, not yet built) is designed to name these residual rows explicitly rather than imply full coverage with a green tick.
+
+---
+
+## The harder limit
+
+Every layer in this document checks **consistency between two files** — the parsed paper and the supplied key — never **truth in the world**. If the official key document itself is wrong, every layer here confirms it: a correctly-transcribed wrong answer passes layer 1 (it's counted right), layer 2 (it's a legal value for the question's type), layer 3 (it doesn't violate the paper's own stated rules), and layer 4 (a wrong-but-plausible short answer can still appear in the passage). Nothing here is a check against ground truth. The only defences against a wrong official key are a second source for the same paper, or a person who knows the answer — cross-source key comparison is left as a seam and is not built.
+
+---
+
+## Two operational traps, known and left in
+
+Neither is caused by this work; both now sit on one more code path because of it, and both are the
+kind of thing that is cheap to know and expensive to rediscover.
+
+**A blocking warning can be dropped by a lost revision race.** Every helper that attaches findings or
+warnings to a draft ends with `drafts.ReplaceAsync(updated, draft.Revision, ct)` and, when that
+compare-and-set loses to a concurrent write, returns the *un-warned* draft rather than retrying or
+failing. Two administrators acting on one draft at the same moment can therefore lose a warning that
+was meant to block approval. The idiom predates this work — it is identical in the pre-branch
+pipeline — but a lost warning matters more now that warnings are what stop a contradicted package
+being published. Do not read this as a bypass: the store still holds whichever draft won, and an
+error-severity finding on that draft still blocks.
+
+**Warning ids are positional, so a re-import appends duplicates.** Every id is `{CODE}:{index}` over
+the occurrences in one call. Re-importing the same package onto the same stable draft id appends a
+second set rather than replacing the first, so a reviewer sees each warning twice and must clear both.
+Also true of the fabrication warnings, which have carried this shape since before this work.
+
+**A consequence worth stating plainly:** do not hard-code an expected draft revision in a test. A
+package with a misspelled role folder now gains one extra revision, because the role-folder warnings
+are attached in a second save after the keying pass has already written one.
+
+---
+
+## What this plan did not touch
+
+- `docs/ai/writing-marking.md` — Writing marking is unrelated to this work; Part B of the design (marking notes, model answers) is a later plan.
+- `docs/requirements/assumptions-and-open-questions.md` — nothing here closes an open question.
+- Layer 5's own finding code, the CMS review panel (per-question anchors, the coverage statement), explanations generated at import (`IP-05`), and import as a background job (`202` + polling) — all named in the design as later work, not silently dropped.

@@ -108,7 +108,6 @@ public sealed class SectionMarkingRunner(
         if (module is not (ExamModule.Writing or ExamModule.Speaking)) return [];
         if (version.Section(module) is not { } section) return [];
 
-        var rubric = rubrics.For(module);
         var evaluator = evaluators.FirstOrDefault(e => e.Module == module);
 
         /*
@@ -150,8 +149,9 @@ public sealed class SectionMarkingRunner(
                 continue;
             }
 
+            var rubric = rubrics.For(module, unit.TaskNumber);
             var outcome = await MarkOneAsync(
-                unit, rubric, evaluator, sheet, sessionId, ct);
+                unit, rubric, evaluator, sheet, sessionId, version, ct);
 
             outcomes.Add(outcome);
 
@@ -164,7 +164,8 @@ public sealed class SectionMarkingRunner(
 
     private async Task<MarkingOutcome> MarkOneAsync(
         MarkableUnit unit, Rubric? rubric, ISectionEvaluator? evaluator,
-        IReadOnlyDictionary<string, string?> sheet, ExamSessionId sessionId, CancellationToken ct)
+        IReadOnlyDictionary<string, string?> sheet, ExamSessionId sessionId,
+        ExamVersion version, CancellationToken ct)
     {
         MarkingOutcome Pending(MarkingAvailability why, string? detail = null) =>
             new(unit.Module, unit.TaskNumber, why, null, detail);
@@ -215,8 +216,21 @@ public sealed class SectionMarkingRunner(
         {
             submission = sheet.GetValueOrDefault(unit.QuestionIds[0]);
 
-            if (string.IsNullOrWhiteSpace(submission))
-                return Pending(MarkingAvailability.NothingSubmitted);
+            /*
+             * <b>W-1 admission is code, and it does not need an evaluator.</b>
+             * Empty, not English, or ≤20 remaining words after discounting
+             * copied prompt are terminal bands with no AI call. A blank
+             * Writing task used to be `NothingSubmitted` (a dash). The v2
+             * scale publishes band 0 for that case, with a stated reason —
+             * which is still distinguishable from a silent zero.
+             */
+            var admission = WritingAdmission.Assess(submission ?? string.Empty, unit.Prompt);
+            if (admission is WritingAdmission.Result.Terminal terminal)
+            {
+                var marking = WritingAdmission.ToMarking(rubric, unit.TaskNumber, terminal);
+                return new MarkingOutcome(
+                    unit.Module, unit.TaskNumber, MarkingAvailability.Marked, marking, null);
+            }
         }
 
         if (evaluator is null || !evaluator.IsConfigured)
@@ -243,14 +257,33 @@ public sealed class SectionMarkingRunner(
             using (var report = Usage.EvaluationUsageReport.Begin())
             {
                 claim = await evaluator.EvaluateAsync(
-                    new EvaluationRequest(rubric, submission, unit.Prompt), ct);
+                    new EvaluationRequest(
+                        rubric, submission!, unit.Prompt, unit.TaskNumber, version.Variant),
+                    ct);
 
                 if (usage is not null && unit.Module == ExamModule.Writing)
                     await usage.WritingMarkedAsync(sessionId, report.Usage, ct);
             }
 
             var marking = CriterionMarking.Mark(
-                rubric, claim.Criteria, claim.ReportedBand, submission, unit.TaskNumber);
+                rubric, claim.Criteria, claim.ReportedBand, submission!, unit.TaskNumber);
+
+            if (claim.Advisories is { Count: > 0 } || claim.Provenance is not null)
+            {
+                var flags = marking.Flags;
+                if (claim.Provenance is { ModelMismatch: true }
+                    && !flags.Contains(MarkingFlag.ModelNameMismatch))
+                {
+                    flags = [.. flags, MarkingFlag.ModelNameMismatch];
+                }
+
+                marking = marking with
+                {
+                    Flags = flags,
+                    Advisories = claim.Advisories,
+                    Provenance = claim.Provenance,
+                };
+            }
 
             return new MarkingOutcome(
                 unit.Module, unit.TaskNumber, MarkingAvailability.Marked, marking, null);

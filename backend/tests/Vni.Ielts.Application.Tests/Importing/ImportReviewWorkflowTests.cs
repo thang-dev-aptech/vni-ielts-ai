@@ -115,6 +115,133 @@ public sealed class ImportReviewWorkflowTests
     }
 
     [Fact]
+    public async Task A_draft_with_a_blocking_finding_cannot_be_approved()
+    {
+        var store = new Store(Draft(complete: true, findings:
+            [new PackageFinding("error", PaperKeyConsistency.WordLimitCode, "/q/1", "over the limit")]));
+        var review = Review(store);
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_FINDINGS_BLOCKING", result.ErrorCode);
+    }
+
+    /// <summary>
+    /// Warnings stay clearable — that is `P-19`, and the transcript case depends
+    /// on it. Only errors are absolute.
+    ///
+    /// A generic, made-up code on purpose: this pins <c>ApproveAsync</c>'s own
+    /// gate ("a `PackageFinding` only blocks at `Severity == "error"`"), not
+    /// any particular check. <see cref="PassageAnchorCheck"/>'s own order
+    /// result never reaches <c>draft.Findings</c> at all any more — see
+    /// <c>ExamPackageImportPipelineTests.A_draft_carrying_an_out_of_order_result_cannot_be_approved</c>
+    /// for that.
+    /// </summary>
+    [Theory]
+    [InlineData("error")]
+    [InlineData("ERROR")]
+    [InlineData("Error")]
+    public async Task Error_severity_is_case_insensitively_blocking(string severity)
+    {
+        var store = new Store(Draft(complete: true, findings:
+            [new PackageFinding(severity, "BLOCKING", "/q/1", "invalid") ]));
+        var review = Review(store);
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_FINDINGS_BLOCKING", result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task A_warning_severity_finding_does_not_block_approval()
+    {
+        var store = new Store(Draft(complete: true, findings:
+            [new PackageFinding("warning", "SOME_NON_BLOCKING_FINDING", "/q/2", "worth a look")]));
+        var review = Review(store);
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.True(result.IsSuccess);
+    }
+
+    /// <summary>
+    /// There is no override. A reviewer with every permission still cannot clear
+    /// a contradiction between a paper and its key — the fix is a corrected file,
+    /// not a recorded reason.
+    ///
+    /// <c>PASSAGE_DOES_NOT_MATCH_QUESTIONS</c>, on purpose: it is one of the
+    /// codes that is still filed as an error. <c>KEY_ANSWER_NOT_IN_PASSAGE</c>
+    /// stood here until 2026-09-10 and no longer belongs — it is now a
+    /// blocking but clearable warning, so using it as the example would have
+    /// described a shape the code no longer produces.
+    /// </summary>
+    [Fact]
+    public async Task Resolving_every_warning_does_not_clear_a_blocking_finding()
+    {
+        var store = new Store(Draft(complete: true, findings:
+            [new PackageFinding("error", PassageAnchorCheck.PassageMismatchCode, "/q/1", "absent")]));
+        var review = Review(store);
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_FINDINGS_BLOCKING", result.ErrorCode);
+    }
+
+    /// <summary>
+    /// Missing listening transcript warning blocks approval under P-19 until
+    /// overridden with a mandatory reason and valid reviewer actor.
+    /// </summary>
+    [Fact]
+    public async Task Missing_listening_transcript_warning_blocks_approval_until_audited_override_with_actor_and_reason()
+    {
+        var warning = new ImportReviewWarning(
+            "MISSING_LISTENING_TRANSCRIPT:0",
+            ImportReviewCategory.TranscriptAndEvidence,
+            "/sections/0/parts/0",
+            "Listening part has no transcript; audio evidence cannot be verified automatically.",
+            false);
+        var store = new Store(Draft(complete: true) with
+        {
+            Warnings = [warning],
+        });
+        var review = Review(store);
+
+        // Approval is blocked because warning is unresolved
+        var blocked = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+        Assert.False(blocked.IsSuccess);
+        Assert.Equal("IMPORT_WARNINGS_UNRESOLVED", blocked.ErrorCode);
+
+        // Non-reviewer cannot resolve warning
+        var forbidden = await review.ResolveWarningAsync(
+            store.Draft.Id, 0, warning.Id, "Override reason", Editor, default);
+        Assert.False(forbidden.IsSuccess);
+        Assert.Equal("IMPORT_REVIEW_FORBIDDEN", forbidden.ErrorCode);
+
+        // Blank reason is refused
+        var emptyReason = await review.ResolveWarningAsync(
+            store.Draft.Id, 0, warning.Id, "   ", Reviewer, default);
+        Assert.False(emptyReason.IsSuccess);
+        Assert.Equal("IMPORT_WARNING_REASON_REQUIRED", emptyReason.ErrorCode);
+
+        // Valid override records reason and resolves warning
+        const string reason = "Physical audio tape verified manually by lead teacher";
+        var resolved = await review.ResolveWarningAsync(
+            store.Draft.Id, 0, warning.Id, reason, Reviewer, default);
+        Assert.True(resolved.IsSuccess);
+        var resolvedWarning = Assert.Single(resolved.Draft!.Warnings);
+        Assert.True(resolvedWarning.Resolved);
+        Assert.Equal(reason, resolvedWarning.OverrideReason);
+
+        // Approval now succeeds
+        var approved = await review.ApproveAsync(store.Draft.Id, resolved.Draft.Revision, Reviewer, default);
+        Assert.True(approved.IsSuccess);
+        Assert.Equal(ImportApprovalState.Approved, approved.Draft!.ApprovalState);
+    }
+
+    [Fact]
     public void Diff_keeps_source_and_parsed_package_side_by_side()
     {
         var diff = ImportReviewWorkflow.Diff(Draft());
@@ -270,14 +397,15 @@ public sealed class ImportReviewWorkflowTests
     private static ImportReviewWorkflow Review(Store store, MemoryCatalogue? catalogue = null) =>
         new(store, new Validator(), new MemoryCommitter(store, catalogue ?? new MemoryCatalogue()), new MemoryAssets());
 
-    private static ExamImportDraft Draft(bool warning = false, bool complete = false)
+    private static ExamImportDraft Draft(
+        bool warning = false, bool complete = false, IReadOnlyList<PackageFinding>? findings = null)
     {
         var definition = ExamDefinitionId.New();
         var paper = Validator.Paper(definition, 1);
         return new ExamImportDraft(
             Guid.NewGuid(), definition, 1, ExamImportRoute.AiParsedSource,
             new string('a', 64), ExamImportWorkflow.Hash("valid"), paper, null,
-            ImportApprovalState.ReviewRequired, [], "raw source", "valid",
+            ImportApprovalState.ReviewRequired, findings ?? [], "raw source", "valid",
             complete
                 ? new ImportReviewChecklist(Enum.GetValues<ImportReviewCategory>().ToHashSet())
                 : ImportReviewChecklist.Empty,

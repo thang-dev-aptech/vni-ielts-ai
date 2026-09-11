@@ -41,6 +41,9 @@ export function ResultHero({
   retakeBusy,
   onExplain,
   practiceHref,
+  advisory = false,
+  explainLabel,
+  wordCounts,
 }: {
   examTitle: string;
   skillName: string | null;
@@ -54,6 +57,15 @@ export function ResultHero({
   retakeBusy: boolean;
   onExplain: () => void;
   practiceHref: string;
+  /** `P-13` — Writing (and Speaking) bands are AI-estimated. */
+  advisory?: boolean;
+  /** Defaults to "Xem giải thích". Writing uses "Xem nhận xét". */
+  explainLabel?: string;
+  /**
+   * Writing: words per task, in place of correct/accuracy — those figures
+   * do not exist for a marked skill.
+   */
+  wordCounts?: { task: number; words: number; min: number | null }[];
 }) {
   const { t } = useI18n();
 
@@ -111,6 +123,7 @@ export function ResultHero({
         <div className="exs-score-row">
           <span className={`exs-score-value${band === null ? ' is-none' : ''}`}>{band ?? '—'}</span>
           <span className="exs-score-say">
+            {advisory && <span className="dash-tag dash-tag-ai">{t('exam.aiAdvisory')}</span>}
             <p>{band === null ? (bandNote ?? t('exam.overallPending')) : t('exam.resultSaying')}</p>
           </span>
           {/*
@@ -125,22 +138,40 @@ export function ResultHero({
         </div>
 
         <div className="exs-score-stats">
-          <Stat
-            tone="green"
-            icon={<CheckCircleGlyph size={18} />}
-            label={t('exam.statCorrect')}
-            value={
-              stats.correct === null || stats.total === null
-                ? '—'
-                : `${stats.correct}/${stats.total}`
-            }
-          />
-          <Stat
-            tone="blue"
-            icon={<TargetRingGlyph size={18} />}
-            label={t('exam.statAccuracy')}
-            value={stats.accuracy === null ? '—' : `${stats.accuracy}%`}
-          />
+          {wordCounts !== undefined && wordCounts.length > 0 ? (
+            wordCounts.slice(0, 2).map((row) => (
+              <Stat
+                key={row.task}
+                tone="green"
+                icon={<PagesGlyph size={18} />}
+                label={t('exam.statWordsTask', { number: row.task })}
+                value={
+                  row.min === null
+                    ? String(row.words)
+                    : t('exam.wordsOfMin', { count: row.words, min: row.min })
+                }
+              />
+            ))
+          ) : (
+            <>
+              <Stat
+                tone="green"
+                icon={<CheckCircleGlyph size={18} />}
+                label={t('exam.statCorrect')}
+                value={
+                  stats.correct === null || stats.total === null
+                    ? '—'
+                    : `${stats.correct}/${stats.total}`
+                }
+              />
+              <Stat
+                tone="blue"
+                icon={<TargetRingGlyph size={18} />}
+                label={t('exam.statAccuracy')}
+                value={stats.accuracy === null ? '—' : `${stats.accuracy}%`}
+              />
+            </>
+          )}
           <Stat
             tone="amber"
             icon={<StopwatchGlyph size={18} />}
@@ -165,7 +196,7 @@ export function ResultHero({
         <div className="exs-score-actions">
           <button type="button" className="exs-btn" onClick={onExplain}>
             <PagesGlyph size={16} />
-            {t('exam.seeExplanations')}
+            {explainLabel ?? t('exam.seeExplanations')}
           </button>
           <button type="button" className="exs-btn" disabled={retakeBusy} onClick={onRetake}>
             <RedoGlyph size={16} />

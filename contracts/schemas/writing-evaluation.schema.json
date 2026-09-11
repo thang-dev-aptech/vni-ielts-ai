@@ -9,21 +9,37 @@
     "criteria": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "taskResponse",
-        "coherenceAndCohesion",
-        "lexicalResource",
-        "grammaticalRangeAndAccuracy"
-      ],
       "properties": {
+        "taskAchievement": { "$ref": "#/$defs/criterion" },
         "taskResponse": { "$ref": "#/$defs/criterion" },
         "coherenceAndCohesion": { "$ref": "#/$defs/criterion" },
         "lexicalResource": { "$ref": "#/$defs/criterion" },
         "grammaticalRangeAndAccuracy": { "$ref": "#/$defs/criterion" }
-      }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "taskAchievement",
+            "coherenceAndCohesion",
+            "lexicalResource",
+            "grammaticalRangeAndAccuracy"
+          ],
+          "not": { "required": ["taskResponse"] }
+        },
+        {
+          "required": [
+            "taskResponse",
+            "coherenceAndCohesion",
+            "lexicalResource",
+            "grammaticalRangeAndAccuracy"
+          ],
+          "not": { "required": ["taskAchievement"] }
+        }
+      ]
     },
     "sectionBand": { "$ref": "#/$defs/band" },
-    "summary": { "type": "string", "minLength": 1, "maxLength": 1200 }
+    "summary": { "type": "string", "minLength": 1, "maxLength": 1200 },
+    "limiters": { "$ref": "#/$defs/limiters" }
   },
   "$defs": {
     "band": {
@@ -43,6 +59,18 @@
           "maxItems": 6,
           "items": { "type": "string", "minLength": 1, "maxLength": 300 }
         }
+      }
+    },
+    "limiters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "whollyUnrelated": { "type": "boolean" },
+        "entirelyOffTopic": { "type": "boolean" },
+        "simpleSentencesPredominate": { "type": "boolean" },
+        "gtBulletsOrTone": { "type": "boolean" },
+        "task2ParagraphingInadequate": { "type": "boolean" },
+        "academicTask1NoData": { "type": "boolean" }
       }
     }
   }

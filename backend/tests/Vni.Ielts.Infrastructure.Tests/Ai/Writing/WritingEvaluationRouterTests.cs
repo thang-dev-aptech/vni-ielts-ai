@@ -123,7 +123,7 @@ public sealed class WritingEvaluationRouterTests
         // ops runbook is a silent commitment change (G-11).
         var options = new WritingMarkingOptions();
 
-        Assert.Equal(120, options.TimeoutSeconds);
+        Assert.Equal(180, options.TimeoutSeconds);
         Assert.Equal(3, options.MaxAttempts);
         Assert.False(options.Enabled);
     }

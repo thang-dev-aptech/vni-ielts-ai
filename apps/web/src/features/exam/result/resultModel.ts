@@ -350,8 +350,13 @@ export function listeningAudioIndex(content: SectionContentView | undefined): Ma
 export function skillsShown(results: SessionResultsView, order: ExamModule[]): ExamModule[] {
   const scored = new Set(results.sections.map((s) => s.module));
   const marked = new Set((results.markings ?? []).map((m) => m.module));
+  const pending = new Set((results.markingStatuses ?? []).map((s) => s.module));
+  const inContent = new Set((results.content ?? []).map((c) => c.module));
 
   return results.mode === 'full'
     ? order
-    : order.filter((module) => scored.has(module) || marked.has(module));
+    : order.filter(
+        (module) =>
+          scored.has(module) || marked.has(module) || pending.has(module) || inContent.has(module),
+      );
 }

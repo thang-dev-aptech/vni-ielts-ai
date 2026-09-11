@@ -36,18 +36,19 @@ Speech-to-text and LLM evaluation are **separate decisions** and may come from d
 
 ```csharp
 ISpeechRecognizer   // must expose word-level timestamps
-IWritingEvaluator
-ISpeakingEvaluator
+ISectionEvaluator   // Writing today; Speaking when a transcript exists
 IFeedbackGenerator  // optional, non-blocking
 ```
 
-Ports live in `Application`. Adapters live in `Infrastructure/Ai/`. **No adapter exists yet.**
+Ports live in `Application`. Adapters live in `Infrastructure/Ai/`.
 
 **Update 2026-08-20 — LLM providers selected.** The owner chose **GPT (OpenAI) and Gemini (Google)**; the Claude API remains excluded. Speech-to-text is still unselected.
 
 This does not relax the abstraction — it activates it. Two vendors behind one port is exactly the case this ADR was written for, and Application code must remain unable to tell them apart. The reseller `baseURL` used during testing is **configuration of the OpenAI adapter**, not a third adapter.
 
-**Prohibitions still in force:** no AI credentials in this repository, and **no real learner data through the test reseller** — it is a second data processor. → [CLAUDE.md](../../CLAUDE.md) rule 6 · [`../ai/provider-comparison.md`](../ai/provider-comparison.md)
+**Update 2026-09-09 — adapters exist.** The Writing port in code is `ISectionEvaluator` (the names `IWritingEvaluator` / `ISpeakingEvaluator` above were the 2026-08 sketch). `OpenAiWritingEvaluationClient` and `GeminiWritingEvaluationClient` sit behind `WritingEvaluationRouter`. Pipeline: [`../ai/writing-marking.md`](../ai/writing-marking.md).
+
+**Prohibitions still in force:** no AI credentials in this repository. The owner overrode "no real learner data through the test reseller" on 02/09/2026 (*"cho chạy thật luôn"*) — that is an accepted compliance risk (`B-2`, `M-28`), not a resolved one. → [CLAUDE.md](../../CLAUDE.md) rule 6 · [`../ai/provider-comparison.md`](../ai/provider-comparison.md)
 
 ## Consequences
 

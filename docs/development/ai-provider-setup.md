@@ -328,8 +328,8 @@ Cần **đồng thời**: `Enabled=true`, `PrimaryProvider` + `Model` + `ApiKey`
 vị thế PDPL, và `SyntheticDataOnly=false` **chỉ** trên endpoint đã được phép nhận dữ liệu thật.
 Thiếu một cổng → `IsConfigured` vẫn false. → mục 1 · FS0.4 ở trên.
 
-Ngân sách mỗi lần gọi (không phải SLO sản xuất): `TimeoutSeconds` (mặc định 120, kẹp 10…300),
-`MaxAttempts` (mặc định 3), `FallbackProvider` tùy chọn. → [`nfr.md` § FS9.3](nfr.md)
+Ngân sách mỗi lần gọi (không phải SLO sản xuất): `TimeoutSeconds` (mặc định **180**, kẹp 10…300; HttpClient Writing **sàn 180** nên một secret còn ghi 120 vẫn không cắt reseller giữa chừng),
+`MaxAttempts` (mặc định 3 **mỗi nhà cung cấp**), `FallbackProvider` tùy chọn. → [`nfr.md` § FS9.3](nfr.md) · [`../ai/writing-marking.md`](../ai/writing-marking.md)
 
 ---
 

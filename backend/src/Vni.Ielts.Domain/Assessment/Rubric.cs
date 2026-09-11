@@ -87,9 +87,10 @@ public sealed record Rubric
 /// </summary>
 public static class CriterionKeys
 {
-    // Writing. Task Response (Task 2) and Task Achievement (Task 1) are the
-    // same criterion slot under two official names; the key is neutral so one
-    // rubric covers both tasks and the label is a presentation concern.
+    /// <summary>Task 1 construct. Not interchangeable with <see cref="TaskResponse"/>.</summary>
+    public const string TaskAchievement = "taskAchievement";
+
+    /// <summary>Task 2 construct. Not interchangeable with <see cref="TaskAchievement"/>.</summary>
     public const string TaskResponse = "taskResponse";
     public const string CoherenceAndCohesion = "coherenceAndCohesion";
     public const string LexicalResource = "lexicalResource";
@@ -101,10 +102,21 @@ public static class CriterionKeys
     public const string FluencyAndCoherence = "fluencyAndCoherence";
     public const string Pronunciation = "pronunciation";
 
+    /// <summary>
+    /// The v1 Writing set, and Task 2 under v2. Kept so a v1 artifact and any
+    /// caller that has not yet named a task still compile against one list.
+    /// </summary>
     public static readonly IReadOnlyList<string> Writing =
     [
         TaskResponse, CoherenceAndCohesion, LexicalResource, GrammaticalRangeAndAccuracy,
     ];
+
+    public static readonly IReadOnlyList<string> WritingTask1 =
+    [
+        TaskAchievement, CoherenceAndCohesion, LexicalResource, GrammaticalRangeAndAccuracy,
+    ];
+
+    public static readonly IReadOnlyList<string> WritingTask2 = Writing;
 
     public static readonly IReadOnlyList<string> Speaking =
     [
