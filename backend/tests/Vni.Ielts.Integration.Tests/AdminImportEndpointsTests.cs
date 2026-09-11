@@ -6,11 +6,13 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Audit;
 using Vni.Ielts.Domain.Identity;
 using MongoDB.Driver;
+using Vni.Ielts.Infrastructure.Content.Import;
 using Vni.Ielts.Infrastructure.Persistence;
 
 namespace Vni.Ielts.Integration.Tests;
@@ -605,5 +607,91 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         Assert.True(replaced);
 
         return seeded.Id.ToString("D");
+    }
+
+    // ── Task 7: the downloadable package skeleton ──────────────────────────
+
+    /// <summary>
+    /// The strongest proof available: the generated skeleton is fed back
+    /// through the real <see cref="IExamPackageArchiveInspector"/> — the same
+    /// service the upload endpoint uses — and must be acceptable with no
+    /// <see cref="ArchiveFindingCodes.LayoutUnknownRoleFolder"/> finding. A
+    /// test that only checked for expected path prefixes would still pass a
+    /// skeleton the inspector actually rejects.
+    /// </summary>
+    [SkippableFact]
+    public async Task The_template_is_a_zip_whose_folders_the_inspector_accepts()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/template", access));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/zip", response.Content.Headers.ContentType?.MediaType);
+        Assert.Contains(
+            "vni-exam-package-template.zip",
+            response.Content.Headers.ContentDisposition?.ToString() ?? string.Empty);
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+
+        using var archive = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
+        var names = archive.Entries.Select(e => e.FullName).ToArray();
+
+        Assert.Contains(names, n => n.StartsWith("reading/de/", StringComparison.Ordinal));
+        Assert.Contains(names, n => n.StartsWith("reading/dap-an/", StringComparison.Ordinal));
+        Assert.Contains(names, n => n.StartsWith("listening/audio/", StringComparison.Ordinal));
+
+        using var scope = app.Services.CreateScope();
+        var inspector = scope.ServiceProvider.GetRequiredService<IExamPackageArchiveInspector>();
+        var archiveOptions = scope.ServiceProvider.GetRequiredService<IOptions<ImportArchiveOptions>>();
+
+        var inspection = await inspector.InspectAsync(
+            new MemoryStream(bytes), archiveOptions.Value.ToLimits(), default);
+
+        Assert.True(inspection.IsAcceptable, DescribeFindings(inspection));
+        Assert.DoesNotContain(
+            inspection.Findings, f => f.Code == ArchiveFindingCodes.LayoutUnknownRoleFolder);
+    }
+
+    private static string DescribeFindings(ArchiveInspection inspection) =>
+        string.Join("; ", inspection.Findings.Select(f => $"{f.Severity} {f.Code} {f.Path}: {f.Message}"));
+
+    /// <summary>
+    /// Same reasoning as <c>Uploading_without_the_upload_permission_is_forbidden</c>:
+    /// the server enforces this, not just the CMS hiding a button. The
+    /// template exists for a person about to upload a package, so it is
+    /// gated on the same permission the upload endpoint checks.
+    /// </summary>
+    [SkippableFact]
+    public async Task Downloading_the_template_needs_the_upload_permission()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        await SsoRoundTripAsync(client);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            var roles = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
+            var admin = await roles.FindByNameAsync(SystemRoles.Admin, default);
+            var user = await users.FindByEmailAsync(
+                Vni.Ielts.Domain.Identity.Email.Create("stub.learner@example.com"), default);
+
+            if (admin is not null && user is not null && user.HasRole(admin.Id))
+            {
+                user.RemoveRole(admin.Id);
+                await users.SaveAsync(user, default);
+            }
+        }
+
+        var access = await SsoRoundTripAsync(client);
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/template", access));
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 }

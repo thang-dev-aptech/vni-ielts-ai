@@ -79,6 +79,14 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
     };
 
     /// <summary>
+    /// A read-only view of <see cref="SkillFolders"/>, exposed so the
+    /// downloadable package skeleton (<c>ImportTemplate</c>, Api) is built
+    /// from this table rather than a copy of it that can drift the first time
+    /// a skill-folder name changes here.
+    /// </summary>
+    public static IReadOnlyDictionary<string, ExamModule> AcceptedSkillFolders => SkillFolders;
+
+    /// <summary>
     /// The folder directly under a skill folder. Unaccented spellings only: a ZIP
     /// stores entry names as CP437 or UTF-8 depending on a per-entry flag that
     /// many Windows tools set wrongly, so an accented name arrives mangled often
@@ -97,6 +105,13 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             ["answers"] = PackageEntryRole.Key,
             ["audio"] = PackageEntryRole.Audio,
         };
+
+    /// <summary>
+    /// A read-only view of <see cref="RoleFolders"/>, for the same reason as
+    /// <see cref="AcceptedSkillFolders"/>: the skeleton ships names read from
+    /// this table, never a second copy of it.
+    /// </summary>
+    public static IReadOnlyDictionary<string, PackageEntryRole> AcceptedRoleFolders => RoleFolders;
 
     private static readonly string ProbeRoot =
         Path.GetFullPath(Path.Combine(Path.GetTempPath(), "vni-package-probe"));

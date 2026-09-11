@@ -2916,6 +2916,31 @@
         ]
       }
     },
+    "/api/v1/admin/import/template": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Download the empty package skeleton \u2014 the folder names the inspector accepts",
+        "operationId": "AdminGetImportTemplate",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/import/jobs/{operationId}": {
       "get": {
         "tags": [

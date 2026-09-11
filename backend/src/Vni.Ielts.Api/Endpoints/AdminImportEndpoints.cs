@@ -108,6 +108,10 @@ public static class AdminImportEndpoints
             .WithSummary("Upload one exam package ZIP; stores it and enqueues an import job")
             .DisableAntiforgery();
 
+        group.MapGet("/template", GetTemplateEndpoint)
+            .WithName("AdminGetImportTemplate")
+            .WithSummary("Download the empty package skeleton — the folder names the inspector accepts");
+
         group.MapGet("/jobs/{operationId}", GetJobEndpoint)
             .WithName("AdminGetImportJob")
             .WithSummary("How far one enqueued import got, and why it stopped if it did");
@@ -264,6 +268,32 @@ public static class AdminImportEndpoints
             new ImportAcceptedView(
                 job.OperationId, definitionId.Value, versionNumber,
                 job.Stage.ToString(), job.State.ToString()));
+    }
+
+    /// <summary>
+    /// The downloadable package skeleton — four skill folders, and inside
+    /// <c>reading/</c> and <c>listening/</c> a second level separating the
+    /// paper from the answer key, built by <see cref="ImportTemplate.BuildZip"/>
+    /// from <see cref="ExamPackageArchiveInspector"/>'s own tables so it can
+    /// never ship a folder name the inspector does not accept.
+    ///
+    /// <b>Gated on <c>package.upload</c>, not <c>package.read</c>.</b> This
+    /// route serves a person about to upload a package who needs to know the
+    /// folder names before they zip anything — the same audience, and the
+    /// same permission, <see cref="UploadPackageEndpoint"/> already checks.
+    /// <c>package.read</c> is about reading the status of a package that
+    /// already exists, which is a different question this endpoint never
+    /// answers.
+    /// </summary>
+    private static IResult GetTemplateEndpoint(ClaimsPrincipal principal)
+    {
+        if (Denied(principal, PermissionKeys.PackageUpload) is { } denial) return denial;
+
+        var bytes = ImportTemplate.BuildZip();
+        return Results.File(
+            bytes,
+            "application/zip",
+            fileDownloadName: "vni-exam-package-template.zip");
     }
 
     /// <summary>
