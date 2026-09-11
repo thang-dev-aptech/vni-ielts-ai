@@ -110,7 +110,16 @@ public static class AdminImportEndpoints
 
         group.MapGet("/template", GetTemplateEndpoint)
             .WithName("AdminGetImportTemplate")
-            .WithSummary("Download the empty package skeleton — the folder names the inspector accepts");
+            .WithSummary("Download the empty package skeleton — the folder names the inspector accepts")
+            // Task 9 of the 2026-09-11 out-of-band import slice: this route
+            // returned a `Results.File` with no response metadata, so the
+            // generated OpenAPI document described its 200 as an untyped "OK"
+            // — a caller generated from the contract had no way to know this
+            // is a binary body rather than JSON. `byte[]` maps to a string
+            // schema with `format: byte` (base64), which is the closest this
+            // generator gets to "binary file"; the content type is what tells
+            // a reader (and a generated client) this is a ZIP.
+            .Produces<byte[]>(StatusCodes.Status200OK, "application/zip");
 
         group.MapGet("/jobs/{operationId}", GetJobEndpoint)
             .WithName("AdminGetImportJob")

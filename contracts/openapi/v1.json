@@ -2925,7 +2925,15 @@
         "operationId": "AdminGetImportTemplate",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."

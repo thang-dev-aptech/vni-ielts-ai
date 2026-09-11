@@ -451,7 +451,7 @@ export class ImportApiError extends ApiError {
   }
 }
 
-async function parseImportResponse(response: Response): Promise<ImportDraft> {
+async function parseImportResponse<T>(response: Response): Promise<T> {
   const text = await response.text();
   let payload: unknown = null;
 
@@ -481,22 +481,79 @@ async function parseImportResponse(response: Response): Promise<ImportDraft> {
     );
   }
 
-  return payload as ImportDraft;
+  return payload as T;
+}
+
+// ── Import job polling, task 9 of the 2026-09-11 out-of-band import slice ──
+//
+// A Cambridge parse costs real money and takes minutes, so the upload no
+// longer runs inline: `POST /packages` stores the archive, enqueues a job,
+// and returns immediately. `Stage`/`State` are read straight off
+// `AdminImportEndpoints.ToView` on the server — both stay PascalCase
+// (`"Extracting"`, `"Running"`, …) because that endpoint calls `.ToString()`
+// on the C# enum rather than lower-casing it the way `route`/`approvalState`
+// are on `ImportDraftView`. Getting that casing wrong here silently breaks
+// every stage/state comparison — checked against the actual response shape
+// in `backend/src/Vni.Ielts.Api/Endpoints/AdminImportEndpoints.cs`, not
+// guessed.
+
+/** The seven steps `ImportWorker` reports, in order. */
+export type ImportJobStage =
+  | 'Extracting'
+  | 'Parsing'
+  | 'Transcribing'
+  | 'Keying'
+  | 'Checking'
+  | 'Explaining'
+  | 'Done';
+
+/** Mirrors `Vni.Ielts.Application.Importing.ImportJobState`. */
+export type ImportJobState = 'Pending' | 'Running' | 'Retryable' | 'Failed' | 'Completed';
+
+/** What `POST /packages` answers with now that the work happens elsewhere — `202`, no draft yet. */
+export interface ImportAcceptedView {
+  operationId: string;
+  definitionId: string;
+  versionNumber: number;
+  stage: ImportJobStage;
+  state: ImportJobState;
+}
+
+/** `GET /import/jobs/{operationId}` — how far one enqueued import got, and why it stopped if it did. */
+export interface ImportJobView {
+  operationId: string;
+  definitionId: string;
+  versionNumber: number;
+  stage: ImportJobStage;
+  state: ImportJobState;
+  attempts: number;
+  maxAttempts: number;
+  draftId: string | null;
+  lastError: string | null;
+  createdAt: string;
+  nextAttemptAt: string | null;
+  completedAt: string | null;
 }
 
 /**
- * Uploads one exam package ZIP and returns the review draft, or throws
+ * Uploads one exam package ZIP and returns the accepted job, or throws
  * `ImportApiError` — a `422 PACKAGE_REJECTED` with the ZIP pipeline's own
  * findings when the package itself is refused (bomb, path traversal, wrong
  * layout — the S6a safety checks), including the well-typed
  * `AI_PARSER_UNAVAILABLE` finding for a raw-document package on a deployment
- * with no AI parser wired in.
+ * with no AI parser wired in. Those checks still happen inline, before
+ * anything is persisted (CLAUDE.md rule 3) — only the parse itself moved out
+ * of the request.
+ *
+ * <b>No draft comes back from this call any more.</b> The caller polls
+ * `getImportJob` with the returned `operationId` until it reaches a terminal
+ * state, then loads the draft by the `draftId` that job carries.
  */
 export const uploadImportPackage = async (
   accessToken: string,
   file: File,
   options: { definitionId?: string; versionNumber?: number } = {},
-): Promise<ImportDraft> => {
+): Promise<ImportAcceptedView> => {
   const form = new FormData();
   form.append('file', file);
   if (options.definitionId) form.append('definitionId', options.definitionId);
@@ -508,11 +565,53 @@ export const uploadImportPackage = async (
     body: form,
   });
 
-  return parseImportResponse(response);
+  return parseImportResponse<ImportAcceptedView>(response);
 };
+
+/** Polled while `state` is `Pending` / `Running` / `Retryable`; `Completed` or `Failed` are terminal. */
+export const getImportJob = (accessToken: string, operationId: string) =>
+  request<ImportJobView>(`/api/v1/admin/import/jobs/${encodeURIComponent(operationId)}`, {
+    accessToken,
+  });
 
 export const getImportDraft = (accessToken: string, draftId: string) =>
   request<ImportDraft>(`/api/v1/admin/import/packages/${draftId}`, { accessToken });
+
+/**
+ * Downloads the empty package skeleton — the exact folder names
+ * `ExamPackageArchiveInspector` accepts, so an operator never has to guess
+ * one. Guessing wrong sends an answer key to the AI model, so this is a
+ * safeguard, not a convenience.
+ *
+ * Not `request()`: the body is a ZIP, not JSON, so this returns the raw
+ * `Blob` for the caller to save.
+ */
+export const downloadImportTemplate = async (accessToken: string): Promise<Blob> => {
+  const response = await authedFetch(`${apiBase()}/api/v1/admin/import/template`, accessToken, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    let payload: unknown = null;
+    if (text) {
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        // Not JSON — the generic transport-error problem below covers it.
+      }
+    }
+    const problem = (payload ?? {}) as Partial<ApiProblem>;
+    throw new ApiError({
+      title: problem.title ?? 'Request failed',
+      status: response.status,
+      detail: problem.detail ?? `HTTP ${response.status}`,
+      code: problem.code ?? TRANSPORT_ERROR,
+    });
+  }
+
+  return response.blob();
+};
 
 /** `P-19`'s "bỏ qua được nhưng bắt buộc ghi lý do" — a blank reason is refused with a 409. */
 export const overrideImportWarning = async (
@@ -531,7 +630,7 @@ export const overrideImportWarning = async (
     },
   );
 
-  return parseImportResponse(response);
+  return parseImportResponse<ImportDraft>(response);
 };
 
 export const approveImportDraft = async (
@@ -544,5 +643,5 @@ export const approveImportDraft = async (
     { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() } },
   );
 
-  return parseImportResponse(response);
+  return parseImportResponse<ImportDraft>(response);
 };
