@@ -13,8 +13,8 @@ public sealed class ImportJobTests
     [Fact]
     public void The_operation_id_is_derived_from_the_work_not_generated()
     {
-        var a = ImportJob.OperationIdFor(new ExamDefinitionId("cam-16"), 1, "abc123");
-        var b = ImportJob.OperationIdFor(new ExamDefinitionId("cam-16"), 1, "abc123");
+        var a = ImportJob.OperationIdFor(new ExamDefinitionId("cam-16"), 1, "abc123", "exam-import/1");
+        var b = ImportJob.OperationIdFor(new ExamDefinitionId("cam-16"), 1, "abc123", "exam-import/1");
 
         Assert.Equal(a, b);
     }
@@ -22,8 +22,25 @@ public sealed class ImportJobTests
     [Fact]
     public void A_different_upload_for_the_same_version_is_a_different_job()
     {
-        var a = ImportJob.OperationIdFor(new ExamDefinitionId("cam-16"), 1, "abc123");
-        var b = ImportJob.OperationIdFor(new ExamDefinitionId("cam-16"), 1, "def456");
+        var a = ImportJob.OperationIdFor(new ExamDefinitionId("cam-16"), 1, "abc123", "exam-import/1");
+        var b = ImportJob.OperationIdFor(new ExamDefinitionId("cam-16"), 1, "def456", "exam-import/1");
+
+        Assert.NotEqual(a, b);
+    }
+
+    /// <summary>
+    /// An improved parse prompt is a genuinely different piece of work, not a
+    /// retry of the old one. Without the prompt version in the id, a package
+    /// re-uploaded byte-for-byte after the prompt changed would collide with
+    /// the job already keyed to the old prompt, and nothing could force the
+    /// re-parse — the same failure this repository already lived once with a
+    /// rubric version that was never carried into a re-mark.
+    /// </summary>
+    [Fact]
+    public void A_new_parse_prompt_version_over_identical_bytes_is_a_different_job()
+    {
+        var a = ImportJob.OperationIdFor(new ExamDefinitionId("cam-16"), 1, "abc123", "exam-import/3");
+        var b = ImportJob.OperationIdFor(new ExamDefinitionId("cam-16"), 1, "abc123", "exam-import/4");
 
         Assert.NotEqual(a, b);
     }
@@ -48,7 +65,8 @@ public sealed class ImportJobTests
     public void A_job_out_of_attempts_is_failed_rather_than_retried_forever()
     {
         var job = ImportJob.New(
-            new ExamDefinitionId("cam-16"), 1, "abc123", "uploads/abc123.zip", DateTimeOffset.UtcNow);
+            new ExamDefinitionId("cam-16"), 1, "abc123", "exam-import/1", "uploads/abc123.zip",
+            DateTimeOffset.UtcNow);
 
         var exhausted = job with { Attempts = ImportJob.MaxAttempts };
 
@@ -71,7 +89,8 @@ public sealed class ImportJobTests
     {
         var outbox = new InMemoryImportOutbox();
         var job = ImportJob.New(
-            new ExamDefinitionId("cam-16"), 1, "abc123", "uploads/abc123.zip", outbox.Now);
+            new ExamDefinitionId("cam-16"), 1, "abc123", "exam-import/1", "uploads/abc123.zip",
+            outbox.Now);
         await outbox.EnqueueAsync(job, CancellationToken.None);
 
         // Worker A claims it, but with a lease that is already in the past —
@@ -161,6 +180,18 @@ public sealed class ImportJobTests
             {
                 State = ImportJobState.Completed,
                 CompletedAt = Now,
+                LeaseToken = null,
+                LeaseUntil = null,
+            }));
+
+        public Task<bool> RetryAsync(
+            string operationId, string leaseToken, DateTimeOffset nextAttemptAt, string error,
+            CancellationToken ct) =>
+            Task.FromResult(Owned(operationId, leaseToken, j => j with
+            {
+                State = ImportJobState.Retryable,
+                NextAttemptAt = nextAttemptAt,
+                LastError = error,
                 LeaseToken = null,
                 LeaseUntil = null,
             }));
