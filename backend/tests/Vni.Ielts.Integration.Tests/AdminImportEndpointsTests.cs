@@ -60,6 +60,47 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         return (client, access);
     }
 
+    /// <summary>
+    /// Signs in holding exactly the given permissions — no more, no less —
+    /// via a fresh, non-system role, so a test can prove what one specific
+    /// key does and does not open rather than testing against Admin's whole
+    /// bundle. Strips any role the stub account picked up from an earlier
+    /// test in this class first, the same reasoning
+    /// <see cref="Uploading_without_the_upload_permission_is_forbidden"/>
+    /// already applies: the stub SSO provider always authenticates the same
+    /// account, so this must hold regardless of run order.
+    /// </summary>
+    private async Task<(HttpClient Client, string Access)> SignInWithOnlyAsync(
+        params string[] permissions)
+    {
+        var client = NewClient();
+        await SsoRoundTripAsync(client);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            var roles = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
+
+            var user = await users.FindByEmailAsync(
+                Vni.Ielts.Domain.Identity.Email.Create("stub.learner@example.com"), default);
+            Assert.NotNull(user);
+
+            foreach (var existing in await roles.ListAsync(default))
+            {
+                if (user!.HasRole(existing.Id)) user.RemoveRole(existing.Id);
+            }
+
+            var limited = Role.Create($"test-limited-{Guid.NewGuid():n}", isSystem: false, permissions);
+            await roles.AddAsync(limited, default);
+            user!.AssignRole(limited.Id);
+            await users.SaveAsync(user, default);
+        }
+
+        // Permissions are resolved when the token is minted.
+        var access = await SsoRoundTripAsync(client);
+        return (client, access);
+    }
+
     private static async Task<string> SsoRoundTripAsync(HttpClient client)
     {
         var start = await client.PostAsJsonAsync("/api/v1/auth/sso/google/start", new { });
@@ -337,6 +378,36 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         Assert.Equal(0, body.GetProperty("attempts").GetInt32());
         Assert.Equal(JsonValueKind.Null, body.GetProperty("draftId").ValueKind);
         Assert.Equal(JsonValueKind.Null, body.GetProperty("lastError").ValueKind);
+    }
+
+    /// <summary>
+    /// Fix round 1 on task 9 of the 2026-09-11 out-of-band import slice.
+    ///
+    /// <b>The bug this guards against.</b> `GetJobEndpoint` was gated on
+    /// `package.read` alone. An operator holding only `package.upload` —
+    /// exactly the permission `UploadPackageEndpoint` itself requires, and
+    /// the one the CMS's `/import` route is gated on — could start a job and
+    /// then get a 403 asking how it went: no stage, no error, nothing to
+    /// distinguish a running job from a failed one. The natural response,
+    /// uploading the same package again, silently collides with the job
+    /// already running via the derived operation id and reads as a broken
+    /// button. Anyone who may start a job must be able to see how it ended.
+    /// </summary>
+    [SkippableFact]
+    public async Task An_upload_only_principal_can_read_the_job_it_started()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInWithOnlyAsync(PermissionKeys.PackageUpload);
+        var operationId = await UploadAsync(
+            client, access, BuildZip(("reading/exam.json", UniquePackageJson())));
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/jobs/{Uri.EscapeDataString(operationId)}", access));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await BodyOf(response);
+        Assert.Equal(operationId, body.GetProperty("operationId").GetString());
     }
 
     [SkippableFact]

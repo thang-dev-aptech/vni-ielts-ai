@@ -47,12 +47,13 @@ import { reasonOf } from './UserDetailPage.js';
  * out-of-band import slice.</b> A Cambridge parse costs real money and takes
  * minutes, so an earlier task in this plan moved the parse itself out of the
  * request: `POST /packages` now answers `202` with an `operationId`, and this
- * screen polls `GET /import/jobs/{operationId}` — the same idiom
- * `WritingResults` already uses for a marking job in the learner app, not a
- * second one — until the job reaches a terminal state, then loads the draft
- * by the id the finished job carries. A failed job shows its own reason
- * rather than a half-built draft, and the poll is bounded rather than
- * running forever.
+ * screen polls `GET /import/jobs/{operationId}` — the same setInterval /
+ * poll-only-while-in-flight shape `WritingResults` already uses for a
+ * marking job in the learner app, not a second one — until the job reaches a
+ * terminal state, then loads the draft by the id the finished job carries. A
+ * failed job shows its own reason rather than a half-built draft, and the
+ * poll is bounded rather than running forever — see `IMPORT_POLL_MAX` for why
+ * its bound is not the marking screen's number: this job is not that job.
  */
 
 const STAGES = [
@@ -111,14 +112,29 @@ function isJobInFlight(state: ImportJobState): boolean {
 
 /**
  * How often, and for how long, this screen asks while an import job is in
- * flight — the exact values `apps/web`'s `markingStatus.ts` uses for polling
- * a Writing marking job, reused rather than reinvented. `IMPORT_POLL_MAX`
- * bounds it at ~5.3 minutes of polling; past that the screen stops asking
- * automatically and says so, with a button to ask once more, rather than
- * polling forever.
+ * flight.
+ *
+ * <b>Fix round 1 on this task: these were borrowed from `apps/web`'s
+ * `markingStatus.ts` (8s × 40, ~5.3 minutes) and that number belongs to a
+ * different kind of job.</b> A Writing mark is one provider call and usually
+ * lands well inside that window. An import is `ImportJobStage.Extracting →
+ * Parsing → Transcribing → Keying → Checking → Explaining → Done` —
+ * `ImportWorker`'s own doc comments put a Cambridge parse at minutes on its
+ * own, transcription adds more for a Listening package, and `Explaining`
+ * alone is up to forty separate model calls. Exceeding 5.3 minutes was not
+ * the worst case for this job, it was the ordinary one — which made the old
+ * bound a false alarm on every normal-sized import, not a safety net.
+ *
+ * 15 seconds × 60 tries = 15 minutes: long enough that the interval elapsing
+ * is genuinely unusual rather than routine, short enough that the interval
+ * itself (15s, versus the marking screen's 8s) does not multiply the request
+ * volume for what is already a slower job. Past the bound the screen does
+ * not say the job failed — see the `Đang chạy` branch below — because most
+ * of the time it has not; it says the job is still running and offers a way
+ * to keep checking, rather than either lying or polling forever.
  */
-const IMPORT_POLL_MS = 8_000;
-const IMPORT_POLL_MAX = 40;
+const IMPORT_POLL_MS = 15_000;
+const IMPORT_POLL_MAX = 60;
 
 /** Every blocking (`error`-severity) finding a draft still carries. */
 function blockingFindings(draft: ImportDraft): ImportFinding[] {
@@ -186,9 +202,11 @@ export function ImportPage() {
 
   /*
    * Poll only while the job is alive — a completed or failed job stops.
-   * Bounded at `IMPORT_POLL_MAX` tries so a stuck `Running` cannot hammer
-   * the API forever; past the bound the screen says so and offers a manual
-   * check instead of guessing when to give up.
+   * Bounded at `IMPORT_POLL_MAX` tries so a stuck `Running` cannot hammer the
+   * API forever; past the bound the screen stops asking automatically and
+   * says the job is still running, not that anything failed — for most
+   * imports (see `IMPORT_POLL_MAX`'s own comment) the bound elapsing is the
+   * expected shape of a normal-sized job, not a fault.
    */
   useEffect(() => {
     if (operationId === null) return;
@@ -429,7 +447,9 @@ export function ImportPage() {
 
           {jobTimedOut && job !== null && isJobInFlight(job.state) && (
             <p className="cms-muted" role="status">
-              Đã theo dõi quá lâu — ngừng tự động kiểm tra. Gói vẫn có thể đang chạy ở phía máy chủ.{' '}
+              Gói vẫn đang chạy ở phía máy chủ — bước phân tích, dịch băng và tạo giải thích cho một
+              gói lớn có thể mất nhiều phút. Trang đã ngừng tự động cập nhật; bấm để kiểm tra lại bất
+              cứ lúc nào.{' '}
               <button type="button" className="cms-secondary" onClick={() => void retryCheck()}>
                 Kiểm tra lại
               </button>

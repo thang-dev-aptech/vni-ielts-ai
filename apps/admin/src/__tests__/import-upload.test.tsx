@@ -142,16 +142,16 @@ describe('ImportPage', () => {
     // no interval tick needed to see the first stage.
     expect(await screen.findByText(/Đang giải nén gói/)).toBeInTheDocument();
 
-    await act(async () => { await vi.advanceTimersByTimeAsync(8_000); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
     expect(await screen.findByText(/Đang phân tích đề/)).toBeInTheDocument();
 
-    await act(async () => { await vi.advanceTimersByTimeAsync(8_000); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
     expect(await screen.findByText('Bản nháp draft-1')).toBeInTheDocument();
     expect(getImportDraft).toHaveBeenCalledWith('token-1', 'draft-1');
 
     // Polling stopped: a completed job must not keep asking.
     const callsAtCompletion = vi.mocked(getImportJob).mock.calls.length;
-    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(120_000); });
     expect(vi.mocked(getImportJob).mock.calls.length).toBe(callsAtCompletion);
   });
 
@@ -222,16 +222,56 @@ describe('ImportPage', () => {
 
     await screen.findByText(/Đang chuyển băng ghi âm/);
 
-    // One call from the immediate post-upload fetch, then up to 40 more on
-    // the interval — comfortably past that bounds the loop.
-    await act(async () => { await vi.advanceTimersByTimeAsync(8_000 * 45); });
+    // One call from the immediate post-upload fetch, then up to 60 more on
+    // the interval — comfortably past that bounds the loop (15s × 60 ≈ 15
+    // minutes; see `IMPORT_POLL_MAX`'s own comment for why this job's bound
+    // is longer than the Writing marking screen's).
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000 * 65); });
 
-    expect(await screen.findByText(/Đã theo dõi quá lâu/)).toBeInTheDocument();
-    expect(vi.mocked(getImportJob).mock.calls.length).toBe(41);
+    expect(vi.mocked(getImportJob).mock.calls.length).toBe(61);
 
     const callsAtBound = vi.mocked(getImportJob).mock.calls.length;
-    await act(async () => { await vi.advanceTimersByTimeAsync(8_000 * 5); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000 * 5); });
     expect(vi.mocked(getImportJob).mock.calls.length).toBe(callsAtBound);
+  });
+
+  /**
+   * Fix round 2 on task 9: the lapsed-bound state must read as "still
+   * running", not as a failure and not as silence. Red-when-removed target:
+   * wording the message as a timeout ("hết thời gian", "thất bại", "lỗi") or
+   * dropping it back to nothing when the bound is hit makes this fail — a
+   * bound that is normally exceeded (this job routinely runs longer than the
+   * poll window) must not read as an error to the one person watching it.
+   */
+  it('says the job is still running when the poll bound lapses, not that it failed', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    vi.mocked(uploadImportPackage).mockResolvedValue({
+      operationId: 'op-5',
+      definitionId: 'def-5',
+      versionNumber: 1,
+      stage: 'Explaining',
+      state: 'Running',
+    });
+    vi.mocked(getImportJob).mockResolvedValue(
+      job({ operationId: 'op-5', stage: 'Explaining', state: 'Running' }),
+    );
+
+    render(<ImportPage />);
+    chooseFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+
+    await screen.findByText(/Đang tạo giải thích/);
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000 * 65); });
+
+    const message = await screen.findByText(/vẫn đang chạy ở phía máy chủ/);
+    expect(message).toBeInTheDocument();
+    expect(message.textContent).not.toMatch(/thất bại|lỗi|hết thời gian|hết hạn/i);
+    expect(screen.getByRole('button', { name: 'Kiểm tra lại' })).toBeInTheDocument();
+    // The badge still reads the job's real state — "still running" is not
+    // dressed up as done, either.
+    expect(screen.getByText('Đang chạy')).toBeInTheDocument();
   });
 
   it('downloads the package template so nobody has to guess a folder name', async () => {

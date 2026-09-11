@@ -308,13 +308,22 @@ public static class AdminImportEndpoints
     /// <summary>
     /// "What happened to my import."
     ///
-    /// <b>Gated on <c>package.read</c>, not on <c>exam.submit</c>.</b> The
-    /// brief named the latter; this is the same permission that already guards
-    /// <see cref="GetDraftEndpoint"/>, which returns strictly more about the
-    /// same upload. Support holds <c>package.read</c> and not
-    /// <c>exam.submit</c>, so gating on the other key would let an operator
-    /// read the finished draft while refusing to tell them whether it had been
-    /// produced yet.
+    /// <b>Gated on <c>package.read</c> OR <c>package.upload</c> — fix round 1
+    /// on this task.</b> This route was gated on <c>package.read</c> alone,
+    /// the same permission that already guards <see cref="GetDraftEndpoint"/>,
+    /// on the reasoning that Support holds <c>package.read</c> and not
+    /// <c>package.upload</c> and should be able to watch a job without being
+    /// able to start one. That reasoning is sound and still holds — but it
+    /// only runs one way: an operator who holds <i>only</i>
+    /// <c>package.upload</c> (the permission <c>UploadPackageEndpoint</c>
+    /// itself requires, and the one the CMS's <c>/import</c> route is gated
+    /// on client-side) could start a job and then get a 403 asking how it
+    /// went. Silence there is worse than not offering the upload at all: they
+    /// cannot tell a running job from a failed one, get no error text, and the
+    /// natural response — upload the same package again — collides with the
+    /// job already running via the derived operation id and reads as a broken
+    /// button. Anyone who may start a job must be able to see how it ended, so
+    /// this checks either key.
     ///
     /// <b>An unreadable stage is answered, not thrown.</b>
     /// <c>MongoImportOutbox</c> refuses to map a stored stage this binary does
@@ -327,7 +336,11 @@ public static class AdminImportEndpoints
         string operationId, ClaimsPrincipal principal, IImportOutbox outbox,
         HttpContext http, CancellationToken ct)
     {
-        if (Denied(principal, PermissionKeys.PackageRead) is { } denial) return denial;
+        if (DeniedUnlessAny(principal, PermissionKeys.PackageRead, PermissionKeys.PackageUpload)
+            is { } denial)
+        {
+            return denial;
+        }
 
         ImportJob? job;
 
@@ -543,6 +556,29 @@ public static class AdminImportEndpoints
             {
                 ["code"] = ErrorCodes.PermissionDenied,
                 ["permission"] = permission,
+            });
+    }
+
+    /// <summary>
+    /// Like <see cref="Denied"/>, but for a route any one of several
+    /// permissions should open — <see cref="GetJobEndpoint"/>'s "either the
+    /// permission that reads or the permission that started the job" rule.
+    /// The 403's <c>permission</c> extension names the first of the checked
+    /// keys, since a caller refused here holds none of them and the first is
+    /// as good a hint as any of what to ask for.
+    /// </summary>
+    private static IResult? DeniedUnlessAny(ClaimsPrincipal principal, params string[] permissions)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+        if (permissions.Any(principal.Permissions().Contains)) return null;
+
+        return Results.Problem(
+            detail: $"This account does not hold any of: {string.Join(", ", permissions)}.",
+            statusCode: StatusCodes.Status403Forbidden,
+            extensions: new Dictionary<string, object?>
+            {
+                ["code"] = ErrorCodes.PermissionDenied,
+                ["permission"] = permissions[0],
             });
     }
 }
