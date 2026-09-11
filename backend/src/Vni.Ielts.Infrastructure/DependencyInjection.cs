@@ -530,6 +530,71 @@ public static class DependencyInjection
         clientId.Length <= 8 ? "…" : clientId[..8] + "…";
 
     /// <summary>
+    /// Refuses to start when the import archive store and object storage
+    /// disagree about which world this process is in.
+    ///
+    /// <b>Written because "should be unreachable" was resting on two facts
+    /// nobody had connected.</b> <see cref="Storage.LocalFileImportArchiveStore"/>
+    /// keeps uploaded packages on the local filesystem, which is correct for a
+    /// Development process and the test host and wrong for anything with more
+    /// than one instance: the API writes the archive on one machine and the
+    /// Worker looks for it on another, so every import fails minutes later
+    /// with "the uploaded archive is no longer in storage" and nobody can see
+    /// why. The reason that cannot happen today is that the API's startup gate
+    /// refuses to boot outside Development without object storage, and
+    /// <c>AddObjectStorage</c> registers the S3 store whenever object storage
+    /// is configured. Two true facts in two files, with nothing asserting the
+    /// implication between them — and the Worker never runs that startup gate
+    /// at all.
+    ///
+    /// <para>
+    /// So this asks the container the question directly, in both processes:
+    /// the presence of <see cref="Storage.ObjectStorageOptions"/> in the
+    /// container <i>is</i> "object storage is configured" (nothing else
+    /// registers it), and the implementation behind
+    /// <see cref="IImportArchiveStore"/> is what an upload will actually use.
+    /// A mismatch either way is a refusal at boot rather than a failed import
+    /// an hour later.
+    /// </para>
+    /// </summary>
+    internal static void AssertImportArchiveStoreMatchesObjectStorage(IServiceProvider services)
+    {
+        var objectStorageConfigured =
+            services.GetService<Storage.ObjectStorageOptions>() is not null;
+
+        var archives = services.GetRequiredService<IImportArchiveStore>();
+
+        /*
+         * <b>Named types, not "anything that is not the other one".</b> The
+         * question is whether the two adapters this assembly ships are paired
+         * with the world they were written for; a store that is neither — a
+         * test double, or an adapter a later slice adds — is not this check's
+         * business, and refusing it would turn a guard against a deployment
+         * mistake into an obstacle to writing tests, which is how a guard gets
+         * deleted.
+         */
+        var archivesAreLocal = archives is Storage.LocalFileImportArchiveStore;
+        var archivesAreObjectStorage = archives is Storage.S3ImportArchiveStore;
+
+        if (objectStorageConfigured && archivesAreLocal)
+        {
+            throw new InvalidOperationException(
+                "Object storage is configured, but uploaded exam packages would be written to the "
+                + "local filesystem. A package written by one instance is invisible to the worker "
+                + "that has to import it, and the failure appears minutes later as a missing "
+                + $"archive. Registered store: {archives.GetType().Name}.");
+        }
+
+        if (!objectStorageConfigured && archivesAreObjectStorage)
+        {
+            throw new InvalidOperationException(
+                "Object storage is not configured, but the import archive store expects it. "
+                + $"Registered store: {archives.GetType().Name}. Configure ObjectStorage, or let "
+                + "AddInfrastructure fall back to the local-disk store.");
+        }
+    }
+
+    /// <summary>
     /// Creates indexes and seeds the system roles.
     ///
     /// Runs at startup and is idempotent, which matters because several API
@@ -540,6 +605,11 @@ public static class DependencyInjection
         this IServiceProvider services, CancellationToken ct = default)
     {
         using var scope = services.CreateScope();
+
+        // Before anything touches the database: a cheap, purely local check
+        // that two registrations nobody has ever compared actually agree.
+        AssertImportArchiveStoreMatchesObjectStorage(scope.ServiceProvider);
+
         var ctx = scope.ServiceProvider.GetRequiredService<MongoContext>();
 
         await ctx.AssertReplicaSetAsync(ct);

@@ -132,13 +132,22 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     /// </summary>
     private static MultipartFormDataContent BombPackage()
     {
-        var zip = BuildZipBomb("reading/bomb.txt", 10 * 1024 * 1024);
         var content = new MultipartFormDataContent();
-        var part = new ByteArrayContent(zip);
+        var part = new ByteArrayContent(BombBytes());
         part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
         content.Add(part, "file", "bomb.zip");
+        content.Add(new StringContent(BombDefinitionId), "definitionId");
         return content;
     }
+
+    /// <summary>
+    /// Named rather than generated, so a test can derive the operation id the
+    /// endpoint <i>would</i> have used and assert that no such job exists.
+    /// </summary>
+    private const string BombDefinitionId = "bomb-must-never-be-enqueued";
+
+    /// <summary>Deterministic, so its SHA-256 — the archive key — is derivable too.</summary>
+    private static byte[] BombBytes() => BuildZipBomb("reading/bomb.txt", 10 * 1024 * 1024);
 
     private static byte[] BuildZip(params (string Name, string Text)[] entries)
     {
@@ -399,21 +408,19 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     }
 
     /// <summary>
-    /// <b>A compression bomb is now accepted by the door and refused by the
-    /// worker, and that is the cost of moving the work out of band.</b>
-    /// Nothing extracts a byte here: the archive is stored privately and a job
-    /// is enqueued, and the S6a inspection that refuses the bomb runs in the
-    /// worker before anything is extracted. What this test still holds is that
-    /// no draft and no exam content comes of it — <c>ImportWorkerTests</c>
-    /// pins the refusal itself, end to end, with the archive deleted after.
+    /// <b>Rule 3, kept at the door even though the work moved out of band.</b>
+    /// An uploaded ZIP is validated <i>before anything is persisted</i> — and
+    /// "persisted" now includes the private archive the worker reads back, not
+    /// only the draft. Inspection reads the central directory and writes
+    /// nothing, so it costs this request almost nothing and it means a bomb
+    /// never reaches storage, never occupies a job row, and never has to be
+    /// swept up after a worker refuses it minutes later.
     ///
-    /// The archive byte cap is what still bounds this endpoint: the bomb is
-    /// small compressed, which is the whole trick, so the protection that
-    /// matters is that expansion is refused before extraction rather than that
-    /// the upload is refused at all.
+    /// The assertions are deliberately stronger than the 422: nothing was
+    /// stored, and nothing was enqueued.
     /// </summary>
     [SkippableFact]
-    public async Task A_compression_bomb_is_enqueued_rather_than_extracted_in_the_request()
+    public async Task A_compression_bomb_is_refused_before_anything_is_persisted()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
@@ -424,17 +431,32 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
 
         var response = await client.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        var body = await BodyOf(response);
+        Assert.Equal("PACKAGE_REJECTED", body.GetProperty("code").GetString());
+        Assert.True(body.GetProperty("findings").GetArrayLength() > 0);
 
-        var operationId = (await BodyOf(response)).GetProperty("operationId").GetString()!;
+        // No handle is even offered — there is nothing for a caller to follow.
+        Assert.False(body.TryGetProperty("operationId", out _));
+        Assert.False(body.TryGetProperty("draftId", out _));
 
         using var scope = app.Services.CreateScope();
         var outbox = scope.ServiceProvider.GetRequiredService<IImportOutbox>();
-        var job = await outbox.FindAsync(operationId, default);
+        var archives = scope.ServiceProvider.GetRequiredService<IImportArchiveStore>();
 
-        // Enqueued and untouched: no draft, and nothing extracted.
-        Assert.Null(job!.DraftId);
-        Assert.Equal(ImportJobStage.Extracting, job.Stage);
+        // Nothing owed, and nothing kept. The operation id and the archive key
+        // are both derived from the bytes, so the test can name exactly what
+        // must not exist without the endpoint having told it anything.
+        var bomb = BombBytes();
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bomb))
+            .ToLowerInvariant();
+
+        Assert.Null(await archives.OpenAsync($"imports/archives/{hash}.zip", default));
+        Assert.Null(await outbox.FindAsync(
+            ImportJob.OperationIdFor(
+                new Vni.Ielts.Domain.Exams.ExamDefinitionId(BombDefinitionId), 1, hash,
+                ImportJob.NoParserConfigured),
+            default));
     }
 
     [SkippableFact]

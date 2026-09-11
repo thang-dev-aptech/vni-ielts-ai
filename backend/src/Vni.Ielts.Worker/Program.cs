@@ -129,12 +129,29 @@ builder.Services.Configure<HostOptions>(options =>
  */
 builder.Services.AddSingleton<Vni.Ielts.Application.Identity.IRequestDevice, NullRequestDevice>();
 
-// F2.2 — one instance, shared between the loop that writes to it and the
-// health endpoint that reads it. Registered before the hosted services so
-// both resolve the same singleton.
-builder.Services.AddSingleton<WorkerHealthState>();
+/*
+ * F2.2 — one instance per loop, shared between the loop that writes to it and
+ * the health endpoint that reads it.
+ *
+ * <b>One each, not one between them.</b> A single shared state is refreshed by
+ * whichever loop is still polling, so a marking worker doing its job every five
+ * seconds would keep readiness green over a dead import loop — and a dead
+ * import loop is silent by nature: the API keeps accepting uploads and nothing
+ * drains them. Each worker is constructed with its own, rather than resolved
+ * from the container, because two registrations of one type would hand both
+ * workers whichever was registered last.
+ */
+var markingHealth = new WorkerHealthState { Loop = "marking-loop" };
+var importHealth = new WorkerHealthState { Loop = "import-loop" };
 
-builder.Services.AddHostedService<MarkingWorker>();
+builder.Services.AddSingleton(markingHealth);
+builder.Services.AddSingleton(importHealth);
+
+builder.Services.AddHostedService(services => new MarkingWorker(
+    services.GetRequiredService<IServiceScopeFactory>(),
+    services.GetRequiredService<Vni.Ielts.Domain.Common.IClock>(),
+    markingHealth,
+    services.GetRequiredService<ILogger<MarkingWorker>>()));
 
 /*
  * <b>The import queue's drain.</b> The upload endpoint stopped doing the work
@@ -145,7 +162,11 @@ builder.Services.AddHostedService<MarkingWorker>();
  * same shape of problem, and two hosts would be two answers to "what does a
  * lease mean".
  */
-builder.Services.AddHostedService<ImportWorker>();
+builder.Services.AddHostedService(services => new ImportWorker(
+    services.GetRequiredService<IServiceScopeFactory>(),
+    services.GetRequiredService<Vni.Ielts.Domain.Common.IClock>(),
+    importHealth,
+    services.GetRequiredService<ILogger<ImportWorker>>()));
 
 /*
  * <b>Off unless switched on</b> — see the class. A background process that

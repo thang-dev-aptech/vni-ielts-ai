@@ -62,11 +62,17 @@ public sealed class WorkerHealthTests
         }
 
         var checks = body.GetProperty("checks").EnumerateArray().ToArray();
-        var loop = Assert.Single(checks, c => c.GetProperty("name").GetString() == "loop");
         var mongo = Assert.Single(checks, c => c.GetProperty("name").GetString() == "mongo");
 
-        Assert.Equal("ok", loop.GetProperty("status").GetString());
         Assert.Equal("ok", mongo.GetProperty("status").GetString());
+
+        // Both loops report for themselves. A single merged answer would let
+        // one healthy loop stand in for the other.
+        foreach (var name in new[] { MarkingLoop, ImportLoop })
+        {
+            var loop = Assert.Single(checks, c => c.GetProperty("name").GetString() == name);
+            Assert.Equal("ok", loop.GetProperty("status").GetString());
+        }
     }
 
     [SkippableFact]
@@ -79,8 +85,9 @@ public sealed class WorkerHealthTests
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        var loop = LoopCheck(body);
-        Assert.Equal("starting", loop.GetProperty("status").GetString());
+
+        Assert.Equal("starting", LoopCheck(body, MarkingLoop).GetProperty("status").GetString());
+        Assert.Equal("starting", LoopCheck(body, ImportLoop).GetProperty("status").GetString());
     }
 
     /// <summary>
@@ -102,8 +109,8 @@ public sealed class WorkerHealthTests
             StaleAfter = TimeSpan.FromMilliseconds(50),
         };
 
-        var health = app.Services.GetRequiredService<WorkerHealthState>();
-        health.RecordPoll();
+        foreach (var health in app.Services.GetRequiredService<IEnumerable<WorkerHealthState>>())
+            health.RecordPoll();
 
         await Task.Delay(TimeSpan.FromMilliseconds(200));
 
@@ -111,7 +118,7 @@ public sealed class WorkerHealthTests
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal("stale", LoopCheck(body).GetProperty("status").GetString());
+        Assert.Equal("stale", LoopCheck(body, MarkingLoop).GetProperty("status").GetString());
     }
 
     [SkippableFact]
@@ -120,7 +127,7 @@ public sealed class WorkerHealthTests
         Skip.IfNot(WorkerAppFactory.MongoAvailable, WorkerAppFactory.SkipReason);
 
         await using var app = new HealthOnlyWorkerAppFactory();
-        var health = app.Services.GetRequiredService<WorkerHealthState>();
+        var health = app.Loop(MarkingLoop);
 
         health.RecordPoll();
         health.RecordFatal(new InvalidOperationException("the loop exited unexpectedly"));
@@ -129,7 +136,7 @@ public sealed class WorkerHealthTests
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        var loop = LoopCheck(body);
+        var loop = LoopCheck(body, MarkingLoop);
         Assert.Equal("failed", loop.GetProperty("status").GetString());
         Assert.Equal("InvalidOperationException", loop.GetProperty("error").GetString());
     }
@@ -154,9 +161,78 @@ public sealed class WorkerHealthTests
         Assert.Equal(TimeSpan.FromSeconds(150), options.ShutdownTimeout);
     }
 
-    private static JsonElement LoopCheck(JsonElement body) =>
+    /// <summary>
+    /// <b>The masking this split exists to remove.</b> One loop is doing its
+    /// job — polling right now — and the other has not polled since well
+    /// before the staleness threshold. With a single shared
+    /// <c>WorkerHealthState</c>, the healthy loop's poll refreshes the very
+    /// field the dead one is judged by, so readiness answers 200 over a queue
+    /// of uploaded packages nothing is draining. And a dead import loop is
+    /// silent by nature: the API keeps accepting uploads and returning 202,
+    /// and the only symptom is drafts that never appear.
+    ///
+    /// <b>The marking loop is polled last, deliberately.</b> Under a shared
+    /// state that ordering is what makes the stale reading disappear; if this
+    /// test polled the healthy loop first it would pass either way.
+    /// </summary>
+    [SkippableFact]
+    public async Task A_healthy_marking_loop_does_not_mask_a_dead_import_loop()
+    {
+        Skip.IfNot(WorkerAppFactory.MongoAvailable, WorkerAppFactory.SkipReason);
+
+        await using var app = new HealthOnlyWorkerAppFactory
+        {
+            StaleAfter = TimeSpan.FromMilliseconds(50),
+        };
+
+        // The import loop's last sign of life, long ago.
+        app.Loop(ImportLoop).RecordPoll();
+        await Task.Delay(TimeSpan.FromMilliseconds(200));
+
+        // The marking loop, alive and well, right now.
+        app.Loop(MarkingLoop).RecordPoll();
+
+        var response = await app.CreateClient().GetAsync("/health/ready");
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.Equal("stale", LoopCheck(body, ImportLoop).GetProperty("status").GetString());
+        Assert.Equal("ok", LoopCheck(body, MarkingLoop).GetProperty("status").GetString());
+    }
+
+    /// <summary>
+    /// <b>The wiring the masking test cannot see.</b>
+    /// <see cref="HealthOnlyWorkerAppFactory"/> replaces both states to get a
+    /// short staleness threshold, so it proves the <i>endpoint</i> reports
+    /// each loop separately and says nothing about what the real
+    /// <c>Program.cs</c> handed the two workers. This asks the real host: two
+    /// distinct instances, one per loop. Handing both workers one object is
+    /// the whole failure — whichever loop is still polling refreshes the
+    /// field the other is judged by — and it is a single character's
+    /// difference in the composition root.
+    /// </summary>
+    [SkippableFact]
+    public void Each_worker_loop_is_wired_to_its_own_health_state()
+    {
+        Skip.IfNot(WorkerAppFactory.MongoAvailable, WorkerAppFactory.SkipReason);
+
+        using var app = new WorkerAppFactory();
+        app.CreateClient(); // builds and starts the host
+
+        var loops = app.Services.GetRequiredService<IEnumerable<WorkerHealthState>>().ToArray();
+
+        var marking = Assert.Single(loops, state => state.Loop == MarkingLoop);
+        var importing = Assert.Single(loops, state => state.Loop == ImportLoop);
+
+        Assert.NotSame(marking, importing);
+    }
+
+    internal const string MarkingLoop = "marking-loop";
+    internal const string ImportLoop = "import-loop";
+
+    private static JsonElement LoopCheck(JsonElement body, string loop) =>
         body.GetProperty("checks").EnumerateArray()
-            .Single(c => c.GetProperty("name").GetString() == "loop");
+            .Single(c => c.GetProperty("name").GetString() == loop);
 }
 
 /// <summary>
@@ -218,11 +294,34 @@ public sealed class HealthOnlyWorkerAppFactory : WebApplicationFactory<Program>
 
             if (StaleAfter is { } threshold)
             {
+                // Both loops, not one: the endpoint reports every registered
+                // state, and replacing only one would leave a 90-second
+                // threshold on the other and a test that waits for it.
                 services.RemoveAll<WorkerHealthState>();
-                services.AddSingleton(new WorkerHealthState { StaleAfter = threshold });
+                services.AddSingleton(new WorkerHealthState
+                {
+                    Loop = WorkerHealthTests.MarkingLoop,
+                    StaleAfter = threshold,
+                });
+                services.AddSingleton(new WorkerHealthState
+                {
+                    Loop = WorkerHealthTests.ImportLoop,
+                    StaleAfter = threshold,
+                });
             }
         });
     }
+
+    /// <summary>
+    /// The state for one named loop. <b>Named rather than resolved as a single
+    /// service</b>, because two singletons of one type mean
+    /// <c>GetRequiredService</c> silently hands back whichever was registered
+    /// last — which is exactly how a test ends up driving the loop it is not
+    /// asserting about.
+    /// </summary>
+    public WorkerHealthState Loop(string loop) =>
+        Services.GetRequiredService<IEnumerable<WorkerHealthState>>()
+            .Single(state => state.Loop == loop);
 
     public override async ValueTask DisposeAsync()
     {

@@ -146,11 +146,27 @@ public static class AdminImportEndpoints
     /// the point.</b> The API and the Worker are different processes; the
     /// uploaded ZIP exists only in this request. A job enqueued before its
     /// bytes are safely parked is a job the worker cannot do.
+    ///
+    /// <b>But inspection still happens here, before a byte is persisted.</b>
+    /// CLAUDE.md rule 3 is not "an uploaded ZIP is validated somewhere" — it
+    /// is validated <i>before anything is persisted</i>, because a hostile
+    /// archive is the one input this product assumes is trying to hurt it.
+    /// Moving the expensive half of the pipeline out of band is not a reason
+    /// to move the cheap half with it:
+    /// <see cref="IExamPackageArchiveInspector.InspectAsync"/> reads the
+    /// central directory and writes nothing, so a bomb, a path escape or a
+    /// nested archive is refused by this request with the same 422 it always
+    /// was — rather than being stored, enqueued, and refused minutes later in
+    /// a worker whose failure nobody is watching. The worker inspects again
+    /// against the artefact it actually reads, which is what closes the
+    /// check-then-use window (`A8`); this is the door, not a substitute for
+    /// it.
     /// </summary>
     private static async Task<IResult> UploadPackageEndpoint(
         HttpRequest request, ClaimsPrincipal principal, IImportArchiveStore archives,
         IImportOutbox outbox, IExamSourceParser parser, IClock clock,
-        IOptions<ImportArchiveOptions> archiveOptions, HttpContext http, CancellationToken ct)
+        IExamPackageArchiveInspector inspector, IOptions<ImportArchiveOptions> archiveOptions,
+        HttpContext http, CancellationToken ct)
     {
         if (principal.UserId() is null) return Results.Unauthorized();
         if (Denied(principal, PermissionKeys.PackageUpload) is { } denial) return denial;
@@ -201,6 +217,13 @@ public static class AdminImportEndpoints
             spooled.Position = 0;
 
             sourceSha256 = Convert.ToHexString(await SHA256.HashDataAsync(spooled, ct)).ToLowerInvariant();
+            spooled.Position = 0;
+
+            // Rule 3: validated before anything is persisted. Reads the
+            // central directory, writes nothing, extracts nothing.
+            var inspection = await inspector.InspectAsync(spooled, archiveOptions.Value.ToLimits(), ct);
+            if (!inspection.IsAcceptable) return Rejected(inspection.Findings, http);
+
             spooled.Position = 0;
 
             archiveKey = await archives.SaveAsync(sourceSha256, spooled, ct);
