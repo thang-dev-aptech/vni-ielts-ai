@@ -222,56 +222,46 @@ public sealed class IdempotencyMiddleware(
             || request.Path.Value?.EndsWith("/target-time", StringComparison.Ordinal) == true);
 
     /// <summary>
-    /// <c>POST /api/v1/sessions/{id}/recordings</c> — one Speaking answer.
+    /// Any request whose body is <c>multipart/form-data</c> — file uploads.
     ///
     /// <para>
-    /// <b>Exempt because a key cannot work here, not because the operation is
-    /// unimportant.</b> The guard identifies a replay by hashing the request
-    /// body, and this is the one route in the product whose body is multipart:
-    /// a browser's <c>FormData</c> picks a fresh random boundary on every send,
-    /// so the same recording re-sent under the same key hashes differently and
-    /// is answered <c>IDEMPOTENCY_KEY_REUSED</c>. That turns the exact case the
-    /// key exists for — the first attempt succeeded and its response was lost —
-    /// into a hard 409 in the middle of a timed section.
+    /// <b>A multipart body cannot be hashed for a replay check.</b> A browser's
+    /// <c>FormData</c> picks a fresh random boundary on every send, so the same
+    /// file re-sent under the same key hashes differently and is answered
+    /// <c>IDEMPOTENCY_KEY_REUSED</c> — turning the exact case the key exists
+    /// for (the first attempt succeeded, its response was lost) into a hard
+    /// 409. This was first found and fixed for one route,
+    /// <c>/sessions/{id}/recordings</c> (the recording-upload predicate, retired here) —
+    /// the reasoning was never route-specific, only the fix was.
     /// </para>
     ///
     /// <para>
-    /// <b>And there is no second action for a key to prevent.</b> The audio is
-    /// filed by <c>SubmitSpeakingRecording</c> with <c>SetAnswerAsync</c>, a
-    /// single-entry write keyed on the question, so a duplicate upload leaves
-    /// the sheet holding one id for that question exactly as one upload does.
-    /// A replay costs an unreferenced GridFS blob and nothing a learner or the
-    /// ledger can see — no entitlement is spent here, and no AI job is started.
-    /// The controls that do apply are the 12 MB cap, the four exam gates in the
-    /// handler, and the rate limit already on the route.
+    /// <b>And reading the body here breaks a second, independent thing.</b>
+    /// <c>EnableBuffering</c> + hashing reads the full body under Kestrel's global
+    /// 1 MB default (<c>Program.cs</c>) before the endpoint ever gets a chance to
+    /// raise <c>IHttpMaxRequestBodySizeFeature</c> for itself — by the time it
+    /// tries, the feature is already <c>IsReadOnly</c>. Every multipart upload
+    /// route this API has — package import, package upload, media — was
+    /// silently capped at 1 MB in a real deployment because of this, invisible
+    /// to every test that ran through <c>TestServer</c> rather than a real
+    /// Kestrel socket (the Kestrel transport tests exist for exactly this
+    /// blind spot).
     /// </para>
     ///
     /// <para>
-    /// <b>This was found by an integration test, and could not have been found
-    /// any other way.</b> Without the exemption every Speaking upload was
-    /// answered 400 <c>IDEMPOTENCY_KEY_MISSING</c> before reaching the handler,
-    /// so the four gates added on 27/08 — in progress, Speaking open, inside the
-    /// deadline, question belongs to this exam — were unreachable and Speaking
-    /// could not be answered at all. The client cannot fix that from its side:
-    /// <c>request()</c> is the only helper that threads a key and it serialises
-    /// its body as JSON, so a multipart upload has to use raw <c>fetch</c>.
-    /// → the note above on the guard denying by default.
+    /// <b>This does not make every multipart route free to skip.</b> Whether a
+    /// duplicate side effect matters is the handler's own question — the guard
+    /// only ever answered it for JSON bodies to begin with, since a multipart
+    /// hash was never reliable. A handler that needs replay-safety on a
+    /// duplicate multipart upload has to build it itself, the way
+    /// <c>ExamImportWorkflow.StableDraftId</c> already does by deriving the
+    /// draft id from content hash. <c>MediaEndpoints.UploadEndpoint</c> and
+    /// <c>AdminPackageEndpoints.UploadPackageEndpoint</c> do not — a retried
+    /// upload there can leave two rows for one file. Known, not fixed here.
     /// </para>
     /// </summary>
-    private static bool IsRecordingUpload(HttpRequest request)
-    {
-        if (!HttpMethods.IsPost(request.Method)
-            || !request.Path.StartsWithSegments("/api/v1/sessions"))
-            return false;
-
-        var path = request.Path.Value;
-        if (path is null) return false;
-
-        return path.EndsWith("/recordings", StringComparison.Ordinal)
-            || path.Contains("/recordings/init", StringComparison.Ordinal)
-            || path.Contains("/recordings/", StringComparison.Ordinal)
-                && path.EndsWith("/complete", StringComparison.Ordinal);
-    }
+    private static bool IsMultipartUpload(HttpRequest request) =>
+        request.ContentType?.StartsWith("multipart/form-data", StringComparison.OrdinalIgnoreCase) == true;
 
     private IMongoCollection<BsonDocument> Keys => db.GetCollection<BsonDocument>("idempotency_keys");
 
@@ -398,7 +388,7 @@ public sealed class IdempotencyMiddleware(
             || IsSessionRevoke(request)
             || IsAnswerAutosave(request)
             || IsStopwatch(request)
-            || IsRecordingUpload(request)
+            || IsMultipartUpload(request)
             || IsDictationCheck(request))
         {
             await next(context);

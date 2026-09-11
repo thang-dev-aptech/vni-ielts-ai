@@ -31,7 +31,10 @@ vi.mock('../lib/operator.js', () => ({
 }));
 
 vi.mock('../lib/AdminAuth.js', () => ({
-  useAdminAuth: () => ({ accessToken: 'token-1' }),
+  useAdminAuth: () => ({
+    accessToken: 'token-1',
+    can: (p: string) => permissions.has(p),
+  }),
 }));
 
 vi.mock('../lib/adminApi.js', () => ({
@@ -41,6 +44,12 @@ vi.mock('../lib/adminApi.js', () => ({
   returnExamToDraft: vi.fn(),
   publishExam: vi.fn(),
   unpublishExam: vi.fn(),
+  MODULE_LABEL: {
+    reading: 'Đọc',
+    listening: 'Nghe',
+    writing: 'Viết',
+    speaking: 'Nói',
+  },
 }));
 
 const { listExams, approveExam, returnExamToDraft, submitExamForReview } = await import(

@@ -1,7 +1,7 @@
 # Writing rubric v2 — descriptor artifact
 
-**Agent:** ai-evaluation-engineer  
-**Date:** 2026-09-09  
+**Agent:** ai-evaluation-engineer
+**Date:** 2026-09-09
 **Status:** JSON authored; `contentHash` is the placeholder `sha256:pending` until a later step freezes the file.
 
 ## File path

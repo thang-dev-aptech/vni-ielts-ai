@@ -28,10 +28,19 @@ public sealed class ContentPublishGuardTests
         public Task<ContentSource?> FindAsync(ContentSourceId id, CancellationToken ct) =>
             Task.FromResult(sources.FirstOrDefault(s => s.Id.Value == id.Value));
 
+        public ContentSourceId? LastContentSourceId { get; private set; }
+
         public Task<ContentSource?> FindForExamAsync(
-            ExamVersionId versionId, ExamDefinitionId definitionId, CancellationToken ct) =>
-            Task.FromResult(sources.FirstOrDefault(
+            ExamVersionId versionId, ExamDefinitionId definitionId,
+            ContentSourceId? contentSourceId, CancellationToken ct)
+        {
+            LastContentSourceId = contentSourceId;
+            if (contentSourceId is { } id)
+                return Task.FromResult(sources.FirstOrDefault(s => s.Id.Value == id.Value));
+
+            return Task.FromResult(sources.FirstOrDefault(
                 s => s.Produced(versionId) || s.Covers(definitionId)));
+        }
 
         public Task<IReadOnlyList<ContentSource>> ListAsync(CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<ContentSource>>([.. sources]);
@@ -44,13 +53,15 @@ public sealed class ContentPublishGuardTests
         new(new FakeRegistry(sources), new FakeClock(Now));
 
     /// <summary>A minimal paper. Its content is irrelevant here; its identity is not.</summary>
-    private static ExamVersion Paper(ExamDefinitionId? definitionId = null) =>
+    private static ExamVersion Paper(
+        ExamDefinitionId? definitionId = null, ContentSourceId? contentSourceId = null) =>
         ExamVersion.Rehydrate(
             ExamVersionId.New(), definitionId ?? ExamDefinitionId.New(), 1, "Paper",
             ExamVariant.Academic, ExamVersionStatus.Draft, null,
             new ScoringProfile(new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(), AnswerMatchingRules.Default),
             new TimingProfile(new Dictionary<ExamModule, int>(), null, []),
-            [new Section(ExamModule.Reading, 1, [])]);
+            [new Section(ExamModule.Reading, 1, [])],
+            contentSourceId: contentSourceId);
 
     private static ContentSource FixtureOnly(ExamVersion paper) =>
         ContentSource.Register(
@@ -147,6 +158,54 @@ public sealed class ContentPublishGuardTests
 
         Assert.False(decision.Allowed);
     }
+
+    [Fact]
+    public async Task The_guard_passes_the_version_source_id_to_the_registry()
+    {
+        var paper = Paper(contentSourceId: new ContentSourceId("source-a"));
+        var registry = new FakeRegistry();
+        var guard = new ContentPublishGuard(registry, new FakeClock(Now));
+
+        await guard.MayPublishToLearnersAsync(paper, default);
+
+        Assert.Equal("source-a", registry.LastContentSourceId?.Value);
+    }
+
+    [Fact]
+    public async Task An_explicit_source_id_finds_the_registry_entry_without_exam_bindings()
+    {
+        var paper = Paper(contentSourceId: new ContentSourceId("source-a"));
+        var unbound = ContentSource.Register(
+            new ContentSourceId("source-a"), "Unbound source with a production grant",
+            owner: "VNI Education",
+            proof: new RightsProof("test-only", "test@vni.example", Now.AddDays(-1)),
+            allowedEnvironments: [ContentEnvironment.LearnerProduction],
+            expiresAt: null, rootPath: "example", files: [],
+            boundExamVersionIds: [], boundExamDefinitionIds: []);
+
+        var decision = await Guard(unbound).MayPublishToLearnersAsync(paper, default);
+
+        Assert.True(decision.Allowed);
+        Assert.Equal("source-a", decision.SourceId);
+    }
+
+    [Fact]
+    public async Task An_explicit_missing_source_id_is_refused_even_when_another_source_is_bound()
+    {
+        var paper = Paper(contentSourceId: new ContentSourceId("source-missing"));
+        var stale = ContentSource.Register(
+            new ContentSourceId("exam1"), "Stale binding",
+            owner: null, proof: null,
+            allowedEnvironments: [ContentEnvironment.Fixture],
+            expiresAt: null, rootPath: "exam/Exam1", files: [],
+            boundExamVersionIds: [paper.Id], boundExamDefinitionIds: [paper.DefinitionId]);
+
+        var decision = await Guard(stale).MayPublishToLearnersAsync(paper, default);
+
+        Assert.False(decision.Allowed);
+        Assert.Equal(ContentRightsDenial.NoRegistryEntry, decision.Denial);
+        Assert.Equal("source-missing", decision.SourceId);
+    }
 }
 
 /// <summary>
@@ -170,7 +229,8 @@ public sealed class VerifyContentSourceTests
             Task.FromResult<ContentSource?>(id.Value == source.Id.Value ? source : null);
 
         public Task<ContentSource?> FindForExamAsync(
-            ExamVersionId versionId, ExamDefinitionId definitionId, CancellationToken ct) =>
+            ExamVersionId versionId, ExamDefinitionId definitionId,
+            ContentSourceId? contentSourceId, CancellationToken ct) =>
             Task.FromResult<ContentSource?>(null);
 
         public Task<IReadOnlyList<ContentSource>> ListAsync(CancellationToken ct) =>

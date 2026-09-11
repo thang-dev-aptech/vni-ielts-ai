@@ -787,6 +787,25 @@ public sealed class IdempotencyContractTests(IdempotencyAppFactory app)
             + "lease has its claim taken over and its operation run a second time.");
     }
 
+    [SkippableFact]
+    public async Task A_multipart_upload_without_an_idempotency_key_header_is_not_refused()
+    {
+        Skip.IfNot(ExamAppFactory.MongoAvailable, ExamAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsync();
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/media");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
+        var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent([0x49, 0x44, 0x33, 0x00]), "file", "clip.mp3");
+        request.Content = form;
+
+        var response = await client.SendAsync(request);
+        var body = await BodyOf(response);
+        var code = body.TryGetProperty("code", out var codeEl) ? codeEl.GetString() : null;
+
+        Assert.NotEqual("IDEMPOTENCY_KEY_MISSING", code);
+    }
+
 }
 
 /// <summary>

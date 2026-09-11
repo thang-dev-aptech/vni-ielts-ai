@@ -40,6 +40,12 @@ internal sealed class FakeExamCatalogue(params ExamVersion[] versions) : IExamCa
 
         return Task.CompletedTask;
     }
+
+    public Task DeleteAsync(ExamVersionId id, CancellationToken ct)
+    {
+        _versions.RemoveAll(v => v.Id == id);
+        return Task.CompletedTask;
+    }
 }
 
 /// <summary>

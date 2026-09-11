@@ -25,19 +25,29 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:e1ffd2a92ae84c1291bc1b6887501f8af98e6331e7af6d4c8d37168c5e87a64c AS build
 WORKDIR /src
 
+# <b>Built from the repo root, like every other image here</b> (apps/web,
+# apps/admin) — not from backend/. `ExamPackageReader`'s schema lookup
+# (`LocateExamSchemaPath`, Vni.Ielts.Infrastructure/DependencyInjection.cs)
+# walks up from the running process looking for contracts/schemas/, which
+# only exists above backend/ — a backend/-only build context can never
+# satisfy it, no matter what gets COPYed. This was live-broken in the
+# preview deployment (S6b) before the context/COPY paths were aligned here.
+#
+#   docker build -f backend/Dockerfile -t vni-ielts-api:<tag> .
+#
 # Restore before copying the rest, so a change to a .cs file does not
 # re-download every package. The props file is copied first for the same reason:
 # it decides the target framework every project restores against.
-COPY Directory.Build.props ./
-COPY src/Vni.Ielts.Domain/Vni.Ielts.Domain.csproj src/Vni.Ielts.Domain/
-COPY src/Vni.Ielts.Application/Vni.Ielts.Application.csproj src/Vni.Ielts.Application/
-COPY src/Vni.Ielts.Infrastructure/Vni.Ielts.Infrastructure.csproj src/Vni.Ielts.Infrastructure/
-COPY src/Vni.Ielts.Api/Vni.Ielts.Api.csproj src/Vni.Ielts.Api/
-COPY src/Vni.Ielts.Worker/Vni.Ielts.Worker.csproj src/Vni.Ielts.Worker/
+COPY backend/Directory.Build.props ./
+COPY backend/src/Vni.Ielts.Domain/Vni.Ielts.Domain.csproj src/Vni.Ielts.Domain/
+COPY backend/src/Vni.Ielts.Application/Vni.Ielts.Application.csproj src/Vni.Ielts.Application/
+COPY backend/src/Vni.Ielts.Infrastructure/Vni.Ielts.Infrastructure.csproj src/Vni.Ielts.Infrastructure/
+COPY backend/src/Vni.Ielts.Api/Vni.Ielts.Api.csproj src/Vni.Ielts.Api/
+COPY backend/src/Vni.Ielts.Worker/Vni.Ielts.Worker.csproj src/Vni.Ielts.Worker/
 
 RUN dotnet restore src/Vni.Ielts.Api/Vni.Ielts.Api.csproj
 
-COPY src/ src/
+COPY backend/src/ src/
 
 # `TreatWarningsAsErrors` is on in Directory.Build.props, so this gate is real.
 RUN dotnet publish src/Vni.Ielts.Api/Vni.Ielts.Api.csproj \
@@ -52,6 +62,17 @@ WORKDIR /app
 USER $APP_UID
 
 COPY --from=build /app .
+
+# S6b — the exam-import schema `LocateExamSchemaPath` requires at startup.
+# Placed directly at /app/contracts/schemas so the very first directory the
+# walk-up checks (AppContext.BaseDirectory itself) already has it — the
+# walk exists for the local `dotnet run` layout, not to be relied on here.
+COPY contracts/schemas/ contracts/schemas/
+
+# Writing marking resolves this configured path from /app at runtime. Copy only
+# the versioned rubric, not the full fixtures tree, so the image contains no
+# learner data or unrelated test material.
+COPY fixtures/assessment/writing-rubric-v1.json fixtures/assessment/writing-rubric-v1.json
 
 # The port the process listens on inside the container. Nothing maps it to 80
 # here: that is the orchestrator's decision, and hard-coding it would make this

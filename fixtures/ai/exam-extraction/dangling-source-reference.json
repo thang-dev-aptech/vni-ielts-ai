@@ -1,0 +1,24 @@
+{
+  "contractVersion": "exam-extraction-v1",
+  "title": "Synthetic Reading Practice A",
+  "classification": "Reading",
+  "confidence": null,
+  "modules": [
+    {
+      "module": "Reading",
+      "classification": "Reading",
+      "confidence": null,
+      "provenance": { "sourceId": "s9", "chunkId": null, "page": null },
+      "parts": [
+        {
+          "id": "part-1",
+          "order": 1,
+          "title": "Passage 1",
+          "body": "Synthetic passage text.",
+          "provenance": { "sourceId": "s9", "chunkId": null, "page": null },
+          "questions": []
+        }
+      ]
+    }
+  ]
+}

@@ -2,8 +2,11 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
+using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
 
 namespace Vni.Ielts.Infrastructure.Content.Import;
 
@@ -22,8 +25,49 @@ public sealed class ExamPackageImportPipeline(
     ExamImportWorkflow workflow,
     IExamPackageValidator validator,
     IImportDraftStore drafts,
+    IImportExamAssetStore examAssets,
     IOptions<ImportArchiveOptions> archiveOptions)
 {
+    public ExamPackageImportPipeline(
+        IExamPackageArchiveInspector inspector,
+        ISourceDocumentExtractor extractor,
+        ExamImportWorkflow workflow,
+        IExamPackageValidator validator,
+        IImportDraftStore drafts,
+        IOptions<ImportArchiveOptions> archiveOptions)
+        : this(inspector, extractor, workflow, validator, drafts, new NoOpImportExamAssetStore(), archiveOptions)
+    {
+    }
+
+    private sealed class NoOpImportExamAssetStore : IImportExamAssetStore
+    {
+        public Task<StagedImportAsset> StageAsync(
+            Guid draftId, string reference, Stream content,
+            string contentType, long length, string sha256, CancellationToken ct) =>
+            Task.FromResult(new StagedImportAsset(reference, $"imports/{draftId:D}", contentType, length, sha256));
+
+        public Task<ImportAssetAvailability> CheckFinalAsync(string reference, CancellationToken ct) =>
+            Task.FromResult(ImportAssetAvailability.Present("application/octet-stream", 1, "00"));
+
+        public Task<ImportAssetPromotionResult> PromoteAsync(StagedImportAsset asset, CancellationToken ct) =>
+            Task.FromResult(new ImportAssetPromotionResult(ImportAssetPromotionStatus.AlreadyPresent, asset.Reference));
+
+        public Task VerifyFinalAsync(IReadOnlyList<ImportAssetManifestEntry> assets, CancellationToken ct) =>
+            Task.CompletedTask;
+
+        public Task RecordCleanupIntentAsync(
+            Guid draftId, IReadOnlyList<string> promotedReferences,
+            ImportAssetCleanupReason reason, CancellationToken ct) =>
+            Task.CompletedTask;
+
+        public Task ProcessPendingCleanupAsync(IExamCatalogue catalogue, CancellationToken ct) =>
+            Task.CompletedTask;
+    }
+
+    public Task<ExamImportAttempt> ImportAsync(
+        Stream zip, ExamDefinitionId definitionId, int versionNumber, CancellationToken ct) =>
+        ImportAsync(zip, definitionId, versionNumber, checklistRequired: true, ct);
+
     /// <param name="zip">
     /// Must be seekable. Inspection reads the archive's central directory,
     /// which lives at the end of the file, and extraction re-reads the same
@@ -36,7 +80,9 @@ public sealed class ExamPackageImportPipeline(
     /// silently mis-reading a truncated archive.
     /// </param>
     public async Task<ExamImportAttempt> ImportAsync(
-        Stream zip, ExamDefinitionId definitionId, int versionNumber, CancellationToken ct)
+        Stream zip, ExamDefinitionId definitionId, int versionNumber, bool checklistRequired,
+        CancellationToken ct, UserId? createdBy = null, DateTimeOffset? createdAt = null,
+        string? packageId = null, bool saveDraft = true, string? draftStabilityKey = null)
     {
         if (!zip.CanSeek)
         {
@@ -60,9 +106,10 @@ public sealed class ExamPackageImportPipeline(
                 return ExamImportAttempt.Rejected(extraction.Findings);
 
             var attempt = await ImportFromSandboxAsync(
-                inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber, ct);
+                inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber,
+                checklistRequired, createdBy, createdAt, ct, packageId, saveDraft, draftStabilityKey);
 
-            return await AttachRoleFolderWarningsAsync(attempt, inspection.Findings, ct);
+            return await AttachRoleFolderWarningsAsync(attempt, inspection.Findings, saveDraft, ct);
         }
         catch (ExamSourceParsingUnavailableException e)
         {
@@ -107,15 +154,45 @@ public sealed class ExamPackageImportPipeline(
     /// and written on afterwards. → CLAUDE.md rule 9
     /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
-        PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
-        CancellationToken ct)
+        PackageLayout layout,
+        string sandboxDirectory,
+        ExamDefinitionId definitionId,
+        int versionNumber,
+        bool checklistRequired,
+        UserId? createdBy,
+        DateTimeOffset? createdAt,
+        CancellationToken ct,
+        string? packageId = null,
+        bool saveDraft = true,
+        string? draftStabilityKey = null)
     {
-        var allEntries = layout.AcceptedEntries.ToArray();
-
-        if (allEntries.Length == 1 && allEntries[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        var paperFiles = layout.EntriesBySkill.Values.SelectMany(e => e.Paper).ToArray();
+        if (paperFiles.Length == 0)
         {
-            var packageJson = await File.ReadAllTextAsync(Path.Combine(sandboxDirectory, allEntries[0]), ct);
-            return await workflow.ImportStructuredAsync(packageJson, definitionId, versionNumber, ct);
+            return ExamImportAttempt.Rejected([
+                new PackageFinding(
+                    "error",
+                    ArchiveFindingCodes.LayoutEmpty,
+                    "/",
+                    "The package contains no paper files to import.")
+            ]);
+        }
+
+        var paperJsonFiles = paperFiles
+            .Where(path => path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        var nonJsonPaperFiles = paperFiles
+            .Where(path => !path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        if (paperJsonFiles.Length == 1 && nonJsonPaperFiles.Length == 0)
+        {
+            var packageJson = await File.ReadAllTextAsync(
+                Path.Combine(sandboxDirectory, paperJsonFiles[0]), ct);
+            return await ImportStructuredWithAssetsAsync(
+                packageJson, layout.AssetEntries ?? [], sandboxDirectory,
+                definitionId, versionNumber, checklistRequired, createdBy, createdAt, ct,
+                packageId, saveDraft, draftStabilityKey);
         }
 
         var combined = new StringBuilder();
@@ -140,10 +217,79 @@ public sealed class ExamPackageImportPipeline(
         var source = new ExtractedImportSource(
             "package", "text/plain", text, hash, hash, ImportDataClassification.Restricted);
 
-        var attempt = await workflow.ImportExtractedAsync(source, definitionId, versionNumber, ct);
+        var attempt = await workflow.ImportExtractedAsync(
+            source, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt,
+            packageId, saveDraft);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
-        return await ApplyKeysAndGuardAsync(attempt.Draft, layout, sandboxDirectory, ct);
+        return await ApplyKeysAndGuardAsync(attempt.Draft, layout, sandboxDirectory, saveDraft, ct);
+    }
+
+    private async Task<ExamImportAttempt> ImportStructuredWithAssetsAsync(
+        string packageJson,
+        IReadOnlyList<string> zipAssets,
+        string sandboxDirectory,
+        ExamDefinitionId definitionId,
+        int versionNumber,
+        bool checklistRequired,
+        UserId? createdBy,
+        DateTimeOffset? createdAt,
+        CancellationToken ct,
+        string? packageId = null,
+        bool saveDraft = true,
+        string? draftStabilityKey = null)
+    {
+        var validation = validator.Validate(packageJson, definitionId, versionNumber);
+        if (!validation.IsValid || validation.Version is null)
+            return ExamImportAttempt.Rejected(validation.Findings);
+
+        var packageHash = ExamImportWorkflow.Hash(packageJson);
+        Guid draftId;
+        if (!string.IsNullOrWhiteSpace(packageId))
+        {
+            var material = string.IsNullOrWhiteSpace(draftStabilityKey)
+                ? $"{definitionId.Value}\n{versionNumber}\n{ExamImportRoute.StructuredPackage}\n{packageHash}\n{packageId}"
+                : $"{definitionId.Value}\n{versionNumber}\n{ExamImportRoute.StructuredPackage}\n{packageHash}\n{packageId}\n{draftStabilityKey}";
+            var bytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(material));
+            draftId = new Guid(bytes.AsSpan(0, 16));
+        }
+        else
+        {
+            draftId = ExamImportWorkflow.StableDraftId(
+                definitionId, versionNumber, ExamImportRoute.StructuredPackage, packageHash);
+        }
+
+        IReadOnlyList<ImportAssetManifestEntry> manifest = [];
+        if (ImportAssetPaths.ZipBindableReferences(validation.Version).Count > 0 || zipAssets.Count > 0)
+        {
+            var bound = await ImportExamAssetBinder.BindAsync(
+                examAssets, validation.Version, packageJson, sandboxDirectory, zipAssets, draftId, ct);
+            if (bound.Findings.Count > 0)
+                return ExamImportAttempt.Rejected(bound.Findings);
+            manifest = bound.Manifest;
+        }
+
+        try
+        {
+            return await workflow.ImportStructuredAsync(
+                packageJson, definitionId, versionNumber, checklistRequired, ct, createdBy, createdAt, manifest,
+                packageId, saveDraft, draftStabilityKey);
+        }
+        catch
+        {
+            var staged = ImportAssetPaths.StagedReferences(manifest);
+            if (staged.Count > 0)
+            {
+                using var compensation = ImportAssetCompensation.Start();
+                await examAssets.RecordCleanupIntentAsync(
+                    draftId,
+                    staged,
+                    ImportAssetCleanupReason.DraftSaveFailed,
+                    compensation.Token);
+            }
+
+            throw;
+        }
     }
 
     /// <summary>
@@ -169,7 +315,11 @@ public sealed class ExamPackageImportPipeline(
     /// <see cref="FabricatedAnswerKeyGuard"/>'s own remarks warn against.
     /// </summary>
     private async Task<ExamImportAttempt> ApplyKeysAndGuardAsync(
-        ExamImportDraft draft, PackageLayout layout, string sandboxDirectory, CancellationToken ct)
+        ExamImportDraft draft,
+        PackageLayout layout,
+        string sandboxDirectory,
+        bool saveDraft,
+        CancellationToken ct)
     {
         var json = draft.PackageJson;
         var findings = new List<PackageFinding>();
@@ -316,6 +466,7 @@ public sealed class ExamPackageImportPipeline(
             .. InjectionWarnings(injectionWarnings),
             .. NotInPassageWarnings(anchorReport.MissingAnswerIssues),
             .. OrderWarnings(anchorReport.OrderIssues),
+            .. MissingTranscriptWarnings(json),
         ];
 
         if (!changed && warnings.Count == 0 && findings.Count == 0) return ExamImportAttempt.Accepted(draft);
@@ -356,8 +507,13 @@ public sealed class ExamPackageImportPipeline(
             Revision = draft.Revision + 1,
         };
 
-        var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
-        return ExamImportAttempt.Accepted(replaced ? updated : draft);
+        if (saveDraft)
+        {
+            var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
+            return ExamImportAttempt.Accepted(replaced ? updated : draft);
+        }
+
+        return ExamImportAttempt.Accepted(updated);
     }
 
     public const string RevalidationFailedCode = "ANSWER_KEY_REVALIDATION_FAILED";
@@ -387,7 +543,10 @@ public sealed class ExamPackageImportPipeline(
     /// on a package that does not.
     /// </summary>
     private async Task<ExamImportAttempt> AttachRoleFolderWarningsAsync(
-        ExamImportAttempt attempt, IReadOnlyList<PackageFinding> inspectionFindings, CancellationToken ct)
+        ExamImportAttempt attempt,
+        IReadOnlyList<PackageFinding> inspectionFindings,
+        bool saveDraft,
+        CancellationToken ct)
     {
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
@@ -406,8 +565,13 @@ public sealed class ExamPackageImportPipeline(
             Revision = draft.Revision + 1,
         };
 
-        var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
-        return ExamImportAttempt.Accepted(replaced ? updated : draft);
+        if (saveDraft)
+        {
+            var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
+            return ExamImportAttempt.Accepted(replaced ? updated : draft);
+        }
+
+        return ExamImportAttempt.Accepted(updated);
     }
 
     /// <summary>
@@ -522,6 +686,54 @@ public sealed class ExamPackageImportPipeline(
                 $"{PassageAnchorCheck.OutOfOrderCode}:{i}", ImportReviewCategory.AcceptedVariants,
                 issue.Path, issue.Message, false))
             .ToArray();
+
+    /// <summary>
+    /// Checks whether any Listening part lacks a transcript and generates an unresolved
+    /// <see cref="ImportReviewCategory.TranscriptAndEvidence"/> warning requiring audited override.
+    /// </summary>
+    private static IReadOnlyList<ImportReviewWarning> MissingTranscriptWarnings(string packageJson)
+    {
+        JsonArray? sections;
+        try
+        {
+            sections = JsonNode.Parse(packageJson)?["sections"]?.AsArray();
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+
+        if (sections is null) return [];
+
+        var warnings = new List<ImportReviewWarning>();
+        var warningIndex = 0;
+
+        for (var s = 0; s < sections.Count; s++)
+        {
+            var section = sections[s];
+            if (section?["module"]?.GetValue<string>() != "listening") continue;
+
+            var parts = section["parts"]?.AsArray();
+            if (parts is null) continue;
+
+            for (var p = 0; p < parts.Count; p++)
+            {
+                var part = parts[p];
+                var transcript = part?["transcript"]?.GetValue<string>();
+                if (string.IsNullOrWhiteSpace(transcript))
+                {
+                    warnings.Add(new ImportReviewWarning(
+                        $"MISSING_LISTENING_TRANSCRIPT:{warningIndex++}",
+                        ImportReviewCategory.TranscriptAndEvidence,
+                        $"/sections/{s}/parts/{p}",
+                        "Listening part has no transcript; audio evidence cannot be verified automatically.",
+                        false));
+                }
+            }
+        }
+
+        return warnings;
+    }
 
     /// <summary>
     /// <c>/sections/{index}/</c> for every section no key was supplied for.

@@ -1,4 +1,5 @@
 using Vni.Ielts.Application.Importing;
+using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Tests.Importing;
@@ -40,8 +41,8 @@ public sealed class ImportBatchRunnerTests
         var workflow = new ExamImportWorkflow(new Validator(), drafts, new Parser());
         var definition = ExamDefinitionId.New();
 
-        var first = await workflow.ImportStructuredAsync("valid", definition, 1, default);
-        var second = await workflow.ImportStructuredAsync("valid", definition, 1, default);
+        var first = await workflow.ImportStructuredAsync("valid", definition, 1, true, default);
+        var second = await workflow.ImportStructuredAsync("valid", definition, 1, true, default);
 
         Assert.Equal(first.Draft!.Id, second.Draft!.Id);
         Assert.Single(drafts.Items);
@@ -74,6 +75,9 @@ public sealed class ImportBatchRunnerTests
             Task.FromResult<ExamImportDraft?>(Items.SingleOrDefault(d => d.Id == id));
         public Task<bool> ReplaceAsync(ExamImportDraft draft, int expected, CancellationToken ct) =>
             Task.FromResult(false);
+
+        public Task<IReadOnlyList<ExamImportDraft>> ListAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamImportDraft>>(Items);
     }
 
     private sealed class Parser : IExamSourceParser

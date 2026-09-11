@@ -1,0 +1,78 @@
+# Persistent stakeholder preview deployed by Jenkins on the same Docker host.
+# Images are production builds. Application environment is Development because
+# the preview is intentionally exposed directly over HTTP without a TLS proxy.
+# Use a separate HTTPS deployment manifest before treating this as production.
+name: vni-ielts-preview
+
+services:
+  api:
+    image: vni-ielts-api:${VNI_IMAGE_TAG:-preview}
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      Jwt__SigningKey: ${VNI_JWT_SIGNING_KEY:?set VNI_JWT_SIGNING_KEY}
+      Mongo__ConnectionString: mongodb://host.docker.internal:27018/?directConnection=true
+      Mongo__Database: vni_ielts_preview
+      ObjectStorage__ServiceUrl: http://host.docker.internal:9000
+      ObjectStorage__AccessKey: vni-local
+      ObjectStorage__SecretKey: vni-local-dev-only
+      Cors__Origins__0: ${VNI_LEARNER_URL:-http://localhost:5173}
+      Cors__Origins__1: ${VNI_ADMIN_URL:-http://localhost:5174}
+      Sso__EnableStubProvider: 'false'
+      Email__Host: smtp.invalid
+      Email__FromAddress: no-reply@vni.invalid
+      Email__ClientBaseUrl: ${VNI_LEARNER_URL:-http://localhost:5173}
+    ports:
+      - '${VNI_API_PORT:-5099}:8080'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  worker:
+    image: vni-ielts-worker:${VNI_IMAGE_TAG:-preview}
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile.worker
+    restart: unless-stopped
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      Mongo__ConnectionString: mongodb://host.docker.internal:27018/?directConnection=true
+      Mongo__Database: vni_ielts_preview
+      Recordings__SweepEnabled: 'false'
+    ports:
+      - '127.0.0.1:${VNI_WORKER_HEALTH_PORT:-5098}:8081'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  web:
+    image: vni-ielts-web:${VNI_IMAGE_TAG:-preview}
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: ${VNI_API_URL:-http://localhost:5099}
+      ENVIRONMENT_NAME: preview
+    ports:
+      - '${VNI_WEB_PORT:-5173}:8080'
+    depends_on:
+      api:
+        condition: service_healthy
+
+  admin:
+    image: vni-ielts-admin:${VNI_IMAGE_TAG:-preview}
+    build:
+      context: ../..
+      dockerfile: apps/admin/Dockerfile
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: ${VNI_API_URL:-http://localhost:5099}
+      ENVIRONMENT_NAME: preview
+    ports:
+      - '${VNI_ADMIN_PORT:-5174}:8080'
+    depends_on:
+      api:
+        condition: service_healthy

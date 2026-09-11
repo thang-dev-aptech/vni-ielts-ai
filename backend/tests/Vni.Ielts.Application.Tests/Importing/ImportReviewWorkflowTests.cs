@@ -1,4 +1,8 @@
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Importing;
+using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
+using Vni.Ielts.Domain.Common;
+using Vni.Ielts.Domain.Content;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Tests.Importing;
@@ -13,7 +17,7 @@ public sealed class ImportReviewWorkflowTests
     public async Task Manual_edit_revalidates_and_resets_review_at_expected_revision()
     {
         var store = new Store(Draft());
-        var review = new ImportReviewWorkflow(store, new Validator());
+        var review = Review(store);
 
         var result = await review.EditAsync(store.Draft.Id, 0, "valid-edited", Editor, default);
 
@@ -28,7 +32,7 @@ public sealed class ImportReviewWorkflowTests
     public async Task Invalid_manual_edit_is_not_persisted()
     {
         var store = new Store(Draft());
-        var review = new ImportReviewWorkflow(store, new Validator());
+        var review = Review(store);
 
         var result = await review.EditAsync(store.Draft.Id, 0, "invalid", Editor, default);
 
@@ -41,7 +45,7 @@ public sealed class ImportReviewWorkflowTests
     public async Task Approval_requires_every_check_and_resolved_warning()
     {
         var store = new Store(Draft(warning: true));
-        var review = new ImportReviewWorkflow(store, new Validator());
+        var review = Review(store);
 
         var blockedWarning = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
         Assert.Equal("IMPORT_WARNINGS_UNRESOLVED", blockedWarning.ErrorCode);
@@ -74,7 +78,7 @@ public sealed class ImportReviewWorkflowTests
     public async Task Resolving_a_warning_without_a_reason_is_refused(string? blankReason)
     {
         var store = new Store(Draft(warning: true));
-        var review = new ImportReviewWorkflow(store, new Validator());
+        var review = Review(store);
 
         var result = await review.ResolveWarningAsync(store.Draft.Id, 0, "w1", blankReason!, Reviewer, default);
 
@@ -87,7 +91,7 @@ public sealed class ImportReviewWorkflowTests
     public async Task Edit_permission_cannot_approve_and_review_permission_cannot_publish()
     {
         var store = new Store(Draft(complete: true));
-        var review = new ImportReviewWorkflow(store, new Validator());
+        var review = Review(store);
 
         var approval = await review.ApproveAsync(store.Draft.Id, 0, Editor, default);
 
@@ -97,11 +101,25 @@ public sealed class ImportReviewWorkflowTests
     }
 
     [Fact]
+    public async Task Approval_succeeds_without_checklist_when_not_required()
+    {
+        var store = new Store(Draft() with { ChecklistRequired = false });
+        var review = Review(store);
+
+        var approved = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.True(approved.IsSuccess);
+        Assert.Equal(ImportApprovalState.Approved, approved.Draft!.ApprovalState);
+        Assert.False(approved.Draft.Checklist.IsComplete);
+        Assert.False(approved.Draft.ChecklistRequired);
+    }
+
+    [Fact]
     public async Task A_draft_with_a_blocking_finding_cannot_be_approved()
     {
         var store = new Store(Draft(complete: true, findings:
             [new PackageFinding("error", PaperKeyConsistency.WordLimitCode, "/q/1", "over the limit")]));
-        var review = new ImportReviewWorkflow(store, new Validator());
+        var review = Review(store);
 
         var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
 
@@ -120,12 +138,28 @@ public sealed class ImportReviewWorkflowTests
     /// <c>ExamPackageImportPipelineTests.A_draft_carrying_an_out_of_order_result_cannot_be_approved</c>
     /// for that.
     /// </summary>
+    [Theory]
+    [InlineData("error")]
+    [InlineData("ERROR")]
+    [InlineData("Error")]
+    public async Task Error_severity_is_case_insensitively_blocking(string severity)
+    {
+        var store = new Store(Draft(complete: true, findings:
+            [new PackageFinding(severity, "BLOCKING", "/q/1", "invalid") ]));
+        var review = Review(store);
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_FINDINGS_BLOCKING", result.ErrorCode);
+    }
+
     [Fact]
     public async Task A_warning_severity_finding_does_not_block_approval()
     {
         var store = new Store(Draft(complete: true, findings:
             [new PackageFinding("warning", "SOME_NON_BLOCKING_FINDING", "/q/2", "worth a look")]));
-        var review = new ImportReviewWorkflow(store, new Validator());
+        var review = Review(store);
 
         var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
 
@@ -148,12 +182,63 @@ public sealed class ImportReviewWorkflowTests
     {
         var store = new Store(Draft(complete: true, findings:
             [new PackageFinding("error", PassageAnchorCheck.PassageMismatchCode, "/q/1", "absent")]));
-        var review = new ImportReviewWorkflow(store, new Validator());
+        var review = Review(store);
 
         var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
 
         Assert.False(result.IsSuccess);
         Assert.Equal("IMPORT_FINDINGS_BLOCKING", result.ErrorCode);
+    }
+
+    /// <summary>
+    /// Missing listening transcript warning blocks approval under P-19 until
+    /// overridden with a mandatory reason and valid reviewer actor.
+    /// </summary>
+    [Fact]
+    public async Task Missing_listening_transcript_warning_blocks_approval_until_audited_override_with_actor_and_reason()
+    {
+        var warning = new ImportReviewWarning(
+            "MISSING_LISTENING_TRANSCRIPT:0",
+            ImportReviewCategory.TranscriptAndEvidence,
+            "/sections/0/parts/0",
+            "Listening part has no transcript; audio evidence cannot be verified automatically.",
+            false);
+        var store = new Store(Draft(complete: true) with
+        {
+            Warnings = [warning],
+        });
+        var review = Review(store);
+
+        // Approval is blocked because warning is unresolved
+        var blocked = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+        Assert.False(blocked.IsSuccess);
+        Assert.Equal("IMPORT_WARNINGS_UNRESOLVED", blocked.ErrorCode);
+
+        // Non-reviewer cannot resolve warning
+        var forbidden = await review.ResolveWarningAsync(
+            store.Draft.Id, 0, warning.Id, "Override reason", Editor, default);
+        Assert.False(forbidden.IsSuccess);
+        Assert.Equal("IMPORT_REVIEW_FORBIDDEN", forbidden.ErrorCode);
+
+        // Blank reason is refused
+        var emptyReason = await review.ResolveWarningAsync(
+            store.Draft.Id, 0, warning.Id, "   ", Reviewer, default);
+        Assert.False(emptyReason.IsSuccess);
+        Assert.Equal("IMPORT_WARNING_REASON_REQUIRED", emptyReason.ErrorCode);
+
+        // Valid override records reason and resolves warning
+        const string reason = "Physical audio tape verified manually by lead teacher";
+        var resolved = await review.ResolveWarningAsync(
+            store.Draft.Id, 0, warning.Id, reason, Reviewer, default);
+        Assert.True(resolved.IsSuccess);
+        var resolvedWarning = Assert.Single(resolved.Draft!.Warnings);
+        Assert.True(resolvedWarning.Resolved);
+        Assert.Equal(reason, resolvedWarning.OverrideReason);
+
+        // Approval now succeeds
+        var approved = await review.ApproveAsync(store.Draft.Id, resolved.Draft.Revision, Reviewer, default);
+        Assert.True(approved.IsSuccess);
+        Assert.Equal(ImportApprovalState.Approved, approved.Draft!.ApprovalState);
     }
 
     [Fact]
@@ -164,6 +249,153 @@ public sealed class ImportReviewWorkflowTests
         Assert.Equal("valid", diff.ParsedPackageJson);
         Assert.False(diff.TextIsIdentical);
     }
+
+    [Fact]
+    public async Task Approval_promotes_a_catalogue_draft_owned_by_the_uploader_not_the_reviewer()
+    {
+        var uploader = new UserId("uploader-1");
+        var store = new Store(Draft(complete: true) with { CreatedBy = uploader });
+        var catalogue = new MemoryCatalogue();
+        var review = Review(store, catalogue);
+
+        var approved = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.True(approved.IsSuccess);
+        Assert.Equal(ImportApprovalState.Approved, approved.Draft!.ApprovalState);
+        Assert.Equal("reviewer", approved.Draft.ReviewedBy);
+        Assert.Equal(uploader, approved.Draft.Version.AuthorId);
+        Assert.NotEqual(uploader.Value, approved.Draft.ReviewedBy);
+
+        var promoted = Assert.Single(catalogue.Versions);
+        Assert.Equal(approved.Draft.Version.Id, promoted.Id);
+        Assert.Equal(ExamVersionStatus.Draft, promoted.Status);
+        Assert.Equal(uploader, promoted.AuthorId);
+        Assert.Equal("synthetic-validation", promoted.ContentSourceId?.Value);
+        Assert.Equal("Paper", promoted.Title);
+    }
+
+    [Fact]
+    public async Task Approval_retry_returns_the_same_version_without_a_second_catalogue_row()
+    {
+        var uploader = new UserId("uploader-1");
+        var store = new Store(Draft(complete: true) with { CreatedBy = uploader });
+        var catalogue = new MemoryCatalogue();
+        var review = Review(store, catalogue);
+
+        var first = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+        Assert.True(first.IsSuccess);
+
+        var second = await review.ApproveAsync(store.Draft.Id, first.Draft!.Revision, Reviewer, default);
+
+        Assert.True(second.IsSuccess);
+        Assert.Equal(first.Draft.Version.Id, second.Draft!.Version.Id);
+        Assert.Single(catalogue.Versions);
+    }
+
+    [Fact]
+    public async Task A_stale_revision_does_not_promote_a_catalogue_version()
+    {
+        var uploader = new UserId("uploader-1");
+        var store = new Store(Draft(complete: true) with { CreatedBy = uploader });
+        var catalogue = new MemoryCatalogue();
+        var review = Review(store, catalogue);
+
+        var bumped = await review.SetChecklistAsync(
+            store.Draft.Id, 0, Enum.GetValues<ImportReviewCategory>().ToHashSet(), Reviewer, default);
+        Assert.True(bumped.IsSuccess);
+
+        var stale = await review.ApproveAsync(store.Draft.Id, expectedRevision: 0, Reviewer, default);
+
+        Assert.Equal("IMPORT_REVISION_CONFLICT", stale.ErrorCode);
+        Assert.Empty(catalogue.Versions);
+        Assert.Equal(ImportApprovalState.ReviewRequired, store.Draft.ApprovalState);
+    }
+
+    [Fact]
+    public async Task Approval_calls_the_committer_once_and_does_not_replace_approved_state_on_the_store()
+    {
+        var store = new Store(Draft(complete: true));
+        var catalogue = new MemoryCatalogue();
+        var committer = new SpyCommitter(new MemoryCommitter(store, catalogue));
+        var review = new ImportReviewWorkflow(store, new Validator(), committer, new MemoryAssets());
+
+        var approved = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.True(approved.IsSuccess);
+        Assert.Equal(1, committer.Calls);
+        Assert.Equal(0, store.ApprovedReplaceCalls);
+        Assert.Equal(ImportApprovalState.Approved, store.Draft.ApprovalState);
+    }
+
+    [Fact]
+    public async Task Catalogue_commit_conflict_leaves_the_draft_unapproved()
+    {
+        var store = new Store(Draft(complete: true));
+        var review = new ImportReviewWorkflow(store, new Validator(), new RefusingCommitter(), new MemoryAssets());
+
+        var refused = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.Equal("IMPORT_REVISION_CONFLICT", refused.ErrorCode);
+        Assert.Equal(ImportApprovalState.ReviewRequired, store.Draft.ApprovalState);
+        Assert.Equal(0, store.ApprovedReplaceCalls);
+        Assert.Null(store.Draft.ReviewedBy);
+    }
+
+    [Fact]
+    public async Task Catalogue_commit_failure_leaves_the_draft_unapproved()
+    {
+        var store = new Store(Draft(complete: true));
+        var review = new ImportReviewWorkflow(store, new Validator(), new ThrowingCommitter(), new MemoryAssets());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            review.ApproveAsync(store.Draft.Id, 0, Reviewer, default));
+
+        Assert.Equal(ImportApprovalState.ReviewRequired, store.Draft.ApprovalState);
+        Assert.Equal(0, store.ApprovedReplaceCalls);
+    }
+
+    [Fact]
+    public async Task Edit_cas_conflict_does_not_create_staging_abandoned_cleanup_intent()
+    {
+        var staged = Entry("assets/staged.mp3", staged: true);
+        var store = new Store(Draft() with { AssetManifest = [staged] })
+        {
+            ForceReplaceConflict = true,
+        };
+        var assets = new RecordingAssets();
+        var review = new ImportReviewWorkflow(
+            store, new Validator(), new MemoryCommitter(store, new MemoryCatalogue()), assets);
+
+        var result = await review.EditAsync(store.Draft.Id, 0, "valid-edited", Editor, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_REVISION_CONFLICT", result.ErrorCode);
+        Assert.Empty(assets.Intents);
+    }
+
+    [Fact]
+    public async Task Edit_success_records_staging_abandoned_only_after_replace_succeeds()
+    {
+        var staged = Entry("assets/staged.mp3", staged: true);
+        var store = new Store(Draft() with { AssetManifest = [staged] });
+        var assets = new RecordingAssets();
+        var review = new ImportReviewWorkflow(
+            store, new Validator(), new MemoryCommitter(store, new MemoryCatalogue()), assets);
+
+        var result = await review.EditAsync(store.Draft.Id, 0, "valid-edited", Editor, default);
+
+        Assert.True(result.IsSuccess);
+        var intent = Assert.Single(assets.Intents);
+        Assert.Equal(ImportAssetCleanupReason.StagingAbandoned, intent.Reason);
+        Assert.Equal([staged.Reference], intent.References);
+    }
+
+    private static ImportAssetManifestEntry Entry(string reference, bool staged) =>
+        new(reference, staged ? $"imports/exam-drafts/{Guid.NewGuid():D}/assets/{reference["assets/".Length..]}" : "",
+            "audio/mpeg", 8, "aa");
+
+    private static ImportReviewWorkflow Review(Store store, MemoryCatalogue? catalogue = null) =>
+        new(store, new Validator(), new MemoryCommitter(store, catalogue ?? new MemoryCatalogue()), new MemoryAssets());
 
     private static ExamImportDraft Draft(
         bool warning = false, bool complete = false, IReadOnlyList<PackageFinding>? findings = null)
@@ -183,18 +415,85 @@ public sealed class ImportReviewWorkflowTests
             0, null);
     }
 
+    private sealed class RecordingAssets : IImportExamAssetStore
+    {
+        public List<(Guid DraftId, IReadOnlyList<string> References, ImportAssetCleanupReason Reason, bool TimedCompensation)> Intents { get; } = [];
+
+        public Task<StagedImportAsset> StageAsync(
+            Guid draftId, string reference, Stream content,
+            string contentType, long length, string sha256, CancellationToken ct) =>
+            Task.FromResult(new StagedImportAsset(reference, $"imports/{draftId:D}", contentType, length, sha256));
+
+        public Task<ImportAssetAvailability> CheckFinalAsync(string reference, CancellationToken ct) =>
+            Task.FromResult(ImportAssetAvailability.Present("application/octet-stream", 1, "00"));
+
+        public Task<ImportAssetPromotionResult> PromoteAsync(StagedImportAsset asset, CancellationToken ct)
+        {
+            var status = string.IsNullOrEmpty(asset.StagingKey)
+                ? ImportAssetPromotionStatus.AlreadyPresent
+                : ImportAssetPromotionStatus.PromotedThisAttempt;
+            return Task.FromResult(new ImportAssetPromotionResult(status, asset.Reference));
+        }
+
+        public Task VerifyFinalAsync(IReadOnlyList<ImportAssetManifestEntry> assets, CancellationToken ct) =>
+            Task.CompletedTask;
+
+        public Task RecordCleanupIntentAsync(
+            Guid draftId, IReadOnlyList<string> promotedReferences,
+            ImportAssetCleanupReason reason, CancellationToken ct)
+        {
+            Intents.Add((draftId, promotedReferences, reason, ct.CanBeCanceled && ct != CancellationToken.None));
+            return Task.CompletedTask;
+        }
+
+        public Task ProcessPendingCleanupAsync(IExamCatalogue catalogue, CancellationToken ct) =>
+            Task.CompletedTask;
+    }
+
+    private sealed class MemoryAssets : IImportExamAssetStore
+    {
+        public Task<StagedImportAsset> StageAsync(
+            Guid draftId, string reference, Stream content,
+            string contentType, long length, string sha256, CancellationToken ct) =>
+            Task.FromResult(new StagedImportAsset(reference, $"imports/{draftId:D}", contentType, length, sha256));
+
+        public Task<ImportAssetAvailability> CheckFinalAsync(string reference, CancellationToken ct) =>
+            Task.FromResult(ImportAssetAvailability.Present("application/octet-stream", 1, "00"));
+
+        public Task<ImportAssetPromotionResult> PromoteAsync(StagedImportAsset asset, CancellationToken ct) =>
+            Task.FromResult(new ImportAssetPromotionResult(ImportAssetPromotionStatus.AlreadyPresent, asset.Reference));
+
+        public Task VerifyFinalAsync(IReadOnlyList<ImportAssetManifestEntry> assets, CancellationToken ct) =>
+            Task.CompletedTask;
+
+        public Task RecordCleanupIntentAsync(
+            Guid draftId, IReadOnlyList<string> promotedReferences,
+            ImportAssetCleanupReason reason, CancellationToken ct) =>
+            Task.CompletedTask;
+
+        public Task ProcessPendingCleanupAsync(IExamCatalogue catalogue, CancellationToken ct) =>
+            Task.CompletedTask;
+    }
+
     private sealed class Store(ExamImportDraft draft) : IImportDraftStore
     {
-        public ExamImportDraft Draft { get; private set; } = draft;
+        public ExamImportDraft Draft { get; set; } = draft;
+        public int ApprovedReplaceCalls { get; private set; }
+        public bool ForceReplaceConflict { get; init; }
         public Task SaveAsync(ExamImportDraft value, CancellationToken ct) { Draft = value; return Task.CompletedTask; }
         public Task<ExamImportDraft?> FindAsync(Guid id, CancellationToken ct) =>
             Task.FromResult<ExamImportDraft?>(Draft.Id == id ? Draft : null);
         public Task<bool> ReplaceAsync(ExamImportDraft value, int expected, CancellationToken ct)
         {
+            if (ForceReplaceConflict) return Task.FromResult(false);
             if (Draft.Id != value.Id || Draft.Revision != expected) return Task.FromResult(false);
+            if (value.ApprovalState == ImportApprovalState.Approved) ApprovedReplaceCalls++;
             Draft = value;
             return Task.FromResult(true);
         }
+
+        public Task<IReadOnlyList<ExamImportDraft>> ListAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamImportDraft>>([Draft]);
     }
 
     private sealed class Validator : IExamPackageValidator
@@ -208,6 +507,69 @@ public sealed class ImportReviewWorkflowTests
             id, version, "Paper", ExamVariant.Academic,
             new ScoringProfile(new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(), AnswerMatchingRules.Default),
             new TimingProfile(new Dictionary<ExamModule, int>(), null, []),
-            [new Section(ExamModule.Reading, 1, [])]);
+            [new Section(ExamModule.Reading, 1, [])],
+            contentSourceId: new ContentSourceId("synthetic-validation"));
+    }
+
+    private sealed class MemoryCatalogue
+    {
+        public List<ExamVersion> Versions { get; } = [];
+    }
+
+    private sealed class MemoryCommitter(Store store, MemoryCatalogue catalogue) : IImportApprovalCommitter
+    {
+        public Task<ImportApprovalCommitResult> CommitAsync(
+            ExamImportDraft approvedDraft, int expectedRevision, ExamVersion catalogueDraft, CancellationToken ct)
+        {
+            if (store.Draft.ApprovalState == ImportApprovalState.Approved
+                && store.Draft.Version.Id == catalogueDraft.Id)
+            {
+                return Task.FromResult(ImportApprovalCommitResult.AlreadyCommitted(store.Draft));
+            }
+
+            if (store.Draft.Id != approvedDraft.Id || store.Draft.Revision != expectedRevision
+                || store.Draft.ApprovalState != ImportApprovalState.ReviewRequired)
+            {
+                return Task.FromResult(ImportApprovalCommitResult.RevisionConflict());
+            }
+
+            if (catalogue.Versions.Any(v => v.Id == catalogueDraft.Id
+                && (v.AuthorId != catalogueDraft.AuthorId
+                    || v.ContentSourceId != catalogueDraft.ContentSourceId)))
+            {
+                return Task.FromResult(ImportApprovalCommitResult.IdentityConflict());
+            }
+
+            catalogue.Versions.RemoveAll(v => v.Id == catalogueDraft.Id);
+            catalogue.Versions.Add(catalogueDraft);
+            store.Draft = approvedDraft;
+            return Task.FromResult(ImportApprovalCommitResult.Committed(approvedDraft));
+        }
+    }
+
+    private sealed class SpyCommitter(IImportApprovalCommitter inner) : IImportApprovalCommitter
+    {
+        public int Calls { get; private set; }
+
+        public async Task<ImportApprovalCommitResult> CommitAsync(
+            ExamImportDraft approvedDraft, int expectedRevision, ExamVersion catalogueDraft, CancellationToken ct)
+        {
+            Calls++;
+            return await inner.CommitAsync(approvedDraft, expectedRevision, catalogueDraft, ct);
+        }
+    }
+
+    private sealed class RefusingCommitter : IImportApprovalCommitter
+    {
+        public Task<ImportApprovalCommitResult> CommitAsync(
+            ExamImportDraft approvedDraft, int expectedRevision, ExamVersion catalogueDraft, CancellationToken ct) =>
+            Task.FromResult(ImportApprovalCommitResult.RevisionConflict());
+    }
+
+    private sealed class ThrowingCommitter : IImportApprovalCommitter
+    {
+        public Task<ImportApprovalCommitResult> CommitAsync(
+            ExamImportDraft approvedDraft, int expectedRevision, ExamVersion catalogueDraft, CancellationToken ct) =>
+            throw new InvalidOperationException("catalogue write failed");
     }
 }

@@ -112,10 +112,11 @@ public sealed record SkillEntries(
 /// </summary>
 public sealed record PackageLayout(
     IReadOnlyDictionary<ExamModule, SkillEntries> EntriesBySkill,
-    IReadOnlyList<string> UnknownEntries)
+    IReadOnlyList<string> UnknownEntries,
+    IReadOnlyList<string> AssetEntries = null!)
 {
     public static PackageLayout Empty { get; } =
-        new(new Dictionary<ExamModule, SkillEntries>(), []);
+        new(new Dictionary<ExamModule, SkillEntries>(), [], []);
 
     /// <summary>Skills with at least one file. Order follows <see cref="ExamModule"/>.</summary>
     public IReadOnlyList<ExamModule> PresentSkills =>
@@ -123,8 +124,9 @@ public sealed record PackageLayout(
             .Where(m => EntriesBySkill.TryGetValue(m, out var e) && e.Count > 0)
             .ToArray();
 
-    /// <summary>Every relative path that would be extracted, across all skills and roles.</summary>
-    public IEnumerable<string> AcceptedEntries => EntriesBySkill.Values.SelectMany(e => e.All);
+    /// <summary>Every relative path that would be extracted, across skills and <c>assets/**</c>.</summary>
+    public IEnumerable<string> AcceptedEntries =>
+        EntriesBySkill.Values.SelectMany(e => e.All).Concat(AssetEntries ?? []);
 
     public SkillEntries For(ExamModule module) =>
         EntriesBySkill.TryGetValue(module, out var e) ? e : SkillEntries.Empty;

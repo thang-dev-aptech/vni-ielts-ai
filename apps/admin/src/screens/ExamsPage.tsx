@@ -19,12 +19,14 @@ import { StatusBadge } from '../components/StatusBadge.js';
  * ràng buộc 1
  */
 export function ExamsPage() {
-  const { accessToken } = useAdminAuth();
+  const { accessToken, can } = useAdminAuth();
 
   const [exams, setExams] = useState<AdminExam[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [query, setQuery] = useState('');
   const alive = useRef(true);
+
+  const canUpload = can('package.upload') && can('exam.create');
 
   useEffect(() => {
     alive.current = true;
@@ -62,9 +64,11 @@ export function ExamsPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <Link className="cms-primary" to={AdminPaths.import}>
-          Nhập đề mới
-        </Link>
+        {canUpload && (
+          <Link className="cms-primary" to={AdminPaths.import}>
+            Nhập đề mới
+          </Link>
+        )}
       </div>
 
       {failed && (

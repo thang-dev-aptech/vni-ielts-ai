@@ -5,63 +5,68 @@ import { useAdminAuth } from '../lib/AdminAuth.js';
 import { AdminPaths } from '../routes/paths.js';
 import { Confirm, useFlash } from '../chrome/Confirm.js';
 import {
+  approvePrivacyRequest,
+  createPrivacyRequest,
+  executePrivacyRequest,
+
   getUser,
+  listPrivacyRequests,
+  listUserActivity,
+  listUserAudit,
+  listUserExams,
+  listUserResults,
+  listUserSittings,
+  listUserTokens,
+  patchUser,
+  requestUserExport,
+  resendUserVerification,
   resetUserPassword,
   setUserRole,
   setUserStatus,
   type AdminUserDetail,
 } from '../lib/adminApi.js';
+import { roleLabel } from '../lib/permissions.js';
 
 /**
  * `PasswordPolicy.MinLength` on the server, restated here so the dialog can
  * hold its own button shut instead of sending a password that comes straight
- * back rejected. The server is still the one that decides — this only saves a
- * round trip, and if the two ever disagree the server wins and its message is
- * what the operator reads.
+ * back rejected. The server is still the one that decides.
  */
 const MIN_PASSWORD_LENGTH = 12;
 
 type Ask =
   | { kind: 'status'; suspend: boolean }
   | { kind: 'role'; roleId: string; name: string; grant: boolean }
-  | { kind: 'password' };
+  | { kind: 'password' }
+  | { kind: 'save-profile' }
+  | { kind: 'resend' }
+
+  | { kind: 'export' }
+  | { kind: 'privacy' }
+  | { kind: 'privacy-approve'; requestId: string }
+  | { kind: 'privacy-execute'; requestId: string };
+
+type DetailTab = 'overview' | 'activity' | 'exams' | 'sittings' | 'results' | 'tokens';
+
+type PrivacyRow = {
+  requestId: string;
+  type: string;
+  status: string;
+  createdAt: string;
+  requesterId: string;
+};
 
 /**
  * Screen 6.2 — one account.
  *
- * <b>The three things an operator actually comes here to do: lock an account,
- * change what it can reach, and give someone back their password.</b> All go
- * through a confirmation naming the consequence, and all leave an audit entry
- * under the operator's own name.
+ * <b>The two things an operator actually comes here to do: lock an account,
+ * and change what it can reach.</b> Both go through a confirmation naming the
+ * consequence, and both leave an audit entry under the operator's own address.
  *
- * <b>There is a password control here, and until 08/09/2026 there deliberately
- * was not.</b> The rule it replaced was sound and is worth stating before the
- * decision that overruled it: an operator who can set another person's
- * password can sign in as them, and every entry the audit log then writes
- * faithfully records the wrong name. Nothing about that changed. What changed
- * is the alternative. Registration stopped collecting an email address, so the
- * self-service reset the old rule relied on — "a locked-out learner resets
- * their own password through the email they control" — no longer exists for
- * anyone who signed up after that date. The choice became *an operator can
- * impersonate* versus *a learner who forgets their password loses their
- * account and their history*, and the product owner took the first.
- *
- * <b>So the risk is accepted, not removed, and the screen is built to keep it
- * visible.</b> The control is gated on its own permission key
- * (`user.reset-password`) rather than folded into `user.update`, so granting
- * it is a deliberate act on the roles screen and revoking it does not take
- * anything else away. The server refuses a reset aimed at the operator's own
- * account (409) and revokes every session the target holds, so the person
- * finds out the next time they open the app. The confirmation says both of
- * those things in plain words: an operator should be reading "I will be able
- * to sign in as this person" at the moment they decide, not discovering it
- * afterwards in a policy document.
- *
- * <b>What would actually close the hole</b> is a reset the learner completes
- * themselves — an SMS one-time code to the number they registered with. That
- * is a real feature with a cost (an SMS provider, a rate limit, a spend cap)
- * and it is not in the MVP. Until it exists, the audit log is the only control
- * on this, which is why every path here writes one.
+ * <b>Password reset is operator-set (`user.reset-password`).</b> Registration
+ * often has no email, so self-service mail reset is unavailable. The control
+ * is gated on its own key; the confirmation names impersonation and session
+ * revocation; the flash never echoes the password.
  *
  * <b>The server refuses some of this regardless of what the screen offers</b>
  * — suspending yourself, removing your own admin role, resetting your own
@@ -77,15 +82,16 @@ export function UserDetailPage() {
   const [missing, setMissing] = useState(false);
   const [ask, setAsk] = useState<Ask | null>(null);
   const [busy, setBusy] = useState(false);
-  /**
-   * Lives here rather than inside the dialog body because `Confirm` renders
-   * its body as a prop: a `useState` inside `bodyOf` would be a new component
-   * identity on every keystroke and lose focus after the first character.
-   * Cleared on every open and every close — an operator who cancels and then
-   * opens the dialog on a different account must not find the previous
-   * password still typed in.
-   */
+  /** Cleared on every open/close — never leave a typed password across accounts. */
   const [newPassword, setNewPassword] = useState('');
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [privacyReason, setPrivacyReason] = useState('');
+  const [privacyRequests, setPrivacyRequests] = useState<PrivacyRow[]>([]);
+  const [privacyNotice, setPrivacyNotice] = useState<string | null>(null);
+  const [tab, setTab] = useState<DetailTab>('overview');
+  const [tabBody, setTabBody] = useState<string>('Chọn một mục để tải.');
   const alive = useRef(true);
 
   useEffect(() => {
@@ -97,13 +103,32 @@ export function UserDetailPage() {
     if (accessToken === null) return;
     try {
       const found = await getUser(accessToken, userId);
-      if (alive.current) setAccount(found);
+      if (alive.current) {
+        setAccount(found);
+        setEditName(found.displayName);
+        setEditEmail(found.email ?? '');
+        setEditPhone(found.phone ?? '');
+      }
     } catch {
       if (alive.current) setMissing(true);
     }
   }, [accessToken, userId]);
 
   useEffect(() => void load(), [load]);
+
+  async function refreshPrivacy() {
+    if (accessToken === null || !can('user.delete')) {
+      if (alive.current) setPrivacyRequests([]);
+      return;
+    }
+    const listed = await listPrivacyRequests(accessToken, userId);
+    if (alive.current) setPrivacyRequests(listed.requests);
+  }
+
+  useEffect(() => {
+    void refreshPrivacy();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load privacy when account identity changes
+  }, [accessToken, userId]);
 
   async function commit() {
     if (accessToken === null || ask === null) return;
@@ -116,28 +141,89 @@ export function UserDetailPage() {
           tone: 'ok',
           text: ask.suspend ? 'Đã khoá tài khoản.' : 'Đã mở khoá tài khoản.',
         });
-      } else if (ask.kind === 'password') {
-        await resetUserPassword(accessToken, userId, newPassword);
-        /*
-         * The flash does not repeat the password back.
-         *
-         * It is on the operator's screen for as long as this message is, and
-         * it is the one thing here that must not end up in a screenshot sent
-         * to a colleague, a support ticket, or a shoulder. The operator typed
-         * it and already knows it; what they need told is that it took effect
-         * and that the person is now signed out everywhere.
-         */
-        say({
-          tone: 'ok',
-          text: 'Đã đặt lại mật khẩu. Mọi phiên đăng nhập của họ đã bị thu hồi.',
-        });
-        setNewPassword('');
-      } else {
+      } else if (ask.kind === 'role') {
         await setUserRole(accessToken, userId, ask.roleId, ask.grant);
         say({
           tone: 'ok',
           text: ask.grant ? `Đã gán vai trò ${ask.name}.` : `Đã gỡ vai trò ${ask.name}.`,
         });
+      } else if (ask.kind === 'save-profile') {
+        await patchUser(accessToken, userId, {
+          displayName: editName,
+          email: editEmail,
+          updateEmail: editEmail !== account?.email,
+          phone: editPhone,
+          updatePhone: true,
+        });
+        say({ tone: 'ok', text: 'Đã lưu hồ sơ.' });
+      } else if (ask.kind === 'resend') {
+        // Main has no emailVerified flag (ADR-0018). The endpoint may return
+        // POLICY_NOT_CONFIGURED when verification mail is not wired.
+        try {
+          const sent = await resendUserVerification(accessToken, userId);
+          say({
+            tone: 'ok',
+            text: sent.alreadyVerified
+              ? 'Tài khoản đã xác minh. Không gửi thêm thư.'
+              : sent.emailSent
+                ? 'Đã gửi thư xác minh.'
+                : 'Đã ghi nhận. Thư xác minh chưa gửi được.',
+          });
+        } catch (error) {
+          if (error instanceof ApiError && error.problem.code === 'POLICY_NOT_CONFIGURED') {
+            say({
+              tone: 'bad',
+              text: 'POLICY_NOT_CONFIGURED — xác minh email chưa được cấu hình trên môi trường này.',
+            });
+          } else {
+            throw error;
+          }
+        }
+      } else if (ask.kind === 'password') {
+        await resetUserPassword(accessToken, userId, newPassword);
+        say({
+          tone: 'ok',
+          text: 'Đã đặt lại mật khẩu. Mọi phiên đăng nhập của họ đã bị thu hồi.',
+        });
+        setNewPassword('');
+
+      } else if (ask.kind === 'export') {
+        try {
+          await requestUserExport(accessToken, userId);
+          say({ tone: 'ok', text: 'Đã ghi nhận yêu cầu xuất dữ liệu.' });
+        } catch (error) {
+          if (error instanceof ApiError && error.problem.code === 'POLICY_NOT_CONFIGURED') {
+            setPrivacyNotice(
+              'POLICY_NOT_CONFIGURED — thời gian giữ bản xuất chưa được cấu hình. Không lưu archive.',
+            );
+            say({ tone: 'bad', text: reasonOf(error) });
+          } else {
+            throw error;
+          }
+        }
+      } else if (ask.kind === 'privacy') {
+        await createPrivacyRequest(accessToken, userId, 'anonymize', privacyReason.trim());
+        say({ tone: 'ok', text: 'Đã tạo yêu cầu quyền riêng tư, đang chờ duyệt. Chưa xoá dữ liệu.' });
+        await refreshPrivacy();
+      } else if (ask.kind === 'privacy-approve') {
+        await approvePrivacyRequest(accessToken, ask.requestId);
+        say({ tone: 'ok', text: 'Đã duyệt yêu cầu. Chưa thực thi xoá/ẩn danh.' });
+        await refreshPrivacy();
+      } else if (ask.kind === 'privacy-execute') {
+        try {
+          await executePrivacyRequest(accessToken, ask.requestId);
+          say({ tone: 'ok', text: 'Đã thực thi yêu cầu.' });
+        } catch (error) {
+          if (error instanceof ApiError && error.problem.code === 'POLICY_NOT_CONFIGURED') {
+            setPrivacyNotice(
+              'POLICY_NOT_CONFIGURED — chính sách xoá/ẩn danh chưa cấu hình. Tài khoản không bị thay đổi.',
+            );
+            say({ tone: 'bad', text: reasonOf(error) });
+          } else {
+            throw error;
+          }
+        }
+        await refreshPrivacy();
       }
 
       await load();
@@ -181,11 +267,7 @@ export function UserDetailPage() {
 
       <header className="cms-head">
         <h1>{account.displayName}</h1>
-        {/* The phone is what the account is reached by, so it is the subtitle.
-            An account created before 08/09/2026 has an address instead, and one
-            imported with neither has to render as something an operator can
-            read rather than an empty line. */}
-        <p>{account.phone ?? account.email ?? 'Chưa có số điện thoại hoặc email'}</p>
+        <p>{account.email ?? account.phone ?? '—'}</p>
       </header>
 
       {flash}
@@ -202,16 +284,11 @@ export function UserDetailPage() {
               </span>
             </dd>
 
-            <dt>Số điện thoại</dt>
-            <dd>{account.phone ?? '—'}</dd>
-
-            {/* No "chưa xác minh" badge any more: the verification flow was
-                removed with the email-first sign-up it belonged to, so the
-                badge was rendering a state nothing on the server still
-                decides. An unverified-looking account is not what an operator
-                would have been seeing. */}
             <dt>Email</dt>
             <dd>{account.email ?? '—'}</dd>
+
+            <dt>Số điện thoại</dt>
+            <dd>{account.phone ?? '—'}</dd>
 
             <dt>Tạo lúc</dt>
             <dd className="num">{new Date(account.createdAt).toLocaleString('vi-VN')}</dd>
@@ -231,12 +308,6 @@ export function UserDetailPage() {
                   {suspended ? 'Mở khoá tài khoản' : 'Khoá tài khoản'}
                 </button>
               )}
-
-              {/* `user.reset-password` and nothing else. Reading the account
-                  list, editing a display name, and being able to sign in as
-                  somebody are three different amounts of trust, so this does
-                  not ride along on `user.update`. Hiding it is courtesy — the
-                  server checks the same key on the route. */}
               {can('user.reset-password') && (
                 <button
                   type="button"
@@ -272,11 +343,12 @@ export function UserDetailPage() {
           <ul className="cms-role-list">
             {account.availableRoles.map((role) => {
               const on = held.has(role.roleId);
+              const label = roleLabel(role.name);
 
               return (
                 <li key={role.roleId}>
                   <span className="cms-role-name">
-                    {role.name}
+                    {label}
                     {on && <span className="cms-badge is-published">Đang có</span>}
                   </span>
 
@@ -285,7 +357,7 @@ export function UserDetailPage() {
                       type="button"
                       className={on ? 'cms-secondary' : 'cms-primary'}
                       onClick={() =>
-                        setAsk({ kind: 'role', roleId: role.roleId, name: role.name, grant: !on })
+                        setAsk({ kind: 'role', roleId: role.roleId, name: label, grant: !on })
                       }
                     >
                       {on ? 'Gỡ' : 'Gán'}
@@ -298,19 +370,149 @@ export function UserDetailPage() {
         </section>
       </div>
 
+      {can('user.update') && (
+        <section className="cms-panel">
+          <h2>Sửa hồ sơ</h2>
+          <div className="cms-form-grid">
+            <label className="cms-field">
+              <span>Tên hiển thị</span>
+              <input value={editName} onChange={(e) => setEditName(e.target.value)} />
+            </label>
+            <label className="cms-field">
+              <span>Email</span>
+              <input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} type="email" />
+            </label>
+            <label className="cms-field">
+              <span>Số điện thoại</span>
+              <input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} />
+            </label>
+          </div>
+          <div className="cms-panel-actions">
+            <button type="button" className="cms-primary" onClick={() => setAsk({ kind: 'save-profile' })}>
+              Lưu hồ sơ
+            </button>
+            <button type="button" className="cms-secondary" onClick={() => setAsk({ kind: 'resend' })}>
+              Gửi lại thư xác minh
+            </button>
+
+          </div>
+        </section>
+      )}
+
+      <section className="cms-panel">
+        <h2>Hoạt động và tài nguyên</h2>
+        <div className="cms-toolbar" role="tablist">
+          <TabButton current={tab} id="overview" label="Tổng quan" onSelect={openTab} />
+          {can('user.read') && (
+            <TabButton current={tab} id="activity" label="Hoạt động" onSelect={openTab} />
+          )}
+          {can('exam.read.any') && (
+            <TabButton current={tab} id="exams" label="Đề" onSelect={openTab} />
+          )}
+          {can('evaluation.read') && (
+            <>
+              <TabButton current={tab} id="sittings" label="Bài làm" onSelect={openTab} />
+              <TabButton current={tab} id="results" label="Kết quả" onSelect={openTab} />
+            </>
+          )}
+          {can('token.read') && (
+            <TabButton current={tab} id="tokens" label="Token" onSelect={openTab} />
+          )}
+        </div>
+        <pre className="cms-muted">{tabBody}</pre>
+      </section>
+
+      {(can('user.export') || can('user.delete')) && (
+        <section className="cms-panel">
+          <h2>Quyền riêng tư</h2>
+          {privacyNotice && <p className="cms-badge is-draft">{privacyNotice}</p>}
+          <div className="cms-form-stack">
+            {can('user.export') && (
+              <div className="cms-panel-actions cms-panel-actions--flush">
+                <button type="button" className="cms-secondary" onClick={() => setAsk({ kind: 'export' })}>
+                  Xuất dữ liệu cá nhân
+                </button>
+              </div>
+            )}
+            {can('user.delete') && (
+              <>
+                <label className="cms-field">
+                  <span>Lý do yêu cầu ẩn danh</span>
+                  <textarea value={privacyReason} onChange={(e) => setPrivacyReason(e.target.value)} />
+                </label>
+                <div className="cms-panel-actions cms-panel-actions--flush">
+                  <button type="button" className="cms-danger" onClick={() => setAsk({ kind: 'privacy' })}>
+                    Tạo yêu cầu ẩn danh
+                  </button>
+                </div>
+                <p className="cms-muted">
+                  Quy trình chỉ tạo/duyệt/thử thực thi. Chưa suspend, revoke hay xoá tài khoản khi chính sách
+                  PDPL chưa cấu hình.
+                </p>
+                <ul className="cms-role-list">
+                  {privacyRequests.length === 0 && (
+                    <li>
+                      <span className="cms-muted">Chưa có yêu cầu quyền riêng tư.</span>
+                    </li>
+                  )}
+                  {privacyRequests.map((row) => {
+                    const pending = row.status === 'PendingReview';
+                    const approved = row.status === 'Approved';
+                    const isRequester = self?.userId === row.requesterId;
+                    return (
+                      <li key={row.requestId}>
+                        <span className="cms-role-name">
+                          {row.type} · {row.status}
+                          <span className="cms-muted"> {row.requestId.slice(0, 8)}</span>
+                        </span>
+                        {pending && !isRequester && (
+                          <button
+                            type="button"
+                            className="cms-secondary"
+                            onClick={() => setAsk({ kind: 'privacy-approve', requestId: row.requestId })}
+                          >
+                            Duyệt
+                          </button>
+                        )}
+                        {pending && isRequester && (
+                          <span className="cms-muted">Người tạo không tự duyệt được.</span>
+                        )}
+                        {approved && (
+                          <button
+                            type="button"
+                            className="cms-danger"
+                            onClick={() => setAsk({ kind: 'privacy-execute', requestId: row.requestId })}
+                          >
+                            Thực thi
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+          </div>
+        </section>
+      )}
+
       <Confirm
         open={ask !== null}
         busy={busy}
+        disabled={
+          (ask?.kind === 'privacy' && privacyReason.trim().length === 0) ||
+          (ask?.kind === 'password' && newPassword.length < MIN_PASSWORD_LENGTH)
+        }
         title={ask === null ? '' : titleOf(ask)}
         body={ask === null ? null : bodyOf(ask, account, newPassword, setNewPassword)}
         confirmLabel={ask === null ? '' : confirmOf(ask)}
         tone={
-          (ask?.kind === 'status' && ask.suspend) || ask?.kind === 'password' ? 'danger' : 'normal'
+          (ask?.kind === 'status' && ask.suspend) ||
+          ask?.kind === 'password' ||
+          ask?.kind === 'privacy'
+            ? 'danger'
+            : 'normal'
         }
-        // Held shut until the password is long enough to be accepted, rather
-        // than sending it and rendering the server's rejection. `disabled` and
-        // not `busy`: the action has not started, the form is unfinished.
-        disabled={ask?.kind === 'password' && newPassword.length < MIN_PASSWORD_LENGTH}
         onConfirm={() => void commit()}
         onCancel={() => {
           setNewPassword('');
@@ -319,20 +521,96 @@ export function UserDetailPage() {
       />
     </>
   );
+
+  async function openTab(next: DetailTab) {
+    setTab(next);
+    if (accessToken === null) return;
+    setTabBody('Đang tải…');
+    try {
+      if (next === 'overview') {
+        const requests = can('user.delete') ? await listPrivacyRequests(accessToken, userId) : { requests: [] };
+        setTabBody(
+          requests.requests.length === 0
+            ? 'Không có yêu cầu quyền riêng tư.'
+            : requests.requests.map((row) => `${row.type} · ${row.status}`).join('\n'),
+        );
+        return;
+      }
+      if (next === 'activity') {
+        const [days, audit] = await Promise.all([
+          listUserActivity(accessToken, userId, 1),
+          can('audit.read') ? listUserAudit(accessToken, userId, 1) : Promise.resolve({ entries: [] }),
+        ]);
+        setTabBody(
+          `Ngày hoạt động: ${days.total}\nNhật ký: ${audit.entries.length} mục trên trang 1.`,
+        );
+        return;
+      }
+      if (next === 'exams') {
+        const exams = await listUserExams(accessToken, userId, 1);
+        setTabBody(exams.exams.length === 0 ? 'Không có đề nào.' : exams.exams.map((e) => e.title).join('\n'));
+        return;
+      }
+      if (next === 'sittings') {
+        const sittings = await listUserSittings(accessToken, userId, 1);
+        setTabBody(`Số bài làm: ${sittings.total}`);
+        return;
+      }
+      if (next === 'results') {
+        const results = await listUserResults(accessToken, userId, 1);
+        setTabBody(`Số kết quả: ${results.total}`);
+        return;
+      }
+      const tokens = await listUserTokens(accessToken, userId, 1);
+      setTabBody(tokens.note === 'unbuilt' ? 'Sổ token chưa được xây.' : `Số dòng: ${tokens.total}`);
+    } catch {
+      setTabBody('Không tải được mục này.');
+    }
+  }
+}
+
+function TabButton({
+  current,
+  id,
+  label,
+  onSelect,
+}: {
+  current: DetailTab;
+  id: DetailTab;
+  label: string;
+  onSelect: (id: DetailTab) => void;
+}) {
+  return (
+    <button type="button" className={current === id ? 'cms-primary' : 'cms-secondary'} onClick={() => onSelect(id)}>
+      {label}
+    </button>
+  );
 }
 
 const titleOf = (ask: Ask) => {
   if (ask.kind === 'password') return 'Cấp lại mật khẩu cho tài khoản này?';
-
   if (ask.kind === 'status') return ask.suspend ? 'Khoá tài khoản này?' : 'Mở khoá tài khoản này?';
+  if (ask.kind === 'role') return ask.grant ? `Gán vai trò ${ask.name}?` : `Gỡ vai trò ${ask.name}?`;
+  if (ask.kind === 'save-profile') return 'Lưu hồ sơ người này?';
+  if (ask.kind === 'resend') return 'Gửi lại thư xác minh?';
 
-  return ask.grant ? `Gán vai trò ${ask.name}?` : `Gỡ vai trò ${ask.name}?`;
+  if (ask.kind === 'export') return 'Xuất dữ liệu cá nhân?';
+  if (ask.kind === 'privacy-approve') return 'Duyệt yêu cầu quyền riêng tư?';
+  if (ask.kind === 'privacy-execute') return 'Thực thi yêu cầu quyền riêng tư?';
+  return 'Tạo yêu cầu ẩn danh?';
 };
 
 const confirmOf = (ask: Ask) => {
   if (ask.kind === 'password') return 'Đặt lại mật khẩu';
   if (ask.kind === 'status') return ask.suspend ? 'Khoá' : 'Mở khoá';
-  return ask.grant ? 'Gán' : 'Gỡ';
+  if (ask.kind === 'role') return ask.grant ? 'Gán' : 'Gỡ';
+  if (ask.kind === 'save-profile') return 'Lưu';
+  if (ask.kind === 'resend') return 'Gửi';
+
+  if (ask.kind === 'export') return 'Xuất';
+  if (ask.kind === 'privacy-approve') return 'Duyệt';
+  if (ask.kind === 'privacy-execute') return 'Thực thi';
+  return 'Tạo yêu cầu';
 };
 
 /** States the consequence for the person, not the field the code writes. */
@@ -345,14 +623,6 @@ function bodyOf(
   if (ask.kind === 'password') {
     return (
       <>
-        {/*
-          The two sentences an operator has to read before they decide, and
-          they are not softened. The first is the one that would otherwise be
-          learned afterwards: setting this password means being able to sign in
-          as this person, and the audit log will then record their name, not
-          the operator's. The second is what the person on the other end
-          experiences — every session gone, mid-exam included.
-        */}
         <p>
           Bạn đặt mật khẩu mới cho <strong>{account.displayName}</strong>.{' '}
           <strong>Từ lúc đó bạn đăng nhập được vào tài khoản này</strong>, và mọi việc làm trong đó
@@ -365,25 +635,11 @@ function bodyOf(
         <p className="cms-muted">
           Thao tác này được ghi vào nhật ký kèm tên bạn và tên tài khoản bị đặt lại.
         </p>
-
         <label className="cms-field">
           <span>Mật khẩu mới</span>
           <input
             type="password"
-            /*
-             * `new-password`, so a password manager offers to generate one and
-             * does not autofill the operator's own credential into a field
-             * that would then be written onto somebody else's account.
-             */
             autoComplete="new-password"
-            /*
-             * The only dialog here that opens onto a field rather than a
-             * decision. `Confirm` focuses its confirm button on open, but that
-             * button starts disabled — focusing it is a no-op and leaves a
-             * keyboard user on the trigger behind the scrim, tabbing through
-             * the whole page to reach the dialog. Autofocus runs on mount,
-             * before `Confirm`'s effect, so the input keeps it.
-             */
             autoFocus
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
@@ -416,17 +672,46 @@ function bodyOf(
     );
   }
 
-  return ask.grant ? (
-    <p>
-      <strong>{account.displayName}</strong> sẽ mở được mọi mục mà vai trò{' '}
-      <strong>{ask.name}</strong> cho phép, ngay lần đăng nhập tới.
-    </p>
-  ) : (
-    <p>
-      <strong>{account.displayName}</strong> sẽ mất các quyền chỉ đến từ vai trò{' '}
-      <strong>{ask.name}</strong>.
-    </p>
-  );
+  if (ask.kind === 'role') {
+    return ask.grant ? (
+      <p>
+        <strong>{account.displayName}</strong> sẽ mở được mọi mục mà vai trò{' '}
+        <strong>{ask.name}</strong> cho phép, ngay lần đăng nhập tới.
+      </p>
+    ) : (
+      <p>
+        <strong>{account.displayName}</strong> sẽ mất các quyền chỉ đến từ vai trò{' '}
+        <strong>{ask.name}</strong>.
+      </p>
+    );
+  }
+
+  if (ask.kind === 'save-profile') {
+    return <p>Email mới sẽ chưa xác minh. Không lưu mật khẩu trên màn này.</p>;
+  }
+  if (ask.kind === 'resend') {
+    return <p>Một mã xác minh mới được gửi tới địa chỉ hiện tại, nếu tài khoản chưa xác minh.</p>;
+  }
+
+  if (ask.kind === 'export') {
+    return <p>Xuất dữ liệu của đúng tài khoản này. Hash mật khẩu và token không nằm trong gói.</p>;
+  }
+  if (ask.kind === 'privacy-approve') {
+    return (
+      <p>
+        Người tạo yêu cầu không tự duyệt được. Duyệt chỉ đánh dấu đã xét — chưa xoá hay ẩn danh dữ liệu.
+      </p>
+    );
+  }
+  if (ask.kind === 'privacy-execute') {
+    return (
+      <p>
+        Thực thi sẽ bị từ chối với <code>POLICY_NOT_CONFIGURED</code> nếu chính sách PDPL chưa cấu hình.
+        Tài khoản không bị suspend hay revoke trước khi chính sách có giá trị.
+      </p>
+    );
+  }
+  return <p>Yêu cầu được ghi nhận. Hệ thống sẽ không xoá hay ẩn danh cho đến khi chính sách được cấu hình.</p>;
 }
 
 /**

@@ -95,6 +95,9 @@ internal sealed class MongoExamCatalogue(MongoContext context) : IExamCatalogue
             Builders<ExamVersionDocument>.Filter.Eq(v => v.Id, id.Value),
             Builders<ExamVersionDocument>.Update.Set(v => v.Status, status.ToString()),
             cancellationToken: ct);
+
+    public Task DeleteAsync(ExamVersionId id, CancellationToken ct) =>
+        context.ExamVersions.DeleteOneAsync(v => v.Id == id.Value, ct);
 }
 
 internal sealed class MongoExamSessionRepository(MongoContext context) : IExamSessionRepository

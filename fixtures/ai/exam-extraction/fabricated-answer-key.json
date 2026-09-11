@@ -1,0 +1,38 @@
+{
+  "contractVersion": "exam-extraction-v1",
+  "title": "Synthetic Reading Practice A",
+  "classification": "Reading",
+  "confidence": null,
+  "modules": [
+    {
+      "module": "Reading",
+      "classification": "Reading",
+      "confidence": null,
+      "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null },
+      "parts": [
+        {
+          "id": "part-1",
+          "order": 1,
+          "title": "Passage 1",
+          "body": "Synthetic passage text with no printed answer key.",
+          "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null },
+          "questions": [
+            {
+              "id": "q-1",
+              "order": 1,
+              "type": "Matching",
+              "prompt": "Choose the correct heading for paragraph A.",
+              "options": [
+                { "key": "A", "text": "A change in funding" },
+                { "key": "B", "text": "An unexpected consequence" },
+                { "key": "C", "text": "The original proposal" }
+              ],
+              "answerKey": { "accepted": ["D"], "matchingRule": null },
+              "provenance": { "sourceId": "s1", "chunkId": "s1c1", "page": null }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Exams;
+using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
 
 namespace Vni.Ielts.Application.Tests.Importing;
 

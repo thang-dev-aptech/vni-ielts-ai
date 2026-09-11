@@ -1,4 +1,5 @@
 using Vni.Ielts.Domain.Common;
+using Vni.Ielts.Domain.Content;
 
 namespace Vni.Ielts.Domain.Exams;
 
@@ -68,13 +69,15 @@ public sealed class ExamVersion
         string title, ExamVariant variant, ExamVersionStatus status,
         DateTimeOffset? publishedAt, ScoringProfile scoring, TimingProfile timing,
         IReadOnlyList<Section> sections, IReadOnlyList<ExamModule> moduleSequence,
-        ListeningPlaybackProfile? listeningPlayback, string? description, UserId? authorId)
+        ListeningPlaybackProfile? listeningPlayback, string? description, UserId? authorId,
+        ContentSourceId? contentSourceId)
     {
         Id = id; DefinitionId = definitionId; VersionNumber = versionNumber;
         Title = title; Description = description;
         Variant = variant; Status = status; PublishedAt = publishedAt;
         Scoring = scoring; Timing = timing; Sections = sections;
         ModuleSequence = moduleSequence; AuthorId = authorId;
+        ContentSourceId = contentSourceId;
         ListeningPlayback = listeningPlayback ?? ListeningPlaybackProfile.Conservative;
     }
 
@@ -118,17 +121,29 @@ public sealed class ExamVersion
     /// simply lets the approval through. → `[OPEN QUESTION]`, S7 report
     /// </summary>
     public UserId? AuthorId { get; }
-    public ScoringProfile Scoring { get; }
-    public TimingProfile Timing { get; }
+
+    /// <summary>
+    /// The content-rights source this paper was built from, when the package
+    /// named one. Provenance, not permission — a matching registry row is
+    /// still required before learners may sit it.
+    ///
+    /// <b>Null is a supported state.</b> Legacy versions, blank CMS drafts,
+    /// and format 1.0 packages carry no source id. The publish gate then
+    /// falls back to exam-version / exam-definition bindings.
+    /// </summary>
+    public ContentSourceId? ContentSourceId { get; }
+
+    public ScoringProfile Scoring { get; private set; }
+    public TimingProfile Timing { get; private set; }
     public ListeningPlaybackProfile ListeningPlayback { get; }
-    public IReadOnlyList<Section> Sections { get; }
+    public IReadOnlyList<Section> Sections { get; private set; }
 
     /// <summary>
     /// The order a Full Test advances through this version's modules.
     /// Resolved from <c>sequenceProfile</c> at import, or from
     /// <see cref="SequenceProfile.CanonicalOrder"/> when absent. → `E-12`
     /// </summary>
-    public IReadOnlyList<ExamModule> ModuleSequence { get; }
+    public IReadOnlyList<ExamModule> ModuleSequence { get; private set; }
 
     public bool IsSittable => Status == ExamVersionStatus.Published;
 
@@ -138,13 +153,52 @@ public sealed class ExamVersion
         ListeningPlaybackProfile? listeningPlayback = null,
         IReadOnlyList<ExamModule>? declaredSequence = null,
         string? description = null,
-        UserId? authorId = null)
+        UserId? authorId = null,
+        ContentSourceId? contentSourceId = null)
     {
         var present = sections.Select(s => s.Module).ToHashSet();
         var sequence = SequenceProfile.Resolve(declaredSequence, present);
         return new(ExamVersionId.New(), definitionId, versionNumber, title, variant,
             ExamVersionStatus.Draft, null, scoring, timing, sections, sequence,
-            listeningPlayback, description, authorId);
+            listeningPlayback, description, authorId, contentSourceId);
+    }
+
+    /// <summary>
+    /// A blank exam an author starts from in the CMS, rather than from a
+    /// JSON/ZIP upload. Content, scoring, and timing are empty until
+    /// <see cref="ReplaceContent"/> fills them.
+    /// </summary>
+    public static ExamVersion CreateBlankDraft(
+        ExamDefinitionId definitionId, int versionNumber, string title, ExamVariant variant,
+        UserId authorId) =>
+        CreateDraft(
+            definitionId,
+            versionNumber,
+            title,
+            variant,
+            new ScoringProfile(new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(), AnswerMatchingRules.Default),
+            new TimingProfile(new Dictionary<ExamModule, int>(), null, []),
+            [],
+            ListeningPlaybackProfile.Conservative,
+            null,
+            null,
+            authorId,
+            contentSourceId: null);
+
+    /// <summary>
+    /// Replaces the whole content tree from the CMS authoring workspace.
+    /// Draft only — published content is immutable.
+    /// </summary>
+    public void ReplaceContent(IReadOnlyList<Section> sections, ScoringProfile scoring, TimingProfile timing)
+    {
+        if (Status != ExamVersionStatus.Draft)
+            throw new InvalidOperationException(
+                $"Chỉ bản nháp mới sửa được. Version này đang ở trạng thái {Status}.");
+        Sections = sections;
+        Scoring = scoring;
+        Timing = timing;
+        var present = sections.Select(s => s.Module).ToHashSet();
+        ModuleSequence = SequenceProfile.Resolve(null, present);
     }
 
     public static ExamVersion Rehydrate(
@@ -154,12 +208,14 @@ public sealed class ExamVersion
         ListeningPlaybackProfile? listeningPlayback = null,
         IReadOnlyList<ExamModule>? moduleSequence = null,
         string? description = null,
-        UserId? authorId = null)
+        UserId? authorId = null,
+        ContentSourceId? contentSourceId = null)
     {
         var present = sections.Select(s => s.Module).ToHashSet();
         var sequence = moduleSequence ?? SequenceProfile.Resolve(null, present);
         return new(id, definitionId, versionNumber, title, variant, status, publishedAt,
-            scoring, timing, sections, sequence, listeningPlayback, description, authorId);
+            scoring, timing, sections, sequence, listeningPlayback, description, authorId,
+            contentSourceId);
     }
 
     public void Publish(DateTimeOffset now)

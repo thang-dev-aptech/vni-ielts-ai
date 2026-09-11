@@ -1,4 +1,6 @@
 using Vni.Ielts.Application.Importing;
+using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Tests.Importing;
@@ -61,6 +63,9 @@ public sealed class ExamImportWorkflowTests
             Saved[index] = draft;
             return Task.FromResult(true);
         }
+
+        public Task<IReadOnlyList<ExamImportDraft>> ListAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamImportDraft>>(Saved);
     }
 
     [Fact]
@@ -72,7 +77,7 @@ public sealed class ExamImportWorkflowTests
         var workflow = new ExamImportWorkflow(validator, store, parser);
 
         var result = await workflow.ImportStructuredAsync(
-            "valid-structured-package", ExamDefinitionId.New(), 1, default);
+            "valid-structured-package", ExamDefinitionId.New(), 1, true, default);
 
         Assert.True(result.IsAccepted);
         Assert.Equal(["valid-structured-package"], validator.Seen);
@@ -95,7 +100,7 @@ public sealed class ExamImportWorkflowTests
             "source.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             text, ExamImportWorkflow.Hash("source bytes"), ExamImportWorkflow.Hash(text));
 
-        var result = await workflow.ImportExtractedAsync(source, ExamDefinitionId.New(), 1, default);
+        var result = await workflow.ImportExtractedAsync(source, ExamDefinitionId.New(), 1, true, default);
 
         Assert.True(result.IsAccepted);
         Assert.Equal(["valid-ai-package"], validator.Seen);
@@ -118,7 +123,7 @@ public sealed class ExamImportWorkflowTests
             new ExtractedImportSource(
                 "source.pdf", "application/pdf", text,
                 ExamImportWorkflow.Hash("source bytes"), ExamImportWorkflow.Hash(text)),
-            ExamDefinitionId.New(), 1, default);
+            ExamDefinitionId.New(), 1, true, default);
 
         Assert.False(result.IsAccepted);
         Assert.Equal("RESPONSE_SLOT_KEY_MISSING", Assert.Single(result.Findings).Code);
@@ -138,13 +143,52 @@ public sealed class ExamImportWorkflowTests
             new ExtractedImportSource(
                 "source.pdf", "application/pdf", "changed",
                 ExamImportWorkflow.Hash("source bytes"), new string('0', 64)),
-            ExamDefinitionId.New(), 1, default);
+            ExamDefinitionId.New(), 1, true, default);
 
         Assert.False(result.IsAccepted);
         Assert.Equal("SOURCE_HASH_MISMATCH", Assert.Single(result.Findings).Code);
         Assert.Equal(0, parser.Calls);
         Assert.Empty(validator.Seen);
         Assert.Empty(store.Saved);
+    }
+
+    [Fact]
+    public async Task Structured_import_records_the_supplied_uploader_and_time()
+    {
+        var store = new FakeDraftStore();
+        var workflow = new ExamImportWorkflow(new FakeValidator(), store, new FakeParser("not-used"));
+        var uploader = new UserId("uploader-1");
+        var at = new DateTimeOffset(2026, 9, 9, 10, 0, 0, TimeSpan.Zero);
+
+        var result = await workflow.ImportStructuredAsync(
+            "valid-structured-package", ExamDefinitionId.New(), 1, true, default, uploader, at);
+
+        Assert.True(result.IsAccepted);
+        Assert.Equal(uploader, result.Draft!.CreatedBy);
+        Assert.Equal(at, result.Draft.CreatedAt);
+        Assert.Equal(uploader, store.Saved.Single().CreatedBy);
+    }
+
+    [Fact]
+    public async Task Structured_import_stores_the_asset_manifest_without_changing_the_draft_id()
+    {
+        var definition = ExamDefinitionId.New();
+        var manifest = new ImportAssetManifestEntry[]
+        {
+            new("assets/a.mp3", "imports/exam-drafts/x/assets/a.mp3", "audio/mpeg", 8, new string('a', 64)),
+        };
+
+        var without = await new ExamImportWorkflow(new FakeValidator(), new FakeDraftStore(), new FakeParser("not-used"))
+            .ImportStructuredAsync("valid-structured-package", definition, 1, true, default);
+        var withStore = new FakeDraftStore();
+        var with = await new ExamImportWorkflow(new FakeValidator(), withStore, new FakeParser("not-used"))
+            .ImportStructuredAsync(
+                "valid-structured-package", definition, 1, true, default,
+                assetManifest: manifest);
+
+        Assert.Equal(without.Draft!.Id, with.Draft!.Id);
+        Assert.Equal(manifest, with.Draft.Assets);
+        Assert.Empty(without.Draft.Assets);
     }
 
     private static ExamVersion Paper(ExamDefinitionId definitionId, int versionNumber) =>

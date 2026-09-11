@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Infrastructure.Content;
@@ -256,6 +257,20 @@ public sealed class ExamPackageImportPipelineTests
         READING 1
         ........
         """;
+
+    [Fact]
+    public async Task A_key_only_json_cannot_be_used_as_a_structured_exam_package()
+    {
+        var parser = new RecordingParser();
+        var pipeline = PipelineWith(parser);
+        var archive = Build(File("reading/key/exam.json", "{}"));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.False(attempt.IsAccepted);
+        Assert.Null(attempt.Draft);
+        Assert.Null(parser.LastSourceText);
+    }
 
     [Fact]
     public async Task The_answer_key_never_reaches_the_parser()
@@ -552,7 +567,7 @@ public sealed class ExamPackageImportPipelineTests
             attempt.Draft!.Warnings,
             w => w.Id.StartsWith(PassageAnchorCheck.NotInPassageCode, StringComparison.Ordinal));
 
-        var review = new ImportReviewWorkflow(drafts, validator);
+        var review = Review(drafts, validator);
         var checklisted = await review.SetChecklistAsync(
             attempt.Draft.Id, attempt.Draft.Revision,
             Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
@@ -601,7 +616,7 @@ public sealed class ExamPackageImportPipelineTests
             attempt.Draft!.Findings,
             f => f.Code == PassageAnchorCheck.PassageMismatchCode && f.Severity == "error");
 
-        var review = new ImportReviewWorkflow(drafts, validator);
+        var review = Review(drafts, validator);
         var checklisted = await review.SetChecklistAsync(
             attempt.Draft.Id, attempt.Draft.Revision,
             Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
@@ -622,16 +637,12 @@ public sealed class ExamPackageImportPipelineTests
     }
 
     /// <summary>
-    /// The ruling of 2026-09-10 on the layout: <c>reading/dap_an/</c> is not
-    /// the same event as <c>__MACOSX/</c>. The unknown role folder means the
-    /// file <b>was used</b>, as paper — so an answer key spelled with an
-    /// underscore went to the model — and the administrator who typed it has
-    /// to be told. It reaches the draft as a blocking, clearable warning under
-    /// its own code; <c>LAYOUT_UNKNOWN_ENTRY</c> is not routed and stays
-    /// exactly as it was.
+    /// Unknown role folder fails closed: reading/dap_an/ emits LAYOUT_UNKNOWN_ROLE_FOLDER
+    /// with Error severity. The package is rejected at inspection, never reaches the parser,
+    /// and cannot silently continue as paper.
     /// </summary>
     [Fact]
-    public async Task A_misspelled_key_folder_reaches_the_draft_as_a_blocking_clearable_warning()
+    public async Task A_misspelled_key_folder_fails_closed_and_is_rejected()
     {
         var (pipeline, drafts, validator) = PipelineWithStore(new RecordingParser());
         var archive = Build(
@@ -640,45 +651,14 @@ public sealed class ExamPackageImportPipelineTests
             File("notes.txt", "a stray root file, ignored"));
 
         var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
-        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.False(attempt.IsAccepted);
+        Assert.Null(attempt.Draft);
 
-        var layout = Assert.Single(
-            attempt.Draft!.Warnings,
-            w => w.Id.StartsWith(ArchiveFindingCodes.LayoutUnknownRoleFolder, StringComparison.Ordinal));
-        Assert.False(layout.Resolved);
-        Assert.Equal("reading/dap_an/", layout.Path);
-
-        // The ignored root file is noise and must not have been routed.
-        Assert.DoesNotContain(
-            attempt.Draft.Warnings,
-            w => w.Id.StartsWith(ArchiveFindingCodes.LayoutUnknownEntry, StringComparison.Ordinal));
-
-        var review = new ImportReviewWorkflow(drafts, validator);
-        var checklisted = await review.SetChecklistAsync(
-            attempt.Draft.Id, attempt.Draft.Revision,
-            Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
-        var revision = checklisted.Draft!.Revision;
-
-        foreach (var other in checklisted.Draft.Warnings.Where(w => !w.Resolved && w.Id != layout.Id))
-        {
-            var step = await review.ResolveWarningAsync(
-                attempt.Draft.Id, revision, other.Id, "checked", ReviewerActor, default);
-            Assert.True(step.IsSuccess, step.ErrorCode);
-            revision = step.Draft!.Revision;
-        }
-
-        var blocked = await review.ApproveAsync(attempt.Draft.Id, revision, ReviewerActor, default);
-        Assert.False(blocked.IsSuccess);
-        Assert.Equal("IMPORT_WARNINGS_UNRESOLVED", blocked.ErrorCode);
-
-        var resolved = await review.ResolveWarningAsync(
-            attempt.Draft.Id, revision, layout.Id,
-            "the folder holds figures, not a key", ReviewerActor, default);
-        Assert.True(resolved.IsSuccess, resolved.ErrorCode);
-
-        var approved = await review.ApproveAsync(
-            attempt.Draft.Id, resolved.Draft!.Revision, ReviewerActor, default);
-        Assert.True(approved.IsSuccess, approved.ErrorCode);
+        var finding = Assert.Single(
+            attempt.Findings,
+            f => f.Code == ArchiveFindingCodes.LayoutUnknownRoleFolder);
+        Assert.Equal("error", finding.Severity);
+        Assert.Equal("reading/dap_an/", finding.Path);
     }
 
     /// <summary>
@@ -716,7 +696,7 @@ public sealed class ExamPackageImportPipelineTests
         Assert.False(order.Resolved);
         Assert.DoesNotContain(attempt.Draft.Findings, f => f.Code == PassageAnchorCheck.OutOfOrderCode);
 
-        var review = new ImportReviewWorkflow(drafts, validator);
+        var review = Review(drafts, validator);
         var checklisted = await review.SetChecklistAsync(
             attempt.Draft.Id, attempt.Draft.Revision,
             Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
@@ -754,7 +734,7 @@ public sealed class ExamPackageImportPipelineTests
             attempt.Draft!.Warnings,
             w => w.Id.StartsWith(PassageAnchorCheck.OutOfOrderCode, StringComparison.Ordinal));
 
-        var review = new ImportReviewWorkflow(drafts, validator);
+        var review = Review(drafts, validator);
         var checklisted = await review.SetChecklistAsync(
             attempt.Draft.Id, attempt.Draft.Revision,
             Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
@@ -811,7 +791,7 @@ public sealed class ExamPackageImportPipelineTests
         Assert.DoesNotContain(
             attempt.Draft.Findings, f => f.Code == AnswerKeyInjection.TypeRetypedCode);
 
-        var review = new ImportReviewWorkflow(drafts, validator);
+        var review = Review(drafts, validator);
         var checklisted = await review.SetChecklistAsync(
             attempt.Draft.Id, attempt.Draft.Revision,
             Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
@@ -847,7 +827,7 @@ public sealed class ExamPackageImportPipelineTests
             attempt.Draft!.Warnings,
             w => w.Id.StartsWith(AnswerKeyInjection.TypeRetypedCode, StringComparison.Ordinal));
 
-        var review = new ImportReviewWorkflow(drafts, validator);
+        var review = Review(drafts, validator);
         var checklisted = await review.SetChecklistAsync(
             attempt.Draft.Id, attempt.Draft.Revision,
             Enum.GetValues<ImportReviewCategory>().ToHashSet(), ReviewerActor, default);
@@ -914,7 +894,43 @@ public sealed class ExamPackageImportPipelineTests
         return (pipeline, drafts, validator);
     }
 
-    private static string Describe(IReadOnlyList<PackageFinding> findings) =>
+    private static ImportReviewWorkflow Review(
+        IImportDraftStore drafts, IExamPackageValidator validator) =>
+        new(drafts, validator, new TestApprovalCommitter(drafts), new TestExamAssetStore());
+
+    private sealed class TestApprovalCommitter(IImportDraftStore drafts) : IImportApprovalCommitter
+    {
+        public async Task<ImportApprovalCommitResult> CommitAsync(
+            ExamImportDraft approvedDraft, int expectedRevision, ExamVersion catalogueDraft, CancellationToken ct) =>
+            await drafts.ReplaceAsync(approvedDraft, expectedRevision, ct)
+                ? ImportApprovalCommitResult.Committed(approvedDraft)
+                : ImportApprovalCommitResult.RevisionConflict();
+    }
+
+    private sealed class TestExamAssetStore : IImportExamAssetStore
+    {
+        public Task<StagedImportAsset> StageAsync(
+            Guid draftId, string reference, Stream content, string contentType,
+            long length, string sha256, CancellationToken ct) =>
+            Task.FromResult(new StagedImportAsset(reference, $"test/{draftId:D}", contentType, length, sha256));
+
+        public Task<ImportAssetAvailability> CheckFinalAsync(string reference, CancellationToken ct) =>
+            Task.FromResult(ImportAssetAvailability.Present("application/octet-stream", 1, "00"));
+
+        public Task<ImportAssetPromotionResult> PromoteAsync(StagedImportAsset asset, CancellationToken ct) =>
+            Task.FromResult(new ImportAssetPromotionResult(ImportAssetPromotionStatus.AlreadyPresent, asset.Reference));
+
+        public Task VerifyFinalAsync(IReadOnlyList<ImportAssetManifestEntry> assets, CancellationToken ct) =>
+            Task.CompletedTask;
+
+        public Task RecordCleanupIntentAsync(
+            Guid draftId, IReadOnlyList<string> promotedReferences,
+            ImportAssetCleanupReason reason, CancellationToken ct) => Task.CompletedTask;
+
+        public Task ProcessPendingCleanupAsync(IExamCatalogue catalogue, CancellationToken ct) => Task.CompletedTask;
+    }
+
+    private static string Describe(IReadOnlyList<Vni.Ielts.Application.Importing.PackageFinding> findings) =>
         findings.Count == 0
             ? "no findings"
             : string.Join("; ", findings.Select(f => $"{f.Severity} {f.Code} {f.Path}: {f.Message}"));
@@ -956,5 +972,8 @@ public sealed class ExamPackageImportPipelineTests
             saved[index] = draft;
             return Task.FromResult(true);
         }
+
+        public Task<IReadOnlyList<ExamImportDraft>> ListAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamImportDraft>>(saved.AsReadOnly());
     }
 }

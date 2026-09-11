@@ -275,12 +275,12 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
         // trailing-slash name pairs with empty content — the default text
         // would make these look like a folder secretly carrying a payload,
         // which the inspector correctly refuses (`ENTRY_NOT_REGULAR`).
-        var archive = Build(File("reading/", ""), File("reading/sub/", ""), File("reading/sub/x.txt"));
+        var archive = Build(File("reading/", ""), File("reading/de/", ""), File("reading/de/x.txt"));
 
         var result = await inspector.InspectAsync(archive, Tight, default);
 
         Assert.True(result.IsAcceptable, Describe(result));
-        Assert.Equal(["reading/sub/x.txt"], result.Layout.EntriesBySkill[ExamModule.Reading].All);
+        Assert.Equal(["reading/de/x.txt"], result.Layout.EntriesBySkill[ExamModule.Reading].All);
     }
 
     // ── Roles (IP-02) ────────────────────────────────────────────────────
@@ -346,22 +346,22 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
     /// is that the fall-through is named.
     /// </summary>
     [Fact]
-    public async Task A_second_level_folder_that_matches_no_role_is_reported_rather_than_silently_paper()
+    public async Task A_second_level_folder_that_matches_no_role_fails_closed_and_is_excluded_from_paper()
     {
         var archive = Build(File("reading/de/passage.txt"), File("reading/dap_an/key.txt"));
 
         var result = await inspector.InspectAsync(archive, Tight, default);
 
-        Assert.True(result.IsAcceptable, Describe(result));
+        Assert.False(result.IsAcceptable, "Inspection must fail closed for unknown role folder.");
         var finding = Assert.Single(
             result.Findings,
             f => f.Code == ArchiveFindingCodes.LayoutUnknownRoleFolder);
-        Assert.Equal(Warning, finding.Severity);
+        Assert.Equal(Error, finding.Severity);
         Assert.Equal("reading/dap_an/", finding.Path);
 
-        // Behaviour unchanged: the file is still imported, still as paper.
+        // Security guarantee: unknown role folder content NEVER enters Paper (and thus never enters AI)
         var reading = result.Layout.EntriesBySkill[ExamModule.Reading];
-        Assert.Contains("reading/dap_an/key.txt", reading.Paper);
+        Assert.DoesNotContain("reading/dap_an/key.txt", reading.Paper);
         Assert.Empty(reading.Key);
     }
 
@@ -467,6 +467,64 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
         Assert.False(result.IsAcceptable);
         Assert.Contains(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutEmpty && f.Severity == Error);
         Assert.Empty(result.Layout.PresentSkills);
+    }
+
+    [Fact]
+    public async Task A_root_manifest_and_exam_json_pair_is_accepted_as_the_structured_route()
+    {
+        // The same manifest.json + exam.json shape /admin/packages
+        // (PackageStructuralValidator) already accepts — one ZIP format
+        // regardless of which screen imports it.
+        var archive = Build(File("manifest.json", "{}"), File("exam.json", "{}"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.True(result.IsAcceptable, Describe(result));
+        Assert.Empty(result.Findings);
+        Assert.Equal(["exam.json"], result.Layout.AcceptedEntries);
+    }
+
+    [Fact]
+    public async Task Files_under_assets_are_accepted_and_are_not_unknown_entries()
+    {
+        var archive = Build(
+            File("reading/exam.json", "{}"),
+            Bytes("assets/aptis-listening-t24/1.mp3", [0x49, 0x44, 0x33, 0x00]));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.True(result.IsAcceptable, Describe(result));
+        Assert.Contains("assets/aptis-listening-t24/1.mp3", result.Layout.AssetEntries);
+        Assert.Contains("reading/exam.json", result.Layout.AcceptedEntries);
+        Assert.DoesNotContain(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutUnknownEntry);
+    }
+
+    [Fact]
+    public async Task A_root_manifest_paired_with_a_non_json_file_does_not_take_the_shortcut()
+    {
+        // Structural, not content-based (the class stays blind to content):
+        // the second root file must itself end in .json, or this falls back
+        // to the ordinary unknown-entry handling.
+        var archive = Build(File("manifest.json", "{}"), File("notes.txt"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.False(result.IsAcceptable);
+        Assert.Contains(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutEmpty && f.Severity == Error);
+    }
+
+    [Fact]
+    public async Task Three_root_json_files_do_not_take_the_manifest_shortcut()
+    {
+        // Only exactly two root files (manifest.json + one other) is
+        // unambiguous. A third root file falls back to ordinary handling
+        // rather than guessing which of the others is the real exam file.
+        var archive = Build(File("manifest.json", "{}"), File("exam.json", "{}"), File("extra.json", "{}"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.False(result.IsAcceptable);
+        Assert.Contains(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutEmpty && f.Severity == Error);
     }
 
     [Fact]

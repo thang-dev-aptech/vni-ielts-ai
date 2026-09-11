@@ -1,4 +1,6 @@
 import { ApiError, apiBase, authedFetch, request, TRANSPORT_ERROR, type ApiProblem } from '@vni/auth';
+import type { ExamDocument } from './examDocument.js';
+import type { MediaAsset } from './media.js';
 
 /**
  * The CMS's API.
@@ -27,8 +29,131 @@ export interface AdminExam {
    */
   status: string;
   publishedAt: string | null;
+  /** Present when the version was created by a known CMS author. */
+  authorId?: string | null;
+  createdByName?: string | null;
+  reviewNotes?: AdminReviewNote[];
+  assets?: AdminExamAsset[];
   modules: AdminModuleSummary[];
 }
+
+export interface AdminReviewNote {
+  id: string;
+  authorId: string;
+  authorName: string;
+  body: string;
+  anchor: string | null;
+  at: string;
+}
+
+export interface AdminExamAsset {
+  ref: string;
+  usedAt: string;
+  kind: 'audio' | 'image' | 'file';
+  fileName: string;
+  sizeBytes: number;
+  checksum: string | null;
+  resolved: boolean;
+  mediaId: string | null;
+}
+
+
+export interface AdminPackageEntry {
+  proposedDefinitionId: string;
+  title: string;
+  module: string;
+  questionCount: number;
+}
+
+export interface AdminPackageFinding {
+  stage?: string;
+  code?: string;
+  pointer?: string;
+  message?: string;
+}
+
+export interface AdminPackage {
+  packageId: string;
+  sourceKind: string;
+  fileName: string;
+  status:
+    | 'uploaded'
+    | 'scanning'
+    | 'validating'
+    | 'parsing'
+    | 'needs-review'
+    /** @deprecated H1 — new packages never enter this status; keep for legacy in-flight only. */
+    | 'ready-to-import'
+    | 'imported'
+    | 'rejected'
+    | 'failed';
+  uploadedByName: string;
+  findings: AdminPackageFinding[];
+  entries: AdminPackageEntry[];
+  createdVersionIds: string[];
+  createdAt: string;
+  updatedAt: string;
+  /** First linked draft; prefer `importDraftIds` when present. */
+  importDraftId?: string | null;
+  /** All drafts linked from a (possibly multi-exam) package. */
+  importDraftIds?: string[];
+  failureCode?: string | null;
+  failureDetail?: string | null;
+}
+
+export interface AdminAcceptedAnswer {
+  single: string | null;
+  all: string[] | null;
+  pairLeft: string | null;
+  pairRight: string | null;
+}
+
+export interface AdminExamPreviewOption {
+  key: string;
+  text: string;
+}
+
+export interface AdminExamPreviewQuestion {
+  id: string;
+  order: number;
+  type: string;
+  prompt: string | null;
+  options: AdminExamPreviewOption[];
+  answerKey: AdminAcceptedAnswer[] | null;
+}
+
+export interface AdminExamPreviewCueCard {
+  topic: string;
+  bullets: string[];
+}
+
+export interface AdminExamPreviewPart {
+  id?: string;
+  order?: number;
+  title: string | null;
+  body: string | null;
+  transcript: string | null;
+  cueCard: AdminExamPreviewCueCard | null;
+  questions: AdminExamPreviewQuestion[];
+}
+
+export interface AdminExamPreviewSection {
+  module: string;
+  parts: AdminExamPreviewPart[];
+}
+
+export interface AdminExamPreview {
+  examVersionId: string;
+  title: string;
+  sections: AdminExamPreviewSection[];
+}
+
+export const MODULE_LABEL: Record<string, string> = {
+  reading: 'Đọc',
+  listening: 'Nghe',
+  writing: 'Viết',
+  speaking: 'Nói',
+};
 
 /**
  * A row in the account list.
@@ -60,11 +185,125 @@ export interface AdminRole {
 export const listExams = (accessToken: string) =>
   request<{ exams: AdminExam[] }>('/api/v1/admin/exams', { accessToken });
 
-export const listUsers = (accessToken: string, search: string, page: number) =>
-  request<{ total: number; page: number; pageSize: number; users: AdminUser[] }>(
-    `/api/v1/admin/users?page=${page}${search ? `&search=${encodeURIComponent(search)}` : ''}`,
+export const createExam = (
+  accessToken: string,
+  body: { title: string; variant: 'academic' | 'general' },
+) =>
+  request<{
+    examVersionId: string;
+    definitionId: string;
+    versionNumber: number;
+    status: string;
+    authorId?: string | null;
+  }>('/api/v1/admin/exams', {
+    method: 'POST',
+    accessToken,
+    body,
+    idempotencyKey: key(),
+  });
+
+export const deleteExam = (accessToken: string, examVersionId: string) =>
+  request<void>(`/api/v1/admin/exams/${examVersionId}`, {
+    method: 'DELETE',
+    accessToken,
+    idempotencyKey: key(),
+  });
+
+export const getExam = (accessToken: string, examVersionId: string) =>
+  request<AdminExam>(`/api/v1/admin/exams/${examVersionId}`, { accessToken });
+
+export const getExamPreview = (accessToken: string, examVersionId: string) =>
+  request<AdminExamPreview>(`/api/v1/admin/exams/${examVersionId}/preview`, { accessToken });
+
+export interface ExamContentFinding {
+  stage: string;
+  code: string;
+  pointer: string | null;
+  message: string;
+}
+
+export interface ExamContentValidation {
+  valid: boolean;
+  findings: ExamContentFinding[];
+  status?: string;
+}
+
+export const getExamContent = (accessToken: string, examVersionId: string) =>
+  request<ExamDocument>(`/api/v1/admin/exams/${examVersionId}/content`, { accessToken });
+
+export const saveExamContent = (accessToken: string, examVersionId: string, document: ExamDocument) =>
+  request<ExamContentValidation>(`/api/v1/admin/exams/${examVersionId}/content`, {
+    method: 'PUT',
+    accessToken,
+    body: document,
+    idempotencyKey: key(),
+  });
+
+export const validateExamContent = (
+  accessToken: string,
+  examVersionId: string,
+  document: ExamDocument,
+) =>
+  request<ExamContentValidation>(`/api/v1/admin/exams/${examVersionId}/validate`, {
+    method: 'POST',
+    accessToken,
+    body: document,
+    idempotencyKey: key(),
+  });
+
+export const listMedia = (accessToken: string) =>
+  request<MediaAsset[]>('/api/v1/admin/media', { accessToken });
+
+/**
+ * Multipart upload — INT `request()` still JSON-stringifies bodies, so this
+ * goes through `authedFetch` the same way `uploadImportPackage` does.
+ */
+export const uploadMedia = async (accessToken: string, file: File): Promise<MediaAsset> => {
+  const form = new FormData();
+  form.append('file', file, file.name);
+  const response = await authedFetch(`${apiBase()}/api/v1/admin/media`, accessToken, {
+    method: 'POST',
+    headers: { 'Idempotency-Key': crypto.randomUUID() },
+    body: form,
+  });
+  return parseJsonResponse<MediaAsset>(response);
+};
+
+export const retireMedia = (accessToken: string, mediaId: string) =>
+  request<void>(`/api/v1/admin/media/${mediaId}/retire`, {
+    method: 'POST',
+    accessToken,
+    idempotencyKey: crypto.randomUUID(),
+  });
+
+export const deleteMedia = (accessToken: string, mediaId: string) =>
+  request<void>(`/api/v1/admin/media/${mediaId}`, {
+    method: 'DELETE',
+    accessToken,
+    idempotencyKey: crypto.randomUUID(),
+  });
+
+export const listUsers = (
+  accessToken: string,
+  search: string,
+  page: number,
+  /**
+   * Server-side filters. `hasEmail` replaces the feature branch's
+   * `emailVerified` — main has no verification flag (ADR-0018).
+   */
+  filters: { role?: string; status?: string; hasEmail?: string } = {},
+) => {
+  const query = new URLSearchParams({ page: String(page) });
+  if (search) query.set('search', search);
+  if (filters.role) query.set('role', filters.role);
+  if (filters.status) query.set('status', filters.status);
+  if (filters.hasEmail) query.set('hasEmail', filters.hasEmail);
+
+  return request<{ total: number; page: number; pageSize: number; users: AdminUser[] }>(
+    `/api/v1/admin/users?${query.toString()}`,
     { accessToken },
   );
+};
 
 export const listRoles = (accessToken: string) =>
   request<{ permissions: string[]; roles: AdminRole[] }>('/api/v1/admin/roles', { accessToken });
@@ -164,6 +403,9 @@ export const submitExamForReview = (accessToken: string, examVersionId: string) 
     idempotencyKey: key(),
   });
 
+/** Alias used by QuestionBuilderPage (feature named this `submitExam`). */
+export const submitExam = submitExamForReview;
+
 export const approveExam = (accessToken: string, examVersionId: string) =>
   request<{ status: string }>(`/api/v1/admin/exams/${examVersionId}/approve`, {
     method: 'POST',
@@ -213,6 +455,173 @@ export const resetUserPassword = (accessToken: string, userId: string, newPasswo
     method: 'POST',
     accessToken,
     body: { newPassword },
+    idempotencyKey: key(),
+  });
+
+// ── User administration (I2/I3) ───────────────────────────────────────────
+//
+// Additive helpers for staff create/invite, bulk suspend, profile patch,
+// activity tabs, and privacy seams. Do not replace the operator-set password
+// path above — that remains the phone-era recovery control on main.
+
+export const createStaff = (
+  accessToken: string,
+  body: { email: string; displayName: string; roles: string[] },
+) =>
+  request<{ userId: string; verificationEmailSent: boolean; passwordResetEmailSent: boolean }>(
+    '/api/v1/admin/users',
+    { method: 'POST', accessToken, body, idempotencyKey: key() },
+  );
+
+export const inviteStaff = (
+  accessToken: string,
+  body: { email: string; displayName: string; roles: string[] },
+) =>
+  request<{ invitationId: string; emailSent: boolean }>('/api/v1/admin/invitations', {
+    method: 'POST',
+    accessToken,
+    body,
+    idempotencyKey: key(),
+  });
+
+export const bulkSuspendUsers = (accessToken: string, userIds: string[], reason: string) =>
+  request<{ batchId: string; items: { userId: string; outcome: string; detail: string | null }[] }>(
+    '/api/v1/admin/users/bulk-suspend',
+    { method: 'POST', accessToken, body: { userIds, reason }, idempotencyKey: key() },
+  );
+
+export const patchUser = (
+  accessToken: string,
+  userId: string,
+  body: {
+    displayName?: string;
+    email?: string;
+    updateEmail?: boolean;
+    phone?: string | null;
+    updatePhone?: boolean;
+  },
+) =>
+  request<{
+    userId: string;
+    displayName: string;
+    email: string | null;
+    phone: string | null;
+  }>(`/api/v1/admin/users/${userId}`, {
+    method: 'PATCH',
+    accessToken,
+    body,
+    idempotencyKey: key(),
+  });
+
+/**
+ * Always 409 `POLICY_NOT_CONFIGURED` on main — email verification was removed
+ * (ADR-0018). Kept so the CMS can surface the refusal honestly.
+ */
+export const resendUserVerification = (accessToken: string, userId: string) =>
+  request<{ alreadyVerified: boolean; emailSent: boolean }>(
+    `/api/v1/admin/users/${userId}/resend-verification`,
+    { method: 'POST', accessToken, idempotencyKey: key() },
+  );
+
+/** Sends a password-reset mail and revokes refresh tokens (staff with email). */
+export const forceUserPasswordReset = (accessToken: string, userId: string) =>
+  request<{ emailSent: boolean }>(`/api/v1/admin/users/${userId}/force-password-reset`, {
+    method: 'POST',
+    accessToken,
+    idempotencyKey: key(),
+  });
+
+/** Fail-closed: export retention is not configured; expect 409. */
+export const requestUserExport = (accessToken: string, userId: string) =>
+  request<unknown>(`/api/v1/admin/users/${userId}/export`, {
+    method: 'POST',
+    accessToken,
+    idempotencyKey: key(),
+  });
+
+export const listUserActivity = (accessToken: string, userId: string, page: number) =>
+  request<{ total: number; page: number; days: { day: string; kinds: string[] }[] }>(
+    `/api/v1/admin/users/${userId}/activity?page=${page}`,
+    { accessToken },
+  );
+
+export const listUserAudit = (accessToken: string, userId: string, page: number) =>
+  request<{ total: number; page: number; entries: AuditEntry[] }>(
+    `/api/v1/admin/users/${userId}/audit?page=${page}`,
+    { accessToken },
+  );
+
+export const listUserExams = (accessToken: string, userId: string, page: number) =>
+  request<{
+    total: number;
+    page: number;
+    exams: { examVersionId: string; title: string; status: string }[];
+  }>(`/api/v1/admin/users/${userId}/exams?page=${page}`, { accessToken });
+
+export const listUserSittings = (accessToken: string, userId: string, page: number) =>
+  request<{
+    total: number;
+    page: number;
+    sittings: { sessionId: string; status: string; mode: string; startedAt: string }[];
+  }>(`/api/v1/admin/users/${userId}/sittings?page=${page}`, { accessToken });
+
+export const listUserResults = (accessToken: string, userId: string, page: number) =>
+  request<{
+    total: number;
+    page: number;
+    results: unknown[];
+    note?: string;
+  }>(`/api/v1/admin/users/${userId}/results?page=${page}`, { accessToken });
+
+export const listUserTokens = (accessToken: string, userId: string, page: number) =>
+  request<{ total: number; page: number; tokens: unknown[]; note?: string }>(
+    `/api/v1/admin/users/${userId}/tokens?page=${page}`,
+    { accessToken },
+  );
+
+export const listPrivacyRequests = (accessToken: string, userId: string) =>
+  request<{
+    requests: {
+      requestId: string;
+      type: string;
+      status: string;
+      createdAt: string;
+      requesterId: string;
+    }[];
+  }>(`/api/v1/admin/users/${userId}/privacy-requests`, { accessToken });
+
+export const createPrivacyRequest = (
+  accessToken: string,
+  userId: string,
+  type: string,
+  reason: string,
+) =>
+  request<{ requestId: string; status: string }>(
+    `/api/v1/admin/users/${userId}/privacy-requests`,
+    {
+      method: 'POST',
+      accessToken,
+      body: { type, reason },
+      idempotencyKey: key(),
+    },
+  );
+
+export const approvePrivacyRequest = (accessToken: string, requestId: string) =>
+  request<{ requestId: string; status: string }>(
+    `/api/v1/admin/privacy-requests/${requestId}/approve`,
+    {
+      method: 'POST',
+      accessToken,
+      body: {},
+      idempotencyKey: key(),
+    },
+  );
+
+export const executePrivacyRequest = (accessToken: string, requestId: string) =>
+  request<unknown>(`/api/v1/admin/privacy-requests/${requestId}/execute`, {
+    method: 'POST',
+    accessToken,
+    body: {},
     idempotencyKey: key(),
   });
 
@@ -393,6 +802,330 @@ export const returnArticle = articleTransition('return');
 export const publishArticle = articleTransition('publish');
 export const unpublishArticle = articleTransition('unpublish');
 
+
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  if (response.status === 204) return undefined as T;
+  const bodyText = await response.text();
+  let payload: unknown = null;
+  if (bodyText) {
+    try {
+      payload = JSON.parse(bodyText);
+    } catch {
+      throw new ApiError({
+        title: 'Unexpected response',
+        status: response.status,
+        detail: `Non-JSON response (HTTP ${response.status})`,
+        code: TRANSPORT_ERROR,
+      });
+    }
+  }
+  if (!response.ok) {
+    const problem = (payload ?? {}) as Partial<ApiProblem>;
+    throw new ApiError({
+      title: problem.title ?? 'Request failed',
+      status: response.status,
+      detail: problem.detail ?? `HTTP ${response.status}`,
+      code: problem.code ?? 'UNKNOWN',
+      ...(problem.errors !== undefined ? { errors: problem.errors } : {}),
+    });
+  }
+  return payload as T;
+}
+
+export const deletePackage = (accessToken: string, packageId: string) =>
+  request<void>(`/api/v1/admin/packages/${packageId}`, {
+    method: 'DELETE',
+    accessToken,
+    idempotencyKey: key(),
+  });
+
+export const listPackages = (accessToken: string) =>
+  request<AdminPackage[]>('/api/v1/admin/packages', { accessToken });
+
+export const getPackage = (accessToken: string, packageId: string) =>
+  request<AdminPackage>(`/api/v1/admin/packages/${packageId}`, { accessToken });
+
+/** Upload to `/api/v1/admin/packages` (durable package intake endpoint). */
+export const uploadPackage = async (
+  accessToken: string,
+  file: File,
+  idempotencyKey?: string,
+): Promise<{ packageId: string; status?: string }> => {
+  const form = new FormData();
+  form.append('package', file, file.name);
+  const response = await authedFetch(`${apiBase()}/api/v1/admin/packages`, accessToken, {
+    method: 'POST',
+    headers: { 'Idempotency-Key': idempotencyKey ?? key() },
+    body: form,
+  });
+  const bodyText = await response.text();
+  let payload: any = null;
+  if (bodyText) {
+    try {
+      payload = JSON.parse(bodyText);
+    } catch {
+      // non-json
+    }
+  }
+  if (!response.ok) {
+    if (payload?.packageId) {
+      return { packageId: payload.packageId, status: payload.status };
+    }
+    const problem = (payload ?? {}) as Partial<ApiProblem>;
+    throw new ApiError({
+      title: problem.title ?? 'Request failed',
+      status: response.status,
+      detail: problem.detail ?? `HTTP ${response.status}`,
+      code: problem.code ?? 'UNKNOWN',
+      ...(problem.errors !== undefined ? { errors: problem.errors } : {}),
+    });
+  }
+  return payload as { packageId: string; status?: string };
+};
+
+/**
+ * @deprecated H1 — Worker creates N drafts for every new manifest ZIP.
+ * Keep for legacy packages stuck in `ready-to-import` until they drain; do not
+ * call from new CMS UI.
+ */
+export const confirmPackage = (accessToken: string, packageId: string) =>
+  request<{ packageId: string; createdVersionIds: string[] }>(
+    `/api/v1/admin/packages/${packageId}/confirm`,
+    {
+      method: 'POST',
+      accessToken,
+      idempotencyKey: key(),
+    },
+  );
+
+export type ParsedCandidateStatus = 'pending-review' | 'confirmed' | 'rejected';
+
+export type ParsedCandidateClassification =
+  | 'reading'
+  | 'listening'
+  | 'writing'
+  | 'speaking'
+  | 'unclassified'
+  | 'needs-review';
+
+export interface ParsedCandidateProvenance {
+  fileName: string;
+  page: number | null;
+  section: string | null;
+  reference: string | null;
+}
+
+export interface ParsedCandidateOption {
+  key: string;
+  text: string;
+}
+
+export interface ParsedCandidateAnswerKey {
+  accepted: string[];
+  matchingRule: string | null;
+}
+
+export interface ParsedCandidateQuestion {
+  id: string;
+  order: number;
+  type: string | null;
+  prompt: string | null;
+  options: ParsedCandidateOption[];
+  answerKey: ParsedCandidateAnswerKey | null;
+  provenance: ParsedCandidateProvenance;
+}
+
+export interface ParsedCandidatePart {
+  id: string;
+  order: number;
+  title: string | null;
+  body: string | null;
+  provenance: ParsedCandidateProvenance;
+  questions: ParsedCandidateQuestion[];
+}
+
+export interface ParsedCandidateModule {
+  module: string | null;
+  classification: ParsedCandidateClassification;
+  confidence: number | null;
+  provenance: ParsedCandidateProvenance;
+  parts: ParsedCandidatePart[];
+}
+
+export interface ParsedCandidateCorrection {
+  id: string;
+  reviewerId: string;
+  field: string;
+  targetId: string;
+  previousValue: string | null;
+  newValue: string | null;
+  at: string;
+}
+
+export interface ParsedCandidateSummary {
+  candidateId: string;
+  packageId: string;
+  title: string | null;
+  classification: ParsedCandidateClassification;
+  confidence: number | null;
+  status: ParsedCandidateStatus;
+  version: number;
+  draftExamVersionId?: string | null;
+  moduleCount: number;
+  questionCount: number;
+  unresolvedCount: number;
+  sources: ParsedCandidateProvenance[];
+}
+
+export interface ParsedCandidateDetail extends ParsedCandidateSummary {
+  modules: ParsedCandidateModule[];
+  corrections: ParsedCandidateCorrection[];
+  confirmedBy: string | null;
+  confirmedAt: string | null;
+  rejectedBy: string | null;
+  rejectedAt: string | null;
+}
+
+export interface CandidateSectionTimingPayload {
+  durationSeconds: number;
+  transferTimeSeconds?: number | null | undefined;
+}
+
+export interface CandidateSpeakingPartTimingPayload {
+  part: number;
+  prepSeconds: number;
+  responseSeconds: number;
+}
+
+export interface CandidateTimingProfilePayload {
+  sections: Record<string, CandidateSectionTimingPayload>;
+  speakingParts?: CandidateSpeakingPartTimingPayload[] | undefined;
+}
+
+export interface CandidateBandBoundaryPayload {
+  minRaw: number;
+  band: number;
+}
+
+export interface CandidateCriterionWeightsPayload {
+  task1: number;
+  task2: number;
+}
+
+export interface CandidateScoringProfilePayload {
+  rawToBand?: Record<string, CandidateBandBoundaryPayload[]> | undefined;
+  scoringProfileRef?: string | undefined;
+  criterionWeights?: CandidateCriterionWeightsPayload | undefined;
+}
+
+export interface CandidatePartCompletionPayload {
+  partOrder: number;
+  kind?: string | undefined;
+  taskNumber?: number | undefined;
+  partNumber?: number | undefined;
+  audioAssetRef?: string | undefined;
+  imageAssetRef?: string | undefined;
+}
+
+export interface CandidateCompletionPayload {
+  variant: 'academic' | 'general';
+  timingProfile: CandidateTimingProfilePayload;
+  scoringProfile: CandidateScoringProfilePayload;
+  partDetails?: CandidatePartCompletionPayload[] | undefined;
+}
+
+export interface CandidateDraftResponse {
+  examVersionId: string;
+  definitionId: string;
+  versionNumber: number;
+  status: string;
+}
+
+export const listPackageCandidates = (accessToken: string, packageId: string) =>
+  request<ParsedCandidateSummary[]>(`/api/v1/admin/packages/${packageId}/candidates`, {
+    accessToken,
+  });
+
+export const getPackageCandidate = (
+  accessToken: string,
+  packageId: string,
+  candidateId: string,
+) =>
+  request<ParsedCandidateDetail>(
+    `/api/v1/admin/packages/${packageId}/candidates/${candidateId}`,
+    { accessToken },
+  );
+
+export const correctPackageCandidate = (
+  accessToken: string,
+  packageId: string,
+  candidateId: string,
+  body: {
+    expectedVersion: number;
+    title?: string | null;
+    updateTitle?: boolean;
+    classification?: ParsedCandidateClassification;
+    modules?: ParsedCandidateModule[];
+  },
+) =>
+  request<ParsedCandidateDetail>(
+    `/api/v1/admin/packages/${packageId}/candidates/${candidateId}/correct`,
+    {
+      method: 'POST',
+      accessToken,
+      body,
+      idempotencyKey: key(),
+    },
+  );
+
+export const rejectPackageCandidate = (
+  accessToken: string,
+  packageId: string,
+  candidateId: string,
+  expectedVersion: number,
+) =>
+  request<ParsedCandidateDetail>(
+    `/api/v1/admin/packages/${packageId}/candidates/${candidateId}/reject`,
+    {
+      method: 'POST',
+      accessToken,
+      body: { expectedVersion },
+      idempotencyKey: key(),
+    },
+  );
+
+export const confirmPackageCandidate = (
+  accessToken: string,
+  packageId: string,
+  candidateId: string,
+  expectedVersion: number,
+) =>
+  request<ParsedCandidateDetail>(
+    `/api/v1/admin/packages/${packageId}/candidates/${candidateId}/confirm`,
+    {
+      method: 'POST',
+      accessToken,
+      body: { expectedVersion },
+      idempotencyKey: key(),
+    },
+  );
+
+export const createCandidateDraft = (
+  accessToken: string,
+  packageId: string,
+  candidateId: string,
+  body: CandidateCompletionPayload,
+) =>
+  request<CandidateDraftResponse>(
+    `/api/v1/admin/packages/${packageId}/candidates/${candidateId}/draft`,
+    {
+      method: 'POST',
+      accessToken,
+      body,
+      idempotencyKey: key(),
+    },
+  );
+
 // ── Exam import, S6b ──────────────────────────────────────────────────────
 //
 // `POST /packages` is multipart, so it cannot go through `request()` — that
@@ -433,6 +1166,15 @@ export interface ImportDraft {
   warnings: ImportWarning[];
   checklistConfirmed: string[];
   checklistComplete: boolean;
+  /** When false, approval does not wait on the six-item specialist checklist. */
+  checklistRequired: boolean;
+  createdBy?: string | null;
+  createdAt?: string | null;
+  title?: string | null;
+  examVersionId?: string | null;
+  unresolvedWarningCount?: number;
+  /** Count of staged/bound exam assets. Never includes storage keys. */
+  assetCount?: number;
 }
 
 /**
@@ -495,12 +1237,13 @@ async function parseImportResponse(response: Response): Promise<ImportDraft> {
 export const uploadImportPackage = async (
   accessToken: string,
   file: File,
-  options: { definitionId?: string; versionNumber?: number } = {},
+  options: { definitionId?: string; versionNumber?: number; checklistRequired?: boolean } = {},
 ): Promise<ImportDraft> => {
   const form = new FormData();
   form.append('file', file);
   if (options.definitionId) form.append('definitionId', options.definitionId);
   if (options.versionNumber) form.append('versionNumber', String(options.versionNumber));
+  form.append('checklistRequired', String(options.checklistRequired ?? true));
 
   const response = await authedFetch(`${apiBase()}/api/v1/admin/import/packages`, accessToken, {
     method: 'POST',
@@ -513,6 +1256,9 @@ export const uploadImportPackage = async (
 
 export const getImportDraft = (accessToken: string, draftId: string) =>
   request<ImportDraft>(`/api/v1/admin/import/packages/${draftId}`, { accessToken });
+
+export const listImportDrafts = (accessToken: string) =>
+  request<{ drafts: ImportDraft[] }>('/api/v1/admin/import/packages', { accessToken });
 
 /** `P-19`'s "bỏ qua được nhưng bắt buộc ghi lý do" — a blank reason is refused with a 409. */
 export const overrideImportWarning = async (
@@ -534,6 +1280,31 @@ export const overrideImportWarning = async (
   return parseImportResponse(response);
 };
 
+/**
+ * Thay thế toàn bộ tập checklist đã xác nhận — không cộng dồn phía server.
+ * Luôn gửi đủ tập hiện tại, không chỉ mục vừa đổi.
+ */
+export const setImportChecklist = async (
+  accessToken: string,
+  draftId: string,
+  confirmed: string[],
+): Promise<ImportDraft> => {
+  const response = await authedFetch(
+    `${apiBase()}/api/v1/admin/import/packages/${draftId}/checklist`,
+    accessToken,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ confirmed }),
+    },
+  );
+
+  return parseImportResponse(response);
+};
+
 export const approveImportDraft = async (
   accessToken: string,
   draftId: string,
@@ -546,3 +1317,46 @@ export const approveImportDraft = async (
 
   return parseImportResponse(response);
 };
+
+export type ContentEnvironmentWire = 'fixture' | 'internal-review' | 'learner-production';
+
+export interface AdminContentSource {
+  sourceId: string;
+  title: string;
+  owner: string | null;
+  rootPath: string;
+  allowedEnvironments: ContentEnvironmentWire[];
+  expiresAt: string | null;
+  licenceReference: string | null;
+  reviewer: string | null;
+  reviewedAt: string | null;
+  mayReachLearners: boolean;
+  fileCount: number;
+  hashedFileCount: number;
+  examDefinitionIds: string[];
+  examVersionIds: string[];
+}
+
+export interface RegisterContentSourcePayload {
+  sourceId: string;
+  title: string;
+  owner?: string | null;
+  rootPath: string;
+  allowedEnvironments: ContentEnvironmentWire[];
+  expiresAt?: string | null;
+  files?: Array<{ path: string; sha256?: string | null; sizeBytes?: number | null }>;
+  proof?: { reference: string; reviewer: string; reviewedAt: string } | null;
+}
+
+export const listContentSources = (accessToken: string) =>
+  request<{ note: string; sources: AdminContentSource[] }>('/api/v1/admin/content-sources', {
+    accessToken,
+  });
+
+export const registerContentSource = (accessToken: string, body: RegisterContentSourcePayload) =>
+  request<AdminContentSource>('/api/v1/admin/content-sources', {
+    method: 'POST',
+    accessToken,
+    body,
+    idempotencyKey: key(),
+  });

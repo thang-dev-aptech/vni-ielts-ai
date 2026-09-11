@@ -30,7 +30,7 @@ public sealed class RegisterUserUsageTests
 
         public RegisterUser Sut => new(
             Users, Identities, Roles, Hasher,
-            new FakePermissionResolver(PermissionKeys.ExamRead), Sessions, new FixedClock(Now),
+            new FakePermissionResolver(PermissionKeys.ExamReadOwn), Sessions, new FixedClock(Now),
             Referrals,
             new Vni.Ielts.Application.Usage.UsageRecorder(
                 Ledger, Options, new FakeExamSessionRepositoryForUsage(), new FixedClock(Now)));

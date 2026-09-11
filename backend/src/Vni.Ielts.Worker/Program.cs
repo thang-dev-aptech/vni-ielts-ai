@@ -135,6 +135,8 @@ builder.Services.AddSingleton<Vni.Ielts.Application.Identity.IRequestDevice, Nul
 builder.Services.AddSingleton<WorkerHealthState>();
 
 builder.Services.AddHostedService<MarkingWorker>();
+builder.Services.AddHostedService<PackageIngestionWorker>();
+builder.Services.AddHostedService<RetentionWorker>();
 
 /*
  * <b>Off unless switched on</b> — see the class. A background process that

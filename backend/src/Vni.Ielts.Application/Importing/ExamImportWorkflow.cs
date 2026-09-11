@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Importing;
@@ -71,7 +72,15 @@ public sealed record ExamImportDraft(
     ImportReviewChecklist Checklist,
     IReadOnlyList<ImportReviewWarning> Warnings,
     int Revision,
-    string? ReviewedBy);
+    string? ReviewedBy,
+    bool ChecklistRequired = true,
+    UserId? CreatedBy = null,
+    DateTimeOffset? CreatedAt = null,
+    IReadOnlyList<ImportAssetManifestEntry>? AssetManifest = null,
+    string? PackageId = null)
+{
+    public IReadOnlyList<ImportAssetManifestEntry> Assets => AssetManifest ?? [];
+}
 
 public sealed record ExamImportAttempt(
     bool IsAccepted, ExamImportDraft? Draft, IReadOnlyList<PackageFinding> Findings)
@@ -98,7 +107,14 @@ public sealed class ExamImportWorkflow(
         string packageJson,
         ExamDefinitionId definitionId,
         int versionNumber,
-        CancellationToken ct) =>
+        bool checklistRequired,
+        CancellationToken ct,
+        UserId? createdBy = null,
+        DateTimeOffset? createdAt = null,
+        IReadOnlyList<ImportAssetManifestEntry>? assetManifest = null,
+        string? packageId = null,
+        bool saveDraft = true,
+        string? draftStabilityKey = null) =>
         ValidateAndSaveAsync(
             packageJson,
             definitionId,
@@ -107,13 +123,25 @@ public sealed class ExamImportWorkflow(
             Hash(packageJson),
             packageJson,
             parserMetadata: null,
-            ct);
+            checklistRequired,
+            ct,
+            createdBy,
+            createdAt,
+            assetManifest,
+            packageId,
+            saveDraft,
+            draftStabilityKey);
 
     public async Task<ExamImportAttempt> ImportExtractedAsync(
         ExtractedImportSource source,
         ExamDefinitionId definitionId,
         int versionNumber,
-        CancellationToken ct)
+        bool checklistRequired,
+        CancellationToken ct,
+        UserId? createdBy = null,
+        DateTimeOffset? createdAt = null,
+        string? packageId = null,
+        bool saveDraft = true)
     {
         var observedHash = Hash(source.Text);
         if (!FixedTimeEquals(source.TextSha256, observedHash))
@@ -135,7 +163,12 @@ public sealed class ExamImportWorkflow(
             source.SourceSha256.ToLowerInvariant(),
             source.Text,
             parsed.Metadata,
-            ct);
+            checklistRequired,
+            ct,
+            createdBy,
+            createdAt,
+            packageId: packageId,
+            saveDraft: saveDraft);
     }
 
     private async Task<ExamImportAttempt> ValidateAndSaveAsync(
@@ -146,7 +179,14 @@ public sealed class ExamImportWorkflow(
         string sourceHash,
         string sourceText,
         ParserRunMetadata? parserMetadata,
-        CancellationToken ct)
+        bool checklistRequired,
+        CancellationToken ct,
+        UserId? createdBy = null,
+        DateTimeOffset? createdAt = null,
+        IReadOnlyList<ImportAssetManifestEntry>? assetManifest = null,
+        string? packageId = null,
+        bool saveDraft = true,
+        string? draftStabilityKey = null)
     {
         var validation = validator.Validate(packageJson, definitionId, versionNumber);
         if (!validation.IsValid || validation.Version is null)
@@ -160,21 +200,41 @@ public sealed class ExamImportWorkflow(
             }
             : [];
         var packageHash = Hash(packageJson);
+        Guid draftId;
+        if (!string.IsNullOrWhiteSpace(packageId))
+        {
+            var material = string.IsNullOrWhiteSpace(draftStabilityKey)
+                ? $"{definitionId.Value}\n{versionNumber}\n{route}\n{packageHash}\n{packageId}"
+                : $"{definitionId.Value}\n{versionNumber}\n{route}\n{packageHash}\n{packageId}\n{draftStabilityKey}";
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(material));
+            draftId = new Guid(bytes.AsSpan(0, 16));
+        }
+        else
+        {
+            draftId = StableDraftId(definitionId, versionNumber, route, packageHash);
+        }
+
         var draft = new ExamImportDraft(
-            StableDraftId(definitionId, versionNumber, route, packageHash),
+            draftId,
             definitionId, versionNumber, route, sourceHash, packageHash,
             validation.Version, parserMetadata, ImportApprovalState.ReviewRequired,
             validation.Findings, sourceText,
-            packageJson, ImportReviewChecklist.Empty, warnings, 0, null);
+            packageJson, ImportReviewChecklist.Empty, warnings, 0, null,
+            checklistRequired, createdBy, createdAt,
+            assetManifest ?? [],
+            packageId);
 
-        await drafts.SaveAsync(draft, ct);
+        if (saveDraft)
+        {
+            await drafts.SaveAsync(draft, ct);
+        }
         return ExamImportAttempt.Accepted(draft);
     }
 
     public static string Hash(string value) =>
         Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 
-    private static Guid StableDraftId(
+    public static Guid StableDraftId(
         ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route, string packageHash)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(

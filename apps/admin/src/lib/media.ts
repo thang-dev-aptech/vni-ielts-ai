@@ -54,6 +54,12 @@ export interface VersionAsset {
   /** Where in the exam it is used, for a human. */
   usedAt: string;
   kind: MediaKind;
+  /** Display only, and never a storage key or an audio URL. */
+  fileName?: string | null;
+  sizeBytes?: number;
+  checksum?: string | null;
+  /** Server-side: whether the bytes actually open. Matches `AdminExamAsset`. */
+  resolved?: boolean;
 }
 
 export const KIND_LABEL: Record<MediaKind, string> = {
@@ -201,7 +207,9 @@ export function mayRetire(asset: MediaAsset, versions: ReferencingVersion[]): bo
  * needs it before publication rather than during an attempt.
  */
 export function missingAssets(version: { assets: VersionAsset[] }): VersionAsset[] {
-  return version.assets.filter((a) => a.mediaId === null);
+  return version.assets.filter(
+    (a) => a.resolved === false || (a.resolved === undefined && a.mediaId === null),
+  );
 }
 
 /**

@@ -5,12 +5,15 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Common;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Application.Importing;
+using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
 using Vni.Ielts.Domain.Audit;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
+using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Content.Import;
 
 namespace Vni.Ielts.Api.Endpoints;
@@ -29,6 +32,8 @@ namespace Vni.Ielts.Api.Endpoints;
 /// </summary>
 public sealed record OverrideWarningRequest(string Reason);
 
+public sealed record SetChecklistRequest(IReadOnlyList<string> Confirmed);
+
 public sealed record ImportFindingView(string Severity, string Code, string Path, string Message);
 
 public sealed record ImportWarningView(
@@ -46,7 +51,14 @@ public sealed record ImportDraftView(
     IReadOnlyList<ImportFindingView> Findings,
     IReadOnlyList<ImportWarningView> Warnings,
     IReadOnlyList<string> ChecklistConfirmed,
-    bool ChecklistComplete);
+    bool ChecklistComplete,
+    bool ChecklistRequired,
+    string? CreatedBy = null,
+    DateTimeOffset? CreatedAt = null,
+    string? Title = null,
+    string? ExamVersionId = null,
+    int UnresolvedWarningCount = 0,
+    int AssetCount = 0);
 
 public sealed record ImportRejectionView(bool IsAccepted, IReadOnlyList<ImportFindingView> Findings);
 
@@ -71,8 +83,12 @@ public static class AdminImportEndpoints
 
         group.MapPost("/packages", UploadPackageEndpoint)
             .WithName("AdminImportPackage")
-            .WithSummary("Upload one exam package ZIP; validates and creates a review draft synchronously")
+            .WithSummary("Legacy upload route; use POST /api/v1/admin/packages")
             .DisableAntiforgery();
+
+        group.MapGet("/packages", ListDraftsEndpoint)
+            .WithName("AdminListImportDrafts")
+            .WithSummary("Import drafts newest first, for resume after leaving the upload page");
 
         group.MapGet("/packages/{draftId}", GetDraftEndpoint)
             .WithName("AdminGetImportDraft")
@@ -82,88 +98,53 @@ public static class AdminImportEndpoints
             .WithName("AdminOverrideImportWarning")
             .WithSummary("Resolve a warning with a mandatory reason; audited as WarningOverridden");
 
+        group.MapPost("/packages/{draftId}/checklist", SetChecklistEndpoint)
+            .WithName("AdminSetImportChecklist")
+            .WithSummary("Confirm which review-checklist categories this draft has cleared");
+
         group.MapPost("/packages/{draftId}/approve", ApproveEndpoint)
             .WithName("AdminApproveImportDraft")
             .WithSummary("Approve a draft once every warning is resolved and the checklist is complete");
     }
 
     /// <summary>
-    /// <c>multipart/form-data</c>: a <c>file</c> part (the ZIP) and two
-    /// optional text fields, <c>definitionId</c> and <c>versionNumber</c>
-    /// (defaults: a fresh definition id, version 1 — the "new exam" case,
-    /// which is what an operator uploading a package for the first time
-    /// almost always means).
+    /// <c>multipart/form-data</c>: a <c>file</c> part (the ZIP) and optional
+    /// text fields <c>definitionId</c>, <c>versionNumber</c> (defaults: a fresh
+    /// definition id, version 1 — the "new exam" case), and
+    /// <c>checklistRequired</c> (absent or unparseable means <c>true</c> — the
+    /// conservative reading: the six-item review checklist still gates approval).
     ///
     /// <b>Synchronous, by design.</b> The brief is explicit that a background
     /// job queue is out of scope here — the archive caps already bound how
     /// large a single package can be (S6a), so the request completes inside
     /// an ordinary HTTP timeout.
     /// </summary>
-    private static async Task<IResult> UploadPackageEndpoint(
-        HttpRequest request, ClaimsPrincipal principal, ExamPackageImportPipeline pipeline,
-        IOptions<ImportArchiveOptions> archiveOptions, HttpContext http, CancellationToken ct)
+    private static IResult UploadPackageEndpoint(ClaimsPrincipal principal, HttpContext http)
     {
         if (principal.UserId() is null) return Results.Unauthorized();
-        if (Denied(principal, PermissionKeys.PackageUpload) is { } denial) return denial;
+        if (Denied(principal, PermissionKeys.PackageUpload) is { } denialUpload) return denialUpload;
+        if (Denied(principal, PermissionKeys.ExamCreate) is { } denialCreate) return denialCreate;
 
-        if (!request.HasFormContentType)
-            return Problem(ErrorCodes.ValidationFailed, "Expected a multipart upload.", 400, http);
+        return Problem(
+            "IMPORT_UPLOAD_MOVED",
+            "Package uploads moved to POST /api/v1/admin/packages.",
+            StatusCodes.Status410Gone,
+            http);
+    }
 
-        // Raised before ReadFormAsync reads the body — the feature is
-        // read-only once reading starts. See ExamEndpoints.UploadRecordingEndpoint
-        // for the identical reasoning and the same "not covered under
-        // TestServer" caveat.
-        if (request.HttpContext.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } cap)
-            cap.MaxRequestBodySize = archiveOptions.Value.MaxArchiveBytes + MultipartOverheadBytes;
+    private static async Task<IResult> ListDraftsEndpoint(
+        ClaimsPrincipal principal, IImportDraftStore drafts, CancellationToken ct)
+    {
+        if (DeniedUnlessCanReadImportDraft(principal) is { } denial) return denial;
 
-        var form = await request.ReadFormAsync(ct);
-        var file = form.Files.GetFile("file");
-        if (file is null || file.Length == 0)
-            return Problem(ErrorCodes.ValidationFailed, "A package needs a non-empty 'file' part.", 400, http);
-
-        var definitionId = form["definitionId"].ToString() is { Length: > 0 } supplied
-            ? new ExamDefinitionId(supplied)
-            : ExamDefinitionId.New();
-        var versionNumber = int.TryParse(form["versionNumber"], out var parsed) && parsed > 0 ? parsed : 1;
-
-        await using var uploadStream = file.OpenReadStream();
-        var seekable = uploadStream;
-        FileStream? spooled = null;
-
-        try
-        {
-            if (!seekable.CanSeek)
-            {
-                // Belt and braces: buffered form parts are seekable in every
-                // configuration this deployment runs today, but a caller must
-                // never get a wrong read of a truncated archive if that ever
-                // stops being true.
-                spooled = new FileStream(
-                    Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.None,
-                    81_920, FileOptions.DeleteOnClose | FileOptions.Asynchronous);
-                await uploadStream.CopyToAsync(spooled, ct);
-                spooled.Position = 0;
-                seekable = spooled;
-            }
-
-            var attempt = await pipeline.ImportAsync(seekable, definitionId, versionNumber, ct);
-
-            if (!attempt.IsAccepted || attempt.Draft is null)
-                return Rejected(attempt.Findings, http);
-
-            return Results.Created(
-                $"/api/v1/admin/import/packages/{attempt.Draft.Id:D}", ToView(attempt.Draft));
-        }
-        finally
-        {
-            if (spooled is not null) await spooled.DisposeAsync();
-        }
+        var listed = await drafts.ListAsync(ct);
+        return Results.Ok(new { drafts = listed.Select(ToView).ToArray() });
     }
 
     private static async Task<IResult> GetDraftEndpoint(
         string draftId, ClaimsPrincipal principal, IImportDraftStore drafts, CancellationToken ct)
     {
-        if (Denied(principal, PermissionKeys.PackageRead) is { } denial) return denial;
+        if (DeniedUnlessCanReadImportDraft(principal) is { } denial) return denial;
         if (!Guid.TryParse(draftId, out var id)) return Results.NotFound();
 
         var draft = await drafts.FindAsync(id, ct);
@@ -214,6 +195,36 @@ public static class AdminImportEndpoints
         return Results.Ok(ToView(draft));
     }
 
+    private static async Task<IResult> SetChecklistEndpoint(
+        string draftId, SetChecklistRequest request, ClaimsPrincipal principal,
+        IImportDraftStore drafts, ImportReviewWorkflow review, HttpContext http, CancellationToken ct)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+        if (!Guid.TryParse(draftId, out var id)) return Results.NotFound();
+
+        var parsed = new HashSet<ImportReviewCategory>();
+        foreach (var name in request.Confirmed ?? [])
+        {
+            if (!Enum.TryParse<ImportReviewCategory>(name, ignoreCase: true, out var category)
+                || !Enum.IsDefined(category))
+            {
+                return Problem(
+                    ErrorCodes.ValidationFailed,
+                    $"Unknown checklist category '{name}'.",
+                    400,
+                    http);
+            }
+            parsed.Add(category);
+        }
+
+        var current = await drafts.FindAsync(id, ct);
+        if (current is null) return Results.NotFound();
+
+        var actor = BuildActor(principal);
+        var result = await review.SetChecklistAsync(id, current.Revision, parsed, actor, ct);
+        return result.IsSuccess ? Results.Ok(ToView(result.Draft!)) : RefusedResult(result, http);
+    }
+
     private static async Task<IResult> ApproveEndpoint(
         string draftId, ClaimsPrincipal principal, IImportDraftStore drafts, ImportReviewWorkflow review,
         HttpContext http, CancellationToken ct)
@@ -262,7 +273,14 @@ public static class AdminImportEndpoints
             w.Id, w.Category.ToString().ToLowerInvariant(), w.Path, w.Message, w.Resolved, w.OverrideReason))
             .ToArray(),
         draft.Checklist.Confirmed.Select(c => c.ToString().ToLowerInvariant()).ToArray(),
-        draft.Checklist.IsComplete);
+        draft.Checklist.IsComplete,
+        draft.ChecklistRequired,
+        draft.CreatedBy?.Value,
+        draft.CreatedAt,
+        draft.Version.Title,
+        draft.ApprovalState == ImportApprovalState.Approved ? draft.Version.Id.Value : null,
+        draft.Warnings.Count(w => !w.Resolved),
+        draft.Assets.Count);
 
     private static IResult Rejected(IReadOnlyList<PackageFinding> findings, HttpContext http) =>
         Results.Problem(
@@ -313,6 +331,28 @@ public static class AdminImportEndpoints
 
     private static IResult Conflict(string detail, HttpContext http) =>
         Problem(ErrorCodes.ValidationFailed, detail, StatusCodes.Status409Conflict, http);
+
+    /// <summary>
+    /// List and detail share this gate so a reviewer holding only
+    /// <see cref="PermissionKeys.ExamReview"/> can resume a draft. Upload,
+    /// checklist, warning override and approve keep their own checks.
+    /// </summary>
+    private static IResult? DeniedUnlessCanReadImportDraft(ClaimsPrincipal principal)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+        var held = principal.Permissions();
+        if (held.Contains(PermissionKeys.PackageRead) || held.Contains(PermissionKeys.ExamReview))
+            return null;
+
+        return Results.Problem(
+            detail: $"This account does not hold {PermissionKeys.PackageRead} or {PermissionKeys.ExamReview}.",
+            statusCode: StatusCodes.Status403Forbidden,
+            extensions: new Dictionary<string, object?>
+            {
+                ["code"] = ErrorCodes.PermissionDenied,
+                ["permission"] = $"{PermissionKeys.PackageRead}|{PermissionKeys.ExamReview}",
+            });
+    }
 
     /// <summary>403 with a stable code, not 404 — the caller is a named operator. Same reasoning as <c>AdminEndpoints.Denied</c>.</summary>
     private static IResult? Denied(ClaimsPrincipal principal, string permission)

@@ -55,11 +55,48 @@ public sealed class MongoContext
 
     internal IMongoCollection<RoleDocument> Roles => _db.GetCollection<RoleDocument>("roles");
 
+    internal IMongoCollection<StaffInvitationDocument> StaffInvitations =>
+        _db.GetCollection<StaffInvitationDocument>("staff_invitations");
+
+    internal IMongoCollection<PrivacyRequestDocument> PrivacyRequests =>
+        _db.GetCollection<PrivacyRequestDocument>("privacy_requests");
+
+    internal IMongoCollection<PersonalDataExportDocument> PersonalDataExports =>
+        _db.GetCollection<PersonalDataExportDocument>("personal_data_exports");
+
+    internal IMongoCollection<AdminPrivilegeCoordinationDocument> AdminPrivilegeCoordination =>
+        _db.GetCollection<AdminPrivilegeCoordinationDocument>("admin_privilege_coordination");
+
     internal IMongoCollection<RefreshTokenDocument> RefreshTokens =>
         _db.GetCollection<RefreshTokenDocument>("refresh_tokens");
 
     internal IMongoCollection<Exams.ExamVersionDocument> ExamVersions =>
         _db.GetCollection<Exams.ExamVersionDocument>("exam_versions");
+
+    internal IMongoCollection<Exams.ExamPackageDocument> ExamPackages =>
+        _db.GetCollection<Exams.ExamPackageDocument>("exam_packages");
+
+    internal IMongoCollection<Exams.PackageUploadIdempotencyDocument> PackageUploadIdempotency =>
+        _db.GetCollection<Exams.PackageUploadIdempotencyDocument>("package_upload_idempotency");
+
+    internal IMongoCollection<Exams.PackageUploadReconciliationDocument> PackageUploadReconciliation =>
+        _db.GetCollection<Exams.PackageUploadReconciliationDocument>("package_upload_reconciliation");
+
+    internal IMongoCollection<Exams.ParsedExamCandidateDocument> ParsedExamCandidates =>
+        _db.GetCollection<Exams.ParsedExamCandidateDocument>("parsed_exam_candidates");
+
+    internal IMongoCollection<Exams.SourceDocumentGroupingProposalDocument> SourceDocumentGroupingProposals =>
+        _db.GetCollection<Exams.SourceDocumentGroupingProposalDocument>("source_document_grouping_proposals");
+
+    /// <summary>
+    /// AI extraction attempt log — provider call metadata for a package parse,
+    /// an audit fact. → <c>ExamExtractionRunMetadata</c>
+    /// </summary>
+    internal IMongoCollection<Exams.ExamExtractionRunDocument> ExamExtractionRuns =>
+        _db.GetCollection<Exams.ExamExtractionRunDocument>("exam_extraction_runs");
+
+    internal IMongoCollection<Media.MediaAssetDocument> MediaAssets =>
+        _db.GetCollection<Media.MediaAssetDocument>("media_assets");
 
     /// <summary>
     /// What VNI is allowed to do with each body of source material.
@@ -141,6 +178,12 @@ public sealed class MongoContext
     /// <summary>Resume state for <c>ImportBatchRunner</c>, keyed by <c>{batchId}:{itemId}</c>.</summary>
     internal IMongoCollection<Importing.ImportBatchCheckpointDocument> ImportBatchCheckpoints =>
         _db.GetCollection<Importing.ImportBatchCheckpointDocument>("import_batch_checkpoints");
+
+    internal IMongoCollection<Importing.ImportAssetCleanupIntentDocument> ImportAssetCleanupIntents =>
+        _db.GetCollection<Importing.ImportAssetCleanupIntentDocument>("import_asset_cleanup_intents");
+
+    internal IMongoCollection<Importing.ImportAssetCleanupCoordinationDocument> ImportAssetCleanupCoordination =>
+        _db.GetCollection<Importing.ImportAssetCleanupCoordinationDocument>("import_asset_cleanup_coordination");
 
     /// <summary>
     /// Refuses to start against a node that cannot do transactions.
@@ -262,6 +305,39 @@ public sealed class MongoContext
                     PartialFilterExpression = Builders<UserDocument>.Filter.Type(
                         u => u.Phone, BsonType.String),
                 }),
+            cancellationToken: ct);
+
+        // Staff invitations: unique live email (pending only), unique token hash.
+        await StaffInvitations.Indexes.CreateOneAsync(
+            new CreateIndexModel<StaffInvitationDocument>(
+                Builders<StaffInvitationDocument>.IndexKeys.Ascending(i => i.TokenHash),
+                new CreateIndexOptions { Unique = true, Name = "ux_staff_invitations_token" }),
+            cancellationToken: ct);
+
+        await StaffInvitations.Indexes.CreateOneAsync(
+            new CreateIndexModel<StaffInvitationDocument>(
+                Builders<StaffInvitationDocument>.IndexKeys.Ascending(i => i.Email),
+                new CreateIndexOptions<StaffInvitationDocument>
+                {
+                    Unique = true,
+                    Name = "ux_staff_invitations_live_email",
+                    PartialFilterExpression = Builders<StaffInvitationDocument>.Filter.Eq(
+                        i => i.Status, nameof(Domain.Identity.StaffInvitationStatus.Pending)),
+                }),
+            cancellationToken: ct);
+
+        await StaffInvitations.Indexes.CreateOneAsync(
+            new CreateIndexModel<StaffInvitationDocument>(
+                Builders<StaffInvitationDocument>.IndexKeys
+                    .Ascending(i => i.Status)
+                    .Descending(i => i.CreatedAt),
+                new CreateIndexOptions { Name = "ix_staff_invitations_status_created" }),
+            cancellationToken: ct);
+
+        await PrivacyRequests.Indexes.CreateOneAsync(
+            new CreateIndexModel<PrivacyRequestDocument>(
+                Builders<PrivacyRequestDocument>.IndexKeys.Ascending(r => r.SubjectId),
+                new CreateIndexOptions { Name = "ix_privacy_requests_subject" }),
             cancellationToken: ct);
 
         // Sparse: most historical rows have none until `EnsureReferralCode`
@@ -488,6 +564,26 @@ public sealed class MongoContext
                     Name = "ttl_refresh_expiry",
                     ExpireAfter = TimeSpan.Zero,
                 }),
+            cancellationToken: ct);
+
+        await ParsedExamCandidates.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.ParsedExamCandidateDocument>(
+                Builders<Exams.ParsedExamCandidateDocument>.IndexKeys.Ascending(c => c.PackageId),
+                new CreateIndexOptions { Name = "ix_parsed_exam_candidates_package" }),
+            cancellationToken: ct);
+
+        await MediaAssets.Indexes.CreateOneAsync(
+            new CreateIndexModel<Media.MediaAssetDocument>(
+                Builders<Media.MediaAssetDocument>.IndexKeys.Descending(a => a.UploadedAt),
+                new CreateIndexOptions { Name = "ix_media_assets_uploaded_at" }),
+            cancellationToken: ct);
+
+        await PackageUploadIdempotency.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.PackageUploadIdempotencyDocument>(
+                Builders<Exams.PackageUploadIdempotencyDocument>.IndexKeys
+                    .Ascending(d => d.ActorId)
+                    .Ascending(d => d.IdempotencyKey),
+                new CreateIndexOptions { Name = "ix_package_upload_idempotency_actor_key", Unique = true }),
             cancellationToken: ct);
     }
 }

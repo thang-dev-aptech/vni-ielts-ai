@@ -24,8 +24,11 @@ name: vni-ielts-production-smoke
 services:
   api:
     build:
-      context: ../../backend
-      dockerfile: Dockerfile
+      # Repo root, not backend/ — backend/Dockerfile's schema COPY
+      # (contracts/schemas/, S6b) only resolves from here. Matches
+      # apps/web, apps/admin, and compose.preview.yaml's context already.
+      context: ../..
+      dockerfile: backend/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: 8080
@@ -69,8 +72,8 @@ services:
 
   worker:
     build:
-      context: ../../backend
-      dockerfile: Dockerfile.worker
+      context: ../..
+      dockerfile: backend/Dockerfile.worker
     environment:
       DOTNET_ENVIRONMENT: Production
       Mongo__ConnectionString: mongodb://host.docker.internal:27018/?directConnection=true

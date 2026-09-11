@@ -6,9 +6,13 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Audit;
+using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
 
 namespace Vni.Ielts.Integration.Tests;
@@ -26,8 +30,13 @@ namespace Vni.Ielts.Integration.Tests;
 /// </summary>
 public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture<SsoAppFactory>
 {
+    private const string ConnectionString = "mongodb://localhost:27018/?directConnection=true";
+    private const string Password = "mot-mat-khau-du-dai-2026";
+
     private HttpClient NewClient() =>
         app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+    private IMongoDatabase Db() => new MongoClient(ConnectionString).GetDatabase(app.Database);
 
     private async Task<(HttpClient Client, string Access)> SignInAsAdminAsync()
     {
@@ -92,7 +101,7 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         var content = new MultipartFormDataContent();
         var part = new ByteArrayContent(zip);
         part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-        content.Add(part, "file", "package.zip");
+        content.Add(part, "package", "package.zip");
         return content;
     }
 
@@ -171,53 +180,53 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     """;
 
     [SkippableFact]
-    public async Task Uploading_a_valid_structured_package_creates_an_unapproved_draft()
+    public async Task Legacy_upload_route_returns_gone_with_the_moved_contract()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
         var (client, access) = await SignInAsAdminAsync();
-
         var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
         request.Content = ValidStructuredPackage();
 
         var response = await client.SendAsync(request);
         var body = await BodyOf(response);
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal("structuredpackage", body.GetProperty("route").GetString());
-        Assert.Equal("reviewrequired", body.GetProperty("approvalState").GetString());
-        Assert.Equal(0, body.GetProperty("findings").GetArrayLength());
-        Assert.Equal(0, body.GetProperty("warnings").GetArrayLength());
-
-        var draftId = body.GetProperty("draftId").GetString();
-        Assert.False(string.IsNullOrWhiteSpace(draftId));
-
-        // The draft the upload just made is really persisted and reachable
-        // by a caller with package.read — not just echoed in the response.
-        var getResponse = await client.SendAsync(
-            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
-        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+        Assert.Equal("IMPORT_UPLOAD_MOVED", body.GetProperty("code").GetString());
+        Assert.Contains("POST /api/v1/admin/packages", body.GetProperty("detail").GetString());
     }
 
     [SkippableFact]
-    public async Task A_compression_bomb_is_refused_before_anything_is_persisted()
+    public async Task Uploaded_package_keeps_the_json_content_source_id_on_the_draft_version()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
         var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadDraftAsync(client, access);
+
+        using var scope = app.Services.CreateScope();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+        var draft = await drafts.FindAsync(Guid.Parse(draftId), default);
+
+        Assert.Equal("synthetic-validation", draft!.Version.ContentSourceId?.Value);
+    }
+
+    [SkippableFact]
+    public async Task Legacy_upload_route_requires_package_upload_permission()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        var phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var (_, userId) = await RegisterAsync(client, phone);
+        await GrantExactPermissionsAsync(userId, "legacy-upload-exam-create-only", PermissionKeys.ExamCreate);
+        var access = await LoginAsync(client, phone);
 
         var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
-        request.Content = BombPackage();
-
+        request.Content = ValidStructuredPackage();
         var response = await client.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
-        var body = await BodyOf(response);
-        Assert.Equal("PACKAGE_REJECTED", body.GetProperty("code").GetString());
-        Assert.True(body.GetProperty("findings").GetArrayLength() > 0);
-
-        // No draft id is even offered — there is nothing for a caller to look up.
-        Assert.False(body.TryGetProperty("draftId", out _));
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [SkippableFact]
@@ -225,40 +234,67 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
-        // A signed-in learner has no package.upload — the server enforces
-        // this, not just the CMS hiding a button. The stub SSO provider
-        // always authenticates the same account, and another test in this
-        // class may already have promoted it to Admin, so the role is
-        // explicitly stripped here rather than assumed absent — this test
-        // must hold regardless of what ran before it.
         var client = NewClient();
-        await SsoRoundTripAsync(client);
-
-        using (var scope = app.Services.CreateScope())
-        {
-            var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-            var roles = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
-            var admin = await roles.FindByNameAsync(SystemRoles.Admin, default);
-            var user = await users.FindByEmailAsync(
-                Vni.Ielts.Domain.Identity.Email.Create("stub.learner@example.com"), default);
-
-            if (admin is not null && user is not null && user.HasRole(admin.Id))
-            {
-                user.RemoveRole(admin.Id);
-                await users.SaveAsync(user, default);
-            }
-        }
-
-        // Permissions are resolved when the token is minted, so a fresh
-        // sign-in is taken after the role removal lands.
-        var access = await SsoRoundTripAsync(client);
+        var phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var (_, userId) = await RegisterAsync(client, phone);
+        await GrantExactPermissionsAsync(userId, "legacy-upload-exam-create-only", PermissionKeys.ExamCreate);
+        var access = await LoginAsync(client, phone);
 
         var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
         request.Content = ValidStructuredPackage();
-
         var response = await client.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [SkippableFact]
+    public async Task Reviewer_with_only_exam_review_can_list_import_drafts()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, reviewerAccess, draftId) = await ReviewerOnlyWithUploadedDraftAsync();
+
+        var list = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/packages", reviewerAccess));
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+
+        var listed = (await BodyOf(list)).GetProperty("drafts").EnumerateArray()
+            .Single(d => d.GetProperty("draftId").GetString() == draftId);
+        Assert.Equal("reviewrequired", listed.GetProperty("approvalState").GetString());
+    }
+
+    [SkippableFact]
+    public async Task Reviewer_with_only_exam_review_can_open_import_draft_detail()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, reviewerAccess, draftId) = await ReviewerOnlyWithUploadedDraftAsync();
+
+        var detail = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", reviewerAccess));
+        Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
+        Assert.Equal(draftId, (await BodyOf(detail)).GetProperty("draftId").GetString());
+    }
+
+    [SkippableFact]
+    public async Task Actor_without_package_read_or_exam_review_is_forbidden_from_list_and_detail()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (adminClient, adminAccess) = await SignInAsAdminAsync();
+        var draftId = await UploadDraftAsync(adminClient, adminAccess);
+
+        var client = NewClient();
+        var phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var (access, _) = await RegisterAsync(client, phone);
+
+        var list = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/packages", access));
+        Assert.Equal(HttpStatusCode.Forbidden, list.StatusCode);
+
+        var detail = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        Assert.Equal(HttpStatusCode.Forbidden, detail.StatusCode);
     }
 
     /// <summary>
@@ -342,6 +378,380 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
             ImportApprovalState.ReviewRequired, (await drafts.FindAsync(Guid.Parse(draftId), default))!.ApprovalState);
     }
 
+    private static readonly string[] FullChecklist =
+    [
+        "questions",
+        "options",
+        "wordlimits",
+        "acceptedvariants",
+        "transcriptandevidence",
+        "assetmapping",
+    ];
+
+    [SkippableFact]
+    public async Task Legacy_upload_route_does_not_persist_an_import_draft()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        using var scope = app.Services.CreateScope();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+        var before = await drafts.ListAsync(default);
+
+        var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        request.Content = ValidStructuredPackage();
+        var response = await client.SendAsync(request);
+
+        var after = await drafts.ListAsync(default);
+        Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+        Assert.Equal(before.Select(d => d.Id), after.Select(d => d.Id));
+    }
+
+    [SkippableFact]
+    public async Task Setting_the_full_checklist_unblocks_approval()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadDraftAsync(client, access);
+        await ResolveOpenWarningsAsync(client, access, draftId);
+
+        var checklist = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = FullChecklist });
+        var checklistResponse = await client.SendAsync(checklist);
+        var checklistBody = await BodyOf(checklistResponse);
+
+        Assert.Equal(HttpStatusCode.OK, checklistResponse.StatusCode);
+        Assert.True(checklistBody.GetProperty("checklistComplete").GetBoolean());
+
+        var approve = await client.SendAsync(
+            Request(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access));
+        var approveBody = await BodyOf(approve);
+
+        Assert.Equal(HttpStatusCode.OK, approve.StatusCode);
+        Assert.Equal("approved", approveBody.GetProperty("approvalState").GetString());
+    }
+
+    [SkippableFact]
+    public async Task An_unknown_checklist_category_is_refused_with_400()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadDraftAsync(client, access);
+
+        var before = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var beforeBody = await BodyOf(before);
+        var confirmedBefore = beforeBody.GetProperty("checklistConfirmed")
+            .EnumerateArray().Select(v => v.GetString()).ToArray();
+
+        var checklist = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = new[] { "not-a-real-category" } });
+        var checklistResponse = await client.SendAsync(checklist);
+        var checklistBody = await BodyOf(checklistResponse);
+
+        Assert.Equal(HttpStatusCode.BadRequest, checklistResponse.StatusCode);
+        Assert.Equal("VALIDATION_FAILED", checklistBody.GetProperty("code").GetString());
+
+        var after = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var afterBody = await BodyOf(after);
+        var confirmedAfter = afterBody.GetProperty("checklistConfirmed")
+            .EnumerateArray().Select(v => v.GetString()).ToArray();
+
+        Assert.Equal(confirmedBefore, confirmedAfter);
+        Assert.False(afterBody.GetProperty("checklistComplete").GetBoolean());
+    }
+
+    [SkippableFact]
+    public async Task A_numeric_undefined_checklist_category_is_refused_with_400()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await UploadDraftAsync(client, access);
+
+        var before = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var beforeBody = await BodyOf(before);
+        var confirmedBefore = beforeBody.GetProperty("checklistConfirmed")
+            .EnumerateArray().Select(v => v.GetString()).ToArray();
+
+        var checklist = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = new[] { "999" } });
+        var checklistResponse = await client.SendAsync(checklist);
+        var checklistBody = await BodyOf(checklistResponse);
+
+        Assert.Equal(HttpStatusCode.BadRequest, checklistResponse.StatusCode);
+        Assert.Equal("VALIDATION_FAILED", checklistBody.GetProperty("code").GetString());
+
+        var after = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var afterBody = await BodyOf(after);
+        var confirmedAfter = afterBody.GetProperty("checklistConfirmed")
+            .EnumerateArray().Select(v => v.GetString()).ToArray();
+
+        Assert.Equal(confirmedBefore, confirmedAfter);
+        Assert.False(afterBody.GetProperty("checklistComplete").GetBoolean());
+    }
+
+    [SkippableFact]
+    public async Task Uploaded_draft_appears_in_the_import_package_list()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var userId = await MeUserIdAsync(client, access);
+        var draftId = await UploadDraftAsync(client, access);
+
+        var list = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/packages", access));
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+
+        var body = await BodyOf(list);
+        var listed = body.GetProperty("drafts").EnumerateArray()
+            .Single(d => d.GetProperty("draftId").GetString() == draftId);
+
+        Assert.Equal("Admin import HTTP test", listed.GetProperty("title").GetString());
+        Assert.Equal(userId, listed.GetProperty("createdBy").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(listed.GetProperty("createdAt").GetString()));
+        Assert.Equal("reviewrequired", listed.GetProperty("approvalState").GetString());
+        Assert.False(listed.GetProperty("checklistComplete").GetBoolean());
+        Assert.Equal(0, listed.GetProperty("unresolvedWarningCount").GetInt32());
+    }
+
+    [SkippableFact]
+    public async Task Legacy_upload_route_requires_exam_create_permission()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        var phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var (_, userId) = await RegisterAsync(client, phone);
+        await GrantExactPermissionsAsync(userId, "legacy-upload-package-only", PermissionKeys.PackageUpload);
+        var access = await LoginAsync(client, phone);
+
+        var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        request.Content = ValidStructuredPackage();
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [SkippableFact]
+    public async Task Approval_returns_examVersionId_and_promotes_the_uploader_owned_catalogue_draft()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var userId = await MeUserIdAsync(client, access);
+        var draftId = await UploadDraftAsync(client, access);
+        await ResolveOpenWarningsAsync(client, access, draftId);
+        await ConfirmFullChecklistAsync(client, access, draftId);
+
+        var approve = await client.SendAsync(
+            Request(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access));
+        var approveBody = await BodyOf(approve);
+
+        Assert.Equal(HttpStatusCode.OK, approve.StatusCode);
+        Assert.Equal("approved", approveBody.GetProperty("approvalState").GetString());
+        var examVersionId = approveBody.GetProperty("examVersionId").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(examVersionId));
+
+        var exam = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/exams/{examVersionId}", access));
+        var examBody = await BodyOf(exam);
+        Assert.Equal(HttpStatusCode.OK, exam.StatusCode);
+        Assert.Equal("draft", examBody.GetProperty("status").GetString());
+        Assert.Equal(userId, examBody.GetProperty("authorId").GetString());
+    }
+
+    [SkippableFact]
+    public async Task Uploader_remains_catalogue_owner_when_a_different_reviewer_approves()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        var phoneA = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var phoneB = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var (_, userA) = await RegisterAsync(client, phoneA);
+        var (_, userB) = await RegisterAsync(client, phoneB);
+        Assert.NotEqual(userA, userB);
+
+        await GrantExactPermissionsAsync(userA, "import-uploader",
+            PermissionKeys.PackageUpload, PermissionKeys.ExamCreate, PermissionKeys.ExamReadOwn);
+        await GrantExactPermissionsAsync(userB, "import-reviewer",
+            PermissionKeys.ExamReview, PermissionKeys.ExamReadOwn);
+
+        var accessA = await LoginAsync(client, phoneA);
+        var accessB = await LoginAsync(client, phoneB);
+
+        var draftId = await UploadDraftAsync(client, accessA);
+        await ResolveOpenWarningsAsync(client, accessB, draftId);
+        await ConfirmFullChecklistAsync(client, accessB, draftId);
+
+        var approve = await client.SendAsync(
+            Request(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", accessB));
+        var approveBody = await BodyOf(approve);
+
+        Assert.Equal(HttpStatusCode.OK, approve.StatusCode);
+        Assert.Equal("approved", approveBody.GetProperty("approvalState").GetString());
+        Assert.Equal(userB, approveBody.GetProperty("reviewedBy").GetString());
+        Assert.Equal(userA, approveBody.GetProperty("createdBy").GetString());
+        var examVersionId = approveBody.GetProperty("examVersionId").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(examVersionId));
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+            var draft = await drafts.FindAsync(Guid.Parse(draftId), default);
+            Assert.Equal(userB, draft!.ReviewedBy);
+            Assert.Equal(userA, draft.CreatedBy?.Value);
+            Assert.Equal(ImportApprovalState.Approved, draft.ApprovalState);
+            Assert.Equal("synthetic-validation", draft.Version.ContentSourceId?.Value);
+
+            var catalogue = scope.ServiceProvider.GetRequiredService<IExamCatalogue>();
+            var version = await catalogue.FindAsync(new ExamVersionId(examVersionId!), default);
+            Assert.NotNull(version);
+            Assert.Equal(ExamVersionStatus.Draft, version!.Status);
+            Assert.Equal(userA, version.AuthorId?.Value);
+            Assert.NotEqual(userB, version.AuthorId?.Value);
+            Assert.Equal("synthetic-validation", version.ContentSourceId?.Value);
+        }
+
+        var stored = await Db().GetCollection<BsonDocument>("exam_versions")
+            .Find(Builders<BsonDocument>.Filter.Eq("_id", examVersionId)).FirstAsync();
+        Assert.Equal(userA, stored["authorId"].AsString);
+        Assert.Equal("Draft", stored["status"].AsString);
+        Assert.Equal("synthetic-validation", stored["contentSourceId"].AsString);
+
+        var listA = await client.SendAsync(Request(HttpMethod.Get, "/api/v1/admin/exams", accessA));
+        listA.EnsureSuccessStatusCode();
+        var ownedA = (await BodyOf(listA)).GetProperty("exams").EnumerateArray()
+            .Single(e => e.GetProperty("examVersionId").GetString() == examVersionId);
+        Assert.Equal(userA, ownedA.GetProperty("authorId").GetString());
+        Assert.Equal("draft", ownedA.GetProperty("status").GetString());
+
+        var listB = await client.SendAsync(Request(HttpMethod.Get, "/api/v1/admin/exams", accessB));
+        listB.EnsureSuccessStatusCode();
+        Assert.DoesNotContain(
+            (await BodyOf(listB)).GetProperty("exams").EnumerateArray(),
+            e => e.GetProperty("examVersionId").GetString() == examVersionId);
+    }
+
+    private static async Task ConfirmFullChecklistAsync(HttpClient client, string access, string draftId)
+    {
+        var checklist = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = FullChecklist });
+        var checklistResponse = await client.SendAsync(checklist);
+        Assert.Equal(HttpStatusCode.OK, checklistResponse.StatusCode);
+    }
+
+    private static async Task<string> MeUserIdAsync(HttpClient client, string access)
+    {
+        var me = await client.SendAsync(Request(HttpMethod.Get, "/api/v1/me", access));
+        me.EnsureSuccessStatusCode();
+        return (await BodyOf(me)).GetProperty("userId").GetString()!;
+    }
+
+    private static async Task<(string Access, string UserId)> RegisterAsync(HttpClient client, string phone)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/register")
+        {
+            Content = JsonContent.Create(new { phone, password = Password, displayName = "Import actor" }),
+        };
+        request.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        var session = (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("session");
+        return (session.GetProperty("accessToken").GetString()!, session.GetProperty("userId").GetString()!);
+    }
+
+    private static async Task<string> LoginAsync(HttpClient client, string phone)
+    {
+        var login = await client.PostAsJsonAsync("/api/v1/auth/login",
+            new { identifier = phone, password = Password });
+        login.EnsureSuccessStatusCode();
+        return (await login.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("accessToken").GetString()!;
+    }
+
+    private async Task GrantExactPermissionsAsync(string userId, string roleLabel, params string[] permissions)
+    {
+        var roleId = Guid.NewGuid().ToString("n");
+        await Db().GetCollection<BsonDocument>("roles").InsertOneAsync(new BsonDocument
+        {
+            ["_id"] = roleId,
+            ["name"] = $"{roleLabel}-{roleId}",
+            ["isSystem"] = false,
+            ["permissions"] = new BsonArray(permissions),
+        });
+
+        await Db().GetCollection<BsonDocument>("users").UpdateOneAsync(
+            Builders<BsonDocument>.Filter.Eq("_id", userId),
+            Builders<BsonDocument>.Update.Set("roleIds", new BsonArray { roleId }));
+    }
+
+    private async Task<(HttpClient Client, string ReviewerAccess, string DraftId)> ReviewerOnlyWithUploadedDraftAsync()
+    {
+        var (adminClient, adminAccess) = await SignInAsAdminAsync();
+        var draftId = await UploadDraftAsync(adminClient, adminAccess);
+
+        var client = NewClient();
+        var phone = $"09{Random.Shared.NextInt64(0, 100_000_000):D8}";
+        var (_, reviewerId) = await RegisterAsync(client, phone);
+        await GrantExactPermissionsAsync(reviewerId, "exam-review-only", PermissionKeys.ExamReview);
+        var reviewerAccess = await LoginAsync(client, phone);
+        return (client, reviewerAccess, draftId);
+    }
+
+    private async Task<string> UploadDraftAsync(HttpClient client, string access)
+    {
+        var request = Request(HttpMethod.Post, "/api/v1/admin/packages", access);
+        request.Content = ValidStructuredPackage();
+        var response = await client.SendAsync(request);
+        var body = await BodyOf(response);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        var packageId = body.GetProperty("packageId").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(packageId));
+
+        using var scope = app.Services.CreateScope();
+        var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+        var processor = scope.ServiceProvider.GetRequiredService<Vni.Ielts.Infrastructure.Content.PackageIngestionProcessor>();
+        var package = await packages.FindAsync(packageId!, CancellationToken.None);
+        await processor.ProcessAsync(package!, CancellationToken.None);
+        var processed = await packages.FindAsync(packageId!, CancellationToken.None);
+        Assert.Equal(PackageImportStatus.NeedsReview, processed!.Status);
+        Assert.False(string.IsNullOrWhiteSpace(processed.ImportDraftId));
+        return processed.ImportDraftId!;
+    }
+
+    private static async Task ResolveOpenWarningsAsync(HttpClient client, string access, string draftId)
+    {
+        var get = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var body = await BodyOf(get);
+        foreach (var warning in body.GetProperty("warnings").EnumerateArray())
+        {
+            if (warning.GetProperty("resolved").GetBoolean()) continue;
+
+            var overrideRequest = Request(
+                HttpMethod.Post,
+                $"/api/v1/admin/import/packages/{draftId}/warnings/{warning.GetProperty("id").GetString()}/override",
+                access);
+            overrideRequest.Content = JsonContent.Create(new
+            {
+                reason = "Resolved in the HTTP checklist-unblocks-approval fixture.",
+            });
+            var overrideResponse = await client.SendAsync(overrideRequest);
+            Assert.Equal(HttpStatusCode.OK, overrideResponse.StatusCode);
+        }
+    }
+
     /// <summary>Seeds a structured, valid draft carrying one unresolved warning "w1".</summary>
     private async Task<string> SeedDraftWithWarningAsync()
     {
@@ -351,7 +761,7 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
 
         var attempt = await workflow.ImportStructuredAsync(
             ValidPackageJson.Replace("admin-import-test", $"seed-{Guid.NewGuid():n}"),
-            Vni.Ielts.Domain.Exams.ExamDefinitionId.New(), 1, default);
+            Vni.Ielts.Domain.Exams.ExamDefinitionId.New(), 1, true, default);
 
         Assert.True(attempt.IsAccepted, string.Join("; ", attempt.Findings.Select(f => f.Message)));
 

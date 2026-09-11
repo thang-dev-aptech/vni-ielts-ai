@@ -487,6 +487,8 @@ app.MapLibraryEndpoints();
 app.MapAdminEndpoints();
 app.MapAdminLibraryEndpoints();
 app.MapAdminImportEndpoints();
+app.MapAdminPackageEndpoints();
+app.MapMediaEndpoints();
 
 /*
  * <b>Two endpoints, because they answer two different questions.</b> What stood

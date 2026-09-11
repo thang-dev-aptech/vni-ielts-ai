@@ -151,7 +151,7 @@ public sealed class CompleteSsoSignInTests
         await users.AddAsync(user, default);
 
         var sut = new CompleteSsoSignIn(
-            codes, users, new FakePermissionResolver(PermissionKeys.ExamRead), new FakeTokenService());
+            codes, users, new FakePermissionResolver(PermissionKeys.ExamReadOwn), new FakeTokenService());
 
         return (sut, codes, users, user);
     }

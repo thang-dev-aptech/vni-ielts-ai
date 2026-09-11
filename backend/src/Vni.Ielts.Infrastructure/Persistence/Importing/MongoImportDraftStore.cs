@@ -1,7 +1,9 @@
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
+using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
 
 namespace Vni.Ielts.Infrastructure.Persistence.Importing;
 
@@ -105,6 +107,51 @@ internal sealed class ExamImportDraftDocument
     [BsonElement("reviewedBy")]
     [BsonIgnoreIfNull]
     public string? ReviewedBy { get; set; }
+
+    [BsonElement("checklistRequired")]
+    [BsonIgnoreIfNull]
+    public bool? ChecklistRequired { get; set; }
+
+    [BsonElement("createdBy")]
+    [BsonIgnoreIfNull]
+    public string? CreatedBy { get; set; }
+
+    [BsonElement("createdAt")]
+    [BsonIgnoreIfNull]
+    public DateTime? CreatedAt { get; set; }
+
+    [BsonElement("examVersionId")]
+    [BsonIgnoreIfNull]
+    public string? ExamVersionId { get; set; }
+
+    [BsonElement("packageId")]
+    [BsonIgnoreIfNull]
+    public string? PackageId { get; set; }
+
+    [BsonElement("assetManifest")]
+    public List<ImportAssetManifestDocument> AssetManifest { get; set; } = [];
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class ImportAssetManifestDocument
+{
+    [BsonElement("reference")] public string Reference { get; set; } = string.Empty;
+    [BsonElement("stagingKey")] public string StagingKey { get; set; } = string.Empty;
+    [BsonElement("contentType")] public string ContentType { get; set; } = string.Empty;
+    [BsonElement("length")] public long Length { get; set; }
+    [BsonElement("sha256")] public string Sha256 { get; set; } = string.Empty;
+
+    public static ImportAssetManifestDocument From(ImportAssetManifestEntry entry) => new()
+    {
+        Reference = entry.Reference,
+        StagingKey = entry.StagingKey,
+        ContentType = entry.ContentType,
+        Length = entry.Length,
+        Sha256 = entry.Sha256,
+    };
+
+    public ImportAssetManifestEntry ToEntry() =>
+        new(Reference, StagingKey, ContentType, Length, Sha256);
 }
 
 /// <summary>
@@ -182,7 +229,17 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
         return result.MatchedCount > 0;
     }
 
-    private ExamImportDraft ToDraft(ExamImportDraftDocument doc)
+    public async Task<IReadOnlyList<ExamImportDraft>> ListAsync(CancellationToken ct)
+    {
+        var docs = await context.ImportDrafts
+            .Find(Builders<ExamImportDraftDocument>.Filter.Empty)
+            .Sort(Builders<ExamImportDraftDocument>.Sort.Descending(d => d.CreatedAt).Descending(d => d.Id))
+            .ToListAsync(ct);
+
+        return [.. docs.Select(ToDraft)];
+    }
+
+    internal ExamImportDraft ToDraft(ExamImportDraftDocument doc)
     {
         var definitionId = new ExamDefinitionId(doc.DefinitionId);
         var validation = validator.Validate(doc.PackageJson, definitionId, doc.VersionNumber);
@@ -198,6 +255,26 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
                 + "The schema or validator changed since this draft was saved.");
         }
 
+        var parsed = validation.Version;
+        var version = string.IsNullOrEmpty(doc.ExamVersionId)
+            ? parsed
+            : ExamVersion.Rehydrate(
+                new ExamVersionId(doc.ExamVersionId),
+                parsed.DefinitionId,
+                parsed.VersionNumber,
+                parsed.Title,
+                parsed.Variant,
+                parsed.Status,
+                parsed.PublishedAt,
+                parsed.Scoring,
+                parsed.Timing,
+                parsed.Sections,
+                parsed.ListeningPlayback,
+                parsed.ModuleSequence,
+                parsed.Description,
+                parsed.AuthorId,
+                parsed.ContentSourceId);
+
         return new ExamImportDraft(
             Guid.Parse(doc.Id),
             definitionId,
@@ -205,7 +282,7 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
             Enum.Parse<ExamImportRoute>(doc.Route),
             doc.SourceHash,
             doc.PackageHash,
-            validation.Version,
+            version,
             doc.ParserProvider is null
                 ? null
                 : new ParserRunMetadata(
@@ -220,10 +297,17 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
                 w.Id, Enum.Parse<ImportReviewCategory>(w.Category), w.Path, w.Message, w.Resolved,
                 w.OverrideReason)).ToArray(),
             doc.Revision,
-            doc.ReviewedBy);
+            doc.ReviewedBy,
+            doc.ChecklistRequired ?? true,
+            doc.CreatedBy is { Length: > 0 } createdBy ? new UserId(createdBy) : null,
+            doc.CreatedAt is { } createdAt
+                ? new DateTimeOffset(DateTime.SpecifyKind(createdAt, DateTimeKind.Utc))
+                : null,
+            (doc.AssetManifest ?? []).Select(a => a.ToEntry()).ToArray(),
+            doc.PackageId);
     }
 
-    private static ExamImportDraftDocument ToDocument(ExamImportDraft draft) => new()
+    internal static ExamImportDraftDocument ToDocument(ExamImportDraft draft) => new()
     {
         Id = draft.Id.ToString("D"),
         DefinitionId = draft.DefinitionId.Value,
@@ -251,5 +335,11 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
         }).ToList(),
         Revision = draft.Revision,
         ReviewedBy = draft.ReviewedBy,
+        ChecklistRequired = draft.ChecklistRequired,
+        CreatedBy = draft.CreatedBy?.Value,
+        CreatedAt = draft.CreatedAt?.UtcDateTime,
+        ExamVersionId = draft.Version.Id.Value,
+        PackageId = draft.PackageId,
+        AssetManifest = draft.Assets.Select(ImportAssetManifestDocument.From).ToList(),
     };
 }

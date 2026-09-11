@@ -1,4 +1,6 @@
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Explanations;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Importing;
@@ -24,6 +26,8 @@ public sealed record ImportReviewResult(
 public sealed class ImportReviewWorkflow(
     IImportDraftStore drafts,
     IExamPackageValidator validator,
+    IImportApprovalCommitter approval,
+    IImportExamAssetStore examAssets,
     CanonicalExplanationWorkflow? canonicalExplanations = null)
 {
     public static ImportReviewDiff Diff(ExamImportDraft draft) => new(
@@ -51,10 +55,24 @@ public sealed class ImportReviewWorkflow(
             Checklist = ImportReviewChecklist.Empty,
             ReviewedBy = null,
             Revision = draft.Revision + 1,
+            AssetManifest = [],
         };
-        return await drafts.ReplaceAsync(edited, expectedRevision, ct)
-            ? ImportReviewResult.Success(edited)
-            : ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+
+        var replaced = await drafts.ReplaceAsync(edited, expectedRevision, ct);
+        if (!replaced) return ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+
+        var abandoned = ImportAssetPaths.StagedReferences(draft.Assets);
+        if (abandoned.Count > 0)
+        {
+            using var compensation = ImportAssetCompensation.Start();
+            await examAssets.RecordCleanupIntentAsync(
+                draft.Id,
+                abandoned,
+                ImportAssetCleanupReason.StagingAbandoned,
+                compensation.Token);
+        }
+
+        return ImportReviewResult.Success(edited);
     }
 
     /// <summary>
@@ -114,6 +132,10 @@ public sealed class ImportReviewWorkflow(
         var draft = await drafts.FindAsync(draftId, ct);
         if (draft is null) return ImportReviewResult.Refused("IMPORT_DRAFT_NOT_FOUND");
         if (draft.Revision != expectedRevision) return ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+
+        if (draft.ApprovalState == ImportApprovalState.Approved)
+            return await CommitApprovedAsync(draft, expectedRevision, ct);
+
         /*
          * A blocking finding has no override, and that is the difference from a
          * warning. `P-19`'s warnings are judgements a reviewer may make with a
@@ -122,21 +144,70 @@ public sealed class ImportReviewWorkflow(
          * answer over the paper's own word limit — and no amount of authority makes
          * those consistent. The fix is a corrected file. → IP-03
          */
-        if (draft.Findings.Any(f => f.Severity == "error"))
+        if (draft.Findings.Any(f =>
+                string.Equals(f.Severity, "error", StringComparison.OrdinalIgnoreCase)))
             return ImportReviewResult.Refused("IMPORT_FINDINGS_BLOCKING");
         if (draft.Warnings.Any(w => !w.Resolved))
             return ImportReviewResult.Refused("IMPORT_WARNINGS_UNRESOLVED");
-        if (!draft.Checklist.IsComplete)
+        if (draft.ChecklistRequired && !draft.Checklist.IsComplete)
             return ImportReviewResult.Refused("IMPORT_CHECKLIST_INCOMPLETE");
+
+        var catalogueDraft = CatalogueDraftFrom(draft);
         var approved = draft with
         {
             ApprovalState = ImportApprovalState.Approved,
             ReviewedBy = actor.ActorId,
             Revision = draft.Revision + 1,
+            Version = catalogueDraft,
         };
-        return await drafts.ReplaceAsync(approved, expectedRevision, ct)
-            ? ImportReviewResult.Success(approved)
-            : ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+
+        var committed = await approval.CommitAsync(approved, expectedRevision, catalogueDraft, ct);
+        return ToResult(committed);
+    }
+
+    private async Task<ImportReviewResult> CommitApprovedAsync(
+        ExamImportDraft draft, int expectedRevision, CancellationToken ct)
+    {
+        var catalogueDraft = CatalogueDraftFrom(draft);
+        var committed = await approval.CommitAsync(draft, expectedRevision, catalogueDraft, ct);
+        return ToResult(committed);
+    }
+
+    private static ImportReviewResult ToResult(ImportApprovalCommitResult committed) =>
+        committed.Status switch
+        {
+            ImportApprovalCommitStatus.Committed or ImportApprovalCommitStatus.AlreadyCommitted
+                when committed.Draft is not null => ImportReviewResult.Success(committed.Draft),
+            ImportApprovalCommitStatus.IdentityConflict =>
+                ImportReviewResult.Refused("IMPORT_CATALOGUE_CONFLICT"),
+            ImportApprovalCommitStatus.AssetConflict =>
+                ImportReviewResult.Refused(ImportAssetFindingCodes.Conflict),
+            ImportApprovalCommitStatus.AssetMissing =>
+                ImportReviewResult.Refused(ImportAssetFindingCodes.Missing),
+            ImportApprovalCommitStatus.Canceled =>
+                ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT"),
+            _ => ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT"),
+        };
+
+    private static ExamVersion CatalogueDraftFrom(ExamImportDraft draft)
+    {
+        var version = draft.Version;
+        return ExamVersion.Rehydrate(
+            version.Id,
+            version.DefinitionId,
+            version.VersionNumber,
+            version.Title,
+            version.Variant,
+            ExamVersionStatus.Draft,
+            publishedAt: null,
+            version.Scoring,
+            version.Timing,
+            version.Sections,
+            version.ListeningPlayback,
+            version.ModuleSequence,
+            version.Description,
+            draft.CreatedBy,
+            version.ContentSourceId);
     }
 
     public async Task<ImportReviewResult> EnrichCanonicalExplanationsAsync(

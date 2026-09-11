@@ -126,6 +126,20 @@ internal sealed class RoleDocument
 }
 
 /// <summary>
+/// Single-row mutex for last-active-admin mutations. Bumped inside the same
+/// transaction as the user write so concurrent API instances collide and retry.
+/// </summary>
+[BsonIgnoreExtraElements]
+internal sealed class AdminPrivilegeCoordinationDocument
+{
+    [BsonId]
+    public string Id { get; set; } = string.Empty;
+
+    [BsonElement("seq")]
+    public long Seq { get; set; }
+}
+
+/// <summary>
 /// A refresh token, stored hashed.
 ///
 /// <b>Family and reuse detection.</b> Every rotation keeps the same

@@ -1,5 +1,6 @@
 using Vni.Ielts.Domain.Assessment;
 using Vni.Ielts.Domain.Common;
+using Vni.Ielts.Domain.Content;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Sessions;
 
@@ -45,8 +46,15 @@ internal static class ExamMappers
         text.Append(version.DefinitionId.Value).Append('\u0000')
             .Append(version.VersionNumber).Append('\u0000')
             .Append(version.Title).Append('\u0000')
-            .Append(version.Variant).Append('\u0000')
-            .Append(version.Timing.ListeningTransferSeconds).Append('\u0000')
+            .Append(version.Variant).Append('\u0000');
+
+        // Present source ids are part of published content. Absent (legacy /
+        // blank drafts) is omitted so existing fingerprints stay valid —
+        // `ContentSourceId` cannot be empty, so null and empty cannot collide.
+        if (version.ContentSourceId is { } source)
+            text.Append(source.Value).Append('\u0000');
+
+        text.Append(version.Timing.ListeningTransferSeconds).Append('\u0000')
             .Append(version.ListeningPlayback.Practice.PlayOnce).Append(':')
             .Append(version.ListeningPlayback.Practice.AllowSeek).Append('\u0000')
             .Append(version.ListeningPlayback.Mock.PlayOnce).Append(':')
@@ -134,6 +142,7 @@ internal static class ExamMappers
         Status = version.Status.ToString(),
         PublishedAt = version.PublishedAt is { } at ? Utc(at) : null,
         AuthorId = version.AuthorId?.Value,
+        ContentSourceId = version.ContentSourceId?.Value,
         ListeningPlayback = new ListeningPlaybackDocument
         {
             Practice = new AudioPlaybackRuleDocument
@@ -343,7 +352,10 @@ internal static class ExamMappers
                 ? [.. stored.Select(m => Enum.Parse<ExamModule>(m, ignoreCase: true))]
                 : null,
             doc.Description,
-            doc.AuthorId is { } author ? new UserId(author) : null);
+            doc.AuthorId is { } author ? new UserId(author) : null,
+            string.IsNullOrWhiteSpace(doc.ContentSourceId)
+                ? null
+                : new ContentSourceId(doc.ContentSourceId));
     }
 
     private static AnswerMatchingRules ToDomain(this MatchingRulesDocument doc) =>

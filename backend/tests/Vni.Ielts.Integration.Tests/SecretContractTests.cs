@@ -324,7 +324,9 @@ public sealed class SecretContractTests
     [Fact]
     public void The_speaking_retention_seams_are_unset_and_do_not_invent_a_value()
     {
-        var builder = ProductionBuilder(ValidProductionConfig());
+        var config = ValidProductionConfig();
+        config["ObjectStorage:SpeakingRecordingRetentionDays"] = string.Empty;
+        var builder = ProductionBuilder(config);
 
         Assert.Null(Record.Exception(() => Validate(builder)));
 

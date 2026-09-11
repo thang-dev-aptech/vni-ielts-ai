@@ -1,12 +1,15 @@
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Application.Content;
 using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
+using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Content;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Identity;
@@ -386,4 +389,274 @@ public sealed class ContentRightsPublishTests(SsoAppFactory app) : IClassFixture
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
+
+    private static readonly string[] FullChecklist =
+    [
+        "questions",
+        "options",
+        "wordlimits",
+        "acceptedvariants",
+        "transcriptandevidence",
+        "assetmapping",
+    ];
+
+    [SkippableFact]
+    public async Task An_imported_exam_whose_source_matches_a_learner_production_grant_publishes()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+
+        using var scope = app.Services.CreateScope();
+        var registry = scope.ServiceProvider.GetRequiredService<IContentRightsRegistry>();
+        var catalogue = scope.ServiceProvider.GetRequiredService<IExamCatalogue>();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+
+        await registry.RegisterIfAbsentAsync(
+            ContentSource.Register(
+                new ContentSourceId("source-a"),
+                "Registered source matching imported exam JSON",
+                owner: "VNI Education",
+                proof: new RightsProof(
+                    "integration-test", "test@vni.example", DateTimeOffset.UtcNow.AddDays(-1)),
+                allowedEnvironments:
+                    [ContentEnvironment.Fixture, ContentEnvironment.LearnerProduction],
+                expiresAt: null,
+                rootPath: "fixtures/exams",
+                files: [],
+                boundExamVersionIds: [],
+                boundExamDefinitionIds: []),
+            default);
+
+        var version = await ImportThroughReviewAsync(client, access, catalogue, drafts, "source-a");
+
+        var response = await PublishAsync(client, access, version.Id);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("published", (await BodyOf(response)).GetProperty("status").GetString());
+        Assert.Equal(
+            ExamVersionStatus.Published, (await catalogue.FindAsync(version.Id, default))!.Status);
+    }
+
+    [SkippableFact]
+    public async Task An_imported_exam_whose_source_is_missing_from_the_registry_is_refused_with_that_id()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+
+        using var scope = app.Services.CreateScope();
+        var catalogue = scope.ServiceProvider.GetRequiredService<IExamCatalogue>();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+
+        var version = await ImportThroughReviewAsync(
+            client, access, catalogue, drafts, "source-missing");
+
+        var response = await PublishAsync(client, access, version.Id);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var body = await BodyOf(response);
+        Assert.Equal("CONTENT_RIGHT_MISSING", body.GetProperty("code").GetString());
+        Assert.Equal("no-registry-entry", body.GetProperty("reason").GetString());
+        Assert.Equal("source-missing", body.GetProperty("sourceId").GetString());
+    }
+
+    [SkippableFact]
+    public async Task An_imported_exam_whose_source_is_fixture_only_is_refused_as_environment_not_granted()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var slug = $"fixture-only-{Guid.NewGuid():n}"[..24];
+
+        using var scope = app.Services.CreateScope();
+        var registry = scope.ServiceProvider.GetRequiredService<IContentRightsRegistry>();
+        var catalogue = scope.ServiceProvider.GetRequiredService<IExamCatalogue>();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+
+        await registry.RegisterIfAbsentAsync(
+            ContentSource.Register(
+                new ContentSourceId(slug),
+                "Fixture-only imported source",
+                owner: null, proof: null,
+                allowedEnvironments: [ContentEnvironment.Fixture],
+                expiresAt: null, rootPath: "fixtures/exams", files: [],
+                boundExamVersionIds: [], boundExamDefinitionIds: []),
+            default);
+
+        var version = await ImportThroughReviewAsync(client, access, catalogue, drafts, slug);
+
+        var response = await PublishAsync(client, access, version.Id);
+        var body = await BodyOf(response);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("CONTENT_RIGHT_MISSING", body.GetProperty("code").GetString());
+        Assert.Equal("environment-not-granted", body.GetProperty("reason").GetString());
+        Assert.Equal(slug, body.GetProperty("sourceId").GetString());
+    }
+
+    [SkippableFact]
+    public async Task An_imported_exam_whose_source_lacks_proof_is_refused()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var slug = $"unproven-{Guid.NewGuid():n}"[..24];
+
+        using var scope = app.Services.CreateScope();
+        var registry = scope.ServiceProvider.GetRequiredService<IContentRightsRegistry>();
+        var catalogue = scope.ServiceProvider.GetRequiredService<IExamCatalogue>();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+
+        await registry.RegisterIfAbsentAsync(
+            ContentSource.Rehydrate(
+                new ContentSourceId(slug),
+                "Production grant with no proof",
+                owner: null, proof: null,
+                allowedEnvironments: [ContentEnvironment.LearnerProduction],
+                expiresAt: null, rootPath: "fixtures/exams", files: [],
+                boundExamVersionIds: [], boundExamDefinitionIds: []),
+            default);
+
+        var version = await ImportThroughReviewAsync(client, access, catalogue, drafts, slug);
+
+        var response = await PublishAsync(client, access, version.Id);
+        var body = await BodyOf(response);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("CONTENT_RIGHT_MISSING", body.GetProperty("code").GetString());
+        Assert.Equal("proof-missing", body.GetProperty("reason").GetString());
+        Assert.Equal(slug, body.GetProperty("sourceId").GetString());
+    }
+
+    private async Task<ExamVersion> ImportThroughReviewAsync(
+        HttpClient client, string access, IExamCatalogue catalogue, IImportDraftStore drafts,
+        string sourceId)
+    {
+        var upload = AdminRequest(HttpMethod.Post, "/api/v1/admin/packages", access);
+        upload.Content = StructuredPackage(sourceId);
+        var uploaded = await client.SendAsync(upload);
+        Assert.Equal(HttpStatusCode.Accepted, uploaded.StatusCode);
+
+        var packageId = (await BodyOf(uploaded)).GetProperty("packageId").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(packageId));
+
+        string draftId;
+        using (var scope = app.Services.CreateScope())
+        {
+            var packages = scope.ServiceProvider.GetRequiredService<IExamPackageRepository>();
+            var processor = scope.ServiceProvider.GetRequiredService<
+                Vni.Ielts.Infrastructure.Content.PackageIngestionProcessor>();
+            var package = await packages.FindAsync(packageId!, default);
+            Assert.NotNull(package);
+
+            await processor.ProcessAsync(package!, default);
+
+            package = await packages.FindAsync(packageId!, default);
+            Assert.NotNull(package);
+            Assert.False(string.IsNullOrWhiteSpace(package!.ImportDraftId));
+            draftId = package.ImportDraftId!;
+        }
+
+        await ResolveOpenWarningsAsync(client, access, draftId);
+
+        var checklist = AdminRequest(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        checklist.Content = JsonContent.Create(new { confirmed = FullChecklist });
+        var checklistResponse = await client.SendAsync(checklist);
+        Assert.Equal(HttpStatusCode.OK, checklistResponse.StatusCode);
+
+        var approveImport = await client.SendAsync(
+            AdminRequest(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access));
+        Assert.Equal(HttpStatusCode.OK, approveImport.StatusCode);
+
+        var draft = await drafts.FindAsync(Guid.Parse(draftId!), default);
+        Assert.NotNull(draft);
+        await catalogue.UpsertAsync(draft!.Version, default);
+
+        var submit = await client.SendAsync(
+            AdminRequest(
+                HttpMethod.Post, $"/api/v1/admin/exams/{draft.Version.Id.Value}/submit-for-review",
+                access));
+        Assert.Equal(HttpStatusCode.OK, submit.StatusCode);
+
+        var approveExam = await client.SendAsync(
+            AdminRequest(
+                HttpMethod.Post, $"/api/v1/admin/exams/{draft.Version.Id.Value}/approve", access));
+        Assert.Equal(HttpStatusCode.OK, approveExam.StatusCode);
+
+        return draft.Version;
+    }
+
+    private static async Task ResolveOpenWarningsAsync(HttpClient client, string access, string draftId)
+    {
+        var get = await client.SendAsync(
+            AdminRequest(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
+        var body = await BodyOf(get);
+        foreach (var warning in body.GetProperty("warnings").EnumerateArray())
+        {
+            if (warning.GetProperty("resolved").GetBoolean()) continue;
+
+            var overrideRequest = AdminRequest(
+                HttpMethod.Post,
+                $"/api/v1/admin/import/packages/{draftId}/warnings/{warning.GetProperty("id").GetString()}/override",
+                access);
+            overrideRequest.Content = JsonContent.Create(new
+            {
+                reason = "Resolved for the content-rights import-binding fixture.",
+            });
+            var overrideResponse = await client.SendAsync(overrideRequest);
+            Assert.Equal(HttpStatusCode.OK, overrideResponse.StatusCode);
+        }
+    }
+
+    private static HttpRequestMessage AdminRequest(HttpMethod method, string path, string access)
+    {
+        var request = new HttpRequestMessage(method, path);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
+        request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("n"));
+        return request;
+    }
+
+    private static MultipartFormDataContent StructuredPackage(string sourceId)
+    {
+        var json = PackageJson.Replace("synthetic-validation", sourceId);
+        using var stream = new MemoryStream();
+        using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var entry = archive.CreateEntry("reading/exam.json", CompressionLevel.Optimal);
+            using var writer = new StreamWriter(entry.Open(), Encoding.UTF8);
+            writer.Write(json);
+        }
+
+        var content = new MultipartFormDataContent();
+        var part = new ByteArrayContent(stream.ToArray());
+        part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
+        content.Add(part, "package", "package.zip");
+        return content;
+    }
+
+    private const string PackageJson = """
+    {
+      "formatVersion": "2.0", "formatProfile": "vni-practice", "scoringProfileRef": "content-rights-import",
+      "contentSourceRef": { "sourceId": "synthetic-validation", "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+      "title": "Content rights import binding", "variant": "academic",
+      "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+      "scoringProfile": { "rawToBand": { "reading": [
+        { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 }, { "minRaw": 2, "band": 2 } ] } },
+      "sequenceProfile": { "modules": ["reading"] },
+      "sections": [{ "module": "reading", "order": 1, "parts": [{ "order": 1, "kind": "passage",
+        "body": "Evidence here.", "questions": [{
+          "id": "q-1", "order": 1, "type": "multiple-select", "marks": 2,
+          "options": [{ "key": "A", "text": "Alpha" }, { "key": "B", "text": "Beta" }],
+          "group": { "id": "bank-1", "instruction": "Choose." },
+          "slots": [
+            { "id": "slot-1", "number": 1, "answerKey": { "accepted": ["A"] } },
+            { "id": "slot-2", "number": 2, "answerKey": { "accepted": ["B"] } }
+          ],
+          "explanation": { "shortReason": "Both are stated.", "evidence": ["Evidence here."] }
+        }]
+      }]}]
+    }
+    """;
 }

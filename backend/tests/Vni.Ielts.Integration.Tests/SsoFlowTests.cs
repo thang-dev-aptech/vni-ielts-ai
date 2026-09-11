@@ -191,11 +191,13 @@ public sealed class SsoFlowTests(SsoAppFactory app) : IClassFixture<SsoAppFactor
 /// <summary>
 /// The API, wired to a throwaway database and the stub sign-in provider.
 /// </summary>
-public sealed class SsoAppFactory : WebApplicationFactory<Program>
+public class SsoAppFactory : WebApplicationFactory<Program>
 {
     private const string ConnectionString = "mongodb://localhost:27018/?directConnection=true";
 
     private readonly string _database = $"vni_ielts_test_{Guid.NewGuid():n}";
+
+    public string Database => _database;
 
     /// <summary>
     /// Probed once per run. A developer without the infra stack up gets a

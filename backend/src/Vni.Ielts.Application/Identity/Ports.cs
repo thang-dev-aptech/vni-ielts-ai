@@ -18,6 +18,28 @@ namespace Vni.Ielts.Application.Identity;
 /// transaction semantics differ enough that the abstraction cannot hold.
 /// Transactions stay inside Infrastructure. → ADR-0004
 /// </summary>
+/// <summary>
+/// A page of accounts for the CMS. Filters run in the store; the UI never
+/// loads the whole collection.
+///
+/// <para>
+/// <see cref="HasEmail"/> replaces feature-branch <c>EmailVerified</c>: main
+/// dropped verification (ADR-0018). True = account has an address; false =
+/// address-less (typical phone registration); null = do not filter.
+/// </para>
+/// </summary>
+public sealed record UserListQuery(
+    string? Search,
+    RoleId? RoleId,
+    UserStatus? Status,
+    bool? HasEmail,
+    int Skip,
+    int Take)
+{
+    public static UserListQuery SearchOnly(string? search, int skip, int take) =>
+        new(search, null, null, null, skip, take);
+}
+
 public interface IUserRepository
 {
     Task<User?> FindByIdAsync(UserId id, CancellationToken ct);
@@ -30,7 +52,20 @@ public interface IUserRepository
     /// falls over on the first real week.
     /// </summary>
     Task<(IReadOnlyList<User> Users, long Total)> ListAsync(
-        string? search, int skip, int take, CancellationToken ct);
+        string? search, int skip, int take, CancellationToken ct) =>
+        ListAsync(UserListQuery.SearchOnly(search, skip, take), ct);
+
+    /// <summary>Filtered CMS listing. Prefer this overload when role/status matter.</summary>
+    Task<(IReadOnlyList<User> Users, long Total)> ListAsync(UserListQuery query, CancellationToken ct);
+
+    /// <summary>
+    /// Active accounts holding <paramref name="roleId"/>. Used by the read-only
+    /// last-admin guard. Mutations that can clear the last admin go through
+    /// <see cref="IProtectedAdminMutation"/> so the check and write share one
+    /// cross-instance transaction.
+    /// </summary>
+    Task<long> CountActiveWithRoleAsync(RoleId roleId, UserId? excluding, CancellationToken ct);
+
     Task<User?> FindByEmailAsync(Email email, CancellationToken ct);
     Task<bool> EmailExistsAsync(Email email, CancellationToken ct);
 
@@ -258,4 +293,13 @@ public interface IAuditLog
     /// <summary>Newest first. Filters are optional and combine with AND.</summary>
     Task<(IReadOnlyList<Vni.Ielts.Domain.Audit.AuditEntry> Entries, long Total)> ListAsync(
         string? actorId, string? action, int skip, int take, CancellationToken ct);
+
+    /// <summary>Newest first, scoped to one target id (the subject of the act).</summary>
+    async Task<(IReadOnlyList<Vni.Ielts.Domain.Audit.AuditEntry> Entries, long Total)> ListForTargetAsync(
+        string targetId, int skip, int take, CancellationToken ct)
+    {
+        var (all, _) = await ListAsync(actorId: null, action: null, skip: 0, take: int.MaxValue, ct);
+        var matches = all.Where(e => e.TargetId == targetId).ToList();
+        return ([.. matches.Skip(skip).Take(take)], matches.Count);
+    }
 }

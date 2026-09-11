@@ -88,6 +88,16 @@ public sealed class ExamPackageReaderTests
     }
 
     [Fact]
+    public void Content_source_id_from_json_is_kept_on_the_version()
+    {
+        var json = ValidV2Json().Replace("synthetic-validation", "source-a");
+        var result = Read(json);
+
+        Assert.True(result.IsValid, string.Join("; ", result.Findings.Select(f => f.Message)));
+        Assert.Equal("source-a", result.Version!.ContentSourceId?.Value);
+    }
+
+    [Fact]
     public void An_incomplete_listening_playback_profile_is_rejected_not_guessed()
     {
         var root = JsonNode.Parse(ValidV2Json())!.AsObject();

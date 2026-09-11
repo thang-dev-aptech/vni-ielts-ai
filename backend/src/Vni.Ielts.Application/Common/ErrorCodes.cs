@@ -215,6 +215,12 @@ public static class ErrorCodes
     public const string Forbidden = "FORBIDDEN";
     public const string IdempotencyKeyReused = "IDEMPOTENCY_KEY_REUSED";
 
+    public const string ParsedCandidateNotFound = "PARSED_CANDIDATE_NOT_FOUND";
+    public const string ParsedCandidateVersionConflict = "PARSED_CANDIDATE_VERSION_CONFLICT";
+    public const string ParsedCandidateInvalidState = "PARSED_CANDIDATE_INVALID_STATE";
+    public const string CandidateCompletionMissing = "CANDIDATE_COMPLETION_MISSING";
+    public const string CandidateCompletionInvalid = "CANDIDATE_COMPLETION_INVALID";
+
     /// <summary>
     /// The first attempt at this operation may or may not have committed.
     ///
@@ -234,6 +240,24 @@ public static class ErrorCodes
 
     /// <summary>Always accompanied by a Retry-After header.</summary>
     public const string RateLimited = "RATE_LIMITED";
+
+    /// <summary>A configured seam is still null — refuse rather than invent policy. → G-11</summary>
+    public const string PolicyNotConfigured = "POLICY_NOT_CONFIGURED";
+
+    /// <summary>Force password-reset mail needs a password identity; SSO-only accounts have none.</summary>
+    public const string PasswordIdentityNotFound = "PASSWORD_IDENTITY_NOT_FOUND";
+
+    /// <summary>Suspend / revoke / erase would leave zero active admins.</summary>
+    public const string LastAdminProtected = "LAST_ADMIN";
+
+    /// <summary>Bulk suspend asked for more ids than <c>Admin:BulkUserOperationMax</c>.</summary>
+    public const string BulkTooLarge = "BULK_TOO_LARGE";
+
+    /// <summary>Staff invitation token spent, expired, or never real — one code for all three.</summary>
+    public const string InvitationInvalid = "INVITATION_INVALID";
+
+    /// <summary>A live pending invitation already occupies that address.</summary>
+    public const string EmailAlreadyInvited = "EMAIL_ALREADY_INVITED";
 
     public const string PayloadTooLarge = "PAYLOAD_TOO_LARGE";
 

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Exams;
+using PackageFinding = Vni.Ielts.Application.Importing.PackageFinding;
 
 namespace Vni.Ielts.Infrastructure.Content.Import;
 
@@ -192,6 +193,8 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var bySkill = new Dictionary<ExamModule, (List<string> Paper, List<string> Key, List<string> Audio)>();
             var unknown = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var rootFiles = new List<string>();
+            var assetEntries = new List<string>();
 
             // Second-level folders under a recognised skill folder that match
             // no role name. Kept apart from `unknown`, and given their own
@@ -262,6 +265,7 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                     {
                         var folder = segments[0] + "/" + segments[1] + "/";
                         unknownRoles[folder] = unknownRoles.GetValueOrDefault(folder) + 1;
+                        continue;
                     }
 
                     switch (role)
@@ -271,10 +275,42 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                         default: lists.Paper.Add(verdict.Path); break;
                     }
                 }
+                else if (segments.Length >= 2
+                    && string.Equals(segments[0], "assets", StringComparison.OrdinalIgnoreCase))
+                {
+                    assetEntries.Add(verdict.Path);
+                }
                 else
                 {
+                    if (segments.Length == 1) rootFiles.Add(segments[0]);
                     var key = segments.Length == 1 ? segments[0] : segments[0] + "/";
                     unknown[key] = unknown.GetValueOrDefault(key) + 1;
+                }
+            }
+
+            // ── Second accepted shape: manifest.json + exam.json at the root ──
+            // The same layout `/admin/packages` (PackageStructuralValidator)
+            // already accepts, so a package author learns one ZIP format
+            // regardless of which screen imports it. Deliberately structural,
+            // not content-based — this class stays "blind to content" (see the
+            // class remarks): manifest.json's own bytes are never opened here,
+            // only the fact that exactly two root files exist and one is named
+            // manifest.json. The other file is handed to the existing
+            // single-file structured route unchanged; that route (and
+            // ExamPackageReader beneath it) is what actually reads and
+            // validates its content, same as it always has.
+            if (bySkill.Count == 0 && rootFiles.Count == 2)
+            {
+                var manifestName = rootFiles.FirstOrDefault(
+                    p => string.Equals(p, "manifest.json", StringComparison.OrdinalIgnoreCase));
+                var examName = rootFiles.FirstOrDefault(p => p != manifestName);
+
+                if (manifestName is not null && examName is not null
+                    && examName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    bySkill[ExamModule.Reading] = ([examName], [], []);
+                    unknown.Remove(manifestName);
+                    unknown.Remove(examName);
                 }
             }
 
@@ -295,12 +331,12 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             foreach (var (folder, count) in unknownRoles.OrderBy(u => u.Key, StringComparer.Ordinal))
             {
                 findings.Add(Finding(
-                    Warning,
+                    Error,
                     ArchiveFindingCodes.LayoutUnknownRoleFolder,
                     Display(folder),
                     $"Folder under a skill folder is not one of de/, paper/, questions/ (the paper) "
                     + $"or dap-an/, dapan/, key/, answers/ (the answer key) or audio/; its {count} "
-                    + "file(s) are treated as paper, which means they are sent to the parser. "
+                    + "file(s) cannot be classified safely. "
                     + "If this folder holds an answer key, rename it to one of the key spellings "
                     + "and upload again."));
             }
@@ -321,7 +357,8 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                         p.Value.Paper.AsReadOnly(),
                         p.Value.Key.AsReadOnly(),
                         p.Value.Audio.AsReadOnly())),
-                unknown.Keys.OrderBy(k => k, StringComparer.Ordinal).ToArray());
+                unknown.Keys.OrderBy(k => k, StringComparer.Ordinal).ToArray(),
+                assetEntries);
 
             var acceptable = findings.All(f => f.Severity != Error);
             return new ArchiveInspection(acceptable, findings, layout);

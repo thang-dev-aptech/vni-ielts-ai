@@ -6,6 +6,7 @@ import { AdminPaths } from '../routes/paths.js';
 import {
   approveExam,
   listExams,
+  MODULE_LABEL,
   publishExam,
   returnExamToDraft,
   submitExamForReview,
@@ -48,7 +49,7 @@ import type { ExamState, Transition } from '../lib/lifecycle.js';
  */
 export function ExamDetailPage() {
   const { definitionId = '' } = useParams();
-  const { accessToken } = useAdminAuth();
+  const { accessToken, can } = useAdminAuth();
 
   const [versions, setVersions] = useState<AdminExam[] | null>(null);
   const { flash, say } = useFlash();
@@ -150,13 +151,24 @@ export function ExamDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {version.modules.map((module) => (
-                  <tr key={module.module}>
-                    <td>{module.module}</td>
-                    <td className="num">{module.questionCount}</td>
-                    <td className="num">{Math.round(module.durationSeconds / 60)} phút</td>
-                  </tr>
-                ))}
+                {version.modules.map((module) => {
+                  const label = MODULE_LABEL[module.module] ?? module.module;
+                  return (
+                    <tr key={module.module}>
+                      <td>
+                        {can('exam.preview') ? (
+                          <Link to={AdminPaths.examPreview(version.examVersionId, module.module)}>
+                            {label}
+                          </Link>
+                        ) : (
+                          label
+                        )}
+                      </td>
+                      <td className="num">{module.questionCount}</td>
+                      <td className="num">{Math.round(module.durationSeconds / 60)} phút</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
 
