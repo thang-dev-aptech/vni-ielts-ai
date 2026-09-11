@@ -112,17 +112,37 @@ internal sealed class MongoImportOutbox(MongoContext context, IClock clock) : II
         return renewed.MatchedCount > 0;
     }
 
+    /// <summary>
+    /// Records how far a job got, and refuses to move it backwards.
+    ///
+    /// <b>This store guards a rewind that <c>MongoMarkingOutbox</c> does not,
+    /// and the difference is real rather than drift.</b> A marking job pays
+    /// for exactly one provider call, so a stale write moving its (nonexistent)
+    /// stage field backwards would cost nothing — the twin never needed a
+    /// guard because it has nothing to guard. An import pays separately for
+    /// the parse, the transcription and forty explanations; a caller that
+    /// advances a job to a stage earlier than the one already recorded makes
+    /// a resumed worker re-enter a paid stage and buy it a second time — the
+    /// exact failure <see cref="ImportJobStage"/> exists to prevent. So the
+    /// filter, not just the caller's good behaviour, is what stops it: the
+    /// update only matches when the stored stage is at or before the
+    /// requested one, in the same statement as the lease check. A rewind
+    /// attempt is refused the same way a stolen lease is — <c>false</c>,
+    /// nothing written.
+    /// </summary>
     public async Task<bool> AdvanceAsync(
         string operationId, string leaseToken, ImportJobStage stage, Guid? draftId, CancellationToken ct)
     {
-        // A stage already reached is money already spent — the update never
-        // moves it backwards, it only ever records the caller's own forward
-        // progress under its own lease. DraftId is left untouched when the
-        // caller has none yet, rather than overwritten with null.
-        var update = Builders<ImportJobDocument>.Update.Set(j => j.Stage, stage.ToString());
+        var forwardOnly = Builders<ImportJobDocument>.Filter.And(
+            Mine(operationId, leaseToken),
+            Builders<ImportJobDocument>.Filter.Lte(j => j.Stage, (int)stage));
+
+        // DraftId is left untouched when the caller has none yet, rather than
+        // overwritten with null.
+        var update = Builders<ImportJobDocument>.Update.Set(j => j.Stage, (int)stage);
         if (draftId is { } id) update = update.Set(j => j.DraftId, id.ToString("D"));
 
-        var advanced = await Jobs.UpdateOneAsync(Mine(operationId, leaseToken), update, cancellationToken: ct);
+        var advanced = await Jobs.UpdateOneAsync(forwardOnly, update, cancellationToken: ct);
 
         return advanced.MatchedCount > 0;
     }
@@ -204,7 +224,7 @@ internal sealed class MongoImportOutbox(MongoContext context, IClock clock) : II
         ParsePromptVersion = job.ParsePromptVersion,
         ArchiveKey = job.ArchiveKey,
         DraftId = job.DraftId?.ToString("D"),
-        Stage = job.Stage.ToString(),
+        Stage = (int)job.Stage,
         State = job.State.ToString(),
         Attempts = job.Attempts,
         CreatedAt = job.CreatedAt.UtcDateTime,
@@ -224,9 +244,7 @@ internal sealed class MongoImportOutbox(MongoContext context, IClock clock) : II
         d.ParsePromptVersion,
         d.ArchiveKey,
         d.DraftId is null ? null : Guid.Parse(d.DraftId),
-        Enum.TryParse<ImportJobStage>(d.Stage, ignoreCase: true, out var stage)
-            ? stage
-            : ImportJobStage.Extracting,
+        Enum.IsDefined(typeof(ImportJobStage), d.Stage) ? (ImportJobStage)d.Stage : ImportJobStage.Extracting,
         Enum.TryParse<ImportJobState>(d.State, ignoreCase: true, out var state)
             ? state
             : ImportJobState.Pending,
@@ -278,8 +296,21 @@ internal sealed class ImportJobDocument
     [BsonIgnoreIfNull]
     public string? DraftId { get; set; }
 
+    /// <summary>
+    /// <see cref="ImportJobStage"/>'s underlying int, not its name.
+    ///
+    /// <b>Stored as an ordinal, deliberately, unlike <c>State</c>.</b> The
+    /// only thing <see cref="MongoImportOutbox.AdvanceAsync"/> needs from
+    /// Mongo is "is the value I'm about to write at or after the value
+    /// already there" — a single indexed integer comparison the database can
+    /// do inside the same filtered update as the lease check. A string
+    /// comparison would sort stage names alphabetically, not by the order
+    /// money is spent, and enforcing the rule in C# after a plain read would
+    /// turn one atomic write back into the find-then-update race this whole
+    /// store exists to avoid.
+    /// </summary>
     [BsonElement("stage")]
-    public string Stage { get; set; } = string.Empty;
+    public int Stage { get; set; }
 
     [BsonElement("state")]
     public string State { get; set; } = string.Empty;

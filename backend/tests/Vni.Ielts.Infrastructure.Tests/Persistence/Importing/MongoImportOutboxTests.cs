@@ -157,4 +157,32 @@ public sealed class MongoImportOutboxTests
         Assert.True(
             await outbox.AdvanceAsync(job.OperationId, "worker-b", ImportJobStage.Parsing, null, default));
     }
+
+    /// <summary>
+    /// Unlike a marking job, an import pays separately for several stages —
+    /// the parse, the transcription, forty explanations. A caller (or a
+    /// confused retry) that tries to move the recorded stage backwards must
+    /// be refused, or a resumed worker re-enters a paid stage and buys it a
+    /// second time. Asserts both the return value and a re-read, so a store
+    /// that returns <c>false</c> but writes anyway would still fail this.
+    /// </summary>
+    [Fact]
+    public async Task A_stage_cannot_be_moved_backwards()
+    {
+        var outbox = await NewOutboxAsync();
+        var job = NewJob();
+        await outbox.EnqueueAsync(job, default);
+        var claimed = await outbox.ClaimAsync("w", TimeSpan.FromMinutes(5), default);
+
+        Assert.True(
+            await outbox.AdvanceAsync(claimed!.OperationId, "w", ImportJobStage.Keying, null, default));
+
+        var rewound = await outbox.AdvanceAsync(
+            claimed.OperationId, "w", ImportJobStage.Parsing, null, default);
+
+        Assert.False(rewound);
+
+        var again = await outbox.FindAsync(claimed.OperationId, default);
+        Assert.Equal(ImportJobStage.Keying, again!.Stage);
+    }
 }
