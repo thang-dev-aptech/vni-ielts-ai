@@ -162,6 +162,11 @@ export function ImportPage() {
   const [operationId, setOperationId] = useState<string | null>(null);
   const [job, setJob] = useState<ImportJobView | null>(null);
   const [jobTimedOut, setJobTimedOut] = useState(false);
+  // Fix round 2: a `Completed` job whose draft this account could not load —
+  // the upload-only-operator case. Kept separate from `job`/`draft` so the
+  // screen can tell "finished, draft not fetched yet" apart from "finished,
+  // draft fetch was refused" rather than silently falling through to nothing.
+  const [draftLoadFailed, setDraftLoadFailed] = useState<string | null>(null);
   const pollCount = useRef(0);
 
   const [templateBusy, setTemplateBusy] = useState(false);
@@ -191,7 +196,9 @@ export function ImportPage() {
         try {
           const loadedDraft = await getImportDraft(accessToken, latest.draftId);
           setDraft(loadedDraft);
+          setDraftLoadFailed(null);
         } catch (error) {
+          setDraftLoadFailed(reasonOf(error));
           say({ tone: 'bad', text: reasonOf(error) });
         }
       }
@@ -237,6 +244,7 @@ export function ImportPage() {
     setJob(null);
     setOperationId(null);
     setJobTimedOut(false);
+    setDraftLoadFailed(null);
     pollCount.current = 0;
 
     try {
@@ -437,6 +445,28 @@ export function ImportPage() {
               Đã xử lý xong nhưng chưa thấy bản nháp — thử kiểm tra lại.
             </p>
           )}
+
+          {/*
+           * Fix round 2: the upload-only-operator case. The import finished
+           * and a draft exists (`job.draftId !== null`), but this account
+           * could not load it — read that as a fact about who is signed in,
+           * never as a verdict on whether that is correct: `P-20` splits
+           * "may start an import" from "may review one" on purpose, and which
+           * side an upload-only account should sit on is a role decision for
+           * the product owner, not this screen.
+           */}
+          {job !== null && job.state === 'Completed' && job.draftId !== null && draft === null &&
+            draftLoadFailed !== null && (
+              <div className="cms-alert is-bad" role="alert">
+                <strong>Đã nhập xong, nhưng chưa mở được bản nháp.</strong> Bản nháp{' '}
+                <code>{job.draftId}</code> đã được tạo (mã theo dõi <code>{operationId}</code>), nhưng
+                tài khoản đang đăng nhập không tải được nó — {draftLoadFailed} Cần một tài khoản có
+                quyền xem bản nháp nhập kiểm tra tiếp.{' '}
+                <button type="button" className="cms-secondary" onClick={() => void retryCheck()}>
+                  Kiểm tra lại
+                </button>
+              </div>
+            )}
 
           {job !== null && job.state === 'Failed' && (
             <div className="cms-alert is-bad" role="alert">

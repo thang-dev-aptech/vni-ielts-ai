@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { ApiError } from '@vni/auth';
 import type { ImportDraft, ImportJobView } from '../lib/adminApi.js';
 
 /**
@@ -194,6 +195,54 @@ describe('ImportPage', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/^Bản nháp/)).not.toBeInTheDocument();
     expect(getImportDraft).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Fix round 2: the upload-only-operator case. The job finished and names a
+   * draft, but this account's `getImportDraft` call is refused (`package.read`
+   * missing — see fix round 1's `An_upload_only_principal_can_read_the_job_it_started`
+   * for the endpoint side of this). Before this fix the panel fell through
+   * every render branch, leaving only a header and a "Hoàn tất" badge — no
+   * explanation, no next step. Red-when-removed target: reverting the new
+   * branch (or only clearing `draftLoadFailed` without rendering anything for
+   * it) makes the explanatory text disappear while the badge alone would still
+   * pass a weaker assertion, which is why this checks for the badge AND the
+   * explanation AND that no half-built draft ever renders.
+   */
+  it('explains a completed job it cannot open, rather than showing "Hoàn tất" and nothing else', async () => {
+    vi.mocked(uploadImportPackage).mockResolvedValue({
+      operationId: 'op-6',
+      definitionId: 'def-6',
+      versionNumber: 1,
+      stage: 'Done',
+      state: 'Completed',
+    });
+    vi.mocked(getImportJob).mockResolvedValue(
+      job({ operationId: 'op-6', stage: 'Done', state: 'Completed', draftId: 'draft-6' }),
+    );
+    vi.mocked(getImportDraft).mockRejectedValue(
+      new ApiError({
+        title: 'Forbidden',
+        status: 403,
+        detail: 'This account does not hold any of: package.read, package.upload.',
+        code: 'PERMISSION_DENIED',
+      }),
+    );
+
+    render(<ImportPage />);
+    chooseFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
+
+    expect(await screen.findByText('Hoàn tất')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Đã nhập xong, nhưng chưa mở được bản nháp.'),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/quyền xem bản nháp nhập kiểm tra tiếp/)).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/This account does not hold any of: package.read, package.upload/)
+        .length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText(/^Bản nháp draft-6/)).not.toBeInTheDocument();
   });
 
   /**
