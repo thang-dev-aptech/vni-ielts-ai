@@ -56,7 +56,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -311,7 +311,7 @@ jobs:
       # job is where that claim gets tested rather than assumed. → F1.4
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v4
         with:
