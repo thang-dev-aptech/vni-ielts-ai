@@ -140,7 +140,7 @@ jobs:
       # The repository's own credential check, which knows about this project's
       # specific shapes (Jwt__SigningKey, provider keys) and runs on every docs
       # job too. Cheap, and it fails on things a generic scanner allows.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
 
@@ -156,7 +156,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: 'pnpm'
