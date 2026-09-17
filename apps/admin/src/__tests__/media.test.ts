@@ -80,6 +80,29 @@ describe('sniffing the bytes rather than the extension', () => {
     expect(sniff(head(0x50, 0x4b, 0x03, 0x04))).toBeNull();
   });
 
+  /**
+   * <b>A WebP file *is* a RIFF file.</b> Its header is `RIFF`, four bytes of
+   * length, then `WEBP` — so a table that tests `RIFF` before `WEBP` answers
+   * "audio/wav" for every image an operator uploads, and the media screen
+   * then offers an `<audio>` player for a picture.
+   *
+   * The server's own sniffer already orders these correctly. This is the
+   * client table it is supposed to mirror; the two disagreeing is how an
+   * operator gets a different answer depending on which one looked.
+   */
+  it('reads a WebP as an image, not as the RIFF container it is built on', () => {
+    const webp = head(0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50);
+
+    expect(sniff(webp)?.contentType).toBe('image/webp');
+    expect(sniff(webp)?.kind).toBe('image');
+  });
+
+  it('still reads a real wav, which has no WEBP at byte 8', () => {
+    const wav = head(0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45);
+
+    expect(sniff(wav)?.contentType).toBe('audio/wav');
+  });
+
   it('refuses plain text', () => {
     expect(sniff(head(0x68, 0x65, 0x6c, 0x6c, 0x6f))).toBeNull();
   });

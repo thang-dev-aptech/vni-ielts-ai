@@ -13,13 +13,19 @@ namespace Vni.Ielts.Application.Media;
 /// </para>
 ///
 /// <para>
-/// <b>One order divergence from the table, and it is deliberate.</b> The
-/// client checks <c>RIFF</c> before <c>WEBP</c>, so a WebP image — which
-/// opens with <c>RIFF....WEBP</c> — sniffs there as <c>audio/wav</c>. That is
-/// harmless in the browser, where the upload is then rejected on extension
-/// anyway, but a server that copied the order would store images as audio.
-/// Here <c>WEBP</c> is examined first; <c>RIFF</c> only matches what it
-/// actually names.
+/// <b><c>WEBP</c> is examined before <c>RIFF</c>, and the order is load
+/// bearing.</b> A WebP image opens with <c>RIFF....WEBP</c>, so a table that
+/// tests <c>RIFF</c> first answers <c>audio/wav</c> for every image and the
+/// server would store pictures as audio.
+/// </para>
+///
+/// <para>
+/// The client table got this wrong until 2026-09-18 and was corrected to
+/// match. This comment used to record that divergence as deliberate and
+/// harmless; it was neither — the CMS offered an <c>&lt;audio&gt;</c> player
+/// for a picture. Both tables now agree, and both have a test that pins the
+/// order by feeding a real WebP header and a real WAVE header to the same
+/// call. → <c>apps/admin/src/lib/media.ts</c>
 /// </para>
 /// </summary>
 public static class MediaSniffer

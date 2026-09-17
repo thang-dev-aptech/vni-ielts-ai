@@ -88,11 +88,20 @@ const SIGNATURES: { kind: MediaKind; contentType: string; at: number; bytes: num
   { kind: 'audio', contentType: 'audio/mpeg', at: 0, bytes: [0xff, 0xfb] }, // MPEG frame sync
   { kind: 'audio', contentType: 'audio/mpeg', at: 0, bytes: [0xff, 0xf3] },
   { kind: 'audio', contentType: 'audio/mp4', at: 4, bytes: [0x66, 0x74, 0x79, 0x70] }, // ftyp
+  /*
+   * WEBP before RIFF, and the order is the whole point.
+   *
+   * A WebP file *is* a RIFF file: `RIFF`, four bytes of length, then
+   * `WEBP`. Tested the other way round, every image an operator uploads
+   * comes back `audio/wav` and the screen offers an `<audio>` player for
+   * a picture. The server's sniffer already orders these correctly; this
+   * table is the one that is supposed to mirror it.
+   */
+  { kind: 'image', contentType: 'image/webp', at: 8, bytes: [0x57, 0x45, 0x42, 0x50] },
   { kind: 'audio', contentType: 'audio/wav', at: 0, bytes: [0x52, 0x49, 0x46, 0x46] }, // RIFF
   { kind: 'audio', contentType: 'audio/ogg', at: 0, bytes: [0x4f, 0x67, 0x67, 0x53] }, // OggS
   { kind: 'image', contentType: 'image/png', at: 0, bytes: [0x89, 0x50, 0x4e, 0x47] },
   { kind: 'image', contentType: 'image/jpeg', at: 0, bytes: [0xff, 0xd8, 0xff] },
-  { kind: 'image', contentType: 'image/webp', at: 8, bytes: [0x57, 0x45, 0x42, 0x50] },
   { kind: 'file', contentType: 'application/pdf', at: 0, bytes: [0x25, 0x50, 0x44, 0x46] },
 ];
 
