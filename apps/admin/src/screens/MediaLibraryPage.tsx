@@ -100,8 +100,7 @@ export function MediaLibraryPage() {
       // A local blob URL gives instant playback of what was just uploaded;
       // after a reload the row falls back to fetching through the API.
       const url = URL.createObjectURL(new Blob([bytes], { type: verdict.contentType }));
-      const durationMs =
-        verdict.kind === 'audio' ? await probeDuration(url) : null;
+      const durationMs = verdict.kind === 'audio' ? await probeDuration(url) : null;
 
       const stored = await uploadMedia(accessToken, file, durationMs);
       rememberObjectUrl(stored.mediaId, url);

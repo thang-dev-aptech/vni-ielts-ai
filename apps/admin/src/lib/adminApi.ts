@@ -1,4 +1,11 @@
-import { ApiError, apiBase, authedFetch, request, TRANSPORT_ERROR, type ApiProblem } from '@vni/auth';
+import {
+  ApiError,
+  apiBase,
+  authedFetch,
+  request,
+  TRANSPORT_ERROR,
+  type ApiProblem,
+} from '@vni/auth';
 
 /**
  * The CMS's API.
@@ -305,8 +312,8 @@ export const deleteDocument = (accessToken: string, id: string) =>
     idempotencyKey: key(),
   });
 
-const documentTransition = (verb: 'submit' | 'return' | 'publish' | 'unpublish') =>
-  (accessToken: string, id: string) =>
+const documentTransition =
+  (verb: 'submit' | 'return' | 'publish' | 'unpublish') => (accessToken: string, id: string) =>
     request<AdminLibraryDocument>(`/api/v1/admin/library/documents/${id}/${verb}`, {
       method: 'POST',
       accessToken,
@@ -380,8 +387,8 @@ export const deleteArticle = (accessToken: string, id: string) =>
     idempotencyKey: key(),
   });
 
-const articleTransition = (verb: 'submit' | 'return' | 'publish' | 'unpublish') =>
-  (accessToken: string, id: string) =>
+const articleTransition =
+  (verb: 'submit' | 'return' | 'publish' | 'unpublish') => (accessToken: string, id: string) =>
     request<AdminArticle>(`/api/v1/admin/library/articles/${id}/${verb}`, {
       method: 'POST',
       accessToken,
@@ -445,7 +452,10 @@ export interface ImportDraft {
  * package failed needs more than "invalid package".
  */
 export class ImportApiError extends ApiError {
-  constructor(problem: ApiProblem, readonly findings: ImportFinding[]) {
+  constructor(
+    problem: ApiProblem,
+    readonly findings: ImportFinding[],
+  ) {
     super(problem);
     this.name = 'ImportApiError';
   }
@@ -550,12 +560,12 @@ export const approveImportDraft = async (
 // -- CMS media library --------------------------------------------------------
 
 /**
- * One row of the media library — the server's view, field for field the shape
+ * One row of the media library ï¿½ the server's view, field for field the shape
  * `lib/media.ts` has carried since the screen existed.
  */
 export interface AdminMediaAsset {
   mediaId: string;
-  /** `audio` · `image` · `file` — derived by the server from the file's own magic bytes. */
+  /** `audio` ï¿½ `image` ï¿½ `file` ï¿½ derived by the server from the file's own magic bytes. */
   kind: string;
   fileName: string;
   contentType: string;
@@ -619,10 +629,13 @@ export const uploadMedia = async (
 
 /**
  * Fetch one asset's bytes (authorized) and hand back a local `blob:` URL for
- * `<audio>`/`<img>` — an element cannot present a bearer token, so the bytes
+ * `<audio>`/`<img>` ï¿½ an element cannot present a bearer token, so the bytes
  * are fetched here and played from memory.
  */
-export const fetchMediaObjectUrl = async (accessToken: string, mediaId: string): Promise<string> => {
+export const fetchMediaObjectUrl = async (
+  accessToken: string,
+  mediaId: string,
+): Promise<string> => {
   const response = await authedFetch(
     `${apiBase()}/api/v1/admin/media/${mediaId}/content`,
     accessToken,
