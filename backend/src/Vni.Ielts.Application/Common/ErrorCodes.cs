@@ -258,4 +258,27 @@ public static class ErrorCodes
     /// is 403 and not 409.
     /// </summary>
     public const string ReviewerIsAuthor = "REVIEWER_IS_AUTHOR";
+
+    // ── CMS media library ────────────────────────────────────────────────
+
+    /// <summary>The uploaded bytes match no entry in the accepted-format table.</summary>
+    public const string MediaUnrecognisedFormat = "MEDIA_UNRECOGNISED_FORMAT";
+
+    /// <summary>The upload is larger than the ceiling its own kind carries.</summary>
+    public const string MediaTooLarge = "MEDIA_TOO_LARGE";
+
+    /// <summary>The upload arrived with zero bytes.</summary>
+    public const string MediaEmptyFile = "MEDIA_EMPTY_FILE";
+
+    /// <summary>The optional duration the uploader measured is not a plausible one.</summary>
+    public const string MediaInvalidDuration = "MEDIA_INVALID_DURATION";
+
+    /// <summary>This deployment has nowhere to put media bytes.</summary>
+    public const string MediaUploadUnavailable = "MEDIA_UPLOAD_UNAVAILABLE";
+
+    /// <summary>Metadata names an asset whose bytes cannot be opened.</summary>
+    public const string MediaStorageUnavailable = "MEDIA_STORAGE_UNAVAILABLE";
+
+    /// <summary>No asset with that id. 404, never 403 — the T19 rule.</summary>
+    public const string MediaNotFound = "MEDIA_NOT_FOUND";
 }

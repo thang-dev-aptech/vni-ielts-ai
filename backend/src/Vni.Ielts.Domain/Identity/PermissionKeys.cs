@@ -111,6 +111,19 @@ public static class PermissionKeys
     public const string ArticlePublish = "article.publish";
 
     /// <summary>
+    /// The CMS media library — the audio and image files exam and dictation
+    /// content reference. <c>media.retire</c> is separate from
+    /// <c>media.upload</c> for the same reason <c>exam.publish</c> is separate
+    /// from <c>exam.update</c>: uploading a file and removing it from every
+    /// picker are different authorities, and the author who uploaded should
+    /// not silently be the person who can clean the library out from under
+    /// drafts others are editing. → docs/ux/cms-content-operations.md § 5
+    /// </summary>
+    public const string MediaRead = "media.read";
+    public const string MediaUpload = "media.upload";
+    public const string MediaRetire = "media.retire";
+
+    /// <summary>
     /// Every key, in the order the CMS's permission matrix renders its columns.
     ///
     /// <b>Derived here, not restated in the client.</b> The matrix needs a
@@ -131,6 +144,7 @@ public static class PermissionKeys
         ConfigRead, ConfigUpdate,
         AuditRead,
         DocumentWrite, DocumentPublish, ArticleWrite, ArticlePublish,
+        MediaRead, MediaUpload, MediaRetire,
     ];
 }
 

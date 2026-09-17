@@ -101,4 +101,13 @@ public enum AuditAction
     /// two slices.
     /// </summary>
     WarningOverridden,
+
+    // The CMS media library. Target type "media-asset", target id the media
+    // id, label the file name; detail carries `kind`, `bytes` and `checksum`.
+    /// <summary>A file was stored into the library.</summary>
+    MediaUploaded,
+    /// <summary>An asset was withdrawn from the upload pickers; it still resolves.</summary>
+    MediaRetired,
+    /// <summary>An asset and its stored bytes were removed. Detail carries `fileName`.</summary>
+    MediaDeleted,
 }

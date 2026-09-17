@@ -346,6 +346,7 @@ public static class StartupConfiguration
         {
             ("ExamAssets", storage.ExamAssetsBucket, storage.ExamAssetsPrefix),
             ("Dictation", storage.DictationBucket, storage.DictationPrefix),
+            ("Media", storage.MediaBucket, storage.MediaPrefix),
             ("SpeakingRecordings", storage.SpeakingRecordingsBucket, storage.SpeakingRecordingsPrefix),
         };
 

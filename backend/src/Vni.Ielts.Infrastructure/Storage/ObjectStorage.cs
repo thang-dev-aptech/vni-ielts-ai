@@ -9,6 +9,7 @@ using Vni.Ielts.Infrastructure.Observability;
 using Vni.Ielts.Application.Dictation;
 using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Application.Media;
 
 namespace Vni.Ielts.Infrastructure.Storage;
 
@@ -73,6 +74,21 @@ public sealed class ObjectStorageOptions
     public string DictationBucket { get; set; } = "vni-audio-90d";
 
     /// <summary>
+    /// The CMS media library — audio and images operators upload while authoring.
+    ///
+    /// <para>
+    /// <b>A default, deliberately, unlike the Speaking bucket.</b> This bucket
+    /// holds authored content: files VNI's own team chose to put here, which
+    /// VNI may keep — exactly the class the default-bearing buckets above
+    /// belong to. A learner's voice gets no default because keeping it forever
+    /// is a decision nobody has made; a teacher's dictation recording is not
+    /// that class. The compose stack provisions <c>vni-media</c> so a fresh
+    /// clone works with no credentials beyond the local ones.
+    /// </para>
+    /// </summary>
+    public string MediaBucket { get; set; } = "vni-media";
+
+    /// <summary>
     /// The key prefix — the "folder" — each class of content lives under, so
     /// that several classes can share one bucket. Empty means the bucket root,
     /// which is what every deployment before 2026-09-04 had and what the
@@ -96,6 +112,9 @@ public sealed class ObjectStorageOptions
 
     /// <inheritdoc cref="ExamAssetsPrefix"/>
     public string DictationPrefix { get; set; } = string.Empty;
+
+    /// <inheritdoc cref="ExamAssetsPrefix"/>
+    public string MediaPrefix { get; set; } = string.Empty;
 
     /// <inheritdoc cref="ExamAssetsPrefix"/>
     public string SpeakingRecordingsPrefix { get; set; } = string.Empty;
@@ -349,9 +368,9 @@ internal sealed class S3ObjectStorageHealthCheck(
 
     public async Task CheckAsync(CancellationToken ct)
     {
-        // Each distinct bucket once: since 2026-09-04 the three classes may
-        // share one bucket under three prefixes (ADR-0016).
-        var buckets = new[] { options.ExamAssetsBucket, options.DictationBucket, options.SpeakingRecordingsBucket }
+        // Each distinct bucket once: since 2026-09-04 the content classes may
+        // share one bucket under distinct prefixes (ADR-0016).
+        var buckets = new[] { options.ExamAssetsBucket, options.DictationBucket, options.MediaBucket, options.SpeakingRecordingsBucket }
             .Where(bucket => !string.IsNullOrWhiteSpace(bucket))
             .Distinct(StringComparer.Ordinal);
 
@@ -507,6 +526,12 @@ internal static class ObjectStorageRegistration
         services.AddSingleton<IDictationAssetStore, S3DictationAssetStore>();
         services.AddSingleton<IPrivateImportAssetStore, S3PrivateImportAssetStore>();
         services.AddSingleton<IObjectStorageHealthCheck, S3ObjectStorageHealthCheck>();
+
+        // The media library's bytes. Registered whenever the S3 client exists —
+        // MediaBucket carries a default, so "configured object storage" is the
+        // same fact as "the library's blobs are here". The local fallback for
+        // Development-without-storage is registered in AddInfrastructure.
+        services.AddSingleton<IMediaBlobStore, S3MediaBlobStore>();
 
         if (!string.IsNullOrWhiteSpace(options.SpeakingRecordingsBucket))
         {

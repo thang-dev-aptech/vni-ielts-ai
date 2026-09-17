@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { forgetAllObjectUrls } from './mediaUrls.js';
 import {
   ApiError,
   clearSession,
@@ -70,6 +71,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setUser(null);
     setStatus('signed-out');
+    // Media playback URLs are memory holding bytes the operator fetched;
+    // they do not outlive the operator who opened them.
+    forgetAllObjectUrls();
   }, []);
 
   useEffect(() => {

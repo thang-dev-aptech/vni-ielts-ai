@@ -2891,6 +2891,166 @@
         ]
       }
     },
+    "/api/v1/admin/media": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "The whole media library, newest first",
+        "operationId": "AdminListMedia",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaLibraryView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Upload one file; the server sniffs its own type from the bytes",
+        "operationId": "AdminUploadMedia",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/media/{mediaId}/content": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Stream one asset\u0027s bytes, with range and ETag support",
+        "operationId": "AdminGetMediaContent",
+        "parameters": [
+          {
+            "name": "mediaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/media/{mediaId}/retire": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Withdraw an asset from the upload pickers; audited",
+        "operationId": "AdminRetireMedia",
+        "parameters": [
+          {
+            "name": "mediaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/media/{mediaId}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Remove an asset and its stored bytes; audited",
+        "operationId": "AdminDeleteMedia",
+        "parameters": [
+          {
+            "name": "mediaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/import/packages": {
       "post": {
         "tags": [
@@ -4098,6 +4258,72 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "MediaAssetView": {
+        "required": [
+          "mediaId",
+          "kind",
+          "fileName",
+          "contentType",
+          "bytes",
+          "durationMs",
+          "checksum",
+          "uploadedByName",
+          "uploadedAt",
+          "retired"
+        ],
+        "type": "object",
+        "properties": {
+          "mediaId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "durationMs": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "checksum": {
+            "type": "string"
+          },
+          "uploadedByName": {
+            "type": "string"
+          },
+          "uploadedAt": {
+            "type": "string"
+          },
+          "retired": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MediaLibraryView": {
+        "required": [
+          "media"
+        ],
+        "type": "object",
+        "properties": {
+          "media": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MediaAssetView"
+            }
           }
         }
       },

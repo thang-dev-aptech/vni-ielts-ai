@@ -485,8 +485,9 @@ app.MapExamEndpoints();
 app.MapDictationEndpoints();
 app.MapLibraryEndpoints();
 app.MapAdminEndpoints();
-app.MapAdminLibraryEndpoints();
-app.MapAdminImportEndpoints();
+        app.MapAdminLibraryEndpoints();
+        app.MapAdminMediaEndpoints();
+        app.MapAdminImportEndpoints();
 
 /*
  * <b>Two endpoints, because they answer two different questions.</b> What stood

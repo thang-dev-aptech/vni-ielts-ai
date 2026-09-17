@@ -9,6 +9,7 @@ using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Application.Learning;
+using Vni.Ielts.Application.Media;
 using Vni.Ielts.Application.Practice;
 using Vni.Ielts.Application.Usage;
 using Vni.Ielts.Infrastructure.Content.Import;
@@ -21,6 +22,7 @@ using Vni.Ielts.Infrastructure.Persistence;
 using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Persistence.Exams;
 using Vni.Ielts.Infrastructure.Persistence.Identity;
+using Vni.Ielts.Infrastructure.Persistence.Media;
 using Vni.Ielts.Infrastructure.Ai;
 using Vni.Ielts.Infrastructure.Ai.Writing;
 using Vni.Ielts.Infrastructure.Assessment;
@@ -249,6 +251,30 @@ public static class DependencyInjection
         {
             services.AddSingleton<IExamAssetStore, FixtureAssetStore>();
         }
+
+        // The media library's bytes follow the exam assets' rule — object
+        // storage when it is configured, and in Development without it a local
+        // folder, so a fresh clone can upload, play, retire and delete with no
+        // credentials. Outside Development the startup gate refuses to boot a
+        // production process with no object storage at all, so the null store
+        // below is a belt-and-braces default rather than a reachable state.
+        if (!objectStorageRegistered)
+        {
+            if (isDevelopment)
+                services.AddSingleton<IMediaBlobStore>(new LocalMediaBlobStore("media-local"));
+            else
+                services.AddSingleton<IMediaBlobStore, UnconfiguredMediaBlobStore>();
+        }
+
+        // The CMS media library — the shared stock exam and dictation content
+        // are built from. Metadata always has a home; the bytes are a
+        // deployment fact (see the blob store choice above).
+        services.AddScoped<IMediaAssetStore, MongoMediaAssetStore>();
+        services.AddScoped<UploadMediaAsset>();
+        services.AddScoped<ListMediaAssets>();
+        services.AddScoped<OpenMediaAssetContent>();
+        services.AddScoped<RetireMediaAsset>();
+        services.AddScoped<DeleteMediaAsset>();
 
         // Dictation has no authoring surface yet, so its content is a file
         // read once at startup rather than a repository over an empty table.
@@ -524,6 +550,7 @@ public static class DependencyInjection
         await MongoAuditLog.EnsureIndexesAsync(ctx.Database, ct);
         await MongoLoginThrottle.EnsureIndexesAsync(ctx.Database, ct);
         await MongoSpeakingRecordingMetadataStore.EnsureIndexesAsync(ctx.Database, ct);
+        await MongoMediaAssetStore.EnsureIndexesAsync(ctx.Database, ct);
 
         // Development only, and registered only there — see AddInfrastructure.
         // It loads fixtures/exams through the package reader, which is the same
@@ -579,7 +606,13 @@ public static class DependencyInjection
     /// session ownership, and conflating the two would put learner behaviour
     /// behind the admin permission model.
     /// </summary>
-    private static readonly (string Name, string[] Permissions)[] SeedRoles =
+    /// <remarks>
+    /// Internal rather than private so the seeded grants are asserted directly
+    /// — the media split (upload without retire, <c>SeededRolePermissionsTests</c>)
+    /// is a security decision, and a security decision that no test can see is
+    /// one edit away from silent drift.
+    /// </remarks>
+    internal static readonly (string Name, string[] Permissions)[] SeedRoles =
     [
         (SystemRoles.Learner, [PermissionKeys.ExamRead]),
 
@@ -592,6 +625,11 @@ public static class DependencyInjection
             // to learners are separate authorities. → threat T20
             // Same split for the two libraries: write, never publish.
             PermissionKeys.DocumentWrite, PermissionKeys.ArticleWrite,
+            // Read and upload, deliberately NOT MediaRetire — the author who
+            // uploads a file must not also be able to clean the library out
+            // from under drafts others are editing.
+            // → docs/ux/cms-content-operations.md § 5
+            PermissionKeys.MediaRead, PermissionKeys.MediaUpload,
             // Submit, but deliberately NOT ExamReview (`P-20`). This is the
             // author role; mvp-blueprint.md § 06 names the admin review queue
             // — not a content-editor one — as the screen the missing
@@ -624,6 +662,7 @@ public static class DependencyInjection
             PermissionKeys.ConfigRead, PermissionKeys.ConfigUpdate, PermissionKeys.AuditRead,
             PermissionKeys.DocumentWrite, PermissionKeys.DocumentPublish,
             PermissionKeys.ArticleWrite, PermissionKeys.ArticlePublish,
+            PermissionKeys.MediaRead, PermissionKeys.MediaUpload, PermissionKeys.MediaRetire,
         ]),
     ];
 }

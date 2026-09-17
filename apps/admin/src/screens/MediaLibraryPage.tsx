@@ -1,6 +1,16 @@
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ApiError, TRANSPORT_ERROR } from '@vni/auth';
 import { Confirm, useFlash } from '../chrome/Confirm.js';
-import { PreviewNotice } from '../components/PreviewNotice.js';
+import { useAdminAuth } from '../lib/AdminAuth.js';
+import {
+  deleteMedia,
+  fetchMediaObjectUrl,
+  listMedia,
+  retireMedia,
+  uploadMedia,
+  type AdminMediaAsset,
+} from '../lib/adminApi.js';
+import { objectUrlFor, rememberObjectUrl } from '../lib/mediaUrls.js';
 import { useOperator } from '../lib/operator.js';
 import {
   ASSET_STATE,
@@ -8,7 +18,6 @@ import {
   MAX_BYTES,
   REJECTION,
   assetState,
-  checksumOf,
   formatBytes,
   formatDuration,
   inspect,
@@ -19,36 +28,35 @@ import {
   type MediaAsset,
   type MediaKind,
 } from '../lib/media.js';
-import { objectUrlFor, rememberObjectUrl, uploadedHere, useMediaLibrary } from '../lib/previewStore.js';
 
 /**
- * Màn D1 — the media library.
+ * Màn D1 — the media library, on the real API.
  *
  * <b>Why the CMS needs this before it needs an editor.</b> A Listening section
  * is audio. Until there is somewhere to put an mp3, an author composing one has
  * written a question about a sound the system cannot play — and the exam looks
  * finished right up to the moment a candidate presses play.
  *
- * <b>The column that matters most is "đang dùng ở đâu".</b> A library without
- * it is a folder: nobody can tell what is safe to remove, so nothing is ever
- * removed and it fills with near-duplicates of the same recording.
+ * <b>The cut-over.</b> This screen ran on `previewStore` (localStorage
+ * fixtures) until the server media API landed; now every row, upload, retire
+ * and delete is a real request. The client-side sniff (`lib/media.ts`) stays —
+ * as early advice to the operator only; the server re-derives the type from
+ * the bytes and its answer is the record of truth.
  *
- * <b>What the screen refuses is as designed as what it accepts.</b> Content
- * behind a published version cannot be replaced or deleted — replacing the file
- * under a live reference changes what candidates hear while the version number
- * says nothing happened. Retiring is the way out: it takes the asset out of the
- * <b>Still on the browser-only store — deliberately.</b> There is no
- * `media.read` / `media.upload` / `media.retire` key in `PermissionKeys.All`
- * and no media admin endpoint to cut over to. Until those exist, this screen
- * keeps reading `previewStore` (localStorage fixtures) and renders
- * `PreviewNotice` on every visit so nobody mistakes the four sample files for
- * live assets. Review / pending-publish / exam detail already left this store.
- * → `apps/admin/src/lib/previewStore.ts`
+ * <b>The column that matters most is "đang dùng ở đâu" — and it is honestly
+ * empty today.</b> Which exam versions reference which media is a mapping the
+ * version-asset slice will build; until it exists there is no truthful
+ * non-empty value, and an invented one would be worse than a dash. The
+ * retire/delete rules still run through `media.ts` with that empty list, so
+ * the day the mapping arrives, this screen only gains a data source.
  */
 export function MediaLibraryPage() {
   const operator = useOperator();
-  const { demoExams: versions, media, addMedia, retireMedia, deleteMedia } = useMediaLibrary();
+  const { accessToken } = useAdminAuth();
+  const { flash, say } = useFlash();
 
+  const [media, setMedia] = useState<MediaAsset[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [kind, setKind] = useState<MediaKind | 'all'>('all');
   const [busy, setBusy] = useState(false);
   const [rejected, setRejected] = useState<{ code: string; text: string; file: string } | null>(
@@ -58,13 +66,28 @@ export function MediaLibraryPage() {
     null,
   );
   const input = useRef<HTMLInputElement>(null);
-  const { flash, say } = useFlash();
+
+  const load = useCallback(async () => {
+    if (accessToken === null) return;
+    try {
+      const { media: rows } = await listMedia(accessToken);
+      setMedia(rows.map(serverToAsset));
+      setLoadError(null);
+    } catch (error) {
+      setLoadError(describe(error));
+    }
+  }, [accessToken]);
+
+  useEffect(() => void load(), [load]);
 
   async function take(file: File) {
+    if (accessToken === null) return;
     setBusy(true);
     setRejected(null);
 
     try {
+      // Early advice, from the file's own bytes — the server checks again
+      // from scratch, and its verdict is the one that counts.
       const bytes = await file.arrayBuffer();
       const head = new Uint8Array(bytes, 0, Math.min(16, bytes.byteLength));
       const verdict = inspect(head, file.size);
@@ -74,49 +97,84 @@ export function MediaLibraryPage() {
         return;
       }
 
-      // Do not let the DOM-supplied filename or MIME type reach a browser
-      // renderer. `inspect` derives a canonical type from magic bytes, and the
-      // preview URL names a fresh Blob carrying only that type and those bytes.
+      // A local blob URL gives instant playback of what was just uploaded;
+      // after a reload the row falls back to fetching through the API.
       const url = URL.createObjectURL(new Blob([bytes], { type: verdict.contentType }));
-      const mediaId = crypto.randomUUID();
+      const durationMs =
+        verdict.kind === 'audio' ? await probeDuration(url) : null;
 
-      const asset: MediaAsset = {
-        mediaId,
-        kind: verdict.kind,
-        fileName: file.name,
-        contentType: verdict.contentType,
-        bytes: file.size,
-        durationMs: verdict.kind === 'audio' ? await probeDuration(url) : null,
-        checksum: await checksumOf(bytes),
-        uploadedByName: operator.name,
-        uploadedAt: new Date().toISOString(),
-        retired: false,
-      };
+      const stored = await uploadMedia(accessToken, file, durationMs);
+      rememberObjectUrl(stored.mediaId, url);
 
-      rememberObjectUrl(mediaId, url);
-      addMedia(asset);
-      say({ tone: 'ok', text: `Đã nhận ${file.name}.` });
+      say({ tone: 'ok', text: `Đã lưu ${file.name} vào kho.` });
+      await load();
+    } catch (error) {
+      say({ tone: 'bad', text: describe(error) });
+      await load();
     } finally {
       setBusy(false);
       if (input.current !== null) input.current.value = '';
     }
   }
 
-  const shown = kind === 'all' ? media : media.filter((m) => m.kind === kind);
+  async function apply(asset: MediaAsset, action: 'retire' | 'delete') {
+    if (accessToken === null) return;
+    try {
+      if (action === 'delete') await deleteMedia(accessToken, asset.mediaId);
+      else await retireMedia(accessToken, asset.mediaId);
+      say({
+        tone: 'ok',
+        text:
+          action === 'delete'
+            ? `Đã xoá ${asset.fileName}.`
+            : `Đã gỡ ${asset.fileName} khỏi bộ chọn.`,
+      });
+    } catch (error) {
+      say({ tone: 'bad', text: describe(error) });
+    } finally {
+      await load();
+    }
+  }
+
+  /** Play through the API on demand — an <audio> element cannot carry a token. */
+  async function attachPlayback(asset: MediaAsset) {
+    if (accessToken === null) return;
+    try {
+      rememberObjectUrl(asset.mediaId, await fetchMediaObjectUrl(accessToken, asset.mediaId));
+      setMedia((current) => current); // re-render with the URL now remembered
+    } catch (error) {
+      say({ tone: 'bad', text: describe(error) });
+    }
+  }
+
+  if (media === null && loadError === null) {
+    return (
+      <>
+        <Head />
+        <p className="cms-muted">Đang mở kho…</p>
+      </>
+    );
+  }
+
+  if (loadError !== null) {
+    return (
+      <>
+        <Head />
+        {flash}
+        <div className="cms-alert is-bad" role="alert">
+          <strong className="cms-code">Không mở được kho</strong> {loadError}
+        </div>
+      </>
+    );
+  }
+
+  const rows = media ?? [];
+  const shown = kind === 'all' ? rows : rows.filter((m) => m.kind === kind);
   const mayUpload = operator.can('media.upload');
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Kho media</h1>
-        <p>
-          Âm thanh, hình ảnh và tệp dùng trong đề. Một tệp dùng được cho nhiều đề — và một tệp đã ra
-          tới học viên thì không thay được nữa.
-        </p>
-      </header>
-
-      <PreviewNotice what="Kho dưới đây có sẵn bốn tệp mẫu." />
-
+      <Head />
       {flash}
 
       {mayUpload && (
@@ -144,7 +202,7 @@ export function MediaLibraryPage() {
                 if (file !== undefined) void take(file);
               }}
             />
-            <span>{busy ? 'Đang đọc tệp…' : 'Chọn tệp'}</span>
+            <span>{busy ? 'Đang tải lên…' : 'Chọn tệp'}</span>
           </label>
 
           {rejected !== null && (
@@ -155,15 +213,14 @@ export function MediaLibraryPage() {
           )}
 
           <p className="cms-muted">
-            Kiểm tra ở đây đọc magic bytes của tệp, không tin phần đuôi tên — nhưng nó là để báo sớm
-            cho bạn, <strong>không phải hàng rào an toàn</strong>. Máy chủ sẽ kiểm lại từ đầu khi
-            đường tải lên thật có mặt.
+            Kiểm tra ở đây đọc magic bytes của tệp để báo sớm — còn máy chủ kiểm lại từ đầu với
+            chính những byte đó, và lời của máy chủ mới là quyết định.
           </p>
         </section>
       )}
 
       <div className="cms-filters" role="group" aria-label="Lọc theo loại">
-        <Chip active={kind === 'all'} onClick={() => setKind('all')} count={media.length}>
+        <Chip active={kind === 'all'} onClick={() => setKind('all')} count={rows.length}>
           Tất cả
         </Chip>
         {(['audio', 'image', 'file'] as MediaKind[]).map((k) => (
@@ -171,7 +228,7 @@ export function MediaLibraryPage() {
             key={k}
             active={kind === k}
             onClick={() => setKind(k)}
-            count={media.filter((m) => m.kind === k).length}
+            count={rows.filter((m) => m.kind === k).length}
           >
             {KIND_LABEL[k]}
           </Chip>
@@ -180,9 +237,9 @@ export function MediaLibraryPage() {
 
       {shown.length === 0 && (
         <div className="cms-empty">
-          <h3>{media.length === 0 ? 'Kho đang trống' : 'Không có tệp nào thuộc loại này'}</h3>
+          <h3>{rows.length === 0 ? 'Kho đang trống' : 'Không có tệp nào thuộc loại này'}</h3>
           <p>
-            {media.length === 0
+            {rows.length === 0
               ? 'Tải một tệp âm thanh lên để bắt đầu.'
               : 'Đổi bộ lọc để xem các loại khác.'}
           </p>
@@ -204,6 +261,10 @@ export function MediaLibraryPage() {
             </thead>
             <tbody>
               {shown.map((asset) => {
+                // The version↔media mapping does not exist yet — see the file
+                // comment. Every rule below already accepts this list; when
+                // the mapping lands, this is the one line that changes.
+                const versions = NO_KNOWN_VERSIONS;
                 const users = usedBy(asset, versions);
                 const state = assetState(asset, versions);
                 const url = objectUrlFor(asset.mediaId);
@@ -221,11 +282,13 @@ export function MediaLibraryPage() {
                         <audio controls src={url} preload="metadata" />
                       )}
                       {asset.kind === 'audio' && url === null && (
-                        <span className="cms-sub">
-                          {uploadedHere(asset.mediaId)
-                            ? 'Tệp chỉ tồn tại trong phiên đã tải lên — nạp lại trang là mất phần phát thử.'
-                            : 'Tệp mẫu — không có nội dung thật để phát.'}
-                        </span>
+                        <button
+                          type="button"
+                          className="cms-secondary"
+                          onClick={() => void attachPlayback(asset)}
+                        >
+                          Phát qua máy chủ
+                        </button>
                       )}
                     </td>
                     <td className="num">{formatBytes(asset.bytes)}</td>
@@ -240,7 +303,9 @@ export function MediaLibraryPage() {
                     </td>
                     <td>
                       {users.length === 0 ? (
-                        <span className="cms-muted">—</span>
+                        <span className="cms-muted">
+                          — <span className="cms-sub">(chưa có ánh xạ đề ↔ media)</span>
+                        </span>
                       ) : (
                         <ul className="cms-usedby">
                           {users.map((v) => (
@@ -293,15 +358,7 @@ export function MediaLibraryPage() {
         onCancel={() => setPending(null)}
         onConfirm={() => {
           if (pending === null) return;
-          if (pending.action === 'delete') deleteMedia(pending.asset.mediaId);
-          else retireMedia(pending.asset.mediaId);
-          say({
-            tone: 'ok',
-            text:
-              pending.action === 'delete'
-                ? `Đã xoá ${pending.asset.fileName}.`
-                : `Đã gỡ ${pending.asset.fileName} khỏi bộ chọn.`,
-          });
+          void apply(pending.asset, pending.action);
           setPending(null);
         }}
         body={
@@ -321,6 +378,48 @@ export function MediaLibraryPage() {
         }
       />
     </>
+  );
+}
+
+/** The library view of the server's asset row — the two types already agree field for field. */
+function serverToAsset(row: AdminMediaAsset): MediaAsset {
+  return {
+    mediaId: row.mediaId,
+    kind: row.kind as MediaKind,
+    fileName: row.fileName,
+    contentType: row.contentType,
+    bytes: row.bytes,
+    durationMs: row.durationMs,
+    checksum: row.checksum,
+    uploadedByName: row.uploadedByName,
+    uploadedAt: row.uploadedAt,
+    retired: row.retired,
+  };
+}
+
+/** "The API refused" and "the API was not reached" need opposite advice. */
+function describe(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.problem.code === TRANSPORT_ERROR) {
+      return 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.';
+    }
+    return error.problem.detail;
+  }
+  return 'Có lỗi không mong muốn. Thử lại.';
+}
+
+/** Empty until the version-asset mapping exists — see the file comment. */
+const NO_KNOWN_VERSIONS: import('../lib/media.js').ReferencingVersion[] = [];
+
+function Head() {
+  return (
+    <header className="cms-head">
+      <h1>Kho media</h1>
+      <p>
+        Âm thanh, hình ảnh và tệp dùng trong đề. Một tệp dùng được cho nhiều đề — và một tệp đã ra
+        tới học viên thì không thay được nữa.
+      </p>
+    </header>
   );
 }
 

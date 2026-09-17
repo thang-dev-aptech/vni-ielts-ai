@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { objectUrlFor, rememberObjectUrl } from '../lib/previewStore.js';
+import { objectUrlFor, rememberObjectUrl } from '../lib/mediaUrls.js';
 
 describe('media preview URL boundary', () => {
   it.each([

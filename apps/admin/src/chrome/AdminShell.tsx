@@ -1,7 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { ROLE_PRESETS, useOperator, useViewAs } from '../lib/operator.js';
-import { useMediaLibrary } from '../lib/previewStore.js';
 import { AdminPaths } from '../routes/paths.js';
 import '../styles/admin.css';
 
@@ -128,7 +127,6 @@ export function AdminShell() {
   const { user, signOut } = useAdminAuth();
   const operator = useOperator();
   const { preset, setPreset, available } = useViewAs();
-  const { reset } = useMediaLibrary();
 
   const holds = (permission: Entry['permission']) => {
     if (permission === null) return true;
@@ -226,9 +224,6 @@ export function AdminShell() {
           <p className="cms-viewas-strip" role="note">
             Đang xem CMS bằng con mắt của <strong>{operator.previewLabel}</strong>. Quyền thật của
             tài khoản bạn không đổi, và máy chủ vẫn trả lời theo quyền thật.
-            <button type="button" className="cms-link-inline" onClick={reset}>
-              Đặt lại dữ liệu xem trước
-            </button>
           </p>
         )}
 
@@ -239,3 +234,4 @@ export function AdminShell() {
     </div>
   );
 }
+

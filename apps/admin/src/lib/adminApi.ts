@@ -546,3 +546,97 @@ export const approveImportDraft = async (
 
   return parseImportResponse(response);
 };
+
+// -- CMS media library --------------------------------------------------------
+
+/**
+ * One row of the media library — the server's view, field for field the shape
+ * `lib/media.ts` has carried since the screen existed.
+ */
+export interface AdminMediaAsset {
+  mediaId: string;
+  /** `audio` · `image` · `file` — derived by the server from the file's own magic bytes. */
+  kind: string;
+  fileName: string;
+  contentType: string;
+  bytes: number;
+  durationMs: number | null;
+  checksum: string;
+  uploadedByName: string;
+  uploadedAt: string;
+  retired: boolean;
+}
+
+export const listMedia = (accessToken: string) =>
+  request<{ media: AdminMediaAsset[] }>('/api/v1/admin/media', { accessToken });
+
+export const retireMedia = (accessToken: string, mediaId: string) =>
+  request<AdminMediaAsset>(`/api/v1/admin/media/${mediaId}/retire`, {
+    method: 'POST',
+    accessToken,
+    idempotencyKey: key(),
+  });
+
+export const deleteMedia = (accessToken: string, mediaId: string) =>
+  request<void>(`/api/v1/admin/media/${mediaId}`, {
+    method: 'DELETE',
+    accessToken,
+    idempotencyKey: key(),
+  });
+
+/**
+ * Upload one file. The server sniffs the type from the file's own bytes and
+ * answers with the stored asset; the client's pre-flight verdict is advice to
+ * the operator, never the record of truth.
+ */
+export const uploadMedia = async (
+  accessToken: string,
+  file: File,
+  durationMs: number | null = null,
+): Promise<AdminMediaAsset> => {
+  const form = new FormData();
+  form.append('file', file);
+  if (durationMs !== null) form.append('durationMs', String(durationMs));
+
+  const response = await authedFetch(`${apiBase()}/api/v1/admin/media`, accessToken, {
+    method: 'POST',
+    headers: { 'Idempotency-Key': crypto.randomUUID() },
+    body: form,
+  });
+
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as Partial<ApiProblem> | null;
+    throw new ApiError({
+      title: problem?.title ?? 'Upload failed',
+      status: response.status,
+      detail: problem?.detail ?? `HTTP ${response.status}`,
+      code: problem?.code ?? 'UNKNOWN',
+    });
+  }
+
+  return (await response.json()) as AdminMediaAsset;
+};
+
+/**
+ * Fetch one asset's bytes (authorized) and hand back a local `blob:` URL for
+ * `<audio>`/`<img>` — an element cannot present a bearer token, so the bytes
+ * are fetched here and played from memory.
+ */
+export const fetchMediaObjectUrl = async (accessToken: string, mediaId: string): Promise<string> => {
+  const response = await authedFetch(
+    `${apiBase()}/api/v1/admin/media/${mediaId}/content`,
+    accessToken,
+    {},
+  );
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as Partial<ApiProblem> | null;
+    throw new ApiError({
+      title: problem?.title ?? 'Playback failed',
+      status: response.status,
+      detail: problem?.detail ?? `HTTP ${response.status}`,
+      code: problem?.code ?? 'UNKNOWN',
+    });
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+};
