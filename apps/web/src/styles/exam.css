@@ -2080,6 +2080,13 @@
   margin-top: var(--s-4);
 }
 
+/* What the audio said (`IP-09`). Authored exam text, so `PassageBody` draws
+   it exactly as the Reading passage above — the spacing here only separates
+   it from the part's title and questions. */
+.result-transcript {
+  margin-top: var(--s-4);
+}
+
 /* A learner's own words, not authored passage markdown — no `**bold**`
    parsing, so line breaks are the only structure preserved. */
 .result-essay-text {

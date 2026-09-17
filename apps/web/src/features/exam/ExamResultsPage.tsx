@@ -900,6 +900,29 @@ function SectionContentReview({
                   </div>
                 )}
 
+                {/*
+                  What the audio said — the only screen allowed to show it.
+
+                  <b>Rendered flat rather than behind another toggle.</b> This
+                  panel is already collapsed behind "Xem lại đề bài"; a second
+                  toggle inside it would hide the one thing a Listening part
+                  has to show. A Listening `PartView` carries no `body` — the
+                  passage *is* the audio — so without this the panel opens on
+                  a title and nothing else.
+
+                  Absent, null and empty all stay silent, and the check is
+                  truthiness rather than `!== null` on purpose: a heading over
+                  nothing teaches a reader that the screen invents structure,
+                  and a payload that omitted the field entirely used to reach
+                  `PassageBody` as `undefined` and throw on `body.split`.
+                */}
+                {part.transcript ? (
+                  <div className="result-transcript">
+                    <h4>{t('exam.transcriptLabel')}</h4>
+                    <PassageBody body={part.transcript} />
+                  </div>
+                ) : null}
+
                 {part.questions.map((question) => {
                   if (question.type === 'essay-task') {
                     const essay = content.submissions[question.id] ?? null;

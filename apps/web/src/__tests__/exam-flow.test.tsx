@@ -1504,6 +1504,98 @@ it("shows the passage and the learner's own essay text, post-submit", async () =
 });
 
 /**
+ * `IP-09` — a Listening part carries what the audio actually said, and the
+ * results screen is the only place it may appear.
+ *
+ * <b>The data has been arriving since `d02e686` and nothing rendered it.</b>
+ * `PartView.transcript` was added to the API view, the contract and the
+ * client type, and no `.tsx` read it — so a learner checking a wrong answer
+ * against the passage had a Reading passage to read and a Listening part that
+ * showed a title and nothing else. This is the display layer catching up, not
+ * a new capability.
+ *
+ * Nothing here concerns `P-02`. This is published exam audio VNI owns the
+ * text of, not a learner's own speech awaiting an ASR provider.
+ */
+it('shows what a Listening part said, once the sitting is submitted', async () => {
+  resultsPayload = {
+    ...results,
+    mode: 'single',
+    sections: [],
+    markings: [],
+    markingStatuses: [],
+    explanationStatuses: [],
+    overallBand: null,
+    writingBand: null,
+    writingBandReason: null,
+    content: [
+      {
+        module: 'listening',
+        parts: [
+          {
+            order: 1,
+            kind: 'listening-part',
+            title: 'Part 1',
+            body: null,
+            audioKey: 'audio/l-p1.mp3',
+            imageKey: null,
+            taskNumber: null,
+            partNumber: 1,
+            cueCard: null,
+            minWords: null,
+            questions: [],
+            transcript: 'WOMAN: Good morning, Riverside Hotel.\n\nMAN: I would like to book a room.',
+          },
+          {
+            order: 2,
+            kind: 'listening-part',
+            title: 'Part 2',
+            body: null,
+            audioKey: 'audio/l-p2.mp3',
+            imageKey: null,
+            taskNumber: null,
+            partNumber: 2,
+            cueCard: null,
+            minWords: null,
+            questions: [],
+            transcript: null,
+          },
+          {
+            // No `transcript` key at all — the shape every fixture written
+            // before `d02e686` still has, and the one that reached
+            // `PassageBody` as `undefined` and threw.
+            order: 3,
+            kind: 'listening-part',
+            title: 'Part 3',
+            body: null,
+            audioKey: 'audio/l-p3.mp3',
+            imageKey: null,
+            taskNumber: null,
+            partNumber: 3,
+            cueCard: null,
+            minWords: null,
+            questions: [],
+          },
+        ],
+        submissions: {},
+      },
+    ],
+  };
+
+  open('/results/sit-1');
+
+  await userEvent.click(await screen.findByRole('button', { name: /Xem lại đề bài · Listening/ }));
+
+  expect(screen.getByText('WOMAN: Good morning, Riverside Hotel.')).toBeInTheDocument();
+  expect(screen.getByText('MAN: I would like to book a room.')).toBeInTheDocument();
+
+  // One heading, not three: Part 2 sent null and Part 3 sent no key at all,
+  // and neither may grow an empty one. A fabricated heading over nothing is
+  // how a reader learns to distrust the whole screen.
+  expect(screen.getAllByRole('heading', { name: 'Lời thoại' })).toHaveLength(1);
+});
+
+/**
  * "Nghe lại" — a Speaking recording is fetched on demand, `S2`'s own
  * endpoint, and the player receives whatever URL the server hands back.
  */

@@ -723,6 +723,7 @@ const vi = {
   'exam.advisory.academicNoData': 'Academic Task 1 không có số liệu — TA trần band 5.',
   // `S2`: the paper as sat, left of the review — passage, prompt, cue card.
   'exam.contentReviewTitle': 'Xem lại đề bài · {skill}',
+  'exam.transcriptLabel': 'Lời thoại',
   'exam.recordingPlay': 'Nghe lại',
   'exam.recordingLoading': 'Đang tải bản ghi…',
   'exam.recordingUnavailable': 'Bản ghi chưa sẵn sàng hoặc không thuộc phiên này.',
@@ -1595,6 +1596,7 @@ const en: Record<StringKey, string> = {
   'exam.advisory.t2Paragraphing': 'Task 2 paragraphing is inadequate — CC capped at 5.',
   'exam.advisory.academicNoData': 'Academic Task 1 has no supporting data — TA capped at 5.',
   'exam.contentReviewTitle': 'Review the paper · {skill}',
+  'exam.transcriptLabel': 'Transcript',
   'exam.recordingPlay': 'Play back',
   'exam.recordingLoading': 'Loading recording…',
   'exam.recordingUnavailable':

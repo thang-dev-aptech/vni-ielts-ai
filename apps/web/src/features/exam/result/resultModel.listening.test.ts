@@ -30,6 +30,7 @@ function part(order: number, ids: string[], audioKey: string | null, slotStart: 
     partNumber: order,
     cueCard: null,
     minWords: null,
+    transcript: null,
     questions: ids.map((id, i) => ({
       id,
       order: i + 1,

@@ -72,6 +72,7 @@ describe('writingWordCounts', () => {
           partNumber: null,
           cueCard: null,
           minWords: 150,
+          transcript: null,
           questions: [
             {
               id: 'w-1',
