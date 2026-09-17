@@ -300,6 +300,27 @@ which is `PROPOSED`; only the rows here are `CONFIRMED`.
 | IP-05 | **Answer explanations are generated at import time**, stored on the exam version, reviewed in the CMS before publication, and displayed at results with no learner action and no AI call | CONFIRMED | Owner decision 10/09/2026 |
 | IP-06 | **A model answer is prepared per Writing task**, reviewed before publication, and shown to the learner beside their own essay. It is never sent to the marker | CONFIRMED | Owner decision 10/09/2026 |
 
+### Listening transcripts at import time — `IP-07`…`IP-09`, 11/09/2026
+
+The import pipeline's strongest deterministic check, `PassageAnchorCheck`, anchors each answer in the
+text it must have come from. It selects that text by the part's declared `kind`: a `passage` anchors
+in its `body`, a `recording` in its `transcript`. **0 of 24 Listening parts in this repository's
+Cambridge packages carry a transcript**, so the check skips every Listening part and protects nothing
+there. The three rows below settle how that text is produced.
+
+> **This does not touch the Speaking deferral, and the distinction is the reason it can ship.**
+> `P-02` defers marking a **learner's** speech. That is personal data under Vietnam's PDPL
+> (`B-2`), it needs word-level timings to score pronunciation and fluency, and no ASR provider has
+> been chosen. `IP-07`…`IP-09` transcribe **published exam audio**: third-party material with no
+> data subject in it, needed only as readable text for a string search. They are different ports.
+> `ITranscriptSource` and `NoTranscriptSource` — the Speaking seam — are unchanged.
+
+| ID | Decision | Status | Source |
+|---|---|---|---|
+| IP-07 | **Listening recordings inside an uploaded package are transcribed at import time**, on a port of their own (`IAudioTranscriber`), behind the `Import:Transcription` configuration seam. Unset by default, and unset means the stage does nothing. Explicitly **not** the Speaking-marking seam: `P-02`, `ITranscriptSource` and `NoTranscriptSource` are untouched, because published exam audio is not a learner's personal data and needs no word-level timings | CONFIRMED | Owner decision 11/09/2026 |
+| IP-08 | **A transcript already in the package wins, and no model is called.** The same principle the answer key follows (`A-11`, `IP-03`): where an authoritative source exists, a model does not guess. Cambridge books ship transcripts, and a supplied one is both cheaper and better | CONFIRMED | Owner decision 11/09/2026 |
+| IP-09 | **Uncertainty produces nothing, never a guess.** When the number of audio files does not match the number of parts needing one, nothing is transcribed and a clearable warning is raised (`P-19`) — a transcript against the wrong questions is the shifted-answer-key failure wearing different clothes. And **a refusal is never written as an empty transcript**: absent and empty are different states, since empty reads as "this recording says nothing" and would report every answer in the part as missing | CONFIRMED | Owner decision 11/09/2026 |
+
 ---
 
 ### What the 06/09 decisions close, supersede, or leave open

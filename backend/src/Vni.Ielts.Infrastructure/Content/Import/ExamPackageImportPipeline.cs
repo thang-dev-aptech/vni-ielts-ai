@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
+using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Exams;
 
@@ -22,7 +23,9 @@ public sealed class ExamPackageImportPipeline(
     ExamImportWorkflow workflow,
     IExamPackageValidator validator,
     IImportDraftStore drafts,
-    IOptions<ImportArchiveOptions> archiveOptions)
+    IOptions<ImportArchiveOptions> archiveOptions,
+    IAudioTranscriber transcriber,
+    ImportReviewWorkflow? reviewWorkflow = null)
 {
     /// <param name="zip">
     /// Must be seekable. Inspection reads the archive's central directory,
@@ -35,8 +38,41 @@ public sealed class ExamPackageImportPipeline(
     /// forward-only request body would not, and is rejected here rather than
     /// silently mis-reading a truncated archive.
     /// </param>
+    /// <param name="progress">
+    /// Where the import has got to, reported as it happens.
+    ///
+    /// <b>Optional and null by default, so no existing caller changes.</b> The
+    /// operator CLI and the synchronous tests do not care; the import worker
+    /// does, because a stage is how far the money went. A resumed job that
+    /// cannot tell whether a paid parse already happened has to guess, and
+    /// guessing wrong buys a second parse of a Cambridge paper. →
+    /// <c>ImportJobStage</c>
+    ///
+    /// <b>Reported, never depended on.</b> This pipeline does not read the
+    /// stage back and does not change behaviour when nobody is listening: a
+    /// recipient that throws must not be able to fail an import that has
+    /// already been paid for, so every call is guarded.
+    /// </param>
+    /// <param name="recordedStage">
+    /// How far a previous run of this same import is recorded as having got,
+    /// or null for a first run (and for every caller that has no job row — the
+    /// operator CLI and the synchronous tests).
+    ///
+    /// <b>What it actually changes, exactly.</b> A value strictly past
+    /// <see cref="ImportJobStage.Parsing"/> means an earlier run finished the
+    /// parse and saved a draft, so the AI-parsed route reuses that draft
+    /// instead of calling the parser again. <b>Nothing else is skipped.</b>
+    /// Extraction, transcription, key injection, the four cross-check layers
+    /// and the explanation pass all run again, because every one of them
+    /// persists its result only at the end of the step that produces it — a
+    /// stage is reported on entry, so it is evidence that a step <i>started</i>
+    /// and never that it finished. Skipping one on that evidence would leave a
+    /// draft carrying the model's invented answers with the supplied key never
+    /// applied, which is a far worse outcome than paying twice.
+    /// </param>
     public async Task<ExamImportAttempt> ImportAsync(
-        Stream zip, ExamDefinitionId definitionId, int versionNumber, CancellationToken ct)
+        Stream zip, ExamDefinitionId definitionId, int versionNumber, CancellationToken ct,
+        IProgress<ImportJobStage>? progress = null, ImportJobStage? recordedStage = null)
     {
         if (!zip.CanSeek)
         {
@@ -44,6 +80,8 @@ public sealed class ExamPackageImportPipeline(
                 "The archive stream must be seekable — inspection and extraction both read it in full. "
                 + "Buffer the upload to a seekable stream before calling this.", nameof(zip));
         }
+
+        Report(progress, ImportJobStage.Extracting);
 
         var limits = archiveOptions.Value.ToLimits();
         var inspection = await inspector.InspectAsync(zip, limits, ct);
@@ -60,7 +98,8 @@ public sealed class ExamPackageImportPipeline(
                 return ExamImportAttempt.Rejected(extraction.Findings);
 
             var attempt = await ImportFromSandboxAsync(
-                inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber, ct);
+                inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber, ct,
+                progress, recordedStage > ImportJobStage.Parsing);
 
             return await AttachRoleFolderWarningsAsync(attempt, inspection.Findings, ct);
         }
@@ -108,14 +147,23 @@ public sealed class ExamPackageImportPipeline(
     /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
         PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
-        CancellationToken ct)
+        CancellationToken ct, IProgress<ImportJobStage>? progress, bool resumeExistingDraft)
     {
         var allEntries = layout.AcceptedEntries.ToArray();
 
         if (allEntries.Length == 1 && allEntries[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
             var packageJson = await File.ReadAllTextAsync(Path.Combine(sandboxDirectory, allEntries[0]), ct);
-            return await workflow.ImportStructuredAsync(packageJson, definitionId, versionNumber, ct);
+
+            // <b>Reported even though no parser runs.</b> The structured route
+            // reads a package somebody already assembled, so `Parsing` here
+            // costs nothing — but a job that jumped from `Extracting` to
+            // `Done` would leave an operator watching the CMS with no idea
+            // which route their upload took.
+            Report(progress, ImportJobStage.Parsing);
+
+            var structured = await workflow.ImportStructuredAsync(packageJson, definitionId, versionNumber, ct);
+            return await EnrichExplanationsAsync(structured, ct, progress);
         }
 
         var combined = new StringBuilder();
@@ -135,16 +183,75 @@ public sealed class ExamPackageImportPipeline(
             }
         }
 
+        // Past here the parser is called, and a Cambridge parse is the single
+        // most expensive thing this pipeline does.
+        Report(progress, ImportJobStage.Parsing);
+
         var text = combined.ToString();
         var hash = ExamImportWorkflow.Hash(text);
         var source = new ExtractedImportSource(
             "package", "text/plain", text, hash, hash, ImportDataClassification.Restricted);
 
-        var attempt = await workflow.ImportExtractedAsync(source, definitionId, versionNumber, ct);
+        var attempt = await workflow.ImportExtractedAsync(
+            source, definitionId, versionNumber, ct, resumeExistingDraft);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
-        return await ApplyKeysAndGuardAsync(attempt.Draft, layout, sandboxDirectory, ct);
+        /*
+         * <b>Between the parse and the keying, and that order is the point.</b>
+         * `PassageAnchorCheck` — layer 4, run at the end of
+         * `ApplyKeysAndGuardAsync` — reads a `recording` part's `transcript`
+         * and skips the part when there is none. 0 of 24 Listening parts in
+         * this repository's Cambridge packages carry one, so the strongest
+         * deterministic check in the pipeline protects nothing on Listening.
+         * Running here is what gives it text to search before it runs.
+         *
+         * <b>A supplied transcript wins and no model is called (`IP-08`);
+         * an uncertain audio-to-part mapping transcribes nothing at all
+         * (`IP-09`).</b> The stage decides both; this call site only supplies
+         * the recordings and reports the stage.
+         */
+        Report(progress, ImportJobStage.Transcribing);
+
+        var transcription = await AudioTranscriptionStage.RunAsync(
+            attempt.Draft.PackageJson, AudioFiles(layout, sandboxDirectory), transcriber, ct);
+
+        return await ApplyKeysAndGuardAsync(
+            attempt.Draft, layout, sandboxDirectory, ct, progress, transcription);
     }
+
+    /// <summary>
+    /// Every <see cref="PackageEntryRole.Audio"/> file in the package, across
+    /// every skill.
+    ///
+    /// <b>Across every skill on purpose, rather than Listening's folder
+    /// alone.</b> A part is selected for transcription by its declared
+    /// <c>kind</c> — <c>recording</c> — not by which section it sits in, and
+    /// the package's folder layout is a separate fact from the parsed
+    /// package's own structure. Gathering from one folder here while
+    /// selecting parts by kind there would silently transcribe nothing for a
+    /// recording whose audio an administrator filed under a different skill,
+    /// and the count gate in the stage is what turns any such surprise into a
+    /// warning rather than a wrong mapping. → <c>IP-09</c>
+    ///
+    /// <b>Opening the file happens here, in Infrastructure, and not on the
+    /// port.</b> <see cref="ImportAudioFile"/> carries a delegate rather than
+    /// a path-plus-directory precisely so that Application never touches a
+    /// filesystem. Combining these two values is only safe because the paths
+    /// came from <see cref="IExamPackageArchiveInspector"/>, which
+    /// canonicalised them and refused escape, traversal and non-regular
+    /// entries before a byte was written.
+    /// → docs/security/zip-ingestion-security.md
+    /// </summary>
+    private static IReadOnlyList<ImportAudioFile> AudioFiles(
+        PackageLayout layout, string sandboxDirectory) =>
+    [
+        .. layout.PresentSkills
+            .SelectMany(skill => layout.For(skill).Audio)
+            .Select(path => new ImportAudioFile(
+                path,
+                _ => Task.FromResult<Stream>(
+                    System.IO.File.OpenRead(Path.Combine(sandboxDirectory, path))))),
+    ];
 
     /// <summary>
     /// Reads every key document, one skill at a time, writes it onto the parsed
@@ -168,14 +275,35 @@ public sealed class ExamPackageImportPipeline(
     /// it from the presence of answer keys is exactly the vacuous check
     /// <see cref="FabricatedAnswerKeyGuard"/>'s own remarks warn against.
     /// </summary>
+    /// <param name="transcription">
+    /// What <see cref="AudioTranscriptionStage"/> produced, or null when the
+    /// caller ran no transcription (the structured route, which carries no
+    /// audio files by construction — a package holding a recording holds more
+    /// than one entry and therefore never takes that route).
+    ///
+    /// <b>Its package, not the draft's, is what gets keyed.</b> The draft was
+    /// persisted from the parser's output; the transcripts were written on
+    /// afterwards. Keying the draft's copy would drop them on the floor and
+    /// leave <see cref="PassageAnchorCheck"/> looking at the same empty
+    /// <c>transcript</c> fields this whole stage exists to fill.
+    /// </param>
     private async Task<ExamImportAttempt> ApplyKeysAndGuardAsync(
-        ExamImportDraft draft, PackageLayout layout, string sandboxDirectory, CancellationToken ct)
+        ExamImportDraft draft, PackageLayout layout, string sandboxDirectory, CancellationToken ct,
+        IProgress<ImportJobStage>? progress = null,
+        AudioTranscriptionResult? transcription = null)
     {
-        var json = draft.PackageJson;
+        Report(progress, ImportJobStage.Keying);
+
+        var json = transcription?.PackageJson ?? draft.PackageJson;
         var findings = new List<PackageFinding>();
         var injectionWarnings = new List<PackageFinding>();
         var keyed = new HashSet<ExamModule>();
-        var changed = false;
+
+        // A transcript written onto the package is a change to the package,
+        // so it takes the same revalidate-and-persist path a supplied answer
+        // key takes. Without this the transcripts would be computed, used by
+        // the anchor check, and then never saved.
+        var changed = transcription is { Changed: true };
 
         foreach (var skill in layout.PresentSkills)
         {
@@ -276,6 +404,8 @@ public sealed class ExamPackageImportPipeline(
          * was invented; these findings say which of the invented answers are
          * impossible. → PaperKeyConsistency
          */
+        Report(progress, ImportJobStage.Checking);
+
         findings.AddRange(PaperKeyConsistency.Inspect(json));
 
         /*
@@ -316,9 +446,13 @@ public sealed class ExamPackageImportPipeline(
             .. InjectionWarnings(injectionWarnings),
             .. NotInPassageWarnings(anchorReport.MissingAnswerIssues),
             .. OrderWarnings(anchorReport.OrderIssues),
+            .. TranscriptionWarnings(transcription),
         ];
 
-        if (!changed && warnings.Count == 0 && findings.Count == 0) return ExamImportAttempt.Accepted(draft);
+        var reconciled = Reconcile(draft.Warnings, warnings);
+
+        if (!changed && findings.Count == 0 && reconciled.SequenceEqual(draft.Warnings))
+            return await EnrichExplanationsAsync(ExamImportAttempt.Accepted(draft), ct, progress);
 
         /*
          * `Version` was materialised by the validator from the *parser's*
@@ -351,16 +485,189 @@ public sealed class ExamPackageImportPipeline(
             PackageJson = json,
             PackageHash = ExamImportWorkflow.Hash(json),
             Version = version,
-            Findings = [.. draft.Findings, .. findings],
-            Warnings = [.. draft.Warnings, .. warnings],
+            // Findings are value records, so `Distinct()` is exact. It is
+            // there for the same reason `Reconcile` is: a resumed job re-runs
+            // this method over a draft that already carries its output.
+            Findings = [.. draft.Findings.Concat(findings).Distinct()],
+            Warnings = reconciled,
             Revision = draft.Revision + 1,
         };
 
         var replaced = await drafts.ReplaceAsync(updated, draft.Revision, ct);
-        return ExamImportAttempt.Accepted(replaced ? updated : draft);
+        return await EnrichExplanationsAsync(
+            ExamImportAttempt.Accepted(replaced ? updated : draft), ct, progress);
     }
 
+    /// <summary>
+    /// The warnings a re-run of this method should leave on the draft.
+    ///
+    /// <b>The rule this keeps: a warning on the draft describes the content on
+    /// the draft.</b> A resumed import skips only the parse, so this method
+    /// runs again — and transcription is re-run, is not deterministic, and
+    /// <c>IP-08</c> makes a second pass behave differently once a first pass
+    /// has persisted a transcript. Simply merging by id and letting the stored
+    /// copy win therefore leaves run 2's transcript beside run 1's warning
+    /// <i>about</i> that transcript: a sentence a reviewer is asked to judge
+    /// that describes content no longer present. The same applies to every
+    /// warning downstream of a transcript, because
+    /// <see cref="PassageAnchorCheck"/> reads it.
+    ///
+    /// <b>And the rule that has to survive alongside it: a reviewer's decision
+    /// is not undone by a retry.</b> Clearing a warning with a recorded,
+    /// audited reason (<c>P-19</c>) is a judgement a person made; a re-run
+    /// re-raising it unresolved would quietly reopen it.
+    ///
+    /// <b>They do not conflict, because they are about different halves of the
+    /// record.</b> The <i>content</i> — path, message, category, and whether
+    /// the condition still holds at all — belongs to this run, which computed
+    /// it against the package as it now stands. The <i>decision</i> —
+    /// <c>Resolved</c> and <c>OverrideReason</c> — belongs to the reviewer, and
+    /// is carried across by id. So a recurring warning keeps its cleared state
+    /// and gets this run's wording, and a warning whose condition no longer
+    /// fires disappears instead of standing as a stale sentence.
+    ///
+    /// <b>Everything this method did not compute is left exactly as it is.</b>
+    /// Only three places write an <see cref="ImportReviewWarning"/>, and the
+    /// other two are enumerable: <c>AI_PARSE_REVIEW</c>, written once by
+    /// <see cref="ExamImportWorkflow"/> at save, and
+    /// <see cref="ArchiveFindingCodes.LayoutUnknownRoleFolder"/>, written by
+    /// <see cref="AttachRoleFolderWarningsAsync"/> from the archive inspection.
+    /// Neither is recomputed here, so neither is this method's to drop —
+    /// treating "not in my new set" as "gone" for those would delete a
+    /// reviewer's outstanding work on the first retry.
+    /// </summary>
+    private static IReadOnlyList<ImportReviewWarning> Reconcile(
+        IReadOnlyList<ImportReviewWarning> stored, IReadOnlyList<ImportReviewWarning> computed)
+    {
+        // First occurrence wins, so a stored list that somehow carries a
+        // duplicate id does not throw here — this is bookkeeping over an
+        // already-paid import, not a place to fail one.
+        var decisions = new Dictionary<string, ImportReviewWarning>(StringComparer.Ordinal);
+        foreach (var warning in stored) decisions.TryAdd(warning.Id, warning);
+
+        return
+        [
+            .. stored.Where(NotWrittenHere),
+            .. computed.Select(w => decisions.TryGetValue(w.Id, out var prior)
+                ? w with { Resolved = prior.Resolved, OverrideReason = prior.OverrideReason }
+                : w),
+        ];
+    }
+
+    /// <summary>
+    /// The two warning ids <see cref="ApplyKeysAndGuardAsync"/> does not
+    /// produce, and therefore may not remove. → <see cref="Reconcile"/>
+    /// </summary>
+    private static bool NotWrittenHere(ImportReviewWarning warning) =>
+        warning.Id.StartsWith(ExamImportWorkflow.AiParseReviewWarningId, StringComparison.Ordinal)
+        || warning.Id.StartsWith(
+            ArchiveFindingCodes.LayoutUnknownRoleFolder, StringComparison.Ordinal);
+
     public const string RevalidationFailedCode = "ANSWER_KEY_REVALIDATION_FAILED";
+
+    /// <summary>
+    /// Writes canonical Reading/Listening explanations onto the draft's
+    /// package before anyone ever sees it — the owner's original complaint
+    /// (results-time explanations should already be there, not generated
+    /// while a learner waits on a button press). Runs after the answer key
+    /// has been applied and revalidated, never before: an explanation is
+    /// generated against the answer the key supplied, never against the
+    /// model's guess. → <c>CanonicalExplanationWorkflow</c>,
+    /// <c>ImportReviewWorkflow.EnrichCanonicalExplanationsAsync</c>
+    ///
+    /// <b>The generation gate is enforced here, before the workflow is ever
+    /// called.</b> <c>policyProfile.explanation.mode</c> must be
+    /// <c>ai-generated</c> — a rights decision, not a capability one. A
+    /// package that has not cleared that gate must cost nothing, so the
+    /// check happens before <see cref="ImportReviewWorkflow"/> — and
+    /// therefore before the configured generator — is ever reached.
+    ///
+    /// <b>A refusal degrades to "no explanations this pass," never to a lost
+    /// import.</b> No generator configured, a revision race, or the reviewer
+    /// gate itself refusing all report through <c>ImportReviewResult</c>,
+    /// which is not an exception — the caller already has an accepted draft
+    /// and keeps it exactly as it was. A refusal a single question earns from
+    /// <see cref="ExplanationOutputValidator"/> is different and stays
+    /// inside a successful attempt: <c>CanonicalExplanationWorkflow</c> turns
+    /// that into an <c>exp-*</c> review warning on the surviving draft, not
+    /// into a failed call here.
+    /// </summary>
+    private async Task<ExamImportAttempt> EnrichExplanationsAsync(
+        ExamImportAttempt attempt, CancellationToken ct, IProgress<ImportJobStage>? progress)
+    {
+        Report(progress, ImportJobStage.Explaining);
+
+        if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
+        if (reviewWorkflow is null) return attempt;
+        if (!RequiresAiGeneratedExplanations(attempt.Draft.PackageJson)) return attempt;
+
+        var actor = new ImportReviewActor(
+            "system:import-pipeline", CanEdit: true, CanReview: true, CanPublish: false);
+
+        var result = await reviewWorkflow.EnrichCanonicalExplanationsAsync(
+            attempt.Draft.Id, attempt.Draft.Revision, actor, ct);
+
+        return result.IsSuccess && result.Draft is not null
+            ? ExamImportAttempt.Accepted(result.Draft)
+            : attempt;
+    }
+
+    /// <summary>
+    /// Reads the raw package rather than the materialised
+    /// <see cref="ExamVersion"/> — <c>policyProfile.explanation.mode</c> is a
+    /// rights decision the schema carries and the domain model does not, by
+    /// design (see <see cref="ExamPackageReader"/>'s own
+    /// <c>CheckAuthoredExplanations</c>, which reads it the same way for the
+    /// same reason).
+    /// </summary>
+    /// <remarks>
+    /// <b>Catches everything, not just <see cref="JsonException"/>.</b> A
+    /// <c>mode</c> that exists but is not a string — <c>"mode": 3</c> — parses
+    /// fine and then throws <see cref="InvalidOperationException"/> out of
+    /// <c>GetValue&lt;string&gt;()</c>, straight through this pipeline and into
+    /// the worker's catch, which reads it as a transient failure and retries.
+    /// That was tolerable while a retry was free; it is not now that a resumed
+    /// job is meant to stop paying twice, and it was never the behaviour a
+    /// gate should have. A gate answers "may this package reach a provider",
+    /// and the only safe answer to a question it cannot read is no.
+    ///
+    /// <b>Internal so the gate itself can be tested.</b> Reaching it through
+    /// <c>ImportAsync</c> requires a wired <c>ImportReviewWorkflow</c> and a
+    /// configured generator, which would test the wiring rather than the gate.
+    /// </remarks>
+    internal static bool RequiresAiGeneratedExplanations(string packageJson)
+    {
+        try
+        {
+            return JsonNode.Parse(packageJson)?["policyProfile"]?["explanation"]?["mode"]
+                ?.GetValue<string>() == "ai-generated";
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Tells the caller where the import has got to, and never lets that
+    /// telling break the import.
+    ///
+    /// <b>Swallowed on purpose.</b> The recipient is a worker writing a row to
+    /// a database; a blip there must not throw out of a pipeline that has
+    /// already spent money on a parse. The worker's own bookkeeping is what
+    /// notices a lost stage — this call is a report, not a transaction.
+    /// </summary>
+    private static void Report(IProgress<ImportJobStage>? progress, ImportJobStage stage)
+    {
+        try
+        {
+            progress?.Report(stage);
+        }
+        catch (Exception)
+        {
+            // Deliberately nothing: see above.
+        }
+    }
 
     /// <summary>
     /// Carries <see cref="ArchiveFindingCodes.LayoutUnknownRoleFolder"/> — and
@@ -402,7 +709,9 @@ public sealed class ExamPackageImportPipeline(
         var draft = attempt.Draft;
         var updated = draft with
         {
-            Warnings = [.. draft.Warnings, .. warnings],
+            // Same reasoning as ApplyKeysAndGuardAsync: a resumed job reaches
+            // this line again over a draft that already carries these.
+            Warnings = [.. draft.Warnings.Concat(warnings).DistinctBy(w => w.Id)],
             Revision = draft.Revision + 1,
         };
 
@@ -522,6 +831,41 @@ public sealed class ExamPackageImportPipeline(
                 $"{PassageAnchorCheck.OutOfOrderCode}:{i}", ImportReviewCategory.AcceptedVariants,
                 issue.Path, issue.Message, false))
             .ToArray();
+
+    /// <summary>
+    /// Turns <see cref="AudioTranscriptionStage"/>'s results into the same
+    /// blocking-but-clearable review-warning shape every other import
+    /// judgement uses (<c>P-19</c>), with the same <c>CODE:index</c> id idiom
+    /// so <c>ResolveWarningAsync</c> has something to key on.
+    ///
+    /// <b>They block approval rather than merely being reported.</b> A
+    /// Listening part with no transcript is a part <see cref="PassageAnchorCheck"/>
+    /// cannot check at all, which is the exact state this task exists to end —
+    /// and a package where the audio could not be matched to the parts is one
+    /// nobody should publish without having looked. A reviewer may still clear
+    /// either with a written, audited reason: a package that legitimately has
+    /// no recordings to transcribe is a real case, and a warning that cannot
+    /// be cleared is a package that can never be approved.
+    ///
+    /// <b>Two categories, because these are two different jobs.</b> A refused
+    /// transcription is something a reviewer reads the recording to settle
+    /// (<see cref="ImportReviewCategory.TranscriptAndEvidence"/>); an audio
+    /// file that cannot be matched to a part is something they settle by
+    /// looking at the folder (<see cref="ImportReviewCategory.AssetMapping"/>).
+    /// Filing both under one category would send both to the wrong person.
+    /// </summary>
+    private static IReadOnlyList<ImportReviewWarning> TranscriptionWarnings(
+        AudioTranscriptionResult? transcription) =>
+        transcription is null
+            ? []
+            : [.. transcription.Warnings.Select((w, i) => new ImportReviewWarning(
+                $"{w.Code}:{i}",
+                w.Code == TranscriptionWarningCodes.Refused
+                    ? ImportReviewCategory.TranscriptAndEvidence
+                    : ImportReviewCategory.AssetMapping,
+                w.Path,
+                w.Message,
+                false))];
 
     /// <summary>
     /// <c>/sections/{index}/</c> for every section no key was supplied for.

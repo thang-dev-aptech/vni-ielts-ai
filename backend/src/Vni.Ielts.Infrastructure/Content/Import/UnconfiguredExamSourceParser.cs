@@ -33,6 +33,14 @@ public sealed class ExamSourceParsingUnavailableException(string message) : Exce
 /// </summary>
 public sealed class UnconfiguredExamSourceParser : IExamSourceParser
 {
+    /// <summary>
+    /// <see cref="ImportJob.NoParserConfigured"/>, which is what that constant
+    /// exists for: a stable placeholder rather than an empty string, so "no
+    /// parser is wired" and "a version left blank by mistake" do not collide
+    /// inside an operation id.
+    /// </summary>
+    public string PromptVersion => ImportJob.NoParserConfigured;
+
     public Task<ParsedExamPackage> ParseAsync(ExtractedImportSource source, CancellationToken ct) =>
         throw new ExamSourceParsingUnavailableException(
             "AI-assisted parsing of raw exam source documents (docx/pdf/txt) is not wired into this "

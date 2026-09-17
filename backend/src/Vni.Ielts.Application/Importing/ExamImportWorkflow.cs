@@ -109,11 +109,27 @@ public sealed class ExamImportWorkflow(
             parserMetadata: null,
             ct);
 
+    /// <param name="resumeExistingDraft">
+    /// <b>True only when the caller has evidence the parse already happened.</b>
+    /// The import worker passes it when the job row records a stage strictly
+    /// past <c>Parsing</c> — and a stage is reported on <i>entry</i> to its
+    /// step, so "past Parsing" means Parsing finished, which means a draft was
+    /// saved. Nothing else may set it: a caller that guessed would hand back a
+    /// stale draft for a package it never actually read.
+    ///
+    /// <b>This is the whole of what resuming skips.</b> The parse is the one
+    /// step whose completion the recorded stage proves, because it is the only
+    /// one that persists its result before the next step begins. Transcription,
+    /// keying, the cross-checks and the explanations all write at the end of
+    /// the method that performs them, so a recorded stage says they <i>started</i>
+    /// and never that they finished — they are re-run, deliberately.
+    /// </param>
     public async Task<ExamImportAttempt> ImportExtractedAsync(
         ExtractedImportSource source,
         ExamDefinitionId definitionId,
         int versionNumber,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool resumeExistingDraft = false)
     {
         var observedHash = Hash(source.Text);
         if (!FixedTimeEquals(source.TextSha256, observedHash))
@@ -124,6 +140,30 @@ public sealed class ExamImportWorkflow(
                     "error", "SOURCE_HASH_MISMATCH", "/source/sha256",
                     "The extracted source bytes do not match the recorded SHA-256 hash."),
             ]);
+        }
+
+        /*
+         * <b>The short-circuit, and it is the point of the whole job record.</b>
+         * A Cambridge parse is the single most expensive thing this system
+         * buys. Before this existed, `ImportJobStage` was written on every
+         * import and read by nothing, so a transient failure, a worker restart
+         * or an expired lease paid for the parse again — up to three times for
+         * one upload.
+         *
+         * The lookup is by source hash rather than draft id because the draft
+         * id is derived from the parser's output, which is precisely what is
+         * not known yet. It is keyed on the prompt version this parser would
+         * run under — `parser.PromptVersion`, the same value the job's own id
+         * carries — so a draft produced by a superseded prompt is not adopted
+         * as though it were this run's work. → IImportDraftStore.FindBySourceAsync
+         */
+        if (resumeExistingDraft)
+        {
+            var existing = await drafts.FindBySourceAsync(
+                definitionId, versionNumber, ExamImportRoute.AiParsedSource,
+                source.SourceSha256.ToLowerInvariant(), parser.PromptVersion, ct);
+
+            if (existing is not null) return ExamImportAttempt.Accepted(existing);
         }
 
         var parsed = await parser.ParseAsync(source, ct);
@@ -155,7 +195,7 @@ public sealed class ExamImportWorkflow(
         var warnings = route == ExamImportRoute.AiParsedSource
             ? new ImportReviewWarning[]
             {
-                new("AI_PARSE_REVIEW", ImportReviewCategory.Questions, "/",
+                new(AiParseReviewWarningId, ImportReviewCategory.Questions, "/",
                     "AI-parsed content must be compared with its source before approval.", false),
             }
             : [];
@@ -170,6 +210,16 @@ public sealed class ExamImportWorkflow(
         await drafts.SaveAsync(draft, ct);
         return ExamImportAttempt.Accepted(draft);
     }
+
+    /// <summary>
+    /// The one warning this workflow writes, named rather than typed twice.
+    ///
+    /// <b>It is written here, at save, and never recomputed.</b>
+    /// <c>ExamPackageImportPipeline</c> has to be able to tell it apart from
+    /// the warnings it regenerates on every run, because a resumed import
+    /// replaces its own and must leave everybody else's alone.
+    /// </summary>
+    public const string AiParseReviewWarningId = "AI_PARSE_REVIEW";
 
     public static string Hash(string value) =>
         Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));

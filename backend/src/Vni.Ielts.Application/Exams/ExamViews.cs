@@ -16,8 +16,11 @@ namespace Vni.Ielts.Application.Exams;
 /// a shape the key cannot fit through — not a mapper someone remembers to
 /// keep correct. → threat `T7`
 ///
-/// The same reasoning removes <c>Transcript</c> from <see cref="PartView"/>:
-/// a Listening transcript is the answer sheet in prose.
+/// <see cref="PartView.Transcript"/> follows the same reasoning but not the
+/// same shape: a Listening transcript is the answer sheet in prose, so the
+/// field exists but stays null everywhere except <see
+/// cref="SessionResultsView.Content"/>, and only once the sitting has left
+/// <see cref="SessionStatus.InProgress"/>. → `IP-09`
 /// </summary>
 public sealed record ExamCatalogueItem(
     string ExamVersionId,
@@ -91,7 +94,18 @@ public sealed record PartView(
     int? PartNumber,
     CueCardView? CueCard,
     int? MinWords,
-    IReadOnlyList<QuestionView> Questions);
+    IReadOnlyList<QuestionView> Questions,
+    /// <summary>
+    /// What a Listening passage actually said — the answer sheet in prose.
+    ///
+    /// <b>Null everywhere except <see cref="SessionResultsView.Content"/>,
+    /// and only there once the sitting has left <c>InProgress</c>.</b> It is
+    /// populated in exactly one place — <c>ExamHandlers.BuildContent</c> —
+    /// because one populated construction is auditable and two is how a leak
+    /// happens. Every other reader of <see cref="SectionPart"/> into this
+    /// view, including the in-progress run view, passes null. → `IP-09`
+    /// </summary>
+    string? Transcript = null);
 
 /// <summary>
 /// The open section, with the deadline the server derived.
@@ -323,12 +337,14 @@ public sealed record SessionResultsView(
     /// the whole sitting's status, not on each section's own.
     ///
     /// <b>Reuses <see cref="PartView"/> exactly as the sitting does.</b> That
-    /// type already has no <c>Transcript</c> field (see the doc comment on
-    /// <see cref="ExamCatalogueItem"/>) and no answer key — and neither lifts
-    /// here. Transcript stays out post-submit too, blocked by the open ASR
-    /// decision rather than by the pre/post-submit boundary (`P-02`); the
-    /// correct answer belongs on <see cref="QuestionResultView"/>, served
-    /// alongside this, not duplicated here.
+    /// type carries no answer key, and never has. It now also carries
+    /// <see cref="PartView.Transcript"/> — what a Listening passage actually
+    /// said, populated here and only here, once this list is non-empty at
+    /// all. That field is a different thing from the ASR seam `P-02` defers:
+    /// this is published exam audio VNI already owns the text of, not a
+    /// learner's own speech awaiting a transcription provider. The correct
+    /// answer itself still belongs on <see cref="QuestionResultView"/>,
+    /// served alongside this, not duplicated here.
     /// </summary>
     IReadOnlyList<SectionContentView> Content);
 
@@ -542,7 +558,13 @@ internal static class ExamViewMapping
                 : null,
             [.. (question.Slots ?? []).OrderBy(s => s.Number).Select(s => new ResponseSlotView(s.Id, s.Number))]);
 
-    public static PartView ToView(this SectionPart part) =>
+    /// <summary>
+    /// <paramref name="transcript"/> defaults to null so every caller except
+    /// the one building <see cref="SessionResultsView.Content"/> gets a view
+    /// with no transcript for free, rather than having to remember to pass
+    /// null. → `IP-09`
+    /// </summary>
+    public static PartView ToView(this SectionPart part, string? transcript = null) =>
         new(
             part.Order,
             part.Kind,
@@ -554,7 +576,8 @@ internal static class ExamViewMapping
             part.PartNumber,
             part.CueCard is { } card ? new CueCardView(card.Topic, card.Bullets) : null,
             part.MinWords,
-            [.. part.Questions.OrderBy(q => q.Order).Select(q => q.ToView())]);
+            [.. part.Questions.OrderBy(q => q.Order).Select(q => q.ToView())],
+            transcript);
 
     public static SectionMarkingView ToView(this SectionMarking marking) =>
         new(

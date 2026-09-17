@@ -6,10 +6,14 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Audit;
 using Vni.Ielts.Domain.Identity;
+using MongoDB.Driver;
+using Vni.Ielts.Infrastructure.Content.Import;
+using Vni.Ielts.Infrastructure.Persistence;
 
 namespace Vni.Ielts.Integration.Tests;
 
@@ -56,6 +60,47 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         return (client, access);
     }
 
+    /// <summary>
+    /// Signs in holding exactly the given permissions — no more, no less —
+    /// via a fresh, non-system role, so a test can prove what one specific
+    /// key does and does not open rather than testing against Admin's whole
+    /// bundle. Strips any role the stub account picked up from an earlier
+    /// test in this class first, the same reasoning
+    /// <see cref="Uploading_without_the_upload_permission_is_forbidden"/>
+    /// already applies: the stub SSO provider always authenticates the same
+    /// account, so this must hold regardless of run order.
+    /// </summary>
+    private async Task<(HttpClient Client, string Access)> SignInWithOnlyAsync(
+        params string[] permissions)
+    {
+        var client = NewClient();
+        await SsoRoundTripAsync(client);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            var roles = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
+
+            var user = await users.FindByEmailAsync(
+                Vni.Ielts.Domain.Identity.Email.Create("stub.learner@example.com"), default);
+            Assert.NotNull(user);
+
+            foreach (var existing in await roles.ListAsync(default))
+            {
+                if (user!.HasRole(existing.Id)) user.RemoveRole(existing.Id);
+            }
+
+            var limited = Role.Create($"test-limited-{Guid.NewGuid():n}", isSystem: false, permissions);
+            await roles.AddAsync(limited, default);
+            user!.AssignRole(limited.Id);
+            await users.SaveAsync(user, default);
+        }
+
+        // Permissions are resolved when the token is minted.
+        var access = await SsoRoundTripAsync(client);
+        return (client, access);
+    }
+
     private static async Task<string> SsoRoundTripAsync(HttpClient client)
     {
         var start = await client.PostAsJsonAsync("/api/v1/auth/sso/google/start", new { });
@@ -83,6 +128,33 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     private static async Task<JsonElement> BodyOf(HttpResponseMessage response) =>
         await response.Content.ReadFromJsonAsync<JsonElement>();
 
+    /// <summary>Posts one ZIP and returns the operation id the door handed back.</summary>
+    private static async Task<string> UploadAsync(
+        HttpClient client, string access, byte[] zip, string? definitionId = null)
+    {
+        var content = new MultipartFormDataContent();
+        var part = new ByteArrayContent(zip);
+        part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
+        content.Add(part, "file", "package.zip");
+        if (definitionId is not null) content.Add(new StringContent(definitionId), "definitionId");
+
+        var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        request.Content = content;
+
+        var response = await client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+
+        return (await BodyOf(response)).GetProperty("operationId").GetString()!;
+    }
+
+    /// <summary>
+    /// A valid package whose bytes differ from every other test's, so an
+    /// operation id derived from the hash cannot collide across tests sharing
+    /// one database.
+    /// </summary>
+    private static string UniquePackageJson() =>
+        ValidPackageJson.Replace("admin-import-test", $"admin-{Guid.NewGuid():n}");
+
     // ── ZIP fixtures, built in memory — same technique as HostileArchives ──
 
     /// <summary>A structured package: one ready exam.json, valid, with a real answer key.</summary>
@@ -103,13 +175,22 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     /// </summary>
     private static MultipartFormDataContent BombPackage()
     {
-        var zip = BuildZipBomb("reading/bomb.txt", 10 * 1024 * 1024);
         var content = new MultipartFormDataContent();
-        var part = new ByteArrayContent(zip);
+        var part = new ByteArrayContent(BombBytes());
         part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
         content.Add(part, "file", "bomb.zip");
+        content.Add(new StringContent(BombDefinitionId), "definitionId");
         return content;
     }
+
+    /// <summary>
+    /// Named rather than generated, so a test can derive the operation id the
+    /// endpoint <i>would</i> have used and assert that no such job exists.
+    /// </summary>
+    private const string BombDefinitionId = "bomb-must-never-be-enqueued";
+
+    /// <summary>Deterministic, so its SHA-256 — the archive key — is derivable too.</summary>
+    private static byte[] BombBytes() => BuildZipBomb("reading/bomb.txt", 10 * 1024 * 1024);
 
     private static byte[] BuildZip(params (string Name, string Text)[] entries)
     {
@@ -170,8 +251,14 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     }
     """;
 
+    /// <summary>
+    /// <b>202, not 201 — a Cambridge parse takes minutes and costs money.</b>
+    /// Doing it inside the POST times out and loses what was paid for, and
+    /// this machine's own notes record that the API restarts. The request now
+    /// hashes, stores and enqueues; the work happens in the worker.
+    /// </summary>
     [SkippableFact]
-    public async Task Uploading_a_valid_structured_package_creates_an_unapproved_draft()
+    public async Task Uploading_a_package_returns_202_and_an_operation_id()
     {
         Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
 
@@ -183,22 +270,343 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         var response = await client.SendAsync(request);
         var body = await BodyOf(response);
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal("structuredpackage", body.GetProperty("route").GetString());
-        Assert.Equal("reviewrequired", body.GetProperty("approvalState").GetString());
-        Assert.Equal(0, body.GetProperty("findings").GetArrayLength());
-        Assert.Equal(0, body.GetProperty("warnings").GetArrayLength());
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("operationId").GetString()));
 
-        var draftId = body.GetProperty("draftId").GetString();
-        Assert.False(string.IsNullOrWhiteSpace(draftId));
+        // The server generates a definition id when the upload did not name
+        // one; a caller that never learned it could not find its own exam.
+        Assert.False(string.IsNullOrWhiteSpace(body.GetProperty("definitionId").GetString()));
 
-        // The draft the upload just made is really persisted and reachable
-        // by a caller with package.read — not just echoed in the response.
-        var getResponse = await client.SendAsync(
-            Request(HttpMethod.Get, $"/api/v1/admin/import/packages/{draftId}", access));
-        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        // A handle, and where to follow it.
+        Assert.NotNull(response.Headers.Location);
+        Assert.Contains("/api/v1/admin/import/jobs/", response.Headers.Location!.ToString());
     }
 
+    /// <summary>
+    /// <b>The upload must survive the request that carried it, and be readable
+    /// by another process.</b> Asserting it can be OPENED is the point — a
+    /// store that accepts bytes and keeps none would pass a weaker assertion,
+    /// and that is not hypothetical: <c>IPrivateImportAssetStore</c>'s default
+    /// implementation does exactly that, and its name invites exactly this
+    /// mistake.
+    /// </summary>
+    [SkippableFact]
+    public async Task The_archive_is_stored_readably_before_the_job_is_enqueued()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var zip = BuildZip(("reading/exam.json", UniquePackageJson()));
+
+        var operationId = await UploadAsync(client, access, zip);
+
+        using var scope = app.Services.CreateScope();
+        var outbox = scope.ServiceProvider.GetRequiredService<IImportOutbox>();
+        var archives = scope.ServiceProvider.GetRequiredService<IImportArchiveStore>();
+
+        var job = await outbox.FindAsync(operationId, default);
+        Assert.NotNull(job);
+        Assert.False(string.IsNullOrWhiteSpace(job!.ArchiveKey));
+
+        await using var read = await archives.OpenAsync(job.ArchiveKey, default);
+        Assert.NotNull(read);
+
+        using var buffer = new MemoryStream();
+        await read!.CopyToAsync(buffer);
+        Assert.Equal(zip, buffer.ToArray());
+    }
+
+    /// <summary>
+    /// The operation id is derived from the bytes, so a retried upload is the
+    /// same job rather than a second paid parse. The unique index decides
+    /// that, not this endpoint's memory.
+    /// </summary>
+    [SkippableFact]
+    public async Task Re_uploading_identical_bytes_does_not_start_a_second_job()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var zip = BuildZip(("reading/exam.json", UniquePackageJson()));
+
+        var definitionId = $"cam-{Guid.NewGuid():n}";
+
+        var first = await UploadAsync(client, access, zip, definitionId);
+        var second = await UploadAsync(client, access, zip, definitionId);
+
+        Assert.Equal(first, second);
+
+        using var scope = app.Services.CreateScope();
+        var outbox = scope.ServiceProvider.GetRequiredService<IImportOutbox>();
+        var job = await outbox.FindAsync(first, default);
+
+        // One job, still owed once.
+        Assert.Equal(0, job!.Attempts);
+        Assert.Equal(ImportJobState.Pending, job.State);
+    }
+
+    /// <summary>
+    /// Writes straight onto the job document, by operation id.
+    ///
+    /// <b>Not through <c>ClaimAsync</c>, and the difference matters.</b> This
+    /// class shares one database across its tests, and a claim takes the
+    /// <i>oldest due</i> job — which is very often another test's. Staging a
+    /// state this way names the job it means, the same technique (and the same
+    /// reasoning about the internal document type) this file already uses to
+    /// stage an unreadable stage.
+    /// </summary>
+    private async Task SetJobFieldsAsync(string operationId, MongoDB.Bson.BsonDocument fields)
+    {
+        using var scope = app.Services.CreateScope();
+
+        var options = scope.ServiceProvider
+            .GetRequiredService<Microsoft.Extensions.Options.IOptions<MongoOptions>>().Value;
+
+        await new MongoClient(options.ConnectionString)
+            .GetDatabase(options.Database)
+            .GetCollection<MongoDB.Bson.BsonDocument>("import_jobs")
+            .UpdateOneAsync(
+                new MongoDB.Bson.BsonDocument("operationId", operationId),
+                new MongoDB.Bson.BsonDocument("$set", fields));
+    }
+
+    /// <summary>
+    /// <b>I1: a re-upload after a failed job re-runs it, rather than being a
+    /// silent no-op.</b>
+    ///
+    /// The operation id is derived from the definition, the version, the bytes
+    /// and the parse prompt, so re-uploading the package that failed is
+    /// correctly "already there" — and before this fix that swallowed it:
+    /// <c>EnqueueAsync</c> returned false, the door answered 202 anyway,
+    /// nothing re-ran, and the CMS showed the old error for ever. The only
+    /// escape was a version bump an operator has no reason to guess.
+    ///
+    /// <b>The recorded stage survives the reopen</b>, which is the half that
+    /// makes this affordable: the reopened job resumes from what it already
+    /// bought rather than paying for the parse again.
+    /// </summary>
+    [SkippableFact]
+    public async Task Re_uploading_a_package_whose_job_failed_puts_it_back_in_the_queue()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var zip = BuildZip(("reading/exam.json", UniquePackageJson()));
+        var definitionId = $"cam-{Guid.NewGuid():n}";
+
+        var operationId = await UploadAsync(client, access, zip, definitionId);
+
+        // The state an operator actually complains about: permanently failed,
+        // with a reason, having already paid for the parse.
+        await SetJobFieldsAsync(operationId, new MongoDB.Bson.BsonDocument
+        {
+            { "state", ImportJobState.Failed.ToString() },
+            { "stage", (int)ImportJobStage.Keying },
+            { "attempts", ImportJob.MaxAttempts },
+            { "lastError", "the parser did not answer" },
+        });
+
+        // The obvious thing an operator does next: upload the same package.
+        Assert.Equal(operationId, await UploadAsync(client, access, zip, definitionId));
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/jobs/{Uri.EscapeDataString(operationId)}", access));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await BodyOf(response);
+
+        // The assertion this test exists for: it is owed again.
+        Assert.Equal("Pending", body.GetProperty("state").GetString());
+        Assert.Equal(0, body.GetProperty("attempts").GetInt32());
+        Assert.Equal(JsonValueKind.Null, body.GetProperty("lastError").ValueKind);
+
+        // And it resumes rather than re-buying the parse.
+        Assert.Equal("Keying", body.GetProperty("stage").GetString());
+    }
+
+    /// <summary>
+    /// The other half of the same rule: a job a worker is <b>inside</b> must
+    /// never be reopened. Resetting its attempt count under a worker mid-parse
+    /// invites a second worker onto the same paid work — which is exactly what
+    /// the lease exists to prevent.
+    /// </summary>
+    [SkippableFact]
+    public async Task Re_uploading_a_package_whose_job_is_running_leaves_that_job_alone()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var zip = BuildZip(("reading/exam.json", UniquePackageJson()));
+        var definitionId = $"cam-{Guid.NewGuid():n}";
+
+        var operationId = await UploadAsync(client, access, zip, definitionId);
+
+        await SetJobFieldsAsync(operationId, new MongoDB.Bson.BsonDocument
+        {
+            { "state", ImportJobState.Running.ToString() },
+            { "attempts", 1 },
+            { "leaseToken", "worker-a" },
+            { "leaseUntil", DateTime.UtcNow.AddMinutes(10) },
+        });
+
+        Assert.Equal(operationId, await UploadAsync(client, access, zip, definitionId));
+
+        using var scope = app.Services.CreateScope();
+        var outbox = scope.ServiceProvider.GetRequiredService<IImportOutbox>();
+        var job = await outbox.FindAsync(operationId, default);
+
+        Assert.Equal(ImportJobState.Running, job!.State);
+        Assert.Equal(1, job.Attempts);
+        Assert.Equal("worker-a", job.LeaseToken);
+    }
+
+    /// <summary>
+    /// "What happened to my import", answered.
+    ///
+    /// <b>The worker is not run here, and that is deliberate.</b> This
+    /// assembly cannot reference <c>Vni.Ielts.Worker</c> — both it and the API
+    /// generate a top-level <c>Program</c> in the global namespace, which is
+    /// why the worker has its own test project. The end-to-end "a worker turns
+    /// this job into a draft" property is pinned in
+    /// <c>ImportWorkerTests</c>, against the real pipeline and the real
+    /// outbox; what belongs here is that the HTTP surface reports the job
+    /// truthfully.
+    /// </summary>
+    [SkippableFact]
+    public async Task The_job_endpoint_reports_the_stage_and_state_it_is_in()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var operationId = await UploadAsync(
+            client, access, BuildZip(("reading/exam.json", UniquePackageJson())));
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/jobs/{Uri.EscapeDataString(operationId)}", access));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await BodyOf(response);
+
+        Assert.Equal(operationId, body.GetProperty("operationId").GetString());
+        Assert.Equal("Extracting", body.GetProperty("stage").GetString());
+        Assert.Equal("Pending", body.GetProperty("state").GetString());
+        Assert.Equal(0, body.GetProperty("attempts").GetInt32());
+        Assert.Equal(JsonValueKind.Null, body.GetProperty("draftId").ValueKind);
+        Assert.Equal(JsonValueKind.Null, body.GetProperty("lastError").ValueKind);
+    }
+
+    /// <summary>
+    /// Fix round 1 on task 9 of the 2026-09-11 out-of-band import slice.
+    ///
+    /// <b>The bug this guards against.</b> `GetJobEndpoint` was gated on
+    /// `package.read` alone. An operator holding only `package.upload` —
+    /// exactly the permission `UploadPackageEndpoint` itself requires, and
+    /// the one the CMS's `/import` route is gated on — could start a job and
+    /// then get a 403 asking how it went: no stage, no error, nothing to
+    /// distinguish a running job from a failed one. The natural response,
+    /// uploading the same package again, silently collides with the job
+    /// already running via the derived operation id and reads as a broken
+    /// button. Anyone who may start a job must be able to see how it ended.
+    /// </summary>
+    [SkippableFact]
+    public async Task An_upload_only_principal_can_read_the_job_it_started()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInWithOnlyAsync(PermissionKeys.PackageUpload);
+        var operationId = await UploadAsync(
+            client, access, BuildZip(("reading/exam.json", UniquePackageJson())));
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/jobs/{Uri.EscapeDataString(operationId)}", access));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await BodyOf(response);
+        Assert.Equal(operationId, body.GetProperty("operationId").GetString());
+    }
+
+    [SkippableFact]
+    public async Task An_unknown_operation_id_is_a_404()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/jobs/nothing-was-ever-enqueued", access));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    /// <summary>
+    /// <b>A loud failure nobody can read is only half the trade.</b>
+    /// <c>MongoImportOutbox</c> refuses to map a stored stage this binary does
+    /// not define, rather than silently resetting the job to <c>Extracting</c>
+    /// and re-buying a parse. The window in which that happens is a rollback —
+    /// which is exactly when an operator is asking this endpoint what happened
+    /// to their import — so it must not be an unhandled 500 with nothing in
+    /// it.
+    ///
+    /// The stage is written straight into Mongo because there is no code path
+    /// that can produce it: it is by definition a value a <i>newer</i> binary
+    /// wrote.
+    /// </summary>
+    [SkippableFact]
+    public async Task A_job_whose_stage_this_build_cannot_read_is_explained_not_a_500()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var operationId = await UploadAsync(
+            client, access, BuildZip(("reading/exam.json", UniquePackageJson())));
+
+        using (var scope = app.Services.CreateScope())
+        {
+            /*
+             * Written through the driver rather than through the store, and
+             * as a loose BSON document rather than the mapped one. The store
+             * has no way to write this — that is the point of the guard — and
+             * the document type is internal to Infrastructure, so reaching
+             * for it here would mean widening an assembly boundary to stage a
+             * corruption. The collection name and the field name are the two
+             * facts this test needs, and both are stable.
+             */
+            var options = scope.ServiceProvider
+                .GetRequiredService<Microsoft.Extensions.Options.IOptions<MongoOptions>>().Value;
+
+            await new MongoClient(options.ConnectionString)
+                .GetDatabase(options.Database)
+                .GetCollection<MongoDB.Bson.BsonDocument>("import_jobs")
+                .UpdateOneAsync(
+                    new MongoDB.Bson.BsonDocument("operationId", operationId),
+                    new MongoDB.Bson.BsonDocument("$set", new MongoDB.Bson.BsonDocument("stage", 99)));
+        }
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/jobs/{Uri.EscapeDataString(operationId)}", access));
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+
+        var body = await BodyOf(response);
+        Assert.Equal("IMPORT_JOB_STAGE_UNREADABLE", body.GetProperty("code").GetString());
+        Assert.Equal(99, body.GetProperty("stage").GetInt32());
+
+        // The detail says what to do, not just that something is wrong.
+        Assert.Contains("rolled back", body.GetProperty("detail").GetString()!);
+    }
+
+    /// <summary>
+    /// <b>Rule 3, kept at the door even though the work moved out of band.</b>
+    /// An uploaded ZIP is validated <i>before anything is persisted</i> — and
+    /// "persisted" now includes the private archive the worker reads back, not
+    /// only the draft. Inspection reads the central directory and writes
+    /// nothing, so it costs this request almost nothing and it means a bomb
+    /// never reaches storage, never occupies a job row, and never has to be
+    /// swept up after a worker refuses it minutes later.
+    ///
+    /// The assertions are deliberately stronger than the 422: nothing was
+    /// stored, and nothing was enqueued.
+    /// </summary>
     [SkippableFact]
     public async Task A_compression_bomb_is_refused_before_anything_is_persisted()
     {
@@ -216,8 +624,27 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         Assert.Equal("PACKAGE_REJECTED", body.GetProperty("code").GetString());
         Assert.True(body.GetProperty("findings").GetArrayLength() > 0);
 
-        // No draft id is even offered — there is nothing for a caller to look up.
+        // No handle is even offered — there is nothing for a caller to follow.
+        Assert.False(body.TryGetProperty("operationId", out _));
         Assert.False(body.TryGetProperty("draftId", out _));
+
+        using var scope = app.Services.CreateScope();
+        var outbox = scope.ServiceProvider.GetRequiredService<IImportOutbox>();
+        var archives = scope.ServiceProvider.GetRequiredService<IImportArchiveStore>();
+
+        // Nothing owed, and nothing kept. The operation id and the archive key
+        // are both derived from the bytes, so the test can name exactly what
+        // must not exist without the endpoint having told it anything.
+        var bomb = BombBytes();
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bomb))
+            .ToLowerInvariant();
+
+        Assert.Null(await archives.OpenAsync($"imports/archives/{hash}.zip", default));
+        Assert.Null(await outbox.FindAsync(
+            ImportJob.OperationIdFor(
+                new Vni.Ielts.Domain.Exams.ExamDefinitionId(BombDefinitionId), 1, hash,
+                ImportJob.NoParserConfigured),
+            default));
     }
 
     [SkippableFact]
@@ -366,5 +793,91 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         Assert.True(replaced);
 
         return seeded.Id.ToString("D");
+    }
+
+    // ── Task 7: the downloadable package skeleton ──────────────────────────
+
+    /// <summary>
+    /// The strongest proof available: the generated skeleton is fed back
+    /// through the real <see cref="IExamPackageArchiveInspector"/> — the same
+    /// service the upload endpoint uses — and must be acceptable with no
+    /// <see cref="ArchiveFindingCodes.LayoutUnknownRoleFolder"/> finding. A
+    /// test that only checked for expected path prefixes would still pass a
+    /// skeleton the inspector actually rejects.
+    /// </summary>
+    [SkippableFact]
+    public async Task The_template_is_a_zip_whose_folders_the_inspector_accepts()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/template", access));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/zip", response.Content.Headers.ContentType?.MediaType);
+        Assert.Contains(
+            "vni-exam-package-template.zip",
+            response.Content.Headers.ContentDisposition?.ToString() ?? string.Empty);
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+
+        using var archive = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
+        var names = archive.Entries.Select(e => e.FullName).ToArray();
+
+        Assert.Contains(names, n => n.StartsWith("reading/de/", StringComparison.Ordinal));
+        Assert.Contains(names, n => n.StartsWith("reading/dap-an/", StringComparison.Ordinal));
+        Assert.Contains(names, n => n.StartsWith("listening/audio/", StringComparison.Ordinal));
+
+        using var scope = app.Services.CreateScope();
+        var inspector = scope.ServiceProvider.GetRequiredService<IExamPackageArchiveInspector>();
+        var archiveOptions = scope.ServiceProvider.GetRequiredService<IOptions<ImportArchiveOptions>>();
+
+        var inspection = await inspector.InspectAsync(
+            new MemoryStream(bytes), archiveOptions.Value.ToLimits(), default);
+
+        Assert.True(inspection.IsAcceptable, DescribeFindings(inspection));
+        Assert.DoesNotContain(
+            inspection.Findings, f => f.Code == ArchiveFindingCodes.LayoutUnknownRoleFolder);
+    }
+
+    private static string DescribeFindings(ArchiveInspection inspection) =>
+        string.Join("; ", inspection.Findings.Select(f => $"{f.Severity} {f.Code} {f.Path}: {f.Message}"));
+
+    /// <summary>
+    /// Same reasoning as <c>Uploading_without_the_upload_permission_is_forbidden</c>:
+    /// the server enforces this, not just the CMS hiding a button. The
+    /// template exists for a person about to upload a package, so it is
+    /// gated on the same permission the upload endpoint checks.
+    /// </summary>
+    [SkippableFact]
+    public async Task Downloading_the_template_needs_the_upload_permission()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = NewClient();
+        await SsoRoundTripAsync(client);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            var roles = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
+            var admin = await roles.FindByNameAsync(SystemRoles.Admin, default);
+            var user = await users.FindByEmailAsync(
+                Vni.Ielts.Domain.Identity.Email.Create("stub.learner@example.com"), default);
+
+            if (admin is not null && user is not null && user.HasRole(admin.Id))
+            {
+                user.RemoveRole(admin.Id);
+                await users.SaveAsync(user, default);
+            }
+        }
+
+        var access = await SsoRoundTripAsync(client);
+
+        var response = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/template", access));
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 }

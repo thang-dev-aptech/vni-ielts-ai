@@ -525,6 +525,15 @@ internal static class ObjectStorageRegistration
         services.AddSingleton<IExamAssetStore, S3ExamAssetStore>();
         services.AddSingleton<IDictationAssetStore, S3DictationAssetStore>();
         services.AddSingleton<IPrivateImportAssetStore, S3PrivateImportAssetStore>();
+
+        /*
+         * The uploaded archive itself, which the import worker reads back in
+         * another process minutes later. Registered here rather than beside the
+         * other import services in `AddInfrastructure` because that block runs
+         * later and the last registration wins: the local-disk fallback there is
+         * conditional on this call having returned false.
+         */
+        services.AddSingleton<IImportArchiveStore, S3ImportArchiveStore>();
         services.AddSingleton<IObjectStorageHealthCheck, S3ObjectStorageHealthCheck>();
 
         // The media library's bytes. Registered whenever the S3 client exists —

@@ -38,6 +38,21 @@ public sealed class WorkerHealthState
     private Exception? _fatal;
 
     /// <summary>
+    /// Which loop this state describes.
+    ///
+    /// <b>One state per loop, because a shared one lies.</b> Until the import
+    /// worker arrived there was exactly one loop, and "the loop is alive" was
+    /// a whole answer. With two, a single shared state is refreshed by
+    /// whichever loop is still polling — so a marking worker doing its job
+    /// every five seconds keeps <see cref="SinceLastPoll"/> fresh while the
+    /// import loop is dead, and readiness reports healthy over a queue of
+    /// uploads nothing is draining. That is precisely the failure this whole
+    /// type was written to catch ("a process can be alive and its loop dead"),
+    /// reintroduced one level up.
+    /// </summary>
+    public string Loop { get; init; } = "loop";
+
+    /// <summary>
     /// Longer than the 40-second heartbeat interval by a comfortable margin,
     /// short enough to still catch a loop that has genuinely stalled within
     /// a couple of minutes rather than needing an operator to notice first.
@@ -99,11 +114,20 @@ public static class WorkerHealthEndpoints
             .WithSummary("Is this process worth keeping. Touches nothing external");
 
         app.MapGet("/health/ready", ReadyAsync)
-            .WithSummary("Is the marking loop actually claiming work");
+            .WithSummary("Is every worker loop actually claiming work");
     }
 
+    /// <param name="loops">
+    /// Every registered <see cref="WorkerHealthState"/>, one per loop.
+    ///
+    /// <b>Each loop reports for itself and any one of them can fail
+    /// readiness.</b> Reporting a single merged answer would let a healthy
+    /// marking loop stand in for a dead import loop, which is the masking this
+    /// split exists to remove — and a dead import loop is silent by nature:
+    /// uploads keep being accepted, and nothing drains them.
+    /// </param>
     private static async Task<IResult> ReadyAsync(
-        IMongoDatabase database, WorkerHealthState health, CancellationToken ct)
+        IMongoDatabase database, IEnumerable<WorkerHealthState> loops, CancellationToken ct)
     {
         var checks = new List<object>();
         var ready = true;
@@ -141,41 +165,44 @@ public static class WorkerHealthEndpoints
             }
         }
 
-        object loop;
+        foreach (var health in loops)
+        {
+            object loop;
 
-        if (health.IsFatal)
-        {
-            ready = false;
-            loop = new { name = "loop", status = "failed", error = health.FatalReason };
-        }
-        else if (!health.Started)
-        {
-            // The window between the process coming up and the loop's first
-            // iteration — genuinely not ready yet, not a failure.
-            ready = false;
-            loop = new { name = "loop", status = "starting" };
-        }
-        else if (health.SinceLastPoll > health.StaleAfter)
-        {
-            ready = false;
-            loop = new
+            if (health.IsFatal)
             {
-                name = "loop",
-                status = "stale",
-                sinceLastPollMs = (int)health.SinceLastPoll.TotalMilliseconds,
-            };
-        }
-        else
-        {
-            loop = new
+                ready = false;
+                loop = new { name = health.Loop, status = "failed", error = health.FatalReason };
+            }
+            else if (!health.Started)
             {
-                name = "loop",
-                status = "ok",
-                sinceLastPollMs = (int)health.SinceLastPoll.TotalMilliseconds,
-            };
-        }
+                // The window between the process coming up and the loop's first
+                // iteration — genuinely not ready yet, not a failure.
+                ready = false;
+                loop = new { name = health.Loop, status = "starting" };
+            }
+            else if (health.SinceLastPoll > health.StaleAfter)
+            {
+                ready = false;
+                loop = new
+                {
+                    name = health.Loop,
+                    status = "stale",
+                    sinceLastPollMs = (int)health.SinceLastPoll.TotalMilliseconds,
+                };
+            }
+            else
+            {
+                loop = new
+                {
+                    name = health.Loop,
+                    status = "ok",
+                    sinceLastPollMs = (int)health.SinceLastPoll.TotalMilliseconds,
+                };
+            }
 
-        checks.Add(loop);
+            checks.Add(loop);
+        }
 
         return ready
             ? Results.Ok(new { status = "ready", checks })

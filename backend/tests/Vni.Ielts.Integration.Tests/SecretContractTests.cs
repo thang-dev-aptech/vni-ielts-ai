@@ -53,7 +53,16 @@ public sealed class SecretContractTests
     private const string GeminiApiKey = "FAKE-NOT-A-REAL-KEY-gemini-05";
     private const string MongoPassword = "FAKE-NOT-A-REAL-KEY-mongo-password-06";
 
-    /// <summary>The setting each secret is supplied through, for the paired assertion.</summary>
+    /// <summary>
+    /// The setting each secret is supplied through, for the paired assertion.
+    ///
+    /// <b>No separate row for <c>Import:Parser</c>.</b> Fix round 1 on Task 4
+    /// removed its own <c>ApiKey</c> — the raw-document parser reads
+    /// <c>Ai:OpenAi:ApiKey</c>, already covered below, rather than holding a
+    /// second copy of the same secret with a second place to forget to rotate
+    /// it. <c>Import:Parser:Provider</c>/<c>:Model</c>/<c>:BaseUrl</c> are not
+    /// secrets and are printed by <c>Describe</c> in the open.
+    /// </summary>
     private static readonly (string Setting, string Secret)[] SecretSettings =
     [
         ("Jwt:SigningKey", JwtSigningKey),
@@ -256,6 +265,82 @@ public sealed class SecretContractTests
         Assert.Null(Record.Exception(() => Validate(ProductionBuilder(config))));
     }
 
+    /// <summary>
+    /// Task 4's own gate, exercised at the level the API actually boots
+    /// through — <c>StartupConfiguration.ValidateOrThrow</c> — rather than at
+    /// <c>ExamParserOptions.Problem()</c> directly, which
+    /// <c>ExamSourceParserWiringTests</c> in the Infrastructure suite already
+    /// covers. A section naming a provider and a model, with no key at
+    /// <c>Ai:OpenAi:ApiKey</c> — the one place this credential lives, since
+    /// fix round 1 removed <c>Import:Parser</c>'s own copy — looks enabled
+    /// and fails on the first upload; this is refused before that.
+    /// </summary>
+    [Fact]
+    public void A_named_ai_parser_provider_without_a_shared_key_refuses_to_boot()
+    {
+        var config = ValidProductionConfig();
+        config["Import:Parser:Provider"] = "OpenAi";
+        config["Import:Parser:Model"] = "gpt-5.5";
+        // Ai:OpenAi:ApiKey deliberately absent — ValidProductionConfig sets no Ai section.
+
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => Validate(ProductionBuilder(config)));
+
+        Assert.Contains("Import:Parser", refusal.Message, StringComparison.Ordinal);
+        Assert.Contains("Ai:OpenAi:ApiKey", refusal.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_fully_configured_ai_parser_provider_boots_off_the_shared_key()
+    {
+        var config = ValidProductionConfig();
+        config["Import:Parser:Provider"] = "OpenAi";
+        config["Import:Parser:Model"] = "gpt-5.5";
+        config["Ai:OpenAi:ApiKey"] = OpenAiApiKey;
+        config["Ai:OpenAi:Model"] = "gpt-5.5";
+
+        Assert.Null(Record.Exception(() => Validate(ProductionBuilder(config))));
+    }
+
+    /// <summary>
+    /// Task 5's gate, at the level the API actually boots through. Same shape
+    /// as <c>Import:Parser</c> above and for the same reason: the section
+    /// selects a provider, the credential stays at <c>Ai:OpenAi:ApiKey</c>,
+    /// and a deployment that filled in everything here but never gave OpenAi a
+    /// key looks exactly as enabled as one that has.
+    /// </summary>
+    [Fact]
+    public void A_named_transcription_provider_without_a_shared_key_refuses_to_boot()
+    {
+        var config = ValidProductionConfig();
+        config["Import:Transcription:Provider"] = "OpenAi";
+        config["Import:Transcription:Model"] = "whisper-1";
+        // Ai:OpenAi:ApiKey deliberately absent — ValidProductionConfig sets no Ai section.
+
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => Validate(ProductionBuilder(config)));
+
+        Assert.Contains("Import:Transcription", refusal.Message, StringComparison.Ordinal);
+        Assert.Contains("Ai:OpenAi:ApiKey", refusal.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// <c>IP-07</c> at boot: turning exam-audio transcription on must not
+    /// require, imply, or disturb anything about Speaking marking, which stays
+    /// deferred by <c>P-02</c> on a different port.
+    /// </summary>
+    [Fact]
+    public void A_fully_configured_transcription_provider_boots_off_the_shared_key()
+    {
+        var config = ValidProductionConfig();
+        config["Import:Transcription:Provider"] = "OpenAi";
+        config["Import:Transcription:Model"] = "whisper-1";
+        config["Ai:OpenAi:ApiKey"] = OpenAiApiKey;
+        config["Ai:OpenAi:Model"] = "gpt-5.5";
+
+        Assert.Null(Record.Exception(() => Validate(ProductionBuilder(config))));
+    }
+
     [Fact]
     public void An_object_storage_endpoint_carrying_credentials_refuses_to_boot()
     {
@@ -424,6 +509,11 @@ public sealed class SecretContractTests
         config["Ai:OpenAi:Model"] = "gpt-5.5";
         config["Ai:Gemini:ApiKey"] = GeminiApiKey;
         config["Ai:Gemini:Model"] = "gemini-3-pro";
+        // Provider + Model here, plus the Ai:OpenAi:ApiKey already set above —
+        // Import:Parser holds no key of its own. Fully configured, so this
+        // fixture stays a "boots clean" baseline.
+        config["Import:Parser:Provider"] = "OpenAi";
+        config["Import:Parser:Model"] = "gpt-5.5";
 
         return config;
     }

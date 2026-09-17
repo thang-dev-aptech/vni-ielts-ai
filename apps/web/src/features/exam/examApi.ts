@@ -92,6 +92,14 @@ export interface PartView {
   cueCard: { topic: string; bullets: string[] } | null;
   minWords: number | null;
   questions: QuestionView[];
+  /**
+   * What a Listening passage actually said — the answer sheet in prose.
+   *
+   * Null on every `PartView` except the ones inside
+   * `SessionResultsView.content`, and null there too while the sitting is
+   * still in progress. → `IP-09`
+   */
+  transcript: string | null;
 }
 
 export interface SpeakingPartTimingView {
@@ -359,9 +367,13 @@ export interface SessionResultsView {
    * passage early just because Reading's own section already closed — the
    * server gates on the whole sitting's status, not each section's.
    *
-   * <b>The exact `PartView` shape the pre-submit sitting renders.</b> No
-   * transcript (blocked by the open ASR decision, `P-02`) and no answer key —
-   * neither lifts here either.
+   * <b>The exact `PartView` shape the pre-submit sitting renders, with one
+   * addition.</b> No answer key, and never has been. `PartView.transcript`
+   * is populated here — what a Listening passage actually said, server-built
+   * only once this list is non-empty at all. That is a different thing from
+   * the ASR decision `P-02` defers: this is published exam audio VNI already
+   * owns the text of, not a learner's own speech awaiting a transcription
+   * provider.
    */
   content: SectionContentView[];
 }

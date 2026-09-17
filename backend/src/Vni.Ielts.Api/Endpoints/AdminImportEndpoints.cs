@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
@@ -50,6 +52,38 @@ public sealed record ImportDraftView(
 
 public sealed record ImportRejectionView(bool IsAccepted, IReadOnlyList<ImportFindingView> Findings);
 
+/// <summary>
+/// What a caller gets back from an upload now that the work happens elsewhere.
+///
+/// <b>No draft id, because there is no draft yet.</b> A Cambridge parse costs
+/// money and takes minutes; the draft exists when the worker has made one. The
+/// <see cref="OperationId"/> is how a caller follows it, and
+/// <see cref="DefinitionId"/> is here because the server generates one when the
+/// upload did not name it — a caller that never learns it could not find its
+/// own exam again.
+/// </summary>
+public sealed record ImportAcceptedView(
+    string OperationId, string DefinitionId, int VersionNumber, string Stage, string State);
+
+/// <summary>
+/// One import job, as an operator asking "what happened to my import" needs to
+/// see it. <see cref="LastError"/> is a sentence, never a provider response
+/// body — see <c>ImportWorker</c> for what is allowed into it.
+/// </summary>
+public sealed record ImportJobView(
+    string OperationId,
+    string DefinitionId,
+    int VersionNumber,
+    string Stage,
+    string State,
+    int Attempts,
+    int MaxAttempts,
+    string? DraftId,
+    string? LastError,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? NextAttemptAt,
+    DateTimeOffset? CompletedAt);
+
 public static class AdminImportEndpoints
 {
     /// <summary>
@@ -71,8 +105,25 @@ public static class AdminImportEndpoints
 
         group.MapPost("/packages", UploadPackageEndpoint)
             .WithName("AdminImportPackage")
-            .WithSummary("Upload one exam package ZIP; validates and creates a review draft synchronously")
+            .WithSummary("Upload one exam package ZIP; stores it and enqueues an import job")
             .DisableAntiforgery();
+
+        group.MapGet("/template", GetTemplateEndpoint)
+            .WithName("AdminGetImportTemplate")
+            .WithSummary("Download the empty package skeleton — the folder names the inspector accepts")
+            // Task 9 of the 2026-09-11 out-of-band import slice: this route
+            // returned a `Results.File` with no response metadata, so the
+            // generated OpenAPI document described its 200 as an untyped "OK"
+            // — a caller generated from the contract had no way to know this
+            // is a binary body rather than JSON. `byte[]` maps to a string
+            // schema with `format: byte` (base64), which is the closest this
+            // generator gets to "binary file"; the content type is what tells
+            // a reader (and a generated client) this is a ZIP.
+            .Produces<byte[]>(StatusCodes.Status200OK, "application/zip");
+
+        group.MapGet("/jobs/{operationId}", GetJobEndpoint)
+            .WithName("AdminGetImportJob")
+            .WithSummary("How far one enqueued import got, and why it stopped if it did");
 
         group.MapGet("/packages/{draftId}", GetDraftEndpoint)
             .WithName("AdminGetImportDraft")
@@ -94,14 +145,41 @@ public static class AdminImportEndpoints
     /// which is what an operator uploading a package for the first time
     /// almost always means).
     ///
-    /// <b>Synchronous, by design.</b> The brief is explicit that a background
-    /// job queue is out of scope here — the archive caps already bound how
-    /// large a single package can be (S6a), so the request completes inside
-    /// an ordinary HTTP timeout.
+    /// <b>202, not 201 — the door stopped doing the work.</b> Until this
+    /// slice the whole import ran inside the request. That was defensible
+    /// while the only route was a package already containing a ready
+    /// <c>exam.json</c>; it stops being defensible the moment a Cambridge
+    /// paper is parsed by a model (minutes, and real money), audio is
+    /// transcribed, and forty explanations are generated. An HTTP timeout
+    /// halfway through does not refund any of that, and this machine's own
+    /// notes record that the API restarts. So the request now does the three
+    /// cheap things — hash, store, enqueue — and returns a handle.
+    ///
+    /// <b>The archive is stored before the job is enqueued, and that order is
+    /// the point.</b> The API and the Worker are different processes; the
+    /// uploaded ZIP exists only in this request. A job enqueued before its
+    /// bytes are safely parked is a job the worker cannot do.
+    ///
+    /// <b>But inspection still happens here, before a byte is persisted.</b>
+    /// CLAUDE.md rule 3 is not "an uploaded ZIP is validated somewhere" — it
+    /// is validated <i>before anything is persisted</i>, because a hostile
+    /// archive is the one input this product assumes is trying to hurt it.
+    /// Moving the expensive half of the pipeline out of band is not a reason
+    /// to move the cheap half with it:
+    /// <see cref="IExamPackageArchiveInspector.InspectAsync"/> reads the
+    /// central directory and writes nothing, so a bomb, a path escape or a
+    /// nested archive is refused by this request with the same 422 it always
+    /// was — rather than being stored, enqueued, and refused minutes later in
+    /// a worker whose failure nobody is watching. The worker inspects again
+    /// against the artefact it actually reads, which is what closes the
+    /// check-then-use window (`A8`); this is the door, not a substitute for
+    /// it.
     /// </summary>
     private static async Task<IResult> UploadPackageEndpoint(
-        HttpRequest request, ClaimsPrincipal principal, ExamPackageImportPipeline pipeline,
-        IOptions<ImportArchiveOptions> archiveOptions, HttpContext http, CancellationToken ct)
+        HttpRequest request, ClaimsPrincipal principal, IImportArchiveStore archives,
+        IImportOutbox outbox, IExamSourceParser parser, IClock clock,
+        IExamPackageArchiveInspector inspector, IOptions<ImportArchiveOptions> archiveOptions,
+        HttpContext http, CancellationToken ct)
     {
         if (principal.UserId() is null) return Results.Unauthorized();
         if (Denied(principal, PermissionKeys.PackageUpload) is { } denial) return denial;
@@ -126,39 +204,211 @@ public static class AdminImportEndpoints
             : ExamDefinitionId.New();
         var versionNumber = int.TryParse(form["versionNumber"], out var parsed) && parsed > 0 ? parsed : 1;
 
-        await using var uploadStream = file.OpenReadStream();
-        var seekable = uploadStream;
-        FileStream? spooled = null;
+        string sourceSha256;
+        string archiveKey;
+
+        await using (var uploadStream = file.OpenReadStream())
+        {
+            /*
+             * <b>Hashed on the way past, not read twice.</b> The hash is the
+             * job's identity — it is what makes a retried upload of identical
+             * bytes the same job rather than a second paid parse — so it has
+             * to be computed over exactly the bytes that get stored.
+             *
+             * A buffered form part is seekable in every configuration this
+             * deployment runs today, but a forward-only body must never
+             * produce a hash of one half and an archive of the other, so the
+             * hash is taken from a stream that is then rewound or re-read
+             * from the spool rather than from a second pass over a stream
+             * that may not support one.
+             */
+            await using var spooled = new FileStream(
+                Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.None,
+                81_920, FileOptions.DeleteOnClose | FileOptions.Asynchronous);
+
+            await uploadStream.CopyToAsync(spooled, ct);
+            spooled.Position = 0;
+
+            sourceSha256 = Convert.ToHexString(await SHA256.HashDataAsync(spooled, ct)).ToLowerInvariant();
+            spooled.Position = 0;
+
+            // Rule 3: validated before anything is persisted. Reads the
+            // central directory, writes nothing, extracts nothing.
+            var inspection = await inspector.InspectAsync(spooled, archiveOptions.Value.ToLimits(), ct);
+            if (!inspection.IsAcceptable) return Rejected(inspection.Findings, http);
+
+            spooled.Position = 0;
+
+            archiveKey = await archives.SaveAsync(sourceSha256, spooled, ct);
+        }
+
+        /*
+         * <b>The parse prompt version is read here, before any parser runs.</b>
+         * It is a component of the operation id for the same reason a marking
+         * job's id carries a rubric version: a parse under an improved prompt
+         * is different work, and an id blind to it would make re-uploading
+         * identical bytes after a prompt change collide with the job keyed to
+         * the old one. With no AI parser wired this is
+         * `ImportJob.NoParserConfigured`. → IExamSourceParser.PromptVersion
+         */
+        var job = ImportJob.New(
+            definitionId, versionNumber, sourceSha256, parser.PromptVersion, archiveKey,
+            clock.UtcNow,
+            /*
+             * <b>The upload's own trace, carried to a process that starts
+             * minutes later.</b> Without it the worker's span is the root of
+             * an unrelated trace and "the operator uploaded and no draft
+             * appeared" is two traces nobody can join. Same mechanism, same
+             * reason, as `MarkingJob.TraceParent`.
+             */
+            Activity.Current?.Id);
+
+        /*
+         * False means the job was already there — a retried upload of
+         * identical bytes under the same definition, version and prompt. The
+         * unique index decided that, not this code, and the right answer is
+         * the same 202 with the same operation id rather than a conflict: the
+         * caller asked for this import and this import is owed.
+         *
+         * <b>Unless it already failed, in which case "already there" was a
+         * silent no-op.</b> An operator whose import failed re-uploads the
+         * package; that is the obvious thing to do and it is an unambiguous
+         * instruction to try again. Before this, the duplicate id swallowed
+         * it: 202, nothing re-runs, and the CMS shows the old error for ever,
+         * with a version bump nobody would guess as the only escape.
+         *
+         * `ReopenAsync` is chosen over answering with a distinct "this import
+         * already failed" response because the operator's next move after
+         * reading that response is to ask for exactly this, and a door that
+         * makes them ask twice is a door they work around. It resets the
+         * attempt budget and keeps the recorded stage, so the reopened job
+         * resumes rather than re-buying the parse, and its filter refuses
+         * anything that is not `Failed` — a `Running` job is never disturbed.
+         * The archive was deleted when the job failed and has just been
+         * written again above, under the same content-addressed key, so the
+         * reopened job has bytes to read.
+         */
+        if (!await outbox.EnqueueAsync(job, ct))
+            await outbox.ReopenAsync(job.OperationId, ct);
+
+        var location = $"/api/v1/admin/import/jobs/{Uri.EscapeDataString(job.OperationId)}";
+
+        return Results.Accepted(
+            location,
+            new ImportAcceptedView(
+                job.OperationId, definitionId.Value, versionNumber,
+                job.Stage.ToString(), job.State.ToString()));
+    }
+
+    /// <summary>
+    /// The downloadable package skeleton — four skill folders, and inside
+    /// <c>reading/</c> and <c>listening/</c> a second level separating the
+    /// paper from the answer key, built by <see cref="ImportTemplate.BuildZip"/>
+    /// from <see cref="ExamPackageArchiveInspector"/>'s own tables so it can
+    /// never ship a folder name the inspector does not accept.
+    ///
+    /// <b>Gated on <c>package.upload</c>, not <c>package.read</c>.</b> This
+    /// route serves a person about to upload a package who needs to know the
+    /// folder names before they zip anything — the same audience, and the
+    /// same permission, <see cref="UploadPackageEndpoint"/> already checks.
+    /// <c>package.read</c> is about reading the status of a package that
+    /// already exists, which is a different question this endpoint never
+    /// answers.
+    /// </summary>
+    private static IResult GetTemplateEndpoint(ClaimsPrincipal principal)
+    {
+        if (Denied(principal, PermissionKeys.PackageUpload) is { } denial) return denial;
+
+        var bytes = ImportTemplate.BuildZip();
+        return Results.File(
+            bytes,
+            "application/zip",
+            fileDownloadName: "vni-exam-package-template.zip");
+    }
+
+    /// <summary>
+    /// "What happened to my import."
+    ///
+    /// <b>Gated on <c>package.read</c> OR <c>package.upload</c> — fix round 1
+    /// on this task.</b> This route was gated on <c>package.read</c> alone,
+    /// the same permission that already guards <see cref="GetDraftEndpoint"/>,
+    /// on the reasoning that Support holds <c>package.read</c> and not
+    /// <c>package.upload</c> and should be able to watch a job without being
+    /// able to start one. That reasoning is sound and still holds — but it
+    /// only runs one way: an operator who holds <i>only</i>
+    /// <c>package.upload</c> (the permission <c>UploadPackageEndpoint</c>
+    /// itself requires, and the one the CMS's <c>/import</c> route is gated
+    /// on client-side) could start a job and then get a 403 asking how it
+    /// went. Silence there is worse than not offering the upload at all: they
+    /// cannot tell a running job from a failed one, get no error text, and the
+    /// natural response — upload the same package again — collides with the
+    /// job already running via the derived operation id and reads as a broken
+    /// button. Anyone who may start a job must be able to see how it ended, so
+    /// this checks either key.
+    ///
+    /// <b>An unreadable stage is answered, not thrown.</b>
+    /// <c>MongoImportOutbox</c> refuses to map a stored stage this binary does
+    /// not define — a deliberate trade of a silent restart (which would re-buy
+    /// a parse) for a loud failure. A loud failure nobody can read is only half
+    /// that trade, and the window in which it can happen is a rollback, which
+    /// is exactly when an operator is asking this question.
+    /// </summary>
+    private static async Task<IResult> GetJobEndpoint(
+        string operationId, ClaimsPrincipal principal, IImportOutbox outbox,
+        HttpContext http, CancellationToken ct)
+    {
+        if (DeniedUnlessAny(principal, PermissionKeys.PackageRead, PermissionKeys.PackageUpload)
+            is { } denial)
+        {
+            return denial;
+        }
+
+        ImportJob? job;
 
         try
         {
-            if (!seekable.CanSeek)
-            {
-                // Belt and braces: buffered form parts are seekable in every
-                // configuration this deployment runs today, but a caller must
-                // never get a wrong read of a truncated archive if that ever
-                // stops being true.
-                spooled = new FileStream(
-                    Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.None,
-                    81_920, FileOptions.DeleteOnClose | FileOptions.Asynchronous);
-                await uploadStream.CopyToAsync(spooled, ct);
-                spooled.Position = 0;
-                seekable = spooled;
-            }
-
-            var attempt = await pipeline.ImportAsync(seekable, definitionId, versionNumber, ct);
-
-            if (!attempt.IsAccepted || attempt.Draft is null)
-                return Rejected(attempt.Findings, http);
-
-            return Results.Created(
-                $"/api/v1/admin/import/packages/{attempt.Draft.Id:D}", ToView(attempt.Draft));
+            job = await outbox.FindAsync(operationId, ct);
         }
-        finally
+        catch (ImportJobStageUnreadableException e)
         {
-            if (spooled is not null) await spooled.DisposeAsync();
+            return Results.Problem(
+                title: "Import job unreadable",
+                detail:
+                    "This job records a stage this build of the API does not recognise, which "
+                    + "happens when a newer deployment wrote it and was then rolled back. It has "
+                    + "been stopped rather than restarted, because restarting it would pay for a "
+                    + "parse that has already been paid for. Deploy the newer build to read it, "
+                    + "or re-upload the package under a fresh version.",
+                statusCode: StatusCodes.Status409Conflict,
+                type: "https://api.vni-ielts.example/errors/import-job-unreadable",
+                instance: http.Request.Path,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["code"] = "IMPORT_JOB_STAGE_UNREADABLE",
+                    ["traceId"] = http.TraceIdentifier,
+                    // The stage integer and the id, and nothing else. Both are
+                    // identifiers; neither is content.
+                    ["operationId"] = e.OperationId,
+                    ["stage"] = e.RawStage,
+                });
         }
+
+        return job is null ? Results.NotFound() : Results.Ok(ToView(job));
     }
+
+    private static ImportJobView ToView(ImportJob job) => new(
+        job.OperationId,
+        job.DefinitionId.Value,
+        job.VersionNumber,
+        job.Stage.ToString(),
+        job.State.ToString(),
+        job.Attempts,
+        ImportJob.MaxAttempts,
+        job.DraftId?.ToString("D"),
+        job.LastError,
+        job.CreatedAt,
+        job.NextAttemptAt,
+        job.CompletedAt);
 
     private static async Task<IResult> GetDraftEndpoint(
         string draftId, ClaimsPrincipal principal, IImportDraftStore drafts, CancellationToken ct)
@@ -327,6 +577,29 @@ public static class AdminImportEndpoints
             {
                 ["code"] = ErrorCodes.PermissionDenied,
                 ["permission"] = permission,
+            });
+    }
+
+    /// <summary>
+    /// Like <see cref="Denied"/>, but for a route any one of several
+    /// permissions should open — <see cref="GetJobEndpoint"/>'s "either the
+    /// permission that reads or the permission that started the job" rule.
+    /// The 403's <c>permission</c> extension names the first of the checked
+    /// keys, since a caller refused here holds none of them and the first is
+    /// as good a hint as any of what to ask for.
+    /// </summary>
+    private static IResult? DeniedUnlessAny(ClaimsPrincipal principal, params string[] permissions)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+        if (permissions.Any(principal.Permissions().Contains)) return null;
+
+        return Results.Problem(
+            detail: $"This account does not hold any of: {string.Join(", ", permissions)}.",
+            statusCode: StatusCodes.Status403Forbidden,
+            extensions: new Dictionary<string, object?>
+            {
+                ["code"] = ErrorCodes.PermissionDenied,
+                ["permission"] = permissions[0],
             });
     }
 }

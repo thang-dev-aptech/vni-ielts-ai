@@ -176,4 +176,64 @@ public sealed class MongoImportDraftStoreTests
         Assert.True(warning.Resolved);
         Assert.Equal("Checked by hand.", warning.OverrideReason);
     }
+
+    /// <summary>
+    /// <b>F-11: the resume lookup must not adopt a parse from a superseded
+    /// prompt.</b>
+    ///
+    /// A draft's id is derived from the <i>package</i> hash, so the same source
+    /// parsed under two prompt versions is two drafts, sitting here side by
+    /// side, sharing definition, version, route and source hash. A four-term
+    /// lookup takes whichever the server returns first — and would hand a
+    /// resuming worker the parse that an improved prompt was shipped to
+    /// supersede, quietly undoing the reason
+    /// <c>ImportJob.OperationIdFor</c> carries the prompt version at all.
+    /// </summary>
+    [Fact]
+    public async Task The_resume_lookup_picks_the_draft_parsed_under_the_prompt_it_was_asked_for()
+    {
+        var (store, validator) = NewStore();
+        var definitionId = ExamDefinitionId.New();
+        var sourceHash = ExamImportWorkflow.Hash("the same extracted paper, both times");
+
+        // Two drafts differing in exactly one thing a caller can ask about.
+        var old = Draft(validator, PackageJson) with
+        {
+            Id = Guid.NewGuid(),
+            DefinitionId = definitionId,
+            Route = ExamImportRoute.AiParsedSource,
+            SourceHash = sourceHash,
+            Parser = new ParserRunMetadata("fake", "m", "prompt-v1", "req-1"),
+        };
+
+        var improved = old with
+        {
+            Id = Guid.NewGuid(),
+            Parser = new ParserRunMetadata("fake", "m", "prompt-v2", "req-2"),
+        };
+
+        // Oldest first, which is also the order a `Find` with no sort tends to
+        // return: the superseded draft is the one a blind lookup reaches.
+        await store.SaveAsync(old, default);
+        await store.SaveAsync(improved, default);
+
+        var found = await store.FindBySourceAsync(
+            definitionId, 1, ExamImportRoute.AiParsedSource, sourceHash, "prompt-v2", default);
+
+        // The assertion this test exists for.
+        Assert.Equal(improved.Id, found!.Id);
+        Assert.Equal("prompt-v2", found.Parser!.PromptVersion);
+
+        // And the other direction, so this cannot pass by always returning the
+        // newest document.
+        var older = await store.FindBySourceAsync(
+            definitionId, 1, ExamImportRoute.AiParsedSource, sourceHash, "prompt-v1", default);
+
+        Assert.Equal(old.Id, older!.Id);
+
+        // A prompt nothing was parsed under is a miss, not a nearest match:
+        // the parse genuinely has to happen.
+        Assert.Null(await store.FindBySourceAsync(
+            definitionId, 1, ExamImportRoute.AiParsedSource, sourceHash, "prompt-v3", default));
+    }
 }

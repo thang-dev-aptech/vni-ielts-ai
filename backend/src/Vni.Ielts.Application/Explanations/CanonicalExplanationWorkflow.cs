@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Exams;
@@ -19,6 +20,19 @@ public sealed class CanonicalExplanationWorkflow(
         ExamImportDraft draft, CancellationToken ct)
     {
         if (!RequiresGeneration(draft.Version))
+            return CanonicalEnrichmentResult.Unchanged(draft);
+
+        /*
+         * The guarantee, not the optimisation. `ExamPackageImportPipeline`
+         * checks this too, before it ever calls in here — but that check only
+         * saves the cost of a call this method would refuse anyway. This is
+         * the check that holds even when a future caller forgets: content
+         * nobody has cleared for AI processing must never reach a provider,
+         * and a rights control that lives only at one call site is one the
+         * second caller — a CMS "regenerate explanations" button, say —
+         * forgets to repeat.
+         */
+        if (!AllowsAiGeneration(draft.PackageJson))
             return CanonicalEnrichmentResult.Unchanged(draft);
 
         var package = JsonNode.Parse(draft.PackageJson)?.AsObject()
@@ -119,6 +133,36 @@ public sealed class CanonicalExplanationWorkflow(
             s.Module is ExamModule.Reading or ExamModule.Listening
             && s.Questions.Any(q => q.Type.IsAutoScored() && q.Explanation is null));
 
+    /// <summary>
+    /// Reads the raw package rather than <see cref="ExamVersion"/> —
+    /// <c>policyProfile.explanation.mode</c> is a rights decision the schema
+    /// carries and the domain model does not. Omitting the object, or any
+    /// value other than <c>ai-generated</c>, refuses: the default is silence,
+    /// never AI processing. Malformed JSON also refuses rather than throws —
+    /// this method is a gate, not a validator, and a draft whose package
+    /// cannot be read is exactly the case that must not reach a provider.
+    ///
+    /// <b>Unreadable is wider than malformed.</b> A <c>mode</c> that exists but
+    /// is not a string — <c>"mode": 3</c> — parses fine and then throws
+    /// <see cref="InvalidOperationException"/> out of
+    /// <c>GetValue&lt;string&gt;()</c>. Catching only <see cref="JsonException"/>
+    /// let that escape a method whose whole contract is that it never throws,
+    /// which in the import pipeline reads as a transient failure and is
+    /// retried at full price. Every unreadable answer refuses.
+    /// </summary>
+    internal static bool AllowsAiGeneration(string packageJson)
+    {
+        try
+        {
+            return JsonNode.Parse(packageJson)?["policyProfile"]?["explanation"]?["mode"]
+                ?.GetValue<string>() == "ai-generated";
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
     private static IEnumerable<(Section Section, SectionPart Part, Question Question)> EnumerateAutoScored(
         ExamVersion version)
     {
@@ -186,11 +230,15 @@ public sealed class CanonicalExplanationWorkflow(
                         ["shortReason"] = explanation.ShortReason,
                         ["evidence"] = new JsonArray(
                             explanation.Evidence.Select(e => JsonValue.Create(e)).ToArray()),
-                        ["commonMistake"] = explanation.CommonMistake,
                     };
 
-                    // Only written when present: the package schema declares the
-                    // key as optional and a null would fail `type: string`.
+                    // Only written when present: the package schema declares both
+                    // keys as optional strings, and a JSON null fails `type:
+                    // string` — caught by the revalidation
+                    // ImportReviewWorkflow.EnrichCanonicalExplanationsAsync runs
+                    // right after this, once anything actually called it.
+                    if (explanation.CommonMistake is not null)
+                        node["commonMistake"] = explanation.CommonMistake;
                     if (explanation.Translation is not null)
                         node["translation"] = explanation.Translation;
 

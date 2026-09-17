@@ -1,4 +1,6 @@
+using System.Net.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Application.Assessment;
@@ -397,23 +399,46 @@ public static class DependencyInjection
         services.AddSingleton<IExamPackageValidator>(
             _ => new Content.ExamPackageValidator(Content.ExamPackageReader.FromSchemaFile(LocateExamSchemaPath())));
 
-        /*
-         * <b>No AI parser is wired in here.</b> `IExamSourceParser` is
-         * registered as the null implementation until AI-assisted parsing of
-         * raw exam source documents is productised for an unattended HTTP
-         * caller — see `UnconfiguredExamSourceParser`'s own remarks. Only the
-         * structured route (an archive holding one ready `exam.json`) is
-         * unaffected by this; it never touches a parser.
-         */
         services.AddScoped<IPrivateImportAssetStore, DiscardedImportAssetStore>();
+
+        /*
+         * <b>Where the uploaded ZIP waits for the worker.</b> When object
+         * storage is configured, `AddObjectStorage` above already registered
+         * the S3-backed store and this is skipped — the last registration
+         * wins, and silently replacing a real bucket with a local directory is
+         * how an import works on one machine and vanishes on the next.
+         *
+         * <b>Not `IPrivateImportAssetStore`, however much the name invites
+         * it.</b> That port is write-only and the implementation registered on
+         * the line above discards what it is given; an import built on it
+         * would accept every upload and lose it. → `IImportArchiveStore`
+         */
+        if (!objectStorageRegistered)
+        {
+            var archiveRoot = configuration["Import:Archive:LocalRoot"] is { Length: > 0 } configured
+                ? configured
+                : Storage.LocalFileImportArchiveStore.DefaultRoot;
+
+            services.AddSingleton<IImportArchiveStore>(sp =>
+                new Storage.LocalFileImportArchiveStore(
+                    archiveRoot,
+                    sp.GetRequiredService<ILoggerFactory>()
+                        .CreateLogger<Storage.LocalFileImportArchiveStore>()));
+        }
         services.AddScoped<ISourceDocumentExtractor, Content.SafeSourceDocumentExtractor>();
-        services.AddScoped<IExamSourceParser, UnconfiguredExamSourceParser>();
+        AddExamSourceParser(services, configuration);
+        AddAudioTranscriber(services, configuration);
 
         services.AddScoped<ExamImportWorkflow>();
         services.AddScoped<ImportReviewWorkflow>();
         services.AddScoped<IImportDraftStore, MongoImportDraftStore>();
         services.AddScoped<IImportBatchCheckpointStore, MongoImportBatchCheckpointStore>();
         services.AddScoped<ExamPackageImportPipeline>();
+
+        // The out-of-band import job's store — the twin of IMarkingOutbox,
+        // one layer earlier: an enqueued import is owed a parse the same way
+        // a closed section is owed a marking.
+        services.AddScoped<IImportOutbox, MongoImportOutbox>();
 
         return services;
     }
@@ -446,6 +471,218 @@ public static class DependencyInjection
         throw new InvalidOperationException(
             "Could not locate contracts/schemas/exam.schema.json above " + AppContext.BaseDirectory
             + ". The exam-import validator (S6b) needs it to be resolvable at startup.");
+    }
+
+    /// <summary>
+    /// The same walk as <see cref="LocateExamSchemaPath"/>, one level up —
+    /// the directory that holds <c>contracts/</c> rather than the schema file
+    /// itself. Mirrors the operator CLI's own <c>FindRepositoryRoot</c>
+    /// (<c>backend/tools/Vni.Ielts.ExamImporter/Program.cs</c>), which
+    /// <see cref="Ai.Importing.ExamParsePromptSources"/> needs to load its
+    /// prompt template and shape example from <c>fixtures/</c>.
+    /// </summary>
+    private static string LocateRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (Directory.Exists(Path.Combine(directory.FullName, "contracts", "schemas")))
+                return directory.FullName;
+            directory = directory.Parent;
+        }
+
+        throw new InvalidOperationException(
+            "Could not locate the repository root (no contracts/schemas above "
+            + AppContext.BaseDirectory + "). The AI exam-source parser needs it to load its "
+            + "prompt template at startup.");
+    }
+
+    /// <summary>
+    /// The AI-assisted exam-source parser, behind <c>Import:Parser</c>.
+    ///
+    /// <para>
+    /// <b>Reused, not rewritten.</b> <c>ProviderNeutralExamSourceParser</c> and
+    /// <c>OpenAiStructuredExamClient</c> are exactly the types the operator
+    /// CLI (<c>backend/tools/Vni.Ielts.ExamImporter/Program.cs</c>) has
+    /// parsed real Cambridge material with for weeks; this wiring only gives
+    /// the HTTP door the same two types under a configuration gate instead of
+    /// an operator's own terminal.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>With nothing configured, <c>UnconfiguredExamSourceParser</c> stays</b>
+    /// — today's behaviour, and correct for a deployment nobody has given
+    /// keys to. <c>Import:Parser:Provider</c> and <c>:Model</c>, together
+    /// with a non-empty key already sitting at <c>Ai:&lt;Provider&gt;:ApiKey</c>,
+    /// turn it on; <see cref="Ai.Importing.ExamParserOptions.Problem"/> is
+    /// what refuses to boot on any other combination, so a half-filled
+    /// section never reaches a learner-facing upload at all. The provider
+    /// credential itself is <b>not</b> duplicated under <c>Import:Parser</c>
+    /// — see <see cref="Ai.Importing.ExamParserOptions"/>'s own remarks —
+    /// so it is resolved from the shared <c>Ai</c> registration below.
+    /// → <see cref="Vni.Ielts.Api.Common.StartupConfiguration"/>
+    /// </para>
+    ///
+    /// <b>Internal, not private, so the DI wiring itself — not only its
+    /// effect on a fully-built container — has a direct test.</b>
+    /// → <c>ExamSourceParserWiringTests</c>
+    /// </summary>
+    internal static void AddExamSourceParser(IServiceCollection services, IConfiguration configuration)
+    {
+        static Ai.Importing.ExamParserOptions ReadParserOptions(IConfiguration configuration) =>
+            configuration.GetSection(Ai.Importing.ExamParserOptions.SectionName)
+                .Get<Ai.Importing.ExamParserOptions>() ?? new Ai.Importing.ExamParserOptions();
+
+        // The shared provider registration (Ai:OpenAi / Ai:Gemini) — already
+        // configured for Writing marking, explanations and coaching, and the
+        // one place this deployment's OpenAI credential is written down.
+        static AiOptions ReadAiOptions(IConfiguration configuration) =>
+            configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+
+        /*
+         * Ten minutes wide of the CLI's own eighteen-minute adapter deadline
+         * (`OpenAiStructuredExamClient`'s own `CancelAfter`), for the same
+         * reason the CLI states on its own HttpClient: `SendAsync` does not
+         * return until the whole streamed body is read, and the default
+         * hundred seconds fails in the most misleading way available — a
+         * `200` the client never gets to see. Checked against `ImportWorker`'s
+         * own 10-minute lease (`ImportWorker.Lease`): it is safe, not because
+         * 20 minutes fits inside 10, but because `ImportWorker.RenewAsync`
+         * runs a background heartbeat every 40 seconds for the whole span of
+         * `ImportAsync` — not only between stages — and `MongoImportOutbox
+         * .RenewAsync` extends the lease unconditionally on lease-token
+         * ownership, never on whether the previous deadline already passed.
+         * → `MongoImportOutboxTests
+         * .A_renewal_after_the_old_deadline_has_passed_still_wins_and_blocks_a_competitor`
+         */
+        services.AddHttpClient(nameof(Ai.Importing.OpenAiStructuredExamClient))
+            .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromMinutes(20));
+
+        services.AddSingleton<IAiImportCostMetric, Ai.Importing.NullAiImportCostMetric>();
+
+        // Lazy: only resolved (and only then walks the filesystem for
+        // contracts/ and fixtures/) the first time a caller actually needs
+        // the real client below — never when Import:Parser is unset.
+        services.AddSingleton(_ => new Ai.Importing.ExamParsePromptSources(LocateRepositoryRoot()));
+
+        /*
+         * <b>Model and BaseUrl from Import:Parser; the key from the shared
+         * Ai:&lt;Provider&gt; registration.</b> Only the key is shared — see
+         * ExamParserOptions's own remarks for why a second copy of it was
+         * rejected. Provider is already checked to be "OpenAi" by
+         * ExamParserOptions.Problem before this ever reaches production, so
+         * ai.OpenAi is always the right half of AiOptions to read here.
+         */
+        services.AddSingleton<IStructuredExamAiClient>(sp =>
+        {
+            var parser = ReadParserOptions(configuration);
+            var ai = ReadAiOptions(configuration);
+
+            return new Ai.Importing.OpenAiStructuredExamClient(
+                sp.GetRequiredService<IHttpClientFactory>(),
+                Options.Create(new AiOptions
+                {
+                    OpenAi = new AiProviderOptions
+                    {
+                        Model = parser.Model,
+                        ApiKey = ai.OpenAi.ApiKey,
+                        BaseUrl = parser.BaseUrl,
+                    },
+                }),
+                sp.GetRequiredService<Ai.Importing.ExamParsePromptSources>(),
+                sp.GetRequiredService<ILogger<Ai.Importing.OpenAiStructuredExamClient>>());
+        });
+
+        services.AddScoped<IExamSourceParser>(sp =>
+        {
+            var parser = ReadParserOptions(configuration);
+            var ai = ReadAiOptions(configuration);
+
+            if (!parser.IsConfigured(ai)) return new UnconfiguredExamSourceParser();
+
+            return new ProviderNeutralExamSourceParser(
+                sp.GetServices<IStructuredExamAiClient>(),
+                sp.GetRequiredService<IAiImportCostMetric>(),
+                new ExamParserOptions(parser.Provider!, parser.PromptVersion, parser.MaxAttempts));
+        });
+    }
+
+    /// <summary>
+    /// The exam-audio transcriber, behind <c>Import:Transcription</c>.
+    ///
+    /// <para>
+    /// <b>With nothing configured, <see cref="Ai.Importing.UnconfiguredAudioTranscriber"/>
+    /// is wired</b> — today's every deployment, and correct for one nobody has
+    /// given keys to. <c>AudioTranscriptionStage</c> then returns the package
+    /// untouched: no call, no warning, no change.
+    /// <see cref="Ai.Importing.AudioTranscriptionOptions.Problem"/> is what
+    /// refuses to boot on any half-filled shape, so a section that looks
+    /// enabled never reaches an upload.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Not the Speaking seam.</b> <c>ITranscriptSource</c> stays on
+    /// <c>NoTranscriptSource</c> (<c>P-02</c>) and is registered elsewhere in
+    /// this file, unchanged. This one transcribes published exam audio, which
+    /// is third-party material rather than a learner's personal data.
+    /// → <c>IP-07</c>
+    /// </para>
+    ///
+    /// <b>Internal, not private, so the wiring itself has a direct test.</b>
+    /// → <c>AudioTranscriberWiringTests</c>
+    /// </summary>
+    internal static void AddAudioTranscriber(IServiceCollection services, IConfiguration configuration)
+    {
+        static Ai.Importing.AudioTranscriptionOptions ReadTranscriptionOptions(
+            IConfiguration configuration) =>
+            configuration.GetSection(Ai.Importing.AudioTranscriptionOptions.SectionName)
+                .Get<Ai.Importing.AudioTranscriptionOptions>()
+            ?? new Ai.Importing.AudioTranscriptionOptions();
+
+        static AiOptions ReadAiOptions(IConfiguration configuration) =>
+            configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+
+        // Clamped so a typo cannot produce a zero-second or an hour-long
+        // client. The startup gate refuses the same range outright; this is
+        // the second half of the same number, applied where the client is
+        // actually built.
+        var configuredTimeout = ReadTranscriptionOptions(configuration).TimeoutSeconds;
+        services.AddHttpClient(nameof(Ai.Importing.OpenAiAudioTranscriber))
+            .ConfigureHttpClient(client =>
+                client.Timeout = TimeSpan.FromSeconds(Math.Clamp(configuredTimeout, 30, 1800)));
+
+        services.AddScoped<IAudioTranscriber>(sp =>
+        {
+            var transcription = ReadTranscriptionOptions(configuration);
+            var ai = ReadAiOptions(configuration);
+
+            if (!transcription.IsConfigured(ai))
+                return new Ai.Importing.UnconfiguredAudioTranscriber();
+
+            /*
+             * <b>Model and BaseUrl from Import:Transcription; the key from the
+             * shared Ai:&lt;Provider&gt; registration.</b> Only the key is
+             * shared — see AudioTranscriptionOptions's own remarks for why a
+             * second copy of it was rejected, and ExamParserOptions for where
+             * that rule was settled. Provider is already checked to be
+             * "OpenAi" by Problem() before this reaches production.
+             */
+            return new Ai.Importing.OpenAiAudioTranscriber(
+                sp.GetRequiredService<IHttpClientFactory>(),
+                Options.Create(new AiOptions
+                {
+                    AllowCrossBorderTransfer = ai.AllowCrossBorderTransfer,
+                    OpenAi = new AiProviderOptions
+                    {
+                        Model = transcription.Model,
+                        ApiKey = ai.OpenAi.ApiKey,
+                        BaseUrl = transcription.BaseUrl,
+                        SyntheticDataOnly = ai.OpenAi.SyntheticDataOnly,
+                    },
+                }),
+                Options.Create(transcription),
+                sp.GetRequiredService<ILogger<Ai.Importing.OpenAiAudioTranscriber>>());
+        });
     }
 
     /// <summary>
@@ -526,6 +763,71 @@ public static class DependencyInjection
         clientId.Length <= 8 ? "…" : clientId[..8] + "…";
 
     /// <summary>
+    /// Refuses to start when the import archive store and object storage
+    /// disagree about which world this process is in.
+    ///
+    /// <b>Written because "should be unreachable" was resting on two facts
+    /// nobody had connected.</b> <see cref="Storage.LocalFileImportArchiveStore"/>
+    /// keeps uploaded packages on the local filesystem, which is correct for a
+    /// Development process and the test host and wrong for anything with more
+    /// than one instance: the API writes the archive on one machine and the
+    /// Worker looks for it on another, so every import fails minutes later
+    /// with "the uploaded archive is no longer in storage" and nobody can see
+    /// why. The reason that cannot happen today is that the API's startup gate
+    /// refuses to boot outside Development without object storage, and
+    /// <c>AddObjectStorage</c> registers the S3 store whenever object storage
+    /// is configured. Two true facts in two files, with nothing asserting the
+    /// implication between them — and the Worker never runs that startup gate
+    /// at all.
+    ///
+    /// <para>
+    /// So this asks the container the question directly, in both processes:
+    /// the presence of <see cref="Storage.ObjectStorageOptions"/> in the
+    /// container <i>is</i> "object storage is configured" (nothing else
+    /// registers it), and the implementation behind
+    /// <see cref="IImportArchiveStore"/> is what an upload will actually use.
+    /// A mismatch either way is a refusal at boot rather than a failed import
+    /// an hour later.
+    /// </para>
+    /// </summary>
+    internal static void AssertImportArchiveStoreMatchesObjectStorage(IServiceProvider services)
+    {
+        var objectStorageConfigured =
+            services.GetService<Storage.ObjectStorageOptions>() is not null;
+
+        var archives = services.GetRequiredService<IImportArchiveStore>();
+
+        /*
+         * <b>Named types, not "anything that is not the other one".</b> The
+         * question is whether the two adapters this assembly ships are paired
+         * with the world they were written for; a store that is neither — a
+         * test double, or an adapter a later slice adds — is not this check's
+         * business, and refusing it would turn a guard against a deployment
+         * mistake into an obstacle to writing tests, which is how a guard gets
+         * deleted.
+         */
+        var archivesAreLocal = archives is Storage.LocalFileImportArchiveStore;
+        var archivesAreObjectStorage = archives is Storage.S3ImportArchiveStore;
+
+        if (objectStorageConfigured && archivesAreLocal)
+        {
+            throw new InvalidOperationException(
+                "Object storage is configured, but uploaded exam packages would be written to the "
+                + "local filesystem. A package written by one instance is invisible to the worker "
+                + "that has to import it, and the failure appears minutes later as a missing "
+                + $"archive. Registered store: {archives.GetType().Name}.");
+        }
+
+        if (!objectStorageConfigured && archivesAreObjectStorage)
+        {
+            throw new InvalidOperationException(
+                "Object storage is not configured, but the import archive store expects it. "
+                + $"Registered store: {archives.GetType().Name}. Configure ObjectStorage, or let "
+                + "AddInfrastructure fall back to the local-disk store.");
+        }
+    }
+
+    /// <summary>
     /// Creates indexes and seeds the system roles.
     ///
     /// Runs at startup and is idempotent, which matters because several API
@@ -536,6 +838,11 @@ public static class DependencyInjection
         this IServiceProvider services, CancellationToken ct = default)
     {
         using var scope = services.CreateScope();
+
+        // Before anything touches the database: a cheap, purely local check
+        // that two registrations nobody has ever compared actually agree.
+        AssertImportArchiveStoreMatchesObjectStorage(scope.ServiceProvider);
+
         var ctx = scope.ServiceProvider.GetRequiredService<MongoContext>();
 
         await ctx.AssertReplicaSetAsync(ct);
