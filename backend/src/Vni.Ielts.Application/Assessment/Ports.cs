@@ -112,4 +112,28 @@ public interface ISectionMarkingStore
     Task SaveAsync(ExamSessionId sessionId, SectionMarking marking, CancellationToken ct);
 
     Task<IReadOnlyList<SectionMarking>> ListAsync(ExamSessionId sessionId, CancellationToken ct);
+
+    /// <summary>
+    /// The markings of many sittings, in one read.
+    ///
+    /// <b>For the screens that ask about a list rather than about a
+    /// sitting.</b> The history list and the coaching view both need to know
+    /// what every sitting on the page was marked, and calling
+    /// <see cref="ListAsync"/> in a loop makes the cost of opening a screen a
+    /// function of how much history the learner has: at the fifty-sitting
+    /// ceiling that is fifty round trips for one page. → slice `W10`
+    ///
+    /// <b>A second method rather than a default that loops.</b> A default
+    /// implementation would let a new store be N+1 without anybody writing a
+    /// line of code that looks like N+1 — the loop would be inherited and
+    /// invisible. Every implementation answers this itself, and a store that
+    /// cannot batch has to say so where a reader will see it.
+    ///
+    /// Sittings with no marking are absent from the result rather than present
+    /// with an empty list: a caller that must handle "not in the dictionary"
+    /// anyway gains nothing from two ways of spelling nothing. An empty
+    /// request is answered with an empty result and no round trip.
+    /// </summary>
+    Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionMarking>>> ListManyAsync(
+        IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct);
 }

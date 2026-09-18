@@ -177,6 +177,24 @@ public interface IMarkingOutbox
     Task<IReadOnlyList<MarkingJob>> ListAsync(ExamSessionId sessionId, CancellationToken ct);
 
     /// <summary>
+    /// Every job for many sittings, in one read.
+    ///
+    /// <b>The history list's read, and the reason it exists.</b> Whether a
+    /// sitting's overall band is final depends on whether any of its markings
+    /// is still owed, which is a question only this collection can answer — so
+    /// `W1` made the history query ask it once per mock, and a learner with
+    /// fifty mocks bought fifty round trips for one screen. The same list,
+    /// asked for once. → slice `W10`
+    ///
+    /// Mirrors <see cref="ISectionMarkingStore.ListManyAsync"/> in every
+    /// respect, deliberately: the two are always called together over the same
+    /// set of ids, and a caller that had to remember which of them omits empty
+    /// sittings would eventually remember wrong.
+    /// </summary>
+    Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<MarkingJob>>> ListManyAsync(
+        IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct);
+
+    /// <summary>
     /// How much work is owed, and how long the oldest piece has been waiting.
     ///
     /// <b>F4.3 — depth alone cannot tell a busy queue from a stuck one.</b> A

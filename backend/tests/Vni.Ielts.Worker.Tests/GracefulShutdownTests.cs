@@ -220,6 +220,10 @@ public sealed class GracefulShutdownTests
 
         public Task<IReadOnlyList<SectionMarking>> ListAsync(ExamSessionId sessionId, CancellationToken ct) =>
             throw new NotSupportedException();
+
+        public Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionMarking>>> ListManyAsync(
+            IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct) =>
+            throw new NotSupportedException();
     }
 
     private sealed class UnusedTranscriptSource : ITranscriptSource
@@ -328,5 +332,12 @@ public sealed class GracefulShutdownTests
 
         public Task<IReadOnlyList<MarkingJob>> ListAsync(ExamSessionId sessionId, CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<MarkingJob>>([.. _jobs.Values.Where(j => j.SessionId == sessionId)]);
+
+        // The worker takes one job at a time. Nothing here reads a list of
+        // sittings, and a stub that answered would be certifying a read path
+        // this file does not exercise.
+        public Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<MarkingJob>>> ListManyAsync(
+            IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct) =>
+            throw new NotSupportedException();
     }
 }

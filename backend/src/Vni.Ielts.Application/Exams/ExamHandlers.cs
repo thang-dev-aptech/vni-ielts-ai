@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
@@ -901,7 +902,7 @@ public sealed class ListMySittings(
             query.UserId, Math.Clamp(query.Limit, 1, MaxLimit), ct);
 
         var versions = new Dictionary<string, ExamVersion>(StringComparer.Ordinal);
-        var summaries = new List<SittingSummaryView>(mine.Count);
+        var rows = new List<(ExamSession Session, ExamVersion Version)>(mine.Count);
 
         foreach (var session in mine)
         {
@@ -917,6 +918,43 @@ public sealed class ListMySittings(
                 versions[session.ExamVersionId.Value] = version;
             }
 
+            rows.Add((session, version));
+        }
+
+        /*
+         * <b>Two reads for the page, not two reads per sitting.</b> Knowing
+         * whether a sitting's overall band is final takes its markings and its
+         * marking jobs, and `W1` asked for both one sitting at a time — so the
+         * cost of opening the history screen grew with how much history the
+         * learner had. At the `MaxLimit` ceiling a history of mocks bought
+         * about two hundred round trips for one page; it now buys the list,
+         * one lookup per distinct paper, one score read per sitting, and these
+         * two. → slice `W10`
+         *
+         * <b>Still only the sittings that could have a band.</b>
+         * `SittingBand.Applies` selects the ids, exactly as it selected which
+         * sittings paid for a read before, so single-skill practice is not
+         * merely cheap to ask about — it is not asked about. A history with no
+         * mock in it sends no id list, and both stores answer an empty request
+         * without reaching the database.
+         */
+        var banded = rows
+            .Where(r => SittingBand.Applies(r.Session))
+            .Select(r => r.Session.Id)
+            .ToList();
+
+        var markingsBySitting = banded.Count == 0
+            ? ReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionMarking>>.Empty
+            : await markings.ListManyAsync(banded, ct);
+
+        var jobsBySitting = banded.Count == 0
+            ? ReadOnlyDictionary<ExamSessionId, IReadOnlyList<MarkingJob>>.Empty
+            : await outbox.ListManyAsync(banded, ct);
+
+        var summaries = new List<SittingSummaryView>(rows.Count);
+
+        foreach (var (session, version) in rows)
+        {
             var scored = await results.ListAsync(session.Id, ct);
             var byModule = scored.ToDictionary(r => r.Module, r => r.Band);
 
@@ -958,8 +996,8 @@ public sealed class ListMySittings(
                     session,
                     version,
                     scored,
-                    await markings.ListAsync(session.Id, ct),
-                    await outbox.ListAsync(session.Id, ct),
+                    markingsBySitting.TryGetValue(session.Id, out var marked) ? marked : [],
+                    jobsBySitting.TryGetValue(session.Id, out var owed) ? owed : [],
                     weighting).Band;
 
             summaries.Add(new SittingSummaryView(

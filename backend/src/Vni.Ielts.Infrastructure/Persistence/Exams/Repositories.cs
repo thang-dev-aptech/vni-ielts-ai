@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Vni.Ielts.Application.Assessment;
@@ -805,5 +806,33 @@ internal sealed class MongoSectionMarkingStore(MongoContext context, IClock cloc
             .ToListAsync(ct);
 
         return [.. docs.Select(d => d.ToDomain())];
+    }
+
+    /// <summary>
+    /// One `$in` over <c>ix_section_markings_session</c>, the index
+    /// <see cref="ListAsync"/> already uses — the same index lookup, done once
+    /// with a list of keys instead of once per key. → slice `W10`
+    ///
+    /// <b>The empty case does not reach the database.</b> `{$in: []}` is a
+    /// legal query that matches nothing, and paying a round trip to be told so
+    /// would undo the saving on the history of a learner who has only ever
+    /// practised single skills — which is most of them.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionMarking>>> ListManyAsync(
+        IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct)
+    {
+        if (sessionIds.Count == 0) return ReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionMarking>>.Empty;
+
+        var keys = sessionIds.Select(id => id.Value).Distinct(StringComparer.Ordinal).ToList();
+
+        var docs = await context.SectionMarkings
+            .Find(Builders<SectionMarkingDocument>.Filter.In(m => m.SessionId, keys))
+            .ToListAsync(ct);
+
+        return docs
+            .GroupBy(d => d.SessionId, StringComparer.Ordinal)
+            .ToDictionary(
+                g => new ExamSessionId(g.Key),
+                IReadOnlyList<SectionMarking> (g) => [.. g.Select(d => d.ToDomain())]);
     }
 }

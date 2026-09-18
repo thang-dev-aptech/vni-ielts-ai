@@ -139,6 +139,19 @@ internal sealed class FakeMarkingStore : ISectionMarkingStore
     public Task<IReadOnlyList<SectionMarking>> ListAsync(
         ExamSessionId sessionId, CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<SectionMarking>>(Saved);
+
+    /// <summary>
+    /// Session-blind like <see cref="ListAsync"/> above — every id gets every
+    /// marking this fake holds. That is wrong for more than one sitting and
+    /// deliberately not fixed here: the tests that use this fake run one
+    /// sitting, and the ones that run ten use the counting ports in
+    /// <c>Exams/SittingHistoryHarness.cs</c>, which key by session.
+    /// </summary>
+    public Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionMarking>>> ListManyAsync(
+        IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionMarking>>>(
+            sessionIds.Distinct().ToDictionary(
+                id => id, IReadOnlyList<SectionMarking> (_) => Saved));
 }
 
 internal sealed class FakeRubricSource(params Rubric[] rubrics) : IRubricSource
@@ -306,6 +319,18 @@ internal sealed class FakeMarkingOutbox : IMarkingOutbox
     public Task<IReadOnlyList<MarkingJob>> ListAsync(ExamSessionId sessionId, CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<MarkingJob>>(
             [.. _jobs.Values.Where(j => j.SessionId == sessionId)]);
+
+    public Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<MarkingJob>>> ListManyAsync(
+        IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct)
+    {
+        var wanted = sessionIds.ToHashSet();
+
+        return Task.FromResult<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<MarkingJob>>>(
+            _jobs.Values
+                .Where(j => wanted.Contains(j.SessionId))
+                .GroupBy(j => j.SessionId)
+                .ToDictionary(g => g.Key, IReadOnlyList<MarkingJob> (g) => [.. g]));
+    }
 }
 
 internal sealed class FakePersonalizedExplanationStore : IPersonalizedExplanationStore

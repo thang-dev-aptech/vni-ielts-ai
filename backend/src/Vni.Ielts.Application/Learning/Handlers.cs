@@ -1,8 +1,10 @@
+using System.Collections.ObjectModel;
 using System.Security.Cryptography;
 using System.Text;
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Assessment;
 using Vni.Ielts.Application.Exams;
+using Vni.Ielts.Domain.Assessment;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Learning;
@@ -128,6 +130,30 @@ public sealed class GetCoaching(
             }
         }
 
+        /*
+         * <b>One read for the page, not one per sitting.</b> This loop used to
+         * ask the marking store about each sitting in turn — a second N+1 over
+         * the same collection `ListMySittings` had just walked, on a list that
+         * reaches `MaxLimit` sittings. → slice `W10`
+         *
+         * <b>And its early exit has never fired.</b> The loop stops once both
+         * Writing and Speaking carry per-task detail, and Speaking cannot be
+         * marked in this build: `P-02` defers the ASR decision, so
+         * `detail[Speaking]` is never set and the loop always ran to the end of
+         * the list. A bound that depends on a deferred product decision is not
+         * a bound — but it is left exactly as it was, because the day Speaking
+         * is marked it becomes real again and this is a read-cost change, not a
+         * behaviour change.
+         */
+        var candidates = recent
+            .Where(s => s.Sections.Any(x => x.Module is "writing" or "speaking"))
+            .Select(s => new Domain.Sessions.ExamSessionId(s.SessionId))
+            .ToList();
+
+        var markedBySitting = candidates.Count == 0
+            ? ReadOnlyDictionary<Domain.Sessions.ExamSessionId, IReadOnlyList<SectionMarking>>.Empty
+            : await markings.ListManyAsync(candidates, ct);
+
         // Writing and Speaking bands live in markings, not section results.
         // The latest sitting with any marking for the module supplies the
         // per-task detail; a module band is used only when the version could
@@ -138,7 +164,9 @@ public sealed class GetCoaching(
             if (detail.ContainsKey(ExamModule.Writing) && detail.ContainsKey(ExamModule.Speaking)) break;
             if (!sitting.Sections.Any(s => s.Module is "writing" or "speaking")) continue;
 
-            var marked = await markings.ListAsync(new Domain.Sessions.ExamSessionId(sitting.SessionId), ct);
+            var marked = markedBySitting.TryGetValue(
+                new Domain.Sessions.ExamSessionId(sitting.SessionId), out var held) ? held : [];
+
             foreach (var group in marked.GroupBy(m => m.Module))
             {
                 if (detail.ContainsKey(group.Key) || latest.ContainsKey(group.Key)) continue;

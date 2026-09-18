@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Vni.Ielts.Application.Assessment;
@@ -176,6 +177,33 @@ internal sealed class MongoMarkingOutbox(MongoContext context) : IMarkingOutbox
             .ToListAsync(ct);
 
         return [.. jobs.Select(Map)];
+    }
+
+    /// <summary>
+    /// One `$in` over <c>ix_marking_jobs_session</c> — the index
+    /// <see cref="ListAsync"/> already uses, asked once with a list of keys
+    /// rather than once per key. → slice `W10`
+    ///
+    /// <b>No round trip for an empty request.</b> A history with no mock in it
+    /// owes no marking, and the read that establishes that should cost
+    /// nothing.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<MarkingJob>>> ListManyAsync(
+        IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct)
+    {
+        if (sessionIds.Count == 0) return ReadOnlyDictionary<ExamSessionId, IReadOnlyList<MarkingJob>>.Empty;
+
+        var keys = sessionIds.Select(id => id.Value).Distinct(StringComparer.Ordinal).ToList();
+
+        var jobs = await Jobs
+            .Find(Builders<MarkingJobDocument>.Filter.In(j => j.SessionId, keys))
+            .ToListAsync(ct);
+
+        return jobs
+            .GroupBy(j => j.SessionId, StringComparer.Ordinal)
+            .ToDictionary(
+                g => new ExamSessionId(g.Key),
+                IReadOnlyList<MarkingJob> (g) => [.. g.Select(Map)]);
     }
 
     /// <summary>
