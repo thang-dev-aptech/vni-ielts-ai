@@ -1169,10 +1169,37 @@ internal static class MarkSection
          * Enqueuing first means a crash costs an attempt rather than a band.
          * → `IMarkingOutbox`, `I3.1`
          */
-        if (outbox is not null && rubrics is not null && clock is not null)
-            await MarkingWork.EnqueueAsync(version, module, sessionId, outbox, rubrics, clock, ct);
+        var enqueued = outbox is not null && rubrics is not null && clock is not null
+            && await MarkingWork.EnqueueAsync(version, module, sessionId, outbox, rubrics, clock, ct);
 
-        await marker.RunAsync(version, module, sessionId, answers, ct);
+        /*
+         * <b>Queued work is not also done here, and that is the fix for a
+         * learner being stranded mid-exam.</b>
+         *
+         * This line used to run unconditionally, so pressing "Tiếp theo" after
+         * Writing sent the essay to a provider <i>inside the request</i> and
+         * held the response until it came back. `Ai:*` HttpClient timeouts
+         * floor at 180 seconds. A learner sat looking at a disabled button; a
+         * proxy, a tab switch or a flaky connection turned it into a
+         * `TaskCanceledException`, a 500, and a sitting the server had already
+         * advanced while the screen had not — pressing the button again could
+         * not help, because the transition it would repeat was done.
+         *
+         * Three browser tests had been red on this since 2026-09-11 and read
+         * as a UI fault.
+         *
+         * <b>Nothing waits longer for it.</b> The job is durable, the worker
+         * owns the attempt and its retries, and `WritingResults` already polls
+         * for exactly this — 8 seconds, forty times. The inline call was a
+         * second marking path that duplicated the worker on the happy path and
+         * blocked the learner on every other one.
+         *
+         * Still called when nothing was enqueued: Reading and Listening get no
+         * job, and a module with no rubric gets none either. There the runner
+         * reports `AwaitingRubric` or `AwaitingEvaluator` without calling
+         * anything, which is cheap and is how those states reach the screen.
+         */
+        if (!enqueued) await marker.RunAsync(version, module, sessionId, answers, ct);
     }
 
     /// <summary>

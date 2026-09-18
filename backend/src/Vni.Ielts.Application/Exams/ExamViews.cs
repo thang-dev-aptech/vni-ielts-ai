@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Application.Practice;
 using Vni.Ielts.Domain.Assessment;
@@ -104,7 +105,21 @@ public sealed record PartView(
     /// because one populated construction is auditable and two is how a leak
     /// happens. Every other reader of <see cref="SectionPart"/> into this
     /// view, including the in-progress run view, passes null. → `IP-09`
+    ///
+    /// <para>
+    /// <b>Omitted from the payload entirely when null, not sent as
+    /// <c>"transcript": null</c>.</b> The e2e gate
+    /// <c>pre-submit session and autosave responses carry no keys,
+    /// explanations or transcripts</c> forbids the <i>key</i>, not a value,
+    /// and it is right to: an absent field is an unambiguous contract that a
+    /// reviewer can check by reading one line of JSON, while "present but
+    /// null" asks every reader to trust that it is always null. Adding this
+    /// field on 2026-09-11 put the key into the in-progress payload and broke
+    /// that gate; six browser tests have been red since, and `CLAUDE.md`
+    /// records that this gate must not be loosened to make them pass.
+    /// </para>
     /// </summary>
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     string? Transcript = null);
 
 /// <summary>

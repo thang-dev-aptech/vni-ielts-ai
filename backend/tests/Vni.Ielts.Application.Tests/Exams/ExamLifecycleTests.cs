@@ -130,6 +130,90 @@ public sealed class ExamLifecycleTests
     /// expiry that did not — so a harness that let a test wire only the
     /// handler it names would have been able to miss them.
     /// </summary>
+    /// <summary>
+    /// <b>A provider that is down must not strand a learner mid-exam.</b>
+    ///
+    /// Advancing writes the transition first and marks the section it left
+    /// second — deliberately, so two callers cannot buy the evaluation twice.
+    /// The marking call then reached a provider over HTTP <i>inside the
+    /// request</i>, and when that throws the endpoint answers 500 while the
+    /// sitting has already moved. The learner sees Writing with a dead
+    /// "Tiếp theo" button; the server believes they are on Speaking. Pressing
+    /// it again cannot help, because the transition it would repeat is done.
+    ///
+    /// This is what closed three browser tests that had been red since
+    /// 2026-09-11 and read as a UI fault. It is not one.
+    ///
+    /// <b>Nothing is lost by not throwing</b>, which is the whole reason the
+    /// work is enqueued before it is attempted: the job is durable, the worker
+    /// retries it, and the results screen already has a vocabulary for "not
+    /// marked yet". A failed attempt costs an attempt. Failing the advance
+    /// costs the sitting.
+    /// </summary>
+    [Fact]
+    public async Task An_evaluator_that_throws_does_not_stop_the_learner_advancing()
+    {
+        var h = WithThrowingWritingEvaluator();
+
+        var session = await h.StartFullAsync();
+
+        await h.AdvanceAsync(session.SessionId);   // Reading  → Listening
+        await h.AdvanceAsync(session.SessionId);   // Listening → Writing
+
+        var afterWriting = await h.AdvanceAsync(session.SessionId);
+
+        Assert.Equal(
+            ExamModule.Speaking.ToString().ToLowerInvariant(), afterWriting.Current?.Module);
+    }
+
+    /// <summary>
+    /// <b>And the attempt is still owed.</b> Swallowing the failure is only
+    /// safe because the job outlives it; a version that swallowed and enqueued
+    /// nothing would turn a provider blip into a band that never arrives, with
+    /// nothing anywhere saying so.
+    /// </summary>
+    [Fact]
+    public async Task The_failed_marking_is_still_enqueued_for_the_worker()
+    {
+        var h = WithThrowingWritingEvaluator();
+
+        var session = await h.StartFullAsync();
+
+        await h.AdvanceAsync(session.SessionId);
+        await h.AdvanceAsync(session.SessionId);
+        await h.AdvanceAsync(session.SessionId);
+
+        Assert.Contains(h.Outbox.Jobs.Values, j => j.Module == ExamModule.Writing);
+
+        // The provider was never reached from inside the request. That is the
+        // point: the worker owns the attempt, so a slow or broken provider
+        // cannot hold a learner on a screen they have finished with.
+        Assert.Empty(h.Markings.Saved);
+    }
+
+    /// <summary>
+    /// A Writing rubric, so a job is actually enqueued — without one
+    /// `MarkingWork.EnqueueAsync` skips, nothing owes the marking, and the
+    /// inline path under test is the only one that could run.
+    /// </summary>
+    private static Harness WithThrowingWritingEvaluator() => new(
+        evaluators: [new ThrowingEvaluator(ExamModule.Writing, new HttpRequestException("provider down"))],
+        rubrics: new FakeRubricSource(
+            Domain.Assessment.Rubric.Create(
+                "ielts-writing-2023.1", ExamModule.Writing,
+                Domain.Assessment.CriterionKeys.Writing, "IELTS descriptors, May 2023")));
+
+    /// <summary>Fails the way a provider on a bad network does.</summary>
+    private sealed class ThrowingEvaluator(ExamModule module, Exception failure) : ISectionEvaluator
+    {
+        public ExamModule Module { get; } = module;
+
+        public bool IsConfigured => true;
+
+        public Task<ClaimedEvaluation> EvaluateAsync(EvaluationRequest request, CancellationToken ct) =>
+            throw failure;
+    }
+
     private sealed class Harness
     {
         public Harness(

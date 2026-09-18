@@ -56,6 +56,24 @@ export default defineConfig({
 
   use: {
     baseURL: WEB,
+
+    /*
+     * <b>Vietnamese, pinned, because the product is.</b>
+     *
+     * The app resolves its locale from `navigator.languages`, and Playwright's
+     * Chromium reports `en-US`. So this suite has been exercising an English
+     * interface no learner sees — and every copy assertion in it was written
+     * as a `/Kết quả|Results/` alternation to cope, which means one half of
+     * each was never run. That is how `exam.resultHeading` shipped as
+     * `'{skill} result'` in English while the test waited for `Results`: the
+     * Vietnamese branch would have matched, and nothing ever took it.
+     *
+     * Pinning also removes a class of failure that looks like flakiness and
+     * is not: the same test passing or failing on whether a machine's browser
+     * prefers Vietnamese.
+     */
+    locale: 'vi-VN',
+
     trace: 'retain-on-failure',
     video: 'off',
   },

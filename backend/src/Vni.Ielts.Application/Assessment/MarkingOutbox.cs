@@ -229,7 +229,14 @@ public static class MarkingWork
     /// nobody has stated. The results screen reports `AwaitingRubric`, which is
     /// the honest answer and a different one from "we tried and failed".
     /// </summary>
-    public static async Task EnqueueAsync(
+    /// <returns>
+    /// Whether a job now exists for this section. <b>The caller needs this to
+    /// know whether anything else owes the marking.</b> `MarkSection` only
+    /// marks inline when nothing was enqueued; a void return made "no rubric,
+    /// so no job" indistinguishable from "queued", and the caller had to
+    /// attempt the evaluation anyway to be safe.
+    /// </returns>
+    public static async Task<bool> EnqueueAsync(
         ExamVersion version,
         ExamModule module,
         ExamSessionId sessionId,
@@ -238,10 +245,10 @@ public static class MarkingWork
         Vni.Ielts.Domain.Common.IClock clock,
         CancellationToken ct)
     {
-        if (module is not (ExamModule.Writing or ExamModule.Speaking)) return;
-        if (version.Section(module) is null) return;
+        if (module is not (ExamModule.Writing or ExamModule.Speaking)) return false;
+        if (version.Section(module) is null) return false;
 
-        if (rubrics.For(module) is not { } rubric) return;
+        if (rubrics.For(module) is not { } rubric) return false;
 
         var now = clock.UtcNow;
 
@@ -264,5 +271,7 @@ public static class MarkingWork
                 // a worker picks the job up. → F4.2
                 TraceParent: System.Diagnostics.Activity.Current?.Id),
             ct);
+
+        return true;
     }
 }

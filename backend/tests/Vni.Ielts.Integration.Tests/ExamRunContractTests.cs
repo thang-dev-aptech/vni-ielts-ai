@@ -725,8 +725,23 @@ public sealed class ExamRunContractTests(ExamAppFactory app) : IClassFixture<Exa
 
         var parts = run.GetProperty("current").GetProperty("parts").EnumerateArray().ToArray();
         Assert.NotEmpty(parts);
+
+        /*
+         * <b>Absent, not present-and-null — a stronger contract than this test
+         * asked for until 2026-09-18.</b>
+         *
+         * The e2e gate `pre-submit session and autosave responses carry no
+         * keys, explanations or transcripts` forbids the key itself, and it is
+         * right to: an absent field is something a reviewer can verify by
+         * reading one line of JSON, while "present but null" asks every reader
+         * to trust that it is always null. `PartView.Transcript` now carries
+         * `JsonIgnoreCondition.WhenWritingNull`, so asserting the old shape
+         * here would hold the payload to the weaker of the two rules.
+         */
         Assert.All(parts, p =>
-            Assert.Equal(JsonValueKind.Null, p.GetProperty("transcript").ValueKind));
+            Assert.False(
+                p.TryGetProperty("transcript", out _),
+                "an in-progress part must not carry a transcript key at all"));
     }
 
     [SkippableFact]

@@ -16,7 +16,21 @@ import { API, getResults, getSession, registerLearner, signIn, startFullTest } f
  */
 
 const READING_PASSAGE = /Surveying the Lower Delta/;
-const LISTENING_HEADING = 'Workshop enquiry';
+/*
+  <b>A region, not a heading.</b>
+
+  The Listening runner renders no `<h2>` for the part: audio has no passage
+  panel, so the part's own title reaches the page as the question group's
+  caption, and the group's `<section aria-labelledby>` carries it in the
+  region's accessible name ("Questions 1 – 2 Workshop enquiry"). Asserting a
+  heading was asserting a DOM shape this screen has never had for Listening,
+  and it went red the moment anyone looked.
+
+  The region is also the better assertion: it proves the right part is on
+  screen *and* that assistive technology can name it, which a heading lookup
+  only implied.
+*/
+const LISTENING_HEADING = /Workshop enquiry/;
 const WRITING_TABLE = /visitors to four public libraries/i;
 const SPEAKING_CUE = /journey you took that did not go as planned|where you live/i;
 
@@ -66,12 +80,29 @@ function primaryAction(page: Page) {
   return page.locator('.exr-foot .exr-btn-primary, .prun-foot .exam-submit');
 }
 
+/**
+ * The confirmation in front of the footer's primary action.
+ *
+ * <b>Two labels, because the last skill is a different act.</b> Advancing says
+ * "Hoàn thành Reading, sang Listening"; the last one says "Nộp bài" inside a
+ * dialog asking whether you are sure. `clickNext` is used for both — it is
+ * called once per skill including the last — and knowing only the advance
+ * wording, it waited ten seconds on Speaking for a button that says something
+ * else, then failed as though the app were broken.
+ */
+function confirmAction(page: Page) {
+  return page
+    .getByRole('button', { name: /Hoàn thành .+, sang/i })
+    .or(page.getByRole('dialog').getByRole('button', { name: /Nộp bài|Submit/i }))
+    .first();
+}
+
 async function clickNext(page: Page) {
   const button = primaryAction(page);
   await expect(button).toBeEnabled();
   await button.click();
-  // Full Test opens AdvanceConfirmCard before the server advances the skill.
-  const confirm = page.getByRole('button', { name: /Hoàn thành .+, sang/i });
+
+  const confirm = confirmAction(page);
   await expect(confirm).toBeVisible({ timeout: 10_000 });
   await confirm.click();
 }
@@ -104,7 +135,7 @@ test.describe('four-skill mock', () => {
     await waitForSaved(page);
     await clickNext(page);
 
-    await expect(page.getByRole('heading', { name: LISTENING_HEADING, exact: true })).toBeVisible({
+    await expect(page.getByRole('region', { name: LISTENING_HEADING }).first()).toBeVisible({
       timeout: 30_000,
     });
     await expect(page.getByText(/Kỹ năng 2\/4|Skill 2 of 4/i)).toBeVisible();
@@ -142,13 +173,29 @@ test.describe('four-skill mock', () => {
       timeout: 30_000,
     });
     await expect(page.getByText(/Kết quả|Results/i).first()).toBeVisible();
+    /*
+      <b>Still a dash, and for a reason that changed on 2026-09-18.</b>
+
+      It used to be "an overall band needs all four skills". The owner settled
+      that a three-skill mock shows its band normally, so that is no longer
+      why — and the copy that said it has gone, because a sentence contradicting
+      the number beside it is worse than no sentence.
+
+      What holds the band back here is Writing: its marking job is queued and
+      the worker has not run, so the skill could still gain a band and any mean
+      taken now would move under the learner who read it. That is `L3`, and it
+      is the rule this assertion is actually for.
+    */
     await expect(page.locator('.result-overall-value')).toHaveText('—');
     await expect(
-      page.getByText(/Điểm tổng chỉ có khi đủ cả bốn kỹ năng|overall band needs all four skills/i),
+      // The note sits in a <span> inside the <p> that also holds the dash, so
+      // the text matches at both levels. Either one proves it is on screen.
+      page.getByText(/Còn kỹ năng đang chấm|A skill is still being marked/i).first(),
     ).toBeVisible();
 
     const results = await getResults(request, learner.session.accessToken, sitting.sessionId);
-    expect(results.overallBand, 'Must not invent an overall from three skills.').toBeNull();
+    expect(results.overallBand, 'Writing is still queued, so no mean may be taken yet.').toBeNull();
+    expect(results.overallBandModules, 'And nothing may claim to be covered.').toEqual([]);
 
     const markedModules = (results.sections as { module: string; band: number | null }[]).map(
       (s) => s.module,
@@ -220,12 +267,25 @@ test.describe('four-skill mock', () => {
       await route.continue();
     });
 
+    /*
+      <b>The double click belongs on the confirmation, not on the footer.</b>
+      A Full Test opens `AdvanceConfirmCard` first, so double-clicking
+      "Tiếp theo" opens the card and then clicks the card's backdrop — it never
+      advances at all, and the test failed having proved nothing about the race
+      it is named for. The button that actually posts `/advance` is the one
+      inside the card, and that is where two fast clicks can produce two
+      transitions.
+    */
     const next = primaryAction(page);
     await expect(next).toHaveText(/Tiếp theo|Next/i);
-    await next.dblclick({ delay: 40 });
+    await next.click();
+
+    const confirm = confirmAction(page);
+    await expect(confirm).toBeVisible({ timeout: 10_000 });
+    await confirm.dblclick({ delay: 40 });
     release();
 
-    await expect(page.getByRole('heading', { name: LISTENING_HEADING, exact: true })).toBeVisible({
+    await expect(page.getByRole('region', { name: LISTENING_HEADING }).first()).toBeVisible({
       timeout: 30_000,
     });
 
@@ -268,7 +328,7 @@ test.describe('four-skill mock', () => {
     await fillReading(page);
     await waitForSaved(page);
     await clickNext(page);
-    await expect(page.getByRole('heading', { name: LISTENING_HEADING, exact: true })).toBeVisible({
+    await expect(page.getByRole('region', { name: LISTENING_HEADING }).first()).toBeVisible({
       timeout: 30_000,
     });
 
@@ -281,9 +341,15 @@ test.describe('four-skill mock', () => {
     await clickNext(page);
     await expect(page.getByText(SPEAKING_CUE).first()).toBeVisible({ timeout: 30_000 });
 
+    // Same as the advance race above: the footer opens the dialog, the
+    // dialog's own button is what posts `/submit`.
     const submit = primaryAction(page);
     await expect(submit).toHaveText(/Nộp bài|Submit/i);
-    await submit.dblclick({ delay: 40 });
+    await submit.click();
+
+    const confirmSubmit = confirmAction(page);
+    await expect(confirmSubmit).toBeVisible({ timeout: 10_000 });
+    await confirmSubmit.dblclick({ delay: 40 });
 
     await expect(page).toHaveURL(`/results/${sitting.sessionId}`, {
       timeout: 30_000,

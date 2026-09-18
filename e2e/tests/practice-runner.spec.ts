@@ -84,7 +84,16 @@ test.describe('practice runner', () => {
     await waitForSaved(page);
     await submitPractice(page, sitting.sessionId);
 
-    await expect(page.getByText(/Đúng|correct/i)).toBeVisible();
+    /*
+      The marked summary, not the word "đúng".
+
+      `getByText(/Đúng|correct/i)` matched twelve elements on this page — the
+      summary sentence, the stat label, a card subtitle, a filter chip and two
+      per question — so it failed on strict mode while the screen was entirely
+      correct. A locator that broad also could not tell "the paper was marked"
+      from "the word appears somewhere", which is the thing this test is for.
+    */
+    await expect(page.getByText(/Bạn trả lời đúng \d+\/\d+ câu/)).toBeVisible();
   });
 
   test('a learner completes a Listening practice part and reaches results', async ({
@@ -94,13 +103,36 @@ test.describe('practice runner', () => {
     const { learner, sitting } = await openListeningPart(request);
 
     await signIn(page, learner, `/students/practice/${sitting.sessionId}`);
-    await expect(page.getByRole('heading', { name: LISTENING_TITLE }).first()).toBeVisible();
+    /*
+      <b>A region, not a heading.</b>
+
+      The Listening runner renders no `<h2>` for the part: audio has no passage
+      panel, so the part's own title reaches the page as the question group's
+      caption, and the group's `<section aria-labelledby>` carries it in the
+      region's accessible name ("Questions 1 – 2 Workshop enquiry"). Asserting a
+      heading was asserting a DOM shape this screen has never had for Listening,
+      and it went red the moment anyone looked.
+
+      The region is also the better assertion: it proves the right part is on
+      screen *and* that assistive technology can name it, which a heading lookup
+      only implied.
+    */
+    await expect(page.getByRole('region', { name: LISTENING_TITLE }).first()).toBeVisible();
 
     await fillListeningPart1(page);
     await waitForSaved(page);
     await submitPractice(page, sitting.sessionId);
 
-    await expect(page.getByText(/Đúng|correct/i)).toBeVisible();
+    /*
+      The marked summary, not the word "đúng".
+
+      `getByText(/Đúng|correct/i)` matched twelve elements on this page — the
+      summary sentence, the stat label, a card subtitle, a filter chip and two
+      per question — so it failed on strict mode while the screen was entirely
+      correct. A locator that broad also could not tell "the paper was marked"
+      from "the word appears somewhere", which is the thing this test is for.
+    */
+    await expect(page.getByText(/Bạn trả lời đúng \d+\/\d+ câu/)).toBeVisible();
   });
 
   test('pre-submit session and autosave responses carry no keys, explanations or transcripts', async ({
