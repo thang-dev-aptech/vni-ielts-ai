@@ -17,6 +17,22 @@ public sealed record SessionResponseItem(
 
 public sealed record SessionsResponse(IReadOnlyCollection<SessionResponseItem> Sessions);
 
+/// <summary>
+/// How many other devices were signed out.
+///
+/// <b>A named record rather than an anonymous object, so it has a schema.</b>
+/// <c>new { signedOut = count }</c> serialises identically and reaches
+/// <c>contracts/openapi</c> as an untyped "OK" — which is how both clients
+/// came to hand-write the shape. → `W7`
+/// </summary>
+public sealed record RevokedSessionsResponse(int SignedOut);
+
+/// <summary>The address the account now carries, or null once it is removed.</summary>
+public sealed record AccountEmailResponse(string? Email);
+
+/// <summary>The contact number the account now carries, or null once cleared.</summary>
+public sealed record AccountPhoneResponse(string? Phone);
+
 public sealed record SetPasswordRequest(string? CurrentPassword, string NewPassword);
 
 public sealed record SetPhoneRequest(string? Phone);
@@ -37,33 +53,48 @@ public static class AccountEndpoints
     {
         var group = app.MapGroup("/api/v1/me").WithTags("Identity").RequireAuthorization();
 
+        // <b>The response types are declared, not inferred.</b> Every handler
+        // here returns `IResult`, so nothing could work out what a 200 carries
+        // and the whole group reached `@vni/api-client` untyped — leaving the
+        // learner app and the CMS to write the shapes out by hand with nothing
+        // making the two agree. That is the setup `A17` came from. → `W7`
+        //
+        // <b>And two of them answer 204.</b> Declaring a 200 on a route that
+        // never sends a body tells a generated client to parse what will never
+        // arrive, so those say 204 instead.
         group.MapGet("/sessions", ListSessionsEndpoint)
             .WithName("ListSessions")
-            .WithSummary("List the devices signed in to this account");
+            .WithSummary("List the devices signed in to this account")
+            .Produces<SessionsResponse>();
 
         group.MapPost("/email", ChangeEmailEndpoint)
             .WithName("ChangeEmail")
             .WithSummary("Set, change or remove this account's email address")
+            .Produces<AccountEmailResponse>()
             .RequireRateLimiting(RateLimitPolicies.Registration);
 
         group.MapPost("/phone", SetPhoneEndpoint)
             .WithName("SetPhone")
             .WithSummary("Add, change or remove the contact phone number")
+            .Produces<AccountPhoneResponse>()
             .RequireRateLimiting(RateLimitPolicies.Authentication);
 
         group.MapPost("/password", SetPasswordEndpoint)
             .WithName("SetPassword")
             .WithSummary("Create or change this account's password")
+            .Produces(StatusCodes.Status204NoContent)
             .RequireRateLimiting(RateLimitPolicies.Authentication);
 
         group.MapDelete("/sessions", RevokeOthersEndpoint)
             .WithName("RevokeOtherSessions")
             .WithSummary("Sign every other device out of this account")
+            .Produces<RevokedSessionsResponse>()
             .RequireRateLimiting(RateLimitPolicies.Authentication);
 
         group.MapDelete("/sessions/{familyId}", RevokeSessionEndpoint)
             .WithName("RevokeSession")
             .WithSummary("Sign one device out of this account")
+            .Produces(StatusCodes.Status204NoContent)
             .RequireRateLimiting(RateLimitPolicies.Authentication);
     }
 
@@ -105,7 +136,7 @@ public static class AccountEndpoints
             new ChangeEmailCommand(new UserId(id), request.Email), ct);
 
         return result.Match(
-            ok => Results.Ok(new { email = ok.Email }),
+            ok => Results.Ok(new AccountEmailResponse(ok.Email)),
             error => ApiProblem.From(error, http));
     }
 
@@ -121,7 +152,7 @@ public static class AccountEndpoints
         var result = await handler.HandleAsync(new SetPhoneCommand(new UserId(id), request.Phone), ct);
 
         return result.Match(
-            phone => Results.Ok(new { phone }),
+            phone => Results.Ok(new AccountPhoneResponse(phone)),
             error => ApiProblem.From(error, http));
     }
 
@@ -154,7 +185,7 @@ public static class AccountEndpoints
             new RevokeOtherSessionsCommand(new UserId(id), principal.FamilyId()), ct);
 
         return result.Match(
-            count => Results.Ok(new { signedOut = count }),
+            count => Results.Ok(new RevokedSessionsResponse(count)),
             error => ApiProblem.From(error, http));
     }
 

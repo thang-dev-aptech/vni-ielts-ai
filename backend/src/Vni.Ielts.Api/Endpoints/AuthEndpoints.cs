@@ -124,7 +124,19 @@ public static class AuthEndpoints
             .WithSummary("End this session on the server, not only in this browser")
             .RequireAuthorization();
 
-        app.MapGet("/api/v1/me", Me).WithName("Me").WithTags("Identity").RequireAuthorization();
+        /*
+         * <b>The response type is declared, not inferred.</b> The handler
+         * returns `IResult`, so until this line the contract described a bare
+         * "OK" and nothing about `MeResponse` reached `@vni/api-client` — both
+         * clients typed the account by hand instead, and `mustChangePassword`
+         * ended up optional in the hand-written copy purely because nobody
+         * could generate it. The server has always sent it. → `W7`, `A17`
+         */
+        app.MapGet("/api/v1/me", Me)
+            .WithName("Me")
+            .WithTags("Identity")
+            .Produces<MeResponse>()
+            .RequireAuthorization();
     }
 
     private static async Task<IResult> Logout(

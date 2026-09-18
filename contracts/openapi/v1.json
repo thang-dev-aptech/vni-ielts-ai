@@ -19,7 +19,14 @@
         "operationId": "Me",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -366,7 +373,14 @@
         "operationId": "ListSessions",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionsResponse"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -386,7 +400,14 @@
         "operationId": "RevokeOtherSessions",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokedSessionsResponse"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -421,7 +442,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountEmailResponse"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -456,7 +484,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountPhoneResponse"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -490,8 +525,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK"
+          "204": {
+            "description": "No Content"
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -525,8 +560,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
+          "204": {
+            "description": "No Content"
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -1393,7 +1428,14 @@
         "operationId": "ListDictationSets",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DictationSetListView"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -1425,7 +1467,39 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "audio/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              },
+              "audio/mpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              },
+              "audio/wav": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              },
+              "audio/ogg": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -1457,7 +1531,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DictationSetView"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -1499,7 +1580,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DictationResultView"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -3270,6 +3358,34 @@
   },
   "components": {
     "schemas": {
+      "AccountEmailResponse": {
+        "required": [
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AccountPhoneResponse": {
+        "required": [
+          "phone"
+        ],
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ActivityDayView": {
         "required": [
           "date",
@@ -3939,6 +4055,149 @@
           }
         }
       },
+      "DictationResultView": {
+        "required": [
+          "order",
+          "text",
+          "words",
+          "correct",
+          "total",
+          "isPerfect"
+        ],
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          },
+          "words": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WordResultView"
+            }
+          },
+          "correct": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isPerfect": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DictationSentenceView": {
+        "required": [
+          "order",
+          "audioKey",
+          "bestCorrect",
+          "bestTotal",
+          "attempts"
+        ],
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "audioKey": {
+            "type": "string"
+          },
+          "bestCorrect": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "bestTotal": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DictationSetListView": {
+        "required": [
+          "sets"
+        ],
+        "type": "object",
+        "properties": {
+          "sets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DictationSetSummary"
+            }
+          }
+        }
+      },
+      "DictationSetSummary": {
+        "required": [
+          "id",
+          "title",
+          "description",
+          "sentenceCount",
+          "perfectSentences"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "sentenceCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "perfectSentences": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DictationSetView": {
+        "required": [
+          "id",
+          "title",
+          "description",
+          "sentences"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "sentences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DictationSentenceView"
+            }
+          }
+        }
+      },
       "ExplanationContentView": {
         "required": [
           "correctAnswer",
@@ -4392,6 +4651,57 @@
             "items": {
               "$ref": "#/components/schemas/MediaAssetView"
             }
+          }
+        }
+      },
+      "MeResponse": {
+        "required": [
+          "userId",
+          "displayName",
+          "email",
+          "phone",
+          "permissions",
+          "providers",
+          "hasPassword",
+          "mustChangePassword"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hasPassword": {
+            "type": "boolean"
+          },
+          "mustChangePassword": {
+            "type": "boolean"
           }
         }
       },
@@ -4883,6 +5193,18 @@
           }
         }
       },
+      "RevokedSessionsResponse": {
+        "required": [
+          "signedOut"
+        ],
+        "type": "object",
+        "properties": {
+          "signedOut": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "SaveAnswersRequest": {
         "required": [
           "module",
@@ -5059,6 +5381,35 @@
           }
         }
       },
+      "SessionResponseItem": {
+        "required": [
+          "id",
+          "device",
+          "signedInAt",
+          "lastUsedAt",
+          "isCurrent"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "device": {
+            "type": "string"
+          },
+          "signedInAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isCurrent": {
+            "type": "boolean"
+          }
+        }
+      },
       "SessionResultsView": {
         "required": [
           "sessionId",
@@ -5151,6 +5502,20 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SectionContentView"
+            }
+          }
+        }
+      },
+      "SessionsResponse": {
+        "required": [
+          "sessions"
+        ],
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionResponseItem"
             }
           }
         }
@@ -5530,6 +5895,31 @@
             "items": {
               "$ref": "#/components/schemas/UsageEntryView"
             }
+          }
+        }
+      },
+      "WordResultView": {
+        "required": [
+          "verdict",
+          "expected",
+          "typed"
+        ],
+        "type": "object",
+        "properties": {
+          "verdict": {
+            "type": "string"
+          },
+          "expected": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "typed": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

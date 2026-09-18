@@ -9,6 +9,18 @@ namespace Vni.Ielts.Api.Endpoints;
 public sealed record CheckSentenceRequest(int Order, string Typed);
 
 /// <summary>
+/// The sets, wrapped.
+///
+/// <b>A named record rather than <c>new { sets = ... }</c>, so it has a
+/// schema.</b> The wire shape is identical; what changes is that
+/// <c>contracts/openapi</c> can describe it, and therefore that
+/// <c>@vni/api-client</c> can carry it. Until this existed the whole dictation
+/// group reached both clients as an untyped "OK" and each wrote the shape out
+/// by hand. → `W7`, `A17`
+/// </summary>
+public sealed record DictationSetListView(IReadOnlyList<DictationSetSummary> Sets);
+
+/// <summary>
 /// Nghe chép chính tả — `M-22`.
 ///
 /// <b>The comparison happens here, not in the browser.</b> Sending the
@@ -27,21 +39,39 @@ public static class DictationEndpoints
     {
         var group = app.MapGroup("/api/v1/dictation").WithTags("Dictation").RequireAuthorization();
 
+        // <b>The response types are declared, not inferred.</b> These handlers
+        // return `IResult`; without these lines nothing downstream knows what a
+        // 200 carries. → `W7`
         group.MapGet("/", ListEndpoint)
             .WithName("ListDictationSets")
-            .WithSummary("The dictation sets available");
+            .WithSummary("The dictation sets available")
+            .Produces<DictationSetListView>();
 
         group.MapGet("/assets/{**reference}", AssetEndpoint)
             .WithName("GetDictationAsset")
-            .WithSummary("Audio for one sentence");
+            .WithSummary("Audio for one sentence")
+            // Bytes, not JSON, so the promise is the media type rather than a
+            // schema — the same treatment the import template download gets.
+            // The list is exactly what the stores can answer with: an unknown
+            // extension is served as `application/octet-stream` rather than as
+            // whatever a browser would sniff it into.
+            .Produces<byte[]>(
+                StatusCodes.Status200OK,
+                "audio/mp4",
+                "audio/mpeg",
+                "audio/wav",
+                "audio/ogg",
+                "application/octet-stream");
 
         group.MapGet("/{setId}", GetEndpoint)
             .WithName("GetDictationSet")
-            .WithSummary("A set's sentences — audio only, never the text");
+            .WithSummary("A set's sentences — audio only, never the text")
+            .Produces<DictationSetView>();
 
         group.MapPost("/{setId}/check", CheckEndpoint)
             .WithName("CheckDictationSentence")
-            .WithSummary("Compare a typed sentence with what was said");
+            .WithSummary("Compare a typed sentence with what was said")
+            .Produces<DictationResultView>();
     }
 
     private static async Task<IResult> ListEndpoint(
@@ -49,7 +79,7 @@ public static class DictationEndpoints
     {
         if (principal.UserId() is not { } userId) return Results.Unauthorized();
 
-        return Results.Ok(new { sets = await handler.HandleAsync(userId, ct) });
+        return Results.Ok(new DictationSetListView(await handler.HandleAsync(userId, ct)));
     }
 
     private static async Task<IResult> GetEndpoint(

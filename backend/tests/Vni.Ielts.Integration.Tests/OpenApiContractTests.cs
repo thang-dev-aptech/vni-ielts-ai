@@ -156,4 +156,113 @@ public sealed class OpenApiContractTests(SsoAppFactory app) : IClassFixture<SsoA
             submit.GetProperty("responses").TryGetProperty("429", out _),
             "Submit is rate limited per sitting and the contract does not say so.");
     }
+
+    /// <summary>
+    /// What a caller is promised back, per route.
+    ///
+    /// <c>Json</c> — a named schema a generated client can hold. <c>Empty</c> —
+    /// the route answers 204 and a declared 200 would be a lie. <c>Binary</c> —
+    /// bytes, so the promise is the media type rather than a schema.
+    /// </summary>
+    private enum Shape { Json, Empty, Binary }
+
+    /// <summary>
+    /// `/me` and the dictation group say what they return — `W7`.
+    ///
+    /// <b>Both groups shipped with no declared response body, and both clients
+    /// paid for it by hand.</b> A route whose 200 carries no schema reaches
+    /// <c>contracts/openapi/v1.json</c> as a bare "OK", so nothing about its
+    /// shape survives into <c>@vni/api-client</c> — and the learner app and the
+    /// CMS each wrote their own copy of the shape instead. That is the same
+    /// setup as `A17`, the most expensive bug this product has had: two sides
+    /// of one contract disagreeing while both had passing tests.
+    ///
+    /// <b>It has already bitten.</b> <c>Me.mustChangePassword</c> is optional in
+    /// the hand-written type with a comment that names this test's absence as
+    /// the reason — a field the server always sends, typed as one it might not,
+    /// because nobody could generate it.
+    ///
+    /// <b>204 is asserted as 204, not as 200.</b> Two of these routes answer
+    /// with no body at all; a contract that describes them as 200 tells a
+    /// generated client to parse something that will never arrive.
+    /// </summary>
+    [SkippableFact]
+    public async Task The_me_and_dictation_routes_describe_what_they_return()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var client = app.CreateClient(
+            new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var document = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
+        var paths = document.RootElement.GetProperty("paths");
+
+        (string Route, string Method, Shape Shape)[] routes =
+        [
+            ("/api/v1/me", "get", Shape.Json),
+            ("/api/v1/me/sessions", "get", Shape.Json),
+            ("/api/v1/me/sessions", "delete", Shape.Json),
+            ("/api/v1/me/sessions/{familyId}", "delete", Shape.Empty),
+            ("/api/v1/me/email", "post", Shape.Json),
+            ("/api/v1/me/phone", "post", Shape.Json),
+            ("/api/v1/me/password", "post", Shape.Empty),
+            ("/api/v1/dictation", "get", Shape.Json),
+            ("/api/v1/dictation/{setId}", "get", Shape.Json),
+            ("/api/v1/dictation/{setId}/check", "post", Shape.Json),
+            ("/api/v1/dictation/assets/{reference}", "get", Shape.Binary),
+        ];
+
+        var undeclared = new List<string>();
+
+        foreach (var (route, method, shape) in routes)
+        {
+            Assert.True(
+                paths.TryGetProperty(route, out var item),
+                $"{route} is not in the document at all.");
+
+            Assert.True(
+                item.TryGetProperty(method, out var operation),
+                $"{method.ToUpperInvariant()} {route} is not in the document at all.");
+
+            var responses = operation.GetProperty("responses");
+
+            switch (shape)
+            {
+                case Shape.Empty:
+                    if (!responses.TryGetProperty("204", out _))
+                        undeclared.Add(
+                            $"{method.ToUpperInvariant()} {route} answers 204 and does not say so.");
+                    else if (responses.TryGetProperty("200", out _))
+                        undeclared.Add(
+                            $"{method.ToUpperInvariant()} {route} declares a 200 it never sends.");
+                    break;
+
+                case Shape.Binary:
+                    if (!responses.TryGetProperty("200", out var bytes)
+                        || !bytes.TryGetProperty("content", out var media)
+                        || media.EnumerateObject().All(m => m.Name.StartsWith("application/json")))
+                        undeclared.Add(
+                            $"{method.ToUpperInvariant()} {route} returns bytes and the contract "
+                            + "names no media type for them.");
+                    break;
+
+                default:
+                    if (!responses.TryGetProperty("200", out var ok)
+                        || !ok.TryGetProperty("content", out var content)
+                        || !content.TryGetProperty("application/json", out var json)
+                        || !json.TryGetProperty("schema", out var schema)
+                        || !(schema.TryGetProperty("$ref", out _)
+                             || schema.TryGetProperty("properties", out _)))
+                        undeclared.Add(
+                            $"{method.ToUpperInvariant()} {route} declares no response schema.");
+                    break;
+            }
+        }
+
+        Assert.True(
+            undeclared.Count == 0,
+            "These routes reach `packages/api-client` as untyped, so both clients type them "
+            + "by hand and nothing makes the two agree:\n  "
+            + string.Join("\n  ", undeclared));
+    }
 }
