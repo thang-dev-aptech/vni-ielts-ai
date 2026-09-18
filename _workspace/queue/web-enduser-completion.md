@@ -360,6 +360,36 @@ và **đã cắn hai lần trong một ngày** (18/09).
 **Xong khi:** drift gate xanh; không còn interface tự chế cho hai nhóm endpoint này ở cả hai client;
 `packages/api-client` được generate lại.
 
+### 🟡 Đóng một nửa — 18/09/2026, commit `becebde`
+
+**Nửa hợp đồng: xong.** 11 route (`/me` ×7, dictation ×4) khai response schema; 12 schema mới trong
+`components/schemas`; `v1.json` **sinh lại chứ không sửa tay**; drift gate xanh, byte-identical.
+
+Ba quyết định kỹ thuật, ghi trong commit: hai route trả 204 nay **khai 204** (trước khai 200 mà không
+bao giờ có body — sửa một lời nói dối có sẵn, không đổi hành vi server); ba object ẩn danh thành record
+có tên (**hình dạng trên dây không đổi một ký tự**, đã đối chiếu); `/dictation/assets/{reference}` khai
+media type chứ không khai schema vì nó là bytes.
+
+**Bằng chứng mạnh hơn cả test hợp đồng:** gỡ một `.Produces<>()` ở server rồi sinh lại client →
+`tsc` ở `apps/web` **vỡ**. Trước lát này, gỡ gì ở server client cũng không biết.
+
+**Nửa client `/me`: CHƯA LÀM, và đây là chỗ cần quyết định.** Type gõ tay của `/me` không nằm ở nơi
+hàng đợi giả định:
+
+| Type | Nằm ở | Vì sao dừng |
+|---|---|---|
+| `Me`, gồm `mustChangePassword` | `packages/auth/src/session.ts` | ngoài phạm vi file đã giao |
+| `DeviceSession` + các inline `{ email }` / `{ phone }` / `{ sessions }` | `apps/web/src/lib/session.ts` | **danh sách bảo toàn `D-11`** |
+
+**Và hai bên đang lệch ngay lúc này:** hợp đồng nói `mustChangePassword` là `boolean` **required**;
+bản gõ tay nói `boolean | undefined`, với một comment giải thích rằng nó optional *chính vì `/me` chưa
+khai schema*. Lý do đó vừa hết hiệu lực, còn cái lệch thì vẫn đó và **không có gì bắt được**.
+
+**Ba đường ra, chờ chủ sản phẩm chọn:** (1) mở phạm vi cho hai file trên, đổi `Me` thành alias
+`Schemas['MeResponse']` · (2) giữ gõ tay nhưng ghim bằng test parity, `pnpm typecheck` là cổng · (3)
+ghi thành nợ. Cả (1) và (2) đều vướng một trở ngại chung: `@vni/auth` và `apps/admin` **chưa phụ thuộc**
+`packages/api-client`, nên nối được là phải đổi đồ thị package.
+
 ---
 
 ## W8 — Màn soạn nghe chép trong CMS
@@ -451,13 +481,22 @@ mỗi phiên một đề khác nhau: **khoảng 201 truy vấn cho một lần m
 `backend/src/Vni.Ielts.Application/…/MarkingOutbox.cs` · `backend/src/Vni.Ielts.Infrastructure/Persistence/…` ·
 `ListMySittings` trong `ExamHandlers.cs` · **và `Learning/Handlers.cs`** — xem dưới.
 
-### Đường thứ hai, và nó nặng hơn đường đang nói tới
+### Đường thứ hai — có thật, nhưng **không phải chỗ tôi chỉ**
 
-`backend/src/Vni.Ielts.Application/Learning/Handlers.cs:296` gọi thẳng
-`sessions.ListForUserAsync(userId, 500, ct)` — **đường thứ hai vào cùng repository với một trần khác
-hẳn** (500, không phải `MaxLimit`). Cùng đường N+1 đó ở 500 phiên toàn mock ra **khoảng 2000 truy
-vấn**. Có bound nên không vi phạm DoD nào, nhưng **sửa đọc-theo-lô mà bỏ sót đường này là sửa một
-nửa** — và nửa bị bỏ sót lại là nửa tốn kém hơn.
+> **Đính chính 18/09/2026.** Mục này trước đây viết: *"`Learning/Handlers.cs:296` gọi
+> `ListForUserAsync(userId, 500)` … ở 500 phiên toàn mock ra khoảng 2000 truy vấn."* **Sai.** Dòng 296
+> là `GetLearnerActivity`; nó chỉ đọc `StartedAt` + `SubmittedAt` của mỗi phiên, **không** đọc results,
+> markings hay outbox. Đó là **1 truy vấn**, không phải 2000. Con số 2000 là ước lượng của người viết
+> hàng đợi và không tồn tại trong code. Nay có test đặc tả ghim nó lại
+> (`The_activity_heatmap_costs_one_list_read_and_nothing_per_sitting`) để không ai thêm lookup
+> per-sitting vào đó.
+
+Đường đắt thật là **`GetCoaching`**, cách đó 18 dòng lên trên, cùng file. Nó gọi `ListMySittings` ở
+trần đầy đủ (nhận nguyên N+1 ở trên), **rồi hỏi lại marking store một lần mỗi phiên** để lấy per-task
+Writing detail — đúng những marking `ListMySittings` vừa đọc xong rồi vứt đi. Và `break` sớm của vòng
+lặp đó **chưa bao giờ chạy**: nó dừng khi cả Writing lẫn Speaking có detail, mà Speaking không chấm
+được trong build này (`P-02`). **Một bound phụ thuộc vào một quyết định sản phẩm đang bị hoãn thì
+không phải bound.**
 
 **Không thuộc lát này:** cursor/`skip` cho `IExamSessionRepository.ListForUserAsync`. Đó là **đổi hình
 dạng response**, nên đi cùng `W7` — xem `W5` § *Còn nợ* mục 1. `W10` chỉ làm phần không đổi hợp đồng.
@@ -465,6 +504,30 @@ dạng response**, nên đi cùng `W7` — xem `W5` § *Còn nợ* mục 1. `W10
 **Xong khi:** test đếm query đã kiểm chứng đỏ-khi-gỡ, khẳng định số truy vấn **không tăng theo số
 phiên** ở cả hai đường vào (`ListMySittings` và `Learning/Handlers.cs`); con số đo lại được ghi vào
 commit, cạnh con số cũ ở bảng trên.
+
+### ✅ Đóng cho hai cổng của lát này — 18/09/2026, commit `014ee7f`
+
+`ISectionMarkingStore` (`Assessment/Ports.cs:110`) và `IMarkingOutbox` (`Assessment/MarkingOutbox.cs:121`)
+nhận `ListManyAsync`. **Không dùng default interface method** — một default vòng lặp sẽ để một store
+mới bị N+1 mà không ai viết dòng code nào trông giống N+1.
+
+| Cửa | Trước | Sau |
+|---|---|---|
+| `ListMySittings`, 5 mock + 5 luyện | 22 | **14** |
+| `ListMySittings`, xấu nhất ở trần 50 | 201 | **103** |
+| `GetCoaching`, 20 mock | 82 | **25** |
+| `GetCoaching`, xấu nhất ở trần 50 | 251 | **104** |
+| `GetLearnerActivity` | 1 | 1 (không đổi, xem đính chính trên) |
+
+**Đỏ đã thấy:** `Expected 5 / Actual 20` khi số phiên tăng từ 5 lên 20. Gỡ fix **tách riêng từng cửa**:
+gỡ chỉ `ListMySittings` → cả hai test đỏ; gỡ chỉ `GetCoaching` → history xanh, coaching đỏ. Mỗi test
+đỏ vì đúng call-site của nó.
+
+**Còn nợ, và đã được ghim bằng test chứ không bằng một câu:** `ISectionResultStore.ListAsync` vẫn
+**1 lần/phiên** và `IExamCatalogue.FindAsync` vẫn 1 lần/đề, nên tổng **vẫn tuyến tính**, chỉ với hệ số
+nhỏ hơn nhiều. Hai cổng đó khai ở `Exams/Ports.cs` — cùng file khai `IExamSessionRepository` mà cursor
+của `W5`/`W7` sẽ đụng, nên gộp một lần. Test `Score_reads_are_still_one_per_sitting` (5 và 20) buộc lát
+sau phải **đo lại** thay vì đọc một câu ở đây rồi tin.
 
 ---
 
@@ -479,10 +542,10 @@ commit, cạnh con số cũ ở bảng trên.
 | `W4` Kho nghe chép | ✅ đóng 18/09 `7a0c43f` — nội dung thật vẫn chờ | nội dung | 2h + soạn bài |
 | `W5` Lịch sử đầy đủ | ✅ đóng 18/09 `19df38b` — cursor nợ sang `W7` | — | 4–6h |
 | `W6` 5 lỗi CSS | ✅ đóng 18/09 `66834e0` | — | 2h |
-| `W7` OpenAPI `/me` + dictation | ▶ đợt 2 | — | 4–6h |
+| `W7` OpenAPI `/me` + dictation | 🟡 nửa đóng 18/09 `becebde` — nửa client `/me` chờ quyết định | — | 4–6h |
 | `W8` Màn soạn nghe chép | ⏸ hoãn (quyết định 18/09) | nội dung, không phải kỹ thuật | 1.5–2 ngày |
 | `W9` Chấm Speaking | ⛔ chặn | `P-02` `B-1` `B-2` | 4–5 ngày |
-| `W10` Đọc theo lô cho lịch sử | ▶ đợt 2 | — | 0.5–1 ngày |
+| `W10` Đọc theo lô cho lịch sử | ✅ đóng 18/09 `014ee7f` — hai cổng còn lại nợ sang lát cursor | — | 0.5–1 ngày |
 
 **Đợt 2 (`W7`, `W10`) chạy được ngay, không chờ quyết định nào.**
 `W2` → `W3` chờ ba câu về VNI. `W9` chờ ba quyết định ngoài code.
