@@ -3,9 +3,37 @@ name: Backend
 on:
   push:
     branches: [main]
-    paths: ['backend/**', 'contracts/**', 'fixtures/**', '.github/workflows/backend.yml']
+    # `ci/` and `scripts/` are here because this job runs them: the skip gate
+    # reads ci/test-skip-allowlist.json, and four scripts decide whether this
+    # job passes. Without them an allowlist edit changed the Backend outcome
+    # without triggering Backend, so the change was only discovered on the next
+    # unrelated backend commit — which is exactly how a green board stops
+    # meaning anything.
+    paths:
+      [
+        'backend/**',
+        'contracts/**',
+        'fixtures/**',
+        'ci/**',
+        'scripts/**',
+        '.github/workflows/backend.yml',
+      ]
   pull_request:
-    paths: ['backend/**', 'contracts/**', 'fixtures/**', '.github/workflows/backend.yml']
+    # `ci/` and `scripts/` are here because this job runs them: the skip gate
+    # reads ci/test-skip-allowlist.json, and four scripts decide whether this
+    # job passes. Without them an allowlist edit changed the Backend outcome
+    # without triggering Backend, so the change was only discovered on the next
+    # unrelated backend commit — which is exactly how a green board stops
+    # meaning anything.
+    paths:
+      [
+        'backend/**',
+        'contracts/**',
+        'fixtures/**',
+        'ci/**',
+        'scripts/**',
+        '.github/workflows/backend.yml',
+      ]
   workflow_dispatch:
 
 permissions:
