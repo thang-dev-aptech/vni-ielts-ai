@@ -14,6 +14,16 @@ import '../../styles/learning.css';
 import '../../styles/dashboard.css';
 
 /**
+ * How many rows one press adds, and how many the screen opens with.
+ *
+ * <b>It is a page size, not a cap.</b> `listMySittings` already takes a limit
+ * and the server clamps it, so "xem thêm" is the same request with a bigger
+ * number rather than a second endpoint — which is why `W5` needed no contract
+ * change and no `packages/api-client` regenerate.
+ */
+const PAGE_SIZE = 10;
+
+/**
  * ProgressPage — Real standalone route `/students/progress` (D-3 chốt
  * 2026-09-04; moved under `/students` 08/09/2026, `/progress` still works
  * via a redirect).
@@ -23,6 +33,12 @@ import '../../styles/dashboard.css';
  * 2. StreakPanel (full)
  * 3. Recommended Next Action
  * 4. Recent sittings list with honest empty state
+ *
+ * <b>The history list used to cut at ten and say nothing.</b> It asked the API
+ * for its default ten rows and then sliced ten off the answer, so a learner
+ * with thirty sittings saw ten under a heading that claimed nothing — and
+ * blueprint § 03 asks for the full history. Raising a number alone would not
+ * have fixed that: the silence was the worse half. → `W5`
  */
 export function ProgressPage() {
   const { accessToken } = useAuth();
@@ -31,30 +47,57 @@ export function ProgressPage() {
   const alive = useAlive();
 
   const [sittings, setSittings] = useState<SittingSummary[] | null>(null);
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [coaching, setCoaching] = useState<Coaching | null>(null);
 
-  const load = useCallback(async () => {
+  /*
+   * <b>Two effects, because only one of them depends on the limit.</b> They
+   * used to be one call: pressing "xem thêm" would have re-asked for the
+   * coaching advice as well, which is an AI-backed read that has nothing to do
+   * with how far down the list somebody has scrolled.
+   */
+  const loadSittings = useCallback(async () => {
     if (accessToken === null) return;
     try {
-      const res = await listMySittings(accessToken);
+      const res = await listMySittings(accessToken, limit);
       if (alive.current) setSittings(res?.sittings ?? []);
     } catch {
       if (alive.current) setSittings([]);
+    } finally {
+      if (alive.current) setLoadingMore(false);
     }
-
-    try {
-      const adv = await getCoachingAdvice(accessToken);
-      if (alive.current) setCoaching(adv);
-    } catch {
-      // Degrades gracefully to default advice
-    }
-  }, [accessToken, alive]);
+  }, [accessToken, alive, limit]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    void loadSittings();
+  }, [loadSittings]);
+
+  useEffect(() => {
+    if (accessToken === null) return;
+
+    void (async () => {
+      try {
+        const adv = await getCoachingAdvice(accessToken);
+        if (alive.current) setCoaching(adv);
+      } catch {
+        // Degrades gracefully to default advice
+      }
+    })();
+  }, [accessToken, alive]);
 
   const hasData = Boolean(sittings && sittings.length > 0);
+  const shown = sittings?.length ?? 0;
+
+  /*
+   * <b>"There may be more", never "there is more".</b> The server answered
+   * with exactly as many rows as were asked for, which means it had at least
+   * that many — and the client cannot tell "that is all of them" from "the
+   * server's ceiling stopped here", because the ceiling is not on the wire.
+   * So the offer stands for one more press and then withdraws, and the count
+   * below never claims to be the whole history.
+   */
+  const mayHaveMore = sittings !== null && shown > 0 && shown === limit;
 
   return (
     <div
@@ -124,13 +167,31 @@ export function ProgressPage() {
           <h2 style={{ fontSize: 'var(--t-20)', fontWeight: 'var(--w-emph)' }}>
             {t('dash.recent.title')}
           </h2>
+          {hasData && <p>{t('progress.history.showing', { n: shown })}</p>}
         </div>
         {sittings === null ? (
           <div className="dash-empty" style={{ padding: 'var(--s-6)' }}>
             <p>Đang tải lịch sử làm bài…</p>
           </div>
         ) : hasData ? (
-          <RecentSittings sittings={sittings.slice(0, 10)} />
+          <>
+            <RecentSittings sittings={sittings} />
+            {mayHaveMore && (
+              <div style={{ marginTop: 'var(--s-4)' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={loadingMore}
+                  onClick={() => {
+                    setLoadingMore(true);
+                    setLimit((current) => current + PAGE_SIZE);
+                  }}
+                >
+                  {loadingMore ? t('common.loading') : t('progress.history.more')}
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div
             className="dash-empty"

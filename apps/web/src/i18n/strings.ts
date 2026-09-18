@@ -231,6 +231,15 @@ const vi = {
   'progress.emptyBody':
     'Tiến độ được dựng từ các bài bạn đã làm. Làm bài đầu tiên xong thì phần này sẽ có nội dung.',
 
+  /*
+   * Danh sách lịch sử bị cắt thì phải nói ra. Câu này luôn đúng: màn hình
+   * biết nó đang có bao nhiêu dòng, và KHÔNG biết trần của máy chủ — nên nó
+   * không bao giờ tuyên bố là "đã hiện hết". Cắt im lặng chính là lỗi mà
+   * lát `W5` mở ra để sửa.
+   */
+  'progress.history.showing': 'Đang hiển thị {n} phiên gần nhất.',
+  'progress.history.more': 'Xem thêm',
+
   'signIn.title': 'Đăng nhập',
   'signIn.submit': 'Đăng nhập',
   'signIn.busy': 'Đang đăng nhập…',
@@ -1180,6 +1189,8 @@ const en: Record<StringKey, string> = {
   'progress.empty': 'Nothing to track yet',
   'progress.emptyBody':
     'Progress is built from the tests you have taken. It fills in after your first attempt.',
+  'progress.history.showing': 'Showing your {n} most recent sittings.',
+  'progress.history.more': 'Show more',
 
   'signIn.title': 'Sign in',
   'signIn.submit': 'Sign in',

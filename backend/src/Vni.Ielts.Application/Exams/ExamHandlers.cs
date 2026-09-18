@@ -871,13 +871,28 @@ public sealed class ListMySittings(
     IWritingTaskWeighting? weighting = null)
 {
     /// <summary>
-    /// The most a single request will return.
+    /// The most a single request will return, whatever the caller asks for.
     ///
-    /// This is a dashboard and a history list, not an export. Raising it would
-    /// multiply the per-sitting lookups below; a learner who genuinely needs
-    /// their whole history needs a paged screen, not a bigger number here.
+    /// <b>Fifty, and the number is a technical bound rather than a product
+    /// rule.</b> `W5` needed `/students/progress` to stop truncating at ten
+    /// rows it never admitted to cutting; twenty could not carry the thirty
+    /// sittings that slice is measured against. Fifty clears it with room and
+    /// stops well short of an export: every row still costs two lookups, and
+    /// four when it is a mock, so the worst case a single request can buy is
+    /// about two hundred reads.
+    ///
+    /// <b>This is a ceiling, not pagination, and the screen says so.</b> A
+    /// learner with more than fifty sittings cannot reach the older ones —
+    /// `ListForUserAsync` takes a limit and no cursor. That is recorded as debt
+    /// in `_workspace/queue/web-enduser-completion.md` § `W5`, not hidden: the
+    /// history screen tells the reader how many of their most recent sittings
+    /// it is showing rather than silently dropping the rest, which is the
+    /// defect `W5` was opened for in the first place.
+    ///
+    /// Every caller is clamped to it below, so no query reaches the database
+    /// unbounded however the client spells the parameter.
     /// </summary>
-    public const int MaxLimit = 20;
+    public const int MaxLimit = 50;
 
     public async Task<IReadOnlyList<SittingSummaryView>> HandleAsync(
         ListMySittingsQuery query, CancellationToken ct)

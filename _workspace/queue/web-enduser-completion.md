@@ -199,6 +199,42 @@ phiên.
 
 **Xong khi:** test dựng 30 phiên và khẳng định xem được cả 30; không query nào không có bound.
 
+### Đã làm (đợt 1, 18/09/2026)
+
+Nâng trần + "xem thêm" bằng chính tham số `limit` đã có. `ListMySittings.MaxLimit` **20 → 50**;
+`ProgressPage` bỏ `.slice(0, 10)`, mỗi lần bấm «Xem thêm» hỏi lại cùng endpoint với `limit` lớn hơn
+một trang (10). Không thêm tham số mới, không đụng `contracts/openapi`, không regenerate
+`packages/api-client`.
+
+**Nhãn trung thực** — danh sách bị cắt thì màn hình nói ra: *«Đang hiển thị {n} phiên gần nhất.»*
+(`progress.history.showing`). Câu này **luôn đúng**: client biết nó đang có bao nhiêu dòng và
+**không** biết trần của máy chủ (trần không nằm trên dây), nên nó không bao giờ tuyên bố «đã hiện
+hết». Nút «Xem thêm» chỉ hiện khi số dòng nhận được đúng bằng số đã hỏi.
+
+### 🔴 Còn nợ — hoãn sang đợt 2, đi cùng lần regenerate của `W7`
+
+**1. Chưa có phân trang thật.** `IExamSessionRepository.ListForUserAsync`
+(`backend/src/Vni.Ielts.Infrastructure/Persistence/Exams/Repositories.cs:118`) nhận **một `limit`,
+không có `skip` và không có cursor**. Nghĩa là:
+
+- Học viên có hơn **50** phiên **không cách nào xem được những phiên cũ hơn**. Trần 50 là trần
+  cứng, không phải trang đầu tiên của một danh sách vô hạn.
+- Mỗi lần bấm «Xem thêm» là **tải lại từ đầu** với `limit` lớn hơn, không phải tải trang kế tiếp.
+
+**Đọc DoD ở trên mà tưởng đã có phân trang thật là hiểu sai.** Việc còn lại: thêm cursor (khoá theo
+`startedAt` + `_id`) vào port `IExamSessionRepository.ListForUserAsync` và bản Mongo của nó, rồi cho
+`ListMySittings` trả con trỏ trang kế tiếp — đây là **đổi hình dạng response**, nên phải đi cùng
+`W7` khi `contracts/openapi` được sửa và `packages/api-client` được generate lại một lượt.
+
+**2. N+1 nặng thêm sau `W1`, và trần 50 nhân nó lên.** `ListMySittings` nạp markings + jobs cho
+mỗi phiên **Full** (`SittingBand.Applies`) vì luật `Q-01` cần biết «còn gì đang nợ không». Đo được
+(`A_practice_sitting_costs_no_marking_or_job_read`): 5 mock + 5 phiên luyện của một đề = **12 →
+22** truy vấn. Xấu nhất ở trần 50, toàn mock, mỗi phiên một đề khác nhau: khoảng **201**.
+
+`ISectionMarkingStore` và `IMarkingOutbox` **đều không hỏi được nhiều phiên một lượt**. Thêm hàm
+đọc theo lô vào hai cổng đó (và bản Mongo của chúng) là cùng một lớp việc với cursor ở mục 1 — làm
+chung một lần, cùng đợt 2.
+
 ---
 
 ## W6 — Sửa 5 phát hiện design-hook
