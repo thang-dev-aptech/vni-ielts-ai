@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@vni/config": "workspace:*",
-    "jsdom": "27.0.0",
+    "jsdom": "30.0.1",
     "typescript": "5.9.2",
     "vite": "7.3.6",
     "vitest": "3.2.7"
