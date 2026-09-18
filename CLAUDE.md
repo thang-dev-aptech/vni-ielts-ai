@@ -36,7 +36,7 @@ Targets: End-user Web · Android · iOS · Admin CMS · central Backend API.
 | PDPL cross-border (`B-2`) | The owner accepts it as a compliance risk for the MVP. `Ai:AllowCrossBorderTransfer` stays a configuration seam. The CTIA filing is due about early 11/2026 — the clock started with the first marked essay on 2026-09-03 |
 | Recording retention (`M-2`) | **Unset, and that is the point.** `90` sat in `appsettings.json` from 2026-09-08 until 2026-09-18; it arrived inside the S1–S8 slice commit whose message never mentions retention, so no decision stands behind it — and the value is stamped onto every recording as `retentionUntil`, which makes it a claim written into data rather than a harmless placeholder. Removed under `G-11`. `Recordings:SweepEnabled` stays **true** and is unrelated: the sweeper reconciles orphaned uploads by age and never reads retention. Set it per environment via secrets once the owner picks a window |
 | ~~Overall band of a three-skill mock~~ | **Settled by `Q-01` (18/09/2026)** — shown normally, with a note naming the skills it covers. Withheld only while a skill could still gain a band (`L3`), which is a statement about pending work rather than about how many skills IELTS has |
-| Token amounts beyond the 10-turn grant (`B-5a`, `B-5b`, `T-4`) | The ledger records; it does not price. No deduction, no blocking |
+| Token amounts (`B-5a`, `B-5b`, `B-5c`, `T-4`) | **`Q-05`, 18/09/2026, turned the ledger into a spendable currency called VNI** — sign-in +3, referral +5, an AI-marked Writing task −5, Reading and Listening free. **Decided, not built:** the code still only records, and `W2` may not start until three amounts are settled — what an AI explanation costs, whether a zero balance blocks, and whether the figures above are final or illustrative |
 
 ### Inventory — verified against the code on 2026-09-09
 
@@ -52,7 +52,7 @@ Targets: End-user Web · Android · iOS · Admin CMS · central Backend API.
 
 **S1 drift — removed this wave:** `bandCell` gated on `bandVerified`; `timingFor` no longer invents speaking defaults; `FullTestReadinessModal` reads catalogue timing; advisory label via provenance / `@vni/types.requiresAdvisoryLabel`; admin permission columns from the server rather than a hand-maintained key list; EntryTestModal and dead CMS sidebar entries gone.
 
-**Not built, and deliberately out of the MVP:** token pricing, payment, invoices, refunds (`P-14`, `P-17`) · AI Chat (`F-2` awaits re-confirmation) · speech-to-text and Speaking AI marking (`P-02`) · the native Capacitor recorder and any Capacitor install (`P-03`) · RAR, folder and loose-file import · learning paths and notifications.
+**Not built, and deliberately out of the MVP:** payment, invoices, refunds (`P-17`) — note that *token pricing* left this list on 18/09 by `Q-05` and is now queued work rather than out of scope · AI Chat (`F-2` awaits re-confirmation) · speech-to-text and Speaking AI marking (`P-02`) · the native Capacitor recorder and any Capacitor install (`P-03`) · RAR, folder and loose-file import · learning paths and notifications.
 
 **Two dev-machine facts that cost days:** the Worker needs its own `appsettings.Development.json` Mongo section — without it, it defaults to `localhost:27017/?replicaSet=rs0`, not the dev stack's `27018`, and dies 30 s after boot. And `SectionMarkingRunner` reads the answer sheet by response-slot id, not question id — the 2026-09-03 fix that made the first Writing band land.
 
@@ -60,7 +60,9 @@ Targets: End-user Web · Android · iOS · Admin CMS · central Backend API.
 
 ## ▶ Start here: the task queue
 
-**For the current stage, the queue is the slice list `S0`…`S9` in `_workspace/design-brief/claude-code-handoff.md`** — summarised in [`docs/product/mvp-blueprint.md`](docs/product/mvp-blueprint.md) § 10. Each slice runs spec → plan → build → review, closes only with a test verified to go red when the fix is removed, and then **stops for approval**. The infrastructure queue below stays the reference for Foundation work and for understanding why existing infrastructure code was built.
+**The live queue is `W0`…`W9` in `_workspace/queue/web-enduser-completion.md`, opened 2026-09-18.** It carries the learner web app from the ~88–90% measured that day to 100% of the MVP scope, and it names for each slice which owner decision blocks it. `W0`…`W1` and `W4`…`W7` are unblocked; `W2`/`W3` wait on the three VNI amounts (`B-5a`, `B-5b`, `B-5c`); `W9` (Speaking marking) waits on three decisions that are not code — reversing `P-02`, choosing an ASR provider, and accepting the PDPL exposure in writing the way `Q-03` did.
+
+**The previous queue, `S0`…`S9` in `_workspace/design-brief/claude-code-handoff.md`, is closed** — summarised in [`docs/product/mvp-blueprint.md`](docs/product/mvp-blueprint.md) § 10. Its five standing laws still apply to `W*` verbatim. Each slice runs spec → plan → build → review, closes only with a test verified to go red when the fix is removed, and then **stops for approval**. The infrastructure queue below stays the reference for Foundation work and for understanding why existing infrastructure code was built.
 
 **[`docs/development/infrastructure-foundation-todolist.md`](docs/development/infrastructure-foundation-todolist.md) holds the infrastructure work queue.** The independent re-audit on 2026-08-28 found that the earlier `I0`…`I7` closure did not prove current Foundation readiness: object-storage readiness can report a false positive, two idempotency gates are unreliable, production-smoke cannot boot with its checked-in configuration, and clean-checkout tooling is not portable.
 

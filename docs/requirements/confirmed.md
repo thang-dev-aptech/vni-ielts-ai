@@ -280,11 +280,15 @@ are `CONFIRMED`.
 | P-21 | **Publish only content VNI owns or has confirmed rights to.** Already enforced by `ContentRightsPolicy`; the two existing packages stay at internal level | CONFIRMED | Owner decision 06/09/2026 |
 | P-22 | **Documents and Articles are two independent libraries** — two collections; `relatedExamIds` reserved and left `null`; articles addressed by slug | CONFIRMED | Owner decision 06/09/2026 |
 
-### Decisions of 18/09/2026 — `Q-01`…`Q-04`
+### Decisions of 18/09/2026 — `Q-01`…`Q-05`
 
 The owner answered four questions raised by the 18/09 status review: the overall band of a
 three-skill mock, how a learner recovers a password, whether borrowed papers may be published,
-and which AI provider the MVP pays for. Two supersede rows above; all four are implemented.
+and which AI provider the MVP pays for. `Q-05` came later the same day, from the review of what
+the learner web app still lacks. Three supersede rows above. **`Q-01`…`Q-04` are implemented;
+`Q-05` is not** — it is the subject of `W2` in
+`_workspace/queue/web-enduser-completion.md` and cannot start until the three amounts it leaves
+open are settled.
 
 | ID | Decision | Status | Source |
 |---|---|---|---|
@@ -292,6 +296,7 @@ and which AI provider the MVP pays for. Two supersede rows above; all four are i
 | Q-02 | **An operator resets a learner's password, and that stays the only recovery path.** No SMS one-time code in the MVP. The password an operator sets is marked for replacement and the learner is held on a change screen until they replace it — it travelled through a chat message and at least two people know it | CONFIRMED | Owner decision 18/09/2026 |
 | Q-03 | **The papers already in use are published, and the exposure is accepted.** Narrows `P-21`, which said publish only what VNI owns or holds rights to. `ContentRightsPolicy` is unchanged and still refuses; `ContentRights:AllowPublicationWithoutProvenRights` records the acceptance, every such publication is audited as an override, and startup announces it. **An accepted risk under `M-53`, not a licence** — do not describe it as resolved | CONFIRMED | Owner decision 18/09/2026 |
 | Q-04 | **Keep the reseller key already in use; do not move to OpenAI directly.** Direct pricing is not affordable for the MVP. No code change: `api.vietapi.tech` stays the configured base URL. The compliance position is unchanged and still open — `B-2` and `M-28` remain accepted risks, and a data-processing agreement still does not exist | CONFIRMED | Owner decision 18/09/2026 |
+| Q-05 | **The turn ledger becomes a virtual currency called VNI, which a learner earns and spends.** Supersedes `P-14` on the one point that it records without pricing: a marking run now costs. The owner's figures, given as an example and awaiting confirmation under `B-5b` — daily sign-in **+3 VNI**, a registration through a referral link **+5 VNI**, one AI-marked Writing task **−5 VNI**. Reading and Listening stay free: they are marked from the answer key and call no provider (`A-11`). **Three things this does not yet say, and none may be guessed under `G-11`** — what an AI explanation costs (`B-5a`), what happens at zero balance (`B-5c`), and whether the invited learner is credited too. The referral mechanism itself is unchanged and already settled by `P-16`: credited on registration, farming held off by the unique phone number | CONFIRMED | Owner decision 18/09/2026 |
 
 ### Import-time exam preparation — `IP-01`…`IP-06`, 10/09/2026
 

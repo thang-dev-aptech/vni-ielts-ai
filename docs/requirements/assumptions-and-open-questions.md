@@ -185,13 +185,22 @@ The owner restated the product scope on 2026-08-20, adding four modules, a token
 AI-assisted exam import. Each large question below is **split into sub-decisions** so one part can be
 settled without waiting on the rest.
 
-### B-5 · Token charging policy `[BUSINESS DECISION]`
-**Blocks:** entitlement logic, cost model, and the exam-start flow.
+### B-5 · Token charging policy `[BUSINESS DECISION]` — **partly answered 2026-09-18 by `Q-05`**
+
+**Blocks:** entitlement logic, cost model, and the exam-start flow. Since `Q-05` it also blocks
+`W2` in `_workspace/queue/web-enduser-completion.md`, which must not start on a guess.
+
+> **What `Q-05` settled (18/09/2026):** the ledger becomes a spendable currency named **VNI**.
+> Daily sign-in **+3**, a registration through a referral link **+5**, one AI-marked Writing task
+> **−5**. Reading and Listening are free — they are marked from the answer key and call no
+> provider (`A-11`). This supersedes `P-14` on the single point that usage is recorded but never
+> priced.
 
 | | |
 |---|---|
-| **B-5a** | **Which operations actually consume a token?** Reading/Listening answer-key scoring · Reading/Listening AI explanation · Writing AI band · Speaking AI band · AI Chat · AI Parse (charged to the admin, or not charged at all?) |
-| **B-5b** | **How many tokens** each earn and spend is worth |
+| **B-5a** | **Which operations actually consume a token?** — *partly answered.* Writing AI band **costs** (`Q-05`); Reading/Listening answer-key scoring is **free** (`A-11`); Speaking AI band does not arise yet (`P-02`); AI Chat is outside the MVP (`F-2`); AI Parse is an admin operation and is not charged to a learner. **Still open, and it is the expensive one: the Reading/Listening AI explanation.** `GET /sessions/{id}/questions/{questionId}/explanation` calls a provider for real and a learner presses it many times while reviewing a paper — free of charge, it is the largest AI bill in the product with no matching earn |
+| **B-5b** | **How many tokens** each earn and spend is worth — *figures given, confirmation pending.* The owner offered `+3 / +5 / −5` with the word *"ví dụ"*, so they read as illustrative rather than final. Two further amounts have no figure at all: the initial grant, today `Usage:InitialGrantTurns = 10` in *turns* and needing a VNI denomination (**50 VNI** would preserve today's ten markings), and Speaking, which costs ASR **plus** LLM and so cannot sensibly equal Writing |
+| **B-5c** | **What happens at a zero balance?** *(opened 18/09/2026 by `Q-05`)* — **(a)** refuse to send the essay for marking until the learner has enough, the submission itself still saved; **(b)** mark anyway and let the balance go negative; **(c)** a soft cap, marking still happens but rate-limited per day. Only (a) makes the number mean anything, and only (a) can leave a paying-nothing learner with no feedback — which is the exact outcome `P-14` was written to prevent. **Nothing may be coded on either side of this until the owner answers**; a provisional "let it through for now" is precisely the invented default `G-11` forbids |
 
 Without B-5a stated explicitly, a later reader will assume "every AI operation costs tokens" — which
 would wrongly charge for Reading and Listening, whose scoring needs no provider at all (`A-11`).
