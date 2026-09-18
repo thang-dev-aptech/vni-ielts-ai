@@ -6,7 +6,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { evaluateSecurityFixtureOutput, SECURITY_FIXTURE_PROBES } from './failure-drills.mjs';
+import {
+  DEFAULT_DRILL_TIMEOUT_MS,
+  DRILLS,
+  evaluateSecurityFixtureOutput,
+  executeDrill,
+  SECURITY_FIXTURE_PROBES,
+} from './failure-drills.mjs';
 
 const FIXTURES = path.join(import.meta.dirname, '..', 'fixtures', 'security', 'failure-drill');
 const fixture = (name) => readFileSync(path.join(FIXTURES, name), 'utf8');
@@ -148,5 +154,139 @@ test('the committed CodeQL tuple matches the hosted 2.26.4 result shape', () => 
   assert.equal(
     expected.trim(),
     '| IntentionalCodeInjection.js:3:10:3:29 | eval(userControlled) | Intentional CodeQL failure-drill finding. |',
+  );
+});
+
+// ── W0 · a drill needs a deadline of its own ──────────────────────────────
+//
+// Measured 2026-09-18: `production-config-live` ran 05:46:07 → 06:34:26 and was
+// killed by the job's `timeout-minutes: 60`. Because the *job* hit the wall and
+// not the drill, the run was cancelled — no summary, no uploaded artifact, and
+// a log whose only statement was that the pipeline had run out of time.
+//
+// The trap these tests exist to hold shut is narrower than "it should stop".
+// `production-config-live` is INVERTED: it passes on a non-zero exit. A killed
+// process has no exit code at all, and the harness used to substitute 1 for a
+// missing one — so the moment a deadline started killing the hung container,
+// the drill would have reported the required failure it never produced.
+
+const HANG_MS = 45_000;
+const neverExits = [process.execPath, '-e', `setTimeout(() => {}, ${HANG_MS})`];
+const quiet = { log: () => {} };
+
+const fakeDrill = (overrides) => ({
+  id: 'fake-drill',
+  title: 'a fixture that exists only for this test',
+  requires: 'nothing — it is a fixture',
+  checklistItem: 'test-only',
+  ...overrides,
+});
+
+test("a drill whose command never exits is killed at its own deadline, not the job's", () => {
+  const drill = fakeDrill({ argv: neverExits, expect: 'nonzero', timeoutMs: 2_000 });
+
+  const record = executeDrill(drill, drill.argv, quiet);
+
+  assert.equal(record.timedOut, true);
+  assert.equal(record.status, 'failed');
+  assert.match(record.reason, /did not exit within/);
+  // 45s is what the command would have taken on its own. Anything near it means
+  // the deadline was not enforced; the DoD asks for well under two minutes.
+  assert.ok(record.durationMs < 20_000, `killed after ${record.durationMs}ms`);
+});
+
+test('negative proof: a command that really does exit non-zero still satisfies an inverted drill', () => {
+  const drill = fakeDrill({
+    argv: [process.execPath, '-e', 'process.exit(3)'],
+    expect: 'nonzero',
+    timeoutMs: 30_000,
+  });
+
+  const record = executeDrill(drill, drill.argv, quiet);
+
+  assert.equal(record.status, 'passed');
+  assert.equal(record.exitCode, 3);
+  assert.equal(record.timedOut, false);
+});
+
+test('a command that cannot be spawned at all is never an inverted drill passing', () => {
+  const drill = fakeDrill({
+    argv: ['vni-no-such-executable-0000', '--version'],
+    expect: 'nonzero',
+    timeoutMs: 30_000,
+  });
+
+  const record = executeDrill(drill, drill.argv, quiet);
+
+  assert.equal(record.status, 'failed');
+  assert.equal(record.exitCode, null);
+});
+
+test('every declared drill carries a deadline inside the job budget that absorbed the hang', () => {
+  const workflow = readFileSync(
+    path.join(import.meta.dirname, '..', '.github', 'workflows', 'verify.yml'),
+    'utf8',
+  );
+  const jobBudgetMs = Number(/timeout-minutes:\s*(\d+)/.exec(workflow)[1]) * 60_000;
+
+  assert.ok(jobBudgetMs > 0);
+  assert.ok(
+    Number.isFinite(DEFAULT_DRILL_TIMEOUT_MS) && DEFAULT_DRILL_TIMEOUT_MS > 0,
+    'the default deadline must be a finite number of milliseconds',
+  );
+
+  for (const drill of DRILLS) {
+    const deadline = drill.timeoutMs ?? DEFAULT_DRILL_TIMEOUT_MS;
+    assert.ok(
+      Number.isFinite(deadline) && deadline > 0 && deadline < jobBudgetMs,
+      `${drill.id}: deadline ${deadline}ms does not fit inside the ${jobBudgetMs}ms job budget`,
+    );
+  }
+});
+
+test('the live drill injects an option StartupConfiguration still refuses', () => {
+  const gate = readFileSync(
+    path.join(
+      import.meta.dirname,
+      '..',
+      'backend',
+      'src',
+      'Vni.Ielts.Api',
+      'Common',
+      'StartupConfiguration.cs',
+    ),
+    'utf8',
+  );
+  const drill = DRILLS.find((d) => d.id === 'production-config-live');
+
+  // What the drill actually hands to `docker compose run -e`, rather than a
+  // second declaration of it that could drift from the argv.
+  const override = drill.argv[drill.argv.indexOf('-e') + 1];
+  const [variable] = override.split('=');
+  // ASP.NET maps `__` to `:`; a trailing numeric segment is an array index and
+  // names no option of its own.
+  const key = variable
+    .replace(/__\d+$/, '')
+    .split('__')
+    .join(':');
+
+  assert.ok(
+    gate.includes(key),
+    `the drill injects ${variable}, but ${key} is read nowhere in the startup gate — ` +
+      'the container will boot normally and the drill will hang',
+  );
+
+  const at = gate.search(new RegExp(drill.expectOutputMatches));
+  assert.ok(at >= 0, `the gate emits nothing matching /${drill.expectOutputMatches}/`);
+
+  // A warning does not stop a container. `ObjectStorage:ServiceUrl is plain
+  // HTTP` is a warning, and retargeting the drill at it would reproduce the
+  // original hang exactly.
+  const before = gate.slice(0, at);
+  const lastRefusal = Math.max(before.lastIndexOf('problems.Add('), before.lastIndexOf('Require('));
+  const lastWarning = before.lastIndexOf('warnings.Add(');
+  assert.ok(
+    lastRefusal > lastWarning,
+    'the drill waits for a warning, not a refusal — a warning leaves the container running',
   );
 });

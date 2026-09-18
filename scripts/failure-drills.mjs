@@ -20,6 +20,13 @@
 // gate that has silently opened. `expect: 'nonzero'` inverts the check and
 // says so in the output.
 //
+// The third, added 2026-09-18 by `W0`: **a drill that never finishes is not a
+// drill that is still running.** Every drill has a deadline of its own, and
+// missing it is a failure attributed to that drill by name. Before this, the
+// only deadline in reach was the CI job's, and when `production-config-live`
+// hung for forty-eight minutes the job was cancelled — which produces no
+// summary, no artifact and no name, only "the pipeline ran out of time".
+//
 // Usage:
 //   node scripts/failure-drills.mjs --list
 //   node scripts/failure-drills.mjs                       every applicable drill
@@ -132,6 +139,25 @@ export function evaluateSecurityFixtureOutput(output) {
   };
 }
 
+// Every drill gets a deadline, and a drill may shorten it with `timeoutMs`.
+//
+// <b>Measured 2026-09-18: `production-config-live` ran 05:46:07 → 06:34:26.</b>
+// Forty-eight minutes, killed by `timeout-minutes: 60` in
+// `.github/workflows/verify.yml`. The job hit the wall, not the drill, so the
+// run was cancelled: the summary was never written, `_artifacts/drills/` was
+// never uploaded, and the only statement in the log was that the pipeline had
+// run out of time. It took a session to find out which of nine drills had not
+// come back.
+//
+// Fifteen minutes is chosen against that number rather than a guess at how
+// long a drill takes. It has to be long enough for the slowest legitimate
+// drill — `production-config-live` builds the API image; `pitr-drill` has
+// measured RTOs of 157s and 168s — and short enough that one stuck drill
+// leaves the job budget with room to write the summary, run the security
+// report and upload the artifacts. A test asserts the second half of that
+// against the workflow's own number, so the two cannot drift apart silently.
+export const DEFAULT_DRILL_TIMEOUT_MS = 15 * 60_000;
+
 const TRX = (name) => [
   '--logger',
   `trx;LogFileName=${name}.trx`,
@@ -142,7 +168,7 @@ const TRX = (name) => [
 // Each drill names the failure it is required to produce. "Runs the health
 // tests" is not a drill description; "readiness must go 503 with a code that
 // leaks neither credential nor endpoint" is.
-const DRILLS = [
+export const DRILLS = [
   {
     id: 'object-storage-credential',
     title: 'Wrong object-storage credential',
@@ -234,16 +260,50 @@ const DRILLS = [
     id: 'production-config-live',
     title: 'The same refusal, in a real container rather than a test host',
     requires:
-      'the API container must refuse to start when its external URL is plain http, and must name the option it rejected',
+      'the API container must refuse to start when an external origin it is handed is plain http, and must name the option it rejected',
     checklistItem: 'F5.4 · F0.3',
     // Deliberately inverted, and deliberately NOT routed through
     // production-smoke.sh: that script hard-codes the valid https values in
     // compose.production.yaml, so there is no seam in it to inject a bad one.
     // `docker compose run -e` overrides a single variable for one container.
     // `--no-deps` is correct here rather than a shortcut — the startup gate
-    // runs before any dependency is contacted, so the refusal must happen
-    // with Mongo and MinIO absent. If it does not, the gate is running too
-    // late to protect anything.
+    // runs before any dependency is contacted (`Program.cs` calls
+    // `ValidateOrThrow` at line 388, `builder.Build()` at 433), so the refusal
+    // must happen with Mongo and MinIO absent. If it does not, the gate is
+    // running too late to protect anything.
+    //
+    // ── W0, 2026-09-18: what this used to inject, and why it hung ─────────
+    //
+    // <b>It injected `Email__ClientBaseUrl`, and all mail infrastructure was
+    // removed on 2026-09-08.</b> Nothing reads an `Email` option any more, so
+    // the gate had nothing to refuse, the API booted, `docker compose run`
+    // held the container in the foreground and the drill never returned. The
+    // drill was asserting a gate that no longer existed — it could not have
+    // gone green, and because nothing bounded it, it took the job with it.
+    //
+    // <b>Retargeted rather than deleted.</b> The guarantee is still worth
+    // holding and nothing else holds it: every other configuration drill runs
+    // against a test host, and only this one proves the gate fires inside a
+    // real Production container, before any dependency exists, in the image
+    // that would actually be deployed.
+    //
+    // Why `Cors:Origins` and not the two candidates the handover suggested:
+    //
+    //   `Sso:ClientBaseUrl` — its plain-HTTP refusal is gated on Google being
+    //   configured (a non-empty ClientId AND ClientSecret), which this compose
+    //   file does not configure. One `-e` cannot supply three values, and a
+    //   drill that has to plant a fake client secret to fire is testing its
+    //   own fixture.
+    //
+    //   `ObjectStorage:ServiceUrl` — plain HTTP there is a WARNING, not a
+    //   refusal. The container would boot and this drill would hang again, in
+    //   exactly the shape it just hung in.
+    //
+    // `Cors:Origins` keeps the drill's original sentence intact: an external
+    // URL over plain http must stop a Production boot. Overriding index 0 and
+    // leaving index 1 at https matters — the separate "every configured origin
+    // is plain HTTP" transport check further down the gate stays silent, so
+    // the container refuses for the one named reason this drill is about.
     argv: [
       'docker',
       'compose',
@@ -254,14 +314,18 @@ const DRILLS = [
       '--build',
       '--no-deps',
       '-e',
-      'Email__ClientBaseUrl=http://insecure.smoke.invalid',
+      'Cors__Origins__0=http://insecure.smoke.invalid',
       'api',
     ],
     expect: 'nonzero',
     // A non-zero exit alone would also be produced by a failed image build,
     // which would make this inverted drill pass for entirely the wrong
     // reason. The output has to show the gate rejecting the option by name.
-    expectOutputMatches: 'ClientBaseUrl',
+    //
+    // The whole phrase, not just the option name: `Describe` prints
+    // `Cors:Origins = …` on every boot, refusal or not, so matching the name
+    // alone would match the healthy configuration dump.
+    expectOutputMatches: 'Cors:Origins contains .*over plain HTTP',
     needsDocker: true,
     optIn: true,
     evidence: ['infra/docker/compose.production.yaml', 'backend/Dockerfile'],
@@ -492,6 +556,138 @@ function planDrill(drill, args) {
   return { status: 'ready', reason: null, argv: resolved.argv };
 }
 
+/**
+ * Run one planned drill and return its record.
+ *
+ * Extracted from `main` so the deadline below can be exercised directly: a
+ * harness whose only entry point runs nine real drills cannot be tested for
+ * what it does with a tenth that never finishes.
+ */
+export function executeDrill(drill, argv, { log = console.log } = {}) {
+  log(`\n-- ${drill.id} — ${drill.title}`);
+  log(`   must produce: ${drill.requires}`);
+  log(`   $ ${argv.join(' ')}${drill.expect === 'nonzero' ? '   (expected to FAIL)' : ''}`);
+
+  const startedAt = new Date();
+  const start = process.hrtime.bigint();
+  const capture = Boolean(drill.expectOutputMatches || drill.validateOutput);
+  const timeoutMs = drill.timeoutMs ?? DEFAULT_DRILL_TIMEOUT_MS;
+  const result = runPortable(argv, {
+    cwd: ROOT,
+    env: { ...process.env, ...(drill.env ?? {}) },
+    stdio: capture ? ['inherit', 'pipe', 'pipe'] : 'inherit',
+    encoding: capture ? 'utf8' : undefined,
+    timeout: timeoutMs,
+    // <b>SIGKILL, and the choice is the whole point of the deadline.</b> A
+    // deadline that asks politely is not a deadline: `spawnSync` sends its
+    // kill signal once and then goes back to waiting, so a child that ignores
+    // SIGTERM would hold the harness exactly as long as a child with no
+    // deadline at all. The cost is real and bounded — a SIGKILLed
+    // `docker compose run --rm` leaves its container behind, because the
+    // client that would have removed it is gone. On a CI runner that is
+    // discarded minutes later; on a laptop it is
+    // `docker compose -f infra/docker/compose.production.yaml down`.
+    killSignal: 'SIGKILL',
+  });
+  const durationMs = Math.round(Number(process.hrtime.bigint() - start) / 1e6);
+  const timedOut = result.error?.code === 'ETIMEDOUT';
+
+  /*
+   * <b>`result.status ?? 1` was here, and it is how a hang would have been
+   * reported as a pass.</b> A process that was killed at its deadline, or that
+   * never started at all, has no exit code — `status` is null. Substituting 1
+   * invents a non-zero exit, and `production-config-live` is INVERTED: it is
+   * satisfied by a non-zero exit. So the moment a deadline started killing the
+   * container that would not stop, the drill whose hang caused all this would
+   * have gone green on the strength of the kill.
+   *
+   * null is carried through instead, and "no exit code" satisfies nothing in
+   * either direction.
+   */
+  const exitCode = result.status ?? null;
+
+  let outputMatched = null;
+  let outputValidation = null;
+  if (capture) {
+    const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
+    const logPath = join(OUT, `${drill.id}.log`);
+    writeFileSync(logPath, output);
+    process.stdout.write(
+      output.length > 4000
+        ? `${output.slice(-4000)}
+… (truncated; full log at ${posix(logPath.replace(`${ROOT}${sep}`, ''))})
+`
+        : output,
+    );
+    if (drill.expectOutputMatches) {
+      outputMatched = new RegExp(drill.expectOutputMatches).test(output);
+      if (!outputMatched) {
+        log(
+          `   the output does not contain /${drill.expectOutputMatches}/ — the command failed, but not for the reason this drill is about.`,
+        );
+      }
+    }
+    if (drill.validateOutput) {
+      outputValidation = drill.validateOutput(output);
+      outputMatched = outputValidation.satisfied;
+      if (!outputMatched) {
+        log(`   security fixture evidence is incomplete: ${outputValidation.reason}`);
+      }
+    }
+  }
+
+  const outputBlocked = outputValidation?.status === 'blocked';
+  const exitSatisfied =
+    exitCode !== null && (drill.expect === 'nonzero' ? exitCode !== 0 : exitCode === 0);
+  const satisfied = exitSatisfied && (outputMatched === null || outputMatched);
+  const recordStatus = outputBlocked ? 'blocked' : satisfied ? 'passed' : 'failed';
+
+  const reason = outputBlocked
+    ? outputValidation.reason
+    : timedOut
+      ? `the command did not exit within its ${(timeoutMs / 1000).toFixed(0)}s deadline and was killed`
+      : exitCode === null
+        ? `the command produced no exit code: ${result.error?.message ?? 'unknown spawn failure'}`
+        : null;
+
+  log(
+    `   -> ${exitCode === null ? 'NO EXIT CODE' : `exit ${exitCode}`} in ${(durationMs / 1000).toFixed(1)}s — ${
+      outputBlocked
+        ? `BLOCKED: ${outputValidation.reason}`
+        : timedOut
+          ? `THIS DRILL DID NOT EXIT within ${(timeoutMs / 1000).toFixed(0)}s and was killed. ` +
+            'A drill with no deadline of its own spends the whole job budget instead.'
+          : exitCode === null
+            ? `THIS DRILL NEVER RAN: ${result.error?.message ?? 'unknown spawn failure'}`
+            : satisfied
+              ? 'the required failure was produced'
+              : drill.expect === 'nonzero'
+                ? 'THE FAULT FIXTURE STOPPED FAILING. A gate has silently opened.'
+                : 'the drill did not produce its required failure'
+    }`,
+  );
+
+  return {
+    id: drill.id,
+    title: drill.title,
+    requires: drill.requires,
+    checklistItem: drill.checklistItem,
+    status: recordStatus,
+    expect: drill.expect,
+    expectOutputMatches: drill.expectOutputMatches ?? null,
+    outputMatched,
+    outputValidation,
+    exitCode,
+    timedOut,
+    timeoutMs,
+    startedAt: startedAt.toISOString(),
+    durationMs,
+    command: argv.join(' '),
+    dependsOn: drill.dependsOn ?? null,
+    reason,
+  };
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
   mkdirSync(join(OUT, 'test-results'), { recursive: true });
@@ -529,88 +725,7 @@ function main() {
       continue;
     }
 
-    console.log(`\n-- ${drill.id} — ${drill.title}`);
-    console.log(`   must produce: ${drill.requires}`);
-    console.log(
-      `   $ ${argv.join(' ')}${drill.expect === 'nonzero' ? '   (expected to FAIL)' : ''}`,
-    );
-
-    const startedAt = new Date();
-    const start = process.hrtime.bigint();
-    const capture = Boolean(drill.expectOutputMatches || drill.validateOutput);
-    const result = runPortable(argv, {
-      cwd: ROOT,
-      env: { ...process.env, ...(drill.env ?? {}) },
-      stdio: capture ? ['inherit', 'pipe', 'pipe'] : 'inherit',
-      encoding: capture ? 'utf8' : undefined,
-    });
-    const durationMs = Math.round(Number(process.hrtime.bigint() - start) / 1e6);
-    const exitCode = result.status ?? 1;
-
-    let outputMatched = null;
-    let outputValidation = null;
-    if (capture) {
-      const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
-      const logPath = join(OUT, `${drill.id}.log`);
-      writeFileSync(logPath, output);
-      process.stdout.write(
-        output.length > 4000
-          ? `${output.slice(-4000)}
-… (truncated; full log at ${posix(logPath.replace(`${ROOT}${sep}`, ''))})
-`
-          : output,
-      );
-      if (drill.expectOutputMatches) {
-        outputMatched = new RegExp(drill.expectOutputMatches).test(output);
-        if (!outputMatched) {
-          console.log(
-            `   the output does not contain /${drill.expectOutputMatches}/ — the command failed, but not for the reason this drill is about.`,
-          );
-        }
-      }
-      if (drill.validateOutput) {
-        outputValidation = drill.validateOutput(output);
-        outputMatched = outputValidation.satisfied;
-        if (!outputMatched) {
-          console.log(`   security fixture evidence is incomplete: ${outputValidation.reason}`);
-        }
-      }
-    }
-
-    const outputBlocked = outputValidation?.status === 'blocked';
-    const exitSatisfied = drill.expect === 'nonzero' ? exitCode !== 0 : exitCode === 0;
-    const satisfied = exitSatisfied && (outputMatched === null || outputMatched);
-    const recordStatus = outputBlocked ? 'blocked' : satisfied ? 'passed' : 'failed';
-
-    console.log(
-      `   -> exit ${exitCode} in ${(durationMs / 1000).toFixed(1)}s — ${
-        outputBlocked
-          ? `BLOCKED: ${outputValidation.reason}`
-          : satisfied
-            ? 'the required failure was produced'
-            : drill.expect === 'nonzero'
-              ? 'THE FAULT FIXTURE STOPPED FAILING. A gate has silently opened.'
-              : 'the drill did not produce its required failure'
-      }`,
-    );
-
-    records.push({
-      id: drill.id,
-      title: drill.title,
-      requires: drill.requires,
-      checklistItem: drill.checklistItem,
-      status: recordStatus,
-      expect: drill.expect,
-      expectOutputMatches: drill.expectOutputMatches ?? null,
-      outputMatched,
-      outputValidation,
-      exitCode,
-      startedAt: startedAt.toISOString(),
-      durationMs,
-      command: argv.join(' '),
-      dependsOn: drill.dependsOn ?? null,
-      reason: outputBlocked ? outputValidation.reason : null,
-    });
+    records.push(executeDrill(drill, argv));
   }
 
   const failed = records.filter((r) => r.status === 'failed');
