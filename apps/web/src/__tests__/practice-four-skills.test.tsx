@@ -360,9 +360,29 @@ it('carries no expiry latch from one section into the next', async () => {
   const confirm = await screen.findByRole('button', { name: /Hoàn thành.*sang/ });
   await userEvent.click(confirm);
 
-  await waitFor(() => expect(screen.getByText('listening phần một')).toBeInTheDocument());
-  expect(screen.getByRole('textbox', { name: /Câu hỏi 1/ })).toBeEnabled();
-  expect(document.querySelectorAll('.exam-expired')).toHaveLength(0);
+  /*
+   * <b>All three facts waited for together, because they are one state.</b>
+   *
+   * This waited only for the heading and then asserted the latch bare. The two
+   * are not the same fact, and the gap is measured rather than supposed: under
+   * load this failed at 7.2s with
+   * `expect(element).toBeEnabled()` against
+   * `<input aria-labelledby="q-listening-1-name" disabled="">` — the new
+   * section's own input, so the advance had landed and the enabling commit had
+   * not. Sampling every committed DOM across an advance caught the same state
+   * directly, on 2 of 3 runs.
+   *
+   * <b>Waiting does not soften what this test is for.</b> The latch is sticky:
+   * `expiredRef` stays set until the next advance or load, so a section that
+   * genuinely carried it in would still be disabled when the budget runs out.
+   * What the wait absorbs is a commit of lag; what it cannot absorb is the
+   * defect in the test's name.
+   */
+  await waitFor(() => {
+    expect(screen.getByText('listening phần một')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Câu hỏi 1/ })).toBeEnabled();
+    expect(document.querySelectorAll('.exam-expired')).toHaveLength(0);
+  });
 });
 
 /**

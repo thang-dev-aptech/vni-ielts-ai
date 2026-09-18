@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import { TEST_TIMEOUT_MS } from './src/test-timeouts.js';
 
 export default defineConfig({
   plugins: [react()],
@@ -18,64 +19,74 @@ export default defineConfig({
      * that normally settles in 40ms can miss a 1s deadline purely from CPU
      * contention.
      *
-     * The failures that produced were scattered and non-reproducible: a
-     * different two or three tests each run, always ones that await a fetch,
-     * always around 4–7 seconds. That reads like a real defect and is not one,
-     * which is worse than a red suite — it teaches people to re-run rather
-     * than to look.
-     *
-     * Raising the ceiling does not slow a passing run down: a test that
-     * settles still settles immediately. It only changes how long a genuinely
-     * stuck test takes to admit it.
+     * <b>The number is derived, in `src/test-timeouts.ts`, and that is the
+     * point.</b> It has to stay above a multiple of Testing Library's
+     * `asyncUtilTimeout`, or a test that spends one full async budget on a wait
+     * that settles can never reach the deadline of the next one — the test
+     * timeout fires first, and it can only say "timed out", never what the test
+     * was waiting for. 16 of 24 observed failures arrived with no message for
+     * exactly that reason. Editing one of the two numbers here, in isolation,
+     * is what re-opens it, so there is now only one place to edit.
      */
-    testTimeout: 15_000,
+    testTimeout: TEST_TIMEOUT_MS,
 
     /*
-     * Three workers, not one per core — as insurance, not as a fix.
+     * ── A worker cap that is actually applied ────────────────────────────────
      *
-     * <b>The suite is not flaky. The machine was, and it took two rounds of
-     * measurement to say that honestly.</b>
+     * <b>`maxWorkers`, not `poolOptions.threads.maxThreads`.</b> This line read
+     * `poolOptions: { threads: { maxThreads: 3 } }` from the day the file was
+     * created until 18/09/2026, and it never once did anything: vitest's
+     * default pool has been `forks` since vitest 2.0, and `poolOptions.threads`
+     * is read only by the `threads` pool. A run on this 12-core box was measured
+     * forking <b>eleven</b> workers — `availableParallelism() - 1` — with the
+     * cap sitting right there in the file. `maxWorkers` is pool-agnostic, so it
+     * cannot become a dead branch again if the pool is ever changed.
      *
-     * The first round saw two to eight failures a run, always in files
-     * awaiting a fetch, never the same ones, every one passing in isolation —
-     * and concluded the pool size was the cause, because dropping it made the
-     * failures go away. That baseline was contaminated: the same machine was
-     * running the local Docker stack, a dotnet API, three unrelated
-     * containers and a browser holding nineteen pages from a review session.
+     * <b>The suite is its own dominant load, and that is what the cap is for.</b>
+     * Under identical external load, `progress-history.test.tsx` run alone took
+     * 2.2s / 3.2s / 4.7s and passed; the same three tests inside the full suite
+     * took 15.5s / 17.0s / 17.4s and failed. The only difference was the ten
+     * sibling vitest processes.
      *
-     * Re-measured with those shut down, twelve cores, same commit:
+     * <b>The cap is measured by counting processes, not by reading config.</b>
+     * Direct children of the vitest process, sampled three times during a full
+     * run: eleven `node (vitest N)` workers with the old line, and exactly
+     * `maxWorkers` with this one — verified at 3, 4, 6 and 11. That is the only
+     * claim here that is not confounded by the state of the machine.
      *
-     *   quiet machine,  3 workers — 165/165 · 14.1s, 14.5s
-     *   quiet machine,  6 workers — 165/165 · 14.4s, 15.7s
-     *   quiet machine, 12 workers — 165/165 · 14.6s, 15.3s
-     *   loaded machine, 3 workers — occasional single failure, 55–85s
+     * <b>The earlier note here is deleted rather than corrected.</b> It carried
+     * a table — "quiet machine, 3 / 6 / 12 workers", all three ~14s — and
+     * concluded "the pool size buys nothing". If those rows were produced by
+     * editing `maxThreads`, all three were the same configuration and the
+     * conclusion was an artefact of the knob being inert. It is not evidence and
+     * must not be read as any.
      *
-     * So the pool size buys nothing on a quiet machine and does not fully
-     * rescue a loaded one. Three is kept because it is free when there is
-     * headroom and it narrows the failure window when there is not — a CI box
-     * and a developer laptop with a build running are both the loaded case.
+     * <b>The value stays 3, the number this file has claimed since it was
+     * written.</b> Fixing the mechanism and changing the number in the same
+     * commit would leave nobody able to say which one did anything, and the
+     * wall-clock measurements taken on 18/09 do not order by pool size — the
+     * other agents sharing the box moved more between runs than the pool size
+     * did. Three is also free where the exposure is smallest: `ubuntu-latest`
+     * gives 2–4 vCPU, so CI was already getting 1–3 workers by accident, and
+     * this only makes that deliberate.
      *
-     * <b>What this is NOT is a reason to restructure the tests.</b> The
-     * earlier note here proposed giving the fetch-heavy files a rendered
-     * subtree instead of `<App/>`; on this evidence that would have been a
-     * day spent on a phantom.
+     * <b>What this is NOT is a reason to restructure the tests.</b> An earlier
+     * note here proposed giving the fetch-heavy files a rendered subtree instead
+     * of `<App/>`; nothing measured since has supported that.
      *
      * <b>27/08/2026 — and "check the machine first" was too confident.</b>
-     * A later round of scattered failures had the same signature and a real
-     * cause: no stub in `exam-flow` answered `/api/v1/auth/refresh`, which the
-     * provider calls on its own timer, so whichever test happened to be running
-     * when it fired was signed out and rendered the sign-in page. Alongside it,
+     * A round of scattered failures had the same signature and a real cause: no
+     * stub in `exam-flow` answered `/api/v1/auth/refresh`, which the provider
+     * calls on its own timer, so whichever test happened to be running when it
+     * fired was signed out and rendered the sign-in page. Alongside it,
      * `AuthContext` scheduled that refresh with `setTimeout(fn, NaN)` — which
      * fires immediately — for any stored session whose expiry would not parse.
-     * Both are fixed, and three consecutive full runs are green at the load
-     * that used to produce one or two failures.
-     *
-     * That is not proof they were the whole story. It is enough to change the
-     * order of the checks: <b>first ask whether the stub answers everything the
-     * app calls on its own</b> — refresh, `/me`, providers — and only then
-     * reach for `uptime` and `docker ps`. A fixture hole and a loaded machine
-     * produce the same scattered, non-reproducible red.
+     * Both are fixed. That is not proof they were the whole story; it is enough
+     * to change the order of the checks: <b>first ask whether the stub answers
+     * everything the app calls on its own</b> — refresh, `/me`, providers — and
+     * only then reach for `uptime` and `docker ps`. A fixture hole and a loaded
+     * machine produce the same scattered, non-reproducible red.
      */
-    poolOptions: { threads: { maxThreads: 3 } },
+    maxWorkers: 3,
   },
 });

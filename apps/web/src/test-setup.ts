@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, configure } from '@testing-library/react';
+import { ASYNC_UTIL_TIMEOUT_MS } from './test-timeouts.js';
 
 /**
  * jsdom implements neither of these, and both are optional at runtime — the
@@ -50,39 +51,33 @@ window.scrollTo = () => {};
 /*
  * Testing Library's own async budget, which `testTimeout` does not govern.
  *
- * `findBy*` and `waitFor` default to one second. Every test in this suite
- * mounts a whole `<App/>` under StrictMode — which double-invokes each mount
- * effect — and then waits on a session restore plus at least one fetch before
- * anything it asserts on exists. One second is the budget for a component
- * test, not for that.
- *
- * The failures this produced were the expensive kind: a different two or three
- * files each run, always ones awaiting a fetch, never reproducible alone. That
- * reads as a real defect and is not one, and a suite that cries wolf teaches
- * people to re-run instead of to look.
+ * <b>The number lives in `./test-timeouts.ts`, with `testTimeout`.</b> It used
+ * to be an `8_000` literal here and a `15_000` literal in `vitest.config.ts`,
+ * each with a long note and neither mentioning the other — and the relationship
+ * between them was the thing that mattered. `8000 × 2 > 15000` meant a test
+ * that spent one whole budget on a wait that settled could never reach the
+ * deadline of the next one, so it died on the test timeout, which cannot say
+ * what the test was waiting for. That is why most of this suite's red runs
+ * carried no readable message. Both numbers are derived from one place now, so
+ * changing one cannot silently break the pair.
  *
  * <b>Never restate this as a per-call `{ timeout: n }`.</b> A local number
  * overrides the global one rather than adding to it, so three files that each
  * carried their own literal were the only three the shared budget could not
  * reach — and they were the three that kept failing. If a wait needs longer
  * than everything else, that is worth a comment saying why, not a silent
- * duplicate of a number that lives here.
+ * duplicate of a number that lives elsewhere.
  *
  * <b>Sized for a loaded machine, not for this one.</b> On a quiet twelve-core
  * box every one of these settles in a couple of hundred milliseconds, so the
  * budget is never approached; it exists so that a laptop running a build, or a
  * CI box sharing a host, fails a genuinely stuck test rather than a merely
- * starved one. → the pool note in `vitest.config.ts`
- *
- * 8 seconds, not 5: the dictation library file takes 9.6s on its own with
- * the machine idle, so under a full-suite thread it routinely needed more
- * than five. It still sits well below the 15s `testTimeout`.
+ * starved one. → the worker-cap note in `vitest.config.ts`
  *
  * A passing assertion still settles immediately — this only changes how long a
- * genuinely stuck one takes to admit it, and it stays well under the 15s
- * `testTimeout` so a real hang still fails the test rather than the file.
+ * genuinely stuck one takes to admit it.
  */
-configure({ asyncUtilTimeout: 8_000 });
+configure({ asyncUtilTimeout: ASYNC_UTIL_TIMEOUT_MS });
 
 /*
  * ── A render crash must fail the test that caused it ─────────────────────

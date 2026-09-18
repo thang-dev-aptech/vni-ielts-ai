@@ -1,11 +1,12 @@
 import 'fake-indexeddb/auto';
 import { StrictMode } from 'react';
 import { IDBFactory } from 'fake-indexeddb';
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
 import { remember, restore, resetJournalConnection } from '../features/exam/patchJournal.js';
+import { AUTOSAVE_MS } from '../features/exam/useAnswerSheet.js';
 
 /**
  * Answer integrity — what the sheet is allowed to lose, which is nothing.
@@ -284,10 +285,39 @@ it('keeps the answers a refused batch did not name, and does not submit without 
 
   open('/exam/sit-1');
 
-  // Two answers in one batch: one the server will refuse, one it will take.
+  /*
+   * <b>Two answers in one batch — and the batch is constructed, not hoped for.</b>
+   *
+   * This read `await userEvent.type(...)` then `await userEvent.click(...)`
+   * until 18/09/2026, which put both edits in one batch only because the
+   * debounce in `useAnswerSheet` is 1.2s and a quiet machine gets from the
+   * seventh keystroke to the radio in about fifty milliseconds. Under CPU
+   * contention it does not: the debounce fires between the two statements, the
+   * batch goes out carrying `r-1` alone, and the assertion below failed with
+   * `expected { 'r-1': 'quá dài' } to have property "r-2"` — on 3 of 12 full
+   * runs, and 2 of 3 under measured load.
+   *
+   * <b>That was a defect in this test, and the difference matters.</b> It was
+   * investigated rather than re-run: with a deliberate 1.5s gap between the two
+   * edits the product sends two batches, refuses the first for `r-1`, keeps
+   * `r-2`, sends it before `/submit`, and reaches the results — no answer is
+   * lost. The guarantee this file exists for holds; what did not hold was this
+   * test's assumption that the debounce would coalesce the edits for it. The
+   * split case is now its own test, immediately below, rather than something
+   * the scheduler decides.
+   *
+   * <b>`fireEvent`, not `userEvent`, and that is the whole mechanism.</b> These
+   * two calls are one synchronous task with no `await` between them, and a
+   * `setTimeout` cannot run inside a task. There is therefore no window for the
+   * debounce to fire in, at any load. `userEvent` is the better tool almost
+   * everywhere — it is not the better tool when the subject is what lands
+   * inside one timer window.
+   */
   const first = await screen.findByRole('textbox', { name: /Câu hỏi 1/ });
-  await userEvent.type(first, 'quá dài');
-  await userEvent.click(screen.getByRole('radio', { name: 'TRUE' }));
+  const isTrue = screen.getByRole('radio', { name: 'TRUE' });
+
+  fireEvent.change(first, { target: { value: 'quá dài' } });
+  fireEvent.click(isTrue);
 
   await settle(() => sent.length > 0, 20_000);
 
@@ -322,6 +352,112 @@ it('keeps the answers a refused batch did not name, and does not submit without 
   expect(order).toEqual(['answers', 'answers', 'submit']);
 
   // Landed on the result page: the paper is named under its heading.
+  await screen.findByText('Đề thi: Academic Practice Test 1');
+}, 45_000);
+
+/**
+ * The same refusal, with the two answers in <i>different</i> batches.
+ *
+ * <b>Written 2026-09-18, out of a flake.</b> The test above assumed both edits
+ * would land in one autosave because they usually do — `AUTOSAVE_MS` is 1.2s and
+ * a quiet machine gets from the last keystroke to the radio in fifty
+ * milliseconds. Under load it does not, the debounce fires in between, and the
+ * test failed on 3 of 12 full runs. The diagnosis flagged the obvious worry: if
+ * "both answers in one batch" were an invariant the app is meant to hold, this
+ * was a data-loss defect in the offline/resume path rather than a test defect.
+ *
+ * <b>It is not an invariant, and this test is why that is now recorded rather
+ * than argued.</b> The debounce is specified to fire 1.2s after the last edit;
+ * two edits 1.5s apart are <i>supposed</i> to be two batches. What must survive
+ * the split is the learner's work — and it does: the first batch is refused for
+ * `r-1`, `r-2` goes out in the second, the submit still waits for it, and the
+ * sitting reaches its results.
+ *
+ * So the scenario the flake was accidentally exercising is a case worth having.
+ * It is here deliberately now, with the gap written down instead of supplied by
+ * whichever agent happened to be compiling at the time.
+ */
+it('keeps a refused answer and an accepted one apart when the debounce splits them', async () => {
+  const sent: Record<string, string | null>[] = [];
+  const order: string[] = [];
+  let submits = 0;
+
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? 'GET';
+
+      if (url.endsWith('/answers') && method === 'PUT') {
+        const changes = JSON.parse(String(init?.body)).changes as Record<string, string | null>;
+        sent.push(changes);
+        order.push('answers');
+
+        if ('r-1' in changes) {
+          return json(
+            {
+              title: 'Validation failed',
+              status: 400,
+              code: 'VALIDATION_FAILED',
+              detail: "The answer to 'r-1' is longer than 60,000 characters.",
+              errors: [
+                {
+                  path: 'r-1',
+                  code: 'ANSWER_TOO_LONG',
+                  message: "The answer to 'r-1' is longer than 60,000 characters.",
+                },
+              ],
+            },
+            400,
+          );
+        }
+
+        return json({ revision: 9 });
+      }
+
+      if (url.endsWith('/submit')) {
+        submits += 1;
+        order.push('submit');
+        return json(results);
+      }
+
+      return stubbed(url);
+    }),
+  );
+
+  open('/exam/sit-1');
+
+  const first = await screen.findByRole('textbox', { name: /Câu hỏi 1/ });
+  const isTrue = screen.getByRole('radio', { name: 'TRUE' });
+
+  // `fireEvent`, so the answer arrives in one edit and the gap below is the
+  // only gap in the test. With `userEvent.type` a starved machine can split the
+  // typing itself, which would make this measure something else.
+  fireEvent.change(first, { target: { value: 'quá dài' } });
+
+  // Longer than `AUTOSAVE_MS`. The batch the server refuses is therefore the
+  // one carrying `r-1` alone, and `r-2` has not been attempted yet.
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, AUTOSAVE_MS + 300));
+  });
+
+  fireEvent.click(isTrue);
+
+  await settle(() => sent.length >= 2, 20_000);
+
+  expect(sent[0]).toEqual({ 'r-1': 'quá dài' });
+  expect(sent[1]).toEqual({ 'r-2': 'TRUE' });
+
+  // The refusal is still reported against the question the learner can see.
+  expect(await screen.findByText(/không nhận câu 1/i)).toBeInTheDocument();
+
+  // And nothing was lost on the way: the submit goes out last, after every
+  // answer the server accepted.
+  await confirmSubmit();
+  await waitFor(() => expect(submits).toBe(1));
+  expect(order[order.length - 1]).toBe('submit');
+  expect(sent.some((batch) => batch['r-2'] === 'TRUE')).toBe(true);
+
   await screen.findByText('Đề thi: Academic Practice Test 1');
 }, 45_000);
 
