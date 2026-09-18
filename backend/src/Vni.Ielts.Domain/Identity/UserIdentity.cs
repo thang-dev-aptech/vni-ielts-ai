@@ -110,21 +110,53 @@ public sealed class UserIdentity
             UserIdentityId.New(), userId, provider, providerUserId, passwordHash: null, now);
     }
 
+    /// <summary>
+    /// This password was set by somebody other than its owner, and has to be
+    /// replaced before the account is usable.
+    ///
+    /// <para>
+    /// <b>An operator reset is the only recovery path there is.</b>
+    /// Registration collects no address (<see href="ADR-0018"/>), so a locked
+    /// out learner reaches a human, and the human types a password and reads
+    /// it back over Zalo. That password is therefore known to at least two
+    /// people and has travelled through a chat log — which is fine for one
+    /// sign-in and not fine as the account's standing credential.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>False for a password its owner chose</b>, including the one they
+    /// choose to clear this flag. Nothing else sets it: a learner changing
+    /// their own password is not recovering from anything.
+    /// </para>
+    /// </summary>
+    public bool MustChangePassword { get; private set; }
+
     public static UserIdentity Rehydrate(
         UserIdentityId id,
         UserId userId,
         IdentityProvider provider,
         string providerUserId,
         string? passwordHash,
-        DateTimeOffset linkedAt) =>
-        new(id, userId, provider, providerUserId, passwordHash, linkedAt);
+        DateTimeOffset linkedAt,
+        bool mustChangePassword = false) =>
+        new(id, userId, provider, providerUserId, passwordHash, linkedAt)
+        {
+            MustChangePassword = mustChangePassword,
+        };
 
-    public void SetPasswordHash(string passwordHash)
+    /// <param name="mustChange">
+    /// True only when somebody other than the owner set this password. The
+    /// default is the owner's own change, which clears the flag — so a reset
+    /// followed by a real change leaves no residue, and forgetting to pass
+    /// anything can never accidentally mark an account as compromised.
+    /// </param>
+    public void SetPasswordHash(string passwordHash, bool mustChange = false)
     {
         if (Provider != IdentityProvider.Password)
             throw new InvalidOperationException("Only a password identity carries a password.");
         if (string.IsNullOrWhiteSpace(passwordHash))
             throw new ArgumentException("A password hash is required.", nameof(passwordHash));
         PasswordHash = passwordHash;
+        MustChangePassword = mustChange;
     }
 }

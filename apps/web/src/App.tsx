@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from '
 import { AuthProvider } from './features/auth/AuthContext.js';
 import { AuthPage } from './features/auth/AuthPage.js';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage.js';
+import { ForcedPasswordChangePage } from './features/auth/ForcedPasswordChangePage.js';
 import { SsoCallbackPage } from './features/auth/SsoCallbackPage.js';
 import { DashboardShell } from './features/chrome/DashboardShell.js';
 import { DictationPage } from './features/dictation/DictationPage.js';
@@ -159,6 +160,15 @@ export function App() {
               <Route path={Paths.forgotPassword} element={<ForgotPasswordPage />} />
 
               <Route element={<RequireAuth />}>
+                {/*
+                  The one authenticated address `RequireAuth` will not redirect
+                  away from — it is where the guard sends everything else while
+                  an operator-set password stands. Outside every shell on
+                  purpose: a learner who has not taken their account back yet
+                  should not be looking at its navigation.
+                */}
+                <Route path={Paths.changePassword} element={<ForcedPasswordChangePage />} />
+
                 {/*
                   The dashboard carries its own chrome — sidebar left, content
                   right, no marketing nav. `[QUYẾT ĐỊNH]` chủ sản phẩm,

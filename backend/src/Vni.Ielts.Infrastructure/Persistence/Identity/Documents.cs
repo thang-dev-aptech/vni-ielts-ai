@@ -107,6 +107,21 @@ internal sealed class UserIdentityDocument
 
     [BsonElement("linkedAt")]
     public DateTime LinkedAt { get; set; }
+
+    /// <summary>
+    /// Somebody other than the owner set this password — an operator reset,
+    /// the product's one recovery path — so it must be replaced before the
+    /// account is usable.
+    ///
+    /// <b>Absent on every row written before 2026-09-18, which reads as
+    /// false.</b> That is the correct migration: those passwords were either
+    /// chosen by their owner or set by an operator under the old behaviour,
+    /// and retroactively locking the second group out of their own accounts
+    /// would punish them for a gap that was ours.
+    /// </summary>
+    [BsonElement("mustChangePassword")]
+    [BsonIgnoreIfDefault]
+    public bool MustChangePassword { get; set; }
 }
 
 [BsonIgnoreExtraElements]

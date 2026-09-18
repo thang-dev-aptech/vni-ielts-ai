@@ -66,6 +66,93 @@ public sealed class PasswordManagementTests
         public string? StoredHash(UserId id) =>
             Identities.ListForUserAsync(id, default).Result
                 .FirstOrDefault(i => i.Provider == IdentityProvider.Password)?.PasswordHash;
+
+        public async Task<bool> MustChangeAsync(UserId id) =>
+            (await Identities.ListForUserAsync(id, default))
+                .First(i => i.Provider == IdentityProvider.Password)
+                .MustChangePassword;
+    }
+
+    /// <summary>
+    /// An operator reset is the only recovery path this product has — nobody
+    /// collects an address to mail a link to — so the password a learner gets
+    /// back was typed by a member of staff and read out over Zalo. It is known
+    /// to at least two people and it is sitting in a chat log.
+    ///
+    /// <b>That is acceptable for one sign-in and not as a standing
+    /// credential.</b> Marking it forces the account back into its owner's
+    /// hands; without the mark, "recovery" quietly means the centre and the
+    /// learner share a password indefinitely.
+    /// </summary>
+    [Fact]
+    public async Task A_password_somebody_else_set_is_marked_for_replacement()
+    {
+        var h = new Harness();
+        var user = await h.SeedAsync(Strong);
+
+        await PasswordIdentity.SetAsync(
+            h.Identities, h.Hasher, new FixedClock(Now), user, "tam-thoi-do-nhan-vien-dat", mustChange: true,
+            ct: default);
+
+        Assert.True(await h.MustChangeAsync(user.Id));
+    }
+
+    /// <summary>
+    /// <b>And the learner's own change clears it.</b> A flag that survived the
+    /// replacement would lock the account out of itself forever, which is a
+    /// worse outage than the one it was guarding against.
+    /// </summary>
+    [Fact]
+    public async Task The_learners_own_change_clears_the_mark()
+    {
+        var h = new Harness();
+        var user = await h.SeedAsync(Strong);
+        var temporary = "tam-thoi-do-nhan-vien-dat";
+
+        await PasswordIdentity.SetAsync(
+            h.Identities, h.Hasher, new FixedClock(Now), user, temporary, mustChange: true, ct: default);
+
+        var result = await h.Set.HandleAsync(
+            new SetPasswordCommand(user.Id, temporary, Strong, "fam-here"), default);
+
+        Assert.True(result.IsSuccess);
+        Assert.False(await h.MustChangeAsync(user.Id));
+    }
+
+    /// <summary>
+    /// A Google account has no password row, so the reset creates one — and
+    /// the mark has to survive that branch too. It is the branch the owner hit
+    /// on 21/08/2026, and the one a flag added only to the update path would
+    /// silently miss.
+    /// </summary>
+    [Fact]
+    public async Task A_reset_on_an_account_with_no_password_row_is_marked_too()
+    {
+        var h = new Harness();
+        var user = await h.SeedAsync(password: null);
+
+        await PasswordIdentity.SetAsync(
+            h.Identities, h.Hasher, new FixedClock(Now), user, "tam-thoi-do-nhan-vien-dat", mustChange: true,
+            ct: default);
+
+        Assert.True(await h.MustChangeAsync(user.Id));
+    }
+
+    /// <summary>
+    /// <b>Nothing marks an account by accident.</b> The parameter defaults to
+    /// the owner's own change, so a future caller that forgets it cannot lock
+    /// a learner into a change screen they never needed.
+    /// </summary>
+    [Fact]
+    public async Task An_ordinary_set_leaves_the_account_unmarked()
+    {
+        var h = new Harness();
+        var user = await h.SeedAsync(Strong);
+
+        await PasswordIdentity.SetAsync(
+            h.Identities, h.Hasher, new FixedClock(Now), user, Strong, ct: default);
+
+        Assert.False(await h.MustChangeAsync(user.Id));
     }
 
     [Fact]

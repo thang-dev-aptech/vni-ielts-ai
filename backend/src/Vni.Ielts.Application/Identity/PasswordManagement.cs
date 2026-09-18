@@ -64,7 +64,7 @@ public sealed class SetPassword(
             }
         }
 
-        await PasswordIdentity.SetAsync(identities, hasher, clock, user, password.Value!, ct);
+        await PasswordIdentity.SetAsync(identities, hasher, clock, user, password.Value!, ct: ct);
 
         // Other devices go; this one stays. Someone setting a password from
         // their own profile page should not be signed out of the page they are
@@ -89,13 +89,25 @@ public sealed class SetPassword(
 /// </summary>
 public static class PasswordIdentity
 {
+    /// <param name="mustChange">
+    /// True when somebody other than the owner set this password — today only
+    /// an operator reset, which is this product's one recovery path. It marks
+    /// the credential for replacement at the next sign-in; see
+    /// <see cref="UserIdentity.MustChangePassword"/>.
+    ///
+    /// <b>Applied on both branches.</b> A Google account has no password row,
+    /// so a reset creates one — the branch the owner hit on 21/08/2026 — and a
+    /// flag wired only into the update path would leave exactly those accounts
+    /// sharing a staff-typed password forever.
+    /// </param>
     public static async Task SetAsync(
         IUserIdentityRepository identities,
         IPasswordHasher hasher,
         IClock clock,
         User user,
         string password,
-        CancellationToken ct)
+        bool mustChange = false,
+        CancellationToken ct = default)
     {
         var hash = hasher.Hash(password);
         var existing = (await identities.ListForUserAsync(user.Id, ct))
@@ -103,11 +115,13 @@ public static class PasswordIdentity
 
         if (existing is null)
         {
-            await identities.AddAsync(UserIdentity.ForPassword(user.Id, hash, clock.UtcNow), ct);
+            var created = UserIdentity.ForPassword(user.Id, hash, clock.UtcNow);
+            created.SetPasswordHash(hash, mustChange);
+            await identities.AddAsync(created, ct);
             return;
         }
 
-        existing.SetPasswordHash(hash);
+        existing.SetPasswordHash(hash, mustChange);
         await identities.SaveAsync(existing, ct);
     }
 }

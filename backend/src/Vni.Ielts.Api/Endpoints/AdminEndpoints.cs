@@ -704,7 +704,16 @@ public static class AdminEndpoints
         var user = await users.FindByIdAsync(new UserId(userId), ct);
         if (user is null) return Results.NotFound();
 
-        await PasswordIdentity.SetAsync(identities, hasher, clock, user, password.Value!, ct);
+        /*
+         * <b>Marked for replacement, because somebody else typed it.</b> This
+         * is the product's only recovery path — registration collects no
+         * address to mail a link to — so the operator reads the new password
+         * back to the learner over Zalo. Two people now know it and a chat log
+         * holds it. Fine for one sign-in; not the account's standing
+         * credential. → `UserIdentity.MustChangePassword`
+         */
+        await PasswordIdentity.SetAsync(
+            identities, hasher, clock, user, password.Value!, mustChange: true, ct: ct);
 
         await tokens.RevokeAllForUserAsync(user.Id, ct);
 

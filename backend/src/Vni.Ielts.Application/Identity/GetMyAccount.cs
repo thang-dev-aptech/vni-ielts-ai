@@ -25,7 +25,12 @@ public sealed record MyAccount(
     string? Email,
     string? Phone,
     IReadOnlyCollection<string> Providers,
-    bool HasPassword);
+    bool HasPassword,
+    /// <param name="MustChangePassword">
+    /// The password identity was written by somebody other than its owner —
+    /// an operator reset — and has to be replaced. → `UserIdentity`
+    /// </param>
+    bool MustChangePassword);
 
 /// <summary>
 /// The account behind the access token.
@@ -59,6 +64,7 @@ public sealed class GetMyAccount(IUserRepository users, IUserIdentityRepository 
             user.Email?.Value,
             user.Phone?.Value,
             [.. linked.Select(i => i.Provider.ToString().ToLowerInvariant()).Distinct()],
-            linked.Any(i => i.PasswordHash is not null));
+            linked.Any(i => i.PasswordHash is not null),
+            linked.Any(i => i.MustChangePassword));
     }
 }

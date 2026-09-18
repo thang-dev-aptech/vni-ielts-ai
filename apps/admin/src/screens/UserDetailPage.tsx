@@ -393,6 +393,19 @@ function bodyOf(
         <p className="cms-muted" id="reset-password-rule">
           Ít nhất {MIN_PASSWORD_LENGTH} ký tự.
         </p>
+        {/*
+          What the operator is about to cause, said before they cause it.
+
+          The password typed here is read back over Zalo, so two people end up
+          knowing it and a chat log keeps it. Since 2026-09-18 the learner is
+          held on a change screen until they replace it — an operator who does
+          not know that will field a support call about being "stuck", and one
+          who does can say the right sentence in the same message.
+        */}
+        <p className="cms-muted">
+          Học viên sẽ phải tự đổi mật khẩu ngay lần đăng nhập kế tiếp. Nhắn kèm mật khẩu này và nói
+          rõ đây là mật khẩu tạm.
+        </p>
       </>
     );
   }

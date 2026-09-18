@@ -154,6 +154,18 @@ const vi = {
   'password.othersSignedOut':
     'Sau khi lưu, các thiết bị khác sẽ bị đăng xuất. Thiết bị bạn đang dùng thì không.',
   'password.forgotTitle': 'Quên mật khẩu',
+  // Trung tâm vừa đặt lại mật khẩu hộ học viên. Mật khẩu đó đã đi qua Zalo và
+  // có ít nhất hai người biết, nên nó chỉ dùng được một lần.
+  'password.forcedTitle': 'Đặt lại mật khẩu của bạn',
+  'password.forcedLead':
+    'Trung tâm đã đặt một mật khẩu tạm để bạn vào lại được tài khoản. Hãy đổi sang mật khẩu của riêng bạn — mật khẩu tạm đã đi qua tin nhắn nên không nên giữ.',
+  'password.temporary': 'Mật khẩu tạm trung tâm gửi',
+  'password.temporaryWrong':
+    'Mật khẩu tạm không đúng. Kiểm tra lại tin nhắn trung tâm gửi cho bạn.',
+  'password.changeAction': 'Đổi mật khẩu',
+  'password.working': 'Đang đổi…',
+  'password.failed': 'Chưa đổi được mật khẩu. Thử lại sau ít phút.',
+  'password.offline': 'Không có kết nối. Kiểm tra mạng rồi thử lại.',
   /*
    * Trang này không gửi gì đi cả, và câu dẫn phải nói thẳng điều đó. Tài khoản
    * đăng ký bằng số điện thoại (08/09/2026) nên không có hộp thư nào để gửi
@@ -1109,6 +1121,16 @@ const en: Record<StringKey, string> = {
   'password.othersSignedOut':
     'Saving signs your other devices out. The one you are using stays signed in.',
   'password.forgotTitle': 'Forgot password',
+  'password.forcedTitle': 'Set your own password',
+  'password.forcedLead':
+    'The centre set a temporary password so you could get back in. Change it to one of your own — the temporary one went through a chat message and should not be kept.',
+  'password.temporary': 'Temporary password from the centre',
+  'password.temporaryWrong':
+    'That temporary password is not right. Check the message the centre sent you.',
+  'password.changeAction': 'Change password',
+  'password.working': 'Changing…',
+  'password.failed': 'The password could not be changed. Try again in a few minutes.',
+  'password.offline': 'No connection. Check your network and try again.',
   'password.forgotLead':
     'Accounts are registered with a phone number, so there is no reset email. Message the centre and they will reset it for you.',
   'password.forgotZalo': 'Message the centre on Zalo',

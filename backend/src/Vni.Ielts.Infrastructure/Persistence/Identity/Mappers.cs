@@ -48,6 +48,7 @@ internal static class IdentityMappers
         ProviderUserId = identity.ProviderUserId,
         PasswordHash = identity.PasswordHash,
         LinkedAt = identity.LinkedAt.UtcDateTime,
+        MustChangePassword = identity.MustChangePassword,
     };
 
     public static UserIdentity ToDomain(this UserIdentityDocument doc) => UserIdentity.Rehydrate(
@@ -59,7 +60,8 @@ internal static class IdentityMappers
         Enum.Parse<IdentityProvider>(doc.Provider),
         doc.ProviderUserId,
         doc.PasswordHash,
-        new DateTimeOffset(DateTime.SpecifyKind(doc.LinkedAt, DateTimeKind.Utc)));
+        new DateTimeOffset(DateTime.SpecifyKind(doc.LinkedAt, DateTimeKind.Utc)),
+        doc.MustChangePassword);
 
     public static RoleDocument ToDocument(this Role role) => new()
     {

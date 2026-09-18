@@ -178,6 +178,17 @@ export const Paths = {
   forgotPassword: '/forgot-password',
 
   /**
+   * Where a learner lands when an operator has reset their password.
+   *
+   * <b>Its own address rather than a modal over the dashboard.</b> The gate
+   * has to survive a reload — a learner who refreshes past a modal is back in
+   * the app with a staff-typed password — and an address is the only thing a
+   * reload keeps. It is also the one authenticated page `RequireAuth` will
+   * not redirect away from, which a modal could not express.
+   */
+  changePassword: '/students/doi-mat-khau',
+
+  /**
    * Account & security profile ("Tài khoản & bảo mật").
    *
    * <b>Was `/profile`.</b> Moved under `/students`, 08/09/2026, completing the

@@ -288,6 +288,7 @@ const me = {
   permissions: ['exam.read'],
   providers: ['email'],
   hasPassword: true,
+  mustChangePassword: false,
 };
 
 function reply(body: unknown) {

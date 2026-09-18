@@ -19,7 +19,7 @@ import { Paths } from './paths.js';
  * home page having lost their intent.
  */
 export function RequireAuth() {
-  const { status } = useAuth();
+  const { status, user } = useAuth();
   const { t } = useI18n();
   const location = useLocation();
 
@@ -27,6 +27,29 @@ export function RequireAuth() {
 
   if (status === 'signed-out') {
     return <Navigate to={Paths.signIn} state={{ from: location }} replace />;
+  }
+
+  /*
+    <b>A password an operator typed is good for one sign-in, not for keeping.</b>
+
+    This is the whole of password recovery here: registration collects no
+    address (ADR-0018), so a locked-out learner reaches a human, the operator
+    sets a password from the CMS and reads it back over Zalo. Two people now
+    know it and a chat log holds it. Without this redirect, "recovery" quietly
+    means the centre and the learner share a credential for the life of the
+    account.
+
+    <b>On the route rather than in a banner.</b> A banner saying "you should
+    change your password" is a banner people close; a redirect that survives a
+    reload is the account being handed back to its owner. The change screen is
+    the one authenticated address exempted, or it would redirect to itself.
+
+    Absent reads as false: `/me` declares no schema in `contracts/openapi`, so
+    an older API sends nothing here, and the failure mode of guessing the other
+    way is every learner locked out of the product at once.
+  */
+  if (user?.mustChangePassword === true && location.pathname !== Paths.changePassword) {
+    return <Navigate to={Paths.changePassword} replace />;
   }
 
   return <Outlet />;

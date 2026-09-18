@@ -60,7 +60,18 @@ public sealed record MeResponse(
     IReadOnlyCollection<string> Permissions,
     /// <summary>Lower-case provider keys this account can sign in with: password, google.</summary>
     IReadOnlyCollection<string> Providers,
-    bool HasPassword);
+    bool HasPassword,
+    /// <summary>
+    /// The current password was set by somebody else — an operator reset, the
+    /// only recovery path this product has — and has to be replaced before
+    /// the account is usable.
+    ///
+    /// <b>Reported here rather than at sign-in.</b> The client re-reads
+    /// <c>/me</c> on every load and after every refresh, so a learner who
+    /// reloads past the change screen meets it again; a flag delivered once
+    /// with the token would be gone by then.
+    /// </summary>
+    bool MustChangePassword);
 
 public static class AuthEndpoints
 {
@@ -205,7 +216,8 @@ public static class AuthEndpoints
             account.Phone,
             principal.Permissions(),
             account.Providers,
-            account.HasPassword));
+            account.HasPassword,
+            account.MustChangePassword));
     }
 
     /// <summary>

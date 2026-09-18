@@ -38,6 +38,17 @@ export interface Me {
   permissions: string[];
   providers: string[];
   hasPassword: boolean;
+  /**
+   * The current password was set by an operator, not by its owner, and has to
+   * be replaced before the account is usable.
+   *
+   * <b>Optional on the type, because `/me` declares no schema in
+   * `contracts/openapi`.</b> This interface is maintained by hand rather than
+   * generated, so a deployment running an older API sends nothing here — and
+   * an absent field must read as "no, carry on" rather than locking every
+   * learner into a change screen.
+   */
+  mustChangePassword?: boolean;
 }
 
 /**
