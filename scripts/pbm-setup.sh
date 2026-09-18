@@ -119,10 +119,39 @@ docker exec -i "$CONTAINER" sh -c 'cat > "$HOME/pbm-config.yaml"' < "$CONFIG"
 docker exec -e PBM_MONGODB_URI="$URI" "$CONTAINER" \
   sh -c 'pbm config --file "$HOME/pbm-config.yaml"' >/dev/null
 
+# <b>Applying a config file starts a storage resync, and PBM runs one operation
+# at a time.</b> The two `--set` calls below used to run the instant the file
+# landed, and PBM answered
+#
+#   Error: another operation in progress, Resync storage/… [rs0/localhost:27017]
+#
+# — a failure with `set -e` and the whole Foundation pipeline behind it. It
+# surfaced only once the MinIO pull was fixed and the job got this far, which is
+# why it looked new on 2026-09-18 and is not.
+#
+# <b>Retried rather than slept through.</b> A fixed sleep is a guess about a
+# machine: too short on a loaded runner and too slow everywhere else. This waits
+# for the thing it actually needs — the lock to clear — and gives up loudly.
+pbm_set() {
+  for _ in $(seq 1 30); do
+    if output=$(pbm config --set "$1" 2>&1); then
+      return 0
+    fi
+
+    case "$output" in
+      *'another operation in progress'*) sleep 2 ;;
+      *) echo "pbm-setup: $output" >&2; return 1 ;;
+    esac
+  done
+
+  echo "pbm-setup: '$1' still refused after 60s: ${output}" >&2
+  return 1
+}
+
 # Set explicitly as well as in the file: applying a config file does not always
 # re-arm the PITR routine on an agent that was already running.
-pbm config --set pitr.enabled=true >/dev/null
-pbm config --set "pitr.oplogSpanMin=${OPLOG_SPAN_MIN}" >/dev/null
+pbm_set pitr.enabled=true >/dev/null
+pbm_set "pitr.oplogSpanMin=${OPLOG_SPAN_MIN}" >/dev/null
 
 echo "pbm-setup: waiting for the PITR routine to report ON..."
 for _ in $(seq 1 20); do
