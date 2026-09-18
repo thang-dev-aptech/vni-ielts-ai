@@ -364,7 +364,7 @@ và **đã cắn hai lần trong một ngày** (18/09).
 **Xong khi:** drift gate xanh; không còn interface tự chế cho hai nhóm endpoint này ở cả hai client;
 `packages/api-client` được generate lại.
 
-### 🟡 Đóng một nửa — 18/09/2026, commit `becebde`
+### ✅ Đóng — nửa hợp đồng `becebde` (đợt 2), nửa client `d522090` (đợt 3)
 
 **Nửa hợp đồng: xong.** 11 route (`/me` ×7, dictation ×4) khai response schema; 12 schema mới trong
 `components/schemas`; `v1.json` **sinh lại chứ không sửa tay**; drift gate xanh, byte-identical.
@@ -377,22 +377,33 @@ media type chứ không khai schema vì nó là bytes.
 **Bằng chứng mạnh hơn cả test hợp đồng:** gỡ một `.Produces<>()` ở server rồi sinh lại client →
 `tsc` ở `apps/web` **vỡ**. Trước lát này, gỡ gì ở server client cũng không biết.
 
-**Nửa client `/me`: CHƯA LÀM, và đây là chỗ cần quyết định.** Type gõ tay của `/me` không nằm ở nơi
-hàng đợi giả định:
+**Nửa client `/me`: xong ở đợt 3, commit `d522090`.** `Me` → `Schemas['MeResponse']` trong
+`packages/auth/src/session.ts`; `DeviceSession` và bốn kiểu inline (`{ email }` / `{ phone }` /
+`{ sessions }` / `{ signedOut }`) → alias trong `apps/web/src/lib/session.ts`. File sau nằm trong danh
+sách bảo toàn `D-11`, được chủ sản phẩm cho phép **chỉ ở tầng khai báo kiểu**; diff đã đối chiếu từng
+dòng và không có thay đổi logic nào.
 
-| Type | Nằm ở | Vì sao dừng |
+**Hai cái lệch bị bắt, và cái thứ hai không ai biết là có:**
+
+| Trường | Hợp đồng | Bản gõ tay |
 |---|---|---|
-| `Me`, gồm `mustChangePassword` | `packages/auth/src/session.ts` | ngoài phạm vi file đã giao |
-| `DeviceSession` + các inline `{ email }` / `{ phone }` / `{ sessions }` | `apps/web/src/lib/session.ts` | **danh sách bảo toàn `D-11`** |
+| `mustChangePassword` | `boolean` **required** | `boolean \| undefined` — kèm comment giải thích nó optional *vì `/me` chưa khai schema*, lý do đã hết hiệu lực |
+| `phone` | **required** `null \| string` | `phone?: string \| null` — **không ai ghi chú, không ai biết** |
 
-**Và hai bên đang lệch ngay lúc này:** hợp đồng nói `mustChangePassword` là `boolean` **required**;
-bản gõ tay nói `boolean | undefined`, với một comment giải thích rằng nó optional *chính vì `/me` chưa
-khai schema*. Lý do đó vừa hết hiệu lực, còn cái lệch thì vẫn đó và **không có gì bắt được**.
+**Ràng buộc nay là thật, không phải một lời hứa.** Đã đo bằng cách xoá một trường khỏi `MeResponse`
+trong file sinh ra: `tsc` vỡ ở `apps/web/src/features/profile/PasswordPanel.tsx` — **một màn hình thật**.
+Trước lát này, server bỏ một trường thì không có gì vỡ ở đâu cả.
 
-**Ba đường ra, chờ chủ sản phẩm chọn:** (1) mở phạm vi cho hai file trên, đổi `Me` thành alias
-`Schemas['MeResponse']` · (2) giữ gõ tay nhưng ghim bằng test parity, `pnpm typecheck` là cổng · (3)
-ghi thành nợ. Cả (1) và (2) đều vướng một trở ngại chung: `@vni/auth` và `apps/admin` **chưa phụ thuộc**
-`packages/api-client`, nên nối được là phải đổi đồ thị package.
+> **Đính chính.** Mục này trước đây viết rằng cả hai đường ra *"đều vướng… phải đổi đồ thị package"*.
+> Đo thật thì trở ngại nhỏ hơn hẳn: **một dependency `@vni/api-client` ở `packages/auth`**, và
+> **`apps/admin` không phải đổi một ký tự** — CMS biên dịch `@vni/auth` từ nguồn, và
+> `verbatimModuleSyntax` xoá sạch `import type` nên không có import runtime nào chạm tới nó. Admin test
+> 101/101 vẫn xanh.
+
+**Nợ mới, cùng loại, đặt tên ngay để khỏi quên:** `Session`, `RegisterResult`, `SsoProvider` **vẫn gõ
+tay**, vì `/api/v1/auth/login`, `/refresh`, `/register` **chưa khai response body** trong
+`contracts/openapi` — `W7` chỉ phủ `/me` và dictation. `Session` là type đi qua mọi màn đăng nhập của
+**cả hai** app, nên đây là ứng viên rõ nhất cho một lát `W7`-tiếp: cùng một lỗ, cùng một cách vá.
 
 ---
 
@@ -553,6 +564,47 @@ tức chính cái dốc.
 
 ---
 
+## Ngoài hàng đợi — cái thước đã được sửa (18/09/2026, `fef3512` + `c3b252d`)
+
+Không phải một lát `W*`, nhưng quan trọng hơn phần lớn chúng: **suite web đỏ ngẫu nhiên**, và cả dự án
+chỉ có một cơ chế bằng chứng — *"test đã được nhìn thấy đỏ khi gỡ fix ra"*. Suite đỏ ngẫu nhiên làm câu
+đó mất nghĩa. Chẩn đoán đầy đủ ở [`2026-09-18-flaky-web-suite.md`](../handover/2026-09-18-flaky-web-suite.md).
+
+| | Nguyên nhân | Đã làm |
+|---|---|---|
+| `C1` | `poolOptions.threads.maxThreads` là **nhánh chết** — pool mặc định của vitest là `forks` từ 2.0, nên van giới hạn worker chưa từng có tác dụng suốt đời file. Đếm được **11 worker** thay vì 3 | `maxWorkers` (không phụ thuộc pool). Đếm lại: đúng **3**. Con số 3 giữ nguyên — sửa cơ chế và đổi giá trị cùng lúc thì không ai nói được cái nào có tác dụng |
+| `C2` | `asyncUtilTimeout` 8 s nằm trong `testTimeout` 15 s → test có hai lần chờ chết với thông báo trống. **16/24 lần đỏ quan sát được không mang thông báo nào** | Hai budget dẫn xuất từ một chỗ (`test-timeouts.ts`): 8 s × 3 + 6 s = 30 s. Guard `harness-budgets.test.ts` đọc **giá trị đang thực sự có hiệu lực**, không đọc hằng số |
+| `C3a` | `answer-integrity` chờ một điều kiện **yếu hơn** điều nó khẳng định | **Lỗi test, không phải lỗi sản phẩm** — probe gap-1.5 s chứng minh sản phẩm gửi hai batch, từ chối batch đầu, giữ `r-2`, không mất câu trả lời nào. `useAnswerSheet.ts` không bị đụng |
+| `C3b` | `practice-four-skills` chờ heading rồi assert trần lên input | **Lỗi test.** Bắt được trạng thái `heading + disabled` ở 2/3 lượt advance |
+| `C5` | `npx vitest` từ gốc repo không tìm thấy config, im lặng dùng mặc định, thu **657 test** và đỏ hàng loạt vô nghĩa | `vitest.config.ts` ở gốc **ném lỗi kèm hướng dẫn**. CI không đi đường này — đây là bẫy cho người và cho agent |
+
+**Cái giá, nói ra vì nó thật:** wall-clock trên máy dev **72 s → 144 s** dưới tải nặng. 11 worker xuống
+3 đổi ổn định lấy thời gian. Trên CI gần như bằng 0 (`ubuntu-latest` có 2–4 vCPU nên vốn đã chạy 1–3
+worker). **Nếu thấy đắt thì thứ cần bàn là con số 3, không phải cơ chế** — cơ chế nay đã đúng.
+
+**Chưa đủ để nói "hết flake".** Phép đo A/B chỉ chạy được 1 vòng rưỡi dưới loadavg 10–36; điều kiện tái
+hiện gốc là loadavg 74–267 (khi có ba agent cùng chạy). Muốn phát biểu chắc về tỉ lệ đỏ thì cần ≥3 vòng
+dưới tải nặng, trên máy không có agent nào khác. Script còn nguyên ở
+`/private/tmp/claude-501/…/wave3i-measure/`.
+
+---
+
+## Nợ nhỏ chưa xếp lát
+
+Gom về một chỗ để khỏi trôi. Không cái nào chặn `W*` nào.
+
+| | Việc | Ghi chú |
+|---|---|---|
+| 1 | **`/api/v1/auth/login|refresh|register` chưa khai response schema** | Nguồn gốc của việc `Session`, `RegisterResult`, `SsoProvider` còn gõ tay ở `packages/auth`. Cùng lỗ, cùng cách vá như `W7` |
+| 2 | **`/api/v1/practice-units` không client nào gọi** | *"Practice and mock units projected from published exam versions"*. Web tự dẫn xuất từ `GET /api/v1/exams` ở `practiceCatalogue.ts`. **Cùng một phép chiếu tồn tại hai lần, bản trên máy chủ đang chết.** Luật 1 nói giao diện chỉ hiển thị — hoặc client dùng endpoint đó, hoặc xoá endpoint. Cần một quyết định, không phải một bản vá |
+| 3 | **`.result-q*` trong `exam.css`** | 0 hit ngoài file CSS theo đúng bốn phép kiểm đã dùng cho `.result-filter-chip`. **Cố ý không xoá**: khối đó mang ghi chú tương phản đã đo (`#10562f` 7.69, `#8a2b1e` 7.83) — đáng một quyết định, không đáng bị xoá tiện tay |
+| 4 | **`exam-flow.test.tsx`: ba `waitFor` có budget thấp hơn budget chung** (1875 `5_000`, 1930/1940 `3000`), và `settle(() => false, 3_000)` ở 2435 là một giấc ngủ cố định — **rủi ro xanh giả** | Mở lại đúng cái lỗ mà `C2` vừa bịt. Chưa quan sát thấy đỏ lần nào |
+| 5 | **`answer-integrity` :: "brings back an answer the tab was carrying"** | Assert save-chip **bên trong** cửa sổ 1.2 s mà chính journal restore lên lịch. Cùng lớp đua với `C3a`, **đỏ 1/4 lần dưới tải**. Mọi cách sửa thấy được đều hoặc nới lỏng khẳng định, hoặc cần fake timers cho cả test |
+| 6 | **Index cũ `ix_exam_sessions_user_started`** nay là prefix của index mới `…_user_started_id` | Có thể drop trong một bước bảo trì. Cố ý **không** drop trong đường khởi động: đường đó chạy trên mọi instance khi instance cũ còn phục vụ, và drop ở đó mở ra một khoảng không có index nào |
+| 7 | **`FindManyAsync`/`ListManyAsync` chưa chia lô cho `$in`** | An toàn hôm nay vì bị chặn ở `MaxLimit + 1 = 51` id. Cửa nào sau này gọi với danh sách không chặn thì phải chia lô |
+
+---
+
 ## Tổng
 
 | Lát | Trạng thái | Chặn bởi | Ước lượng |
@@ -564,7 +616,7 @@ tức chính cái dốc.
 | `W4` Kho nghe chép | ✅ đóng 18/09 `7a0c43f` — nội dung thật vẫn chờ | nội dung | 2h + soạn bài |
 | `W5` Lịch sử đầy đủ | ✅ đóng 18/09 `19df38b`, cursor đóng đợt 3 | — | 4–6h |
 | `W6` 5 lỗi CSS | ✅ đóng 18/09 `66834e0` | — | 2h |
-| `W7` OpenAPI `/me` + dictation | 🟡 nửa đóng 18/09 `becebde` — nửa client `/me` chờ quyết định | — | 4–6h |
+| `W7` OpenAPI `/me` + dictation | ✅ đóng 18/09 — `becebde` + `d522090`; `/auth/*` là nợ mới | — | 4–6h |
 | `W8` Màn soạn nghe chép | ⏸ hoãn (quyết định 18/09) | nội dung, không phải kỹ thuật | 1.5–2 ngày |
 | `W9` Chấm Speaking | ⛔ chặn | `P-02` `B-1` `B-2` | 4–5 ngày |
 | `W10` Đọc theo lô cho lịch sử | ✅ đóng 18/09 `014ee7f`, hai cổng cuối đóng đợt 3 | — | 0.5–1 ngày |

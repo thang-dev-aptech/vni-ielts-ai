@@ -60,7 +60,11 @@ Targets: End-user Web · Android · iOS · Admin CMS · central Backend API.
 
 ## ▶ Start here: the task queue
 
-**The live queue is `W0`…`W9` in `_workspace/queue/web-enduser-completion.md`, opened 2026-09-18.** It carries the learner web app from the ~88–90% measured that day to 100% of the MVP scope, and it names for each slice which owner decision blocks it. `W0`…`W1` and `W4`…`W7` are unblocked; `W2`/`W3` wait on the three VNI amounts (`B-5a`, `B-5b`, `B-5c`); `W9` (Speaking marking) waits on three decisions that are not code — reversing `P-02`, choosing an ASR provider, and accepting the PDPL exposure in writing the way `Q-03` did.
+**The live queue is `W0`…`W10` in `_workspace/queue/web-enduser-completion.md`, opened 2026-09-18.** It carries the learner web app from the ~88–90% measured that day to 100% of the MVP scope, and it names for each slice which owner decision blocks it.
+
+**`W0`, `W1`, `W4`, `W5`, `W6`, `W7` and `W10` closed on 2026-09-18**, each with a test watched red before the fix and red again when the fix was removed. What is left is not code: `W2`/`W3` (the VNI economy and its wallet screen) wait on the three amounts `B-5a`, `B-5b`, `B-5c`; `W8` is deferred by owner decision — it is CMS, not learner web, and nobody has said who authors dictation content; `W9` (Speaking marking) waits on three decisions that are not code — reversing `P-02`, choosing an ASR provider, and accepting the PDPL exposure in writing the way `Q-03` did.
+
+**Measured on 2026-09-19: 41 of 43 learner-facing endpoints have a screen that reads them.** The two that do not are `GET /me/usage` (that is `W3`, blocked) and `GET /practice-units` (a projection that exists twice — the web derives the same thing client-side, and the server copy is dead; a decision, not a gap). The queue's § *Nợ nhỏ chưa xếp lát* holds the loose ends.
 
 **The previous queue, `S0`…`S9` in `_workspace/design-brief/claude-code-handoff.md`, is closed** — summarised in [`docs/product/mvp-blueprint.md`](docs/product/mvp-blueprint.md) § 10. Its five standing laws still apply to `W*` verbatim. Each slice runs spec → plan → build → review, closes only with a test verified to go red when the fix is removed, and then **stops for approval**. The infrastructure queue below stays the reference for Foundation work and for understanding why existing infrastructure code was built.
 
