@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "apps/web/src/styles/dashboard.css"
+        ],
+        "createdAt": "2026-09-18T08:52:45.568Z",
+        "reason": "user confirmed 2026-09-18: .dash-notice at dashboard.css:151 is a 3px --line-2 (#efedea, a near-white grey line token) rule on a <p> section note, not a state-dependent accent on a card; the demotion from bordered card to side rule is documented in the comment at dashboard.css:140-147. Per-line scope was asked for and is not supported by this rule (no extractable value), so this is file-scoped for side-tab only."
+      }
+    ]
+  }
+}
