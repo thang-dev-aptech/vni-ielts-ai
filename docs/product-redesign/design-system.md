@@ -67,8 +67,26 @@ Nguồn chân lý: `packages/design-system/src/tokens.css`.
 - **Bóng mờ nổi (Blurred Elevation Shadow):**
   `box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12)`. Chỉ được phép dùng trên Dialog, Drawer và Popover menu. Không dùng bóng mờ trang trí trên các card nội dung.
 - **Chuyển động (Motion):**
-  `transition: all 180ms ease-in-out`.
-  - Vô hiệu hóa toàn bộ chuyển động khi người dùng bật `prefers-reduced-motion`.
+  `180ms ease-in-out`, và **luôn gọi tên thuộc tính** —
+  `transition: transform 180ms ease-in-out, box-shadow 180ms ease-in-out`.
+
+  **`transition: all` bị cấm, không phải bị khuyên tránh** — `scripts/check-css-transitions.mjs`
+  chặn nó ở `pnpm check`. Cho tới 18/09/2026 chính dòng này kê đơn `transition: all 180ms
+  ease-in-out`, tức là tài liệu dạy đúng cái gate sẽ chặn; người đọc tin tài liệu trước, nên lỗi
+  quay lại đều đặn rồi người ta kết luận là gate hỏng. Lý do cấm: tập thuộc tính mà `all` chạy
+  **không nằm trong stylesheet** — nó là *hiệu giữa hai rule*, tính lúc chạy. Ngày ai đó thêm
+  `border: 2px` vào `.is-active` hoặc nới `padding` cho `:hover`, chênh lệch đó lặng lẽ thành một
+  animation layout không ai viết, không ai review và grep không ra. Trong phòng thi, thứ nhúc nhích
+  dưới con trỏ chính là câu hỏi học viên đang đọc.
+  - Không đặt transition lên thuộc tính **flow** — `margin`, `padding`, `border-width`, `inset`,
+    `gap`, `font-size`, `flex`, `grid-template-*`: chúng chạy lại layout mỗi khung hình và kéo cả
+    nội dung xung quanh đi theo. Danh sách đầy đủ là `FLOW_PROPERTIES` trong gate, không phải trong
+    tài liệu này — một bản sao thứ hai sẽ lệch.
+  - Vô hiệu hóa toàn bộ chuyển động khi người dùng bật `prefers-reduced-motion`. Với animation
+    `infinite` thì đây là điều kiện gate kiểm được và có kiểm: phải có `animation: none` cho **đúng
+    selector đó** trong khối `@media (prefers-reduced-motion: reduce)`, và khối ấy phải nằm **dưới**
+    rule khởi động animation — selector giống hệt nhau thì thứ tự nguồn quyết định, media query
+    không cộng thêm độ ưu tiên nào.
   - **Tuyệt đối không có chuyển động (animation) trong lúc học viên đang nhập câu trả lời hoặc làm bài thi**.
 
 ---

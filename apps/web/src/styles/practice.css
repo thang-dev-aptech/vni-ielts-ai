@@ -2267,24 +2267,6 @@
   color: var(--ink-2);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .skill-pick,
-  .skill-pick-icon,
-  .prac-card,
-  .prac-start,
-  .prac-start span,
-  .work-filter-caret {
-    transition: none;
-  }
-
-  .skill-pick:hover,
-  .skill-pick:hover .skill-pick-icon,
-  .prac-card:hover,
-  .prac-card:hover .prac-start span {
-    transform: none;
-  }
-}
-
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 
 @media (max-width: 1080px) {
@@ -2446,4 +2428,92 @@
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────────
+ *
+ * Last in the file, and that position is the point. This block cancels rules by
+ * naming the same selectors they use, and identical selectors are settled by
+ * source order — a media query adds no specificity of its own. Anything below
+ * would quietly win.
+ *
+ * It already lost that race once. This block used to sit above the
+ * `@media (max-width: 1080px)` block that declares `.work-filter-caret`'s
+ * transition, so the caret was listed here and kept animating anyway — on
+ * exactly the narrow screens where that control is the only way to reach the
+ * filters.
+ *
+ * `scripts/check-css-transitions.mjs` clause 3 enforces the ordering and the
+ * coverage for the `infinite` animations below, and nothing else. The
+ * transition and transform lists are read off this file by hand — a transition
+ * added tomorrow will not be caught by anything.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+   * The hero never settles on its own. Four animations run `infinite`, two of
+   * them level with the headline and one a ripple beside a live label — the
+   * exact thing this setting is asking us not to do, in the exact place
+   * somebody is reading. Every one of them starts from a zero transform, so
+   * switching them off leaves the element where the page already places it;
+   * `.chip-pulse-dot::after` becomes a static ring around its dot rather than
+   * a disappearing one. The scrim's fade is finite, and included because a
+   * modal that appears is not worse than a modal that fades.
+   */
+  .prac-v2-hero-mascot-img,
+  .chip-top-right,
+  .chip-bottom-left,
+  .chip-pulse-dot::after,
+  .work-modal-scrim {
+    animation: none;
+  }
+
+  /*
+   * The whole `.prac-v2-*` family was missing here. It arrived after this
+   * block was written and nothing pointed the two at each other, so the
+   * redesigned practice page had hover lifts, card raises and a sliding arrow
+   * that reduced motion did not reach.
+   */
+  .prac-v2-btn-primary,
+  .prac-v2-btn-secondary,
+  .prac-v2-arrow,
+  .prac-v2-float-chip,
+  .prac-v2-skill-card,
+  .prac-v2-skill-go-btn,
+  .prac-v2-cta-btn,
+  .skill-pick,
+  .skill-pick::before,
+  .skill-pick-icon,
+  .work-mode,
+  .filter-option,
+  .prac-card,
+  .prac-start,
+  .prac-start span,
+  .work-modal-close,
+  .work-filter-caret {
+    transition: none;
+  }
+
+  /*
+   * `transition: none` only removes the tween. Without this the card still
+   * jumps six pixels the moment a pointer touches it, which is the movement,
+   * not the animation of it.
+   *
+   * `.work-filter-caret` is deliberately absent: its rotation says whether the
+   * filter panel is open. That is information, so it keeps its end state and
+   * loses only the tween, above.
+   */
+  .prac-v2-btn-primary:hover,
+  .prac-v2-btn-secondary:hover,
+  .prac-v2-btn-primary:hover .prac-v2-arrow,
+  .prac-v2-float-chip:hover,
+  .prac-v2-skill-card:hover,
+  .prac-v2-skill-card:hover .prac-v2-skill-go-btn,
+  .prac-v2-cta-btn:hover,
+  .skill-pick:hover,
+  .skill-pick:hover .skill-pick-icon,
+  .prac-card:hover,
+  .prac-card:hover .prac-start span {
+    transform: none;
+  }
 }

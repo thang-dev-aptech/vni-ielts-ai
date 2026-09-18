@@ -49,11 +49,51 @@
 // written down, by name, on a line a reviewer can see, instead of arriving for
 // free with `all`.
 //
-// Scope is the three files below and only those. Other stylesheets hold
-// violations too (`auth.css` had two `transition: all` when this was written);
-// widening the scan here would fail `pnpm check` for work that belongs to
-// whoever owns those screens. Add a file when its violations are fixed in the
-// same commit.
+// ── Clause 3, added 2026-09-18: an endless animation must have an off switch
+//
+// An `animation` that runs `infinite` never stops on its own, so under
+// `prefers-reduced-motion: reduce` it is not a shortened animation — it is the
+// whole of what that setting exists to prevent, running forever, usually
+// directly beside the text somebody is reading. Every selector that starts one
+// must be named by an *identical* selector inside a
+// `@media (prefers-reduced-motion: reduce)` block that sets `animation` (or
+// `animation-name`) to `none`.
+//
+// Two halves of that sentence are load-bearing.
+//
+// *Identical*, because deciding that some other selector "covers" a rule needs
+// the cascade and a DOM, and a stylesheet alone has neither. Exact matching is
+// blunt, but it is never wrong about what it reports and its fix instruction is
+// exact: name this selector, spelled this way.
+//
+// *Later in the file*, because identical selectors tie on specificity and
+// source order breaks the tie — a media query adds none. An opt-out written
+// above the rule it means to cancel is not an opt-out, it is a comment with
+// braces. `practice.css` had exactly that: its reduced-motion block listed
+// `.work-filter-caret`, and a `@media (max-width: 1080px)` block below it
+// re-declared the same transition and won on every screen narrow enough to show
+// that control. Clause 3 does not catch that particular one — a transition is
+// not an animation — which is why the block now sits at the end of the file,
+// where the ordering cannot go wrong again.
+//
+// What clause 3 does NOT ask: that *every* transition or *every* finite
+// animation be cancelled under reduced motion. That is a larger policy than
+// this file has a mandate for, and it would flag stylesheets whose owners have
+// not agreed to it. Endless motion is the case where the answer is not
+// arguable.
+//
+// ── Scope: it grows with a fix, never alone ────────────────────────────────
+//
+// Scope is the files below and only those. `auth.css` joined the list on
+// 2026-09-18 in the same commit that fixed its two `transition: all`, and that
+// pairing is the rule rather than a coincidence. Widening the scan alone fails
+// `pnpm check` for work that belongs to somebody else. Fixing alone is worse:
+// it looks finished, and nothing stops the identical line landing in the same
+// file next week — which is how those two got there in the first place.
+//
+// The rest of `apps/web/src/styles` is still outside the scan. After the
+// 2026-09-18 commit no `transition: all` remains anywhere in that directory,
+// but only the four files below are *held* to it.
 //
 // Usage: node scripts/check-css-transitions.mjs
 
@@ -67,6 +107,7 @@ export const SCANNED_FILES = [
   'apps/web/src/styles/practice.css',
   'apps/web/src/styles/dashboard.css',
   'apps/web/src/styles/exam.css',
+  'apps/web/src/styles/auth.css',
 ];
 
 /**
@@ -264,9 +305,155 @@ export function violations(declarations) {
   return found;
 }
 
+// ── Clause 3: endless animation, and its off switch ────────────────────────
+
+/** A media query that asks for less motion. `(prefers-reduced-motion)` bare means the same. */
+export function isReducedMotionQuery(prelude) {
+  return /\(\s*prefers-reduced-motion\s*(?::\s*reduce\s*)?\)/i.test(prelude);
+}
+
+/** Whitespace-collapsed selector text. Class names stay case-sensitive on purpose. */
+export function normaliseSelector(selector) {
+  return selector.replace(/\s+/g, ' ').trim();
+}
+
+/** `prop: value` pairs of one rule body, in source order. */
+export function declarationsIn(body) {
+  return splitTopLevel(body, ';')
+    .map((part) => {
+      const colon = part.indexOf(':');
+      if (colon < 0) return null;
+      return {
+        property: part.slice(0, colon).trim().toLowerCase(),
+        value: part.slice(colon + 1).trim(),
+      };
+    })
+    .filter((declaration) => declaration !== null && declaration.property !== '');
+}
+
+/**
+ * Every style rule in the sheet, with its 1-based line, its selectors split
+ * apart, and whether a `prefers-reduced-motion` query encloses it.
+ *
+ * Rules inside `@keyframes` are skipped: `0% { … }` is a stop on a timeline,
+ * not a selector, and reading it as one would report `0%` as an offender.
+ */
+export function parseRules(css) {
+  const text = stripComments(css);
+  const rules = [];
+  const atStack = [];
+  let preludeStart = 0;
+  let i = 0;
+
+  while (i < text.length) {
+    const ch = text[i];
+
+    if (ch === '{') {
+      const prelude = text.slice(preludeStart, i);
+      const trimmed = prelude.trim();
+
+      if (trimmed.startsWith('@')) {
+        atStack.push(trimmed);
+        i += 1;
+        preludeStart = i;
+        continue;
+      }
+
+      let depth = 1;
+      let j = i + 1;
+      while (j < text.length && depth > 0) {
+        if (text[j] === '{') depth += 1;
+        else if (text[j] === '}') depth -= 1;
+        j += 1;
+      }
+
+      const insideKeyframes = atStack.some((at) => /^@(?:-[a-z]+-)?keyframes\b/i.test(at));
+      if (trimmed !== '' && !insideKeyframes) {
+        const offset = preludeStart + (prelude.length - prelude.trimStart().length);
+        rules.push({
+          line: text.slice(0, offset).split('\n').length,
+          selectors: splitTopLevel(trimmed, ',').map(normaliseSelector),
+          declarations: declarationsIn(text.slice(i + 1, j - 1)),
+          reducedMotion: atStack.some(isReducedMotionQuery),
+        });
+      }
+
+      i = j;
+      preludeStart = i;
+      continue;
+    }
+
+    if (ch === '}') {
+      atStack.pop();
+      i += 1;
+      preludeStart = i;
+      continue;
+    }
+
+    if (ch === ';') preludeStart = i + 1;
+    i += 1;
+  }
+
+  return rules;
+}
+
+/** Does this rule start an animation that never ends by itself? */
+export function startsEndlessAnimation(rule) {
+  return rule.declarations.some(
+    ({ property, value }) =>
+      (property === 'animation' || property === 'animation-iteration-count') &&
+      /(?:^|[\s,])infinite(?:$|[\s,])/i.test(value),
+  );
+}
+
+/** Does this rule switch animation off outright? `none`, not "fewer iterations". */
+export function stopsAnimation(rule) {
+  return rule.declarations.some(
+    ({ property, value }) =>
+      (property === 'animation' || property === 'animation-name') &&
+      /(?:^|[\s,])none(?:$|[\s,!])/i.test(value),
+  );
+}
+
+/**
+ * Clause 3, applied. One entry per selector left running, with the two
+ * failures told apart — never named, versus named too early to win.
+ */
+export function endlessAnimationViolations(rules) {
+  const offSwitches = rules.filter((rule) => rule.reducedMotion && stopsAnimation(rule));
+  const found = [];
+
+  for (const rule of rules) {
+    if (rule.reducedMotion || !startsEndlessAnimation(rule)) continue;
+
+    for (const selector of rule.selectors) {
+      const named = offSwitches.filter((off) => off.selectors.includes(selector));
+      if (named.some((off) => off.line > rule.line)) continue;
+
+      found.push({
+        line: rule.line,
+        selector,
+        reason:
+          named.length > 0
+            ? `${selector} is switched off under prefers-reduced-motion at line ${named[0].line}, ` +
+              'which is ABOVE this rule — identical selectors tie on specificity, so the later ' +
+              'one wins and the animation keeps running. Move the opt-out below this rule'
+            : `${selector} starts an animation that runs forever and no ` +
+              '@media (prefers-reduced-motion: reduce) rule sets animation: none for that exact ' +
+              'selector. Endless motion beside text somebody is reading is the case that setting exists for',
+      });
+    }
+  }
+
+  return found;
+}
+
 function main() {
   const report = [];
+  const motionReport = [];
   let declarationCount = 0;
+  let animationCount = 0;
+  let endlessCount = 0;
 
   for (const file of SCANNED_FILES) {
     const absolute = path.join(ROOT, file);
@@ -275,19 +462,29 @@ function main() {
       process.exit(1);
     }
 
-    const declarations = transitionDeclarations(fs.readFileSync(absolute, 'utf8'));
-    declarationCount += declarations.length;
+    const css = fs.readFileSync(absolute, 'utf8');
 
+    const declarations = transitionDeclarations(css);
+    declarationCount += declarations.length;
     for (const violation of violations(declarations)) {
       report.push({ file, ...violation });
     }
+
+    const rules = parseRules(css);
+    animationCount += rules.filter((rule) =>
+      rule.declarations.some(({ property }) => property.startsWith('animation')),
+    ).length;
+    endlessCount += rules.filter(startsEndlessAnimation).length;
+    for (const violation of endlessAnimationViolations(rules)) {
+      motionReport.push({ file, ...violation });
+    }
   }
 
-  if (declarationCount === 0) {
+  if (declarationCount === 0 || animationCount === 0) {
     // Never pass over an empty set: if the parser or the file list breaks,
     // this check reports success over nothing at all.
     console.error(
-      'No transition declarations were found in any scanned stylesheet.\n' +
+      'No transition or no animation declarations were found in any scanned stylesheet.\n' +
         'That is not plausible — fix the parser or the file list rather than trusting this.',
     );
     process.exit(1);
@@ -304,11 +501,26 @@ function main() {
         ':hover / :focus / .is-* rules, and leave the flow properties out. The end state\n' +
         'of every rule stays exactly as it is; only the animation set changes.',
     );
-    process.exit(1);
   }
 
+  if (motionReport.length > 0) {
+    console.error(`${motionReport.length} endless-animation violation(s):\n`);
+    for (const entry of motionReport) {
+      console.error(`  · ${entry.file}:${entry.line}  ${entry.selector}`);
+      console.error(`      ${entry.reason}`);
+    }
+    console.error(
+      '\nFix: add the selector, spelled exactly as it is above, to a\n' +
+        '@media (prefers-reduced-motion: reduce) block with `animation: none`, and put that\n' +
+        'block BELOW every rule it cancels — identical selectors are decided by source order.',
+    );
+  }
+
+  if (report.length > 0 || motionReport.length > 0) process.exit(1);
+
   console.log(
-    `  ${declarationCount} transition declaration(s) across ${SCANNED_FILES.length} stylesheet(s), all enumerated and layout-safe`,
+    `  ${declarationCount} transition declaration(s) and ${endlessCount} endless animation(s) ` +
+      `across ${SCANNED_FILES.length} stylesheet(s), all enumerated, layout-safe and reducible`,
   );
 }
 

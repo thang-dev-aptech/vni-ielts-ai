@@ -531,7 +531,14 @@ input {
   font-weight: 900;
   color: #647366;
   cursor: pointer;
-  transition: all 0.16s ease;
+  /* Exactly the three things `.tab-btn.active` changes: transparent → #fff,
+     #647366 → --ink, and no shadow → the lift. `all` also animated the
+     `:focus-visible` ring in on arrival; that ring now appears at once, which
+     is what a focus indicator should do anyway. No end state moves. */
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
   text-align: center;
 }
 .tab-btn.active {
@@ -618,7 +625,13 @@ input {
   font-size: 13.5px;
   font-weight: 600;
   background: #fff;
-  transition: all 0.16s ease;
+  /* `:focus` below changes a border colour and a halo, and nothing else — the
+     same pair `.input-box` already names a few hundred lines down. Writing it
+     out means the day somebody gives the focused field more padding, the
+     padding will not quietly become an animation. */
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
 }
 .field input:focus {
   border-color: #6fbb8e;
