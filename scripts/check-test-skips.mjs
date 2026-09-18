@@ -193,6 +193,20 @@ function parseTrx(file, text) {
     notExecuted = attr('notExecuted');
   }
 
+  /*
+   * <b>A TRX attribute is XML, so a theory's arguments arrive escaped.</b>
+   *
+   * `[InlineData("cam16-test-3.json", 2)]` is written into the file as
+   * `testName="…(fixture: &quot;cam16-test-3.json&quot;, expectedModules: 2)"`.
+   * Comparing that raw against the allowlist meant an exemption could only be
+   * written by someone who knew about the escaping — and an author who wrote
+   * the obvious thing got "skipped test with no exemption" for an entry that
+   * was right there, which is the worst kind of gate failure: one that is
+   * correct about the rule and misleading about the cause.
+   *
+   * Decoded here rather than escaped in the allowlist, because the allowlist is
+   * read by people and the TRX is read by this.
+   */
   // Both attribute orders: the TRX schema does not fix them, and a result whose
   // `outcome` precedes its `testName` is just as skipped.
   const named = [
@@ -204,7 +218,7 @@ function parseTrx(file, text) {
     ].map((m) => m[1]),
   ];
 
-  const unique = [...new Set(named)];
+  const unique = [...new Set(named.map(unescapeXmlAttribute))];
   for (const name of unique) skipped.push({ name, file, runner: 'dotnet' });
 
   // A count with no names is an alarm nobody can act on, but it is still an
@@ -214,6 +228,16 @@ function parseTrx(file, text) {
   }
 
   return { skipped, total };
+}
+
+/** The five XML predefined entities, which is all a TRX attribute can carry. */
+function unescapeXmlAttribute(value) {
+  return value
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&');
 }
 
 function parseVitestJson(file, doc) {

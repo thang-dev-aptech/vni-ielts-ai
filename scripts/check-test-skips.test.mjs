@@ -133,6 +133,26 @@ test('a skip is reported even when Counters claims notExecuted="0"', () => {
   );
 });
 
+/*
+ * <b>A theory's arguments arrive XML-escaped, and the allowlist is written by
+ * people.</b> `[InlineData("cam16-test-3.json", 2)]` lands in the TRX as
+ * `fixture: &quot;cam16-test-3.json&quot;`. Compared raw, an exemption written
+ * the obvious way never matched, and the gate reported "skipped test with no
+ * exemption" for an entry sitting right there — correct about the rule and
+ * misleading about the cause, which is the most expensive way for a gate to
+ * fail.
+ */
+test('a theory case comes back with its arguments unescaped', () => {
+  const trx = `<?xml version="1.0" encoding="UTF-8"?>
+<TestRun><Results>
+  <UnitTestResult testName="Suite.Theory(fixture: &quot;cam16-test-3.json&quot;, expectedModules: 2)" outcome="NotExecuted" />
+</Results><ResultSummary><Counters total="1" notExecuted="1" /></ResultSummary></TestRun>`;
+
+  const names = parseTrx('ci.trx', trx).skipped.map((skip) => skip.name);
+
+  assert.deepEqual(names, ['Suite.Theory(fixture: "cam16-test-3.json", expectedModules: 2)']);
+});
+
 test('both attribute orders are recognised, and neither is double-counted', () => {
   // testName-before-outcome and outcome-before-testName are both present in the
   // fixture above; two regexes read them and a Set has to reconcile the two.

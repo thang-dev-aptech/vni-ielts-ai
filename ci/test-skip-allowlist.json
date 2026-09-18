@@ -21,6 +21,24 @@
       "reason": "Exam1 is intentionally gitignored because learner redistribution rights are not established, so a clean CI checkout cannot execute this real-content integrity check; synthetic committed fixtures remain mandatory and executable.",
       "owner": "content-maintainers",
       "expires": "2026-11-30"
+    },
+    {
+      "test": "Vni.Ielts.Infrastructure.Tests.Ai.Writing.LiveWritingMarkingTests.A_real_essay_comes_back_as_a_band_a_learner_could_be_shown",
+      "reason": "Opt-in only, behind VNI_LIVE_AI=1: it calls a real provider, spends money per run, and sends an essay across a border. CI has no key and must not acquire one — this is the manual check a human runs before trusting a provider change, and running it on every push would turn a compliance decision (B-2) into a build step nobody chose.",
+      "owner": "backend-maintainers",
+      "expires": "2026-11-30"
+    },
+    {
+      "test": "Vni.Ielts.Infrastructure.Tests.Content.ExamCatalogueDescriptionTests.Every_shipped_paper_states_what_it_is(fixture: \"cam16-test-3.json\"*",
+      "reason": "cam16-test-3.json was never assembled — it is absent from the repository, from disk and from .gitignore, so the InlineData row names a paper that does not ship. The row is kept rather than deleted because the gap is real and worth seeing: Cambridge 16 ships tests 1, 2 and 4. The exemption expires so somebody has to decide whether to assemble it or drop it.",
+      "owner": "content-maintainers",
+      "expires": "2026-11-30"
+    },
+    {
+      "test": "Vni.Ielts.Infrastructure.Tests.Content.ExamCatalogueDescriptionTests.Every_shipped_paper_states_what_it_is(fixture: \"cam19-test-4.json\"*",
+      "reason": "cam19-test-4.json was never assembled — same gap as cam16-test-3. Cambridge 19 ships tests 1, 2 and 3. Kept visible rather than deleted, with a death date on the exemption.",
+      "owner": "content-maintainers",
+      "expires": "2026-11-30"
     }
   ]
 }
