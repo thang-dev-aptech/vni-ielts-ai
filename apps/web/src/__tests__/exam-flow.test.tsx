@@ -172,6 +172,7 @@ const results = {
   markingStatuses: [] as unknown[],
   explanationStatuses: [] as unknown[],
   overallBand: null,
+  overallBandModules: [],
   writingBand: null,
   writingBandReason: null,
   content: [] as unknown[],
@@ -1137,6 +1138,7 @@ it('shows both Writing task bands rather than an average of them', async () => {
     markingStatuses: [],
     explanationStatuses: [],
     overallBand: null,
+    overallBandModules: [],
   };
 
   resultsPayload = marked;
@@ -1195,6 +1197,7 @@ it('shows the combined Writing band beside the two task bands, once it exists', 
     markingStatuses: [],
     explanationStatuses: [],
     overallBand: null,
+    overallBandModules: [],
     writingBand: 8.5,
     writingBandReason: null,
   };
@@ -1234,6 +1237,7 @@ it.each([
     markingStatuses: [],
     explanationStatuses: [],
     overallBand: null,
+    overallBandModules: [],
     writingBand: null,
     writingBandReason: reason,
   };
@@ -1292,6 +1296,7 @@ it('draws Writing results as task cards, not a 40-question review', async () => 
     markingStatuses: [],
     explanationStatuses: [],
     overallBand: null,
+    overallBandModules: [],
     writingBand: 6.5,
     writingBandReason: null,
     content: [
@@ -1366,6 +1371,7 @@ it('keeps a Writing sitting identifiable while marking is still running', async 
     ],
     explanationStatuses: [],
     overallBand: null,
+    overallBandModules: [],
     writingBand: null,
     writingBandReason: 'awaiting-tasks',
     content: [{ module: 'writing', parts: [], submissions: {} }],
@@ -1410,6 +1416,7 @@ it('tags a band as AI-advisory from which list it came on, not from the module n
     markingStatuses: [],
     explanationStatuses: [],
     overallBand: null,
+    overallBandModules: [],
     writingBand: null,
     writingBandReason: null,
   };
@@ -1435,6 +1442,7 @@ it("shows the passage and the learner's own essay text, post-submit", async () =
     markingStatuses: [],
     explanationStatuses: [],
     overallBand: null,
+    overallBandModules: [],
     writingBand: null,
     writingBandReason: null,
     content: [
@@ -1528,6 +1536,7 @@ it('shows what a Listening part said, once the sitting is submitted', async () =
     markingStatuses: [],
     explanationStatuses: [],
     overallBand: null,
+    overallBandModules: [],
     writingBand: null,
     writingBandReason: null,
     content: [
@@ -1616,6 +1625,7 @@ it('fetches a presigned playback URL on demand and hands it to the player', asyn
     markingStatuses: [],
     explanationStatuses: [],
     overallBand: null,
+    overallBandModules: [],
     writingBand: null,
     writingBandReason: null,
     content: [
@@ -1756,6 +1766,7 @@ it('drops the pending notice for a skill once its marking arrives', async () => 
       },
     ],
     overallBand: null,
+    overallBandModules: [],
   };
 
   resultsPayload = marked;
@@ -2435,3 +2446,96 @@ it('keeps one autosave in flight at a time however fast the learner types', asyn
   expect(sends).toBe(2);
   expect(maxInFlight).toBe(1);
 }, 45_000);
+
+/**
+ * The overall band of a three-skill mock — owner decision 2026-09-18,
+ * blueprint § 04, option three: show it normally, with a small note.
+ *
+ * <b>The note is not decoration.</b> An IELTS overall band is the mean of
+ * four skills; this one is the mean of three, and a learner comparing it with
+ * a real result needs to be told which. What the note must never become is a
+ * hedge big enough to bury the number — the owner asked for the band to read
+ * normally, and a warning sitting above it would undo that.
+ *
+ * The screen does not count skills to work this out. `overallBandModules`
+ * comes off the wire, because deciding what a band covers is the server's
+ * job. → `S1`
+ */
+it('shows a three-skill mock band normally, and says which skills it covers', async () => {
+  resultsPayload = {
+    ...results,
+    mode: 'full',
+    sections: [],
+    markings: [],
+    markingStatuses: [],
+    explanationStatuses: [],
+    overallBand: 6.5,
+    overallBandModules: ['reading', 'listening', 'writing'],
+    writingBand: 6.5,
+    writingBandReason: null,
+    content: [],
+  };
+
+  open('/results/sit-1');
+
+  // Twice on purpose: the hero states it, the table repeats it in place.
+  expect((await screen.findAllByText('6.5')).length).toBeGreaterThan(0);
+
+  const note = document.querySelector('.result-overall-coverage');
+  expect(note).not.toBeNull();
+  expect(note!.textContent).toMatch(/3 kỹ năng/);
+  expect(note!.textContent).toMatch(/chưa gồm Speaking/i);
+});
+
+/**
+ * Four skills is an ordinary IELTS overall and says nothing extra. A footnote
+ * that appears on every band teaches a reader to stop seeing it, which is
+ * exactly when the three-skill case needs to be noticed.
+ */
+it('adds no footnote when the mock covered all four skills', async () => {
+  resultsPayload = {
+    ...results,
+    mode: 'full',
+    sections: [],
+    markings: [],
+    markingStatuses: [],
+    explanationStatuses: [],
+    overallBand: 6.5,
+    overallBandModules: ['reading', 'listening', 'writing', 'speaking'],
+    writingBand: 6.5,
+    writingBandReason: null,
+    content: [],
+  };
+
+  open('/results/sit-1');
+
+  expect((await screen.findAllByText('6.5')).length).toBeGreaterThan(0);
+  expect(document.querySelector('.result-overall-coverage')).toBeNull();
+});
+
+/**
+ * The old copy said an overall band "needs all four skills". It does not any
+ * more, and a sentence that contradicts the number beside it is worse than no
+ * sentence: a learner who reads both learns the screen cannot be trusted.
+ */
+it('explains a withheld overall band by what is still being marked', async () => {
+  resultsPayload = {
+    ...results,
+    mode: 'full',
+    sections: [],
+    markings: [],
+    markingStatuses: [],
+    explanationStatuses: [],
+    overallBand: null,
+    overallBandModules: [],
+    writingBand: null,
+    writingBandReason: null,
+    content: [],
+  };
+
+  open('/results/sit-1');
+
+  expect((await screen.findAllByText(/đang chấm/i)).length).toBeGreaterThan(0);
+  expect(screen.queryByText(/bốn kỹ năng/i)).toBeNull();
+  expect(document.querySelector('.result-overall-coverage')).toBeNull();
+});

@@ -1025,6 +1025,19 @@
   color: var(--ink-2);
 }
 
+/* What the overall band is a mean of, when that is not the usual four skills.
+   Quieter and on its own line: the owner asked for the band to read normally,
+   so this qualifies the number without competing with it. */
+.result-overall-coverage {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-13);
+  /* --ink-2, not a third step: the design system defines two ink levels and
+     publishes a contrast ratio for each. A --ink-3 exists only in the design
+     brief HTML, so using it here would silently resolve to nothing. */
+  color: var(--ink-2);
+}
+
 /* ── Single Skill Result Summary (`D-9`) ────────────────────────────────── */
 
 .result-single-hero-card {

@@ -275,9 +275,11 @@ export function ExamResultsPage() {
   /*
    * The band the hero shows.
    *
-   * Full Test → the overall band, which the server withholds until all four
-   * skills are marked. Single skill → that skill's band, gated on `P-11`:
-   * shown exactly when there is one and the table behind it was equated.
+   * Full Test → the overall band, which the server withholds while any skill
+   * could still gain one — not, since 2026-09-18, merely because there are
+   * three skills rather than four. Single skill → that skill's band, gated on
+   * `P-11`: shown exactly when there is one and the table behind it was
+   * equated.
    */
   const heroBand =
     results.mode === 'full'
@@ -295,6 +297,22 @@ export function ExamResultsPage() {
           : markedBy.get(primaryModule ?? 'reading') !== undefined
             ? (markedBy.get(primaryModule ?? 'reading')?.[0]?.band.toFixed(1) ?? null)
             : null;
+
+  /*
+    Which IELTS skills the overall band left out.
+
+    <b>Subtracted from `SKILL_ORDER`, not counted.</b> `overallBandModules`
+    comes off the wire precisely so the screen does not decide what a band
+    covers; all that is left here is naming the difference, which is a label
+    rather than a rule. Empty whenever the server sent no band, so the
+    footnote cannot appear beside a dash.
+  */
+  const overallCovers = results.overallBandModules ?? [];
+
+  const missingFromOverall =
+    overallCovers.length === 0
+      ? []
+      : SKILL_ORDER.filter((module) => !overallCovers.includes(module));
 
   const heroBandNote =
     heroBand !== null
@@ -617,6 +635,30 @@ export function ExamResultsPage() {
                     {results.overallBand === null ? '—' : results.overallBand.toFixed(1)}
                   </span>
                   {results.overallBand === null && <span>{t('exam.overallPending')}</span>}
+
+                  {/*
+                    What the number is a mean of, when that is not the usual
+                    four. An IELTS overall band averages four skills; this one
+                    may average three, and a learner comparing it with a real
+                    result has to be told which — owner decision 2026-09-18,
+                    blueprint § 04, option three.
+
+                    Small, and after the number rather than above it. The
+                    owner asked for the band to read normally; a warning with
+                    more weight than the figure it qualifies would undo that.
+
+                    Absent when all four are in, because a footnote printed on
+                    every band is one a reader learns to stop seeing — exactly
+                    when the three-skill case needs to be noticed.
+                  */}
+                  {missingFromOverall.length > 0 && (
+                    <span className="result-overall-coverage">
+                      {t('exam.overallCoverage', {
+                        count: overallCovers.length,
+                        missing: missingFromOverall.map((m) => SKILLS[m].name).join(', '),
+                      })}
+                    </span>
+                  )}
                 </p>
               )}
             </section>

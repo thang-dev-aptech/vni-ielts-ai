@@ -5071,6 +5071,7 @@
           "markingStatuses",
           "explanationStatuses",
           "overallBand",
+          "overallBandModules",
           "writingBand",
           "writingBandReason",
           "content"
@@ -5126,6 +5127,12 @@
               "number"
             ],
             "format": "double"
+          },
+          "overallBandModules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "writingBand": {
             "type": [

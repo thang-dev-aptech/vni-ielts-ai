@@ -1511,23 +1511,25 @@ internal static class SessionProjection
         // one, the two task bands are reported as what they are and Writing
         // has no band, with the reason beside it. → `IWritingTaskWeighting`
         var capability = PracticeScorePolicy.ScoreCapability(session, version);
-        var moduleBands = new List<BandScore>();
-        moduleBands.AddRange(scores.Select(s => s.Band).OfType<BandScore>());
+
+        var bandByModule = new Dictionary<ExamModule, BandScore>();
+
+        foreach (var score in scores)
+            if (score.Band is { } deterministic) bandByModule[score.Module] = deterministic;
 
         var (writingBand, writingReason) = WritingBand(
             session, version, markings, weighting ?? WritingTaskWeightPolicy.Unconfigured);
 
-        if (writingBand is { } writing) moduleBands.Add(writing);
+        if (writingBand is { } writing) bandByModule[ExamModule.Writing] = writing;
 
         if (markings.FirstOrDefault(m => m.Module == ExamModule.Speaking) is { } speaking)
-            moduleBands.Add(speaking.Band);
+            bandByModule[ExamModule.Speaking] = speaking.Band;
 
-        // Four bands or none. A mean over two sections is not an overall band,
-        // and presenting one would be inventing a number. → product law L3
-        decimal? overall = moduleBands.Count == version.ModuleSequence.Count
-            && SequenceProfile.IsFullMock(version.ModuleSequence.ToHashSet())
-            ? BandScore.Overall(moduleBands).Value
-            : null;
+        var statuses = (jobs ?? []).OrderBy(j => j.Module)
+            .Select(j => ToStatusView(j, markings))
+            .ToList();
+
+        var (overall, overallModules) = OverallBand(session, version, bandByModule, statuses);
 
         return new SessionResultsView(
             session.Id.Value,
@@ -1537,12 +1539,80 @@ internal static class SessionProjection
             session.SubmittedAt,
             [.. scores.OrderBy(s => s.Module).Select(s => s.ToView(capability, version))],
             [.. markings.OrderBy(m => m.Module).ThenBy(m => m.TaskNumber).Select(m => m.ToView())],
-            [.. (jobs ?? []).OrderBy(j => j.Module).Select(j => ToStatusView(j, markings))],
+            statuses,
             PersonalizedExplanationService.ProjectStatuses(version, explanationJobs ?? []),
             overall,
+            overallModules,
             writingBand?.Value,
             writingReason,
             BuildContent(session, version, writingSubmissions));
+    }
+
+    /// <summary>
+    /// The mean of the skills this sitting finished, and the skills it is a
+    /// mean of.
+    ///
+    /// <para>
+    /// <b>The rule is "nothing is still owed", not "four skills".</b> Product
+    /// law `L3` refuses a mean that moves: averaging two marked skills while a
+    /// third is still being marked hands the learner a number that changes
+    /// under them, and the one they read first was false. That is the failure
+    /// this guards, and it is a statement about <i>pending work</i> rather
+    /// than about how many skills IELTS has.
+    /// </para>
+    ///
+    /// <para>
+    /// The old gate conflated the two and demanded all four. Speaking cannot
+    /// be marked in this build — `P-02` defers the ASR decision, and the job
+    /// says so with a terminal <c>AwaitingVoiceProvider</c> code — so a mock
+    /// whose other three skills are marked is <i>finished</i>, not partial,
+    /// and the owner settled on 2026-09-18 that it shows its band (blueprint
+    /// § 04, option three). Nothing here names Speaking: a skill is settled
+    /// when it has a band, or when its marking status carries any terminal
+    /// code. The day an ASR provider is chosen, Speaking stops carrying one,
+    /// starts producing a band, and a four-skill mock averages four — with no
+    /// edit to this method.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Two bands minimum, and only for a <c>Full</c> sitting.</b> A mean of
+    /// one number is that number under a more impressive name; single-skill
+    /// practice already shows the band itself.
+    /// </para>
+    /// </summary>
+    private static (decimal? Band, IReadOnlyList<string> Modules) OverallBand(
+        ExamSession session,
+        ExamVersion version,
+        IReadOnlyDictionary<ExamModule, BandScore> bandByModule,
+        IReadOnlyList<MarkingStatusView> statuses)
+    {
+        if (session.Mode != SessionMode.Full) return (null, []);
+
+        var settledWithoutBand = statuses
+            .Where(s => s.Code is not null)
+            .Select(s => s.Module)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var covered = new List<ExamModule>();
+
+        foreach (var module in version.ModuleSequence)
+        {
+            if (bandByModule.ContainsKey(module))
+            {
+                covered.Add(module);
+                continue;
+            }
+
+            // No band, and nothing has said it will never get one — so it
+            // still might, and any mean taken now would move when it does.
+            if (!settledWithoutBand.Contains(module.ToString())) return (null, []);
+        }
+
+        if (covered.Count < 2) return (null, []);
+
+        return (
+            BandScore.Overall([.. covered.Select(m => bandByModule[m])]).Value,
+            SequenceProfile.ToWire(covered));
     }
 
     private static readonly IReadOnlyDictionary<string, string?> NoSubmissions =

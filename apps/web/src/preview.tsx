@@ -172,6 +172,7 @@ const results = {
   markingStatuses: [],
   explanationStatuses: [],
   overallBand: null,
+  overallBandModules: [],
   writingBand: null,
   writingBandReason: null,
   content: [
@@ -226,6 +227,7 @@ const sittings = {
       deadlineAt: null,
       sections: [{ module: 'reading', band: 6.5 }],
       overallBand: null,
+      overallBandModules: [],
     },
   ],
 };

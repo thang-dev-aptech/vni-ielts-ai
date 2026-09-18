@@ -468,7 +468,7 @@ const vi = {
   'exam.docsEmpty': 'Thư viện chưa có tài liệu cho kỹ năng này.',
   'exam.docsFailed': 'Không tải được tài liệu. Kiểm tra kết nối rồi mở lại trang.',
   'exam.perSkillTitle': 'Điểm từng kỹ năng',
-  'exam.perSkillLead': 'Điểm tổng chỉ có khi đủ cả bốn kỹ năng.',
+  'exam.perSkillLead': 'Điểm tổng hiện khi mọi kỹ năng đã chấm xong.',
   'exam.bannerTitle': 'Hành trình IELTS của bạn vẫn đang tiếp tục!',
   'exam.bannerLead': 'Luyện tập đều đặn mỗi ngày để tiến gần hơn đến mục tiêu.',
   /* English, because they head the paper's own English rubric. */
@@ -631,7 +631,8 @@ const vi = {
   'exam.resultsLead': 'Điểm từng kỹ năng của lần làm bài này.',
   'exam.resultsExpired': 'Phiên thi hết giờ. Phần bạn đã lưu trước hạn vẫn được chấm.',
   'exam.overall': 'Điểm tổng',
-  'exam.overallPending': 'Điểm tổng chỉ có khi đủ cả bốn kỹ năng.',
+  'exam.overallPending': 'Còn kỹ năng đang chấm. Điểm tổng hiện khi tất cả xong.',
+  'exam.overallCoverage': 'Trung bình {count} kỹ năng · chưa gồm {missing}',
   'exam.rawOf': 'Đúng {raw}/{max} câu',
   // `P-11`: shown beside a Reading/Listening dash when the server sent a band
   // but its conversion table is not yet verified — UI copy, not a business
@@ -1360,7 +1361,7 @@ const en: Record<StringKey, string> = {
   'exam.docsEmpty': 'The library has no documents for this skill yet.',
   'exam.docsFailed': 'Could not load documents. Check your connection and reopen the page.',
   'exam.perSkillTitle': 'Band per skill',
-  'exam.perSkillLead': 'An overall band appears only once all four skills are marked.',
+  'exam.perSkillLead': 'The overall band appears once every skill has been marked.',
   'exam.bannerTitle': 'Your IELTS journey continues.',
   'exam.bannerLead': 'Practise regularly to close the gap to your target.',
   'exam.questionsRange': 'Questions {from} – {to}',
@@ -1513,7 +1514,9 @@ const en: Record<StringKey, string> = {
   'exam.resultsExpired':
     'The sitting ran out of time. Everything saved before the deadline is still marked.',
   'exam.overall': 'Overall band',
-  'exam.overallPending': 'An overall band needs all four skills.',
+  'exam.overallPending':
+    'A skill is still being marked. The overall band appears once they are all done.',
+  'exam.overallCoverage': 'Mean of {count} skills · does not include {missing}',
   'exam.rawOf': '{raw}/{max} correct',
   'exam.bandUnverified':
     "Band is hidden because this paper's conversion table is not verified yet.",

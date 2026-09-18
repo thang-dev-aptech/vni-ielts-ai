@@ -305,10 +305,34 @@ public sealed record SessionResultsView(
     /// </summary>
     IReadOnlyList<QuestionExplanationStatusView> ExplanationStatuses,
     /// <summary>
-    /// Null until every one of the four modules has a band. Absent is the
-    /// honest state; the client draws it as `—`, never as a partial average.
+    /// The mean of the skills this sitting finished, rounded by
+    /// <c>BandScore.Overall</c>.
+    ///
+    /// <para>
+    /// <b>Null while any skill could still gain a band</b> — a mean that moves
+    /// when the next marking job lands told the learner who read it something
+    /// false (`L3`). It is <i>not</i> null merely because there are three
+    /// skills rather than four: Speaking carries a terminal blocker
+    /// (<c>AwaitingVoiceProvider</c>, `P-02`), so a mock whose other three are
+    /// marked is finished rather than partial. Owner decision 2026-09-18 —
+    /// blueprint § 04, option three.
+    /// </para>
+    ///
+    /// <para>
+    /// Also null for a single band, which is that band under a bigger name.
+    /// </para>
     /// </summary>
     decimal? OverallBand,
+    /// <summary>
+    /// Which skills <see cref="OverallBand"/> is the mean of, in sitting
+    /// order, lower-case; empty whenever that is null.
+    ///
+    /// <b>Sent rather than inferred.</b> A client counting <c>Sections</c> to
+    /// work out whether Speaking was included would be re-deriving a business
+    /// fact from a shape — the habit slice `S1` spent its budget removing.
+    /// It is also what the footnote under the number is written from.
+    /// </summary>
+    IReadOnlyList<string> OverallBandModules,
     /// <summary>
     /// The combined Writing band — Task 1 and Task 2 on the ratio in force
     /// (`P-12`: 1 : 2, carried by the exam version or by configuration) and

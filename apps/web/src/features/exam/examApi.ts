@@ -340,8 +340,24 @@ export interface SessionResultsView {
   markingStatuses: MarkingStatusView[];
   /** Per-question explanation status for submitted Reading/Listening answers. */
   explanationStatuses: QuestionExplanationStatusView[];
-  /** Null until all four modules are marked. The screen draws that as `—`. */
+  /**
+   * The mean of the skills this sitting finished. Null while any skill could
+   * still gain a band — the screen draws that as `—` — but **not** merely
+   * because there are three skills rather than four: Speaking carries a
+   * terminal blocker (`P-02`), so a three-skill mock is finished rather than
+   * partial and shows its band. Owner decision 2026-09-18.
+   */
   overallBand: number | null;
+  /**
+   * Which skills {@link overallBand} averaged, in sitting order; empty when
+   * that is null.
+   *
+   * <b>Read, never re-derived.</b> Counting `sections` to discover whether
+   * Speaking was in the mean would put a business decision back in the
+   * interface, which is the habit slice `S1` removed. The footnote under the
+   * number is written from this.
+   */
+  overallBandModules: ExamModule[];
   /**
    * The combined Writing band — Task 1 and Task 2 on the ratio in force
    * (`P-12`), rounded server-side. Null while fewer than two task markings
