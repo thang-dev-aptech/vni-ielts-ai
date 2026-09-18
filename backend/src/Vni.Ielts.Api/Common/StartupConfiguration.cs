@@ -1,5 +1,6 @@
 using Vni.Ielts.Application.Usage;
 using Vni.Ielts.Application.Content;
+using Vni.Ielts.Application.Dictation;
 using Vni.Ielts.Infrastructure.Ai;
 using Vni.Ielts.Infrastructure.Ai.Importing;
 using Vni.Ielts.Infrastructure.Assessment;
@@ -628,6 +629,55 @@ public static class StartupConfiguration
             + "\n\nRefusing to start. A misconfiguration that surfaces as a user problem is a "
             + "production incident; one that refuses to boot is a deployment failure, and that "
             + "is the cheaper of the two.");
+    }
+
+    /// <summary>
+    /// Content shelves that are empty, said out loud at startup.
+    ///
+    /// ── Why this is separate from <see cref="ValidateOrThrow"/> ───────────
+    ///
+    /// <b>Because it is an answer about content, not about configuration.</b>
+    /// Everything above reads `IConfiguration` and can run before the container
+    /// exists. Whether the dictation shelf has anything on it is only knowable
+    /// once the catalogue has read the disk, which is after `builder.Build()`.
+    /// So it is a second call, on the same `[config]` channel, rather than a
+    /// check squeezed into a validator that runs too early to know.
+    ///
+    /// ── Why a warning and not a readiness failure ─────────────────────────
+    ///
+    /// <b>Readiness answers "can this instance serve a request".</b> An empty
+    /// dictation shelf does not stop this API serving exams, sign-in, or
+    /// Writing marking — so letting it fail readiness would mean one missing
+    /// content package takes the entire product out of the load balancer. That
+    /// is an outage manufactured by the monitoring choice rather than by the
+    /// fault, and it is strictly worse than the blank page it would be
+    /// reporting. Product-owner decision, 2026-09-18.
+    ///
+    /// This therefore follows the shape
+    /// `ContentRights:AllowPublicationWithoutProvenRights` already uses above:
+    /// a state that somebody needs to know about, announced where whoever
+    /// inherits the deployment will read it, and never wired into a probe.
+    ///
+    /// <b>It is public because it is tested directly</b> — the same reasoning
+    /// as <see cref="Describe"/>. Scraping the console can pass because nothing
+    /// was printed at all; asserting on the returned lines cannot.
+    /// </summary>
+    public static IReadOnlyList<string> ContentInventoryWarnings(IDictationCatalogue dictation)
+    {
+        var warnings = new List<string>();
+
+        if (dictation.List().Count == 0)
+        {
+            warnings.Add(
+                "The dictation catalogue is empty. /dictation will serve an empty list, which "
+                + "presents as a working page with nothing on it — this is how the module stayed "
+                + "blank from 2026-08-28 to 2026-09-18 with no error anywhere. Sets are read from "
+                + "fixtures/dictation/*.json with their audio under fixtures/dictation/assets. "
+                + "This is deliberately not a readiness failure: an empty shelf does not stop this "
+                + "instance serving exams, sign-in or marking.");
+        }
+
+        return warnings;
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Api.Endpoints;
+using Vni.Ielts.Application.Dictation;
 using OpenTelemetry.Trace;
 using Vni.Ielts.Infrastructure;
 using Vni.Ielts.Infrastructure.Configuration;
@@ -431,6 +432,25 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
         "Idempotency-Replayed")));         // lets a client tell a replay from a fresh write
 
 var app = builder.Build();
+
+/*
+ * <b>W4 — what the process read from configuration, then what it found on the
+ * shelves.</b> `ValidateOrThrow` above runs before the container exists, so it
+ * can only answer configuration questions; whether a content store actually has
+ * anything in it is knowable only now. `fixtures/dictation` was deleted on
+ * 2026-08-28 in a commit about something else and `/dictation` served an empty
+ * list until 2026-09-18 — no error, no warning, one of the four learner modules
+ * blank. This is the line that would have said so.
+ *
+ * Announced, never wired into readiness: an empty dictation shelf does not stop
+ * this instance serving exams, sign-in or marking, and failing readiness on
+ * content would let one missing package take the product down.
+ */
+foreach (var warning in StartupConfiguration.ContentInventoryWarnings(
+    app.Services.GetRequiredService<IDictationCatalogue>()))
+{
+    Console.WriteLine($"[config] {warning}");
+}
 
 /*
  * <b>F2.4 — first, ahead of everything else, including ServerTimeMiddleware.</b>

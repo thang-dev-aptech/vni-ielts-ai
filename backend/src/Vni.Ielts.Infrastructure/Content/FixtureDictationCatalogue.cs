@@ -22,10 +22,25 @@ public sealed class FixtureDictationCatalogue : IDictationCatalogue
     private readonly Dictionary<string, DictationSet> _sets = [];
 
     public FixtureDictationCatalogue(ILogger<FixtureDictationCatalogue> logger)
+        : this(logger, Locate())
     {
-        if (Locate() is not { } directory)
+    }
+
+    /// <summary>
+    /// The same catalogue, reading a directory named outright.
+    ///
+    /// <b>A seam, because the shelf being empty is the case worth testing and
+    /// <see cref="Locate"/> cannot produce it.</b> It walks up from the running
+    /// assembly until it finds <c>fixtures/dictation</c>, so inside this
+    /// repository it always finds the real one — which means the empty shelf,
+    /// the state a deployment can actually be in, was the one state no test
+    /// could reach. Passing the directory in is what makes it reachable.
+    /// </summary>
+    public FixtureDictationCatalogue(ILogger<FixtureDictationCatalogue> logger, string? directory)
+    {
+        if (directory is null)
         {
-            logger.LogInformation("No fixtures/dictation directory found; dictation is empty.");
+            WarnTheShelfIsEmpty(logger, "no fixtures/dictation directory was found");
             return;
         }
 
@@ -54,8 +69,41 @@ public sealed class FixtureDictationCatalogue : IDictationCatalogue
             }
         }
 
+        if (_sets.Count == 0)
+        {
+            // The subtler half of the same silence. A directory that exists but
+            // holds nothing readable took this branch and reported "Loaded 0"
+            // at Information — which is the empty shelf again, one `if` further
+            // along, and reads like a success.
+            WarnTheShelfIsEmpty(logger, $"{directory} holds no readable dictation set");
+            return;
+        }
+
         logger.LogInformation("Loaded {Count} dictation set(s).", _sets.Count);
     }
+
+    /// <summary>
+    /// <b>Warning, not Information, and the reason is three weeks long.</b>
+    /// `fixtures/dictation` was deleted on 2026-08-28 in a commit about
+    /// something else. This class did exactly what it was told — found nothing,
+    /// wrote one Information line, served an empty list — and `/dictation`, one
+    /// of the four modules in the header, was blank until 2026-09-18 with no
+    /// error anywhere. Information is the level you read once you already
+    /// suspect a problem; an empty content store is how you find out you have
+    /// one.
+    ///
+    /// <b>It stops at a log line and a startup announcement on purpose.</b>
+    /// Readiness answers "can this instance serve a request", and an empty
+    /// dictation shelf does not stop this API serving exams, sign-in or Writing
+    /// marking. Failing readiness on it would let one missing content package
+    /// take the whole product down — an outage caused by the monitoring choice
+    /// rather than by the fault. → `StartupConfiguration.ContentInventoryWarnings`
+    /// </summary>
+    private static void WarnTheShelfIsEmpty(ILogger logger, string reason) =>
+        logger.LogWarning(
+            "Dictation catalogue is empty: {Reason}. /dictation will serve an empty list and "
+            + "nothing downstream will say so.",
+            reason);
 
     public IReadOnlyList<DictationSet> List() => [.. _sets.Values.OrderBy(s => s.Title)];
 
