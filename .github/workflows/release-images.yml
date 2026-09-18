@@ -131,7 +131,7 @@ jobs:
       # through different tooling, and a deployment gate that can only check
       # one should not be blocked on which one that is.
       - name: Attest provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-name: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
           subject-digest: ${{ steps.build.outputs.digest }}
