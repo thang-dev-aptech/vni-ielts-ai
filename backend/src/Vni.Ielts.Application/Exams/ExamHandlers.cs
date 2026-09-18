@@ -846,14 +846,29 @@ public sealed record ListMySittingsQuery(UserId UserId, int Limit);
 /// user id comes from the token; there is no parameter through which one
 /// learner could ask for another's history.
 ///
-/// <b>Two lookups per sitting, bounded by the limit.</b> The version for its
-/// title and the stored section results. That is an N+1 by construction, and
-/// acceptable only because N is capped at <see cref="MaxLimit"/> — versions
-/// are deduplicated because a learner re-sitting the same exam is the common
-/// case, not the rare one.
+/// <b>Two lookups per sitting, and two more for a mock.</b> The version for
+/// its title and the stored section results, always; the markings and the
+/// marking jobs only when <see cref="SittingBand.Applies"/> says an overall
+/// band is possible at all, which excludes every single-skill practice row.
+/// That is an N+1 by construction, and acceptable only because N is capped at
+/// <see cref="MaxLimit"/> — versions are deduplicated because a learner
+/// re-sitting the same exam is the common case, not the rare one.
+///
+/// <b>The two extra reads are what `W1` cost.</b> `Q-01`'s rule is "nothing is
+/// still owed", and nothing but the marking store and the job outbox can say
+/// what is owed — so the alternative to paying for them was leaving this
+/// screen disagreeing with the results screen about the same sitting. Neither
+/// port can be asked about more than one sitting at a time; a batch read is
+/// recorded as debt beside `W5`'s cursor rather than smuggled in here, because
+/// it changes a port and its Mongo implementation.
 /// </summary>
 public sealed class ListMySittings(
-    IExamCatalogue catalogue, IExamSessionRepository sessions, ISectionResultStore results)
+    IExamCatalogue catalogue,
+    IExamSessionRepository sessions,
+    ISectionResultStore results,
+    ISectionMarkingStore markings,
+    IMarkingOutbox outbox,
+    IWritingTaskWeighting? weighting = null)
 {
     /// <summary>
     /// The most a single request will return.
@@ -913,7 +928,24 @@ public sealed class ListMySittings(
                 && session.Timing == SessionTiming.Deadline
                 ? "full-mock"
                 : scope == "part" ? "practice-part" : "practice-skill";
-            var overall = SittingBand.Overall(sections);
+
+            // <b>The results screen's rule, not a second one.</b> Reading the
+            // bands off `sections` would be cheaper and would be exactly the
+            // divergence `W1` closed: `sections` has no way to express "this
+            // skill will never be marked", so it cannot tell a finished
+            // three-skill mock from a mock still waiting on Writing. Only the
+            // marking jobs carry that, so a sitting that could have an overall
+            // band pays for them and a sitting that could not pays nothing.
+            decimal? overall = null;
+
+            if (SittingBand.Applies(session))
+                overall = SessionProjection.OverallBand(
+                    session,
+                    version,
+                    scored,
+                    await markings.ListAsync(session.Id, ct),
+                    await outbox.ListAsync(session.Id, ct),
+                    weighting).Band;
 
             summaries.Add(new SittingSummaryView(
                 session.Id.Value,
@@ -1539,24 +1571,15 @@ internal static class SessionProjection
         // has no band, with the reason beside it. → `IWritingTaskWeighting`
         var capability = PracticeScorePolicy.ScoreCapability(session, version);
 
-        var bandByModule = new Dictionary<ExamModule, BandScore>();
-
-        foreach (var score in scores)
-            if (score.Band is { } deterministic) bandByModule[score.Module] = deterministic;
-
         var (writingBand, writingReason) = WritingBand(
             session, version, markings, weighting ?? WritingTaskWeightPolicy.Unconfigured);
-
-        if (writingBand is { } writing) bandByModule[ExamModule.Writing] = writing;
-
-        if (markings.FirstOrDefault(m => m.Module == ExamModule.Speaking) is { } speaking)
-            bandByModule[ExamModule.Speaking] = speaking.Band;
 
         var statuses = (jobs ?? []).OrderBy(j => j.Module)
             .Select(j => ToStatusView(j, markings))
             .ToList();
 
-        var (overall, overallModules) = OverallBand(session, version, bandByModule, statuses);
+        var (overall, overallModules) = OverallBand(
+            session, version, scores, markings, writingBand, statuses);
 
         return new SessionResultsView(
             session.Id.Value,
@@ -1576,70 +1599,58 @@ internal static class SessionProjection
     }
 
     /// <summary>
-    /// The mean of the skills this sitting finished, and the skills it is a
-    /// mean of.
+    /// The overall band of a sitting, from the stores it takes to know one.
     ///
-    /// <para>
-    /// <b>The rule is "nothing is still owed", not "four skills".</b> Product
-    /// law `L3` refuses a mean that moves: averaging two marked skills while a
-    /// third is still being marked hands the learner a number that changes
-    /// under them, and the one they read first was false. That is the failure
-    /// this guards, and it is a statement about <i>pending work</i> rather
-    /// than about how many skills IELTS has.
-    /// </para>
-    ///
-    /// <para>
-    /// The old gate conflated the two and demanded all four. Speaking cannot
-    /// be marked in this build — `P-02` defers the ASR decision, and the job
-    /// says so with a terminal <c>AwaitingVoiceProvider</c> code — so a mock
-    /// whose other three skills are marked is <i>finished</i>, not partial,
-    /// and the owner settled on 2026-09-18 that it shows its band (blueprint
-    /// § 04, option three). Nothing here names Speaking: a skill is settled
-    /// when it has a band, or when its marking status carries any terminal
-    /// code. The day an ASR provider is chosen, Speaking stops carrying one,
-    /// starts producing a band, and a four-skill mock averages four — with no
-    /// edit to this method.
-    /// </para>
-    ///
-    /// <para>
-    /// <b>Two bands minimum, and only for a <c>Full</c> sitting.</b> A mean of
-    /// one number is that number under a more impressive name; single-skill
-    /// practice already shows the band itself.
-    /// </para>
+    /// <b>The history list's entry point, and the reason it exists.</b>
+    /// `GET /api/v1/sessions` used to answer this question with its own,
+    /// superseded rule, so the same sitting carried a band on the results
+    /// screen and a dash in the learner's history. The rule itself lives in
+    /// <see cref="SittingBand.Overall"/>; this assembles the three facts it
+    /// needs — deterministic bands, the Writing band its configured ratio
+    /// produces, and Speaking's if one ever exists — the one way both screens
+    /// assemble them. → `W1`, `Q-01`
+    /// </summary>
+    internal static (decimal? Band, IReadOnlyList<string> Modules) OverallBand(
+        ExamSession session,
+        ExamVersion version,
+        IReadOnlyList<SectionScore> scores,
+        IReadOnlyList<SectionMarking> markings,
+        IReadOnlyList<MarkingJob> jobs,
+        IWritingTaskWeighting? weighting)
+    {
+        var (writingBand, _) = WritingBand(
+            session, version, markings, weighting ?? WritingTaskWeightPolicy.Unconfigured);
+
+        var statuses = jobs.OrderBy(j => j.Module)
+            .Select(j => ToStatusView(j, markings))
+            .ToList();
+
+        return OverallBand(session, version, scores, markings, writingBand, statuses);
+    }
+
+    /// <summary>
+    /// The same answer for a caller that has already computed the Writing band
+    /// and the marking statuses, because it is about to report them too.
     /// </summary>
     private static (decimal? Band, IReadOnlyList<string> Modules) OverallBand(
         ExamSession session,
         ExamVersion version,
-        IReadOnlyDictionary<ExamModule, BandScore> bandByModule,
+        IReadOnlyList<SectionScore> scores,
+        IReadOnlyList<SectionMarking> markings,
+        BandScore? writingBand,
         IReadOnlyList<MarkingStatusView> statuses)
     {
-        if (session.Mode != SessionMode.Full) return (null, []);
+        var bandByModule = new Dictionary<ExamModule, BandScore>();
 
-        var settledWithoutBand = statuses
-            .Where(s => s.Code is not null)
-            .Select(s => s.Module)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var score in scores)
+            if (score.Band is { } deterministic) bandByModule[score.Module] = deterministic;
 
-        var covered = new List<ExamModule>();
+        if (writingBand is { } writing) bandByModule[ExamModule.Writing] = writing;
 
-        foreach (var module in version.ModuleSequence)
-        {
-            if (bandByModule.ContainsKey(module))
-            {
-                covered.Add(module);
-                continue;
-            }
+        if (markings.FirstOrDefault(m => m.Module == ExamModule.Speaking) is { } speaking)
+            bandByModule[ExamModule.Speaking] = speaking.Band;
 
-            // No band, and nothing has said it will never get one — so it
-            // still might, and any mean taken now would move when it does.
-            if (!settledWithoutBand.Contains(module.ToString())) return (null, []);
-        }
-
-        if (covered.Count < 2) return (null, []);
-
-        return (
-            BandScore.Overall([.. covered.Select(m => bandByModule[m])]).Value,
-            SequenceProfile.ToWire(covered));
+        return SittingBand.Overall(session, version, bandByModule, statuses);
     }
 
     private static readonly IReadOnlyDictionary<string, string?> NoSubmissions =

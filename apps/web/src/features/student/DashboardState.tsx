@@ -142,17 +142,16 @@ export function StatStrip({ sittings }: { sittings: SittingSummary[] }) {
    * order, so a sitting marked Reading 5.0 and Listening 8.0 reported 5.0.
    * Sorting by when the sitting started is what the label already claimed.
    *
-   * `overallBand` on `SittingSummaryView` is still `null` for every sitting
-   * this list can show, so an unqualified figure has no source to come from.
-   * → `H-8`, `A-11`
-   *
-   * <b>The results screen does show one now, and this list does not — yet.</b>
-   * Since 2026-09-18 a three-skill mock has an overall band, but it is
-   * computed from marking statuses the history query does not load, and
-   * `SittingBand.Overall` still demands four sections. Reconciling them needs
-   * markings and jobs in that query; until then the honest reading of this
-   * list is the per-skill band it already shows, not a number derived a
-   * second way.
+   * <b>`overallBand` is a real number again since `W1`</b> — the history query
+   * loads the markings and the jobs, so a finished mock carries the same band
+   * the results screen shows. This tile still does not read it, and that is
+   * deliberate: an overall band exists only for a Full sitting, so a learner
+   * whose recent history is single-skill practice would see this tile empty
+   * where the per-skill band below it is not. Which number belongs in the
+   * headline slot is a product question, and `W7` is where the history row
+   * learns to say which skills its band covers. Until then the honest reading
+   * of this list is the per-skill band it already shows.
+   * → `H-8`, `A-11`, `Q-01`
    */
   const marked = [...sittings]
     .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))

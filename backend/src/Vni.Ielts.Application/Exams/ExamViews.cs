@@ -518,53 +518,107 @@ public sealed record SittingSummaryView(
 
     IReadOnlyList<SittingSectionView> Sections,
 
-    /// <summary>Null until every section of this sitting has a band.</summary>
+    /// <summary>
+    /// The mean of the skills this sitting finished — <see cref="SittingBand"/>,
+    /// the same rule and the same implementation the results screen reports.
+    /// Null while any skill could still gain a band, and for anything that is
+    /// not a Full sitting.
+    /// </summary>
     decimal? OverallBand);
 
 public sealed record SittingSectionView(string Module, decimal? Band);
 
 /// <summary>
 /// The overall band of a sitting — or nothing, which is the usual answer.
+///
+/// <b>One implementation, because two of them is the defect `W1` was opened
+/// for.</b> `Q-01` (owner, 2026-09-18) landed on the results screen while this
+/// class still held the superseded rule — all four skills or nothing — so one
+/// learner's three-skill mock read as a band on `/exam/{id}/results` and as a
+/// dash on `/students/progress`. Both screens now call the method below, and
+/// the older four-skill entry point is gone rather than deprecated: a rule
+/// that can still be called is a rule that will be.
 /// </summary>
 public static class SittingBand
 {
     /// <summary>
-    /// <b>Set membership only — never sitting order.</b> Overall band needs every
-    /// IELTS module marked; the order they were sat does not affect the mean.
+    /// Whether this sitting is the kind that can have an overall band at all.
+    ///
+    /// <b>Exposed so a caller can skip the reads it takes to answer.</b>
+    /// Knowing whether anything is still owed costs a marking read and a job
+    /// read per sitting, and a history list is mostly single-skill practice
+    /// that could never produce a mean. The predicate lives here, beside the
+    /// rule that uses it, so the saving cannot drift away from the rule.
     /// </summary>
-    private static readonly IReadOnlySet<ExamModule> FourSkills = SequenceProfile.FourSkills;
+    public static bool Applies(ExamSession session) => session.Mode == SessionMode.Full;
 
     /// <summary>
-    /// <b>All four skills or nothing.</b> An IELTS overall band is the mean of
-    /// Listening, Reading, Writing and Speaking, so a single-skill sitting has
-    /// no overall band at all. The first version of this returned one anyway:
-    /// a Reading-only sitting reported <c>overall = 0.0</c> — the Reading band
-    /// wearing a label that means something else, which on a dashboard reads
-    /// as "your overall band is 0".
+    /// The mean of the skills this sitting finished, and the skills it is a
+    /// mean of.
     ///
-    /// A partial mean is worse. Two marked skills out of four averaged
-    /// together is not a band, it is an arithmetic accident that looks like
-    /// one, and it moves every time another section is marked. Writing and
-    /// Speaking have no evaluation pipeline yet, so today this returns null for
-    /// every sitting in the product — which is the honest answer, and the
-    /// client draws `—`. → L3
+    /// <para>
+    /// <b>The rule is "nothing is still owed", not "four skills".</b> Product
+    /// law `L3` refuses a mean that moves: averaging two marked skills while a
+    /// third is still being marked hands the learner a number that changes
+    /// under them, and the one they read first was false. That is the failure
+    /// this guards, and it is a statement about <i>pending work</i> rather
+    /// than about how many skills IELTS has.
+    /// </para>
+    ///
+    /// <para>
+    /// The old gate conflated the two and demanded all four. Speaking cannot
+    /// be marked in this build — `P-02` defers the ASR decision, and the job
+    /// says so with a terminal <c>AwaitingVoiceProvider</c> code — so a mock
+    /// whose other three skills are marked is <i>finished</i>, not partial,
+    /// and the owner settled on 2026-09-18 that it shows its band (blueprint
+    /// § 04, option three). Nothing here names Speaking: a skill is settled
+    /// when it has a band, or when its marking status carries any terminal
+    /// code. The day an ASR provider is chosen, Speaking stops carrying one,
+    /// starts producing a band, and a four-skill mock averages four — with no
+    /// edit to this method.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Two bands minimum, and only for a <c>Full</c> sitting.</b> A mean of
+    /// one number is that number under a more impressive name; single-skill
+    /// practice already shows the band itself. That is also why a Reading-only
+    /// sitting cannot report <c>overall = 0.0</c>, which the first version of
+    /// this did — a Reading band wearing a label that means something else.
+    /// </para>
     /// </summary>
-    public static decimal? Overall(IReadOnlyList<SittingSectionView> sections)
+    public static (decimal? Band, IReadOnlyList<string> Modules) Overall(
+        ExamSession session,
+        ExamVersion version,
+        IReadOnlyDictionary<ExamModule, BandScore> bandByModule,
+        IReadOnlyList<MarkingStatusView> statuses)
     {
-        if (sections.Count != FourSkills.Count) return null;
+        if (!Applies(session)) return (null, []);
 
-        var bands = new List<BandScore>(FourSkills.Count);
+        var settledWithoutBand = statuses
+            .Where(s => s.Code is not null)
+            .Select(s => s.Module)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var module in FourSkills)
+        var covered = new List<ExamModule>();
+
+        foreach (var module in version.ModuleSequence)
         {
-            var section = sections.FirstOrDefault(
-                s => string.Equals(s.Module, module.ToString(), StringComparison.OrdinalIgnoreCase));
-            if (section?.Band is not { } band) return null;
+            if (bandByModule.ContainsKey(module))
+            {
+                covered.Add(module);
+                continue;
+            }
 
-            bands.Add(BandScore.Create(band));
+            // No band, and nothing has said it will never get one — so it
+            // still might, and any mean taken now would move when it does.
+            if (!settledWithoutBand.Contains(module.ToString())) return (null, []);
         }
 
-        return BandScore.Overall(bands).Value;
+        if (covered.Count < 2) return (null, []);
+
+        return (
+            BandScore.Overall([.. covered.Select(m => bandByModule[m])]).Value,
+            SequenceProfile.ToWire(covered));
     }
 }
 
