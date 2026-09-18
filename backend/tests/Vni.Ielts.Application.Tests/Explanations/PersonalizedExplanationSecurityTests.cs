@@ -193,6 +193,13 @@ public sealed class PersonalizedExplanationSecurityTests
         public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct) =>
             Task.FromResult<ExamVersion?>(id == version.Id ? version : null);
 
+        public Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
+            IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyDictionary<ExamVersionId, ExamVersion>>(
+                ids.Contains(version.Id)
+                    ? new Dictionary<ExamVersionId, ExamVersion> { [version.Id] = version }
+                    : new Dictionary<ExamVersionId, ExamVersion>());
+
         public Task UpsertAsync(ExamVersion v, CancellationToken ct) => Task.CompletedTask;
         public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) => Task.CompletedTask;
     }
@@ -205,7 +212,8 @@ public sealed class PersonalizedExplanationSecurityTests
         public Task<ExamSession?> FindOpenForUserAsync(UserId userId, CancellationToken ct) =>
             Task.FromResult<ExamSession?>(null);
 
-        public Task<IReadOnlyList<ExamSession>> ListForUserAsync(UserId userId, int limit, CancellationToken ct) =>
+        public Task<IReadOnlyList<ExamSession>> ListForUserAsync(
+            UserId userId, int limit, CancellationToken ct, SittingCursor? after = null) =>
             Task.FromResult<IReadOnlyList<ExamSession>>([]);
 
         public Task AddAsync(ExamSession s, CancellationToken ct) => Task.CompletedTask;

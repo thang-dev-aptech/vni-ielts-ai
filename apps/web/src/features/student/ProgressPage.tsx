@@ -16,10 +16,13 @@ import '../../styles/dashboard.css';
 /**
  * How many rows one press adds, and how many the screen opens with.
  *
- * <b>It is a page size, not a cap.</b> `listMySittings` already takes a limit
- * and the server clamps it, so "xem thêm" is the same request with a bigger
- * number rather than a second endpoint — which is why `W5` needed no contract
- * change and no `packages/api-client` regenerate.
+ * <b>It is a page size, and now it really is one.</b> It used to be a limit on
+ * a request that always started from the top: each press re-read the whole list
+ * one page longer, and stopped working entirely at the server's fifty-row
+ * clamp — a learner with sixty sittings could not reach their ten oldest by
+ * pressing it any number of times. The endpoint carries a cursor since
+ * 18/09/2026, so a press fetches the next page and the fiftieth row is the end
+ * of a page rather than the end of the data.
  */
 const PAGE_SIZE = 10;
 
@@ -39,6 +42,13 @@ const PAGE_SIZE = 10;
  * with thirty sittings saw ten under a heading that claimed nothing — and
  * blueprint § 03 asks for the full history. Raising a number alone would not
  * have fixed that: the silence was the worse half. → `W5`
+ *
+ * <b>And the first fix could not finish either half.</b> Reachability stopped
+ * at the server's fifty-row ceiling, and the wording had to stay hedged —
+ * "N phiên gần nhất" — because a full page and the last page were the same
+ * response. With `nextCursor` the screen knows which it has, so it pages past
+ * fifty and says "toàn bộ N" only when the server has said there is nothing
+ * after. It never claims the end on a guess.
  */
 export function ProgressPage() {
   const { accessToken } = useAuth();
@@ -47,31 +57,67 @@ export function ProgressPage() {
   const alive = useAlive();
 
   const [sittings, setSittings] = useState<SittingSummary[] | null>(null);
-  const [limit, setLimit] = useState(PAGE_SIZE);
+
+  /**
+   * Where the last page stopped, or null once the server has said there is
+   * nothing after it. It is also the only thing the "xem thêm" offer is
+   * conditioned on — a full page is not evidence of another one.
+   */
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [coaching, setCoaching] = useState<Coaching | null>(null);
 
   /*
-   * <b>Two effects, because only one of them depends on the limit.</b> They
-   * used to be one call: pressing "xem thêm" would have re-asked for the
-   * coaching advice as well, which is an AI-backed read that has nothing to do
-   * with how far down the list somebody has scrolled.
+   * <b>The first page is an effect; the rest are a button.</b> They used to be
+   * one effect keyed on a growing limit, which meant a press re-read every row
+   * already on screen. Appending cannot be done that way — an effect that
+   * appends runs twice under `StrictMode` and doubles the list — so the mount
+   * read replaces and only the press appends.
+   *
+   * Separate from the coaching read below, because that one is AI-backed and
+   * has nothing to do with how far down the list somebody has scrolled.
    */
-  const loadSittings = useCallback(async () => {
+  useEffect(() => {
     if (accessToken === null) return;
+
+    void (async () => {
+      try {
+        const res = await listMySittings(accessToken, PAGE_SIZE);
+        if (!alive.current) return;
+
+        setSittings(res?.sittings ?? []);
+        setNextCursor(res?.nextCursor ?? null);
+      } catch {
+        if (!alive.current) return;
+
+        setSittings([]);
+        setNextCursor(null);
+      }
+    })();
+  }, [accessToken, alive]);
+
+  const loadMore = useCallback(async () => {
+    if (accessToken === null || nextCursor === null) return;
+
+    setLoadingMore(true);
+
     try {
-      const res = await listMySittings(accessToken, limit);
-      if (alive.current) setSittings(res?.sittings ?? []);
+      const res = await listMySittings(accessToken, PAGE_SIZE, nextCursor);
+      if (!alive.current) return;
+
+      setSittings((current) => [...(current ?? []), ...(res?.sittings ?? [])]);
+      setNextCursor(res?.nextCursor ?? null);
     } catch {
-      if (alive.current) setSittings([]);
+      /*
+       * The cursor is deliberately left where it was. A failed page is a
+       * request to retry, not evidence that the history ended — clearing it
+       * here would withdraw the offer and tell the learner they had seen
+       * everything because their connection dropped.
+       */
     } finally {
       if (alive.current) setLoadingMore(false);
     }
-  }, [accessToken, alive, limit]);
-
-  useEffect(() => {
-    void loadSittings();
-  }, [loadSittings]);
+  }, [accessToken, alive, nextCursor]);
 
   useEffect(() => {
     if (accessToken === null) return;
@@ -90,14 +136,22 @@ export function ProgressPage() {
   const shown = sittings?.length ?? 0;
 
   /*
-   * <b>"There may be more", never "there is more".</b> The server answered
-   * with exactly as many rows as were asked for, which means it had at least
-   * that many — and the client cannot tell "that is all of them" from "the
-   * server's ceiling stopped here", because the ceiling is not on the wire.
-   * So the offer stands for one more press and then withdraws, and the count
-   * below never claims to be the whole history.
+   * <b>The screen knows which sentence is true now, and says that one.</b>
+   *
+   * It used to have to hedge. The server answered with exactly as many rows as
+   * were asked for, which means it had at least that many — and nothing on the
+   * wire distinguished "that is all of them" from "the ceiling stopped here".
+   * So the only always-true claim was "the N most recent", said equally to
+   * someone who had seen their whole history and someone who had seen a sixth
+   * of it, and the offer to load more had to stand for one press that fetched
+   * nothing.
+   *
+   * `nextCursor` carries that fact: null means the server looked past this page
+   * and found nothing. So "toàn bộ N" is said only when it is known, "N gần
+   * nhất" whenever it is not, and the offer withdraws on the same fact rather
+   * than on a page that happened to come back full.
    */
-  const mayHaveMore = sittings !== null && shown > 0 && shown === limit;
+  const hasWholeHistory = sittings !== null && nextCursor === null;
 
   return (
     <div
@@ -167,7 +221,13 @@ export function ProgressPage() {
           <h2 style={{ fontSize: 'var(--t-20)', fontWeight: 'var(--w-emph)' }}>
             {t('dash.recent.title')}
           </h2>
-          {hasData && <p>{t('progress.history.showing', { n: shown })}</p>}
+          {hasData && (
+            <p>
+              {hasWholeHistory
+                ? t('progress.history.showingAll', { n: shown })
+                : t('progress.history.showing', { n: shown })}
+            </p>
+          )}
         </div>
         {sittings === null ? (
           <div className="dash-empty" style={{ padding: 'var(--s-6)' }}>
@@ -176,16 +236,13 @@ export function ProgressPage() {
         ) : hasData ? (
           <>
             <RecentSittings sittings={sittings} />
-            {mayHaveMore && (
+            {nextCursor !== null && (
               <div style={{ marginTop: 'var(--s-4)' }}>
                 <button
                   type="button"
                   className="btn btn-secondary"
                   disabled={loadingMore}
-                  onClick={() => {
-                    setLoadingMore(true);
-                    setLimit((current) => current + PAGE_SIZE);
-                  }}
+                  onClick={() => void loadMore()}
                 >
                   {loadingMore ? t('common.loading') : t('progress.history.more')}
                 </button>

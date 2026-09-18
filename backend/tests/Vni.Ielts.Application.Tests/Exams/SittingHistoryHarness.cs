@@ -81,8 +81,10 @@ internal sealed class SittingHistoryHarness
     public void ResetCounters()
     {
         Catalogue.Finds = 0;
+        Catalogue.VersionsAsked = 0;
         Sessions.Lists = 0;
         Results.Reads = 0;
+        Results.SessionsAsked = 0;
         Markings.Reads = 0;
         Markings.SessionsAsked = 0;
         Outbox.Reads = 0;
@@ -94,11 +96,12 @@ internal sealed class SittingHistoryHarness
     /// evaluator, Speaking permanently blocked on the ASR decision
     /// (`P-02`) — the shape of every completed mock in this build.
     /// </summary>
-    public async Task<ExamSessionId> ThreeSkillMockAsync(bool writingStillRunning = false)
+    public async Task<ExamSessionId> ThreeSkillMockAsync(
+        bool writingStillRunning = false, ExamVersion? paper = null)
     {
         var id = ExamSessionId.New();
 
-        await Sessions.AddAsync(Mock(id), default);
+        await Sessions.AddAsync(Mock(id, paper ?? Version), default);
         await Results.SaveAsync(id, Score(ExamModule.Reading, 7m), default);
         await Results.SaveAsync(id, Score(ExamModule.Listening, 6.5m), default);
 
@@ -121,16 +124,25 @@ internal sealed class SittingHistoryHarness
         return id;
     }
 
-    /// <summary>Single-skill Reading practice — never has an overall band.</summary>
-    public async Task<ExamSessionId> PracticeSittingAsync()
+    /// <summary>
+    /// Single-skill Reading practice — never has an overall band.
+    /// </summary>
+    /// <param name="startedAt">
+    /// When it began. Defaults to <see cref="T0"/>, which means every sitting
+    /// built without one shares a timestamp — deliberately, because that is the
+    /// case a cursor keyed on the timestamp alone gets wrong and the fixture
+    /// should be able to produce it without effort.
+    /// </param>
+    public async Task<ExamSessionId> PracticeSittingAsync(DateTimeOffset? startedAt = null)
     {
         var id = ExamSessionId.New();
+        var at = startedAt ?? T0;
 
         await Sessions.AddAsync(
             ExamSession.Rehydrate(
                 id, Learner, Version.Id, SessionMode.Single, SessionStatus.Submitted,
-                T0, T0.AddMinutes(60),
-                [SectionAttempt.Rehydrate(ExamModule.Reading, T0, null, T0.AddMinutes(60))],
+                at, at.AddMinutes(60),
+                [SectionAttempt.Rehydrate(ExamModule.Reading, at, null, at.AddMinutes(60))],
                 SessionTiming.OpenEnded),
             default);
 
@@ -144,15 +156,34 @@ internal sealed class SittingHistoryHarness
     public Task<IReadOnlyList<SittingSummaryView>> HistoryAsync(int limit = 10) =>
         History.HandleAsync(new ListMySittingsQuery(Learner, limit), default);
 
+    public Task<SittingHistoryPage> PageAsync(int limit = 10, string? after = null) =>
+        History.PageAsync(
+            new ListMySittingsQuery(Learner, limit, SittingCursor.Decode(after)), default);
+
     public Task<CoachingView> CoachingAsync() =>
         Coaching.HandleAsync(new GetCoachingQuery(Learner), default);
 
     public Task<ActivityView> ActivityAsync() =>
         Activity.HandleAsync(new GetLearnerActivityQuery(Learner, 30), default);
 
-    private ExamSession Mock(ExamSessionId id) =>
+    /// <summary>
+    /// A paper nobody has sat yet, registered with the catalogue.
+    ///
+    /// <b>For the worst case the queue names and nothing measured.</b> Every
+    /// sitting of a different exam is what makes the catalogue lookup a slope
+    /// rather than a constant; a fixture with one paper can only ever measure
+    /// the dedupe.
+    /// </summary>
+    public ExamVersion NewPaper()
+    {
+        var paper = FourSkillVersion();
+        Catalogue.Add(paper);
+        return paper;
+    }
+
+    private ExamSession Mock(ExamSessionId id, ExamVersion paper) =>
         ExamSession.Rehydrate(
-            id, Learner, Version.Id, SessionMode.Full, SessionStatus.Submitted,
+            id, Learner, paper.Id, SessionMode.Full, SessionStatus.Submitted,
             T0, T0.AddHours(3),
             [
                 SectionAttempt.Rehydrate(ExamModule.Reading, T0, null, T0),
@@ -274,21 +305,50 @@ internal sealed class SittingHistoryHarness
 // session with every marking it holds, which is harmless for a one-sitting
 // test and would quietly hand ten sittings each other's Writing bands here.
 
-internal sealed class CountingCatalogue(ExamVersion version) : IExamCatalogue
+/// <summary>
+/// The papers a history refers to, counting what it is asked.
+///
+/// <b>It holds many, because one paper hides the defect.</b> The catalogue
+/// lookup is deduplicated by version id, so a history of twenty sittings of
+/// the <i>same</i> exam costs one lookup whether or not anything is batched —
+/// a measurement that stays at one while the code underneath is N+1. The worst
+/// case the queue names is twenty sittings of twenty different papers, and
+/// only a catalogue that can hold twenty papers can measure it.
+/// </summary>
+internal sealed class CountingCatalogue(params ExamVersion[] versions) : IExamCatalogue
 {
+    private readonly List<ExamVersion> _versions = [.. versions];
+
+    /// <summary>Round trips to the catalogue.</summary>
     public int Finds { get; set; }
+
+    /// <summary>Papers those round trips named, batched or not.</summary>
+    public int VersionsAsked { get; set; }
+
+    public void Add(ExamVersion version) => _versions.Add(version);
 
     public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct)
     {
         Finds++;
-        return Task.FromResult<ExamVersion?>(id == version.Id ? version : null);
+        VersionsAsked++;
+        return Task.FromResult(_versions.FirstOrDefault(v => v.Id == id));
+    }
+
+    public Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
+        IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct)
+    {
+        Finds++;
+        VersionsAsked += ids.Count;
+
+        return Task.FromResult<IReadOnlyDictionary<ExamVersionId, ExamVersion>>(
+            _versions.Where(v => ids.Contains(v.Id)).ToDictionary(v => v.Id));
     }
 
     public Task<IReadOnlyList<ExamVersion>> ListSittableAsync(CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<ExamVersion>>([version]);
+        Task.FromResult<IReadOnlyList<ExamVersion>>([.. _versions]);
 
     public Task<IReadOnlyList<ExamVersion>> ListAllAsync(CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<ExamVersion>>([version]);
+        Task.FromResult<IReadOnlyList<ExamVersion>>([.. _versions]);
 
     public Task UpsertAsync(ExamVersion updated, CancellationToken ct) => Task.CompletedTask;
 
@@ -302,6 +362,17 @@ internal sealed class CountingSessionRepository : IExamSessionRepository
 
     public int Lists { get; set; }
 
+    /// <summary>
+    /// The largest page this store was ever asked for.
+    ///
+    /// <b>"No query without a bound" is a claim about what reaches the store,
+    /// not about what the handler clamps.</b> Reading one row past the page to
+    /// learn whether another page exists is exactly the kind of `+ 1` that gets
+    /// applied before the clamp by accident, and a client asking for a million
+    /// would then reach the database with a million and one.
+    /// </summary>
+    public int LargestLimitAsked { get; private set; }
+
     public Task<ExamSession?> FindAsync(ExamSessionId id, CancellationToken ct) =>
         Task.FromResult(_sessions.TryGetValue(id.Value, out var held) ? held : null);
 
@@ -309,14 +380,18 @@ internal sealed class CountingSessionRepository : IExamSessionRepository
         Task.FromResult<ExamSession?>(null);
 
     public Task<IReadOnlyList<ExamSession>> ListForUserAsync(
-        UserId userId, int limit, CancellationToken ct)
+        UserId userId, int limit, CancellationToken ct, SittingCursor? after = null)
     {
         Lists++;
+        LargestLimitAsked = Math.Max(LargestLimitAsked, limit);
+
         return Task.FromResult<IReadOnlyList<ExamSession>>(
         [
             .. _sessions.Values
                 .Where(s => s.UserId == userId)
+                .Where(s => after is not { } cursor || cursor.Precedes(s.StartedAt, s.Id))
                 .OrderByDescending(s => s.StartedAt)
+                .ThenByDescending(s => s.Id.Value, StringComparer.Ordinal)
                 .Take(limit),
         ]);
     }
@@ -338,7 +413,11 @@ internal sealed class CountingSectionResultStore : ISectionResultStore
 {
     private readonly Dictionary<string, List<SectionScore>> _scores = [];
 
+    /// <summary>Round trips to the store.</summary>
     public int Reads { get; set; }
+
+    /// <summary>Sittings those round trips named, batched or not.</summary>
+    public int SessionsAsked { get; set; }
 
     public Task SaveAsync(ExamSessionId sessionId, SectionScore score, CancellationToken ct)
     {
@@ -350,8 +429,23 @@ internal sealed class CountingSectionResultStore : ISectionResultStore
     public Task<IReadOnlyList<SectionScore>> ListAsync(ExamSessionId sessionId, CancellationToken ct)
     {
         Reads++;
+        SessionsAsked++;
         return Task.FromResult<IReadOnlyList<SectionScore>>(
             _scores.TryGetValue(sessionId.Value, out var held) ? [.. held] : []);
+    }
+
+    public Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionScore>>> ListManyAsync(
+        IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct)
+    {
+        Reads++;
+        SessionsAsked += sessionIds.Count;
+
+        return Task.FromResult<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionScore>>>(
+            sessionIds
+                .Where(id => _scores.ContainsKey(id.Value))
+                .ToDictionary(
+                    id => id,
+                    IReadOnlyList<SectionScore> (id) => [.. _scores[id.Value]]));
     }
 }
 

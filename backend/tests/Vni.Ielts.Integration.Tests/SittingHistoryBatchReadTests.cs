@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Vni.Ielts.Application.Assessment;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Domain.Assessment;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Domain.Sessions;
 
@@ -135,4 +137,202 @@ public sealed class SittingHistoryBatchReadTests(SsoAppFactory app) : IClassFixt
             LeaseToken: null,
             LastError: null,
             CompletedAt: null);
+}
+
+/// <summary>
+/// Paging a learner's history against a real MongoDB — the other half of `W5`.
+///
+/// <b>The in-memory repository cannot fail the way this can.</b> It filters
+/// through <see cref="SittingCursor.Precedes"/> — the rule itself — so it
+/// agrees with the rule by construction. MongoDB does not: the rule has to be
+/// re-expressed as a filter (<c>$lt</c> on the timestamp, <i>or</i> equal on the
+/// timestamp and <c>$lt</c> on the id) and as a matching sort, and a filter that
+/// disagrees with its own ordering by one row drops sittings on the page
+/// boundary only, for the learners who happen to have two in the same
+/// millisecond, with every unit test green.
+///
+/// So the properties asserted here are the ones a fake cannot hold up: that the
+/// pages tile the history exactly, and that they do it when every sitting shares
+/// an instant.
+/// </summary>
+public sealed class SittingHistoryCursorTests(SsoAppFactory app) : IClassFixture<SsoAppFactory>
+{
+    private static readonly DateTimeOffset T0 = new(2026, 9, 18, 9, 0, 0, TimeSpan.Zero);
+
+    [SkippableFact]
+    public async Task Paging_reaches_every_sitting_exactly_once_past_the_ceiling()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        using var scope = app.Services.CreateScope();
+        var sessions = scope.ServiceProvider.GetRequiredService<IExamSessionRepository>();
+
+        var learner = UserId.New();
+        var written = new List<ExamSessionId>();
+
+        // Sixty: past the fifty `ListMySittings` clamps to, so under the old
+        // limit-only read the ten oldest were unreachable by any page size.
+        for (var i = 0; i < 60; i++)
+        {
+            var id = ExamSessionId.New();
+            written.Add(id);
+            await sessions.AddAsync(Sitting(id, learner, T0.AddMinutes(i)), default);
+        }
+
+        var walked = await WalkAsync(sessions, learner, pageSize: 20);
+
+        Assert.Equal(60, walked.Count);
+        Assert.Equal(written.Select(id => id.Value).OrderBy(v => v), walked.OrderBy(v => v));
+    }
+
+    /// <summary>
+    /// <b>Every sitting in the same millisecond — the case the second cursor key
+    /// exists for.</b>
+    ///
+    /// Against a real store this also proves the sort is total. Without the id
+    /// in the sort, MongoDB is free to return these twenty in a different order
+    /// on two reads of the same data, and a cursor over an unstable order
+    /// resumes after a row that is no longer there.
+    /// </summary>
+    [SkippableFact]
+    public async Task Paging_is_exact_when_every_sitting_shares_an_instant()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        using var scope = app.Services.CreateScope();
+        var sessions = scope.ServiceProvider.GetRequiredService<IExamSessionRepository>();
+
+        var learner = UserId.New();
+        var written = new List<ExamSessionId>();
+
+        for (var i = 0; i < 20; i++)
+        {
+            var id = ExamSessionId.New();
+            written.Add(id);
+            await sessions.AddAsync(Sitting(id, learner, T0), default);
+        }
+
+        var walked = await WalkAsync(sessions, learner, pageSize: 3);
+
+        Assert.Equal(20, walked.Count);
+        Assert.Equal(written.Select(id => id.Value).OrderBy(v => v), walked.OrderBy(v => v));
+    }
+
+    /// <summary>
+    /// A cursor names a position in one learner's ordering and grants nothing:
+    /// handed another learner's cursor, the read still returns only its own
+    /// user's sittings.
+    /// </summary>
+    [SkippableFact]
+    public async Task A_cursor_does_not_reach_across_learners()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        using var scope = app.Services.CreateScope();
+        var sessions = scope.ServiceProvider.GetRequiredService<IExamSessionRepository>();
+
+        var mine = UserId.New();
+        var theirs = UserId.New();
+
+        await sessions.AddAsync(Sitting(ExamSessionId.New(), mine, T0), default);
+
+        var theirSitting = ExamSessionId.New();
+        await sessions.AddAsync(Sitting(theirSitting, theirs, T0.AddHours(1)), default);
+
+        var page = await sessions.ListForUserAsync(
+            mine, 10, default, new SittingCursor(T0.AddHours(1), theirSitting));
+
+        Assert.All(page, s => Assert.Equal(mine, s.UserId));
+    }
+
+    /// <summary>
+    /// The batched score read returns, sitting by sitting, what the per-sitting
+    /// read it replaced returns — the same property the marking and job batches
+    /// are held to, applied to the gate `W10` left open.
+    /// </summary>
+    [SkippableFact]
+    public async Task Batched_scores_match_the_per_sitting_read_for_every_sitting()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        using var scope = app.Services.CreateScope();
+        var results = scope.ServiceProvider.GetRequiredService<ISectionResultStore>();
+
+        var one = ExamSessionId.New();
+        var two = ExamSessionId.New();
+        var unmarked = ExamSessionId.New();
+
+        await results.SaveAsync(one, Score(ExamModule.Reading, 7m), default);
+        await results.SaveAsync(one, Score(ExamModule.Listening, 6.5m), default);
+        await results.SaveAsync(two, Score(ExamModule.Reading, 5m), default);
+
+        var batched = await results.ListManyAsync([one, two, unmarked], default);
+
+        Assert.Equal(
+            (await results.ListAsync(one, default)).Select(Key).OrderBy(k => k),
+            batched[one].Select(Key).OrderBy(k => k));
+
+        Assert.Equal(
+            (await results.ListAsync(two, default)).Select(Key).OrderBy(k => k),
+            batched[two].Select(Key).OrderBy(k => k));
+
+        Assert.False(batched.ContainsKey(unmarked));
+        Assert.Equal(2, batched[one].Count);
+        Assert.Single(batched[two]);
+    }
+
+    /// <summary>
+    /// Both of this wave's gates answer an empty request without a round trip,
+    /// for the reason spelled out on the marking store's: most histories are
+    /// practice, and one <c>{$in: []}</c> per screen gives back the saving.
+    /// </summary>
+    [SkippableFact]
+    public async Task An_empty_batch_request_is_answered_without_a_query()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        using var scope = app.Services.CreateScope();
+
+        Assert.Empty(await scope.ServiceProvider
+            .GetRequiredService<ISectionResultStore>().ListManyAsync([], default));
+
+        Assert.Empty(await scope.ServiceProvider
+            .GetRequiredService<IExamCatalogue>().FindManyAsync([], default));
+    }
+
+    private static async Task<List<string>> WalkAsync(
+        IExamSessionRepository sessions, UserId learner, int pageSize)
+    {
+        var seen = new List<string>();
+        SittingCursor? cursor = null;
+        var pages = 0;
+
+        while (true)
+        {
+            var page = await sessions.ListForUserAsync(learner, pageSize + 1, default, cursor);
+            var rows = page.Take(pageSize).ToList();
+
+            seen.AddRange(rows.Select(s => s.Id.Value));
+
+            if (page.Count <= pageSize || rows.Count == 0) return seen;
+
+            cursor = SittingCursor.Of(rows[^1]);
+
+            Assert.True(
+                ++pages <= 40,
+                $"The cursor stopped advancing: {pages} pages and {seen.Count} rows so far.");
+        }
+    }
+
+    private static ExamSession Sitting(ExamSessionId id, UserId owner, DateTimeOffset startedAt) =>
+        ExamSession.Rehydrate(
+            id, owner, new ExamVersionId("paging-fixture"), SessionMode.Single,
+            SessionStatus.Submitted, startedAt, startedAt.AddMinutes(60),
+            [SectionAttempt.Rehydrate(ExamModule.Reading, startedAt, null, startedAt.AddMinutes(60))],
+            SessionTiming.OpenEnded);
+
+    private static SectionScore Score(ExamModule module, decimal band) =>
+        new(module, 30, 40, BandScore.Create(band), []);
+
+    private static string Key(SectionScore s) => $"{s.Module}:{s.Band?.Value}";
 }

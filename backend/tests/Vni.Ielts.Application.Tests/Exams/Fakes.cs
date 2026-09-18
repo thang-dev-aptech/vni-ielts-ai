@@ -26,6 +26,11 @@ internal sealed class FakeExamCatalogue(params ExamVersion[] versions) : IExamCa
     public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct) =>
         Task.FromResult(_versions.FirstOrDefault(v => v.Id == id));
 
+    public Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
+        IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyDictionary<ExamVersionId, ExamVersion>>(
+            _versions.Where(v => ids.Contains(v.Id)).ToDictionary(v => v.Id));
+
     public Task UpsertAsync(ExamVersion version, CancellationToken ct)
     {
         _versions.RemoveAll(v => v.Id == version.Id);
@@ -127,13 +132,22 @@ internal sealed class FakeSessionRepository : IExamSessionRepository
                 .FirstOrDefault(s => s.UserId == userId && s.Status == SessionStatus.InProgress)
                 is { } open ? Copy(open) : null);
 
+    /// <summary>
+    /// <b>The ordering and the cursor filter are the same rule, spelled once.</b>
+    /// A fake that ordered by <c>StartedAt</c> alone while the cursor also
+    /// broke ties by id would page correctly here and drop rows against the
+    /// real store — which is the class of bug a fake is supposed to make
+    /// impossible, not hide.
+    /// </summary>
     public Task<IReadOnlyList<ExamSession>> ListForUserAsync(
-        UserId userId, int limit, CancellationToken ct) =>
+        UserId userId, int limit, CancellationToken ct, SittingCursor? after = null) =>
         Task.FromResult<IReadOnlyList<ExamSession>>(
         [
             .. _sessions.Values
                 .Where(s => s.UserId == userId)
+                .Where(s => after is not { } cursor || cursor.Precedes(s.StartedAt, s.Id))
                 .OrderByDescending(s => s.StartedAt)
+                .ThenByDescending(s => s.Id.Value, StringComparer.Ordinal)
                 .Take(limit)
                 .Select(Copy),
         ]);
@@ -188,6 +202,20 @@ internal sealed class FakeSectionResultStore : ISectionResultStore
         Task.FromResult<IReadOnlyList<SectionScore>>(
             [.. _scores.Where(kv => kv.Key.StartsWith($"{sessionId.Value}:", StringComparison.Ordinal))
                 .Select(kv => kv.Value)]);
+
+    public async Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionScore>>> ListManyAsync(
+        IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct)
+    {
+        var found = new Dictionary<ExamSessionId, IReadOnlyList<SectionScore>>();
+
+        foreach (var id in sessionIds.Distinct())
+        {
+            var held = await ListAsync(id, ct);
+            if (held.Count > 0) found[id] = held;
+        }
+
+        return found;
+    }
 }
 
 /// <summary>

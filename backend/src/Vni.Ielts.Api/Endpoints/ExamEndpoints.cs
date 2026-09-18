@@ -119,7 +119,8 @@ public static class ExamEndpoints
 
         sessions.MapGet("/", ListMineEndpoint)
             .WithName("ListMySittings")
-            .WithSummary("The caller's own recent sittings, newest first");
+            .WithSummary("The caller's own recent sittings, newest first")
+            .Produces<SittingHistoryPage>();
 
         sessions.MapGet("/{sessionId}", GetEndpoint)
             .WithName("GetExamSession")
@@ -235,22 +236,41 @@ public static class ExamEndpoints
     }
 
     /// <summary>
-    /// The learner's own history.
+    /// The learner's own history, one page at a time.
     ///
     /// <b>No user parameter, by design.</b> The identity comes from the token,
     /// so there is no route or query through which one learner could ask for
     /// another's sittings — the same reasoning as every other endpoint in this
-    /// group, applied to a list rather than to one record.
+    /// group, applied to a list rather than to one record. <c>after</c> does
+    /// not weaken that: it names a position in the ordering, and the query is
+    /// still scoped to the token's user whatever the cursor says.
+    ///
+    /// <b>An unreadable cursor is a 400, not a fresh first page.</b> Starting
+    /// over would turn a mangled token into a "xem thêm" button that hands back
+    /// the same rows for ever, which is the failure that looks like working
+    /// software.
     /// </summary>
     private static async Task<IResult> ListMineEndpoint(
-        ClaimsPrincipal principal, ListMySittings handler, int? limit, CancellationToken ct)
+        ClaimsPrincipal principal, ListMySittings handler, int? limit, string? after,
+        CancellationToken ct)
     {
         if (principal.UserId() is not { } id) return Results.Unauthorized();
 
-        var sittings = await handler.HandleAsync(
-            new ListMySittingsQuery(new UserId(id), limit ?? 10), ct);
+        SittingCursor? cursor = null;
 
-        return Results.Ok(new { sittings });
+        if (!string.IsNullOrWhiteSpace(after))
+        {
+            if (SittingCursor.Decode(after) is not { } parsed)
+                return Problem(
+                    "CURSOR_INVALID",
+                    "The paging cursor is not one this API issued. Ask for the first page without it.",
+                    400);
+
+            cursor = parsed;
+        }
+
+        return Results.Ok(await handler.PageAsync(
+            new ListMySittingsQuery(new UserId(id), limit ?? 10, cursor), ct));
     }
 
     private static async Task<IResult> ListExamsEndpoint(

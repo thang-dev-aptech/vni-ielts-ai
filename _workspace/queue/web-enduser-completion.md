@@ -285,31 +285,35 @@ một trang (10). Không thêm tham số mới, không đụng `contracts/openap
 **không** biết trần của máy chủ (trần không nằm trên dây), nên nó không bao giờ tuyên bố «đã hiện
 hết». Nút «Xem thêm» chỉ hiện khi số dòng nhận được đúng bằng số đã hỏi.
 
-### 🔴 Còn nợ — hoãn sang đợt 2, đi cùng lần regenerate của `W7`
+### ✅ Đóng — đợt 3, 18/09/2026
 
-**1. Chưa có phân trang thật.** `IExamSessionRepository.ListForUserAsync`
-(`backend/src/Vni.Ielts.Infrastructure/Persistence/Exams/Repositories.cs:118`) nhận **một `limit`,
-không có `skip` và không có cursor**. Nghĩa là:
+**Có cursor thật.** `IExamSessionRepository.ListForUserAsync` nhận thêm `SittingCursor? after`
+(khoá `startedAt` + `_id`, mã hoá base64url, mờ đối với client). `ListMySittings.PageAsync` trả
+`SittingHistoryPage(Sittings, NextCursor)`; endpoint `GET /api/v1/sessions` nhận `after`, trả 400
+`CURSOR_INVALID` với token không phải do nó phát. Đây là đổi hình dạng response, nên
+`contracts/openapi/v1.json` được sinh lại và `packages/api-client` generate lại — `GET /api/v1/sessions`
+trước đây khai `200: OK` không kèm schema, nay có `SittingHistoryPage`.
 
-- Học viên có hơn **50** phiên **không cách nào xem được những phiên cũ hơn**. Trần 50 là trần
-  cứng, không phải trang đầu tiên của một danh sách vô hạn.
-- Mỗi lần bấm «Xem thêm» là **tải lại từ đầu** với `limit` lớn hơn, không phải tải trang kế tiếp.
+| | Trước | Sau |
+|---|---|---|
+| Học viên 60 phiên xem được | 50 | **60** |
+| «Xem thêm» hỏi gì | cả trang đầu, dài hơn (`limit=20`, `30`, …) | **trang kế** (`limit=10&after=…`) |
+| Trần 50 nghĩa là gì | tường | **cỡ một trang** |
 
-**Đọc DoD ở trên mà tưởng đã có phân trang thật là hiểu sai.** Việc còn lại: thêm cursor (khoá theo
-`startedAt` + `_id`) vào port `IExamSessionRepository.ListForUserAsync` và bản Mongo của nó, rồi cho
-`ListMySittings` trả con trỏ trang kế tiếp — đây là **đổi hình dạng response**, nên phải đi cùng
-`W7` khi `contracts/openapi` được sửa và `packages/api-client` được generate lại một lượt.
+**Hai khoá chứ không một.** `startedAt` là BSON date — độ phân giải mili-giây — nên hai phiên có
+thể trùng thời điểm; cursor chỉ theo thời gian sẽ hoặc nhảy qua tất cả phiên cùng mili-giây đó,
+hoặc trả lại chúng mãi mãi. `_id` phá hoà, và **sort cũng phải mang khoá đó** — một tiebreaker mà thứ
+tự không áp dụng thì không phải tiebreaker. Thêm index `ix_exam_sessions_user_started_id`; thiếu nó
+MongoDB sẽ nạp toàn bộ lịch sử của học viên vào bộ nhớ để sắp.
 
-**2. N+1 nặng thêm sau `W1`, và trần 50 nhân nó lên.** `ListMySittings` nạp markings + jobs cho
-mỗi phiên **Full** (`SittingBand.Applies`) vì luật `Q-01` cần biết «còn gì đang nợ không». Đo được
-(`A_practice_sitting_costs_no_marking_or_job_read`): 5 mock + 5 phiên luyện của một đề = **12 →
-22** truy vấn. Xấu nhất ở trần 50, toàn mock, mỗi phiên một đề khác nhau: khoảng **201**.
+**Nhãn trung thực mạnh lên, không yếu đi.** Trước: luôn *«Đang hiển thị {n} phiên gần nhất.»* — đúng
+nhưng luôn né, vì client không phân biệt được «trang đầy» với «hết rồi». Nay `nextCursor: null` là
+**chắc chắn hết** (máy chủ đọc dư một dòng để biết), nên màn hình nói *«Đang hiển thị toàn bộ {n}
+phiên.»* khi biết, và giữ nguyên câu cũ khi chưa biết. **Không bao giờ tuyên bố đã hết trên một phỏng
+đoán** — lỗi đọc trang không xoá cursor, vì mất mạng không phải bằng chứng lịch sử đã hết.
 
-`ISectionMarkingStore` và `IMarkingOutbox` **đều không hỏi được nhiều phiên một lượt**. Thêm hàm
-đọc theo lô vào hai cổng đó (và bản Mongo của chúng) là cùng một lớp việc với cursor ở mục 1 — làm
-chung một lần, cùng đợt 2.
-
----
+**Đỏ đã thấy** (Mongo thật, cursor chưa được cài vào filter): `The cursor stopped advancing: 41 pages
+and 820 rows so far.` — 60 phiên, mỗi trang là cùng trang đầu.
 
 ## W6 — Sửa 5 phát hiện design-hook
 
@@ -499,7 +503,7 @@ lặp đó **chưa bao giờ chạy**: nó dừng khi cả Writing lẫn Speakin
 không phải bound.**
 
 **Không thuộc lát này:** cursor/`skip` cho `IExamSessionRepository.ListForUserAsync`. Đó là **đổi hình
-dạng response**, nên đi cùng `W7` — xem `W5` § *Còn nợ* mục 1. `W10` chỉ làm phần không đổi hợp đồng.
+dạng response**, nên đi cùng `W7`. *(Đợt 3, 18/09: đã làm — xem `W5` § Đóng và mục đóng ở cuối `W10`.)*
 
 **Xong khi:** test đếm query đã kiểm chứng đỏ-khi-gỡ, khẳng định số truy vấn **không tăng theo số
 phiên** ở cả hai đường vào (`ListMySittings` và `Learning/Handlers.cs`); con số đo lại được ghi vào
@@ -523,11 +527,29 @@ mới bị N+1 mà không ai viết dòng code nào trông giống N+1.
 gỡ chỉ `ListMySittings` → cả hai test đỏ; gỡ chỉ `GetCoaching` → history xanh, coaching đỏ. Mỗi test
 đỏ vì đúng call-site của nó.
 
-**Còn nợ, và đã được ghim bằng test chứ không bằng một câu:** `ISectionResultStore.ListAsync` vẫn
-**1 lần/phiên** và `IExamCatalogue.FindAsync` vẫn 1 lần/đề, nên tổng **vẫn tuyến tính**, chỉ với hệ số
-nhỏ hơn nhiều. Hai cổng đó khai ở `Exams/Ports.cs` — cùng file khai `IExamSessionRepository` mà cursor
-của `W5`/`W7` sẽ đụng, nên gộp một lần. Test `Score_reads_are_still_one_per_sitting` (5 và 20) buộc lát
-sau phải **đo lại** thay vì đọc một câu ở đây rồi tin.
+### ✅ Đóng nốt hai cổng còn lại — đợt 3, 18/09/2026
+
+`ISectionResultStore.ListManyAsync` và `IExamCatalogue.FindManyAsync`, cùng khuôn với `W10`:
+**không dùng default interface method**, mỗi store tự trả lời, store nào không gộp được phải nói ra
+tại chỗ nó được cài.
+
+| Cửa | Trước `W1` | Sau `W1` | Sau `W10` | **Nay** |
+|---|---|---|---|---|
+| `ListMySittings`, 5 mock + 5 luyện | 12 | 22 | 14 | **5** |
+| `ListMySittings`, xấu nhất ở trần 50 | — | ~201 | 103 | **5** |
+| `GetCoaching`, 20 mock | — | 82 | 25 | **6** |
+| `GetLearnerActivity` | 1 | 1 | 1 | 1 |
+
+Năm truy vấn: danh sách phiên · đề · điểm · marking · job. **Hằng số, không phải hệ số nhỏ hơn.**
+
+`Score_reads_are_still_one_per_sitting` (5 và 20) đã làm đúng việc nó được viết ra để làm: lát này
+thấy nó đỏ và phải đo lại. Nó thành `Score_and_paper_reads_do_not_grow_with_the_number_of_sittings`,
+**chặt hơn chứ không nới**: `ResultReads == 1` ở cả hai cỡ, mà `ResultSessionsAsked` vẫn là 20 — một
+batch lặng lẽ thôi hỏi 19 phiên sẽ qua vế đầu và trượt vế sau. Thêm hai test mới: 20 đề **khác nhau**
+(trường hợp xấu nhất mà hàng đợi nêu ra và chưa gì đo) và tổng năm truy vấn ở cỡ 5 và 50.
+
+**Đỏ đã thấy:** `Expected: 5 / Actual: 20` — đó là `small.ResultReads` so với `large.ResultReads`,
+tức chính cái dốc.
 
 ---
 
@@ -540,12 +562,12 @@ sau phải **đo lại** thay vì đọc một câu ở đây rồi tin.
 | `W2` Nền kinh tế VNI | ⛔ chặn | `B-5a` `B-5b` `B-5c` | 2–3 ngày |
 | `W3` Ví lên giao diện | ⛔ chặn | `W2` | 1–1.5 ngày |
 | `W4` Kho nghe chép | ✅ đóng 18/09 `7a0c43f` — nội dung thật vẫn chờ | nội dung | 2h + soạn bài |
-| `W5` Lịch sử đầy đủ | ✅ đóng 18/09 `19df38b` — cursor nợ sang `W7` | — | 4–6h |
+| `W5` Lịch sử đầy đủ | ✅ đóng 18/09 `19df38b`, cursor đóng đợt 3 | — | 4–6h |
 | `W6` 5 lỗi CSS | ✅ đóng 18/09 `66834e0` | — | 2h |
 | `W7` OpenAPI `/me` + dictation | 🟡 nửa đóng 18/09 `becebde` — nửa client `/me` chờ quyết định | — | 4–6h |
 | `W8` Màn soạn nghe chép | ⏸ hoãn (quyết định 18/09) | nội dung, không phải kỹ thuật | 1.5–2 ngày |
 | `W9` Chấm Speaking | ⛔ chặn | `P-02` `B-1` `B-2` | 4–5 ngày |
-| `W10` Đọc theo lô cho lịch sử | ✅ đóng 18/09 `014ee7f` — hai cổng còn lại nợ sang lát cursor | — | 0.5–1 ngày |
+| `W10` Đọc theo lô cho lịch sử | ✅ đóng 18/09 `014ee7f`, hai cổng cuối đóng đợt 3 | — | 0.5–1 ngày |
 
 **Đợt 2 (`W7`, `W10`) chạy được ngay, không chờ quyết định nào.**
 `W2` → `W3` chờ ba câu về VNI. `W9` chờ ba quyết định ngoài code.

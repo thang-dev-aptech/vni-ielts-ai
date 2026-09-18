@@ -401,6 +401,36 @@ public sealed class MongoContext
                 new CreateIndexOptions { Name = "ix_exam_sessions_user_started" }),
             cancellationToken: ct);
 
+        /*
+         * The history cursor's ordering, which the index above cannot serve.
+         *
+         * <b>A sort the index does not cover is a sort done in memory.</b>
+         * Paging the history orders by `startedAt` and then by `_id` — the
+         * second key exists because two sittings can share a millisecond and a
+         * cursor over an unstable order drops rows on the page boundary. Left
+         * to the two-key index, MongoDB would satisfy the first key from the
+         * index and then load every one of that learner's sittings to sort
+         * them, which turns a bounded page read into a scan of their whole
+         * history.
+         *
+         * <b>Added beside the older index rather than replacing it.</b>
+         * Redefining an index under the same name is refused by the server, and
+         * dropping one that live reads are using — this runs at startup, on
+         * every instance, while the previous instance is still serving — trades
+         * a small amount of storage for a window in which the history screen
+         * has no index at all. `ix_exam_sessions_user_started` is now a prefix
+         * of this one and can be dropped in a maintenance step, deliberately
+         * not here.
+         */
+        await ExamSessions.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.ExamSessionDocument>(
+                Builders<Exams.ExamSessionDocument>.IndexKeys
+                    .Ascending(s => s.UserId)
+                    .Descending(s => s.StartedAt)
+                    .Descending(s => s.Id),
+                new CreateIndexOptions { Name = "ix_exam_sessions_user_started_id" }),
+            cancellationToken: ct);
+
         await SectionResults.Indexes.CreateOneAsync(
             new CreateIndexModel<Exams.SectionResultDocument>(
                 Builders<Exams.SectionResultDocument>.IndexKeys.Ascending(r => r.SessionId),

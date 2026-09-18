@@ -55,11 +55,16 @@ public sealed class LearnerHistoryReadCostTests
         Assert.Equal(1, large.OutboxReads);
 
         // The whole profile, so the commit's before/after numbers are a
-        // measurement rather than an argument. Twenty mocks of one paper:
-        // one session list, one catalogue lookup, twenty score reads, and the
-        // three above. Before this slice the last three were 20 + 20 + 20.
+        // measurement rather than an argument. Twenty mocks of one paper, and
+        // every figure is now a constant: one session list, one catalogue
+        // lookup, one score read, and the three above.
+        //
+        // Where this number has been: 82 before `W10`, 25 after it — the score
+        // read was still one per sitting — and 6 now. `ResultReads` moved from
+        // 20 to 1 in this wave, which is the assertion getting stricter, not
+        // looser.
         Assert.Equal(
-            new Reads(SessionLists: 1, CatalogueFinds: 1, ResultReads: 20, MarkingReads: 2, OutboxReads: 1),
+            new Reads(SessionLists: 1, CatalogueFinds: 1, ResultReads: 1, MarkingReads: 2, OutboxReads: 1),
             large);
     }
 

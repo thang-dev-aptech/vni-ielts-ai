@@ -100,7 +100,13 @@ public sealed class SittingHistoryBandTests
         Assert.Equal(10, history.Count);
         Assert.Equal(1, h.Sessions.Lists);
         Assert.Equal(1, h.Catalogue.Finds);
-        Assert.Equal(10, h.Results.Reads);
+
+        // One, and it was ten. The score read was the last per-sitting read on
+        // this screen; batching it is what turned the total from a slope into
+        // a constant. Tightened rather than relaxed — the sittings it names
+        // still grow, only the round trips do not.
+        Assert.Equal(1, h.Results.Reads);
+        Assert.Equal(10, h.Results.SessionsAsked);
 
         Assert.Equal(1, h.Markings.Reads);
         Assert.Equal(1, h.Outbox.Reads);

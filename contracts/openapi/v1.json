@@ -891,11 +891,25 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SittingHistoryPage"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -5652,6 +5666,142 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "SittingHistoryPage": {
+        "required": [
+          "sittings",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "sittings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SittingSummaryView"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SittingSectionView": {
+        "required": [
+          "module",
+          "band"
+        ],
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "band": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SittingSummaryView": {
+        "required": [
+          "sessionId",
+          "examVersionId",
+          "examTitle",
+          "variant",
+          "practiceUnitId",
+          "scope",
+          "historyTrack",
+          "includeInIeltsTrend",
+          "mode",
+          "status",
+          "startedAt",
+          "submittedAt",
+          "currentModule",
+          "deadlineAt",
+          "sections",
+          "overallBand"
+        ],
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string"
+          },
+          "examVersionId": {
+            "type": "string"
+          },
+          "examTitle": {
+            "type": "string"
+          },
+          "variant": {
+            "type": "string"
+          },
+          "practiceUnitId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "scope": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "historyTrack": {
+            "type": "string"
+          },
+          "includeInIeltsTrend": {
+            "type": "boolean"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submittedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "currentModule": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deadlineAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SittingSectionView"
+            }
+          },
+          "overallBand": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },

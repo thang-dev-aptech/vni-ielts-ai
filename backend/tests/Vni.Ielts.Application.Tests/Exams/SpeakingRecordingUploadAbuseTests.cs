@@ -253,6 +253,13 @@ public sealed class SpeakingRecordingUploadAbuseTests
         public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct) =>
             Task.FromResult<ExamVersion?>(id == version.Id ? version : null);
 
+        public Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
+            IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyDictionary<ExamVersionId, ExamVersion>>(
+                ids.Contains(version.Id)
+                    ? new Dictionary<ExamVersionId, ExamVersion> { [version.Id] = version }
+                    : new Dictionary<ExamVersionId, ExamVersion>());
+
         public Task UpsertAsync(ExamVersion version, CancellationToken ct) => Task.CompletedTask;
         public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) => Task.CompletedTask;
     }
@@ -266,7 +273,7 @@ public sealed class SpeakingRecordingUploadAbuseTests
             Task.FromResult<ExamSession?>(userId == session.UserId ? session : null);
 
         public Task<IReadOnlyList<ExamSession>> ListForUserAsync(
-            UserId userId, int limit, CancellationToken ct) =>
+            UserId userId, int limit, CancellationToken ct, SittingCursor? after = null) =>
             Task.FromResult<IReadOnlyList<ExamSession>>(
                 userId == session.UserId ? [session] : []);
 

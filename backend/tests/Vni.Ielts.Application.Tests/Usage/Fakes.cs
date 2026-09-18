@@ -84,7 +84,8 @@ internal sealed class FakeExamSessionRepositoryForUsage : IExamSessionRepository
     public Task<ExamSession?> FindOpenForUserAsync(UserId userId, CancellationToken ct) =>
         Task.FromResult<ExamSession?>(null);
 
-    public Task<IReadOnlyList<ExamSession>> ListForUserAsync(UserId userId, int limit, CancellationToken ct) =>
+    public Task<IReadOnlyList<ExamSession>> ListForUserAsync(
+        UserId userId, int limit, CancellationToken ct, SittingCursor? after = null) =>
         Task.FromResult<IReadOnlyList<ExamSession>>([]);
 
     public Task AddAsync(ExamSession session, CancellationToken ct) => Task.CompletedTask;

@@ -22,6 +22,28 @@ public interface IExamCatalogue
     Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct);
 
     /// <summary>
+    /// Many versions by id, in one read.
+    ///
+    /// <b>The other read the history screen paid per row for.</b> Deduplicating
+    /// by version id hid it for the common learner — re-sitting one paper costs
+    /// one lookup either way — and left the worst case untouched: fifty
+    /// sittings of fifty different papers, fifty round trips, on a screen whose
+    /// whole job is to list them.
+    ///
+    /// <b>A second method rather than a default that loops</b>, for the reason
+    /// spelled out on <see cref="ISectionResultStore.ListManyAsync"/>.
+    ///
+    /// <b>Drafts included, like <see cref="FindAsync"/>.</b> A history row
+    /// refers to the version it was sat under, and a version can be
+    /// unpublished after the fact — filtering to published here would blank the
+    /// title of every sitting of a withdrawn paper. Ids absent from the
+    /// catalogue are absent from the result; the caller decides what a missing
+    /// paper means.
+    /// </summary>
+    Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
+        IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct);
+
+    /// <summary>
     /// Writes a version, refusing to change the content of a published one.
     ///
     /// <b>The entity has said "immutable once published" since it was written,
@@ -73,6 +95,89 @@ public sealed class PublishedExamVersionIsImmutableException(ExamVersionId id)
     public ExamVersionId VersionId { get; } = id;
 }
 
+/// <summary>
+/// A position in a learner's sitting history — where one page stopped.
+///
+/// <b>Opaque on the wire, and deliberately so.</b> The client is handed a
+/// token it cannot read and must hand back unchanged; it carries no meaning a
+/// screen could come to depend on, which is what lets the ordering gain a key
+/// or change its encoding without a second contract negotiation. It is also
+/// not a secret: it names one of the caller's own sittings, and the endpoint
+/// scopes every read to the token's user regardless of what the cursor says.
+///
+/// <b>Millisecond precision, because that is what the store keeps.</b> BSON
+/// dates are milliseconds; encoding anything finer would produce a cursor that
+/// compares unequal to the very document it was built from, and the page after
+/// it would repeat a row for ever.
+/// </summary>
+public readonly record struct SittingCursor(DateTimeOffset StartedAt, ExamSessionId SessionId)
+{
+    /// <summary>The cursor that would resume immediately after this sitting.</summary>
+    public static SittingCursor Of(ExamSession session) => new(session.StartedAt, session.Id);
+
+    /// <summary>
+    /// Whether a sitting falls after this cursor in the history ordering —
+    /// newest first, ties broken by session id.
+    ///
+    /// <b>The rule lives here so there is one of it.</b> A database expresses
+    /// it as a filter and an in-memory store as a predicate, and those two are
+    /// where a paging bug hides: an ordering and a filter that disagree by one
+    /// row drop a sitting silently, on the page boundary only, for the learners
+    /// who happen to have two sittings in the same millisecond. Both sides call
+    /// this one, and an integration test against a real MongoDB checks that the
+    /// filter agrees with it.
+    /// </summary>
+    public bool Precedes(DateTimeOffset startedAt, ExamSessionId sessionId) =>
+        startedAt < StartedAt
+        || (startedAt == StartedAt
+            && string.CompareOrdinal(sessionId.Value, SessionId.Value) < 0);
+
+    /// <summary>The token a client is given, and hands back unchanged.</summary>
+    public string Encode() =>
+        Convert.ToBase64String(
+            System.Text.Encoding.UTF8.GetBytes(
+                $"{StartedAt.ToUnixTimeMilliseconds()}:{SessionId.Value}"))
+            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+    /// <summary>
+    /// Null when the token is anything this did not write.
+    ///
+    /// <b>Refused rather than ignored.</b> A cursor that cannot be read is a
+    /// client bug or a tampered URL, and quietly starting the list again from
+    /// the top turns either one into an endless "xem thêm" that keeps handing
+    /// back the same first page. The caller turns this into a 400.
+    /// </summary>
+    public static SittingCursor? Decode(string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return null;
+
+        var padded = token.Replace('-', '+').Replace('_', '/');
+        padded += new string('=', (4 - (padded.Length % 4)) % 4);
+
+        Span<byte> bytes = new byte[padded.Length];
+        if (!Convert.TryFromBase64String(padded, bytes, out var written)) return null;
+
+        var text = System.Text.Encoding.UTF8.GetString(bytes[..written]);
+        var split = text.IndexOf(':');
+        if (split <= 0 || split == text.Length - 1) return null;
+
+        if (!long.TryParse(text[..split], out var milliseconds)) return null;
+
+        try
+        {
+            return new SittingCursor(
+                DateTimeOffset.FromUnixTimeMilliseconds(milliseconds),
+                new ExamSessionId(text[(split + 1)..]));
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // A timestamp outside what a DateTimeOffset can hold. Somebody
+            // hand-wrote the token; it is not a page of anything.
+            return null;
+        }
+    }
+}
+
 public interface IExamSessionRepository
 {
     Task<ExamSession?> FindAsync(ExamSessionId id, CancellationToken ct);
@@ -85,7 +190,40 @@ public interface IExamSessionRepository
     /// </summary>
     Task<ExamSession?> FindOpenForUserAsync(UserId userId, CancellationToken ct);
 
-    Task<IReadOnlyList<ExamSession>> ListForUserAsync(UserId userId, int limit, CancellationToken ct);
+    /// <summary>
+    /// One page of the learner's sittings, newest first.
+    /// </summary>
+    /// <param name="after">
+    /// Where the previous page stopped, or null for the first page.
+    ///
+    /// <b>A cursor rather than a skip, and two keys rather than one.</b> Until
+    /// 18/09/2026 this took a limit and nothing else, which made the limit a
+    /// ceiling: a learner with more than fifty sittings could not reach the
+    /// older ones <i>by any means</i>, and the screen's "xem thêm" re-read the
+    /// whole list from the top with a bigger number instead of fetching the
+    /// next page. The first is data a learner owns and cannot see; the second
+    /// is a read that grows quadratically as somebody scrolls.
+    ///
+    /// <b>A <c>skip</c> would have been the smaller change and the wrong
+    /// one.</b> Sittings are written while a learner is reading their history —
+    /// starting an exam in another tab inserts at position one — and every
+    /// insert shifts an offset, so page two either repeats a row or loses one.
+    /// A cursor names a position in the ordering rather than a count from the
+    /// start, so an insert above it changes nothing.
+    ///
+    /// <b>Two keys because <c>startedAt</c> is not unique.</b> Two sittings can
+    /// share a millisecond — the store keeps no more precision than that, and
+    /// a Full Test's sections are opened in a burst. A cursor on the timestamp
+    /// alone then either skips every sitting sharing that instant or returns
+    /// them again for ever. The session id breaks the tie, and the sort carries
+    /// it too: a tiebreaker the ordering does not apply is not a tiebreaker.
+    ///
+    /// <b>Optional, and it keeps the reads that do not paginate honest.</b>
+    /// <c>GetLearnerActivity</c> wants a bounded sweep rather than a page, and
+    /// passes nothing.
+    /// </param>
+    Task<IReadOnlyList<ExamSession>> ListForUserAsync(
+        UserId userId, int limit, CancellationToken ct, SittingCursor? after = null);
 
     Task AddAsync(ExamSession session, CancellationToken ct);
 
@@ -354,6 +492,29 @@ public interface ISectionResultStore
     Task SaveAsync(ExamSessionId sessionId, SectionScore score, CancellationToken ct);
 
     Task<IReadOnlyList<SectionScore>> ListAsync(ExamSessionId sessionId, CancellationToken ct);
+
+    /// <summary>
+    /// The marked sections of many sittings, in one read.
+    ///
+    /// <b>The last read on the history screen that still grew with the
+    /// list.</b> `W10` batched the markings and the marking jobs and left this
+    /// one, so opening a page of fifty sittings still cost fifty round trips
+    /// for their scores — a smaller slope than before, and still a slope.
+    ///
+    /// <b>A second method rather than a default that loops</b>, for the same
+    /// reason <see cref="Assessment.ISectionMarkingStore.ListManyAsync"/> is:
+    /// an inherited loop would make a new store N+1 without anybody writing a
+    /// line that looks like N+1, and the cost would be invisible at the one
+    /// place a reader would look. A store that cannot batch has to say so
+    /// where it is implemented.
+    ///
+    /// Sittings with no marked section are absent rather than present with an
+    /// empty list — the caller handles "not in the dictionary" anyway, and two
+    /// spellings of nothing is one more than is useful. An empty request is
+    /// answered with an empty result and no round trip.
+    /// </summary>
+    Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionScore>>> ListManyAsync(
+        IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct);
 }
 
 /// <summary>

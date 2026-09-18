@@ -515,8 +515,26 @@ async function retryingWhileInFlight<T>(send: () => Promise<T>): Promise<T> {
   }
 }
 
-export const listMySittings = (accessToken: string, limit = 10) =>
-  request<{ sittings: SittingSummary[] }>(`/api/v1/sessions/?limit=${limit}`, { accessToken });
+/**
+ * One page of the learner's own history.
+ *
+ * `after` is the `nextCursor` of the previous page, handed back unchanged. It
+ * is opaque on purpose — reading it here would tie this client to an ordering
+ * the server is free to change.
+ *
+ * `nextCursor` is `null` when there is nothing after this page, and it means
+ * it: the server looks one row past the page to tell a full page from the last
+ * one. Before this existed, a caller could not tell "that is all of them" from
+ * "the server's ceiling stopped here", so the history screen could only ever
+ * claim to be showing the N most recent — and a learner with more than fifty
+ * sittings could not reach the older ones at all, because "xem thêm" re-asked
+ * for a longer first page instead of the next one.
+ */
+export const listMySittings = (accessToken: string, limit = 10, after?: string | null) =>
+  request<{ sittings: SittingSummary[]; nextCursor: string | null }>(
+    `/api/v1/sessions/?limit=${limit}${after ? `&after=${encodeURIComponent(after)}` : ''}`,
+    { accessToken },
+  );
 
 export const listExams = (accessToken: string) =>
   request<{ exams: ExamCatalogueItem[] }>('/api/v1/exams', { accessToken });

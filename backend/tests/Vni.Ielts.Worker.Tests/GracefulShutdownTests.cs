@@ -153,7 +153,8 @@ public sealed class GracefulShutdownTests
             throw new NotSupportedException("Not exercised by this test.");
 
         public Task<IReadOnlyList<ExamSession>> ListForUserAsync(
-            Vni.Ielts.Domain.Common.UserId userId, int limit, CancellationToken ct) =>
+            Vni.Ielts.Domain.Common.UserId userId, int limit, CancellationToken ct,
+            SittingCursor? after = null) =>
             throw new NotSupportedException("Not exercised by this test.");
 
         public Task AddAsync(ExamSession newSession, CancellationToken ct) =>
@@ -173,6 +174,10 @@ public sealed class GracefulShutdownTests
 
         public Task<ExamVersion?> FindAsync(ExamVersionId requested, CancellationToken ct) =>
             Task.FromResult(requested == id ? version : null);
+
+        public Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
+            IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct) =>
+            throw new NotSupportedException("Not exercised by this test.");
 
         public Task UpsertAsync(ExamVersion toSave, CancellationToken ct) =>
             throw new NotSupportedException("Not exercised by this test.");

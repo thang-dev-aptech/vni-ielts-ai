@@ -103,15 +103,14 @@ export const SCAN_ROOT = 'backend/src';
  * Both must still be true or the check fails: see `staleWaivers`.
  */
 export const WAIVED = [
-  {
-    file: 'backend/src/Vni.Ielts.Application/Exams/ExamHandlers.cs',
-    text: '{limit:N0}',
-    why:
-      'Real: the ANSWER_TOO_LONG problem detail reads "longer than 20.000 characters" ' +
-      'on a vi-VN host (ExamEndpoints.cs maps e.Message straight into the response). ' +
-      'Left alone because another agent held ExamHandlers.cs open during wave 3 and a ' +
-      'concurrent edit to the same file is a merge conflict, not a fix. Reported 2026-09-18.',
-  },
+  // Empty, and that is the intended resting state.
+  //
+  // The one entry this list has ever held — `{limit:N0}` in
+  // `AnswerTooLongException` — was waived on 2026-09-18 only because another
+  // agent held `ExamHandlers.cs` open that day. It was fixed later the same
+  // day by the agent that did hold it, so the waiver is gone rather than
+  // inherited: a waiver kept past its reason is how a reported defect becomes
+  // a permanent one.
 ];
 
 /** Format specifiers that mean the same thing in every culture. */

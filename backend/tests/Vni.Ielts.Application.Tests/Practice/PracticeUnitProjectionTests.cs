@@ -126,6 +126,10 @@ public sealed class PracticeUnitProjectionTests
             Task.FromResult<IReadOnlyList<ExamVersion>>(versions);
         public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct) =>
             Task.FromResult(versions.FirstOrDefault(v => v.Id == id));
+        public Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
+            IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyDictionary<ExamVersionId, ExamVersion>>(
+                versions.Where(v => ids.Contains(v.Id)).ToDictionary(v => v.Id));
         public Task UpsertAsync(ExamVersion version, CancellationToken ct) => Task.CompletedTask;
         public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) => Task.CompletedTask;
     }

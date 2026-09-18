@@ -238,6 +238,7 @@ const vi = {
    * lát `W5` mở ra để sửa.
    */
   'progress.history.showing': 'Đang hiển thị {n} phiên gần nhất.',
+  'progress.history.showingAll': 'Đang hiển thị toàn bộ {n} phiên.',
   'progress.history.more': 'Xem thêm',
 
   'signIn.title': 'Đăng nhập',
@@ -1190,6 +1191,7 @@ const en: Record<StringKey, string> = {
   'progress.emptyBody':
     'Progress is built from the tests you have taken. It fills in after your first attempt.',
   'progress.history.showing': 'Showing your {n} most recent sittings.',
+  'progress.history.showingAll': 'Showing all {n} of your sittings.',
   'progress.history.more': 'Show more',
 
   'signIn.title': 'Sign in',

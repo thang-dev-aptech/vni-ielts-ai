@@ -35,6 +35,23 @@ internal sealed class MongoExamCatalogue(MongoContext context) : IExamCatalogue
         return [.. docs.Select(d => d.ToDomain())];
     }
 
+    public async Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
+        IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct)
+    {
+        if (ids.Count == 0) return ReadOnlyDictionary<ExamVersionId, ExamVersion>.Empty;
+
+        var keys = ids.Select(id => id.Value).Distinct(StringComparer.Ordinal).ToList();
+
+        var docs = await context.ExamVersions
+            .Find(Builders<ExamVersionDocument>.Filter.In(v => v.Id, keys))
+            .ToListAsync(ct);
+
+        // Keyed off the document's own id rather than the requested one: a
+        // dictionary built from the request would report a version for an id
+        // the database never returned.
+        return docs.ToDictionary(d => new ExamVersionId(d.Id), d => d.ToDomain());
+    }
+
     public async Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct)
     {
         var doc = await context.ExamVersions.Find(v => v.Id == id.Value).FirstOrDefaultAsync(ct);
@@ -117,16 +134,74 @@ internal sealed class MongoExamSessionRepository(MongoContext context) : IExamSe
     }
 
     public async Task<IReadOnlyList<ExamSession>> ListForUserAsync(
-        UserId userId, int limit, CancellationToken ct)
+        UserId userId, int limit, CancellationToken ct, SittingCursor? after = null)
     {
+        var filter = Builders<ExamSessionDocument>.Filter.Eq(s => s.UserId, userId.Value);
+
+        if (after is { } cursor)
+            filter = Builders<ExamSessionDocument>.Filter.And(filter, After(cursor));
+
         var docs = await context.ExamSessions
-            .Find(s => s.UserId == userId.Value)
-            .SortByDescending(s => s.StartedAt)
+            .Find(filter)
+            .Sort(HistoryOrder)
             .Limit(limit)
             .ToListAsync(ct);
 
         return [.. docs.Select(d => d.ToDomain())];
     }
+
+    /// <summary>
+    /// <see cref="SittingCursor.Precedes"/>, as a query.
+    ///
+    /// <b>The two halves are the same statement and have to stay that way.</b>
+    /// A filter that keeps only <c>startedAt &lt; cursor</c> loses every sitting
+    /// sharing the cursor's millisecond; one that keeps <c>&lt;=</c> returns the
+    /// cursor's own row again on every page, which is a "xem thêm" button that
+    /// never finishes. The compound is the only correct form, and the compound
+    /// only works if the sort breaks ties by the same key in the same direction
+    /// — hence <see cref="HistoryOrder"/>.
+    ///
+    /// <b>The id comparison is a string comparison, on both sides.</b> A session
+    /// id is a hex GUID, so MongoDB's byte ordering and
+    /// <c>string.CompareOrdinal</c> agree. They would not agree for arbitrary
+    /// text, and this is where that would silently stop being true.
+    ///
+    /// <b>Milliseconds, deliberately.</b> The stored value is a BSON date and
+    /// the cursor is encoded in Unix milliseconds, so a cursor built from a
+    /// sitting that came out of this collection compares exactly equal to it.
+    /// </summary>
+    private static FilterDefinition<ExamSessionDocument> After(SittingCursor cursor)
+    {
+        var at = DateTimeOffset
+            .FromUnixTimeMilliseconds(cursor.StartedAt.ToUnixTimeMilliseconds())
+            .UtcDateTime;
+
+        var builder = Builders<ExamSessionDocument>.Filter;
+
+        return builder.Or(
+            builder.Lt(s => s.StartedAt, at),
+            builder.And(
+                builder.Eq(s => s.StartedAt, at),
+                builder.Lt(s => s.Id, cursor.SessionId.Value)));
+    }
+
+    /// <summary>
+    /// Newest first, ties broken by id.
+    ///
+    /// <b>The second key is not decoration.</b> `startedAt` is a BSON date and
+    /// therefore millisecond-grained, and two sittings can share a
+    /// millisecond. Without a tiebreaker the order of those two is whatever
+    /// the storage engine returns and can differ between two reads of the same
+    /// data — which is fine for a list and fatal for a cursor over it, because
+    /// the row a page resumed after may not be the row the next read puts
+    /// there. `ix_exam_sessions_user_started_id` covers this sort; a sort the
+    /// index does not cover would be answered by loading every one of the
+    /// learner's sittings into memory to sort them.
+    /// </summary>
+    private static readonly SortDefinition<ExamSessionDocument> HistoryOrder =
+        Builders<ExamSessionDocument>.Sort
+            .Descending(s => s.StartedAt)
+            .Descending(s => s.Id);
 
     public Task AddAsync(ExamSession session, CancellationToken ct) =>
         context.ExamSessions.InsertOneAsync(session.ToDocument(), cancellationToken: ct);
@@ -722,6 +797,24 @@ internal sealed class MongoSectionResultStore(MongoContext context, IClock clock
             .ToListAsync(ct);
 
         return [.. docs.Select(d => d.ToDomain())];
+    }
+
+    public async Task<IReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionScore>>> ListManyAsync(
+        IReadOnlyCollection<ExamSessionId> sessionIds, CancellationToken ct)
+    {
+        if (sessionIds.Count == 0) return ReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionScore>>.Empty;
+
+        var keys = sessionIds.Select(id => id.Value).Distinct(StringComparer.Ordinal).ToList();
+
+        var docs = await context.SectionResults
+            .Find(Builders<SectionResultDocument>.Filter.In(r => r.SessionId, keys))
+            .ToListAsync(ct);
+
+        return docs
+            .GroupBy(d => d.SessionId, StringComparer.Ordinal)
+            .ToDictionary(
+                g => new ExamSessionId(g.Key),
+                IReadOnlyList<SectionScore> (g) => [.. g.Select(d => d.ToDomain())]);
     }
 }
 

@@ -18,12 +18,12 @@ namespace Vni.Ielts.Application.Tests.Exams;
 /// the screen admitting how many it is showing, which lives in
 /// `apps/web/src/__tests__/progress-history.test.tsx`.
 ///
-/// <b>What is deliberately not here: a cursor.</b>
-/// <c>IExamSessionRepository.ListForUserAsync</c> takes a limit and nothing
-/// else, so "the next fifty" cannot be asked for at all. A learner past the
-/// ceiling still cannot reach their oldest sittings. That is recorded as debt
-/// in `_workspace/queue/web-enduser-completion.md` § `W5` rather than
-/// implemented behind a screen that would look paginated and not be.
+/// <b>What is deliberately not here: the cursor.</b> It was missing entirely
+/// when this file was written, which made the ceiling below a wall — and it
+/// arrived on 18/09/2026, which makes the ceiling a page size. Paging is
+/// measured next door in <see cref="SittingHistoryCursorTests"/>; what stays
+/// here is the other property, that no caller can talk the repository into an
+/// unbounded read however it spells the parameter.
 /// </summary>
 public sealed class SittingHistoryLimitTests
 {

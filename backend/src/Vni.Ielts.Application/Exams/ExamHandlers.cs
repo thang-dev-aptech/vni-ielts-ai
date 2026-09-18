@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
@@ -409,7 +410,15 @@ public sealed class AnswerTooLongException(IReadOnlyList<string> questionIds, in
         "The answer to "
         + string.Join(", ", questionIds.Take(5).Select(id => $"'{id}'"))
         + (questionIds.Count > 5 ? $" (and {questionIds.Count - 5} more)" : "")
-        + $" is longer than {limit:N0} characters.")
+        // <b>Invariant, because this sentence is an API response.</b>
+        // `ExamEndpoints` maps this message straight into the problem detail, so
+        // the host's locale decided what a client read: "longer than 20.000
+        // characters" on a vi-VN machine and "20,000" on an en-US one, for the
+        // same limit. A number a client might parse must not depend on where
+        // the server happens to be running. Waived during wave 3 only because
+        // this file was held open elsewhere; closed here.
+        + string.Create(
+            CultureInfo.InvariantCulture, $" is longer than {limit:N0} characters."))
 {
     public IReadOnlyList<string> QuestionIds { get; } = questionIds;
 }
@@ -832,7 +841,22 @@ public sealed class RequestPersonalizedExplanation(PersonalizedExplanationServic
         service.RequestAsync(command, ct);
 }
 
-public sealed record ListMySittingsQuery(UserId UserId, int Limit);
+public sealed record ListMySittingsQuery(UserId UserId, int Limit, SittingCursor? After = null);
+
+/// <summary>
+/// One page of a learner's history, and how to ask for the next one.
+///
+/// <b><see cref="NextCursor"/> null means there is nothing after this page, and
+/// it means it with certainty.</b> That certainty is the point. Before this
+/// existed the screen could only ever say "the N most recent", because a full
+/// page was indistinguishable from a page that happened to end at the server's
+/// ceiling — so a learner who had seen their whole history was told they had
+/// seen the most recent part of it. The handler reads one row past the page to
+/// tell the two apart, which is one document rather than a count query, and
+/// costs nothing that grows.
+/// </summary>
+public sealed record SittingHistoryPage(
+    IReadOnlyList<SittingSummaryView> Sittings, string? NextCursor);
 
 /// <summary>
 /// A learner's own recent sittings.
@@ -847,21 +871,24 @@ public sealed record ListMySittingsQuery(UserId UserId, int Limit);
 /// user id comes from the token; there is no parameter through which one
 /// learner could ask for another's history.
 ///
-/// <b>Two lookups per sitting, and two more for a mock.</b> The version for
-/// its title and the stored section results, always; the markings and the
-/// marking jobs only when <see cref="SittingBand.Applies"/> says an overall
-/// band is possible at all, which excludes every single-skill practice row.
-/// That is an N+1 by construction, and acceptable only because N is capped at
-/// <see cref="MaxLimit"/> — versions are deduplicated because a learner
-/// re-sitting the same exam is the common case, not the rare one.
+/// <b>Five round trips for a page, whatever size the page is.</b> The session
+/// list, the papers, the scores, the markings and the marking jobs — one read
+/// each, none of them per sitting. It was not always: this handler read the
+/// paper, the scores, the markings and the jobs one sitting at a time, so
+/// opening the screen cost about two hundred round trips at the fifty-sitting
+/// ceiling. `W10` batched the markings and the jobs and brought that to a
+/// hundred and three; batching the papers and the scores brings it to five,
+/// and five is a constant rather than a smaller slope.
 ///
-/// <b>The two extra reads are what `W1` cost.</b> `Q-01`'s rule is "nothing is
-/// still owed", and nothing but the marking store and the job outbox can say
-/// what is owed — so the alternative to paying for them was leaving this
-/// screen disagreeing with the results screen about the same sitting. Neither
-/// port can be asked about more than one sitting at a time; a batch read is
-/// recorded as debt beside `W5`'s cursor rather than smuggled in here, because
-/// it changes a port and its Mongo implementation.
+/// <b>The markings and the jobs are still only asked for where they can
+/// matter.</b> `Q-01`'s rule is "nothing is still owed", and nothing but the
+/// marking store and the job outbox can say what is owed — so the alternative
+/// to paying for them was leaving this screen disagreeing with the results
+/// screen about the same sitting. <see cref="SittingBand.Applies"/> selects
+/// the ids, so a history of single-skill practice sends no id list at all and
+/// both stores answer without reaching the database. The scores are asked for
+/// every row, because a practice sitting has no overall band and still has a
+/// Reading band to show.
 /// </summary>
 public sealed class ListMySittings(
     IExamCatalogue catalogue,
@@ -878,45 +905,89 @@ public sealed class ListMySittings(
     /// rule.</b> `W5` needed `/students/progress` to stop truncating at ten
     /// rows it never admitted to cutting; twenty could not carry the thirty
     /// sittings that slice is measured against. Fifty clears it with room and
-    /// stops well short of an export: every row still costs two lookups, and
-    /// four when it is a mock, so the worst case a single request can buy is
-    /// about two hundred reads.
+    /// stops well short of an export.
     ///
-    /// <b>This is a ceiling, not pagination, and the screen says so.</b> A
-    /// learner with more than fifty sittings cannot reach the older ones —
-    /// `ListForUserAsync` takes a limit and no cursor. That is recorded as debt
-    /// in `_workspace/queue/web-enduser-completion.md` § `W5`, not hidden: the
-    /// history screen tells the reader how many of their most recent sittings
-    /// it is showing rather than silently dropping the rest, which is the
-    /// defect `W5` was opened for in the first place.
+    /// <b>It is a page size now, not a ceiling on a learner's history.</b>
+    /// Until 18/09/2026 it was both, and the second meaning was a defect: a
+    /// learner with more than fifty sittings could not reach the older ones by
+    /// any means, because `ListForUserAsync` took a limit and no cursor. With
+    /// <see cref="SittingCursor"/> the fiftieth row is the end of a page rather
+    /// than the end of the data, and <see cref="SittingHistoryPage.NextCursor"/>
+    /// says which it is — so the screen can stop guessing and say either "the
+    /// N most recent" or "all N", correctly.
     ///
     /// Every caller is clamped to it below, so no query reaches the database
-    /// unbounded however the client spells the parameter.
+    /// unbounded however the client spells the parameter — and the read that
+    /// looks one row past the page is clamped with it.
     /// </summary>
     public const int MaxLimit = 50;
 
+    /// <summary>
+    /// The rows alone.
+    ///
+    /// <b>Kept for the callers that read the history without paging it.</b>
+    /// <c>GetCoaching</c> asks for the ceiling and walks what it gets; handing
+    /// it a page object would make it unwrap something it has no use for.
+    /// </summary>
     public async Task<IReadOnlyList<SittingSummaryView>> HandleAsync(
+        ListMySittingsQuery query, CancellationToken ct) =>
+        (await PageAsync(query, ct)).Sittings;
+
+    public async Task<SittingHistoryPage> PageAsync(
         ListMySittingsQuery query, CancellationToken ct)
     {
-        var mine = await sessions.ListForUserAsync(
-            query.UserId, Math.Clamp(query.Limit, 1, MaxLimit), ct);
+        var wanted = Math.Clamp(query.Limit, 1, MaxLimit);
 
-        var versions = new Dictionary<string, ExamVersion>(StringComparer.Ordinal);
+        /*
+         * <b>One row past the page, and then thrown away.</b> The page has to
+         * say whether anything follows it, and the two cheap ways to answer
+         * that are both wrong: a count query is a second round trip over the
+         * whole history, and "the page came back full" cannot tell a full page
+         * from the last page of a history whose size is a multiple of the page
+         * size. Reading `wanted + 1` answers it exactly, for the cost of one
+         * document — and the clamp still bounds the query, because the ceiling
+         * is applied before the extra row is asked for.
+         */
+        var scanned = await sessions.ListForUserAsync(query.UserId, wanted + 1, ct, query.After);
+
+        var more = scanned.Count > wanted;
+        var mine = more ? scanned.Take(wanted).ToList() : scanned;
+
+        /*
+         * <b>The cursor names the last row the repository handed back, not the
+         * last row this method returns.</b> They differ when a sitting's exam
+         * version has been deleted: that row is dropped from the response
+         * below and must still be stepped over, or the next page starts at it
+         * again and the "xem thêm" button never advances past a deleted paper.
+         */
+        var nextCursor = more && mine.Count > 0 ? SittingCursor.Of(mine[^1]).Encode() : null;
+
+        /*
+         * <b>One lookup for the page's papers, not one per distinct paper.</b>
+         * Deduplication made the common case — a learner re-sitting one exam —
+         * cost a single read and left the worst case alone: fifty sittings of
+         * fifty different papers bought fifty round trips. The ids are
+         * deduplicated before the read rather than after it, so the batch is
+         * as small as the loop's was. → slice `W10`, second wave
+         */
+        var wantedVersions = mine
+            .Select(s => s.ExamVersionId)
+            .Distinct()
+            .ToList();
+
+        var versions = wantedVersions.Count == 0
+            ? ReadOnlyDictionary<ExamVersionId, ExamVersion>.Empty
+            : await catalogue.FindManyAsync(wantedVersions, ct);
+
         var rows = new List<(ExamSession Session, ExamVersion Version)>(mine.Count);
 
         foreach (var session in mine)
         {
-            if (!versions.TryGetValue(session.ExamVersionId.Value, out var version))
-            {
-                // A sitting whose version has been deleted is not an error the
-                // learner can act on, and dropping the row silently would make
-                // their history quietly incomplete. Neither is good, so: skip
-                // it here and leave the sitting reachable by its own URL.
-                if (await catalogue.FindAsync(session.ExamVersionId, ct) is not { } found) continue;
-
-                version = found;
-                versions[session.ExamVersionId.Value] = version;
-            }
+            // A sitting whose version has been deleted is not an error the
+            // learner can act on, and dropping the row silently would make
+            // their history quietly incomplete. Neither is good, so: skip
+            // it here and leave the sitting reachable by its own URL.
+            if (!versions.TryGetValue(session.ExamVersionId, out var version)) continue;
 
             rows.Add((session, version));
         }
@@ -951,11 +1022,23 @@ public sealed class ListMySittings(
             ? ReadOnlyDictionary<ExamSessionId, IReadOnlyList<MarkingJob>>.Empty
             : await outbox.ListManyAsync(banded, ct);
 
+        /*
+         * <b>One read for the page's scores, not one per sitting.</b> This was
+         * the last per-row read on the screen and the reason its total was
+         * still linear after `W10`: a page of fifty sittings cost fifty score
+         * reads, whatever else had been batched. Unlike the markings it is
+         * asked for every row — a single-skill practice sitting has no overall
+         * band and still has a Reading band to show.
+         */
+        var scoresBySitting = rows.Count == 0
+            ? ReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionScore>>.Empty
+            : await results.ListManyAsync([.. rows.Select(r => r.Session.Id)], ct);
+
         var summaries = new List<SittingSummaryView>(rows.Count);
 
         foreach (var (session, version) in rows)
         {
-            var scored = await results.ListAsync(session.Id, ct);
+            var scored = scoresBySitting.TryGetValue(session.Id, out var held) ? held : [];
             var byModule = scored.ToDictionary(r => r.Module, r => r.Band);
 
             // Lower-cased like every other view on this surface. The clients
@@ -1019,7 +1102,7 @@ public sealed class ListMySittings(
                 overall));
         }
 
-        return summaries;
+        return new SittingHistoryPage(summaries, nextCursor);
     }
 }
 
