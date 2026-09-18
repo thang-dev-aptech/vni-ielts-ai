@@ -150,7 +150,17 @@ jobs:
 
           # Only the buckets the tests actually name. `vni-exam-assets` is the
           # "real bucket" a missing key is looked up in; `vni-audio-90d` is the
-          # dictation bucket the readiness probe checks alongside it.
+          # dictation bucket the readiness probe checks alongside it;
+          # `vni-speaking` is what `SpeakingRecordingUploadTests` pins as
+          # `SpeakingRecordingsBucket`, and `vni-media` is what the readiness
+          # probe started walking when the CMS media library landed.
+          #
+          # The last two were missing and nobody could tell, because this job
+          # has not reached a test since 2026-09-11 — it died one step earlier
+          # on the MinIO pull. A bucket that does not exist surfaces as an S3
+          # `NotFound` several assertions deep, not as "no bucket", so keep
+          # this list beside `compose.yaml`'s: they answer the same question
+          # for two environments.
           # `--entrypoint sh` is required: the mc image sets `mc` as its
           # ENTRYPOINT, so a bare `sh -c` is handed to mc as an argument and
           # comes back as `mc: <ERROR> `sh` is not a recognized command`.
@@ -159,6 +169,8 @@ jobs:
             mc alias set ci http://localhost:9000 vni-local vni-local-dev-only &&
             mc mb --ignore-existing ci/vni-exam-assets &&
             mc mb --ignore-existing ci/vni-audio-90d &&
+            mc mb --ignore-existing ci/vni-speaking &&
+            mc mb --ignore-existing ci/vni-media &&
             echo 'buckets ready'
           "
 
