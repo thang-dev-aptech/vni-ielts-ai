@@ -77,6 +77,25 @@ Hai lỗi, và lỗi thứ hai nặng hơn:
 **Xong khi:** Foundation verification xanh trên Linux; một drill cố tình treo báo lỗi trong dưới 2
 phút, có test chứng minh.
 
+### ✅ Đóng — đợt 1, 18/09/2026, commit `9098ed7`
+
+Drill giữ lại, đổi mục tiêu sang `Cors__Origins__0=http://insecure.smoke.invalid`. Hai ứng viên nêu ở
+trên đều không dùng được, và lý do đã được đọc ra từ chính `StartupConfiguration.cs`: refusal của
+`Sso:ClientBaseUrl` bị gác sau `googleConfigured` mà compose production không cấu hình Google, còn
+plain-HTTP trên `ObjectStorage:ServiceUrl` là **`warnings.Add` chứ không phải `problems.Add`** — chọn
+nó thì container vẫn boot và drill treo lại y hệt. `StartupConfiguration.cs` không bị chạm.
+
+Mỗi drill có deadline riêng (`DEFAULT_DRILL_TIMEOUT_MS` = 15 phút, `SIGKILL`), và một test đọc
+`timeout-minutes` từ `verify.yml` để hai bên không trôi khỏi nhau. **Nửa tinh vi hơn:** `result.status
+?? 1` bịa exit code cho tiến trình bị giết — mà đây là drill **đảo ngược**, non-zero là đạt, nên ngay
+khi deadline bắt đầu giết container treo thì chính nó sẽ chuyển xanh nhờ bị giết. Đã chứng minh bằng
+cách khôi phục `?? 1`: bị giết ở 2.4 s, báo `passed`. Nay mang `null` xuyên suốt, không thoả cái gì cả.
+
+**Còn nợ:** không chứng minh được Foundation verification xanh trên Linux — chỉ một lần chạy CI trên
+nhánh mới đóng được mệnh đề đó. Chạy thật trên máy dev: container Production từ chối đúng một lý do,
+178.8 s. `verify.yml` cố ý không thêm step timeout: chưa ai đo chi phí bình thường của step đó, thêm
+mù là tạo flake mới.
+
 ---
 
 ## W1 — Band tổng thống nhất giữa lịch sử và trang kết quả
@@ -96,8 +115,33 @@ thì thấy gạch ngang. Hai màn của cùng một sản phẩm nói hai đi�
 **Việc:** cho lịch sử dùng đúng luật `Q-01`. Query lịch sử hiện **không nạp markings lẫn jobs** — phải
 nạp cả hai để biết "còn gì đang nợ không". **Canh N+1**: đo số query trước và sau, ghi vào commit.
 
-**Xong khi:** một test đã kiểm chứng đỏ-khi-gỡ, dựng phiên thi thử 3 kỹ năng và khẳng định hai màn trả
-cùng một con số; số query không tăng theo số phiên.
+**Xong khi — sửa lại 18/09/2026:** một test đã kiểm chứng đỏ-khi-gỡ, dựng phiên thi thử 3 kỹ năng và
+khẳng định hai màn trả cùng một con số.
+
+> **Dòng cũ có thêm một mệnh đề — *"số query không tăng theo số phiên"* — và nó đã được tách sang
+> `W10`.** Hai mệnh đề đó khác loại: một cái nói kết quả **đúng**, một cái nói nó **nhanh**. Gộp chung
+> một dòng thì lát không đóng được cho tới khi cả hai xong, trong khi phần đúng đã xong và người học
+> đang hưởng. Lỗi ở người viết hàng đợi, không ở người làm.
+
+### ✅ Đóng — đợt 1, 18/09/2026, commit `163de91`
+
+`SittingBand.Overall` đổi chữ ký sang chính luật `Q-01`, và **cổng vào cũ bị xoá chứ không deprecate**
+— một luật còn gọi được là một luật sẽ bị gọi. `ListMySittings` nạp thêm markings + outbox, chỉ cho
+phiên `Full` (`SittingBand.Applies`). Hình dạng `SittingSummaryView` **không đổi một tham số nào**
+(17/17, đã đối chiếu từng dòng), nên `contracts/openapi` và `packages/api-client` không bị động tới.
+
+**Đỏ đã thấy:** lịch sử trả `null` trong khi trang kết quả trả `6.5`, trên cùng một bộ store, gọi cả
+hai handler thật. Gỡ fix hai hướng riêng biệt — bỏ luật mà giữ hai lần đọc, và bỏ hai lần đọc mà giữ
+luật — mỗi hướng đỏ một kiểu khác nhau.
+
+**Một giá trị phái sinh cũng đổi, và nó không phải việc của code:** `IncludeInIeltsTrend`
+(`historyTrack == "full-mock" && overall is not null`) nay **bật** cho mock 3 kỹ năng. Biểu thức không
+đổi một ký tự; `overall` mới là thứ đổi. Đường "xu hướng IELTS" vì thế trộn band 3 kỹ năng với band 4
+kỹ năng, và chú thích mà `Q-01` yêu cầu thì không sống được trên một đường biểu đồ. Đã ghi thành câu
+hỏi mở trong `docs/requirements/assumptions-and-open-questions.md` — **không tự sửa, không tự đảo.**
+
+**Không làm, có chủ ý:** `overallBandModules` cho lịch sử. Trang kết quả có trường đó để nói band gồm
+những kỹ năng nào; lịch sử thì không. Thêm vào là **đổi hình dạng** → đi cùng `W7`.
 
 ---
 
@@ -170,9 +214,17 @@ luồng xem ví và sao chép mã giới thiệu.
 **Chặn:** cần biết ai soạn nội dung. Phần code thì không chặn.
 
 **Kệ đang rỗng, và im lặng.** `fixtures/dictation/everyday-1.json` cùng 6 file `.m4a` được commit ở
-`1a41deb`, rồi **bị xoá ở `5cdb3fc` ngày 28/08/2026** ("Close the infrastructure queue") — gần như chắc
-là lúc dọn audio ra khỏi git, và bộ đề bị cuốn theo. Đã kiểm tra: thư mục không có trong git lẫn trên
-đĩa. `FixtureDictationCatalogue` đọc không thấy → ghi log `"dictation is empty"` → `/dictation` là danh
+`1a41deb`, rồi **bị xoá ở `5cdb3fc` ngày 28/08/2026** ("Close the infrastructure queue"). Đã kiểm tra:
+thư mục không có trong git lẫn trên đĩa.
+
+> **Đính chính 18/09/2026.** Dòng này trước đây viết *"gần như chắc là lúc dọn audio ra khỏi git, và
+> bộ đề bị cuốn theo"*. Đó là **suy đoán của người viết hàng đợi, và bằng chứng bác bỏ nó**: `5cdb3fc`
+> (28/08) **sớm hơn ADR-0016 (04/09) một tuần**, nên lúc ấy quyết định đưa audio ra object storage
+> chưa tồn tại; và luật `.gitignore` đưa audio exam ra khỏi git có phạm vi đúng
+> `fixtures/exams/assets/*`, chưa bao giờ phủ `fixtures/dictation`. Cùng commit đó thay
+> `fixtures/exams/full-demo.json` + `reading-demo.json` bằng `synthetic-full-1.json`. Đây là một
+> **đợt thay fixture**, và kho nghe chép bị cuốn theo mà không được nhắc một chữ nào trong commit
+> message 60 dòng nói về 48 việc khác. `FixtureDictationCatalogue` đọc không thấy → ghi log `"dictation is empty"` → `/dictation` là danh
 sách trống. Không lỗi, không cảnh báo. Một trong bốn module trên header đang rỗng.
 
 **Việc:**
@@ -183,7 +235,29 @@ sách trống. Không lỗi, không cảnh báo. Một trong bốn module trên 
    Một kho nội dung rỗng trong production là sự cố, không phải trạng thái bình thường.
 
 **Xong khi:** clone mới, chạy lên, vào `/dictation` thấy có bài và làm được; có test khẳng định
-catalogue rỗng thì readiness/startup kêu.
+catalogue rỗng thì **khởi động** kêu.
+
+### ✅ Đóng — đợt 1, 18/09/2026, commit `7a0c43f`
+
+Bộ đề khôi phục từ `1a41deb`, **cùng SHA blob** với bản gốc cho cả sáu file `.m4a` — khôi phục nguyên
+văn là thứ chứng minh được, không phải thứ kể lại. 168 KB.
+
+**Audio vào git, `[QUYẾT ĐỊNH kỹ thuật]`.** Lý do không phải cân nhắc mơ hồ: code đã có sẵn cả hai
+đường và tự chọn — `S3DictationAssetStore` (bucket `vni-audio-90d`) khi object storage có cấu hình,
+`FixtureDictationAssetStore` khi không (`DependencyInjection.cs:286`). Còn **phần JSON thì không có
+đường object storage nào cả**, nên bắt buộc nằm trong git. Fixture 168 KB nuôi đúng nhánh mà ADR-0016
+cố ý giữ lại. **Tripwire đặt thấp có chủ ý:** bộ đề đầu tiên dùng giọng thu thật, hoặc lần đầu thư mục
+này vượt vài MB, thì bytes đi vào `vni-audio-90d` và `fixtures/dictation` chỉ giữ JSON.
+
+**Kêu bằng cảnh báo khởi động, không phải readiness** (quyết định chủ sản phẩm 18/09): readiness trả
+lời câu "instance này phục vụ được request không", mà một kho nghe chép rỗng không ngăn API phục vụ đề
+thi, đăng nhập hay chấm Writing. Buộc readiness vào nội dung nghĩa là một gói nội dung thiếu sẽ hạ cả
+sản phẩm — sự cố do chính lựa chọn giám sát gây ra. Theo đúng khuôn `ContentRights`. Đã đo thật:
+kệ rỗng → `LogWarning` + dòng `[config]`, và `/health/ready` vẫn `200 ready`.
+
+**Vẫn còn chặn, và không phải việc code:** ai soạn nội dung nghe chép thật, và bản quyền audio. Thứ
+vừa khôi phục là seed dev bằng TTS `say` của macOS, **tự dán nhãn "không phải giọng thu thật" ngay
+trong description của bộ đề** — không phải chất liệu ship được.
 
 ---
 
@@ -246,6 +320,32 @@ Năm phát hiện trong `apps/web/src/styles/{practice,dashboard,exam}.css`: vi�
 
 **Xong khi:** gate design-hook xanh mà không dùng suppression; ảnh chụp trước/sau cho thấy giao diện
 không đổi ngoài ý muốn.
+
+### ✅ Đóng — đợt 1, 18/09/2026, commit `66834e0`
+
+**Không có gate design-hook nào trong repo** — năm phát hiện đến từ một lượt review của phiên 18/09 và
+không ai chép lại danh sách từng dòng. Quyết định chủ sản phẩm: **không truy lại con số năm, định nghĩa
+luật**, vì một danh sách năm mục đoán ra trông giống hệt một danh sách năm mục có thật.
+
+Luật thành `scripts/check-css-transitions.mjs` + test anh em + `pnpm check:css` trong chuỗi `pnpm
+check`: cấm `transition: all`, cấm transition trên 50 thuộc tính *flow*. Check bắt **sáu** chỗ, không
+phải năm, tất cả đều là `transition: all` — đã ghi rõ trong commit là mở rộng so với con số cũ.
+
+**Hai chỗ cố ý làm khác đơn hàng:**
+
+- Nhóm *"side-tab borders"*: **không tìm thấy, và báo không tìm thấy** thay vì bịa một bản vá. Ba file
+  không có class tab nào mang viền đổi theo trạng thái.
+- `width`/`height` **không** nằm trong danh sách flow: hai chỗ duy nhất là thanh đo âm lượng do
+  `SpeakingRecorder.tsx` điều khiển bằng inline style, mà file đó thuộc danh sách bảo toàn `D-11`.
+  Ranh giới ghim bằng một test **đặt tên hẳn hoi**, không phải suppression.
+
+**Bằng chứng thị giác:** ảnh chụp trước/sau ở trang này là bằng chứng rác — diff 4.26% pixel, nhưng
+chụp hai lần cùng một CSS diff 4.79%, cùng dải, vì hero có bốn animation `infinite`. Thay bằng so sánh
+computed-style: 593 thuộc tính + bounding box của 5 element, digest trùng khít, khác biệt duy nhất
+đúng là `transition-*`.
+
+**Một thay đổi hành vi, đã khai:** viền `:focus-visible` (đặt ở `reset.css`) trước đây *animate vào*
+nhờ `transition: all`, nay bật tức thì. Trạng thái cuối y hệt.
 
 ---
 
@@ -323,23 +423,73 @@ chặng; tiêu chí không đo được **không** có band; mỗi lượt chấ
 
 ---
 
+## W10 — Đọc theo lô cho lịch sử phiên
+
+**Chặn:** không. **Mở 18/09/2026**, tách ra từ `W1` — xem `W1` § *Xong khi* để biết vì sao tách.
+
+`W1` gộp hai mệnh đề khác loại vào một dòng: kết quả **đúng** (hai màn cùng một con số) và nó
+**nhanh** (query không tăng theo số phiên). Mệnh đề đầu đã đóng ở đợt 1. Đây là mệnh đề thứ hai.
+
+**Số đã đo, đừng đo lại** (test `A_practice_sitting_costs_no_marking_or_job_read`, commit `163de91`):
+
+| | Trước `W1` | Sau `W1` |
+|---|---|---|
+| `ListForUserAsync` | 1 | 1 |
+| `catalogue.FindAsync` (đã dedupe) | 1 | 1 |
+| `results.ListAsync` | 10 | 10 |
+| `markings.ListAsync` | 0 | **5** |
+| `outbox.ListAsync` | 0 | **5** |
+| **Tổng** — 5 phiên mock + 5 phiên luyện của một đề | **12** | **22** |
+
+Chỉ phiên `Full` trả tiền; phiên luyện đơn kỹ năng trả 0. Xấu nhất ở trần `MaxLimit = 50`, toàn mock,
+mỗi phiên một đề khác nhau: **khoảng 201 truy vấn cho một lần mở trang lịch sử.**
+
+**Việc:** thêm hàm đọc-theo-lô (hỏi nhiều `sessionId` một lượt) vào `ISectionMarkingStore` và
+`IMarkingOutbox`, và bản Mongo của chúng, rồi cho `ListMySittings` dùng chúng.
+
+**Phạm vi file:** `backend/src/Vni.Ielts.Application/Assessment/Ports.cs` ·
+`backend/src/Vni.Ielts.Application/…/MarkingOutbox.cs` · `backend/src/Vni.Ielts.Infrastructure/Persistence/…` ·
+`ListMySittings` trong `ExamHandlers.cs` · **và `Learning/Handlers.cs`** — xem dưới.
+
+### Đường thứ hai, và nó nặng hơn đường đang nói tới
+
+`backend/src/Vni.Ielts.Application/Learning/Handlers.cs:296` gọi thẳng
+`sessions.ListForUserAsync(userId, 500, ct)` — **đường thứ hai vào cùng repository với một trần khác
+hẳn** (500, không phải `MaxLimit`). Cùng đường N+1 đó ở 500 phiên toàn mock ra **khoảng 2000 truy
+vấn**. Có bound nên không vi phạm DoD nào, nhưng **sửa đọc-theo-lô mà bỏ sót đường này là sửa một
+nửa** — và nửa bị bỏ sót lại là nửa tốn kém hơn.
+
+**Không thuộc lát này:** cursor/`skip` cho `IExamSessionRepository.ListForUserAsync`. Đó là **đổi hình
+dạng response**, nên đi cùng `W7` — xem `W5` § *Còn nợ* mục 1. `W10` chỉ làm phần không đổi hợp đồng.
+
+**Xong khi:** test đếm query đã kiểm chứng đỏ-khi-gỡ, khẳng định số truy vấn **không tăng theo số
+phiên** ở cả hai đường vào (`ListMySittings` và `Learning/Handlers.cs`); con số đo lại được ghi vào
+commit, cạnh con số cũ ở bảng trên.
+
+---
+
 ## Tổng
 
-| Lát | Chặn bởi | Ước lượng |
-|---|---|---|
-| `W0` Drill Foundation | — | 2–3h |
-| `W1` Band tổng thống nhất | — | 3–4h |
-| `W2` Nền kinh tế VNI | `B-5a` `B-5b` `B-5c` | 2–3 ngày |
-| `W3` Ví lên giao diện | `W2` | 1–1.5 ngày |
-| `W4` Kho nghe chép | nội dung | 2h + soạn bài |
-| `W5` Lịch sử đầy đủ | — | 4–6h |
-| `W6` 5 lỗi CSS | — | 2h |
-| `W7` OpenAPI `/me` + dictation | — | 4–6h |
-| `W8` Màn soạn nghe chép | `W4` | 1.5–2 ngày |
-| `W9` Chấm Speaking | `P-02` `B-1` `B-2` | 4–5 ngày |
+| Lát | Trạng thái | Chặn bởi | Ước lượng |
+|---|---|---|---|
+| `W0` Drill Foundation | ✅ đóng 18/09 `9098ed7` | — | 2–3h |
+| `W1` Band tổng thống nhất | ✅ đóng 18/09 `163de91` | — | 3–4h |
+| `W2` Nền kinh tế VNI | ⛔ chặn | `B-5a` `B-5b` `B-5c` | 2–3 ngày |
+| `W3` Ví lên giao diện | ⛔ chặn | `W2` | 1–1.5 ngày |
+| `W4` Kho nghe chép | ✅ đóng 18/09 `7a0c43f` — nội dung thật vẫn chờ | nội dung | 2h + soạn bài |
+| `W5` Lịch sử đầy đủ | ✅ đóng 18/09 `19df38b` — cursor nợ sang `W7` | — | 4–6h |
+| `W6` 5 lỗi CSS | ✅ đóng 18/09 `66834e0` | — | 2h |
+| `W7` OpenAPI `/me` + dictation | ▶ đợt 2 | — | 4–6h |
+| `W8` Màn soạn nghe chép | ⏸ hoãn (quyết định 18/09) | nội dung, không phải kỹ thuật | 1.5–2 ngày |
+| `W9` Chấm Speaking | ⛔ chặn | `P-02` `B-1` `B-2` | 4–5 ngày |
+| `W10` Đọc theo lô cho lịch sử | ▶ đợt 2 | — | 0.5–1 ngày |
 
-**`W0` → `W1` → `W4` → `W5` → `W6` → `W7` chạy được ngay, không chờ quyết định nào.**
-`W2` → `W3` chờ ba câu về VNI. `W8` chờ `W4`. `W9` chờ ba quyết định ngoài code.
+**Đợt 2 (`W7`, `W10`) chạy được ngay, không chờ quyết định nào.**
+`W2` → `W3` chờ ba câu về VNI. `W9` chờ ba quyết định ngoài code.
+
+**`W8` hoãn, và không phải vì chặn kỹ thuật** (quyết định chủ sản phẩm 18/09): nó là CMS chứ không nằm
+trên đường tới "web người học 100%", và câu *ai soạn nội dung nghe chép, bản quyền audio ra sao* vẫn
+chưa có lời. Xây cửa cho một kho chưa biết ai đổ hàng vào là làm sớm.
 
 Xong `W0`…`W8`: web người học đạt **100% phạm vi MVP**. `W9` nằm ngoài phạm vi đó theo `P-02` và chỉ
 chạy khi chủ sản phẩm đảo quyết định.

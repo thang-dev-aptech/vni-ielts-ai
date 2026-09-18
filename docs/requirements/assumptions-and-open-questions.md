@@ -550,6 +550,35 @@ Left ambiguous, a later reader will assume "validated" names an existing busines
 
 ---
 
+## Phát sinh từ đợt 1 của hàng đợi `W*` (2026-09-18)
+
+### B-15 · Một mock 3 kỹ năng có được nằm trên đường xu hướng IELTS không? `[BUSINESS DECISION]`
+
+**Blocks:** biểu đồ xu hướng ở `/students/progress`. Không chặn code đang chạy — hôm nay nó đã bật,
+xem dưới.
+
+`Q-01` nói: band tổng của một mock 3 kỹ năng **được hiện bình thường, kèm một chú thích nói nó gồm
+những kỹ năng nào**. Trên một *màn kết quả* chú thích đó sống được. Trên một *đường xu hướng* thì
+không: một điểm trên đường chỉ là một con số và một ngày.
+
+`W1` (2026-09-18, `163de91`) làm lịch sử dùng chung luật `Q-01`. Cờ `SittingSummaryView.IncludeInIeltsTrend`
+là `historyTrack == "full-mock" && overall is not null` — **biểu thức không đổi một ký tự**, nhưng
+`overall` nay có giá trị cho mock 3 kỹ năng, nên cờ bật. Hệ quả: đường xu hướng trộn band 3 kỹ năng
+với band 4 kỹ năng thật, và người xem không phân biệt được hai loại điểm.
+
+| | |
+|---|---|
+| **(a)** | Cho vào đường xu hướng như hiện nay — một đường, chấp nhận hai loại điểm khác bản chất nằm chung |
+| **(b)** | Tách hai đường — mock đủ 4 kỹ năng một đường, mock thiếu kỹ năng một đường |
+| **(c)** | Giữ một đường nhưng **đánh dấu** điểm 3 kỹ năng (hình dạng marker khác, tooltip nói rõ) |
+
+**Trạng thái hôm nay là (a), và đó là hệ quả phái sinh chứ không phải một lựa chọn ai đó đã cân
+nhắc.** Không đảo `W1` để né câu hỏi này: hai màn nói hai con số là lỗi nặng hơn. Nhưng cũng đừng coi
+việc nó đang chạy là câu trả lời. → `Q-01` trong [`confirmed.md`](confirmed.md),
+`_workspace/queue/web-enduser-completion.md` § `W1`
+
+---
+
 ## High impact — resolve before requirement freeze
 
 ### H-1 · Exam structure and catalogue `[OPEN QUESTION]` — partially resolved 2026-08-20
