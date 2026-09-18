@@ -321,6 +321,20 @@ A gate that is skipped 93% of the time is not protecting anything, and the
 project's evidence rule — *a test seen to go red* — is not being exercised in
 CI at all. That is a separate decision for the owner and not a flake fix.
 
+> **Đính chính của Orchestrator, thêm sau khi báo cáo này được viết.** Con số
+> 4/60 đúng, nhưng **cách đọc theo thời gian thì thiếu**, và nó đổi kết luận.
+> Hai lần chạy gần nhất — `727f4b1` (18/09 00:32) và `5b571ff` (18/09 05:02) —
+> đều **xanh và đều chạy tới bước `Test`**. 56 lần đỏ nằm ở **14/09 trở về
+> trước**, phần lớn là nhánh dependabot, tức là **trước** hai commit sửa
+> formatting của hôm nay (`727f4b1` "format the source", `004a1c4` "stop a local
+> tool cache failing the formatting gate"). Chạy `npx prettier --check .` trên
+> `main` tại `3a16618`: *All matched files use Prettier code style*.
+>
+> Nên: **cổng này đã từng bị bỏ qua suốt nhiều tuần, và nó không còn bị bỏ qua
+> kể từ hôm nay.** Đọc nhầm thành hiện trạng sẽ dẫn tới việc đi sửa một thứ đã
+> được sửa rồi. Thứ còn lại cần theo dõi là các nhánh dependabot: chúng không
+> mang bản sửa formatting cho tới khi được rebase, nên vẫn sẽ đỏ ở đúng bước đó.
+
 On exposure: `ubuntu-latest` gives 2–4 vCPU, so `availableParallelism() - 1`
 yields 1–3 workers — accidentally close to what `vitest.config.ts` intended.
 That is very likely why C1 has not shown up in CI. The exposure is real but far
