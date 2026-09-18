@@ -696,8 +696,7 @@ const vi = {
   'exam.writingPaperLead': 'Đề bài, hình (nếu có), và bài bạn đã nộp.',
   'exam.writingEssayTitle': 'Bài viết của bạn',
   'exam.writingEmptyEssay': 'Không có bài nộp cho task này.',
-  'exam.writingWaitingBody':
-    'Task 1 và Task 2 được chấm lần lượt. Trang này tự cập nhật khi xong.',
+  'exam.writingWaitingBody': 'Task 1 và Task 2 được chấm lần lượt. Trang này tự cập nhật khi xong.',
   'exam.seeFeedback': 'Xem nhận xét',
   'exam.statWordsTask': 'Số từ Task {number}',
   'exam.wordsOfMin': '{count}/{min} từ',
@@ -711,15 +710,16 @@ const vi = {
   'exam.criterion.pronunciation': 'Pronunciation',
   'exam.advisory.emptyOrNotEnglish':
     'Không có bài viết bằng tiếng Anh để chấm — band 0 trên mọi tiêu chí.',
-  'exam.advisory.under20Words':
-    'Còn ≤20 từ sau khi trừ phần chép đề. Band 1 trên mọi tiêu chí.',
+  'exam.advisory.under20Words': 'Còn ≤20 từ sau khi trừ phần chép đề. Band 1 trên mọi tiêu chí.',
   'exam.advisory.whollyUnrelated': 'Nội dung không liên quan đến đề — TA/TR bị trần band 1.',
   'exam.advisory.entirelyOffTopic': 'Toàn bài lạc đề — CC bị trần band 2.',
-  'exam.advisory.formatNotProse': 'Bài dạng gạch đầu dòng/ghi chú, không phải văn xuôi — TA/TR trần band 4.',
+  'exam.advisory.formatNotProse':
+    'Bài dạng gạch đầu dòng/ghi chú, không phải văn xuôi — TA/TR trần band 4.',
   'exam.advisory.insufficientSentenceControl':
     'Bài quá ngắn để chứng minh kiểm soát câu — GRA trần band 3.',
   'exam.advisory.simpleSentences': 'Câu đơn chiếm ưu thế — GRA trần band 4.',
-  'exam.advisory.gtBulletsOrTone': 'GT Task 1: thiếu ý hoặc giọng điệu không phù hợp — TA trần band 4.',
+  'exam.advisory.gtBulletsOrTone':
+    'GT Task 1: thiếu ý hoặc giọng điệu không phù hợp — TA trần band 4.',
   'exam.advisory.t2Paragraphing': 'Task 2 thiếu đoạn văn — CC trần band 5.',
   'exam.advisory.academicNoData': 'Academic Task 1 không có số liệu — TA trần band 5.',
   // `S2`: the paper as sat, left of the review — passage, prompt, cue card.
@@ -1590,11 +1590,13 @@ const en: Record<StringKey, string> = {
     '20 words or fewer remain after discounting copied prompt text. Band 1 on every criterion.',
   'exam.advisory.whollyUnrelated': 'Content is unrelated to the prompt — TA/TR capped at 1.',
   'exam.advisory.entirelyOffTopic': 'The whole response is off-topic — CC capped at 2.',
-  'exam.advisory.formatNotProse': 'Bullets or notes rather than connected prose — TA/TR capped at 4.',
+  'exam.advisory.formatNotProse':
+    'Bullets or notes rather than connected prose — TA/TR capped at 4.',
   'exam.advisory.insufficientSentenceControl':
     'Too short to evidence control of sentence forms — GRA capped at 3.',
   'exam.advisory.simpleSentences': 'Simple sentences predominate — GRA capped at 4.',
-  'exam.advisory.gtBulletsOrTone': 'GT Task 1: missing bullets or inappropriate tone — TA capped at 4.',
+  'exam.advisory.gtBulletsOrTone':
+    'GT Task 1: missing bullets or inappropriate tone — TA capped at 4.',
   'exam.advisory.t2Paragraphing': 'Task 2 paragraphing is inadequate — CC capped at 5.',
   'exam.advisory.academicNoData': 'Academic Task 1 has no supporting data — TA capped at 5.',
   'exam.contentReviewTitle': 'Review the paper · {skill}',

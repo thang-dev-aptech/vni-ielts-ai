@@ -56,10 +56,7 @@ export async function listDocuments(
 }
 
 /** 404s — via `ApiError` — for an unknown id or a draft the learner may not see. */
-export function getDocument(
-  id: string,
-  options?: LibraryRequestOptions,
-): Promise<LibraryDocument> {
+export function getDocument(id: string, options?: LibraryRequestOptions): Promise<LibraryDocument> {
   return request<LibraryDocument>(`/api/v1/library/documents/${encodeURIComponent(id)}`, {
     signal: options?.signal,
   });

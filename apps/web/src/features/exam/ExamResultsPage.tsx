@@ -30,7 +30,11 @@ import { BandComparisonChart } from './result/BandComparisonChart.js';
 import { AnswerReviewList } from './result/AnswerReviewList.js';
 import { ListeningSectionBreakdown } from './result/ListeningSectionBreakdown.js';
 import { PracticeRecommendations, SuggestedDocuments } from './result/PracticeRecommendations.js';
-import { WritingMarkingPanel, WritingPaperReview, writingWordCounts } from './result/WritingResults.js';
+import {
+  WritingMarkingPanel,
+  WritingPaperReview,
+  writingWordCounts,
+} from './result/WritingResults.js';
 import {
   isMarkingInFlight,
   MARKING_POLL_MAX,
@@ -687,14 +691,14 @@ export function ExamResultsPage() {
           {(results.content ?? [])
             .filter((content) => !(isWritingLayout && content.module === 'writing'))
             .map((content) => (
-            <SectionContentReview
-              key={content.module}
-              module={content.module}
-              content={content}
-              sessionId={sessionId}
-              accessToken={accessToken}
-            />
-          ))}
+              <SectionContentReview
+                key={content.module}
+                module={content.module}
+                content={content}
+                sessionId={sessionId}
+                accessToken={accessToken}
+              />
+            ))}
         </div>
 
         <div className="exs-side">

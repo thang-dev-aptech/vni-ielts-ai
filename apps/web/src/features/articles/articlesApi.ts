@@ -32,10 +32,7 @@ export async function listArticles(
 }
 
 /** 404s — via `ApiError` — for an unknown slug or a draft the learner may not see. */
-export function getArticleBySlug(
-  slug: string,
-  options?: LibraryRequestOptions,
-): Promise<Article> {
+export function getArticleBySlug(slug: string, options?: LibraryRequestOptions): Promise<Article> {
   return request<Article>(`/api/v1/library/articles/${encodeURIComponent(slug)}`, {
     signal: options?.signal,
   });

@@ -53,12 +53,9 @@ vi.mock('../lib/adminApi.js', () => ({
   unpublishArticle: vi.fn(),
 }));
 
-const {
-  listDocuments,
-  createDocument,
-  publishDocument,
-  unpublishDocument,
-} = await import('../lib/adminApi.js');
+const { listDocuments, createDocument, publishDocument, unpublishDocument } = await import(
+  '../lib/adminApi.js'
+);
 const { DocumentsPage } = await import('../screens/DocumentsPage.js');
 const { ArticlesPage } = await import('../screens/ArticlesPage.js');
 
@@ -104,7 +101,10 @@ describe('DocumentsPage', () => {
   it('renders rows from a mocked API response', async () => {
     permissions.add('document.publish');
     vi.mocked(listDocuments).mockResolvedValue({
-      items: [doc({ id: 'd1', title: 'Hướng dẫn Task 2' }), doc({ id: 'd2', title: 'Từ vựng Band 7' })],
+      items: [
+        doc({ id: 'd1', title: 'Hướng dẫn Task 2' }),
+        doc({ id: 'd2', title: 'Từ vựng Band 7' }),
+      ],
     });
 
     render(<DocumentsPage />);
@@ -134,7 +134,9 @@ describe('DocumentsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tạo tài liệu mới' }));
 
     fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'Đề mẫu Writing' } });
-    fireEvent.change(screen.getByLabelText('Slug (đường dẫn)'), { target: { value: 'de-mau-writing' } });
+    fireEvent.change(screen.getByLabelText('Slug (đường dẫn)'), {
+      target: { value: 'de-mau-writing' },
+    });
     fireEvent.change(screen.getByLabelText('Dung lượng'), { target: { value: '3.1 MB' } });
 
     fireEvent.click(screen.getByRole('button', { name: 'Tạo tài liệu' }));
@@ -159,7 +161,13 @@ describe('DocumentsPage', () => {
         status: 400,
         detail: 'One or more fields are invalid.',
         code: 'VALIDATION',
-        errors: [{ path: '/slug', code: 'SLUG_INVALID', message: 'Lowercase letters, digits and single hyphens only.' }],
+        errors: [
+          {
+            path: '/slug',
+            code: 'SLUG_INVALID',
+            message: 'Lowercase letters, digits and single hyphens only.',
+          },
+        ],
       }),
     );
 
@@ -171,7 +179,9 @@ describe('DocumentsPage', () => {
     // Non-empty so the browser's `required` check lets the form submit at
     // all — the slug's own pattern is enforced server-side, and that is
     // exactly the rejection this test is simulating.
-    fireEvent.change(screen.getByLabelText('Slug (đường dẫn)'), { target: { value: 'Invalid Slug' } });
+    fireEvent.change(screen.getByLabelText('Slug (đường dẫn)'), {
+      target: { value: 'Invalid Slug' },
+    });
     fireEvent.change(screen.getByLabelText('Dung lượng'), { target: { value: '1 MB' } });
     fireEvent.click(screen.getByRole('button', { name: 'Tạo tài liệu' }));
 

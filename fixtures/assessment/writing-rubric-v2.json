@@ -137,15 +137,75 @@
     }
   },
   "limiters": [
-    { "id": "empty-or-not-english", "detect": "code", "caps": "all", "to": 0, "when": "empty or not written in English" },
-    { "id": "under-20-words", "detect": "code", "caps": "all", "to": 1, "when": "≤20 words after discounting copied prompt" },
-    { "id": "wholly-unrelated", "detect": "model", "caps": "task", "to": 1, "when": "content wholly unrelated to the prompt" },
-    { "id": "entirely-off-topic", "detect": "model", "caps": "cc", "to": 2, "when": "entire response off-topic" },
-    { "id": "format-not-prose", "detect": "code", "caps": "task", "to": 4, "when": "bullets/notes, not connected text" },
-    { "id": "insufficient-sentence-control", "detect": "code", "caps": "gra", "to": 3, "when": "too short to evidence sentence-form control" },
-    { "id": "simple-sentences-predominate", "detect": "model", "caps": "gra", "to": 4, "when": "subordinate clauses rare" },
-    { "id": "gt-bullets-or-tone", "detect": "model", "caps": "task", "to": 4, "when": "GT Task 1: missing bullets or inappropriate tone" },
-    { "id": "t2-paragraphing", "detect": "model", "caps": "cc", "to": 5, "when": "Task 2 paragraphing inadequate or missing" },
-    { "id": "ac-t1-no-data", "detect": "model", "caps": "task", "to": 5, "when": "Academic Task 1: no data supporting the description" }
+    {
+      "id": "empty-or-not-english",
+      "detect": "code",
+      "caps": "all",
+      "to": 0,
+      "when": "empty or not written in English"
+    },
+    {
+      "id": "under-20-words",
+      "detect": "code",
+      "caps": "all",
+      "to": 1,
+      "when": "≤20 words after discounting copied prompt"
+    },
+    {
+      "id": "wholly-unrelated",
+      "detect": "model",
+      "caps": "task",
+      "to": 1,
+      "when": "content wholly unrelated to the prompt"
+    },
+    {
+      "id": "entirely-off-topic",
+      "detect": "model",
+      "caps": "cc",
+      "to": 2,
+      "when": "entire response off-topic"
+    },
+    {
+      "id": "format-not-prose",
+      "detect": "code",
+      "caps": "task",
+      "to": 4,
+      "when": "bullets/notes, not connected text"
+    },
+    {
+      "id": "insufficient-sentence-control",
+      "detect": "code",
+      "caps": "gra",
+      "to": 3,
+      "when": "too short to evidence sentence-form control"
+    },
+    {
+      "id": "simple-sentences-predominate",
+      "detect": "model",
+      "caps": "gra",
+      "to": 4,
+      "when": "subordinate clauses rare"
+    },
+    {
+      "id": "gt-bullets-or-tone",
+      "detect": "model",
+      "caps": "task",
+      "to": 4,
+      "when": "GT Task 1: missing bullets or inappropriate tone"
+    },
+    {
+      "id": "t2-paragraphing",
+      "detect": "model",
+      "caps": "cc",
+      "to": 5,
+      "when": "Task 2 paragraphing inadequate or missing"
+    },
+    {
+      "id": "ac-t1-no-data",
+      "detect": "model",
+      "caps": "task",
+      "to": 5,
+      "when": "Academic Task 1: no data supporting the description"
+    }
   ]
 }

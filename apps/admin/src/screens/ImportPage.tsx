@@ -326,7 +326,10 @@ export function ImportPage() {
     try {
       const updated = await approveImportDraft(accessToken, draft.draftId);
       setDraft(updated);
-      say({ tone: 'ok', text: 'Đã duyệt bản nháp. Vẫn cần một thao tác xuất bản riêng để tới học viên.' });
+      say({
+        tone: 'ok',
+        text: 'Đã duyệt bản nháp. Vẫn cần một thao tác xuất bản riêng để tới học viên.',
+      });
     } catch (error) {
       say({ tone: 'bad', text: reasonOf(error) });
     } finally {
@@ -359,8 +362,8 @@ export function ImportPage() {
           <div>
             <dt>Định dạng</dt>
             <dd>
-              <code>.zip</code> chứa một đề — hôm nay chỉ nhận gói đã có sẵn một <code>exam.json</code>{' '}
-              hoàn chỉnh
+              <code>.zip</code> chứa một đề — hôm nay chỉ nhận gói đã có sẵn một{' '}
+              <code>exam.json</code> hoàn chỉnh
             </dd>
           </div>
           <div>
@@ -378,8 +381,8 @@ export function ImportPage() {
         <p className="cms-muted">
           Gói gồm tài liệu thô (.docx/.pdf/.txt theo từng kỹ năng) chưa nhập được: API hiện chưa nối
           nhà cung cấp AI để phân tích tài liệu thô. Dựng gói bằng CLI vận hành (
-          <code>backend/tools/Vni.Ielts.ExamImporter</code>) trước, rồi tải file <code>exam.json</code>{' '}
-          kết quả lên đây.
+          <code>backend/tools/Vni.Ielts.ExamImporter</code>) trước, rồi tải file{' '}
+          <code>exam.json</code> kết quả lên đây.
         </p>
 
         <p className="cms-muted">
@@ -435,7 +438,7 @@ export function ImportPage() {
 
           {job !== null && isJobInFlight(job.state) && (
             <p className="cms-muted" role="status">
-              {(JOB_STAGE_LABELS[job.stage] ?? job.stage)} — lần thử {job.attempts + 1}/
+              {JOB_STAGE_LABELS[job.stage] ?? job.stage} — lần thử {job.attempts + 1}/
               {job.maxAttempts}. Việc này có thể mất vài phút; trang sẽ tự cập nhật.
             </p>
           )}
@@ -455,13 +458,16 @@ export function ImportPage() {
            * side an upload-only account should sit on is a role decision for
            * the product owner, not this screen.
            */}
-          {job !== null && job.state === 'Completed' && job.draftId !== null && draft === null &&
+          {job !== null &&
+            job.state === 'Completed' &&
+            job.draftId !== null &&
+            draft === null &&
             draftLoadFailed !== null && (
               <div className="cms-alert is-bad" role="alert">
                 <strong>Đã nhập xong, nhưng chưa mở được bản nháp.</strong> Bản nháp{' '}
-                <code>{job.draftId}</code> đã được tạo (mã theo dõi <code>{operationId}</code>), nhưng
-                tài khoản đang đăng nhập không tải được nó — {draftLoadFailed} Cần một tài khoản có
-                quyền xem bản nháp nhập kiểm tra tiếp.{' '}
+                <code>{job.draftId}</code> đã được tạo (mã theo dõi <code>{operationId}</code>),
+                nhưng tài khoản đang đăng nhập không tải được nó — {draftLoadFailed} Cần một tài
+                khoản có quyền xem bản nháp nhập kiểm tra tiếp.{' '}
                 <button type="button" className="cms-secondary" onClick={() => void retryCheck()}>
                   Kiểm tra lại
                 </button>
@@ -478,8 +484,8 @@ export function ImportPage() {
           {jobTimedOut && job !== null && isJobInFlight(job.state) && (
             <p className="cms-muted" role="status">
               Gói vẫn đang chạy ở phía máy chủ — bước phân tích, dịch băng và tạo giải thích cho một
-              gói lớn có thể mất nhiều phút. Trang đã ngừng tự động cập nhật; bấm để kiểm tra lại bất
-              cứ lúc nào.{' '}
+              gói lớn có thể mất nhiều phút. Trang đã ngừng tự động cập nhật; bấm để kiểm tra lại
+              bất cứ lúc nào.{' '}
               <button type="button" className="cms-secondary" onClick={() => void retryCheck()}>
                 Kiểm tra lại
               </button>
@@ -526,7 +532,9 @@ export function ImportPage() {
               <ul className="cms-notes">
                 {draft.findings.map((finding, i) => (
                   <li key={`${finding.code}-${i}`}>
-                    <span className={`cms-badge is-${finding.severity === 'error' ? 'attention' : 'muted'}`}>
+                    <span
+                      className={`cms-badge is-${finding.severity === 'error' ? 'attention' : 'muted'}`}
+                    >
                       {finding.severity}
                     </span>{' '}
                     <strong className="cms-code">{finding.code}</strong>{' '}
@@ -539,15 +547,17 @@ export function ImportPage() {
 
           {draft.warnings.length > 0 && (
             <>
-              <h3>Cảnh báo ({openWarnings.length} chưa xử lý / {draft.warnings.length})</h3>
+              <h3>
+                Cảnh báo ({openWarnings.length} chưa xử lý / {draft.warnings.length})
+              </h3>
               <ul className="cms-notes">
                 {draft.warnings.map((warning) => (
                   <li key={warning.id}>
                     <span className={`cms-badge is-${warning.resolved ? 'muted' : 'hold'}`}>
                       {warning.resolved ? 'đã xử lý' : 'chưa xử lý'}
                     </span>{' '}
-                    <strong>{warning.category}</strong> <span className="cms-code">{warning.path}</span> —{' '}
-                    {warning.message}
+                    <strong>{warning.category}</strong>{' '}
+                    <span className="cms-code">{warning.path}</span> — {warning.message}
                     {warning.resolved && warning.overrideReason !== null && (
                       <span className="cms-sub"> · Lý do bỏ qua: {warning.overrideReason}</span>
                     )}

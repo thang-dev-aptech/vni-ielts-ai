@@ -19,6 +19,28 @@ coverage/
 backend/
 packages/api-client/src/generated/
 
+# ── Written by a script, so formatting them is a loop ────────────────────
+#
+# `fixtures/exams/*.json` and the assembled packages under `_workspace/` are
+# produced by `scripts/assemble-*.py` with `json.dumps(indent=2)`, which always
+# expands a short array; Prettier always collapses one. Formatting them once
+# rewrites ~320 lines in a single fixture and the next assemble run puts them
+# straight back, so `format:check` goes red again for a reason no reader can
+# act on. Whoever owns the generator owns the formatting.
+fixtures/exams/
+_workspace/
+
+# ── Recorded, not authored ───────────────────────────────────────────────
+#
+# Verbatim provider responses, replayed by the evaluation tests. A recording
+# that has been reformatted is no longer the thing that came back off the
+# wire, which is the only property that makes it worth keeping.
+# → CLAUDE.md, "recorded AI responses, kept per docs/security"
+fixtures/ai/
+
+# Tool-owned: `.design-sync` holds a config and generated component previews.
+.design-sync/
+
 # ── Binary and owner-supplied source material ────────────────────────────
 #
 # Prettier reads every path it is not told to skip, and on a 1.3 GB archive it

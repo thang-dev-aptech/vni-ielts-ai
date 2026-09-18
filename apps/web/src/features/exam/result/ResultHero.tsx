@@ -139,19 +139,21 @@ export function ResultHero({
 
         <div className="exs-score-stats">
           {wordCounts !== undefined && wordCounts.length > 0 ? (
-            wordCounts.slice(0, 2).map((row) => (
-              <Stat
-                key={row.task}
-                tone="green"
-                icon={<PagesGlyph size={18} />}
-                label={t('exam.statWordsTask', { number: row.task })}
-                value={
-                  row.min === null
-                    ? String(row.words)
-                    : t('exam.wordsOfMin', { count: row.words, min: row.min })
-                }
-              />
-            ))
+            wordCounts
+              .slice(0, 2)
+              .map((row) => (
+                <Stat
+                  key={row.task}
+                  tone="green"
+                  icon={<PagesGlyph size={18} />}
+                  label={t('exam.statWordsTask', { number: row.task })}
+                  value={
+                    row.min === null
+                      ? String(row.words)
+                      : t('exam.wordsOfMin', { count: row.words, min: row.min })
+                  }
+                />
+              ))
           ) : (
             <>
               <Stat

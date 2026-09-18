@@ -5,9 +5,17 @@ import { ImportReviewPanel, REVIEW_CHECKS } from '../components/ImportReviewPane
 
 function renderPanel(overrides: Partial<ComponentProps<typeof ImportReviewPanel>> = {}) {
   const props: ComponentProps<typeof ImportReviewPanel> = {
-    sourceText: 'raw question', packageJson: '{"title":"parsed"}',
-    warnings: [], approved: false, canEdit: true, canReview: true, canPublish: false,
-    onSave: vi.fn(), onResolve: vi.fn(), onApprove: vi.fn(), onPublish: vi.fn(),
+    sourceText: 'raw question',
+    packageJson: '{"title":"parsed"}',
+    warnings: [],
+    approved: false,
+    canEdit: true,
+    canReview: true,
+    canPublish: false,
+    onSave: vi.fn(),
+    onResolve: vi.fn(),
+    onApprove: vi.fn(),
+    onPublish: vi.fn(),
     ...overrides,
   };
   render(<ImportReviewPanel {...props} />);
@@ -18,7 +26,9 @@ describe('import review panel', () => {
   it('shows source and parsed content side by side and saves a manual edit', () => {
     const props = renderPanel();
     expect(screen.getByText('raw question')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Package JSON'), { target: { value: '{"title":"fixed"}' } });
+    fireEvent.change(screen.getByLabelText('Package JSON'), {
+      target: { value: '{"title":"fixed"}' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Lưu sửa đổi' }));
     expect(props.onSave).toHaveBeenCalledWith('{"title":"fixed"}');
   });

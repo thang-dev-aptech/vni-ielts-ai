@@ -162,11 +162,7 @@ describe('UserDetailPage · cấp lại mật khẩu', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Đặt lại mật khẩu' }));
 
     await waitFor(() =>
-      expect(resetUserPassword).toHaveBeenCalledWith(
-        'token-1',
-        TARGET,
-        'mot-mat-khau-du-dai-2026',
-      ),
+      expect(resetUserPassword).toHaveBeenCalledWith('token-1', TARGET, 'mot-mat-khau-du-dai-2026'),
     );
 
     // The confirmation the operator reads afterwards has to carry the part

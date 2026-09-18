@@ -63,9 +63,21 @@ export interface LibraryTransitionDef {
 
 export const LIBRARY_TRANSITIONS: readonly LibraryTransitionDef[] = [
   { id: 'submit', label: 'Nộp duyệt', tone: 'primary', allowed: canSubmit, needs: 'write' },
-  { id: 'return', label: 'Trả về bản nháp', tone: 'secondary', allowed: canReturn, needs: 'publish' },
+  {
+    id: 'return',
+    label: 'Trả về bản nháp',
+    tone: 'secondary',
+    allowed: canReturn,
+    needs: 'publish',
+  },
   { id: 'publish', label: 'Xuất bản', tone: 'primary', allowed: canPublish, needs: 'publish' },
-  { id: 'unpublish', label: 'Gỡ xuất bản', tone: 'danger', allowed: canUnpublish, needs: 'publish' },
+  {
+    id: 'unpublish',
+    label: 'Gỡ xuất bản',
+    tone: 'danger',
+    allowed: canUnpublish,
+    needs: 'publish',
+  },
 ];
 
 /**

@@ -54,8 +54,7 @@ export function ForgotPasswordPage() {
          * with no way forward is the failure this whole page exists to avoid.
          */
         <p className="support-fallback">
-          {t('password.forgotNoChannel')}{' '}
-          <a href={Contact.phoneHref}>{Contact.phoneDisplay}</a>
+          {t('password.forgotNoChannel')} <a href={Contact.phoneHref}>{Contact.phoneDisplay}</a>
         </p>
       ) : (
         <a

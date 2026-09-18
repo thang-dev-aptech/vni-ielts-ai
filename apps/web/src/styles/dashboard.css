@@ -1213,12 +1213,24 @@
   }
 
   /* Mobile strict order per D-4 */
-  .dash-now { order: 1; }
-  .dash-next-step { order: 2; }
-  .dash-block-goal { order: 3; }
-  .dash-block-activity { order: 4; }
-  .dash-recent-block { order: 5; }
-  .dash-resources-block { order: 6; }
+  .dash-now {
+    order: 1;
+  }
+  .dash-next-step {
+    order: 2;
+  }
+  .dash-block-goal {
+    order: 3;
+  }
+  .dash-block-activity {
+    order: 4;
+  }
+  .dash-recent-block {
+    order: 5;
+  }
+  .dash-resources-block {
+    order: 6;
+  }
 }
 
 /* ── D-4 Block 2: Bước tiếp theo ────────────────────────────────────────── */
@@ -1283,7 +1295,9 @@
   text-decoration: none;
   border: 2px solid var(--primary-dark, #045a28);
   box-shadow: var(--shadow-press, 0 4px 0 var(--primary-dark, #045a28));
-  transition: transform var(--dur, 180ms) ease, box-shadow var(--dur, 180ms) ease;
+  transition:
+    transform var(--dur, 180ms) ease,
+    box-shadow var(--dur, 180ms) ease;
 }
 
 .dash-next-step-btn:hover {

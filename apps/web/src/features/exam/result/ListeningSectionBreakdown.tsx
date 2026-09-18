@@ -40,7 +40,9 @@ export function ListeningSectionBreakdown({ rows }: { rows: ListeningSectionRow[
 
             return (
               <li className="exs-section-card" key={row.order}>
-                <span className="exs-section-card-title">{t('exam.sectionN', { number: row.order })}</span>
+                <span className="exs-section-card-title">
+                  {t('exam.sectionN', { number: row.order })}
+                </span>
                 <span className="exs-section-card-range">
                   {row.firstQuestionNumber === null || row.lastQuestionNumber === null
                     ? '—'

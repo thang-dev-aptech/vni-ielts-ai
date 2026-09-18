@@ -128,9 +128,7 @@ export class WebSpeakingAudioCapture implements SpeakingAudioCapture {
     instance.onstop = () => {
       const durationMs = Math.max(0, this.now() - this.startedAtMs);
       const contentType =
-        instance.mimeType && instance.mimeType.length > 0
-          ? instance.mimeType
-          : 'audio/webm';
+        instance.mimeType && instance.mimeType.length > 0 ? instance.mimeType : 'audio/webm';
       const blob = new Blob(this.chunks, { type: contentType });
       this.releaseStream();
       this.recorder = null;

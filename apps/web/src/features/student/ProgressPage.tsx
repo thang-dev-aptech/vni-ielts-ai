@@ -57,7 +57,10 @@ export function ProgressPage() {
   const hasData = Boolean(sittings && sittings.length > 0);
 
   return (
-    <div className="dash" style={{ maxWidth: '1080px', margin: '0 auto', padding: 'var(--s-6) var(--s-4)' }}>
+    <div
+      className="dash"
+      style={{ maxWidth: '1080px', margin: '0 auto', padding: 'var(--s-6) var(--s-4)' }}
+    >
       <header className="dash-head" style={{ marginBottom: 'var(--s-5)' }}>
         <p className="dash-eyebrow">{t('dash.eyebrow')}</p>
         <h1 className="dash-greeting" style={{ fontSize: 'var(--t-32)' }}>
@@ -70,11 +73,30 @@ export function ProgressPage() {
 
       {/* Recommended Next Action */}
       <section className="dash-block" style={{ marginBottom: 'var(--s-6)' }}>
-        <div className="dash-card" style={{ padding: 'var(--s-5)', border: '2px solid var(--line)', borderRadius: 'var(--r-md)' }}>
-          <h2 style={{ fontSize: 'var(--t-18)', fontWeight: 'var(--w-emph)', marginBottom: 'var(--s-2)' }}>
+        <div
+          className="dash-card"
+          style={{
+            padding: 'var(--s-5)',
+            border: '2px solid var(--line)',
+            borderRadius: 'var(--r-md)',
+          }}
+        >
+          <h2
+            style={{
+              fontSize: 'var(--t-18)',
+              fontWeight: 'var(--w-emph)',
+              marginBottom: 'var(--s-2)',
+            }}
+          >
             Bước tiếp theo
           </h2>
-          <p style={{ color: 'var(--ink-2)', marginBottom: 'var(--s-4)', lineHeight: 'var(--lh-body)' }}>
+          <p
+            style={{
+              color: 'var(--ink-2)',
+              marginBottom: 'var(--s-4)',
+              lineHeight: 'var(--lh-body)',
+            }}
+          >
             {coaching?.ai?.summary ??
               'Bắt đầu với Reading hoặc Listening — hai kỹ năng chấm theo đáp án, có kết quả ngay.'}
           </p>
@@ -99,7 +121,9 @@ export function ProgressPage() {
       {/* 3. Recent Sittings List */}
       <section className="dash-block" style={{ marginBottom: 'var(--s-6)' }}>
         <div className="dash-block-head">
-          <h2 style={{ fontSize: 'var(--t-20)', fontWeight: 'var(--w-emph)' }}>{t('dash.recent.title')}</h2>
+          <h2 style={{ fontSize: 'var(--t-20)', fontWeight: 'var(--w-emph)' }}>
+            {t('dash.recent.title')}
+          </h2>
         </div>
         {sittings === null ? (
           <div className="dash-empty" style={{ padding: 'var(--s-6)' }}>
@@ -108,12 +132,27 @@ export function ProgressPage() {
         ) : hasData ? (
           <RecentSittings sittings={sittings.slice(0, 10)} />
         ) : (
-          <div className="dash-empty" style={{ padding: 'var(--s-6)', background: 'var(--card)', borderRadius: 'var(--r-md)', border: '1px solid var(--line)' }}>
-            <h3 style={{ fontSize: 'var(--t-16)', fontWeight: 'var(--w-emph)', marginBottom: 'var(--s-2)' }}>
+          <div
+            className="dash-empty"
+            style={{
+              padding: 'var(--s-6)',
+              background: 'var(--card)',
+              borderRadius: 'var(--r-md)',
+              border: '1px solid var(--line)',
+            }}
+          >
+            <h3
+              style={{
+                fontSize: 'var(--t-16)',
+                fontWeight: 'var(--w-emph)',
+                marginBottom: 'var(--s-2)',
+              }}
+            >
               Chưa có dữ liệu tiến độ
             </h3>
             <p style={{ color: 'var(--muted)', marginBottom: 'var(--s-4)' }}>
-              Bạn chưa hoàn thành bài thi nào. Hãy làm một bài thi kỹ năng hoặc đề Full Test trong thư viện để bắt đầu ghi nhận điểm và biểu đồ tiến độ.
+              Bạn chưa hoàn thành bài thi nào. Hãy làm một bài thi kỹ năng hoặc đề Full Test trong
+              thư viện để bắt đầu ghi nhận điểm và biểu đồ tiến độ.
             </p>
             <Link className="dash-go" to={Paths.practice}>
               {t('dash.now.browseExams')}

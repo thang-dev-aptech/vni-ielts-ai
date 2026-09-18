@@ -288,7 +288,9 @@ export function listeningSectionsFrom(
     .slice()
     .sort((a, b) => a.order - b.order)
     .map((part) => {
-      const numbers = part.questions.flatMap((question) => question.slots.map((slot) => slot.number));
+      const numbers = part.questions.flatMap((question) =>
+        question.slots.map((slot) => slot.number),
+      );
       const total = part.questions.length;
       const correct = part.questions.filter(
         (question) => resultById.get(question.id)?.isCorrect === true,

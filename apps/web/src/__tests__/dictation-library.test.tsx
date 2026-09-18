@@ -224,8 +224,7 @@ it('remembers how much of a set this learner has already finished', async () => 
   signedIn();
   openAt('/dictation');
 
-  const card = async (title: string) =>
-    within((await findSet(title)).closest('li')!);
+  const card = async (title: string) => within((await findSet(title)).closest('li')!);
 
   const started = await card('Câu hằng ngày — bộ 1');
   expect(started.getByText(/4\s*\/\s*6 câu đúng/)).toBeInTheDocument();

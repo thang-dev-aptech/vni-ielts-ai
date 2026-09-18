@@ -46,7 +46,10 @@ export function ImportReviewPanel(props: ImportReviewPanelProps) {
     <section className="cms-panel" aria-label="Kiểm duyệt bản nhập">
       <h2>Đối chiếu nguồn và nội dung đã parse</h2>
       <div className="cms-review-diff">
-        <div><h3>Nguồn</h3><pre>{props.sourceText}</pre></div>
+        <div>
+          <h3>Nguồn</h3>
+          <pre>{props.sourceText}</pre>
+        </div>
         <div>
           <h3>Package JSON</h3>
           <textarea
@@ -64,13 +67,17 @@ export function ImportReviewPanel(props: ImportReviewPanelProps) {
       </div>
 
       <h3>Cảnh báo</h3>
-      {props.warnings.length === 0 ? <p>Không có cảnh báo.</p> : (
+      {props.warnings.length === 0 ? (
+        <p>Không có cảnh báo.</p>
+      ) : (
         <ul>
           {props.warnings.map((warning) => (
             <li key={warning.id}>
               {warning.message} — {warning.resolved ? 'đã xử lý' : 'chưa xử lý'}
               {!warning.resolved && props.canReview && (
-                <button type="button" onClick={() => props.onResolve(warning.id)}>Đánh dấu đã xử lý</button>
+                <button type="button" onClick={() => props.onResolve(warning.id)}>
+                  Đánh dấu đã xử lý
+                </button>
               )}
             </li>
           ))}
@@ -84,11 +91,14 @@ export function ImportReviewPanel(props: ImportReviewPanelProps) {
             <input
               type="checkbox"
               checked={checked.has(id)}
-              onChange={(event) => setChecked((previous) => {
-                const next = new Set(previous);
-                if (event.target.checked) next.add(id); else next.delete(id);
-                return next;
-              })}
+              onChange={(event) =>
+                setChecked((previous) => {
+                  const next = new Set(previous);
+                  if (event.target.checked) next.add(id);
+                  else next.delete(id);
+                  return next;
+                })
+              }
             />
             {label}
           </label>
@@ -97,10 +107,14 @@ export function ImportReviewPanel(props: ImportReviewPanelProps) {
 
       {approvalBlocker !== null && <p role="status">{approvalBlocker}</p>}
       {props.canReview && !props.approved && (
-        <button type="button" disabled={approvalBlocker !== null} onClick={props.onApprove}>Duyệt</button>
+        <button type="button" disabled={approvalBlocker !== null} onClick={props.onApprove}>
+          Duyệt
+        </button>
       )}
       {props.canPublish && (
-        <button type="button" disabled={!props.approved} onClick={props.onPublish}>Xuất bản</button>
+        <button type="button" disabled={!props.approved} onClick={props.onPublish}>
+          Xuất bản
+        </button>
       )}
     </section>
   );

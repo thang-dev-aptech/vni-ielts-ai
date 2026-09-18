@@ -212,7 +212,12 @@ export function SpeakerGlyph({ size }: GlyphProps) {
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
-      <path d="M14.5 9a4 4 0 0 1 0 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M14.5 9a4 4 0 0 1 0 6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }

@@ -83,7 +83,8 @@ export function ExamDetailPage() {
     try {
       if (transition.id === 'submit') await submitExamForReview(accessToken, examVersionId);
       else if (transition.id === 'approve') await approveExam(accessToken, examVersionId);
-      else if (transition.id === 'return') await returnExamToDraft(accessToken, examVersionId, note);
+      else if (transition.id === 'return')
+        await returnExamToDraft(accessToken, examVersionId, note);
       else if (transition.id === 'publish') await publishExam(accessToken, examVersionId);
       else if (transition.id === 'unpublish') await unpublishExam(accessToken, examVersionId);
 

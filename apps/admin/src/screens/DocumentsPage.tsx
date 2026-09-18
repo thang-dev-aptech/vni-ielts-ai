@@ -598,7 +598,11 @@ function DocumentForm({
         Nổi bật
       </label>
       <label>
-        <input type="checkbox" checked={form.isNew} onChange={(e) => set('isNew', e.target.checked)} />{' '}
+        <input
+          type="checkbox"
+          checked={form.isNew}
+          onChange={(e) => set('isNew', e.target.checked)}
+        />{' '}
         Mới
       </label>
       <label>

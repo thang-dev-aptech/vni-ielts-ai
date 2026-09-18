@@ -91,4 +91,3 @@ export const ARTICLE_CATEGORY_LABEL: Record<ArticleCategory, string> = {
   'bai-viet': 'Hậu trường',
   'tuyen-dung': 'Tuyển dụng',
 };
-

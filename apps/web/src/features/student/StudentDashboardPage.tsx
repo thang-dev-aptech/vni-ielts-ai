@@ -3,10 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
 import { Paths } from '../../routes/paths.js';
-import {
-  listMySittings,
-  type SittingSummary,
-} from '../exam/examApi.js';
+import { listMySittings, type SittingSummary } from '../exam/examApi.js';
 import { InProgressPanel, RecentSittings, StatStrip } from './DashboardState.js';
 import { GoalCoachingPanel } from '../learning/GoalCoachingPanel.js';
 import { StreakPanel } from '../learning/StreakPanel.js';
@@ -125,17 +122,24 @@ export function StudentDashboardPage() {
             )}
 
             {/* 6. Tài nguyên (1 compact row of 3 text links) */}
-            <section className="dash-block dash-resources-block" aria-label={t('dash.group.resources')}>
+            <section
+              className="dash-block dash-resources-block"
+              aria-label={t('dash.group.resources')}
+            >
               <div className="dash-resources-row">
                 <span className="dash-resources-label">{t('dash.group.resources')}:</span>
                 <Link to={Paths.dictation} className="dash-resource-link">
                   {t('dash.more.dictation')}
                 </Link>
-                <span className="dash-resource-sep" aria-hidden="true">·</span>
+                <span className="dash-resource-sep" aria-hidden="true">
+                  ·
+                </span>
                 <Link to={Paths.documents} className="dash-resource-link">
                   {t('dash.more.documents')}
                 </Link>
-                <span className="dash-resource-sep" aria-hidden="true">·</span>
+                <span className="dash-resource-sep" aria-hidden="true">
+                  ·
+                </span>
                 <Link to={Paths.articles} className="dash-resource-link">
                   {t('dash.more.articles')}
                 </Link>

@@ -1339,7 +1339,9 @@ it('draws Writing results as task cards, not a 40-question review', async () => 
   expect(screen.getByRole('heading', { name: 'Nhận xét Writing' })).toBeInTheDocument();
   expect(screen.getByText('Task Achievement (TA)')).toBeInTheDocument();
   expect(screen.getByText('Task Response (TR)')).toBeInTheDocument();
-  expect(screen.getByText('The chart shows an overall increase in renewable energy.')).toBeInTheDocument();
+  expect(
+    screen.getByText('The chart shows an overall increase in renewable energy.'),
+  ).toBeInTheDocument();
 
   expect(screen.queryByRole('heading', { name: 'Kết quả theo dạng câu hỏi' })).toBeNull();
   expect(screen.queryByRole('heading', { name: 'Chi tiết câu trả lời' })).toBeNull();
@@ -1544,7 +1546,8 @@ it('shows what a Listening part said, once the sitting is submitted', async () =
             cueCard: null,
             minWords: null,
             questions: [],
-            transcript: 'WOMAN: Good morning, Riverside Hotel.\n\nMAN: I would like to book a room.',
+            transcript:
+              'WOMAN: Good morning, Riverside Hotel.\n\nMAN: I would like to book a room.',
           },
           {
             order: 2,

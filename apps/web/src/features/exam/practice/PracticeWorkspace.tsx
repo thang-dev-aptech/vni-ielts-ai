@@ -328,18 +328,18 @@ export function PracticeWorkspace() {
         {selector}
 
         <div className="work-bar" id="work-results" tabIndex={-1}>
-        {/*
+          {/*
           <b>The heading and the count are one live region.</b> Only the count
           carried `role="status"`, so changing skill silently rewrote the `<h2>`
           and announced "6 bài luyện · Chấm theo đáp án" — a number with no
           shelf attached to it.
         */}
-        <div className="work-bar-copy" role="status">
-          <h2 className="work-title">{heading}</h2>
-          <p className="work-count">{countLine()}</p>
-        </div>
+          <div className="work-bar-copy" role="status">
+            <h2 className="work-title">{heading}</h2>
+            <p className="work-count">{countLine()}</p>
+          </div>
 
-        {/*
+          {/*
           The mode choice comes before the exam choice, because it changes what
           "bắt đầu" means. → `E-11`
 
@@ -350,68 +350,68 @@ export function PracticeWorkspace() {
           arrow-key navigation that was never implemented. Two pressed-state
           buttons in a labelled group say exactly what this is.
         */}
-        <div className="work-modes" role="group" aria-label={t('exam.modeLabel')}>
-          <button
-            type="button"
-            aria-pressed={mode === 'single'}
-            className={`work-mode${mode === 'single' ? ' is-active' : ''}`}
-            onClick={() => switchMode('single')}
-          >
-            <span className="work-mode-long">Một kỹ năng</span>
-            <span className="work-mode-short">Một kỹ năng</span>
-          </button>
-          <button
-            type="button"
-            aria-pressed={mode === 'full'}
-            aria-label="Thi thử full"
-            className={`work-mode${mode === 'full' ? ' is-active' : ''}`}
-            onClick={() => switchMode('full')}
-          >
-            Full Test
-          </button>
-        </div>
-      </div>
-
-      {/* Explainer block for scope & experience dimensions (D-5) */}
-      <div className="work-explainer" aria-label="Giải thích các chế độ thi">
-        <div className="work-explainer-item">
-          <strong>Phạm vi bài thi:</strong>
-          <span>
-            Một kỹ năng (luyện tập trung chuyên sâu) hoặc Full Test (thi liền mạch 4 kỹ năng trong
-            một phiên).
-          </span>
-        </div>
-        <div className="work-explainer-item">
-          <strong>Hình thức tính giờ:</strong>
-          <span>
-            Luyện đề (đồng hồ đếm xuôi, có thể tạm dừng, đặt mục tiêu) hoặc Thi thử (đồng hồ đếm
-            ngược, chốt giờ máy chủ).
-          </span>
-        </div>
-      </div>
-
-      {state.kind === 'anonymous' && (
-        <div className="work-gate">
-          <h3>Đăng nhập để mở kho đề</h3>
-          <p>
-            Bài làm cần một tài khoản để lưu — đồng hồ, câu trả lời và điểm đều nằm trên máy chủ chứ
-            không nằm trong trình duyệt. Tạo tài khoản mất chưa tới một phút.
-          </p>
-          <div className="work-gate-actions">
-            <Link className="btn btn-primary" to={Paths.signUp}>
-              Tạo tài khoản miễn phí <span aria-hidden="true">→</span>
-            </Link>
-            <Link className="btn btn-secondary" to={Paths.signIn}>
-              Tôi đã có tài khoản
-            </Link>
+          <div className="work-modes" role="group" aria-label={t('exam.modeLabel')}>
+            <button
+              type="button"
+              aria-pressed={mode === 'single'}
+              className={`work-mode${mode === 'single' ? ' is-active' : ''}`}
+              onClick={() => switchMode('single')}
+            >
+              <span className="work-mode-long">Một kỹ năng</span>
+              <span className="work-mode-short">Một kỹ năng</span>
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === 'full'}
+              aria-label="Thi thử full"
+              className={`work-mode${mode === 'full' ? ' is-active' : ''}`}
+              onClick={() => switchMode('full')}
+            >
+              Full Test
+            </button>
           </div>
         </div>
-      )}
 
-      {state.kind === 'loading' && <p className="work-note">{t('exam.loading')}</p>}
+        {/* Explainer block for scope & experience dimensions (D-5) */}
+        <div className="work-explainer" aria-label="Giải thích các chế độ thi">
+          <div className="work-explainer-item">
+            <strong>Phạm vi bài thi:</strong>
+            <span>
+              Một kỹ năng (luyện tập trung chuyên sâu) hoặc Full Test (thi liền mạch 4 kỹ năng trong
+              một phiên).
+            </span>
+          </div>
+          <div className="work-explainer-item">
+            <strong>Hình thức tính giờ:</strong>
+            <span>
+              Luyện đề (đồng hồ đếm xuôi, có thể tạm dừng, đặt mục tiêu) hoặc Thi thử (đồng hồ đếm
+              ngược, chốt giờ máy chủ).
+            </span>
+          </div>
+        </div>
 
-      {state.kind === 'failed' && (
-        /*
+        {state.kind === 'anonymous' && (
+          <div className="work-gate">
+            <h3>Đăng nhập để mở kho đề</h3>
+            <p>
+              Bài làm cần một tài khoản để lưu — đồng hồ, câu trả lời và điểm đều nằm trên máy chủ
+              chứ không nằm trong trình duyệt. Tạo tài khoản mất chưa tới một phút.
+            </p>
+            <div className="work-gate-actions">
+              <Link className="btn btn-primary" to={Paths.signUp}>
+                Tạo tài khoản miễn phí <span aria-hidden="true">→</span>
+              </Link>
+              <Link className="btn btn-secondary" to={Paths.signIn}>
+                Tôi đã có tài khoản
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {state.kind === 'loading' && <p className="work-note">{t('exam.loading')}</p>}
+
+        {state.kind === 'failed' && (
+          /*
           <b>One sentence and a button, not two sentences and nothing.</b> This
           block used to print "Không kết nối được tới máy chủ. Kiểm tra mạng rồi
           thử lại." as its heading and "Không tải được danh sách đề. Kiểm tra
@@ -422,36 +422,36 @@ export function PracticeWorkspace() {
           `role="alert"` because a list that failed to arrive is not something a
           screen-reader user finds by scrolling.
         */
-        <div className="work-gate" role="alert">
-          <h3>{t('common.notConnected')}</h3>
-          <p>{t('exam.loadFailed')}</p>
-          <div className="work-gate-actions">
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => {
-                setState({ kind: 'loading' });
-                void load();
-              }}
-            >
-              {t('exam.tryAgain')}
-            </button>
+          <div className="work-gate" role="alert">
+            <h3>{t('common.notConnected')}</h3>
+            <p>{t('exam.loadFailed')}</p>
+            <div className="work-gate-actions">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  setState({ kind: 'loading' });
+                  void load();
+                }}
+              >
+                {t('exam.tryAgain')}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {state.kind === 'ready' && (
-        <>
-          {error !== null && (
-            <p className="work-error" role="alert">
-              {error}
-            </p>
-          )}
+        {state.kind === 'ready' && (
+          <>
+            {error !== null && (
+              <p className="work-error" role="alert">
+                {error}
+              </p>
+            )}
 
-          <div className="work-split">
-            {/* Below the sidebar's breakpoint this collapses behind a button
+            <div className="work-split">
+              {/* Below the sidebar's breakpoint this collapses behind a button
                 rather than pushing the grid a screen and a half down. */}
-            {/*
+              {/*
               <b>Three things were wrong with this control.</b> `inline-flex` on
               a grid item in a `1fr` column stretches, so it rendered as a
               936px-wide white rounded rectangle with six centred characters in
@@ -462,39 +462,39 @@ export function PracticeWorkspace() {
               name as "Bộ lọc đang có bộ lọc", which is not a sentence and does
               not say how many.
             */}
-            <button
-              type="button"
-              className="work-filter-toggle"
-              aria-expanded={filtersOpen}
-              aria-controls={filtersId}
-              onClick={() => setFiltersOpen((was) => !was)}
-            >
-              Bộ lọc{activeFilters > 0 ? ` (${activeFilters})` : ''}
-              <span className="work-filter-caret" aria-hidden="true">
-                ⌄
-              </span>
-            </button>
+              <button
+                type="button"
+                className="work-filter-toggle"
+                aria-expanded={filtersOpen}
+                aria-controls={filtersId}
+                onClick={() => setFiltersOpen((was) => !was)}
+              >
+                Bộ lọc{activeFilters > 0 ? ` (${activeFilters})` : ''}
+                <span className="work-filter-caret" aria-hidden="true">
+                  ⌄
+                </span>
+              </button>
 
-            <aside className={`work-side${filtersOpen ? ' is-open' : ''}`}>
-              <FilterPanel
-                id={filtersId}
-                facets={facets}
-                chosen={chosen}
-                onToggle={toggle}
-                onClear={() => setChosen({})}
-              />
-            </aside>
+              <aside className={`work-side${filtersOpen ? ' is-open' : ''}`}>
+                <FilterPanel
+                  id={filtersId}
+                  facets={facets}
+                  chosen={chosen}
+                  onToggle={toggle}
+                  onClear={() => setChosen({})}
+                />
+              </aside>
 
-            <div className="work-main">
-              {mode === 'full' && full.incomplete > 0 && (
-                <p className="work-note">
-                  {full.incomplete} đề chưa đủ bốn kỹ năng nên không thi full được. Chúng vẫn luyện
-                  được ở chế độ từng kỹ năng.
-                </p>
-              )}
+              <div className="work-main">
+                {mode === 'full' && full.incomplete > 0 && (
+                  <p className="work-note">
+                    {full.incomplete} đề chưa đủ bốn kỹ năng nên không thi full được. Chúng vẫn
+                    luyện được ở chế độ từng kỹ năng.
+                  </p>
+                )}
 
-              {slice.length === 0 ? (
-                /*
+                {slice.length === 0 ? (
+                  /*
                   Two different empty states, and the difference matters.
 
                   <b>Nothing in the catalogue</b> is not the reader's doing and
@@ -508,71 +508,71 @@ export function PracticeWorkspace() {
                   bộ lọc" was an instruction pointing at a control that was not
                   on screen.
                 */
-                <div className="work-gate">
-                  <h3>{scoped.length === 0 ? t('exam.emptyTitle') : 'Không có bài nào khớp'}</h3>
-                  <p>
-                    {scoped.length === 0
-                      ? t('exam.emptyBody')
-                      : 'Bỏ bớt một bộ lọc, hoặc chọn kỹ năng khác ở hàng trên.'}
-                  </p>
+                  <div className="work-gate">
+                    <h3>{scoped.length === 0 ? t('exam.emptyTitle') : 'Không có bài nào khớp'}</h3>
+                    <p>
+                      {scoped.length === 0
+                        ? t('exam.emptyBody')
+                        : 'Bỏ bớt một bộ lọc, hoặc chọn kỹ năng khác ở hàng trên.'}
+                    </p>
 
-                  <div className="work-gate-actions">
-                    {scoped.length === 0 ? (
-                      <>
-                        <Link className="btn btn-secondary" to={Paths.dictation}>
-                          Luyện nghe chép chính tả
-                        </Link>
-                        <Link className="btn btn-secondary" to={Paths.documents}>
-                          Vào kho tài liệu
-                        </Link>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={() => setChosen({})}
-                      >
-                        Xoá bộ lọc
-                      </button>
-                    )}
+                    <div className="work-gate-actions">
+                      {scoped.length === 0 ? (
+                        <>
+                          <Link className="btn btn-secondary" to={Paths.dictation}>
+                            Luyện nghe chép chính tả
+                          </Link>
+                          <Link className="btn btn-secondary" to={Paths.documents}>
+                            Vào kho tài liệu
+                          </Link>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={() => setChosen({})}
+                        >
+                          Xoá bộ lọc
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <ul className="prac-grid">
-                  {slice.map((item) => (
-                    <PracticeCard
-                      key={item.key}
-                      item={item}
-                      busy={starting === item.key}
-                      onStart={handleCardStart}
-                    />
-                  ))}
-                </ul>
-              )}
+                ) : (
+                  <ul className="prac-grid">
+                    {slice.map((item) => (
+                      <PracticeCard
+                        key={item.key}
+                        item={item}
+                        busy={starting === item.key}
+                        onStart={handleCardStart}
+                      />
+                    ))}
+                  </ul>
+                )}
 
-              {safePage < pages && (
-                <div className="work-load-more">
-                  <button
-                    type="button"
-                    className="btn btn-secondary work-load-more-btn"
-                    onClick={() => setPage((p) => Math.min(p + 1, pages))}
-                  >
-                    Xem thêm bài luyện <span aria-hidden="true">↓</span>
-                  </button>
-                </div>
-              )}
+                {safePage < pages && (
+                  <div className="work-load-more">
+                    <button
+                      type="button"
+                      className="btn btn-secondary work-load-more-btn"
+                      onClick={() => setPage((p) => Math.min(p + 1, pages))}
+                    >
+                      Xem thêm bài luyện <span aria-hidden="true">↓</span>
+                    </button>
+                  </div>
+                )}
 
-              <Pagination
-                page={safePage}
-                pages={pages}
-                onGo={setPage}
-                label="Trang bài luyện"
-                scrollTo="work-results"
-              />
+                <Pagination
+                  page={safePage}
+                  pages={pages}
+                  onGo={setPage}
+                  label="Trang bài luyện"
+                  scrollTo="work-results"
+                />
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
       </div>
 
       <FullTestReadinessModal

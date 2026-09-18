@@ -144,7 +144,9 @@ describe('ExamDetailPage · the five real states', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Duyệt' })[1]!);
 
     expect(
-      await screen.findByText('Bạn không thể tự duyệt đề mình soạn — cần một người khác duyệt version này.'),
+      await screen.findByText(
+        'Bạn không thể tự duyệt đề mình soạn — cần một người khác duyệt version này.',
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Không thực hiện được/)).not.toBeInTheDocument();
   });

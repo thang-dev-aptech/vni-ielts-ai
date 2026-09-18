@@ -88,10 +88,7 @@ describe('listeningSectionsFrom', () => {
   });
 
   it('sorts by part order regardless of the order parts arrive in', () => {
-    const outOfOrder = content([
-      part(2, ['q3'], null, 3),
-      part(1, ['q1', 'q2'], null, 1),
-    ]);
+    const outOfOrder = content([part(2, ['q3'], null, 3), part(1, ['q1', 'q2'], null, 1)]);
     const result = sectionResult([
       ['q1', true],
       ['q2', true],
@@ -104,10 +101,7 @@ describe('listeningSectionsFrom', () => {
   });
 
   it('drops a part with no questions rather than drawing an empty card', () => {
-    const withEmptyPart = content([
-      part(1, ['q1'], null, 1),
-      part(2, [], null, 2),
-    ]);
+    const withEmptyPart = content([part(1, ['q1'], null, 1), part(2, [], null, 2)]);
     const result = sectionResult([['q1', true]]);
 
     const rows = listeningSectionsFrom(withEmptyPart, result);

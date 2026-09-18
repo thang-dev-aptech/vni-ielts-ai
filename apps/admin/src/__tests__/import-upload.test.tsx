@@ -143,16 +143,22 @@ describe('ImportPage', () => {
     // no interval tick needed to see the first stage.
     expect(await screen.findByText(/Đang giải nén gói/)).toBeInTheDocument();
 
-    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15_000);
+    });
     expect(await screen.findByText(/Đang phân tích đề/)).toBeInTheDocument();
 
-    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15_000);
+    });
     expect(await screen.findByText('Bản nháp draft-1')).toBeInTheDocument();
     expect(getImportDraft).toHaveBeenCalledWith('token-1', 'draft-1');
 
     // Polling stopped: a completed job must not keep asking.
     const callsAtCompletion = vi.mocked(getImportJob).mock.calls.length;
-    await act(async () => { await vi.advanceTimersByTimeAsync(120_000); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(120_000);
+    });
     expect(vi.mocked(getImportJob).mock.calls.length).toBe(callsAtCompletion);
   });
 
@@ -162,7 +168,7 @@ describe('ImportPage', () => {
    * job's stale `draftId`, makes this fail — a failed job must show its
    * reason, never a half-built draft.
    */
-  it('shows the failed job\'s own reason and never renders a draft for it', async () => {
+  it("shows the failed job's own reason and never renders a draft for it", async () => {
     vi.mocked(uploadImportPackage).mockResolvedValue({
       operationId: 'op-2',
       definitionId: 'def-2',
@@ -190,9 +196,7 @@ describe('ImportPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
     expect(await screen.findByText('Nhập gói thất bại.')).toBeInTheDocument();
-    expect(
-      screen.getByText(/the provider returned a 503 three times/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/the provider returned a 503 three times/)).toBeInTheDocument();
     expect(screen.queryByText(/^Bản nháp/)).not.toBeInTheDocument();
     expect(getImportDraft).not.toHaveBeenCalled();
   });
@@ -239,8 +243,7 @@ describe('ImportPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/quyền xem bản nháp nhập kiểm tra tiếp/)).toBeInTheDocument();
     expect(
-      screen.getAllByText(/This account does not hold any of: package.read, package.upload/)
-        .length,
+      screen.getAllByText(/This account does not hold any of: package.read, package.upload/).length,
     ).toBeGreaterThan(0);
     expect(screen.queryByText(/^Bản nháp draft-6/)).not.toBeInTheDocument();
   });
@@ -275,12 +278,16 @@ describe('ImportPage', () => {
     // the interval — comfortably past that bounds the loop (15s × 60 ≈ 15
     // minutes; see `IMPORT_POLL_MAX`'s own comment for why this job's bound
     // is longer than the Writing marking screen's).
-    await act(async () => { await vi.advanceTimersByTimeAsync(15_000 * 65); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15_000 * 65);
+    });
 
     expect(vi.mocked(getImportJob).mock.calls.length).toBe(61);
 
     const callsAtBound = vi.mocked(getImportJob).mock.calls.length;
-    await act(async () => { await vi.advanceTimersByTimeAsync(15_000 * 5); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15_000 * 5);
+    });
     expect(vi.mocked(getImportJob).mock.calls.length).toBe(callsAtBound);
   });
 
@@ -312,7 +319,9 @@ describe('ImportPage', () => {
 
     await screen.findByText(/Đang tạo giải thích/);
 
-    await act(async () => { await vi.advanceTimersByTimeAsync(15_000 * 65); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15_000 * 65);
+    });
 
     const message = await screen.findByText(/vẫn đang chạy ở phía máy chủ/);
     expect(message).toBeInTheDocument();
@@ -354,7 +363,14 @@ describe('ImportPage', () => {
           detail: 'Path traversal detected at /../../etc/passwd.',
           code: 'PACKAGE_REJECTED',
         },
-        [{ severity: 'error', code: 'PATH_TRAVERSAL', path: '/../../etc/passwd', message: 'Path traversal detected at /../../etc/passwd.' }],
+        [
+          {
+            severity: 'error',
+            code: 'PATH_TRAVERSAL',
+            path: '/../../etc/passwd',
+            message: 'Path traversal detected at /../../etc/passwd.',
+          },
+        ],
       ),
     );
 

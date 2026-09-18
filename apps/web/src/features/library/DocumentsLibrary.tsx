@@ -239,7 +239,13 @@ export function DocumentsLibrary({
               <div className="res-list-head">
                 <h2 className="res-list-title">{listHeading(filters)}</h2>
                 <p className="res-list-count" role="status">
-                  {countLine(matches.length, free.length, premium.length, safePage, listFree.length)}
+                  {countLine(
+                    matches.length,
+                    free.length,
+                    premium.length,
+                    safePage,
+                    listFree.length,
+                  )}
                 </p>
               </div>
 

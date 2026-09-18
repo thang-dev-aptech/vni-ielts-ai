@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { EXAM_STATES, STATE, TRANSITIONS, allows, transitionsFor, type ExamState } from '../lib/lifecycle.js';
+import {
+  EXAM_STATES,
+  STATE,
+  TRANSITIONS,
+  allows,
+  transitionsFor,
+  type ExamState,
+} from '../lib/lifecycle.js';
 import { PERMISSION, ROLE_PRESETS } from '../lib/permissions.js';
 
 /**

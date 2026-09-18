@@ -28,15 +28,13 @@ export function createSpeakingAudioCapture(
   if (options.prefer === 'web') return new WebSpeakingAudioCapture();
   if (options.prefer === 'native') return new DeferredNativeSpeakingAudioCapture();
 
-  const native =
-    options.isNativePlatform ?? detectCapacitorNative();
+  const native = options.isNativePlatform ?? detectCapacitorNative();
 
   return native ? new DeferredNativeSpeakingAudioCapture() : new WebSpeakingAudioCapture();
 }
 
 function detectCapacitorNative(): boolean {
   if (typeof window === 'undefined') return false;
-  const cap = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } })
-    .Capacitor;
+  const cap = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
   return typeof cap?.isNativePlatform === 'function' && cap.isNativePlatform();
 }

@@ -214,10 +214,9 @@ export async function listPracticeUnits(
   if (filters.variant) params.set('variant', filters.variant);
 
   const qs = params.toString();
-  const response = await request.get(
-    `${API}/api/v1/practice-units${qs ? `?${qs}` : ''}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  );
+  const response = await request.get(`${API}/api/v1/practice-units${qs ? `?${qs}` : ''}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 
   expect(response.ok(), await response.text()).toBeTruthy();
   return (await response.json()).units;

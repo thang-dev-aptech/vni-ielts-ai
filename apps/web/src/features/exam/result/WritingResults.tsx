@@ -1,4 +1,9 @@
-import { countWords, type MarkingStatusView, type SectionContentView, type SectionMarkingView } from '../examApi.js';
+import {
+  countWords,
+  type MarkingStatusView,
+  type SectionContentView,
+  type SectionMarkingView,
+} from '../examApi.js';
 import { useI18n, type StringKey } from '../../../i18n/index.js';
 import { ExamImage } from '../ExamImage.js';
 import { PassageBody } from '../PassageBody.js';
@@ -32,8 +37,7 @@ export function WritingMarkingPanel({
   const { t } = useI18n();
   const sorted = markings.slice().sort((a, b) => (a.taskNumber ?? 0) - (b.taskNumber ?? 0));
   const inFlight = isMarkingInFlight(status);
-  const failed =
-    status !== undefined && (status.state === 'failed' || status.code === 'Rejected');
+  const failed = status !== undefined && (status.state === 'failed' || status.code === 'Rejected');
 
   return (
     <section className="exs-panel" id="writing-feedback">
@@ -65,7 +69,10 @@ export function WritingMarkingPanel({
       {sorted.length > 0 && (
         <div className="exs-write-tasks">
           {sorted.map((marking) => (
-            <TaskCard key={`${marking.module}-${marking.taskNumber ?? 'whole'}`} marking={marking} />
+            <TaskCard
+              key={`${marking.module}-${marking.taskNumber ?? 'whole'}`}
+              marking={marking}
+            />
           ))}
         </div>
       )}
