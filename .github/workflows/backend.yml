@@ -131,7 +131,7 @@ jobs:
           docker run -d --name vni-ci-minio -p 9000:9000 \
             -e MINIO_ROOT_USER=vni-local \
             -e MINIO_ROOT_PASSWORD=vni-local-dev-only \
-            minio/minio:latest server /data
+            quay.io/minio/minio:latest server /data
 
           live=0
           for _ in $(seq 1 60); do
@@ -155,7 +155,7 @@ jobs:
           # ENTRYPOINT, so a bare `sh -c` is handed to mc as an argument and
           # comes back as `mc: <ERROR> `sh` is not a recognized command`.
           # compose.yaml gets this right with `entrypoint: /bin/sh -c`.
-          docker run --rm --network host --entrypoint sh minio/mc:latest -c "
+          docker run --rm --network host --entrypoint sh quay.io/minio/mc:latest -c "
             mc alias set ci http://localhost:9000 vni-local vni-local-dev-only &&
             mc mb --ignore-existing ci/vni-exam-assets &&
             mc mb --ignore-existing ci/vni-audio-90d &&

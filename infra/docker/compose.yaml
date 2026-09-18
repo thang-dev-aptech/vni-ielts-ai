@@ -84,7 +84,14 @@ services:
       start_period: 10s
 
   minio:
-    image: minio/minio:latest
+    # quay.io, not Docker Hub. MinIO's Docker Hub repositories stopped
+    # serving anonymous pulls — `docker pull minio/minio` answers "pull
+    # access denied ... repository does not exist or may require 'docker
+    # login'", and so does `minio/mc`. A cached image on a developer's
+    # machine hides it; a clean CI runner cannot pull at all, which is why
+    # the Backend workflow has died at "Start MinIO" since 2026-09-11.
+    # quay.io is MinIO's own registry and serves both anonymously.
+    image: quay.io/minio/minio:latest
     container_name: vni-minio
     command: server /data --console-address ":9001"
     environment:
@@ -138,7 +145,8 @@ services:
   # (ObjectStorage:*Prefix); the guards that protected the split moved into
   # the startup gate and the readiness probe. → docs/decisions/0016
   minio-init:
-    image: minio/mc:latest
+    # Same registry move as the `minio` service above.
+    image: quay.io/minio/mc:latest
     depends_on:
       minio:
         condition: service_healthy
