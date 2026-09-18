@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Vni.Ielts.Domain.Exams;
 
@@ -387,7 +388,7 @@ public static class ContentRightsPolicy
             return ContentRightsDecision.Refuse(
                 ContentRightsDenial.RightExpired, source.Id,
                 $"The recorded right for source '{source.Id}' expired on "
-                + $"{source.ExpiresAt:yyyy-MM-dd}.");
+                + $"{source.ExpiresAt?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}.");
         }
 
         if (environment == ContentEnvironment.LearnerProduction && source.Proof is null)

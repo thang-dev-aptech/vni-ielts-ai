@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Vni.Ielts.Application.Common;
@@ -170,9 +171,27 @@ public sealed class GetCoaching(
             foreach (var group in marked.GroupBy(m => m.Module))
             {
                 if (detail.ContainsKey(group.Key) || latest.ContainsKey(group.Key)) continue;
+                /*
+                 * <b>The band formats itself, and it formats itself invariantly.</b>
+                 *
+                 * This line used to read `{m.Band.Value:0.0}` — reaching past
+                 * `BandScore` to the bare decimal inside it and formatting that
+                 * in whatever culture the *process* happens to run under. The
+                 * string goes straight out in `CoachingSkillView.Detail`, so
+                 * `/me/coaching` answered "Task 1 6,0" on a Vietnamese host and
+                 * "Task 1 6.0" everywhere else, from the same build.
+                 *
+                 * `BandScore.ToString()` already pins `InvariantCulture`, which
+                 * is the whole reason a band is a value type rather than a
+                 * `decimal`: the one correct way to write it lives on the type.
+                 * `string.Create(InvariantCulture, …)` pins the task number in
+                 * the same breath. → `scripts/check-culture.mjs`
+                 */
                 var text = string.Join(" · ", group
                     .OrderBy(m => m.TaskNumber)
-                    .Select(m => m.TaskNumber is { } n ? $"Task {n} {m.Band.Value:0.0}" : $"{m.Band.Value:0.0}"));
+                    .Select(m => m.TaskNumber is { } n
+                        ? string.Create(CultureInfo.InvariantCulture, $"Task {n} {m.Band}")
+                        : m.Band.ToString()));
                 detail[group.Key] = (text, sitting.SessionId, sitting.SubmittedAt ?? sitting.StartedAt);
             }
         }
@@ -241,11 +260,20 @@ public sealed class GetCoaching(
         return new CoachingAiView("ready", result.Advice.Summary, result.Advice.Tips, result.Advice.Model);
     }
 
-    /// <summary>The standing, not the learner: two learners with the same numbers share one cache row.</summary>
+    /// <summary>
+    /// The standing, not the learner: two learners with the same numbers share one cache row.
+    ///
+    /// <b>And not the host either.</b> Formatted in the ambient culture, this
+    /// key is a function of the machine as well as of the standing — the same
+    /// learner served from a Vietnamese node and a US node hashes to two
+    /// different rows, misses the cached answer, and pays for a second AI call
+    /// to produce the one already held. → <c>P-14</c>
+    /// </summary>
     internal static string CacheKey(CoachingFacts facts)
     {
-        var text = facts.TargetBand.ToString("0.0") + "|" + string.Join(
-            "|", facts.Skills.Select(s => $"{s.Module}={s.CurrentBand?.ToString("0.0") ?? s.Detail ?? "-"}"));
+        var text = facts.TargetBand.ToString("0.0", CultureInfo.InvariantCulture) + "|" + string.Join(
+            "|", facts.Skills.Select(s =>
+                $"{s.Module}={s.CurrentBand?.ToString("0.0", CultureInfo.InvariantCulture) ?? s.Detail ?? "-"}"));
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
     }
 }
@@ -330,17 +358,25 @@ public sealed class GetLearnerActivity(
         var active = byDay.Keys.ToHashSet();
         var (current, longest, activeToday) = StreakCalculator.Compute(active, today);
 
+        /*
+         * <b>"yyyy-MM-dd" is not an ISO date on its own.</b> The pattern fixes
+         * the separator, but not the *calendar*: under `th-TH` the same call
+         * writes `2569-09-18`, because the Buddhist era is part of the culture
+         * and not part of the format string. The client parses these keys as
+         * ISO dates to lay out the heatmap, and a Buddhist year is not a late
+         * heatmap — it is an empty one. → `scripts/check-culture.mjs`
+         */
         var list = byDay
             .OrderBy(kv => kv.Key)
             .Select(kv => new ActivityDayView(
-                kv.Key.ToString("yyyy-MM-dd"),
+                kv.Key.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 kv.Value.Count,
                 kv.Value.Kinds.Select(k => k.ToString().ToLowerInvariant()).OrderBy(k => k).ToList()))
             .ToList();
 
         return new ActivityView(
             calendar.TimeZoneId,
-            today.ToString("yyyy-MM-dd"),
+            today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
             list,
             current,
             longest,

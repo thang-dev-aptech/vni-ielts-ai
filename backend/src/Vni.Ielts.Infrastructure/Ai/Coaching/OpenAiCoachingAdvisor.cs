@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -148,12 +149,12 @@ public sealed class OpenAiCoachingAdvisor(
     private static string UserPrompt(CoachingFacts facts)
     {
         var sb = new StringBuilder();
-        sb.Append("Mục tiêu: ").Append(facts.TargetBand.ToString("0.0")).AppendLine();
+        sb.Append("Mục tiêu: ").Append(facts.TargetBand.ToString("0.0", CultureInfo.InvariantCulture)).AppendLine();
         foreach (var skill in facts.Skills)
         {
             sb.Append(skill.Module).Append(": ")
-              .Append(skill.CurrentBand?.ToString("0.0") ?? skill.Detail ?? "chưa có điểm");
-            if (skill.Gap is { } gap) sb.Append(" (chênh ").Append(gap.ToString("+0.0;-0.0;0.0")).Append(')');
+              .Append(skill.CurrentBand?.ToString("0.0", CultureInfo.InvariantCulture) ?? skill.Detail ?? "chưa có điểm");
+            if (skill.Gap is { } gap) sb.Append(" (chênh ").Append(gap.ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture)).Append(')');
             sb.AppendLine();
         }
         sb.Append("Trả về JSON.");

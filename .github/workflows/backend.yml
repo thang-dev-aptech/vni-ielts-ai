@@ -61,6 +61,16 @@ jobs:
       - name: Shell scripts are executable in git
         run: node ../scripts/check-script-permissions.mjs
 
+      # Before the build, because this gate is about the *host's* locale and
+      # the build cannot see it: `dotnet build -p:AnalysisMode=All` — every
+      # rule Roslyn ships — reports nothing on a `$"{band:0.0}"`, which is how
+      # `/me/coaching` shipped "Task 1 6,0" to Vietnamese clients. Cheap, pure
+      # Node, no restore needed.
+      - name: No response formats a number in the host's culture
+        run: |
+          node --test ../scripts/check-culture.test.mjs
+          node ../scripts/check-culture.mjs
+
       - name: Restore
         run: dotnet restore
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Sessions;
 
@@ -151,8 +152,21 @@ public sealed class UsageEntry
     public static string ProviderGrantId(string provider, string subject) =>
         $"grant:sso:{provider.ToLowerInvariant()}:{subject}";
 
+    /// <summary>
+    /// The once-per-day allowance, keyed on the learner and the day.
+    ///
+    /// <para>
+    /// <b>This is an idempotency key, not a label.</b> It is what stops a
+    /// second sign-in on the same day granting a second allowance, so the day
+    /// has to be spelled the same way by every process that ever computes it.
+    /// The interpolation here used to format <c>day</c> in the ambient culture:
+    /// on a <c>th-TH</c> host the same calendar day spells <c>2569-09-18</c>,
+    /// which does not collide with the <c>2026-09-18</c> an earlier grant was
+    /// written under — two rows, two allowances, one day. → <c>P-14</c>
+    /// </para>
+    /// </summary>
     public static string DailyId(UserId userId, DateOnly day) =>
-        $"daily:{userId.Value}:{day:yyyy-MM-dd}";
+        $"daily:{userId.Value}:{day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
 
     public static string ReferralId(UserId inviteeId) => $"referral:{inviteeId.Value}";
 

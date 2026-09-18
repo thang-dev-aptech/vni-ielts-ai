@@ -1,3 +1,4 @@
+using System.Globalization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using Vni.Ielts.Application.Learning;
@@ -5,6 +6,43 @@ using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Learning;
 
 namespace Vni.Ielts.Infrastructure.Persistence.Learning;
+
+/// <summary>
+/// The one spelling of a day in this collection, written and read the same way.
+///
+/// <b>A stored date is a contract, not a display string.</b> <c>learner_goals.examDate</c>
+/// and <c>learner_activity_days.day</c> hold <c>yyyy-MM-dd</c> text, and that text is
+/// also a <i>key</i>: the activity range query compares <c>day</c> with
+/// <c>string.Compare</c>, and the upsert addresses the row by
+/// <c>{userId}:{day}</c>. So the format is load-bearing twice over and must not
+/// depend on the machine.
+///
+/// <b>The pattern alone is not enough.</b> <c>"yyyy-MM-dd"</c> pins the separator but
+/// not the <i>calendar</i>, which is cultural too. Measured on .NET 10:
+///
+/// <list type="bullet">
+/// <item><c>th-TH</c> — <c>2026-09-18</c> is written <c>2569-09-18</c> (Buddhist era)
+/// and <c>DateOnly.Parse("2026-09-18")</c> reads back <c>1483-09-18</c>. A learner's
+/// exam date silently becomes a different date, and their activity rows sort into a
+/// range nothing queries.</item>
+/// <item><c>ar-SA</c> — <c>DateOnly.Parse("2026-09-18")</c> throws
+/// <see cref="FormatException"/> against the Umm al-Qura calendar, so reading a goal
+/// that was written on a Gregorian host is a 500.</item>
+/// </list>
+///
+/// <see cref="ParseExact(string)"/> rather than <c>Parse</c> on the way in: the stored
+/// shape is known exactly, so anything else is corrupt data and should say so here
+/// rather than become a plausible wrong date.
+/// </summary>
+internal static class LearningDays
+{
+    internal const string Format = "yyyy-MM-dd";
+
+    internal static string ToText(DateOnly day) => day.ToString(Format, CultureInfo.InvariantCulture);
+
+    internal static DateOnly Parse(string text) =>
+        DateOnly.ParseExact(text, Format, CultureInfo.InvariantCulture);
+}
 
 internal sealed class LearnerGoalDocument
 {
@@ -95,7 +133,7 @@ internal sealed class MongoLearnerGoalStore(MongoContext ctx) : ILearnerGoalStor
         return new LearnerGoal(
             userId,
             doc.TargetBand,
-            doc.ExamDate is null ? null : DateOnly.Parse(doc.ExamDate),
+            doc.ExamDate is null ? null : LearningDays.Parse(doc.ExamDate),
             new DateTimeOffset(DateTime.SpecifyKind(doc.UpdatedAt, DateTimeKind.Utc)));
     }
 
@@ -106,7 +144,7 @@ internal sealed class MongoLearnerGoalStore(MongoContext ctx) : ILearnerGoalStor
             {
                 Id = goal.UserId.Value,
                 TargetBand = goal.TargetBand,
-                ExamDate = goal.ExamDate?.ToString("yyyy-MM-dd"),
+                ExamDate = goal.ExamDate is { } examDate ? LearningDays.ToText(examDate) : null,
                 UpdatedAt = goal.UpdatedAt.UtcDateTime,
             },
             new ReplaceOptions { IsUpsert = true },
@@ -117,7 +155,7 @@ internal sealed class MongoLearnerActivityLog(MongoContext ctx, IClock clock) : 
 {
     public Task RecordAsync(UserId userId, DateOnly day, ActivityKind kind, CancellationToken ct)
     {
-        var dayText = day.ToString("yyyy-MM-dd");
+        var dayText = LearningDays.ToText(day);
         var update = Builders<LearnerActivityDayDocument>.Update
             .SetOnInsert(d => d.UserId, userId.Value)
             .SetOnInsert(d => d.Day, dayText)
@@ -135,14 +173,14 @@ internal sealed class MongoLearnerActivityLog(MongoContext ctx, IClock clock) : 
     public async Task<IReadOnlyList<ActivityDay>> ListAsync(
         UserId userId, DateOnly from, DateOnly to, CancellationToken ct)
     {
-        var lo = from.ToString("yyyy-MM-dd");
-        var hi = to.ToString("yyyy-MM-dd");
+        var lo = LearningDays.ToText(from);
+        var hi = LearningDays.ToText(to);
         var docs = await ctx.LearnerActivityDays
             .Find(d => d.UserId == userId.Value && string.Compare(d.Day, lo) >= 0 && string.Compare(d.Day, hi) <= 0)
             .ToListAsync(ct);
 
         return docs.Select(d => new ActivityDay(
-                DateOnly.Parse(d.Day),
+                LearningDays.Parse(d.Day),
                 d.Count,
                 d.Kinds.Select(k => Enum.Parse<ActivityKind>(k, ignoreCase: true)).ToList()))
             .ToList();

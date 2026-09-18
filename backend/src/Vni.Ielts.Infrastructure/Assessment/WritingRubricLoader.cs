@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -88,7 +89,7 @@ public static class WritingRubricLoader
         return new WritingRubricArtifact(
             dto.Version,
             dto.DescriptorSource,
-            DateOnly.Parse(dto.EffectiveDate),
+            DateOnly.Parse(dto.EffectiveDate, CultureInfo.InvariantCulture),
             dto.ContentHash,
             dto.PromptVersion,
             dto.Criteria ?? [],
@@ -233,7 +234,20 @@ public static class WritingRubricLoader
 
                 sb.AppendLine($"## {criterion}");
                 var bands = SelectBands(set, taskNumber == 1 && criterion == "taskAchievement", generalTraining);
-                foreach (var (band, text) in bands.OrderByDescending(b => decimal.Parse(b.Key)))
+
+                /*
+                 * <b>The key is JSON, so it is parsed as JSON — invariantly.</b>
+                 *
+                 * `b.Key` is a band written in the artifact file: "9", "8.5",
+                 * "6.5". Parsed in the ambient culture on a Vietnamese host,
+                 * `.` is the *group* separator, so `decimal.Parse("6.5")`
+                 * returns **65** — measured, not theorised. Band 6.5 then sorts
+                 * above band 9, and the descriptor block handed to the model
+                 * comes out in an order that is not the band order it claims to
+                 * be. Nothing throws and nothing logs; the prompt is simply
+                 * wrong. → `scripts/check-culture.mjs`
+                 */
+                foreach (var (band, text) in bands.OrderByDescending(b => decimal.Parse(b.Key, CultureInfo.InvariantCulture)))
                     sb.AppendLine($"- Band {band}: {text}");
 
                 sb.AppendLine();
@@ -249,7 +263,7 @@ public static class WritingRubricLoader
 
             if (!artifact.Descriptors.TryGetValue(criterion, out var bands)) continue;
 
-            foreach (var (band, text) in bands.OrderByDescending(b => decimal.Parse(b.Key)))
+            foreach (var (band, text) in bands.OrderByDescending(b => decimal.Parse(b.Key, CultureInfo.InvariantCulture)))
                 flat.AppendLine($"- Band {band}: {text}");
 
             flat.AppendLine();
@@ -318,7 +332,7 @@ public static class WritingRubricLoader
             return new WritingRubricArtifact(
                 Version,
                 DescriptorSource,
-                DateOnly.Parse(EffectiveDate),
+                DateOnly.Parse(EffectiveDate, CultureInfo.InvariantCulture),
                 ContentHash,
                 PromptVersion,
                 task2.Criteria,

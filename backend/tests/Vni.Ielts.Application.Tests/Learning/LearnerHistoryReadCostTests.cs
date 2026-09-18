@@ -76,16 +76,16 @@ public sealed class LearnerHistoryReadCostTests
 
         var view = await h.CoachingAsync();
 
-        // <b>The separator is the machine's, not this test's.</b>
-        // `Learning/Handlers.cs:147` formats the band with the ambient culture,
-        // so the same build answers "Task 1 6.0" here and "Task 1 6,0" on a
-        // `vi-VN` host. That is a defect in what the API sends, and it is not
-        // this slice's to change — batching reads must not alter a byte of the
-        // response. Spelled out rather than papered over: the assertion pins
-        // the shape and the two bands, and reproduces the formatting the
-        // handler actually uses so it cannot go red on someone else's laptop.
+        // <b>The separator is the API's now, and no longer the machine's.</b>
+        // This assertion used to read `$"Task 1 {6m:0.0} · Task 2 {7m:0.0}"` —
+        // reproducing the handler's own ambient-culture formatting so that it
+        // could not go red on a laptop whose locale differed. That made the two
+        // agree about a defect: the handler answered "Task 1 6,0" on a
+        // Vietnamese host and this line expected "Task 1 6,0" there too. The
+        // handler now pins `InvariantCulture`, so the expectation is a literal.
+        // → `CultureIndependentResponseTests`, `scripts/check-culture.mjs`
         var writing = Assert.Single(view.Skills, s => s.Module == "writing");
-        Assert.Equal($"Task 1 {6m:0.0} · Task 2 {7m:0.0}", writing.Detail);
+        Assert.Equal("Task 1 6.0 · Task 2 7.0", writing.Detail);
 
         // Speaking is never marked in this build, so it carries no detail —
         // which is why the loop's early exit above can never fire.
