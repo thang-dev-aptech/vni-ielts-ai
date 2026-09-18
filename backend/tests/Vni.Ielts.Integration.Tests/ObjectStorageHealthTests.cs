@@ -45,6 +45,41 @@ public sealed class ObjectStorageHealthTests
         Assert.Equal("ok", check.GetProperty("status").GetString());
     }
 
+    /// <summary>
+    /// <b>A bucket the probe walks and the environment never created.</b>
+    ///
+    /// The CMS media library added `vni-media` to the distinct-bucket list
+    /// `S3ObjectStorageHealthCheck` walks, and it is the failure mode nobody
+    /// sees coming: the process starts perfectly — the startup gate does not
+    /// create buckets — and then answers `ServiceUnavailable` for ever. It
+    /// cost this repository two red CI runs on 2026-09-18, once because the
+    /// local MinIO container predated the compose line that provisions it and
+    /// once because the CI job created two of the eight buckets.
+    ///
+    /// <b>So the probe covering media is asserted rather than assumed.</b>
+    /// Without this, the same class passes on any machine that happens to have
+    /// the bucket and fails on any that does not, which is how the whole thing
+    /// read as flakiness rather than as a missing bucket.
+    /// </summary>
+    [SkippableFact]
+    public async Task Readiness_fails_when_the_media_bucket_does_not_exist()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+        Skip.IfNot(ObjectStorageAppFactory.MinioAvailable, ObjectStorageAppFactory.MinioSkipReason);
+
+        await using var app = new ObjectStorageAppFactory
+        {
+            MediaBucket = $"vni-media-absent-{Guid.NewGuid():n}",
+        };
+
+        var response = await app.CreateClient().GetAsync("/health/ready");
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("failed", ObjectStorageCheck(body).GetProperty("status").GetString());
+    }
+
     [SkippableFact]
     public async Task Readiness_fails_safely_on_a_wrong_access_key()
     {
@@ -140,9 +175,25 @@ public sealed class ObjectStorageHealthTests
         });
 
         await using var app = new ObjectStorageAppFactory { ServiceUrl = $"http://127.0.0.1:{port}" };
+        var client = app.CreateClient();
+
+        /*
+         * <b>The host is built and warmed before the clock starts.</b>
+         *
+         * `CreateClient` builds the host lazily, so the first request pays for
+         * configuration validation, DI construction and JIT — seconds of it on
+         * a loaded machine. Measuring that alongside the probe turned this from
+         * a test of the probe's deadline into a test of how busy the build
+         * agent was, and it went red twice on 2026-09-18 while the probe itself
+         * behaved perfectly.
+         *
+         * `/health/live` touches no dependency, so it costs the startup and
+         * nothing else. What the stopwatch then sees is one request.
+         */
+        (await client.GetAsync("/health/live")).EnsureSuccessStatusCode();
 
         var stopwatch = Stopwatch.StartNew();
-        var response = await app.CreateClient().GetAsync("/health/ready");
+        var response = await client.GetAsync("/health/ready");
         stopwatch.Stop();
 
         blackHole.Stop();
@@ -187,6 +238,17 @@ public sealed class ObjectStorageAppFactory : WebApplicationFactory<Program>
     public string SecretKey { get; init; } = "vni-local-dev-only";
     public string ExamAssetsBucket { get; init; } = "vni-exam-assets";
     public string DictationBucket { get; init; } = "vni-audio-90d";
+
+    /// <summary>
+    /// <b>Pinned because the readiness probe walks it, and it was not.</b>
+    /// The CMS media library added `MediaBucket` to `ObjectStorageOptions`
+    /// with a default, and nothing added it here — so this factory stopped
+    /// pinning the whole section and started depending on whether a bucket
+    /// called `vni-media` happened to exist in whatever MinIO was running.
+    /// On a clean stack every test in this class failed; on a developer's
+    /// stack it failed intermittently, which is worse.
+    /// </summary>
+    public string MediaBucket { get; init; } = "vni-media";
 
     public static bool MinioAvailable => _minioAvailable.Value;
 
@@ -276,6 +338,7 @@ public sealed class ObjectStorageAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("ObjectStorage:SecretKey", SecretKey);
         builder.UseSetting("ObjectStorage:ExamAssetsBucket", ExamAssetsBucket);
         builder.UseSetting("ObjectStorage:DictationBucket", DictationBucket);
+        builder.UseSetting("ObjectStorage:MediaBucket", MediaBucket);
 
         /*
          * <b>Every other key of the section, pinned — because Development also
@@ -291,6 +354,7 @@ public sealed class ObjectStorageAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("ObjectStorage:SpeakingRecordingRetentionDays", string.Empty);
         builder.UseSetting("ObjectStorage:ExamAssetsPrefix", string.Empty);
         builder.UseSetting("ObjectStorage:DictationPrefix", string.Empty);
+        builder.UseSetting("ObjectStorage:MediaPrefix", string.Empty);
         builder.UseSetting("ObjectStorage:SpeakingRecordingsPrefix", string.Empty);
         builder.UseSetting("ObjectStorage:Region", "us-east-1");
         builder.UseSetting("ObjectStorage:ForcePathStyle", "true");
