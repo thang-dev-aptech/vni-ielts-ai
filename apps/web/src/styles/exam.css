@@ -1374,27 +1374,6 @@
   padding: 0 var(--s-5) var(--s-5);
 }
 
-.result-review-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: var(--s-3);
-  margin: 0 0 var(--s-4);
-  padding: 0;
-  list-style: none;
-}
-
-.result-review-grid > li.is-filtered-out {
-  display: none;
-}
-
-.result-review-grid > li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-3);
-  min-width: 0;
-}
-
 /*
  * <b>A glyph as well as a ground.</b> Right and wrong differ by shape first —
  * a tick or a cross — so the grid is readable to someone who cannot tell the

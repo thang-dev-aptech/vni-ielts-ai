@@ -1,3 +1,4 @@
+import type { Schemas } from '@vni/api-client';
 import { request } from './api.js';
 import type { Session } from '@vni/auth';
 
@@ -21,13 +22,17 @@ export {
   type Session,
 } from '@vni/auth';
 
-export interface DeviceSession {
-  id: string;
-  device: string;
-  signedInAt: string;
-  lastUsedAt: string;
-  isCurrent: boolean;
-}
+/**
+ * One device signed in to this account, as the device list returns it.
+ *
+ * <b>Generated since 18/09/2026, and hand-written before that.</b> Every type
+ * in this file that names a `/me` response is now an alias onto
+ * `contracts/openapi/v1.json` rather than a shape described from memory. The
+ * four inline object types below were the same debt in a smaller package: a
+ * `{ signedOut: number }` written at a call site reads as obviously right and
+ * is checked by nothing at all. → `W7`
+ */
+export type DeviceSession = Schemas['SessionResponseItem'];
 
 /**
  * Creates or changes the password of the signed-in account.
@@ -61,7 +66,7 @@ export const setPassword = (
  * rather than stranding the owner of the account.
  */
 export const changeEmail = (accessToken: string, email: string | null) =>
-  request<{ email: string | null }>('/api/v1/me/email', {
+  request<Schemas['AccountEmailResponse']>('/api/v1/me/email', {
     method: 'POST',
     accessToken,
     body: { email },
@@ -69,7 +74,7 @@ export const changeEmail = (accessToken: string, email: string | null) =>
 
 /** Sets, changes or clears the contact number. An empty string removes it. */
 export const setPhone = (accessToken: string, phone: string | null) =>
-  request<{ phone: string | null }>('/api/v1/me/phone', {
+  request<Schemas['AccountPhoneResponse']>('/api/v1/me/phone', {
     method: 'POST',
     accessToken,
     body: { phone },
@@ -77,7 +82,7 @@ export const setPhone = (accessToken: string, phone: string | null) =>
 
 /** Devices currently signed in to this account. */
 export const listSessions = (accessToken: string) =>
-  request<{ sessions: DeviceSession[] }>('/api/v1/me/sessions', { accessToken });
+  request<Schemas['SessionsResponse']>('/api/v1/me/sessions', { accessToken });
 
 /**
  * Signs one other device out.
@@ -94,7 +99,10 @@ export const listSessions = (accessToken: string) =>
  * the suspicious one live while they work through the rest.
  */
 export const revokeOtherSessions = (accessToken: string) =>
-  request<{ signedOut: number }>('/api/v1/me/sessions', { method: 'DELETE', accessToken });
+  request<Schemas['RevokedSessionsResponse']>('/api/v1/me/sessions', {
+    method: 'DELETE',
+    accessToken,
+  });
 
 export const revokeSession = (accessToken: string, id: string) =>
   request<void>(`/api/v1/me/sessions/${encodeURIComponent(id)}`, {

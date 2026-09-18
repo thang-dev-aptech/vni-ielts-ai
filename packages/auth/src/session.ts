@@ -1,3 +1,4 @@
+import type { Schemas } from '@vni/api-client';
 import { request } from './http.js';
 
 /**
@@ -7,6 +8,17 @@ import { request } from './http.js';
  * device management, password reset, SSO — stays in that app.
  */
 
+/**
+ * A token pair and who it belongs to.
+ *
+ * <b>Still hand-written, and that is a debt rather than a choice.</b> `Me`
+ * below is an alias onto the generated contract; this is not, because
+ * `/api/v1/auth/login`, `/refresh` and `/register` still declare no response
+ * schema in `contracts/openapi` — `W7` covered `/me` and dictation only. So
+ * the shape here is described from memory, exactly as `Me` used to be, and
+ * nothing makes it agree with the server. Bind it the day those routes declare
+ * what they return.
+ */
 export interface Session {
   accessToken: string;
   accessTokenExpiresAt: string;
@@ -16,40 +28,44 @@ export interface Session {
   displayName: string;
 }
 
-export interface Me {
-  userId: string;
-  displayName: string;
-  /**
-   * <b>Nullable since 08/09/2026, and that is the normal case now.</b>
-   * Registration collects a phone number; an address is something an account
-   * may later add, so most rows have none. There is deliberately no
-   * `emailVerified` beside it any more — the verification flow was removed
-   * with the email-first sign-up it belonged to, and a boolean nothing sets is
-   * worse than an absent field: a screen would keep rendering "chưa xác minh"
-   * against a value the server stopped deciding.
-   */
-  email: string | null;
-  phone?: string | null;
-  /**
-   * What this account may do. The CMS filters its navigation on these, and the
-   * learner app ignores them — a learner's ability to sit an exam is governed
-   * by entitlement and session ownership, not by an admin permission.
-   */
-  permissions: string[];
-  providers: string[];
-  hasPassword: boolean;
-  /**
-   * The current password was set by an operator, not by its owner, and has to
-   * be replaced before the account is usable.
-   *
-   * <b>Optional on the type, because `/me` declares no schema in
-   * `contracts/openapi`.</b> This interface is maintained by hand rather than
-   * generated, so a deployment running an older API sends nothing here — and
-   * an absent field must read as "no, carry on" rather than locking every
-   * learner into a change screen.
-   */
-  mustChangePassword?: boolean;
-}
+/**
+ * The signed-in account, as `GET /api/v1/me` returns it.
+ *
+ * <b>Generated since 18/09/2026. It was an interface maintained by hand, and
+ * it had already drifted.</b> When `W7` declared the contract (`becebde`) this
+ * copy disagreed with it in two places — `mustChangePassword` was optional
+ * here and required there, and so was `phone`. Neither drift was visible to a
+ * single test, because a mocked `/me` returns whatever the fixture says: the
+ * client agreed with itself all the way down. `session.contract.test-d.ts` is
+ * what catches that class of bug now, and its gate is `tsc`, not `vitest`.
+ *
+ * Three things the shape states that are worth stating in prose:
+ *
+ * <b>`email` is nullable, and that is the normal case.</b> Registration
+ * collects a phone number; an address is something an account may later add,
+ * so most rows have none. There is deliberately no `emailVerified` beside it
+ * any more — the verification flow was removed with the email-first sign-up it
+ * belonged to, and a boolean nothing sets is worse than an absent field: a
+ * screen would keep rendering "chưa xác minh" against a value the server
+ * stopped deciding. → ADR-0018
+ *
+ * <b>`permissions` is what this account may do.</b> The CMS filters its
+ * navigation on these, and the learner app ignores them — a learner's ability
+ * to sit an exam is governed by entitlement and session ownership, not by an
+ * admin permission.
+ *
+ * <b>`mustChangePassword` is required, and the reason it used to be optional
+ * has expired.</b> The note here said the field was optional *because `/me`
+ * declared no schema in `contracts/openapi`*, so a deployment running an older
+ * API would send nothing and an absent field had to read as "no, carry on".
+ * `/me` declares `MeResponse` as of 18/09/2026 and the field is required in
+ * it, so there is no longer a shape for the permissive reading to rescue: an
+ * API that omits it is failing its own contract, not describing an account.
+ * What the flag means is unchanged — the current password was set by an
+ * operator rather than by its owner, and has to be replaced before the account
+ * is usable.
+ */
+export type Me = Schemas['MeResponse'];
 
 /**
  * <b>`identifier`, not `email` — the server decides which one it is.</b>
