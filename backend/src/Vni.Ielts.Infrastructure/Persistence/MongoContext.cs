@@ -122,6 +122,13 @@ public sealed class MongoContext
     internal IMongoCollection<Learning.LearnerGoalDocument> LearnerGoals =>
         _db.GetCollection<Learning.LearnerGoalDocument>("learner_goals");
 
+    /// <summary>
+    /// Dictation attempts. Append and read only, for the reason
+    /// <see cref="Vni.Ielts.Application.Dictation.IDictationResults"/> gives.
+    /// </summary>
+    internal IMongoCollection<Dictation.DictationAttemptDocument> DictationAttempts =>
+        _db.GetCollection<Dictation.DictationAttemptDocument>("dictation_attempts");
+
     internal IMongoCollection<Learning.LearnerActivityDayDocument> LearnerActivityDays =>
         _db.GetCollection<Learning.LearnerActivityDayDocument>("learner_activity_days");
 
@@ -456,6 +463,21 @@ public sealed class MongoContext
                     .Ascending(e => e.UserId)
                     .Descending(e => e.At),
                 new CreateIndexOptions { Name = "ix_usage_ledger_user_at" }),
+            cancellationToken: ct);
+
+        /*
+         * Two reads, one index. `ListAsync` filters on (userId, setId) and
+         * `PerfectCountsAsync` on (userId, isPerfect); a compound key in this
+         * order serves the first outright and the second by prefix, so the
+         * library screen never collection-scans a learner's history.
+         */
+        await DictationAttempts.Indexes.CreateOneAsync(
+            new CreateIndexModel<Dictation.DictationAttemptDocument>(
+                Builders<Dictation.DictationAttemptDocument>.IndexKeys
+                    .Ascending(a => a.UserId)
+                    .Ascending(a => a.SetId)
+                    .Ascending(a => a.IsPerfect),
+                new CreateIndexOptions { Name = "ix_dictation_attempts_user_set" }),
             cancellationToken: ct);
 
         await PersonalizedExplanations.Indexes.CreateOneAsync(

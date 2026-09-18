@@ -31,6 +31,7 @@ export interface DictationItem {
   title: string;
   description: string;
   sentenceCount: number;
+  perfectSentences: number;
 }
 
 /**
@@ -64,6 +65,7 @@ export function toItems(sets: DictationSetSummary[]): DictationItem[] {
     title: set.title,
     description: set.description,
     sentenceCount: set.sentenceCount,
+    perfectSentences: set.perfectSentences ?? 0,
   }));
 }
 

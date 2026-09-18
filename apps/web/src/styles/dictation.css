@@ -358,6 +358,17 @@
 }
 
 /*
+ * The previous run at this sentence — quieter than the green chip beside it.
+ * It is context for resuming, not an outcome, and two chips shouting the same
+ * way would make a learner read the wrong one first.
+ */
+.dict-chip-best {
+  background: #eef1ee;
+  color: #4d564e;
+  font-weight: 600;
+}
+
+/*
  * When a check could not reach the server.
  *
  * There was no state for this: the catch set the verdict to `null` and said

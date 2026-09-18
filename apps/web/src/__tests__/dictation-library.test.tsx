@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
@@ -44,18 +44,21 @@ const sets = [
     title: 'Câu hằng ngày — bộ 1',
     description: 'Sáu câu ngắn.',
     sentenceCount: 6,
+    perfectSentences: 4,
   },
   {
     id: 'campus-1',
     title: 'Đời sống sinh viên',
     description: 'Hội thoại trong trường.',
     sentenceCount: 12,
+    perfectSentences: 12,
   },
   {
     id: 'science-1',
     title: 'Khoa học thường thức',
     description: 'Đoạn giảng ngắn.',
     sentenceCount: 12,
+    perfectSentences: 0,
   },
 ];
 
@@ -80,7 +83,15 @@ function signedIn() {
           id: set.id,
           title: set.title,
           description: set.description,
-          sentences: [{ order: 1, audioKey: 'assets/s1.m4a' }],
+          sentences: [
+            {
+              order: 1,
+              audioKey: 'assets/s1.m4a',
+              bestCorrect: 5,
+              bestTotal: 6,
+              attempts: 3,
+            },
+          ],
         });
       }
       if (url.includes('/api/v1/dictation')) return json({ sets });
@@ -195,4 +206,52 @@ it('treats an unknown set id as a stale link, not an outage', async () => {
   openAt('/dictation/khong-ton-tai');
 
   expect(await screen.findByRole('link', { name: /Về kho bài nghe/ })).toBeInTheDocument();
+});
+
+/**
+ * Dictation results outlive the tab that produced them.
+ *
+ * <b>Until this landed, a check was compared and thrown away.</b> A learner
+ * could work through a set, come back the next evening, and find a library
+ * that had never heard of them — which is the difference between practice and
+ * a demo.
+ *
+ * The card reports sentences, not attempts. Getting the same sentence right
+ * on four evenings is one sentence finished, and a card counting rows would
+ * eventually claim more than the set contains.
+ */
+it('remembers how much of a set this learner has already finished', async () => {
+  signedIn();
+  openAt('/dictation');
+
+  const card = async (title: string) =>
+    within((await findSet(title)).closest('li')!);
+
+  const started = await card('Câu hằng ngày — bộ 1');
+  expect(started.getByText(/4\s*\/\s*6 câu đúng/)).toBeInTheDocument();
+
+  // A set nobody has touched says so plainly rather than showing "0/12",
+  // which reads like a score rather than an invitation.
+  const untouched = await card('Khoa học thường thức');
+  expect(untouched.queryByText(/câu đúng/)).toBeNull();
+  expect(untouched.getByText(/Chưa bắt đầu/)).toBeInTheDocument();
+
+  const done = await card('Đời sống sinh viên');
+  expect(done.getByText(/Đã xong/)).toBeInTheDocument();
+});
+
+/**
+ * The set screen says what this learner already managed here.
+ *
+ * <b>The point of keeping attempts is resuming, not scoring.</b> A learner who
+ * left a sentence at 5/6 comes back to a screen that says so, rather than to
+ * one that has forgotten and asks them to work out whether they had already
+ * cracked it.
+ */
+it('carries the best previous run into the sentence a learner returns to', async () => {
+  signedIn();
+  openAt('/dictation/everyday-1');
+
+  expect(await screen.findByText(/5\s*\/\s*6/)).toBeInTheDocument();
+  expect(screen.getByText(/3 lần thử/)).toBeInTheDocument();
 });

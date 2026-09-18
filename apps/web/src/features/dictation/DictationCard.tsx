@@ -19,11 +19,28 @@ import type { DictationItem } from './dictationCatalogue.js';
  * learner has typed anything. The card's job is discovery — it says what the
  * set is and sends you to it.
  *
- * <b>No progress and no accuracy.</b> `checkSentence` compares and returns; it
- * stores nothing. There is no dictation attempt anywhere in the backend, so
- * "Đã hoàn thành" or "Accuracy 82%" would be a number with no reader behind
- * it. When attempts are persisted this card gains a state, not a redesign.
+ * <b>Progress, since attempts are persisted.</b> This is the state the older
+ * note said the card would gain "not a redesign" — one line under the meta,
+ * in the markup that was already here.
+ *
+ * Three readings, not a percentage. "4/6 câu đúng" is a place to resume;
+ * "67%" is a grade, and this is practice. A set nobody has opened says "Chưa
+ * bắt đầu" rather than "0/12", which reads as a score of nought rather than
+ * as an invitation.
  */
+/**
+ * The card's one sentence about where this learner stands.
+ *
+ * Complete is named rather than counted: "12/12 câu đúng" makes a reader do
+ * the comparison themselves to learn the thing that matters.
+ */
+function progressOf(item: DictationItem): string {
+  if (item.perfectSentences <= 0) return 'Chưa bắt đầu';
+  if (item.perfectSentences >= item.sentenceCount) return 'Đã xong';
+
+  return `${item.perfectSentences}/${item.sentenceCount} câu đúng`;
+}
+
 export function DictationCard({ item }: { item: DictationItem }) {
   return (
     <li className="dset-card">
@@ -57,6 +74,8 @@ export function DictationCard({ item }: { item: DictationItem }) {
         <p className="dset-card-meta">
           <span className="num">{item.sentenceCount}</span>&nbsp;câu · Nghe lại không giới hạn
         </p>
+
+        <p className="dset-card-progress">{progressOf(item)}</p>
       </div>
 
       <span className="dset-card-go" aria-hidden="true">

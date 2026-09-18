@@ -152,3 +152,36 @@ public static class DictationComparer
         return pairs;
     }
 }
+
+/// <summary>
+/// One attempt at one sentence, kept.
+///
+/// <b>Append-only, the same shape of decision as the usage ledger.</b> A
+/// learner replays a sentence until they get it, so "the result" is not one
+/// value — it is a sequence, and a row that could be updated in place would
+/// throw away the part a learner most wants back: that the fourth try was the
+/// first clean one. Progress is derived by reading the rows, never by keeping
+/// a running total that a failed write can silently desynchronise.
+///
+/// <para>
+/// <b>What the learner typed is not stored, and that is a decision rather
+/// than an omission.</b> [QUYẾT ĐỊNH kỹ thuật] Progress needs the score;
+/// keeping the prose would add a personal-data class nobody has set a
+/// retention for, and `G-11` says an unresolved policy becomes a seam rather
+/// than an invented default. The cost of being wrong is one migration that
+/// adds a nullable field — the rows carry <see cref="Total"/> and
+/// <see cref="Correct"/>, so nothing already written becomes unreadable.
+/// Storing it first and deciding later would be the expensive order.
+/// </para>
+/// </summary>
+/// <param name="Id">Random per attempt: two identical tries are two rows, because they are two events.</param>
+/// <param name="Correct">Words matched, out of <paramref name="Total"/>.</param>
+public sealed record DictationAttempt(
+    string Id,
+    string UserId,
+    string SetId,
+    int Order,
+    DateTimeOffset At,
+    int Correct,
+    int Total,
+    bool IsPerfect);

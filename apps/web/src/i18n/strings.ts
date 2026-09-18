@@ -293,6 +293,7 @@ const vi = {
 
   'dict.eyebrow': 'Nghe chép chính tả',
   'dict.sentenceOf': 'Câu {index} / {total}',
+  'dict.previousBest': 'Lần trước {correct}/{total} · {attempts} lần thử',
   'dict.replayable': 'Nghe lại thoải mái',
   'dict.play': 'Nghe',
   'dict.stop': 'Dừng',
@@ -1207,6 +1208,7 @@ const en: Record<StringKey, string> = {
 
   'dict.eyebrow': 'Dictation',
   'dict.sentenceOf': 'Sentence {index} of {total}',
+  'dict.previousBest': 'Best {correct}/{total} · {attempts} attempts',
   'dict.replayable': 'Replay as often as you like',
   'dict.play': 'Play',
   'dict.stop': 'Stop',

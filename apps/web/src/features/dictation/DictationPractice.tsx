@@ -198,6 +198,26 @@ export function DictationPractice({ setId }: { setId: string }) {
         <div className="dict-head">
           <h2>{t('dict.sentenceOf', { index: index + 1, total: set.sentences.length })}</h2>
           <span className="dict-chip">{t('dict.replayable')}</span>
+
+          {/*
+            What this learner already managed here, on a sentence they have
+            tried before. The point of keeping attempts is resuming, not
+            scoring: coming back to "Lần trước 5/6" is the difference between
+            picking up and starting over.
+
+            Shown only once an attempt exists — `bestTotal` is null until then
+            precisely so the word count is not a hint about a sentence nobody
+            has heard yet.
+          */}
+          {sentence?.bestCorrect != null && sentence.bestTotal != null && (
+            <span className="dict-chip dict-chip-best">
+              {t('dict.previousBest', {
+                correct: sentence.bestCorrect,
+                total: sentence.bestTotal,
+                attempts: sentence.attempts,
+              })}
+            </span>
+          )}
         </div>
 
         {sentence !== undefined && <SentenceAudio reference={sentence.audioKey} />}

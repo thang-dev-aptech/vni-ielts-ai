@@ -286,6 +286,13 @@ public static class DependencyInjection
         // configured, the fixtures directory when not.
         if (!storage.IsConfigured)
             services.AddSingleton<IDictationAssetStore, FixtureDictationAssetStore>();
+        /*
+         * Results are persisted even though the catalogue is not yet
+         * authored. The two are independent: a set can move from a fixture to
+         * the CMS without a learner losing the evenings they already put in,
+         * and an attempt row names its set by id rather than by content.
+         */
+        services.AddScoped<IDictationResults, Persistence.Dictation.MongoDictationResults>();
         services.AddScoped<ListDictationSets>();
         services.AddScoped<GetDictationSet>();
         services.AddScoped<CheckDictationSentence>();

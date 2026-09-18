@@ -465,6 +465,17 @@
   color: #2b332c;
 }
 
+/* Where this learner stands in the set. Set below the meta line rather than
+   inside it, so the count of sentences and the count of finished ones are not
+   read as one number. */
+.dset-card-progress {
+  margin: 4px 0 0;
+  color: #1e7a3c;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .dset-card-go {
   flex: none;
   align-self: center;

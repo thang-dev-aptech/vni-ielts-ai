@@ -13,11 +13,28 @@ export interface DictationSetSummary {
   title: string;
   description: string;
   sentenceCount: number;
+  /**
+   * Distinct sentences this learner has ever got word-perfect — not attempts.
+   * Zero for someone who has not started, which the card reads as "chưa bắt
+   * đầu" rather than as a score of nought.
+   */
+  perfectSentences: number;
 }
 
 export interface DictationSentenceView {
   order: number;
   audioKey: string;
+  /**
+   * The best run at this sentence, or null before the first attempt.
+   *
+   * <b>`bestTotal` is withheld with it, deliberately.</b> A word count is a
+   * hint about a sentence nobody has heard yet — a smaller leak than the text
+   * the server already withholds, and free to avoid. Once attempted, the
+   * learner has seen the sentence and neither is a secret.
+   */
+  bestCorrect: number | null;
+  bestTotal: number | null;
+  attempts: number;
 }
 
 export interface DictationSetView {

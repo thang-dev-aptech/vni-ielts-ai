@@ -44,28 +44,34 @@ public static class DictationEndpoints
             .WithSummary("Compare a typed sentence with what was said");
     }
 
-    private static IResult ListEndpoint(ClaimsPrincipal principal, ListDictationSets handler) =>
-        principal.UserId() is null
-            ? Results.Unauthorized()
-            : Results.Ok(new { sets = handler.Handle() });
-
-    private static IResult GetEndpoint(
-        string setId, ClaimsPrincipal principal, GetDictationSet handler)
+    private static async Task<IResult> ListEndpoint(
+        ClaimsPrincipal principal, ListDictationSets handler, CancellationToken ct)
     {
-        if (principal.UserId() is null) return Results.Unauthorized();
+        if (principal.UserId() is not { } userId) return Results.Unauthorized();
 
-        return handler.Handle(setId) is { } set ? Results.Ok(set) : Results.NotFound();
+        return Results.Ok(new { sets = await handler.HandleAsync(userId, ct) });
     }
 
-    private static IResult CheckEndpoint(
-        string setId, ClaimsPrincipal principal, CheckSentenceRequest request,
-        CheckDictationSentence handler)
+    private static async Task<IResult> GetEndpoint(
+        string setId, ClaimsPrincipal principal, GetDictationSet handler, CancellationToken ct)
     {
-        if (principal.UserId() is null) return Results.Unauthorized();
+        if (principal.UserId() is not { } userId) return Results.Unauthorized();
+
+        return await handler.HandleAsync(userId, setId, ct) is { } set
+            ? Results.Ok(set)
+            : Results.NotFound();
+    }
+
+    private static async Task<IResult> CheckEndpoint(
+        string setId, ClaimsPrincipal principal, CheckSentenceRequest request,
+        CheckDictationSentence handler, CancellationToken ct)
+    {
+        if (principal.UserId() is not { } userId) return Results.Unauthorized();
 
         // An empty attempt is a legitimate one — it reports every word as
         // missing, which is exactly what a learner who heard nothing needs.
-        var result = handler.Handle(setId, request.Order, request.Typed ?? string.Empty);
+        var result = await handler.HandleAsync(
+            userId, setId, request.Order, request.Typed ?? string.Empty, ct);
 
         return result is null ? Results.NotFound() : Results.Ok(result);
     }
