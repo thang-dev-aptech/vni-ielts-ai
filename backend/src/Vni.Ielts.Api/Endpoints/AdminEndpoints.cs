@@ -410,8 +410,20 @@ public static class AdminEndpoints
         version.Publish(now);
         await catalogue.UpsertAsync(version, ct);
 
+        /*
+         * <b>The row says whether a right permitted this or a configuration
+         * did.</b> Both reach here as `Allowed`, and six months from now the
+         * difference is the whole question — "we had a licence" and "we took
+         * the exposure" are not the same answer to give a rights holder, and
+         * an audit trail that cannot tell them apart is one that answers
+         * neither. → `M-53`
+         */
+        var label = decision.OverriddenByConfiguration
+            ? $"{version.Title} v{version.VersionNumber} (rights override: {decision.Explanation})"
+            : $"{version.Title} v{version.VersionNumber}";
+
         await Record(audit, principal, AuditAction.ExamPublished, "exam-version",
-            version.Id.Value, $"{version.Title} v{version.VersionNumber}", now, ct);
+            version.Id.Value, label, now, ct);
 
         return Results.Ok(new { status = version.Status.ToString().ToLowerInvariant() });
     }

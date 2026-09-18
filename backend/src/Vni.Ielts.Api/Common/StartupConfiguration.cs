@@ -1,4 +1,5 @@
 using Vni.Ielts.Application.Usage;
+using Vni.Ielts.Application.Content;
 using Vni.Ielts.Infrastructure.Ai;
 using Vni.Ielts.Infrastructure.Ai.Importing;
 using Vni.Ielts.Infrastructure.Assessment;
@@ -775,6 +776,29 @@ public static class StartupConfiguration
                 + "Vietnam is a cross-border transfer under the PDPL and requires a CTIA filing "
                 + "within 60 days of the first transfer. → B-2, "
                 + "docs/security/privacy-vietnam-pdpl.md");
+        }
+
+        /*
+         * ── Publishing material whose rights nobody has proven ────────────
+         *
+         * <b>Announced when granted, for the reason the cross-border switch
+         * above is.</b> Its consequence is an exposure somebody has accepted,
+         * not an error — so it must never be silent, and it must never be
+         * mistaken for a licence. A deployment that has this on is publishing
+         * borrowed papers by decision, and the boot log is where the person
+         * who inherits the deployment finds that out.
+         */
+        var contentRights = builder.Configuration.GetSection(ContentRightsOptions.SectionName)
+            .Get<ContentRightsOptions>() ?? new ContentRightsOptions();
+
+        if (contentRights.AllowPublicationWithoutProvenRights)
+        {
+            warnings.Add(
+                "ContentRights:AllowPublicationWithoutProvenRights is true. Exam versions whose "
+                + "source holds no recorded learner-production right are published anyway, "
+                + "recording the product owner's decision of 2026-09-18. This is an accepted "
+                + "risk under M-53, not a licence: every such publication is audited as an "
+                + "override. → docs/requirements/assumptions-and-open-questions.md");
         }
     }
 

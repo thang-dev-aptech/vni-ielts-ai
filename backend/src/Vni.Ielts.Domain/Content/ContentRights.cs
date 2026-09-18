@@ -301,8 +301,22 @@ public enum ContentRightsDenial
     ProofMissing,
 }
 
+/// <param name="OverriddenByConfiguration">
+/// This was refused by the rule and allowed anyway, because the deployment is
+/// configured to accept the exposure. <b>"Allowed anyway" is not "allowed",
+/// and the record has to keep the difference.</b> The audit row and the
+/// operator's screen both read <paramref name="Explanation"/>; if a launch
+/// made on accepted risk looked identical to one made on a licence, whoever
+/// has to answer for it later would be reading a lie.
+/// Set only by <c>ContentPublishGuard</c> — the rule itself never overrides
+/// itself. → `M-53`
+/// </param>
 public sealed record ContentRightsDecision(
-    bool Allowed, ContentRightsDenial? Denial, string? SourceId, string Explanation)
+    bool Allowed,
+    ContentRightsDenial? Denial,
+    string? SourceId,
+    string Explanation,
+    bool OverriddenByConfiguration = false)
 {
     public static ContentRightsDecision Permit(ContentSourceId id, ContentEnvironment environment) =>
         new(true, null, id.Value,
@@ -311,6 +325,19 @@ public sealed record ContentRightsDecision(
     public static ContentRightsDecision Refuse(
         ContentRightsDenial denial, ContentSourceId? id, string explanation) =>
         new(false, denial, id?.Value, explanation);
+
+    /// <summary>
+    /// The refusal this decision replaced, kept whole inside the explanation.
+    ///
+    /// The denial code is named in the text rather than only in
+    /// <see cref="Denial"/>, which stays null because nothing was denied: a
+    /// reader of the audit row gets the whole story from one field.
+    /// </summary>
+    public ContentRightsDecision AllowAnyway(string acceptedBecause) =>
+        new(true, null, SourceId,
+            $"Refused by the rights rule ({Denial}), and published anyway: {acceptedBecause} "
+            + $"Original refusal: {Explanation}",
+            OverriddenByConfiguration: true);
 
     internal static string Name(ContentEnvironment environment) => environment switch
     {

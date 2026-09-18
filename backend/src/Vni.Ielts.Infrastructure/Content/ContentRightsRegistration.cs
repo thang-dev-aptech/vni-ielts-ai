@@ -41,6 +41,15 @@ public static class ContentRightsRegistration
 
         services.AddSingleton<IContentFileProbe>(_ => new FileSystemContentProbe(resolved));
 
+        /*
+         * The owner's acceptance of `M-53`, read from configuration so it can
+         * differ per environment — a staging box may publish borrowed papers
+         * while production waits for a licence, or the reverse. Absent means
+         * false, which is the pre-2026-09-18 behaviour. → `ContentRightsOptions`
+         */
+        services.AddSingleton(_ =>
+            configuration.GetSection(ContentRightsOptions.SectionName)
+                .Get<ContentRightsOptions>() ?? new ContentRightsOptions());
         services.AddScoped<ContentPublishGuard>();
         services.AddScoped<VerifyContentSource>();
 

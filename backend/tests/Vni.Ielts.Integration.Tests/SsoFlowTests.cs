@@ -330,6 +330,21 @@ public sealed class SsoAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("Sso:Google:ClientSecret", string.Empty);
         builder.UseSetting("Sso:ClientBaseUrl", "http://localhost:5173");
         builder.UseSetting("Sso:Google:RedirectUri", "http://localhost/api/v1/auth/sso/google/callback");
+
+        /*
+         * <b>The content-rights rule, not this deployment's acceptance of it.</b>
+         *
+         * `appsettings.json` turns `AllowPublicationWithoutProvenRights` on,
+         * recording the owner's decision of 2026-09-18 that the papers already
+         * in use go out. That is a business decision and it can change; the
+         * rule underneath it — no recorded right, no publication — is what
+         * `ContentRightsPublishTests` exists to pin, and a suite that silently
+         * followed the switch would stop testing anything the day it flipped.
+         *
+         * The override has its own coverage, deliberately apart, in
+         * `Vni.Ielts.Application.Tests.Content.PublicationOverrideTests`.
+         */
+        builder.UseSetting("ContentRights:AllowPublicationWithoutProvenRights", "false");
     }
 
     public override async ValueTask DisposeAsync()

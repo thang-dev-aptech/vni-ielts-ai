@@ -40,8 +40,14 @@ public sealed class ContentPublishGuardTests
             Task.FromResult(false);
     }
 
+    /// <summary>
+    /// Unconfigured, which is the default and the behaviour every test in this
+    /// file was written against. The owner's 2026-09-18 acceptance of `M-53`
+    /// is exercised in <c>PublicationOverrideTests</c>, deliberately apart:
+    /// what follows here is the rule, not the exception to it.
+    /// </summary>
     private static ContentPublishGuard Guard(params ContentSource[] sources) =>
-        new(new FakeRegistry(sources), new FakeClock(Now));
+        new(new FakeRegistry(sources), new FakeClock(Now), new ContentRightsOptions());
 
     /// <summary>A minimal paper. Its content is irrelevant here; its identity is not.</summary>
     private static ExamVersion Paper(ExamDefinitionId? definitionId = null) =>
