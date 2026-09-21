@@ -46,6 +46,17 @@ COPY --from=build /app .
 # "Could not locate contracts/schemas/exam.schema.json above /app/."
 COPY contracts/schemas/ contracts/schemas/
 
+# <b>`WritingRubricLoader` needs this too — the marking job runs here, not in
+# the API.</b> It falls back to `fixtures/assessment/writing-rubric-v1.json`
+# the same walk-up way when no absolute `RubricArtifactPath` is configured.
+# Without it, every Writing job fails after exhausting its attempts:
+# "Rubric artifact 'fixtures/assessment/writing-rubric-v1.json' was not
+# found ... Configure an absolute Assessment:WritingMarking:RubricArtifactPath,
+# or leave it unset to use the bundled rubric." Confirmed live on the preview
+# server 2026-09-21: the API got this copy, the worker did not, and the one
+# Writing job submitted since sat in dead-letter (`state: Failed`, 5 attempts).
+COPY fixtures/ fixtures/
+
 # The worker's own health port. Not 8080: a deployment that puts the API and
 # the worker on the same host must not have their default ports collide.
 ENV ASPNETCORE_HTTP_PORTS=8081
