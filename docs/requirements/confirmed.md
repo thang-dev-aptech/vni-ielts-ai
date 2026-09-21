@@ -322,6 +322,25 @@ paper and abandons it pays nothing, and `«Kiểm tra lại»` — which reloads
 the marking outbox — cannot charge, because by then the sitting has already been charged exactly
 once.
 
+### Decision of 21/09/2026 — `Q-07`, learner voice may cross the border
+
+**This is an accepted risk, not a resolved one, and it must never be described as compliance.**
+It follows the shape `Q-03` set for borrowed papers: the exposure is named, the owner accepts it in
+writing, and every use is auditable.
+
+| ID | Decision | Status | Source |
+|---|---|---|---|
+| Q-07 | **A learner's Speaking recording may be sent to a foreign provider for transcription and marking, and the PDPL exposure is accepted.** Extends `B-2`, which the owner accepted on 02/09/2026 for essays, to voice. **Voice is the heavier case and the owner was told so before deciding:** a recording is biometric-adjacent personal data, it carries identity in a way text does not, and it cannot be pseudonymised the way an essay can. A CTIA filing is due within 60 days of the **first transfer of a learner recording** — a second clock, separate from the essay clock that started 2026-09-03. **No provider is selected by this decision** (`B-1` stays open), and `P-02` is not reversed by it: this removes the compliance blocker from `W9` and nothing else | CONFIRMED | Owner decision 21/09/2026 |
+
+**What still has to be true before any recording is sent.** `Q-07` is one of three blockers on `W9`
+and closes only the third. `P-02` must be reversed, and `B-1` must name a provider. Until both
+happen `NoTranscriptSource` stays wired and the code sends nothing.
+
+**The gates `Q-07` does not touch.** `AiEgress` refuses a `LearnerPersonal` payload on three
+separate grounds, and `Q-07` is the owner's acceptance behind exactly one of them
+(`AllowCrossBorderTransfer`). The other two — a third organisation in the path without a
+data-processing agreement, and `SyntheticDataOnly` — are unchanged and still enforced.
+
 ### Import-time exam preparation — `IP-01`…`IP-06`, 10/09/2026
 
 The owner reopened the four-skill practice and exam flows on 10/09/2026, dissatisfied that answer

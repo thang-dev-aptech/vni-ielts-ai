@@ -92,7 +92,8 @@ Desirable but not required: per-word confidence scores, disfluency markers, stre
 | Option | Indicative rate | Notes |
 |---|---|---|
 | Self-hosted Whisper / NeMo | Infrastructure cost only | **Keeps data in-country — the strongest PDPL position.** Requires GPU capacity and operational ownership |
-| OpenAI Whisper API | ~$0.006/min | Low cost; no streaming |
+| OpenAI `whisper-1` | ~$0.006/min | Low cost; no streaming. **The only OpenAI model that still returns word timings** — see below |
+| OpenAI `gpt-4o-transcribe` family | ~$0.003–0.006/min | **Disqualified: no word-level timestamps.** Cheaper and newer, and it cannot meet the hard requirement |
 | Deepgram Nova-3 | ~$0.0218/min | Positioned for real-time voice workloads |
 | AssemblyAI | ~$0.37/hr | Transcript-intelligence features |
 | ElevenLabs Scribe | ~$0.22–0.48/hr | Multilingual |
@@ -100,6 +101,36 @@ Desirable but not required: per-word confidence scores, disfluency markers, stre
 | Speechmatics | Not published | Led a July 2026 benchmark at ~6.4% WER |
 
 Benchmark context `[NEEDS VALIDATION]`: a July 2026 comparison across 14 models and 16 datasets reported Speechmatics Melia-1 at ~6.4% WER and AssemblyAI U-3.5 at ~7.0%.
+
+### Verified 21/09/2026 — two vendor facts that remove options
+
+Checked against vendor documentation rather than an aggregator, because each one disqualifies
+something that looks like a candidate.
+
+**1. On OpenAI, only `whisper-1` returns word-level timings.** The speech-to-text guide states that
+*"the `timestamp_granularities[]` parameter is only supported for `whisper-1`"*. The newer
+`gpt-transcribe`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` and `gpt-4o-transcribe-diarize`
+models return text without granular timestamps. **So "use OpenAI" is not one option — it is a
+decision to pin a legacy model**, and the newer, cheaper models are not substitutes however they
+benchmark. → [OpenAI speech-to-text guide](https://developers.openai.com/api/docs/guides/speech-to-text)
+
+**2. Azure's unscripted mode does not use Azure's own speech-to-text.** The pronunciation-assessment
+guide says that for unscripted assessment *"the speech-to-text (STT) model used is different from
+Azure STT"*, and recommends calling Azure STT first to obtain text, then running **scripted**
+assessment against it. That matters because IELTS Speaking is unscripted by nature: the shape that
+actually works is **two calls, not one** — STT for an accurate transcript, then scripted assessment
+using that transcript as the reference text. A single unscripted call is the cheap-looking path and
+the less accurate one.
+
+Two further limits on the same page: **prosody is `en-US` only** (confirming the caution below), and
+**content assessment — vocabulary, grammar and topic relevance — was retired from Speech SDK 1.46.0
+and later**. Microsoft's own replacement is to send the transcript to a chat model, which is what
+this product would do anyway. → [Azure pronunciation assessment](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/how-to-pronunciation-assessment)
+
+**Indicative Azure rate** `[NEEDS VALIDATION]`: pronunciation assessment bills at the speech-to-text
+rate, around **$1.32/hr** for standard real-time. On the two-call shape a ~14-minute Speaking test
+costs roughly **$0.50** against roughly **$0.07** on `whisper-1` — a seven-fold difference that is
+still small beside the LLM call, and therefore **not a reason to choose either way**.
 
 ### Why those benchmarks do not decide this
 
