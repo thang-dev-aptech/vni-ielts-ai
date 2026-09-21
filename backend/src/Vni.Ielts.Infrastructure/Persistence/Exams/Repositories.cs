@@ -835,17 +835,29 @@ internal sealed class MongoSectionMarkingStore(MongoContext context, IClock cloc
     /// for one module; keying on session and module alone would make the second
     /// task a duplicate of the first and silently drop it.
     /// </summary>
-    private static string KeyFor(ExamSessionId sessionId, SectionMarking marking) =>
-        marking.TaskNumber is { } task
-            ? $"{sessionId.Value}:{marking.Module}:{task}"
-            : $"{sessionId.Value}:{marking.Module}";
+    private static FilterDefinition<SectionMarkingDocument> CurrentFilter =>
+        Builders<SectionMarkingDocument>.Filter.Or(
+            Builders<SectionMarkingDocument>.Filter.Eq(m => m.IsCurrent, true),
+            Builders<SectionMarkingDocument>.Filter.Exists("isCurrent", false));
+
+    private static FilterDefinition<SectionMarkingDocument> SlotFilter(
+        ExamSessionId sessionId, SectionMarking marking) =>
+        Builders<SectionMarkingDocument>.Filter.And(
+            Builders<SectionMarkingDocument>.Filter.Eq(m => m.SessionId, sessionId.Value),
+            Builders<SectionMarkingDocument>.Filter.Eq(m => m.Module, marking.Module.ToString()),
+            Builders<SectionMarkingDocument>.Filter.Eq(m => m.TaskNumber, marking.TaskNumber));
 
     public async Task SaveAsync(
         ExamSessionId sessionId, SectionMarking marking, CancellationToken ct)
     {
+        // A completion retry retains its marking identity, while a deliberate
+        // rerun creates a fresh identity in CriterionMarking.Mark.
+        var markingId = string.IsNullOrWhiteSpace(marking.MarkingId)
+            ? Guid.NewGuid().ToString("N")
+            : marking.MarkingId;
         var document = new SectionMarkingDocument
         {
-            Id = KeyFor(sessionId, marking),
+            Id = markingId,
             SessionId = sessionId.Value,
             Module = marking.Module.ToString(),
             TaskNumber = marking.TaskNumber,
@@ -863,6 +875,7 @@ internal sealed class MongoSectionMarkingStore(MongoContext context, IClock cloc
                 }),
             ],
             Flags = [.. marking.Flags.Select(f => f.ToString())],
+            IsFlagged = marking.IsFlagged,
             UngroundedEvidence = [.. marking.UngroundedEvidence],
             Advisories = marking.Advisories is { Count: > 0 } ? [.. marking.Advisories] : null,
             Provenance = marking.Provenance is { } provenance
@@ -879,30 +892,65 @@ internal sealed class MongoSectionMarkingStore(MongoContext context, IClock cloc
             MarkedAt = clock.UtcNow.UtcDateTime,
         };
 
-        try
+        using var session = await context.Database.Client.StartSessionAsync(cancellationToken: ct);
+        await session.WithTransactionAsync(async (transaction, token) =>
         {
-            await context.SectionMarkings.InsertOneAsync(document, cancellationToken: ct);
-        }
-        catch (MongoWriteException e) when (e.WriteError.Category == ServerErrorCategory.DuplicateKey)
-        {
-            // Already marked. The second caller is a retry, and the first
-            // marking stands — re-evaluating would bill again and could return
-            // a different band for work that has not changed.
-        }
+            // This check is inside the transaction. A duplicated completion
+            // sees the existing immutable id after retry and becomes a no-op.
+            var existing = await context.SectionMarkings
+                .Find(transaction, m => m.Id == document.Id)
+                .FirstOrDefaultAsync(token);
+            if (existing is not null) return false;
+
+            var previous = await context.SectionMarkings
+                .Find(transaction, Builders<SectionMarkingDocument>.Filter.And(
+                    SlotFilter(sessionId, marking), CurrentFilter))
+                .SortByDescending(m => m.Version)
+                .ThenByDescending(m => m.Id)
+                .FirstOrDefaultAsync(token);
+
+            document.Version = previous is null ? 1 : (previous.Version ?? 1) + 1;
+            document.IsCurrent = true;
+            document.SupersedesId = previous?.Id;
+
+            if (previous is not null)
+            {
+                var supersede = Builders<SectionMarkingDocument>.Update
+                    .Set(m => m.Version, previous.Version ?? 1)
+                    .Set(m => m.IsCurrent, false)
+                    .Set(m => m.SupersededById, document.Id);
+
+                var superseded = await context.SectionMarkings.UpdateOneAsync(
+                    transaction,
+                    Builders<SectionMarkingDocument>.Filter.And(
+                        Builders<SectionMarkingDocument>.Filter.Eq(m => m.Id, previous.Id),
+                        CurrentFilter),
+                    supersede,
+                    cancellationToken: token);
+                if (superseded.MatchedCount != 1)
+                    throw new InvalidOperationException("The current marking changed while it was being superseded.");
+            }
+
+            await context.SectionMarkings.InsertOneAsync(
+                transaction, document, cancellationToken: token);
+            return true;
+        }, cancellationToken: ct);
     }
 
     public async Task<IReadOnlyList<SectionMarking>> ListAsync(
         ExamSessionId sessionId, CancellationToken ct)
     {
         var docs = await context.SectionMarkings
-            .Find(m => m.SessionId == sessionId.Value)
+            .Find(Builders<SectionMarkingDocument>.Filter.And(
+                Builders<SectionMarkingDocument>.Filter.Eq(m => m.SessionId, sessionId.Value),
+                CurrentFilter))
             .ToListAsync(ct);
 
         return [.. docs.Select(d => d.ToDomain())];
     }
 
     /// <summary>
-    /// One `$in` over <c>ix_section_markings_session</c>, the index
+    /// One `$in` over <c>ix_section_markings_session_current</c>, the index
     /// <see cref="ListAsync"/> already uses — the same index lookup, done once
     /// with a list of keys instead of once per key. → slice `W10`
     ///
@@ -919,7 +967,9 @@ internal sealed class MongoSectionMarkingStore(MongoContext context, IClock cloc
         var keys = sessionIds.Select(id => id.Value).Distinct(StringComparer.Ordinal).ToList();
 
         var docs = await context.SectionMarkings
-            .Find(Builders<SectionMarkingDocument>.Filter.In(m => m.SessionId, keys))
+            .Find(Builders<SectionMarkingDocument>.Filter.And(
+                Builders<SectionMarkingDocument>.Filter.In(m => m.SessionId, keys),
+                CurrentFilter))
             .ToListAsync(ct);
 
         return docs
@@ -927,5 +977,64 @@ internal sealed class MongoSectionMarkingStore(MongoContext context, IClock cloc
             .ToDictionary(
                 g => new ExamSessionId(g.Key),
                 IReadOnlyList<SectionMarking> (g) => [.. g.Select(d => d.ToDomain())]);
+    }
+
+    public async Task<SectionMarkingHistoryPage> QueryAsync(
+        SectionMarkingHistoryQuery query, CancellationToken ct)
+    {
+        query.Validate();
+        var filter = Builders<SectionMarkingDocument>.Filter.Empty;
+
+        if (query.From is { } from)
+            filter &= Builders<SectionMarkingDocument>.Filter.Gte(m => m.MarkedAt, from.UtcDateTime);
+        if (query.To is { } to)
+            filter &= Builders<SectionMarkingDocument>.Filter.Lte(m => m.MarkedAt, to.UtcDateTime);
+        if (query.Module is { } module)
+            filter &= Builders<SectionMarkingDocument>.Filter.Eq(m => m.Module, module.ToString());
+        if (query.IsCurrent is true)
+            filter &= CurrentFilter;
+        else if (query.IsCurrent is false)
+            filter &= Builders<SectionMarkingDocument>.Filter.Eq(m => m.IsCurrent, false);
+
+        if (query.IsFlagged is { } flagged)
+        {
+            // Documents written before isFlagged existed remain queryable. New
+            // documents take the index-backed branch; this expression is only
+            // the legacy compatibility branch.
+            var legacyFlagged = new BsonDocumentFilterDefinition<SectionMarkingDocument>(
+                new BsonDocument("$expr", new BsonDocument("$gt", new BsonArray
+                {
+                    new BsonDocument("$size", new BsonDocument("$ifNull", new BsonArray
+                    {
+                        "$flags", new BsonArray(),
+                    })),
+                    0,
+                })));
+            var missingFlag = Builders<SectionMarkingDocument>.Filter.Exists("isFlagged", false);
+            var storedFlag = Builders<SectionMarkingDocument>.Filter.Eq(m => m.IsFlagged, flagged);
+            FilterDefinition<SectionMarkingDocument> legacyMatch = flagged
+                ? legacyFlagged
+                : Builders<SectionMarkingDocument>.Filter.Not(legacyFlagged);
+            filter &= Builders<SectionMarkingDocument>.Filter.Or(
+                storedFlag,
+                Builders<SectionMarkingDocument>.Filter.And(missingFlag, legacyMatch));
+        }
+
+        var total = await context.SectionMarkings.CountDocumentsAsync(filter, cancellationToken: ct);
+        var skip = checked((query.Page - 1) * query.PageSize);
+        var docs = await context.SectionMarkings
+            .Find(filter)
+            .SortByDescending(m => m.MarkedAt)
+            .ThenByDescending(m => m.Id)
+            .Skip(skip)
+            .Limit(query.PageSize)
+            .ToListAsync(ct);
+
+        return new SectionMarkingHistoryPage(
+            [.. docs.Select(d => new SectionMarkingHistoryItem(
+                new ExamSessionId(d.SessionId), d.ToDomain()))],
+            total,
+            query.Page,
+            query.PageSize);
     }
 }

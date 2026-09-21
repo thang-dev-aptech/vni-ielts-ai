@@ -852,6 +852,32 @@ internal sealed class SectionMarkingDocument
     [BsonIgnoreIfNull]
     public WritingMarkingProvenanceDocument? Provenance { get; set; }
 
+    /// <summary>
+    /// Null is a legacy current row. New rows always write this field, while
+    /// keeping the nullable shape lets deployments adopt history without a
+    /// destructive migration.
+    /// </summary>
+    [BsonElement("version")]
+    [BsonIgnoreIfNull]
+    public int? Version { get; set; }
+
+    [BsonElement("isCurrent")]
+    [BsonIgnoreIfNull]
+    public bool? IsCurrent { get; set; }
+
+    [BsonElement("supersedesId")]
+    [BsonIgnoreIfNull]
+    public string? SupersedesId { get; set; }
+
+    [BsonElement("supersededById")]
+    [BsonIgnoreIfNull]
+    public string? SupersededById { get; set; }
+
+    /// <summary>Stored for the indexed CMS flag filter; legacy rows derive it from Flags.</summary>
+    [BsonElement("isFlagged")]
+    [BsonIgnoreIfNull]
+    public bool? IsFlagged { get; set; }
+
     [BsonElement("markedAt")]
     public DateTime MarkedAt { get; set; }
 }

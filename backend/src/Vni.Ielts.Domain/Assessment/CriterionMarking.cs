@@ -1,5 +1,6 @@
 using System.Text;
 using Vni.Ielts.Domain.Exams;
+using Vni.Ielts.Domain.Sessions;
 
 namespace Vni.Ielts.Domain.Assessment;
 
@@ -152,7 +153,13 @@ public sealed record SectionMarking(
     IReadOnlyList<string> UngroundedEvidence,
     int? TaskNumber = null,
     IReadOnlyList<string>? Advisories = null,
-    WritingMarkingProvenance? Provenance = null)
+    WritingMarkingProvenance? Provenance = null,
+    string? MarkingId = null,
+    int Version = 1,
+    bool IsCurrent = true,
+    string? SupersedesId = null,
+    string? SupersededById = null,
+    DateTimeOffset? MarkedAt = null)
 {
     /// <summary>
     /// Whether anything here needs a human to look at it.
@@ -164,6 +171,35 @@ public sealed record SectionMarking(
     /// </summary>
     public bool IsFlagged => Flags.Count > 0;
 }
+
+/// <summary>Filters the operator-facing marking history across all sittings.</summary>
+public sealed record SectionMarkingHistoryQuery(
+    DateTimeOffset? From = null,
+    DateTimeOffset? To = null,
+    ExamModule? Module = null,
+    bool? IsFlagged = null,
+    bool? IsCurrent = true,
+    int Page = 1,
+    int PageSize = 50)
+{
+    public void Validate()
+    {
+        if (From is { } from && To is { } to && from > to)
+            throw new ArgumentException("The marking-history start must not be after its end.");
+        if (Page < 1) throw new ArgumentOutOfRangeException(nameof(Page));
+        if (PageSize < 1) throw new ArgumentOutOfRangeException(nameof(PageSize));
+    }
+}
+
+/// <summary>A page of markings, retaining the sitting identity required by an operator view.</summary>
+public sealed record SectionMarkingHistoryPage(
+    IReadOnlyList<SectionMarkingHistoryItem> Items,
+    long TotalCount,
+    int Page,
+    int PageSize);
+
+/// <summary>One historical marking together with the sitting it belongs to.</summary>
+public sealed record SectionMarkingHistoryItem(ExamSessionId SessionId, SectionMarking Marking);
 
 /// <summary>
 /// Turns a model's claimed marks into a <see cref="SectionMarking"/>, or
@@ -252,7 +288,7 @@ public static class CriterionMarking
 
         return new SectionMarking(
             rubric.Module, rubric.Version, assessments, recomputed, reported, flags, ungrounded,
-            taskNumber);
+            taskNumber, MarkingId: Guid.NewGuid().ToString("N"));
     }
 
     /// <summary>

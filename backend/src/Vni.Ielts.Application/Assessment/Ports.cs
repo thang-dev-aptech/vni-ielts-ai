@@ -114,6 +114,14 @@ public interface ISectionMarkingStore
     Task<IReadOnlyList<SectionMarking>> ListAsync(ExamSessionId sessionId, CancellationToken ct);
 
     /// <summary>
+    /// Paged, newest-first marking history for the CMS. Unlike learner reads,
+    /// this intentionally permits superseded versions when requested.
+    /// </summary>
+    Task<SectionMarkingHistoryPage> QueryAsync(
+        SectionMarkingHistoryQuery query, CancellationToken ct) =>
+        throw new NotSupportedException("This marking store does not provide operator history.");
+
+    /// <summary>
     /// The markings of many sittings, in one read.
     ///
     /// <b>For the screens that ask about a list rather than about a

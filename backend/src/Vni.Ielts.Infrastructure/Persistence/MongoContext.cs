@@ -439,8 +439,39 @@ public sealed class MongoContext
 
         await SectionMarkings.Indexes.CreateOneAsync(
             new CreateIndexModel<Exams.SectionMarkingDocument>(
-                Builders<Exams.SectionMarkingDocument>.IndexKeys.Ascending(m => m.SessionId),
-                new CreateIndexOptions { Name = "ix_section_markings_session" }),
+                Builders<Exams.SectionMarkingDocument>.IndexKeys
+                    .Ascending(m => m.SessionId)
+                    .Ascending(m => m.IsCurrent),
+                new CreateIndexOptions { Name = "ix_section_markings_session_current" }),
+            cancellationToken: ct);
+
+        // Exactly one current version for a section task. A partial index keeps
+        // pre-history documents (which have no isCurrent field) readable while
+        // making every newly written current row race-safe.
+        await SectionMarkings.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.SectionMarkingDocument>(
+                Builders<Exams.SectionMarkingDocument>.IndexKeys
+                    .Ascending(m => m.SessionId)
+                    .Ascending(m => m.Module)
+                    .Ascending(m => m.TaskNumber),
+                new CreateIndexOptions<Exams.SectionMarkingDocument>
+                {
+                    Unique = true,
+                    Name = "ux_section_markings_current_slot",
+                    PartialFilterExpression = new BsonDocument("isCurrent", true),
+                }),
+            cancellationToken: ct);
+
+        // CMS history filters by current/module/flag and reads newest first.
+        await SectionMarkings.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.SectionMarkingDocument>(
+                Builders<Exams.SectionMarkingDocument>.IndexKeys
+                    .Ascending(m => m.IsCurrent)
+                    .Ascending(m => m.Module)
+                    .Ascending(m => m.IsFlagged)
+                    .Descending(m => m.MarkedAt)
+                    .Descending(m => m.Id),
+                new CreateIndexOptions { Name = "ix_section_markings_admin_history" }),
             cancellationToken: ct);
 
         // The worker's claim scans by state and due time on every poll, and a

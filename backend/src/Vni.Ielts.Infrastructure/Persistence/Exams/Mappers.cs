@@ -520,7 +520,13 @@ internal static class ExamMappers
                     provenance.ModelReported,
                     provenance.ModelMismatch,
                     provenance.RequestId)
-                : null);
+                : null,
+            doc.Id,
+            doc.Version ?? 1,
+            doc.IsCurrent ?? true,
+            doc.SupersedesId,
+            doc.SupersededById,
+            Offset(doc.MarkedAt));
 
     public static SectionScore ToDomain(this SectionResultDocument doc) =>
         new(

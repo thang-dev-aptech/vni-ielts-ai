@@ -47,6 +47,18 @@ public sealed class CriterionMarkingTests
     }
 
     [Fact]
+    public void A_new_marking_has_an_identity_and_current_first_version_metadata()
+    {
+        var marking = CriterionMarking.Mark(Writing, FourClaims(), 6m, Submission);
+
+        Assert.False(string.IsNullOrWhiteSpace(marking.MarkingId));
+        Assert.Equal(1, marking.Version);
+        Assert.True(marking.IsCurrent);
+        Assert.Null(marking.SupersedesId);
+        Assert.Null(marking.SupersededById);
+    }
+
+    [Fact]
     public void Criteria_are_reported_in_rubric_order_whatever_order_the_model_answered_in()
     {
         var shuffled = FourClaims();
