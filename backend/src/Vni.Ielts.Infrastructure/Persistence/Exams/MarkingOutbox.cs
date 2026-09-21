@@ -193,11 +193,8 @@ internal sealed class MongoMarkingOutbox(MongoContext context) : IMarkingOutbox
     {
         if (sessionIds.Count == 0) return ReadOnlyDictionary<ExamSessionId, IReadOnlyList<MarkingJob>>.Empty;
 
-        var keys = sessionIds.Select(id => id.Value).Distinct(StringComparer.Ordinal).ToList();
-
-        var jobs = await Jobs
-            .Find(Builders<MarkingJobDocument>.Filter.In(j => j.SessionId, keys))
-            .ToListAsync(ct);
+        var jobs = await BatchedKeyReads.FindByKeysAsync(
+            Jobs, j => j.SessionId, sessionIds.Select(id => id.Value), ct);
 
         return jobs
             .GroupBy(j => j.SessionId, StringComparer.Ordinal)

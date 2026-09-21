@@ -40,11 +40,8 @@ internal sealed class MongoExamCatalogue(MongoContext context) : IExamCatalogue
     {
         if (ids.Count == 0) return ReadOnlyDictionary<ExamVersionId, ExamVersion>.Empty;
 
-        var keys = ids.Select(id => id.Value).Distinct(StringComparer.Ordinal).ToList();
-
-        var docs = await context.ExamVersions
-            .Find(Builders<ExamVersionDocument>.Filter.In(v => v.Id, keys))
-            .ToListAsync(ct);
+        var docs = await BatchedKeyReads.FindByKeysAsync(
+            context.ExamVersions, v => v.Id, ids.Select(id => id.Value), ct);
 
         // Keyed off the document's own id rather than the requested one: a
         // dictionary built from the request would report a version for an id
@@ -804,11 +801,8 @@ internal sealed class MongoSectionResultStore(MongoContext context, IClock clock
     {
         if (sessionIds.Count == 0) return ReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionScore>>.Empty;
 
-        var keys = sessionIds.Select(id => id.Value).Distinct(StringComparer.Ordinal).ToList();
-
-        var docs = await context.SectionResults
-            .Find(Builders<SectionResultDocument>.Filter.In(r => r.SessionId, keys))
-            .ToListAsync(ct);
+        var docs = await BatchedKeyReads.FindByKeysAsync(
+            context.SectionResults, r => r.SessionId, sessionIds.Select(id => id.Value), ct);
 
         return docs
             .GroupBy(d => d.SessionId, StringComparer.Ordinal)
@@ -916,11 +910,8 @@ internal sealed class MongoSectionMarkingStore(MongoContext context, IClock cloc
     {
         if (sessionIds.Count == 0) return ReadOnlyDictionary<ExamSessionId, IReadOnlyList<SectionMarking>>.Empty;
 
-        var keys = sessionIds.Select(id => id.Value).Distinct(StringComparer.Ordinal).ToList();
-
-        var docs = await context.SectionMarkings
-            .Find(Builders<SectionMarkingDocument>.Filter.In(m => m.SessionId, keys))
-            .ToListAsync(ct);
+        var docs = await BatchedKeyReads.FindByKeysAsync(
+            context.SectionMarkings, m => m.SessionId, sessionIds.Select(id => id.Value), ct);
 
         return docs
             .GroupBy(d => d.SessionId, StringComparer.Ordinal)
