@@ -53,6 +53,21 @@ USER $APP_UID
 
 COPY --from=build /app .
 
+# <b>`DevelopmentExamSeeder` needs this at runtime, not build time.</b> It
+# walks up from `AppContext.BaseDirectory` (`/app` here) looking for
+# `fixtures/exams` — without this, that walk finds nothing in the container
+# (there is no source tree above `/app`), and the seed silently does nothing.
+# Harmless when `ASPNETCORE_ENVIRONMENT` is not `Development`: the seeder
+# only runs then, so this copy is inert bytes in a production image.
+COPY fixtures/ fixtures/
+
+# <b>`LocateExamSchemaPath` and `WritingEvaluationSchema` need this at
+# runtime too</b> — the same walk-up-from-`AppContext.BaseDirectory` search,
+# for `exam.schema.json` and `writing-evaluation.schema.json`. Without it,
+# exam import validation and Writing AI marking both fail the moment they are
+# asked to do anything, not at boot — the exception surfaces mid-request.
+COPY contracts/schemas/ contracts/schemas/
+
 # The port the process listens on inside the container. Nothing maps it to 80
 # here: that is the orchestrator's decision, and hard-coding it would make this
 # image unusable behind anything that expects otherwise.

@@ -39,6 +39,13 @@ USER $APP_UID
 
 COPY --from=build /app .
 
+# <b>`ImportWorker` needs this at runtime.</b> It resolves
+# `contracts/schemas/exam.schema.json` the same way the API does — a walk up
+# from `AppContext.BaseDirectory` — to validate an uploaded package before
+# persisting anything. Without it, every import job fails the same way:
+# "Could not locate contracts/schemas/exam.schema.json above /app/."
+COPY contracts/schemas/ contracts/schemas/
+
 # The worker's own health port. Not 8080: a deployment that puts the API and
 # the worker on the same host must not have their default ports collide.
 ENV ASPNETCORE_HTTP_PORTS=8081
