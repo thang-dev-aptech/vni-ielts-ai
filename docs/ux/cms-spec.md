@@ -343,6 +343,12 @@ Lọc theo: kỹ năng (writing · speaking) · trạng thái (`pending` · `run
 
 Mỗi dòng: mã phiên · kỹ năng · band tiết mục · trạng thái · `modelVersion` · thời điểm · cờ.
 
+**Hợp đồng đọc.** `GET /api/v1/admin/evaluations` là trang hoá ở máy chủ (`page`, cỡ trang cố định
+50), nhận `from` · `to` (ISO-8601) · `module` · `flagged` · `current`. Mọi bộ lọc sai trả problem
+`400` có `code = VALIDATION_FAILED`; không âm thầm bỏ qua hoặc đổi thành trang đầu. Quyền duy nhất cho
+danh sách là `evaluation.read`. Danh sách chỉ mang metadata chấm: không có bài nộp, trích dẫn evidence,
+hay raw output.
+
 Ba cờ cần phân biệt được bằng hình dạng, không chỉ bằng màu:
 
 | Cờ | Nghĩa | Nguồn |
@@ -373,6 +379,16 @@ lại và lúc nào. Chạy lại **không sửa bản cũ**.
 **Nội dung học viên** — bài luận, transcript, file ghi âm — nằm sau `learner-content.read` và **mỗi lần
 mở là một `AuditEvent`**. Không bung sẵn khi vào màn.
 
+**Hợp đồng chi tiết.** `GET /api/v1/admin/evaluations/{sessionId}/{markingId}` luôn trả criteria
+(không evidence), band tính lại/band model báo, flags, advisories, provenance, attempt history và các
+liên kết supersession cho người có `evaluation.read`. Chỉ khi người gọi đồng thời có
+`learner-content.read` **và** người dùng mở khối nội dung (`includeContent=true`), response mới có
+evidence, bài nộp và `rawOutput` (kể cả output bị từ chối); lần đọc có nội dung đó tạo audit action
+`EvaluationContentAccessed`. Detail không có quyền trả `404`; request có quyền đọc đánh giá nhưng không
+có quyền nội dung vẫn là `200` với các trường nội dung bị bỏ hẳn.
+Audit detail chỉ được mang id phiên/marking/operation, module, task và version — không chứa essay,
+evidence, audio URL, raw output hay lỗi provider có thể lặp lại nội dung học viên.
+
 `[OPEN QUESTION]` **M-19** — admin được tiếp cận bài viết và giọng nói của học viên tới mức nào, và cơ sở
 pháp lý là gì. PDPL yêu cầu giới hạn mục đích; "soi lỗi chấm điểm" là mục đích chính đáng nhưng cần được
 tuyên bố trong thông báo quyền riêng tư, không phải mặc định ngầm.
@@ -387,6 +403,14 @@ Hộp xác nhận phải nói ba điều:
 
 Gửi kèm `Idempotency-Key` để bấm đúp không thành hai lần tính phí.
 
+`POST /api/v1/admin/evaluations/failed-jobs/{operationId}/rerun` yêu cầu riêng
+`evaluation.rerun` và `Idempotency-Key`; thiếu hoặc không hợp lệ trả problem `400`, job không có trả
+`404`, job không còn failed hoặc key mới bị tranh chấp trả problem `409`. Cùng key trả lại cùng rerun
+ổn định (không thêm một job và không thêm audit dòng thứ hai). Thành công là `202`: server nói rõ đây là
+một lần gọi provider có thể phát sinh chi phí, nhưng báo `pricingStatus = pending` cùng blockers `B-5a`,
+`B-5b` thay vì bịa token hay giá VNI. Transition đầu tiên tạo `EvaluationRerunRequested`; audit chỉ lưu
+operation/session/module/rubric version và trạng thái giá, không lưu idempotency key hoặc nội dung model.
+
 `[OPEN QUESTION]` **M-20** — có hạn mức chi phí cho thao tác chạy lại không, và ai được duyệt khi vượt.
 
 ### 6.4 · Hàng đợi hỏng
@@ -396,6 +420,11 @@ theo mã. Đây là màn vận hành, và là chỗ phát hiện sớm nhất kh
 
 Không có nút nào ở đây tạo ra điểm. Một đánh giá hỏng hiện là hỏng — luật L3 của
 [`DESIGN.md`](DESIGN.md) áp cả trong CMS.
+
+`GET /api/v1/admin/evaluations/failed-jobs` dùng `evaluation.read`, trang hoá ở máy chủ và nhận cùng
+`from` · `to` · `module`. Mỗi dòng là job thất bại (mới nhất trước), gồm trạng thái, số lần thử, lỗi,
+và các mốc thời gian; không chứa raw response. Nút chạy lại là lối sang 6.3, không phải thao tác ngầm
+trong bảng.
 
 ---
 
