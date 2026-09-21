@@ -274,4 +274,66 @@ public sealed class MarkingOutboxTests(SsoAppFactory app) : IClassFixture<SsoApp
         Assert.True(await outbox.EnqueueAsync(corrected, default));
         Assert.Equal(2, (await outbox.ListAsync(session, default)).Count);
     }
+
+    [SkippableFact]
+    public async Task Failed_jobs_are_listed_newest_first_across_sessions()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+        await PurgeAsync();
+
+        using var scope = Scope();
+        var outbox = OutboxIn(scope);
+        var first = ExamSessionId.New();
+        var second = ExamSessionId.New();
+
+        await EnqueueAndFailAsync(outbox, first, "first");
+        await Task.Delay(15);
+        await EnqueueAndFailAsync(outbox, second, "second");
+
+        var page = await outbox.QueryAsync(new MarkingJobQuery(State: MarkingJobState.Failed), default);
+
+        Assert.Equal(2, page.TotalCount);
+        Assert.Equal(["second", "first"], page.Items.Select(j => j.RubricVersion));
+    }
+
+    [SkippableFact]
+    public async Task Reopening_a_failed_job_is_idempotent_and_illegal_once_completed()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+        await PurgeAsync();
+
+        using var scope = Scope();
+        var outbox = OutboxIn(scope);
+        var session = ExamSessionId.New();
+        var id = await EnqueueAndFailAsync(outbox, session, "writing-v1");
+
+        var first = await outbox.ReopenFailedAsync(id, "retry-1", At.AddHours(1), default);
+        var replay = await outbox.ReopenFailedAsync(id, "retry-1", At.AddHours(2), default);
+
+        Assert.Equal(MarkingJobReopenStatus.Reopened, first.Status);
+        Assert.Equal(MarkingJobReopenStatus.Replayed, replay.Status);
+        Assert.Equal(MarkingJobState.Pending, first.Job?.State);
+
+        var claimed = await outbox.ClaimAsync("w2", At.AddHours(1), TimeSpan.FromMinutes(2), default);
+        Assert.NotNull(claimed);
+        await outbox.CompleteAsync(id, "w2", At.AddHours(2), default);
+
+        var afterComplete = await outbox.ReopenFailedAsync(id, "retry-2", At.AddHours(3), default);
+        Assert.Equal(MarkingJobReopenStatus.Illegal, afterComplete.Status);
+        Assert.Equal(MarkingJobState.Completed, afterComplete.CurrentState);
+    }
+
+    private static async Task<string> EnqueueAndFailAsync(
+        IMarkingOutbox outbox, ExamSessionId session, string rubric)
+    {
+        var job = Owed(session) with
+        {
+            OperationId = MarkingJob.IdFor(session, ExamModule.Writing, rubric),
+            RubricVersion = rubric,
+        };
+        await outbox.EnqueueAsync(job, default);
+        await outbox.ClaimAsync("worker-a", At, TimeSpan.FromMinutes(2), default);
+        await outbox.FailAsync(job.OperationId, "worker-a", "the provider refused", default);
+        return job.OperationId;
+    }
 }

@@ -110,4 +110,20 @@ public enum AuditAction
     MediaRetired,
     /// <summary>An asset and its stored bytes were removed. Detail carries `fileName`.</summary>
     MediaDeleted,
+
+    // Package-import lifecycle. Target type "package-import-history" (or
+    // "import-draft" for approval / warning override). Detail carries
+    // identifiers, counts and finding *codes* — never archive bytes, package
+    // JSON, finding messages or an archive key.
+    //
+    // Vietnamese CMS labels for these values are owned by
+    // admin-shared-contracts (AuditPage), not this enum.
+    /// <summary>The door accepted a ZIP and enqueued an import.</summary>
+    PackageUploadAccepted,
+    /// <summary>The door refused a ZIP before archive persistence.</summary>
+    PackageUploadRejected,
+    /// <summary>The worker refused a parked archive after validation.</summary>
+    PackageImportRejected,
+    /// <summary>An import draft was approved for review publication.</summary>
+    PackageImportApproved,
 }

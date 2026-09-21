@@ -157,6 +157,7 @@ public sealed class ImportWorker(
         var outbox = services.GetRequiredService<IImportOutbox>();
         var archives = services.GetRequiredService<IImportArchiveStore>();
         var pipeline = services.GetRequiredService<ExamPackageImportPipeline>();
+        var history = services.GetService<IPackageImportHistoryStore>();
 
         var leaseToken = Guid.NewGuid().ToString("n");
 
@@ -226,7 +227,7 @@ public sealed class ImportWorker(
              * `lost` is cancelled by the heartbeat and by nothing else.
              */
             outcome = await ImportAsync(
-                outbox, archives, pipeline, job, leaseToken, span, lost.Token);
+                outbox, archives, pipeline, history, job, leaseToken, span, lost.Token);
         }
         catch (Exception) when (lost.IsCancellationRequested)
         {
@@ -254,7 +255,7 @@ public sealed class ImportWorker(
             // driver message can carry request content, and a span is
             // exported. → F4.2
             span?.SetStatus(ActivityStatusCode.Error, e.GetType().Name);
-            await GiveUpOrRetryAsync(outbox, archives, job, leaseToken, e);
+            await GiveUpOrRetryAsync(outbox, archives, history, job, leaseToken, e);
         }
         finally
         {
@@ -277,8 +278,12 @@ public sealed class ImportWorker(
     /// <returns>The outcome tag, for the metric.</returns>
     private async Task<string> ImportAsync(
         IImportOutbox outbox, IImportArchiveStore archives, ExamPackageImportPipeline pipeline,
-        ImportJob job, string leaseToken, Activity? span, CancellationToken ct)
+        IPackageImportHistoryStore? history, ImportJob job, string leaseToken, Activity? span,
+        CancellationToken ct)
     {
+        await RecordHistoryAsync(
+            history, job.OperationId, PackageImportHistoryResult.Running, job.Stage, null, null);
+
         await using var archive = await archives.OpenAsync(job.ArchiveKey, ct);
 
         if (archive is null)
@@ -290,11 +295,15 @@ public sealed class ImportWorker(
              * operator's answer is "upload it again", which they can only act
              * on if they are told.
              */
-            await FailAndForgetAsync(
-                outbox, archives, job, leaseToken,
+            const string missing =
                 "Không tìm thấy tệp gói đã tải lên trong kho lưu trữ. "
                 + "The uploaded archive is no longer in storage, so this import cannot be run. "
-                + "Upload the package again.");
+                + "Upload the package again.";
+
+            await FailAndForgetAsync(
+                outbox, archives, history, job, leaseToken, missing,
+                PackageImportHistoryResult.Failed,
+                [new PackageFinding("error", "ARCHIVE_MISSING", job.ArchiveKey, missing)]);
 
             span?.SetStatus(ActivityStatusCode.Error, "ArchiveMissing");
             return "failed";
@@ -316,7 +325,7 @@ public sealed class ImportWorker(
         await archive.CopyToAsync(seekable, ct);
         seekable.Position = 0;
 
-        var stages = new StageRecorder(outbox, job.OperationId, leaseToken, logger);
+        var stages = new StageRecorder(outbox, history, job.OperationId, leaseToken, logger);
 
         ExamImportAttempt attempt;
 
@@ -367,7 +376,9 @@ public sealed class ImportWorker(
                 ? $"{attempt.Findings[0].Code} at {attempt.Findings[0].Path}: {attempt.Findings[0].Message}"
                 : "The package was refused, and the pipeline reported no finding to say why.";
 
-            await FailAndForgetAsync(outbox, archives, job, leaseToken, reason);
+            await FailAndForgetAsync(
+                outbox, archives, history, job, leaseToken, reason,
+                PackageImportHistoryResult.Rejected, attempt.Findings);
 
             logger.LogWarning(
                 "Import of {Definition} v{Version} was refused: {Code}.",
@@ -385,6 +396,28 @@ public sealed class ImportWorker(
         await AdvanceAsync(outbox, job.OperationId, leaseToken, ImportJobStage.Done, draftId);
 
         var completed = await outbox.CompleteAsync(job.OperationId, leaseToken, CancellationToken.None);
+
+        if (!completed)
+        {
+            /*
+             * <b>Somebody took this job over while we were inside it.</b> The
+             * draft is written — the pipeline is idempotent on its own content
+             * hash — but this worker no longer owns the job, so it must not
+             * mark it done and, above all, must not delete the archive the new
+             * owner is about to read.
+             */
+            logger.LogError(
+                "Lost the lease on the import of {Definition} v{Version} before completing it. "
+                + "Another worker owns it now; the stored archive is being left alone.",
+                job.DefinitionId.Value, job.VersionNumber);
+
+            span?.SetStatus(ActivityStatusCode.Error, "LeaseLost");
+            return "lease-lost";
+        }
+
+        await RecordHistoryAsync(
+            history, job.OperationId, PackageImportHistoryResult.Completed, ImportJobStage.Done,
+            draftId, attempt.Draft.Findings);
 
         if (!completed)
         {
@@ -426,8 +459,8 @@ public sealed class ImportWorker(
     /// then fail in public with the reason stored rather than only logged.
     /// </summary>
     private async Task GiveUpOrRetryAsync(
-        IImportOutbox outbox, IImportArchiveStore archives, ImportJob job, string leaseToken,
-        Exception failure)
+        IImportOutbox outbox, IImportArchiveStore archives, IPackageImportHistoryStore? history,
+        ImportJob job, string leaseToken, Exception failure)
     {
         var reason = SafeReason(job.Stage, failure);
 
@@ -440,7 +473,10 @@ public sealed class ImportWorker(
                 + "looks stuck.",
                 job.DefinitionId.Value, job.VersionNumber, job.Attempts);
 
-            await FailAndForgetAsync(outbox, archives, job, leaseToken, reason);
+            await FailAndForgetAsync(
+                outbox, archives, history, job, leaseToken, reason,
+                PackageImportHistoryResult.Failed,
+                [new PackageFinding("error", "IMPORT_FAILED", string.Empty, reason)]);
             return;
         }
 
@@ -470,8 +506,9 @@ public sealed class ImportWorker(
     /// bytes out from under the process that is about to read them.
     /// </summary>
     private async Task FailAndForgetAsync(
-        IImportOutbox outbox, IImportArchiveStore archives, ImportJob job, string leaseToken,
-        string reason)
+        IImportOutbox outbox, IImportArchiveStore archives, IPackageImportHistoryStore? history,
+        ImportJob job, string leaseToken, string reason, PackageImportHistoryResult historyResult,
+        IReadOnlyList<PackageFinding> findings)
     {
         var settled = await outbox.FailAsync(
             job.OperationId, leaseToken, reason, CancellationToken.None);
@@ -484,6 +521,9 @@ public sealed class ImportWorker(
                 job.DefinitionId.Value, job.VersionNumber);
             return;
         }
+
+        await RecordHistoryAsync(
+            history, job.OperationId, historyResult, job.Stage, null, findings);
 
         await ForgetArchiveAsync(archives, job);
     }
@@ -506,6 +546,33 @@ public sealed class ImportWorker(
             logger.LogWarning(
                 e, "Could not remove the stored archive for a settled import of {Definition} v{Version}.",
                 job.DefinitionId.Value, job.VersionNumber);
+        }
+    }
+
+    /// <summary>
+    /// History is bookkeeping. A write failure must not fail an import that
+    /// has already been paid for, and must not change the outbox transition
+    /// that just landed.
+    /// </summary>
+    private async Task RecordHistoryAsync(
+        IPackageImportHistoryStore? history,
+        string operationId,
+        PackageImportHistoryResult result,
+        ImportJobStage? stage,
+        Guid? draftId,
+        IReadOnlyList<PackageFinding>? findings)
+    {
+        if (history is null) return;
+
+        try
+        {
+            await history.ApplyTransitionAsync(
+                operationId, result, stage, draftId, findings, CancellationToken.None);
+        }
+        catch (Exception e)
+        {
+            logger.LogWarning(
+                e, "Could not record package-import history for {Operation}.", operationId);
         }
     }
 
@@ -663,7 +730,8 @@ public sealed class ImportWorker(
     /// guards the call as well, on the same reasoning from the other side.
     /// </summary>
     private sealed class StageRecorder(
-        IImportOutbox outbox, string operationId, string leaseToken, ILogger logger)
+        IImportOutbox outbox, IPackageImportHistoryStore? history, string operationId,
+        string leaseToken, ILogger logger)
         : IProgress<ImportJobStage>
     {
         private readonly Lock _gate = new();
@@ -698,6 +766,20 @@ public sealed class ImportWorker(
             {
                 logger.LogWarning(
                     e, "Could not record that an import reached stage {Stage}.", stage);
+            }
+
+            if (history is null) return;
+
+            try
+            {
+                await history.ApplyTransitionAsync(
+                    operationId, PackageImportHistoryResult.Running, stage, null, null,
+                    CancellationToken.None);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(
+                    e, "Could not record package-import history for stage {Stage}.", stage);
             }
         }
     }

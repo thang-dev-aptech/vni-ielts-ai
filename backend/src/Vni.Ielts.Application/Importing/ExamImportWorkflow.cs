@@ -240,3 +240,200 @@ public sealed class ExamImportWorkflow(
             Encoding.ASCII.GetBytes(observed));
     }
 }
+
+/// <summary>
+/// How an upload attempt ended, independently of the outbox job row.
+///
+/// <b>Door rejection is a first-class result.</b> A hostile ZIP is refused
+/// before an <see cref="ImportJob"/> exists, so the only durable record of
+/// who uploaded what, and why it was refused, lives here. <c>Rejected</c> is
+/// the worker's later judgement that an already-parked archive still failed
+/// validation; <c>Failed</c> is everything else that settled without a draft.
+/// </summary>
+public enum PackageImportHistoryResult
+{
+    DoorRejected,
+    Queued,
+    Running,
+    Completed,
+    Rejected,
+    Failed,
+}
+
+/// <summary>
+/// One upload attempt, from the HTTP door through the worker that settles it.
+///
+/// Append-only at creation: a door rejection is a new row that never shares
+/// an operation id, and an accepted upload is one row keyed on the job's
+/// operation id so later stage/result writes update the same logical entry
+/// rather than growing a second copy of the same attempt.
+/// </summary>
+public sealed record PackageImportHistory(
+    Guid Id,
+    string? OperationId,
+    string ActorId,
+    string OriginalFileName,
+    ExamDefinitionId? DefinitionId,
+    int? VersionNumber,
+    string? SourceSha256,
+    Guid? DraftId,
+    ImportJobStage? Stage,
+    PackageImportHistoryResult Result,
+    IReadOnlyList<PackageFinding> Findings,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+/// <summary>Filters the operator-facing package-import history list.</summary>
+public sealed record PackageImportHistoryQuery(
+    PackageImportHistoryResult? Result = null,
+    ImportJobStage? Stage = null,
+    string? ActorId = null,
+    DateTimeOffset? From = null,
+    DateTimeOffset? To = null,
+    int Page = 1,
+    int PageSize = 50)
+{
+    public const int MaxPageSize = 50;
+
+    public void Validate()
+    {
+        if (From is { } from && To is { } to && from > to)
+            throw new ArgumentException("The history-list start must not be after its end.");
+        if (Page < 1) throw new ArgumentOutOfRangeException(nameof(Page));
+        if (PageSize < 1 || PageSize > MaxPageSize)
+            throw new ArgumentOutOfRangeException(nameof(PageSize));
+    }
+}
+
+public sealed record PackageImportHistoryPage(
+    IReadOnlyList<PackageImportHistory> Items,
+    long TotalCount,
+    int Page,
+    int PageSize);
+
+/// <summary>
+/// Queryable history of every package-upload attempt, including the ones the
+/// door refused before an archive was stored.
+///
+/// <b>The outbox is not this.</b> <see cref="IImportOutbox"/> is the work
+/// queue: it stores a job the worker is owed, keyed on the bytes, and it
+/// forgets nothing a resume needs. This store is the audit of the attempt
+/// itself — who uploaded, under what name, which findings, which stage — so
+/// a bomb that never became a job is still visible, and a worker refusal
+/// keeps every finding rather than the first sentence of
+/// <see cref="ImportJob.LastError"/>.
+/// </summary>
+public interface IPackageImportHistoryStore
+{
+    /// <summary>
+    /// Always a new row. Door rejections have no operation id, so they cannot
+    /// collide with a later accepted upload of different bytes, and they must
+    /// not share a row with an archive that was never written.
+    /// </summary>
+    Task RecordDoorRejectionAsync(PackageImportHistory record, CancellationToken ct);
+
+    /// <summary>
+    /// Idempotent on the operation id. A retried upload of identical bytes
+    /// refreshes the actor and filename on the existing row; a re-upload of a
+    /// <see cref="PackageImportHistoryResult.Failed"/> or
+    /// <see cref="PackageImportHistoryResult.Rejected"/> attempt returns that
+    /// row to <see cref="PackageImportHistoryResult.Queued"/> the same way
+    /// <see cref="IImportOutbox.ReopenAsync"/> returns the job to the queue.
+    /// A <c>Completed</c> or <c>Running</c> row is left in that result.
+    /// </summary>
+    Task RecordQueuedAsync(PackageImportHistory record, CancellationToken ct);
+
+    /// <summary>
+    /// Moves the row identified by <paramref name="operationId"/> through a
+    /// worker transition. Idempotent: a second write of the same stage and
+    /// result is a no-op overwrite, not a second row.
+    ///
+    /// <paramref name="findings"/> of <c>null</c> means "leave whatever is
+    /// already stored" — stage reports must not wipe a previous finding list.
+    /// An empty list is a real write of "no findings".
+    /// </summary>
+    Task ApplyTransitionAsync(
+        string operationId,
+        PackageImportHistoryResult result,
+        ImportJobStage? stage,
+        Guid? draftId,
+        IReadOnlyList<PackageFinding>? findings,
+        CancellationToken ct);
+
+    Task<PackageImportHistory?> FindByOperationAsync(string operationId, CancellationToken ct);
+
+    Task<PackageImportHistory?> FindByIdAsync(Guid id, CancellationToken ct);
+
+    Task<PackageImportHistoryPage> QueryAsync(PackageImportHistoryQuery query, CancellationToken ct);
+}
+
+/// <summary>
+/// Caps the two untrusted strings an upload carries — the client filename and
+/// the finding list — so a hostile archive cannot grow this collection without
+/// bound. Applied at the store, not only at the caller, so a missed call site
+/// still cannot persist a megabyte-long filename or ten thousand findings.
+/// </summary>
+public static class PackageImportHistoryBounds
+{
+    public const int MaxFileNameChars = 255;
+    public const int MaxFindings = 50;
+    public const int MaxFindingMessageChars = 1000;
+    public const int MaxFindingPathChars = 256;
+    public const int MaxFindingCodeChars = 64;
+    public const int MaxFindingSeverityChars = 32;
+
+    /// <summary>
+    /// The leaf name only, control characters stripped, length capped.
+    ///
+    /// <b>Not <c>Path.GetFileName</c>.</b> That API is platform-defined: a
+    /// backslash-separated traversal that a Windows client sent is a single
+    /// name on Linux, and storing it would put the traversal in the history
+    /// row. Both separators are treated as separators here, so
+    /// <c>..\\..\\evil.zip</c> and <c>../../evil.zip</c> both become
+    /// <c>evil.zip</c>.
+    /// </summary>
+    public static string SanitizeFileName(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "unnamed.zip";
+
+        var unified = raw.Replace('\\', '/');
+        var slash = unified.LastIndexOf('/');
+        var name = slash >= 0 ? unified[(slash + 1)..] : unified;
+
+        Span<char> buffer = name.Length <= 512 ? stackalloc char[name.Length] : new char[name.Length];
+        var written = 0;
+        foreach (var c in name)
+        {
+            buffer[written++] = char.IsControl(c) ? '_' : c;
+        }
+
+        var cleaned = new string(buffer[..written]).Trim().Trim('.');
+        if (cleaned.Length == 0) return "unnamed.zip";
+        return cleaned.Length <= MaxFileNameChars ? cleaned : cleaned[..MaxFileNameChars];
+    }
+
+    public static IReadOnlyList<PackageFinding> BoundFindings(IReadOnlyList<PackageFinding>? findings)
+    {
+        if (findings is null || findings.Count == 0) return [];
+
+        var take = Math.Min(findings.Count, MaxFindings);
+        var bounded = new PackageFinding[take];
+        for (var i = 0; i < take; i++)
+        {
+            var f = findings[i];
+            bounded[i] = new PackageFinding(
+                Bound(f.Severity, MaxFindingSeverityChars),
+                Bound(f.Code, MaxFindingCodeChars),
+                Bound(f.Path, MaxFindingPathChars),
+                Bound(f.Message, MaxFindingMessageChars));
+        }
+
+        return bounded;
+    }
+
+    private static string Bound(string? value, int max)
+    {
+        if (string.IsNullOrEmpty(value)) return string.Empty;
+        return value.Length <= max ? value : value[..max];
+    }
+}

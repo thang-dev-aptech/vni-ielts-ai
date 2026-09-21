@@ -100,6 +100,7 @@ public static class DependencyInjection
         // The durable record that a marking is owed. Closing a section writes
         // one; the worker turns it into a band. → `IMarkingOutbox`
         services.AddScoped<IMarkingOutbox, MongoMarkingOutbox>();
+        services.AddSingleton<IEvaluationAttemptStore, MongoEvaluationAttemptStore>();
 
         // Reconciles stored audio against the sheets that reference it, and
         // aborts stale pending inits. Run by the worker; off unless configured
@@ -446,6 +447,7 @@ public static class DependencyInjection
         // one layer earlier: an enqueued import is owed a parse the same way
         // a closed section is owed a marking.
         services.AddScoped<IImportOutbox, MongoImportOutbox>();
+        services.AddScoped<IPackageImportHistoryStore, MongoPackageImportHistoryStore>();
 
         return services;
     }

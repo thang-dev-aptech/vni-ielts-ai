@@ -312,6 +312,7 @@ internal sealed class FakeMarkingOutbox : IMarkingOutbox
         {
             State = MarkingJobState.Failed,
             LastError = error,
+            FailedAt = DateTimeOffset.UtcNow,
             LeaseToken = null,
             LeaseUntil = null,
         }));
@@ -330,6 +331,74 @@ internal sealed class FakeMarkingOutbox : IMarkingOutbox
                 .Where(j => wanted.Contains(j.SessionId))
                 .GroupBy(j => j.SessionId)
                 .ToDictionary(g => g.Key, IReadOnlyList<MarkingJob> (g) => [.. g]));
+    }
+
+    public Task<MarkingJobPage> QueryAsync(MarkingJobQuery query, CancellationToken ct)
+    {
+        query.Validate();
+
+        IEnumerable<MarkingJob> items = _jobs.Values;
+        if (query.State is { } state) items = items.Where(j => j.State == state);
+        if (query.Module is { } module) items = items.Where(j => j.Module == module);
+        if (query.From is { } from) items = items.Where(j => j.CreatedAt >= from);
+        if (query.To is { } to) items = items.Where(j => j.CreatedAt <= to);
+
+        var ordered = query.State is MarkingJobState.Failed
+            ? items.OrderByDescending(j => j.FailedAt ?? j.CreatedAt)
+                .ThenByDescending(j => j.OperationId)
+            : items.OrderByDescending(j => j.CreatedAt)
+                .ThenByDescending(j => j.OperationId);
+
+        var list = ordered.ToList();
+        var page = list
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .ToList();
+
+        return Task.FromResult(new MarkingJobPage(page, list.Count, query.Page, query.PageSize));
+    }
+
+    public Task<MarkingJobReopenResult> ReopenFailedAsync(
+        string operationId, string idempotencyKey, DateTimeOffset now, CancellationToken ct)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
+
+        lock (_jobs)
+        {
+            if (!_jobs.TryGetValue(operationId, out var job))
+                return Task.FromResult(new MarkingJobReopenResult(MarkingJobReopenStatus.NotFound, null));
+
+            if (string.Equals(job.ReopenKey, idempotencyKey, StringComparison.Ordinal))
+                return Task.FromResult(new MarkingJobReopenResult(
+                    MarkingJobReopenStatus.Replayed, job, job.State));
+
+            if (job.State != MarkingJobState.Failed)
+            {
+                var otherKey = !string.IsNullOrEmpty(job.ReopenKey)
+                    && !string.Equals(job.ReopenKey, idempotencyKey, StringComparison.Ordinal);
+                var status = otherKey && job.State is MarkingJobState.Pending or MarkingJobState.Running
+                    ? MarkingJobReopenStatus.Conflict
+                    : MarkingJobReopenStatus.Illegal;
+                return Task.FromResult(new MarkingJobReopenResult(status, job, job.State));
+            }
+
+            var updated = job with
+            {
+                State = MarkingJobState.Pending,
+                Attempts = 0,
+                NextAttemptAt = now,
+                LeaseUntil = null,
+                LeaseToken = null,
+                ReopenKey = idempotencyKey,
+                ReopenedAt = now,
+                CompletedAt = null,
+            };
+
+            _jobs[operationId] = updated;
+            return Task.FromResult(new MarkingJobReopenResult(
+                MarkingJobReopenStatus.Reopened, updated, MarkingJobState.Pending));
+        }
     }
 }
 

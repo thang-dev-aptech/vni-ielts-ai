@@ -66,6 +66,120 @@ public sealed record ImportAcceptedView(
     string OperationId, string DefinitionId, int VersionNumber, string Stage, string State);
 
 /// <summary>
+/// One package-upload attempt, as the history list needs it. Findings stay on
+/// the detail route — a list that quoted every message would ship paper
+/// content the operator did not open.
+/// </summary>
+public sealed record PackageImportHistorySummaryView(
+    string HistoryId,
+    string? OperationId,
+    string ActorId,
+    string OriginalFileName,
+    string? DefinitionId,
+    int? VersionNumber,
+    string? SourceSha256,
+    string? DraftId,
+    string? Stage,
+    string Result,
+    int FindingCount,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+public sealed record PackageImportHistoryDetailView(
+    string HistoryId,
+    string? OperationId,
+    string ActorId,
+    string OriginalFileName,
+    string? DefinitionId,
+    int? VersionNumber,
+    string? SourceSha256,
+    string? DraftId,
+    string? Stage,
+    string Result,
+    IReadOnlyList<ImportFindingView> Findings,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+public sealed record PackageImportHistoryPageView(
+    IReadOnlyList<PackageImportHistorySummaryView> Items,
+    long TotalCount,
+    int Page,
+    int PageSize);
+
+/// <summary>
+/// Structured audit payloads for the package-import lifecycle.
+///
+/// <b>Identifiers, counts and machine codes — never copyrighted contents.</b>
+/// No archive bytes, no package JSON, no finding messages (those can quote a
+/// passage), no archive key a caller could turn into a download. Action enum
+/// members live here so the HTTP door can emit them; Vietnamese labels on
+/// <c>AuditPage</c> stay with admin-shared-contracts.
+/// </summary>
+public static class PackageImportAudit
+{
+    public static IReadOnlyDictionary<string, string> UploadAccepted(
+        string historyId, string operationId, string definitionId, int versionNumber,
+        string sourceSha256, string fileName) =>
+        new Dictionary<string, string>
+        {
+            ["historyId"] = historyId,
+            ["operationId"] = operationId,
+            ["definitionId"] = definitionId,
+            ["versionNumber"] = versionNumber.ToString(),
+            ["sourceSha256"] = sourceSha256,
+            ["fileName"] = fileName,
+        };
+
+    public static IReadOnlyDictionary<string, string> UploadRejected(
+        string historyId, string definitionId, int versionNumber, string sourceSha256,
+        string fileName, IReadOnlyList<PackageFinding> findings) =>
+        new Dictionary<string, string>
+        {
+            ["historyId"] = historyId,
+            ["definitionId"] = definitionId,
+            ["versionNumber"] = versionNumber.ToString(),
+            ["sourceSha256"] = sourceSha256,
+            ["fileName"] = fileName,
+            ["findingCount"] = findings.Count.ToString(),
+            ["findingCodes"] = Codes(findings),
+        };
+
+    public static IReadOnlyDictionary<string, string> WorkerRejected(
+        string historyId, string operationId, IReadOnlyList<PackageFinding> findings) =>
+        new Dictionary<string, string>
+        {
+            ["historyId"] = historyId,
+            ["operationId"] = operationId,
+            ["findingCount"] = findings.Count.ToString(),
+            ["findingCodes"] = Codes(findings),
+        };
+
+    public static IReadOnlyDictionary<string, string> Approved(
+        string draftId, string definitionId, int versionNumber) =>
+        new Dictionary<string, string>
+        {
+            ["draftId"] = draftId,
+            ["definitionId"] = definitionId,
+            ["versionNumber"] = versionNumber.ToString(),
+        };
+
+    public static IReadOnlyDictionary<string, string> WarningOverride(
+        string warningId, string category, string reason) =>
+        new Dictionary<string, string>
+        {
+            ["warningId"] = warningId,
+            ["category"] = category,
+            ["reason"] = reason,
+        };
+
+    private static string Codes(IReadOnlyList<PackageFinding> findings)
+    {
+        var joined = string.Join(",", findings.Select(f => f.Code).Where(c => c.Length > 0).Take(20));
+        return joined.Length <= 256 ? joined : joined[..256];
+    }
+}
+
+/// <summary>
 /// One import job, as an operator asking "what happened to my import" needs to
 /// see it. <see cref="LastError"/> is a sentence, never a provider response
 /// body — see <c>ImportWorker</c> for what is allowed into it.
@@ -107,6 +221,14 @@ public static class AdminImportEndpoints
             .WithName("AdminImportPackage")
             .WithSummary("Upload one exam package ZIP; stores it and enqueues an import job")
             .DisableAntiforgery();
+
+        group.MapGet("/packages", ListPackageHistoryEndpoint)
+            .WithName("AdminListImportPackages")
+            .WithSummary("Package-upload history, newest first, including door-level refusals");
+
+        group.MapGet("/package-history/{historyId}", GetPackageHistoryEndpoint)
+            .WithName("AdminGetImportPackageHistory")
+            .WithSummary("One upload attempt: sanitized metadata and the full persisted finding list");
 
         group.MapGet("/template", GetTemplateEndpoint)
             .WithName("AdminGetImportTemplate")
@@ -177,8 +299,9 @@ public static class AdminImportEndpoints
     /// </summary>
     private static async Task<IResult> UploadPackageEndpoint(
         HttpRequest request, ClaimsPrincipal principal, IImportArchiveStore archives,
-        IImportOutbox outbox, IExamSourceParser parser, IClock clock,
-        IExamPackageArchiveInspector inspector, IOptions<ImportArchiveOptions> archiveOptions,
+        IImportOutbox outbox, IPackageImportHistoryStore history, IExamSourceParser parser,
+        IClock clock, IExamPackageArchiveInspector inspector, IAuditLog audit,
+        IOptions<ImportArchiveOptions> archiveOptions,
         HttpContext http, CancellationToken ct)
     {
         if (principal.UserId() is null) return Results.Unauthorized();
@@ -235,7 +358,39 @@ public static class AdminImportEndpoints
             // Rule 3: validated before anything is persisted. Reads the
             // central directory, writes nothing, extracts nothing.
             var inspection = await inspector.InspectAsync(spooled, archiveOptions.Value.ToLimits(), ct);
-            if (!inspection.IsAcceptable) return Rejected(inspection.Findings, http);
+            if (!inspection.IsAcceptable)
+            {
+                var rejectedId = Guid.NewGuid();
+                var rejectedName = PackageImportHistoryBounds.SanitizeFileName(file.FileName);
+                await RecordHistoryQuietly(() => history.RecordDoorRejectionAsync(
+                    new PackageImportHistory(
+                        rejectedId,
+                        OperationId: null,
+                        ActorId: principal.UserId()!,
+                        OriginalFileName: file.FileName,
+                        DefinitionId: definitionId,
+                        VersionNumber: versionNumber,
+                        SourceSha256: sourceSha256,
+                        DraftId: null,
+                        Stage: null,
+                        Result: PackageImportHistoryResult.DoorRejected,
+                        Findings: inspection.Findings,
+                        CreatedAt: clock.UtcNow,
+                        UpdatedAt: clock.UtcNow),
+                    ct));
+
+                await RecordAuditQuietly(() => audit.AppendAsync(
+                    AuditEntry.Record(
+                        new UserId(principal.UserId()!), principal.Email() ?? principal.DisplayName(),
+                        AuditAction.PackageUploadRejected, "package-import-history",
+                        rejectedId.ToString("D"), rejectedName, clock.UtcNow,
+                        PackageImportAudit.UploadRejected(
+                            rejectedId.ToString("D"), definitionId.Value, versionNumber,
+                            sourceSha256, rejectedName, inspection.Findings)),
+                    ct));
+
+                return Rejected(inspection.Findings, http);
+            }
 
             spooled.Position = 0;
 
@@ -290,6 +445,37 @@ public static class AdminImportEndpoints
          */
         if (!await outbox.EnqueueAsync(job, ct))
             await outbox.ReopenAsync(job.OperationId, ct);
+
+        await RecordHistoryQuietly(() => history.RecordQueuedAsync(
+            new PackageImportHistory(
+                Guid.NewGuid(),
+                job.OperationId,
+                ActorId: principal.UserId()!,
+                OriginalFileName: file.FileName,
+                DefinitionId: definitionId,
+                VersionNumber: versionNumber,
+                SourceSha256: sourceSha256,
+                DraftId: null,
+                Stage: job.Stage,
+                Result: PackageImportHistoryResult.Queued,
+                Findings: [],
+                CreatedAt: clock.UtcNow,
+                UpdatedAt: clock.UtcNow),
+            ct));
+
+        var fileName = PackageImportHistoryBounds.SanitizeFileName(file.FileName);
+        var queued = await history.FindByOperationAsync(job.OperationId, ct);
+        var historyId = queued?.Id.ToString("D") ?? job.OperationId;
+
+        await RecordAuditQuietly(() => audit.AppendAsync(
+            AuditEntry.Record(
+                new UserId(principal.UserId()!), principal.Email() ?? principal.DisplayName(),
+                AuditAction.PackageUploadAccepted, "package-import-history",
+                historyId, fileName, clock.UtcNow,
+                PackageImportAudit.UploadAccepted(
+                    historyId, job.OperationId, definitionId.Value, versionNumber,
+                    sourceSha256, fileName)),
+            ct));
 
         var location = $"/api/v1/admin/import/jobs/{Uri.EscapeDataString(job.OperationId)}";
 
@@ -396,6 +582,58 @@ public static class AdminImportEndpoints
         return job is null ? Results.NotFound() : Results.Ok(ToView(job));
     }
 
+    private static async Task<IResult> ListPackageHistoryEndpoint(
+        ClaimsPrincipal principal, IPackageImportHistoryStore history, HttpContext http,
+        string? result, string? stage, string? uploader, DateTimeOffset? from, DateTimeOffset? to,
+        int page = 1, int pageSize = 50, CancellationToken ct = default)
+    {
+        if (Denied(principal, PermissionKeys.PackageRead) is { } denial) return denial;
+
+        PackageImportHistoryResult? parsedResult = null;
+        if (!string.IsNullOrWhiteSpace(result))
+        {
+            if (!Enum.TryParse<PackageImportHistoryResult>(result, ignoreCase: true, out var known))
+                return Problem(ErrorCodes.ValidationFailed, "Unknown result filter.", 400, http);
+            parsedResult = known;
+        }
+
+        ImportJobStage? parsedStage = null;
+        if (!string.IsNullOrWhiteSpace(stage))
+        {
+            if (!Enum.TryParse<ImportJobStage>(stage, ignoreCase: true, out var known))
+                return Problem(ErrorCodes.ValidationFailed, "Unknown stage filter.", 400, http);
+            parsedStage = known;
+        }
+
+        var query = new PackageImportHistoryQuery(
+            parsedResult, parsedStage, uploader, from, to, page, pageSize);
+
+        try
+        {
+            query.Validate();
+        }
+        catch (ArgumentException)
+        {
+            return Problem(ErrorCodes.ValidationFailed, "The history list filter is invalid.", 400, http);
+        }
+
+        var pageResult = await history.QueryAsync(query, ct);
+        return Results.Ok(new PackageImportHistoryPageView(
+            [.. pageResult.Items.Select(ToSummaryView)],
+            pageResult.TotalCount, pageResult.Page, pageResult.PageSize));
+    }
+
+    private static async Task<IResult> GetPackageHistoryEndpoint(
+        string historyId, ClaimsPrincipal principal, IPackageImportHistoryStore history,
+        CancellationToken ct)
+    {
+        if (Denied(principal, PermissionKeys.PackageRead) is { } denial) return denial;
+        if (!Guid.TryParse(historyId, out var id)) return Results.NotFound();
+
+        var row = await history.FindByIdAsync(id, ct);
+        return row is null ? Results.NotFound() : Results.Ok(ToDetailView(row));
+    }
+
     private static ImportJobView ToView(ImportJob job) => new(
         job.OperationId,
         job.DefinitionId.Value,
@@ -409,6 +647,36 @@ public static class AdminImportEndpoints
         job.CreatedAt,
         job.NextAttemptAt,
         job.CompletedAt);
+
+    private static PackageImportHistorySummaryView ToSummaryView(PackageImportHistory row) => new(
+        row.Id.ToString("D"),
+        row.OperationId,
+        row.ActorId,
+        row.OriginalFileName,
+        row.DefinitionId?.Value,
+        row.VersionNumber,
+        row.SourceSha256,
+        row.DraftId?.ToString("D"),
+        row.Stage?.ToString(),
+        row.Result.ToString(),
+        row.Findings.Count,
+        row.CreatedAt,
+        row.UpdatedAt);
+
+    private static PackageImportHistoryDetailView ToDetailView(PackageImportHistory row) => new(
+        row.Id.ToString("D"),
+        row.OperationId,
+        row.ActorId,
+        row.OriginalFileName,
+        row.DefinitionId?.Value,
+        row.VersionNumber,
+        row.SourceSha256,
+        row.DraftId?.ToString("D"),
+        row.Stage?.ToString(),
+        row.Result.ToString(),
+        row.Findings.Select(f => new ImportFindingView(f.Severity, f.Code, f.Path, f.Message)).ToArray(),
+        row.CreatedAt,
+        row.UpdatedAt);
 
     private static async Task<IResult> GetDraftEndpoint(
         string draftId, ClaimsPrincipal principal, IImportDraftStore drafts, CancellationToken ct)
@@ -453,12 +721,8 @@ public static class AdminImportEndpoints
                 AuditAction.WarningOverridden, "import-draft", draftId,
                 $"{draft.DefinitionId.Value} v{draft.VersionNumber}",
                 clock.UtcNow,
-                new Dictionary<string, string>
-                {
-                    ["warningId"] = warningId,
-                    ["category"] = warning.Category.ToString(),
-                    ["reason"] = request.Reason,
-                }),
+                PackageImportAudit.WarningOverride(
+                    warningId, warning.Category.ToString(), request.Reason)),
             ct);
 
         return Results.Ok(ToView(draft));
@@ -466,9 +730,9 @@ public static class AdminImportEndpoints
 
     private static async Task<IResult> ApproveEndpoint(
         string draftId, ClaimsPrincipal principal, IImportDraftStore drafts, ImportReviewWorkflow review,
-        HttpContext http, CancellationToken ct)
+        IAuditLog audit, IClock clock, HttpContext http, CancellationToken ct)
     {
-        if (principal.UserId() is null) return Results.Unauthorized();
+        if (principal.UserId() is not { } actorId) return Results.Unauthorized();
         if (!Guid.TryParse(draftId, out var id)) return Results.NotFound();
 
         var current = await drafts.FindAsync(id, ct);
@@ -476,7 +740,19 @@ public static class AdminImportEndpoints
 
         var actor = BuildActor(principal);
         var result = await review.ApproveAsync(id, current.Revision, actor, ct);
-        return result.IsSuccess ? Results.Ok(ToView(result.Draft!)) : RefusedResult(result, http);
+        if (!result.IsSuccess) return RefusedResult(result, http);
+
+        var draft = result.Draft!;
+        await audit.AppendAsync(
+            AuditEntry.Record(
+                new UserId(actorId), principal.Email() ?? principal.DisplayName(),
+                AuditAction.PackageImportApproved, "import-draft", draftId,
+                $"{draft.DefinitionId.Value} v{draft.VersionNumber}",
+                clock.UtcNow,
+                PackageImportAudit.Approved(draftId, draft.DefinitionId.Value, draft.VersionNumber)),
+            ct);
+
+        return Results.Ok(ToView(draft));
     }
 
     /// <summary>
@@ -513,6 +789,37 @@ public static class AdminImportEndpoints
             .ToArray(),
         draft.Checklist.Confirmed.Select(c => c.ToString().ToLowerInvariant()).ToArray(),
         draft.Checklist.IsComplete);
+
+    /// <summary>
+    /// History is bookkeeping. A write failure here must not change the door's
+    /// answer: a refused bomb is still a 422, and an accepted upload is still
+    /// a 202 whose job is already in the outbox.
+    /// </summary>
+    private static async Task RecordHistoryQuietly(Func<Task> write)
+    {
+        try
+        {
+            await write();
+        }
+        catch (Exception)
+        {
+            // Deliberately empty: the operator's next move is the 422/202, not
+            // a 500 that looks as if the package itself failed differently.
+        }
+    }
+
+    private static async Task RecordAuditQuietly(Func<Task> write)
+    {
+        try
+        {
+            await write();
+        }
+        catch (Exception)
+        {
+            // Bookkeeping. A refused bomb is still a 422; an accepted upload
+            // is still a 202 whose job is already owed.
+        }
+    }
 
     private static IResult Rejected(IReadOnlyList<PackageFinding> findings, HttpContext http) =>
         Results.Problem(

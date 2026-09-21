@@ -7,6 +7,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Vni.Ielts.Api.Endpoints;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Audit;
@@ -33,9 +34,13 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     private HttpClient NewClient() =>
         app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
+    private static string? CachedAdminAccess;
+
     private async Task<(HttpClient Client, string Access)> SignInAsAdminAsync()
     {
         var client = NewClient();
+        if (CachedAdminAccess is { Length: > 0 } cached)
+            return (client, cached);
         await SsoRoundTripAsync(client);
 
         using (var scope = app.Services.CreateScope())
@@ -57,6 +62,7 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         // Permissions are resolved when the access token is minted, so a
         // second sign-in is taken after the role grant lands.
         var access = await SsoRoundTripAsync(client);
+        CachedAdminAccess = access;
         return (client, access);
     }
 
@@ -103,18 +109,39 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
 
     private static async Task<string> SsoRoundTripAsync(HttpClient client)
     {
-        var start = await client.PostAsJsonAsync("/api/v1/auth/sso/google/start", new { });
-        var url = new Uri((await start.Content.ReadFromJsonAsync<JsonElement>())
-            .GetProperty("authorizationUrl").GetString()!);
+        JsonElement startBody = default;
+        for (var attempt = 0; attempt < 4; attempt++)
+        {
+            var start = await client.PostAsJsonAsync("/api/v1/auth/sso/google/start", new { });
+            startBody = await start.Content.ReadFromJsonAsync<JsonElement>();
 
-        var callback = await client.GetAsync(url.PathAndQuery);
-        var code = System.Web.HttpUtility.ParseQueryString(callback.Headers.Location!.Query)["code"];
+            if ((int)start.StatusCode == 429)
+            {
+                await Task.Delay(250 * (attempt + 1));
+                continue;
+            }
 
-        var complete = await client.PostAsJsonAsync("/api/v1/auth/sso/complete", new { handoffCode = code });
-        complete.EnsureSuccessStatusCode();
+            if (!start.IsSuccessStatusCode
+                || !startBody.TryGetProperty("authorizationUrl", out var urlEl)
+                || urlEl.GetString() is not { Length: > 0 } authorizationUrl)
+            {
+                throw new InvalidOperationException(
+                    $"SSO start failed ({(int)start.StatusCode}): {startBody}");
+            }
 
-        return (await complete.Content.ReadFromJsonAsync<JsonElement>())
-            .GetProperty("accessToken").GetString()!;
+            var url = new Uri(authorizationUrl);
+
+            var callback = await client.GetAsync(url.PathAndQuery);
+            var code = System.Web.HttpUtility.ParseQueryString(callback.Headers.Location!.Query)["code"];
+
+            var complete = await client.PostAsJsonAsync("/api/v1/auth/sso/complete", new { handoffCode = code });
+            complete.EnsureSuccessStatusCode();
+
+            return (await complete.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("accessToken").GetString()!;
+        }
+
+        throw new InvalidOperationException($"SSO start still 429: {startBody}");
     }
 
     private static HttpRequestMessage Request(HttpMethod method, string path, string access)
@@ -178,7 +205,7 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         var content = new MultipartFormDataContent();
         var part = new ByteArrayContent(BombBytes());
         part.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-        content.Add(part, "file", "bomb.zip");
+        content.Add(part, "file", @"..\..\evil.zip");
         content.Add(new StringContent(BombDefinitionId), "definitionId");
         return content;
     }
@@ -314,6 +341,15 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         using var buffer = new MemoryStream();
         await read!.CopyToAsync(buffer);
         Assert.Equal(zip, buffer.ToArray());
+
+        var history = scope.ServiceProvider.GetRequiredService<IPackageImportHistoryStore>();
+        var recorded = await history.FindByOperationAsync(operationId, default);
+        Assert.NotNull(recorded);
+        Assert.Equal(PackageImportHistoryResult.Queued, recorded!.Result);
+        Assert.Equal("package.zip", recorded.OriginalFileName);
+        Assert.False(string.IsNullOrWhiteSpace(recorded.ActorId));
+        Assert.Equal(job.DefinitionId, recorded.DefinitionId);
+        Assert.Equal(job.SourceSha256, recorded.SourceSha256);
     }
 
     /// <summary>
@@ -645,6 +681,23 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
                 new Vni.Ielts.Domain.Exams.ExamDefinitionId(BombDefinitionId), 1, hash,
                 ImportJob.NoParserConfigured),
             default));
+
+        var history = scope.ServiceProvider.GetRequiredService<IPackageImportHistoryStore>();
+        var recorded = (await history.QueryAsync(
+                new PackageImportHistoryQuery(Result: PackageImportHistoryResult.DoorRejected),
+                default))
+            .Items
+            .Where(i => i.SourceSha256 == hash)
+            .ToArray();
+
+        var row = Assert.Single(recorded);
+        Assert.Null(row.OperationId);
+        Assert.Null(row.DraftId);
+        Assert.Equal("evil.zip", row.OriginalFileName);
+        Assert.False(string.IsNullOrWhiteSpace(row.ActorId));
+        Assert.Equal(BombDefinitionId, row.DefinitionId?.Value);
+        Assert.True(row.Findings.Count > 0);
+        Assert.Contains(row.Findings, f => f.Code is "ZIP_COMPRESSION_RATIO" or "ZIP_TOO_LARGE" or "ZIP_TOTAL_SIZE_EXCEEDED");
     }
 
     [SkippableFact]
@@ -665,15 +718,16 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         {
             var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
             var roles = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
-            var admin = await roles.FindByNameAsync(SystemRoles.Admin, default);
             var user = await users.FindByEmailAsync(
                 Vni.Ielts.Domain.Identity.Email.Create("stub.learner@example.com"), default);
+            Assert.NotNull(user);
 
-            if (admin is not null && user is not null && user.HasRole(admin.Id))
+            foreach (var existing in await roles.ListAsync(default))
             {
-                user.RemoveRole(admin.Id);
-                await users.SaveAsync(user, default);
+                if (user!.HasRole(existing.Id)) user.RemoveRole(existing.Id);
             }
+
+            await users.SaveAsync(user, default);
         }
 
         // Permissions are resolved when the token is minted, so a fresh
@@ -769,6 +823,202 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
             ImportApprovalState.ReviewRequired, (await drafts.FindAsync(Guid.Parse(draftId), default))!.ApprovalState);
     }
 
+    [SkippableFact]
+    public async Task Package_history_lists_newest_first_and_accepts_the_declared_filters()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var first = await UploadAsync(client, access, BuildZip(("reading/exam.json", UniquePackageJson())));
+        var second = await UploadAsync(client, access, BuildZip(("reading/exam.json", UniquePackageJson())));
+
+        var listed = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/packages?result=Queued&page=1&pageSize=50", access));
+        Assert.Equal(HttpStatusCode.OK, listed.StatusCode);
+
+        var body = await BodyOf(listed);
+        var items = body.GetProperty("items").EnumerateArray().ToArray();
+        var ids = items.Select(i => i.GetProperty("operationId").GetString()).ToArray();
+        var secondIndex = Array.IndexOf(ids, second);
+        var firstIndex = Array.IndexOf(ids, first);
+        Assert.True(secondIndex >= 0 && firstIndex >= 0);
+        Assert.True(secondIndex < firstIndex, "Queued history must list newest first.");
+
+        using var scope = app.Services.CreateScope();
+        var history = scope.ServiceProvider.GetRequiredService<IPackageImportHistoryStore>();
+        var row = await history.FindByOperationAsync(second, default);
+        Assert.NotNull(row);
+
+        var filtered = await client.SendAsync(
+            Request(
+                HttpMethod.Get,
+                $"/api/v1/admin/import/packages?uploader={Uri.EscapeDataString(row!.ActorId)}&result=Queued",
+                access));
+        Assert.Equal(HttpStatusCode.OK, filtered.StatusCode);
+        var filteredItems = (await BodyOf(filtered)).GetProperty("items").EnumerateArray().ToArray();
+        Assert.Contains(filteredItems, i => i.GetProperty("operationId").GetString() == second);
+        Assert.All(filteredItems, i => Assert.Equal(row.ActorId, i.GetProperty("actorId").GetString()));
+
+        var from = row.CreatedAt.AddMinutes(-1).UtcDateTime.ToString("o");
+        var to = row.CreatedAt.AddMinutes(1).UtcDateTime.ToString("o");
+        var ranged = await client.SendAsync(
+            Request(
+                HttpMethod.Get,
+                $"/api/v1/admin/import/packages?stage=Extracting&result=Queued&from={Uri.EscapeDataString(from)}&to={Uri.EscapeDataString(to)}",
+                access));
+        Assert.Equal(HttpStatusCode.OK, ranged.StatusCode);
+        var rangedItems = (await BodyOf(ranged)).GetProperty("items").EnumerateArray().ToArray();
+        Assert.Contains(rangedItems, i => i.GetProperty("operationId").GetString() == second);
+        Assert.All(rangedItems, i => Assert.Equal("Extracting", i.GetProperty("stage").GetString()));
+    }
+
+    [SkippableFact]
+    public async Task Package_history_detail_returns_findings_and_no_archive_key()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var request = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        request.Content = BombPackage();
+        var refused = await client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
+
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(BombBytes()))
+            .ToLowerInvariant();
+
+        var listed = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/packages?result=DoorRejected&pageSize=50", access));
+        Assert.Equal(HttpStatusCode.OK, listed.StatusCode);
+        var listedItems = (await BodyOf(listed)).GetProperty("items").EnumerateArray()
+            .Where(i => i.GetProperty("sourceSha256").GetString() == hash)
+            .ToArray();
+        Assert.True(listedItems.Length > 0);
+        var historyId = listedItems[0].GetProperty("historyId").GetString();
+
+        var detail = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/package-history/{historyId}", access));
+        Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
+
+        var body = await BodyOf(detail);
+        Assert.Equal("evil.zip", body.GetProperty("originalFileName").GetString());
+        Assert.Equal("DoorRejected", body.GetProperty("result").GetString());
+        Assert.True(body.GetProperty("findings").GetArrayLength() > 0);
+        Assert.False(body.TryGetProperty("archiveKey", out _));
+        Assert.DoesNotContain("imports/archives", body.ToString(), StringComparison.Ordinal);
+    }
+
+    [SkippableFact]
+    public async Task Package_history_reads_need_package_read_and_upload_stays_package_upload()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (reader, readAccess) = await SignInWithOnlyAsync(PermissionKeys.PackageRead);
+        var list = await reader.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/packages", readAccess));
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+
+        var uploadAsReader = Request(HttpMethod.Post, "/api/v1/admin/import/packages", readAccess);
+        uploadAsReader.Content = ValidStructuredPackage();
+        Assert.Equal(HttpStatusCode.Forbidden, (await reader.SendAsync(uploadAsReader)).StatusCode);
+
+        var (uploader, uploadAccess) = await SignInWithOnlyAsync(PermissionKeys.PackageUpload);
+        var listAsUploader = await uploader.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/packages", uploadAccess));
+        Assert.Equal(HttpStatusCode.Forbidden, listAsUploader.StatusCode);
+
+        var posted = await UploadAsync(
+            uploader, uploadAccess, BuildZip(("reading/exam.json", UniquePackageJson())));
+        var job = await uploader.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/jobs/{Uri.EscapeDataString(posted)}", uploadAccess));
+        Assert.Equal(HttpStatusCode.OK, job.StatusCode);
+    }
+
+    [SkippableFact]
+    public async Task Package_history_rejects_bad_filters_and_unknown_ids()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+
+        var bad = await client.SendAsync(
+            Request(HttpMethod.Get, "/api/v1/admin/import/packages?result=not-a-result", access));
+        Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
+        Assert.Equal("VALIDATION_FAILED", (await BodyOf(bad)).GetProperty("code").GetString());
+
+        var inverted = await client.SendAsync(
+            Request(
+                HttpMethod.Get,
+                "/api/v1/admin/import/packages?from=2026-09-21T12:00:00Z&to=2026-09-21T11:00:00Z",
+                access));
+        Assert.Equal(HttpStatusCode.BadRequest, inverted.StatusCode);
+        Assert.Equal("VALIDATION_FAILED", (await BodyOf(inverted)).GetProperty("code").GetString());
+
+        var missing = await client.SendAsync(
+            Request(HttpMethod.Get, $"/api/v1/admin/import/package-history/{Guid.NewGuid():D}", access));
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+
+        var anonymous = NewClient();
+        var unauth = await anonymous.SendAsync(
+            new HttpRequestMessage(HttpMethod.Get, "/api/v1/admin/import/packages"));
+        Assert.Equal(HttpStatusCode.Unauthorized, unauth.StatusCode);
+    }
+
+    [SkippableFact]
+    public async Task Upload_and_approval_write_structured_audit_without_package_contents()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var operationId = await UploadAsync(
+            client, access, BuildZip(("reading/exam.json", UniquePackageJson())));
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var audit = scope.ServiceProvider.GetRequiredService<IAuditLog>();
+            var (entries, _) = await audit.ListAsync(
+                null, nameof(AuditAction.PackageUploadAccepted), 0, 50, default);
+            var mine = entries.Single(e => e.Detail.TryGetValue("operationId", out var id) && id == operationId);
+            Assert.False(mine.Detail.ContainsKey("archiveKey"));
+            Assert.DoesNotContain("reading/exam.json", string.Join("|", mine.Detail.Values));
+        }
+
+        var bomb = Request(HttpMethod.Post, "/api/v1/admin/import/packages", access);
+        bomb.Content = BombPackage();
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await client.SendAsync(bomb)).StatusCode);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var audit = scope.ServiceProvider.GetRequiredService<IAuditLog>();
+            var (entries, _) = await audit.ListAsync(
+                null, nameof(AuditAction.PackageUploadRejected), 0, 50, default);
+            var mine = entries.First(e => e.Detail.TryGetValue("fileName", out var name) && name == "evil.zip");
+            Assert.True(mine.Detail.ContainsKey("findingCodes"));
+            Assert.False(mine.Detail.ContainsKey("archiveKey"));
+            Assert.DoesNotContain("reading/bomb.txt", string.Join("|", mine.Detail.Values));
+        }
+
+        var draftId = await SeedApprovableDraftAsync();
+        var approved = await client.SendAsync(
+            Request(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/approve", access));
+        Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var audit = scope.ServiceProvider.GetRequiredService<IAuditLog>();
+            var (entries, _) = await audit.ListAsync(
+                null, nameof(AuditAction.PackageImportApproved), 0, 50, default);
+            var mine = entries.Single(e => e.TargetId == draftId);
+            Assert.Equal(draftId, mine.Detail["draftId"]);
+            Assert.False(mine.Detail.ContainsKey("packageJson"));
+        }
+
+        var worker = PackageImportAudit.WorkerRejected(
+            Guid.NewGuid().ToString("D"), "op-1",
+            [new PackageFinding("error", "SCHEMA_INVALID", "exam.json", "The hall has a slate roof.")]);
+        Assert.Equal("SCHEMA_INVALID", worker["findingCodes"]);
+        Assert.DoesNotContain("slate roof", string.Join("|", worker.Values));
+    }
+
     /// <summary>Seeds a structured, valid draft carrying one unresolved warning "w1".</summary>
     private async Task<string> SeedDraftWithWarningAsync()
     {
@@ -792,6 +1042,31 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         var replaced = await drafts.ReplaceAsync(seeded, attempt.Draft.Revision, default);
         Assert.True(replaced);
 
+        return seeded.Id.ToString("D");
+    }
+
+    /// <summary>A draft whose checklist is complete and that has no unresolved warnings.</summary>
+    private async Task<string> SeedApprovableDraftAsync()
+    {
+        using var scope = app.Services.CreateScope();
+        var workflow = scope.ServiceProvider.GetRequiredService<ExamImportWorkflow>();
+        var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+
+        var attempt = await workflow.ImportStructuredAsync(
+            ValidPackageJson.Replace("admin-import-test", $"approve-{Guid.NewGuid():n}"),
+            Vni.Ielts.Domain.Exams.ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, string.Join("; ", attempt.Findings.Select(f => f.Message)));
+
+        var seeded = attempt.Draft! with
+        {
+            Checklist = new ImportReviewChecklist(
+                Enum.GetValues<ImportReviewCategory>().ToHashSet()),
+            Warnings = [],
+            Revision = attempt.Draft.Revision + 1,
+        };
+
+        Assert.True(await drafts.ReplaceAsync(seeded, attempt.Draft.Revision, default));
         return seeded.Id.ToString("D");
     }
 
@@ -862,15 +1137,16 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         {
             var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
             var roles = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
-            var admin = await roles.FindByNameAsync(SystemRoles.Admin, default);
             var user = await users.FindByEmailAsync(
                 Vni.Ielts.Domain.Identity.Email.Create("stub.learner@example.com"), default);
+            Assert.NotNull(user);
 
-            if (admin is not null && user is not null && user.HasRole(admin.Id))
+            foreach (var existing in await roles.ListAsync(default))
             {
-                user.RemoveRole(admin.Id);
-                await users.SaveAsync(user, default);
+                if (user!.HasRole(existing.Id)) user.RemoveRole(existing.Id);
             }
+
+            await users.SaveAsync(user, default);
         }
 
         var access = await SsoRoundTripAsync(client);

@@ -162,11 +162,117 @@ internal sealed class MongoMarkingOutbox(MongoContext context) : IMarkingOutbox
             Builders<MarkingJobDocument>.Update
                 .Set(j => j.State, MarkingJobState.Failed.ToString())
                 .Set(j => j.LastError, Trim(error))
+                .Set(j => j.FailedAt, DateTime.UtcNow)
                 .Set(j => j.LeaseUntil, null)
                 .Set(j => j.LeaseToken, null),
             cancellationToken: ct);
 
         return dead.MatchedCount > 0;
+    }
+
+    public async Task<MarkingJobPage> QueryAsync(MarkingJobQuery query, CancellationToken ct)
+    {
+        query.Validate();
+
+        var filter = Builders<MarkingJobDocument>.Filter.Empty;
+
+        if (query.State is { } state)
+            filter &= Builders<MarkingJobDocument>.Filter.Eq(j => j.State, state.ToString());
+
+        if (query.Module is { } module)
+            filter &= Builders<MarkingJobDocument>.Filter.Eq(j => j.Module, module.ToString());
+
+        if (query.From is { } from)
+            filter &= Builders<MarkingJobDocument>.Filter.Gte(j => j.CreatedAt, from.UtcDateTime);
+
+        if (query.To is { } to)
+            filter &= Builders<MarkingJobDocument>.Filter.Lte(j => j.CreatedAt, to.UtcDateTime);
+
+        var sort = query.State is MarkingJobState.Failed
+            ? Builders<MarkingJobDocument>.Sort
+                .Descending(j => j.FailedAt)
+                .Descending(j => j.CreatedAt)
+                .Descending(j => j.Id)
+            : Builders<MarkingJobDocument>.Sort
+                .Descending(j => j.CreatedAt)
+                .Descending(j => j.Id);
+
+        var total = await Jobs.CountDocumentsAsync(filter, cancellationToken: ct);
+        var skip = (query.Page - 1) * query.PageSize;
+
+        var jobs = await Jobs
+            .Find(filter)
+            .Sort(sort)
+            .Skip(skip)
+            .Limit(query.PageSize)
+            .ToListAsync(ct);
+
+        return new MarkingJobPage([.. jobs.Select(Map)], total, query.Page, query.PageSize);
+    }
+
+    public async Task<MarkingJobReopenResult> ReopenFailedAsync(
+        string operationId, string idempotencyKey, DateTimeOffset now, CancellationToken ct)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
+
+        var existing = await Jobs.Find(j => j.Id == operationId).FirstOrDefaultAsync(ct);
+        if (existing is null)
+            return new MarkingJobReopenResult(MarkingJobReopenStatus.NotFound, null);
+
+        if (string.Equals(existing.ReopenKey, idempotencyKey, StringComparison.Ordinal))
+            return new MarkingJobReopenResult(
+                MarkingJobReopenStatus.Replayed, Map(existing), ParseState(existing.State));
+
+        if (!string.Equals(existing.State, MarkingJobState.Failed.ToString(), StringComparison.Ordinal))
+            return ClassifyMiss(existing, idempotencyKey);
+
+        var at = now.UtcDateTime;
+        var updated = await Jobs.FindOneAndUpdateAsync(
+            Builders<MarkingJobDocument>.Filter.And(
+                Builders<MarkingJobDocument>.Filter.Eq(j => j.Id, operationId),
+                Builders<MarkingJobDocument>.Filter.Eq(j => j.State, MarkingJobState.Failed.ToString())),
+            Builders<MarkingJobDocument>.Update
+                .Set(j => j.State, MarkingJobState.Pending.ToString())
+                .Set(j => j.Attempts, 0)
+                .Set(j => j.NextAttemptAt, at)
+                .Set(j => j.LeaseUntil, null)
+                .Set(j => j.LeaseToken, null)
+                .Set(j => j.ReopenKey, idempotencyKey)
+                .Set(j => j.ReopenedAt, at)
+                .Set(j => j.CompletedAt, null),
+            new FindOneAndUpdateOptions<MarkingJobDocument> { ReturnDocument = ReturnDocument.After },
+            ct);
+
+        if (updated is not null)
+            return new MarkingJobReopenResult(MarkingJobReopenStatus.Reopened, Map(updated), MarkingJobState.Pending);
+
+        existing = await Jobs.Find(j => j.Id == operationId).FirstOrDefaultAsync(ct);
+        if (existing is null)
+            return new MarkingJobReopenResult(MarkingJobReopenStatus.NotFound, null);
+
+        if (string.Equals(existing.ReopenKey, idempotencyKey, StringComparison.Ordinal))
+            return new MarkingJobReopenResult(
+                MarkingJobReopenStatus.Replayed, Map(existing), ParseState(existing.State));
+
+        return ClassifyMiss(existing, idempotencyKey);
+    }
+
+    /// <summary>
+    /// A missed Failed→Pending write is a conflict when another key already
+    /// reopened this job and it is still in flight. Any other non-Failed state
+    /// is illegal — a completed band is not reopened by a new key.
+    /// </summary>
+    private static MarkingJobReopenResult ClassifyMiss(MarkingJobDocument existing, string idempotencyKey)
+    {
+        var state = ParseState(existing.State);
+        var otherKey = !string.IsNullOrEmpty(existing.ReopenKey)
+            && !string.Equals(existing.ReopenKey, idempotencyKey, StringComparison.Ordinal);
+
+        if (otherKey && state is MarkingJobState.Pending or MarkingJobState.Running)
+            return new MarkingJobReopenResult(MarkingJobReopenStatus.Conflict, Map(existing), state);
+
+        return new MarkingJobReopenResult(MarkingJobReopenStatus.Illegal, Map(existing), state);
     }
 
     public async Task<IReadOnlyList<MarkingJob>> ListAsync(
@@ -261,6 +367,11 @@ internal sealed class MongoMarkingOutbox(MongoContext context) : IMarkingOutbox
         return new QueueBacklog(depth, age > TimeSpan.Zero ? age : TimeSpan.Zero);
     }
 
+    private static MarkingJobState ParseState(string state) =>
+        Enum.TryParse<MarkingJobState>(state, ignoreCase: true, out var parsed)
+            ? parsed
+            : MarkingJobState.Pending;
+
     private static MarkingJob Map(MarkingJobDocument d) => new(
         d.Id,
         new ExamSessionId(d.SessionId),
@@ -268,9 +379,7 @@ internal sealed class MongoMarkingOutbox(MongoContext context) : IMarkingOutbox
             ? module
             : ExamModule.Writing,
         d.RubricVersion,
-        Enum.TryParse<MarkingJobState>(d.State, ignoreCase: true, out var state)
-            ? state
-            : MarkingJobState.Pending,
+        ParseState(d.State),
         d.Attempts,
         new DateTimeOffset(d.CreatedAt, TimeSpan.Zero),
         d.NextAttemptAt is { } next ? new DateTimeOffset(next, TimeSpan.Zero) : null,
@@ -278,7 +387,10 @@ internal sealed class MongoMarkingOutbox(MongoContext context) : IMarkingOutbox
         d.LeaseToken,
         d.LastError,
         d.CompletedAt is { } done ? new DateTimeOffset(done, TimeSpan.Zero) : null,
-        d.TraceParent);
+        d.TraceParent,
+        d.ReopenKey,
+        d.ReopenedAt is { } reopened ? new DateTimeOffset(reopened, TimeSpan.Zero) : null,
+        d.FailedAt is { } failed ? new DateTimeOffset(failed, TimeSpan.Zero) : null);
 }
 
 /// <summary>
@@ -342,4 +454,189 @@ internal sealed class MarkingJobDocument
     [MongoDB.Bson.Serialization.Attributes.BsonElement("traceParent")]
     [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
     public string? TraceParent { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("reopenKey")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public string? ReopenKey { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("reopenedAt")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public DateTime? ReopenedAt { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("failedAt")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public DateTime? FailedAt { get; set; }
+}
+
+/// <summary>
+/// Every provider call, including JSON that validation refused before a
+/// marking existed. Separate from <c>marking_jobs</c> because a job is the
+/// owed work and an attempt is one try at producing it.
+/// </summary>
+internal sealed class MongoEvaluationAttemptStore(MongoContext context) : IEvaluationAttemptStore
+{
+    private IMongoCollection<EvaluationAttemptDocument> Attempts => context.EvaluationAttempts;
+
+    public Task RecordAsync(EvaluationAttempt attempt, CancellationToken ct) =>
+        Attempts.InsertOneAsync(ToDocument(attempt), cancellationToken: ct);
+
+    public async Task AttachMarkingAsync(
+        string attemptId, string markingId, int version, CancellationToken ct)
+    {
+        await Attempts.UpdateOneAsync(
+            Builders<EvaluationAttemptDocument>.Filter.Eq(a => a.Id, attemptId),
+            Builders<EvaluationAttemptDocument>.Update
+                .Set(a => a.MarkingId, markingId)
+                .Set(a => a.MarkingVersion, version),
+            cancellationToken: ct);
+    }
+
+    public async Task AttachLatestUnmarkedAsync(
+        string operationId,
+        ExamModule module,
+        int? taskNumber,
+        string markingId,
+        int version,
+        CancellationToken ct)
+    {
+        var filter = Builders<EvaluationAttemptDocument>.Filter.And(
+            Builders<EvaluationAttemptDocument>.Filter.Eq(a => a.OperationId, operationId),
+            Builders<EvaluationAttemptDocument>.Filter.Eq(a => a.Module, module.ToString()),
+            taskNumber is { } task
+                ? Builders<EvaluationAttemptDocument>.Filter.Eq(a => a.TaskNumber, task)
+                : Builders<EvaluationAttemptDocument>.Filter.Eq(a => a.TaskNumber, null),
+            Builders<EvaluationAttemptDocument>.Filter.Eq(a => a.MarkingId, null));
+
+        await Attempts.FindOneAndUpdateAsync(
+            filter,
+            Builders<EvaluationAttemptDocument>.Update
+                .Set(a => a.MarkingId, markingId)
+                .Set(a => a.MarkingVersion, version),
+            new FindOneAndUpdateOptions<EvaluationAttemptDocument>
+            {
+                Sort = Builders<EvaluationAttemptDocument>.Sort.Descending(a => a.StartedAt),
+                ReturnDocument = ReturnDocument.After,
+            },
+            ct);
+    }
+
+    public async Task<IReadOnlyList<EvaluationAttempt>> ListByOperationAsync(
+        string operationId, CancellationToken ct)
+    {
+        var docs = await Attempts
+            .Find(a => a.OperationId == operationId)
+            .SortByDescending(a => a.StartedAt)
+            .ToListAsync(ct);
+
+        return [.. docs.Select(Map)];
+    }
+
+    private static EvaluationAttemptDocument ToDocument(EvaluationAttempt a) => new()
+    {
+        Id = a.Id,
+        OperationId = a.OperationId,
+        SessionId = a.SessionId.Value,
+        Module = a.Module.ToString(),
+        TaskNumber = a.TaskNumber,
+        Provider = a.Provider,
+        Model = a.Model,
+        RequestId = a.RequestId,
+        StartedAt = a.StartedAt.UtcDateTime,
+        FinishedAt = a.FinishedAt.UtcDateTime,
+        Outcome = a.Outcome.ToString(),
+        ErrorCode = a.ErrorCode,
+        ErrorMessage = a.ErrorMessage,
+        RawOutput = a.RawOutput,
+        RawOutputTruncated = a.RawOutputTruncated ? true : null,
+        MarkingId = a.MarkingId,
+        MarkingVersion = a.MarkingVersion,
+    };
+
+    private static EvaluationAttempt Map(EvaluationAttemptDocument d) => new(
+        d.Id,
+        d.OperationId,
+        new ExamSessionId(d.SessionId),
+        Enum.TryParse<ExamModule>(d.Module, ignoreCase: true, out var module)
+            ? module
+            : ExamModule.Writing,
+        d.TaskNumber,
+        d.Provider,
+        d.Model,
+        d.RequestId,
+        new DateTimeOffset(d.StartedAt, TimeSpan.Zero),
+        new DateTimeOffset(d.FinishedAt, TimeSpan.Zero),
+        Enum.TryParse<EvaluationAttemptOutcome>(d.Outcome, ignoreCase: true, out var outcome)
+            ? outcome
+            : EvaluationAttemptOutcome.Rejected,
+        d.ErrorCode,
+        d.ErrorMessage,
+        d.RawOutput,
+        d.RawOutputTruncated is true,
+        d.MarkingId,
+        d.MarkingVersion);
+}
+
+[MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
+internal sealed class EvaluationAttemptDocument
+{
+    [MongoDB.Bson.Serialization.Attributes.BsonId]
+    public string Id { get; set; } = string.Empty;
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("operationId")]
+    public string OperationId { get; set; } = string.Empty;
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("sessionId")]
+    public string SessionId { get; set; } = string.Empty;
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("module")]
+    public string Module { get; set; } = string.Empty;
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("taskNumber")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public int? TaskNumber { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("provider")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public string? Provider { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("model")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public string? Model { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("requestId")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public string? RequestId { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("startedAt")]
+    public DateTime StartedAt { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("finishedAt")]
+    public DateTime FinishedAt { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("outcome")]
+    public string Outcome { get; set; } = string.Empty;
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("errorCode")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public string? ErrorCode { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("errorMessage")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public string? ErrorMessage { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("rawOutput")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public string? RawOutput { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("rawOutputTruncated")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public bool? RawOutputTruncated { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("markingId")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public string? MarkingId { get; set; }
+
+    [MongoDB.Bson.Serialization.Attributes.BsonElement("markingVersion")]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+    public int? MarkingVersion { get; set; }
 }

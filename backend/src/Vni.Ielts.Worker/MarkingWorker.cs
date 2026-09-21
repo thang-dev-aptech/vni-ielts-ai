@@ -296,7 +296,10 @@ public sealed class MarkingWorker(
             ?? throw new InvalidOperationException(
                 $"Exam version {session.ExamVersionId.Value} no longer exists.");
 
-        var outcomes = await marker.RunAsync(version, job.Module, job.SessionId, answers, ct);
+        var outcomes = await marker.RunAsync(
+            version, job.Module, job.SessionId, answers, ct,
+            operationId: job.OperationId,
+            rematch: job.ReopenKey is not null);
 
         /*
          * <b>An outcome that is not a marking is not a success.</b>
@@ -322,6 +325,37 @@ public sealed class MarkingWorker(
                 string.Join(
                     "; ",
                     unresolved.Select(o => $"{o.Availability}{(o.Detail is null ? "" : $": {o.Detail}")}")));
+        }
+
+        await AssociateAttemptsAsync(services, job, ct);
+    }
+
+    /// <summary>
+    /// The attempt that produced this band is the newest unmarked one for the
+    /// job. A rematch therefore attaches to the new current version rather than
+    /// rewriting the superseded one.
+    /// </summary>
+    private static async Task AssociateAttemptsAsync(
+        IServiceProvider services, MarkingJob job, CancellationToken ct)
+    {
+        var attempts = services.GetService<IEvaluationAttemptStore>();
+        if (attempts is null) return;
+
+        var markings = await services.GetRequiredService<ISectionMarkingStore>()
+            .ListAsync(job.SessionId, ct);
+
+        foreach (var marking in markings)
+        {
+            if (marking.Module != job.Module) continue;
+            if (string.IsNullOrWhiteSpace(marking.MarkingId)) continue;
+
+            await attempts.AttachLatestUnmarkedAsync(
+                job.OperationId,
+                marking.Module,
+                marking.TaskNumber,
+                marking.MarkingId,
+                marking.Version,
+                ct);
         }
     }
 

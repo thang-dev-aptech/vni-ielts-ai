@@ -103,7 +103,8 @@ public sealed class SectionMarkingRunner(
 {
     public async Task<IReadOnlyList<MarkingOutcome>> RunAsync(
         ExamVersion version, ExamModule module, ExamSessionId sessionId,
-        IAnswerSheetStore answers, CancellationToken ct)
+        IAnswerSheetStore answers, CancellationToken ct,
+        string? operationId = null, bool rematch = false)
     {
         if (module is not (ExamModule.Writing or ExamModule.Speaking)) return [];
         if (version.Section(module) is not { } section) return [];
@@ -141,7 +142,7 @@ public sealed class SectionMarkingRunner(
 
         foreach (var unit in Units(section, module))
         {
-            if (already.FirstOrDefault(
+            if (!rematch && already.FirstOrDefault(
                     m => m.Module == unit.Module && m.TaskNumber == unit.TaskNumber) is { } done)
             {
                 outcomes.Add(new MarkingOutcome(
@@ -151,7 +152,8 @@ public sealed class SectionMarkingRunner(
 
             var rubric = rubrics.For(module, unit.TaskNumber);
             var outcome = await MarkOneAsync(
-                unit, rubric, evaluator, sheet, sessionId, version, ct);
+                unit, rubric, evaluator, sheet, sessionId, version,
+                operationId, ct);
 
             outcomes.Add(outcome);
 
@@ -165,7 +167,7 @@ public sealed class SectionMarkingRunner(
     private async Task<MarkingOutcome> MarkOneAsync(
         MarkableUnit unit, Rubric? rubric, ISectionEvaluator? evaluator,
         IReadOnlyDictionary<string, string?> sheet, ExamSessionId sessionId,
-        ExamVersion version, CancellationToken ct)
+        ExamVersion version, string? operationId, CancellationToken ct)
     {
         MarkingOutcome Pending(MarkingAvailability why, string? detail = null) =>
             new(unit.Module, unit.TaskNumber, why, null, detail);
@@ -254,6 +256,9 @@ public sealed class SectionMarkingRunner(
              * so never reaches this line; when it does, it gets its own
              * action name. → `P-14`
              */
+            using (EvaluationAttemptContext.Open(new(
+                       operationId ?? MarkingJob.IdFor(sessionId, unit.Module, rubric.Version),
+                       sessionId, unit.Module, unit.TaskNumber)))
             using (var report = Usage.EvaluationUsageReport.Begin())
             {
                 claim = await evaluator.EvaluateAsync(

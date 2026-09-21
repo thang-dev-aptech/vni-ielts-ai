@@ -94,6 +94,13 @@ public sealed class MongoContext
     internal IMongoCollection<Exams.MarkingJobDocument> MarkingJobs =>
         _db.GetCollection<Exams.MarkingJobDocument>("marking_jobs");
 
+    /// <summary>
+    /// Every provider call for a marking job, including JSON that validation
+    /// refused. Kept even when no <c>section_markings</c> row exists yet.
+    /// </summary>
+    internal IMongoCollection<Exams.EvaluationAttemptDocument> EvaluationAttempts =>
+        _db.GetCollection<Exams.EvaluationAttemptDocument>("evaluation_attempts");
+
     internal IMongoCollection<Explanations.PersonalizedExplanationDocument> PersonalizedExplanations =>
         _db.GetCollection<Explanations.PersonalizedExplanationDocument>("personalized_explanations");
 
@@ -157,6 +164,14 @@ public sealed class MongoContext
     /// </summary>
     internal IMongoCollection<Importing.ImportJobDocument> ImportJobs =>
         _db.GetCollection<Importing.ImportJobDocument>("import_jobs");
+
+    /// <summary>
+    /// Every package-upload attempt, including door-level refusals that never
+    /// became an <see cref="ImportJobs"/> row and never wrote archive bytes.
+    /// Keyed separately from the outbox so a bomb cannot occupy a job.
+    /// </summary>
+    internal IMongoCollection<Importing.PackageImportHistoryDocument> PackageImportHistory =>
+        _db.GetCollection<Importing.PackageImportHistoryDocument>("package_import_history");
 
     /// <summary>
     /// Refuses to start against a node that cannot do transactions.
@@ -490,6 +505,47 @@ public sealed class MongoContext
                 new CreateIndexOptions { Name = "ix_marking_jobs_session" }),
             cancellationToken: ct);
 
+        // Operator failed-job listing: state + newest death first.
+        await MarkingJobs.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.MarkingJobDocument>(
+                Builders<Exams.MarkingJobDocument>.IndexKeys
+                    .Ascending(j => j.State)
+                    .Descending(j => j.FailedAt)
+                    .Descending(j => j.CreatedAt)
+                    .Descending(j => j.Id),
+                new CreateIndexOptions { Name = "ix_marking_jobs_failed" }),
+            cancellationToken: ct);
+
+        await EvaluationAttempts.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.EvaluationAttemptDocument>(
+                Builders<Exams.EvaluationAttemptDocument>.IndexKeys
+                    .Ascending(a => a.OperationId)
+                    .Descending(a => a.StartedAt),
+                new CreateIndexOptions { Name = "ix_evaluation_attempts_operation" }),
+            cancellationToken: ct);
+
+        await EvaluationAttempts.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.EvaluationAttemptDocument>(
+                Builders<Exams.EvaluationAttemptDocument>.IndexKeys
+                    .Ascending(a => a.SessionId)
+                    .Descending(a => a.StartedAt),
+                new CreateIndexOptions { Name = "ix_evaluation_attempts_session" }),
+            cancellationToken: ct);
+
+        await EvaluationAttempts.Indexes.CreateOneAsync(
+            new CreateIndexModel<Exams.EvaluationAttemptDocument>(
+                Builders<Exams.EvaluationAttemptDocument>.IndexKeys
+                    .Ascending(a => a.OperationId)
+                    .Ascending(a => a.Module)
+                    .Ascending(a => a.TaskNumber)
+                    .Descending(a => a.StartedAt),
+                new CreateIndexOptions<Exams.EvaluationAttemptDocument>
+                {
+                    Name = "ix_evaluation_attempts_unmarked",
+                    PartialFilterExpression = new BsonDocument("markingId", new BsonDocument("$eq", BsonNull.Value)),
+                }),
+            cancellationToken: ct);
+
         // An article's slug is its address, and a draft reserves it. The
         // handler's lookup gives a clean 409; this index is what holds when
         // two editors save the same slug at once.
@@ -589,6 +645,57 @@ public sealed class MongoContext
                     .Ascending(j => j.State)
                     .Ascending(j => j.NextAttemptAt),
                 new CreateIndexOptions { Name = "ix_import_jobs_due" }),
+            cancellationToken: ct);
+
+        // Newest-first pagination of package history. UpdatedAt is the sort
+        // key because a queued upload's later worker transitions must surface
+        // as the current attempt, not as a stale create-time row.
+        await PackageImportHistory.Indexes.CreateOneAsync(
+            new CreateIndexModel<Importing.PackageImportHistoryDocument>(
+                Builders<Importing.PackageImportHistoryDocument>.IndexKeys
+                    .Descending(d => d.UpdatedAt)
+                    .Descending(d => d.CreatedAt)
+                    .Descending(d => d.Id),
+                new CreateIndexOptions { Name = "ix_package_import_history_newest" }),
+            cancellationToken: ct);
+
+        await PackageImportHistory.Indexes.CreateOneAsync(
+            new CreateIndexModel<Importing.PackageImportHistoryDocument>(
+                Builders<Importing.PackageImportHistoryDocument>.IndexKeys
+                    .Ascending(d => d.Result)
+                    .Descending(d => d.UpdatedAt),
+                new CreateIndexOptions { Name = "ix_package_import_history_result" }),
+            cancellationToken: ct);
+
+        await PackageImportHistory.Indexes.CreateOneAsync(
+            new CreateIndexModel<Importing.PackageImportHistoryDocument>(
+                Builders<Importing.PackageImportHistoryDocument>.IndexKeys
+                    .Ascending(d => d.Stage)
+                    .Descending(d => d.UpdatedAt),
+                new CreateIndexOptions { Name = "ix_package_import_history_stage" }),
+            cancellationToken: ct);
+
+        await PackageImportHistory.Indexes.CreateOneAsync(
+            new CreateIndexModel<Importing.PackageImportHistoryDocument>(
+                Builders<Importing.PackageImportHistoryDocument>.IndexKeys
+                    .Ascending(d => d.ActorId)
+                    .Descending(d => d.UpdatedAt),
+                new CreateIndexOptions { Name = "ix_package_import_history_actor" }),
+            cancellationToken: ct);
+
+        // Sparse so door rejections (no operation id) do not collide with
+        // each other; unique so an accepted upload and its worker transitions
+        // share one row.
+        await PackageImportHistory.Indexes.CreateOneAsync(
+            new CreateIndexModel<Importing.PackageImportHistoryDocument>(
+                Builders<Importing.PackageImportHistoryDocument>.IndexKeys
+                    .Ascending(d => d.OperationId),
+                new CreateIndexOptions
+                {
+                    Unique = true,
+                    Sparse = true,
+                    Name = "ux_package_import_history_operation",
+                }),
             cancellationToken: ct);
 
         // Expired tokens remove themselves. A TTL index does this without a

@@ -111,7 +111,18 @@ public sealed record MarkingJob(
     /// layer, the value is persisted, and W3C traceparent is a stable wire
     /// format that survives a database change. Null when nothing was tracing.
     /// </summary>
-    string? TraceParent = null)
+    string? TraceParent = null,
+    /// <summary>
+    /// The idempotency key of the last Failed→Pending reopen.
+    ///
+    /// Replay of the same key returns this job in whatever state it has
+    /// reached, rather than opening a second run. A different key is only
+    /// legal while the job is Failed.
+    /// </summary>
+    string? ReopenKey = null,
+    DateTimeOffset? ReopenedAt = null,
+    /// <summary>When the job last entered <see cref="MarkingJobState.Failed"/>. Newest-failed listing sorts on this.</summary>
+    DateTimeOffset? FailedAt = null)
 {
     /// <summary>The id a re-close of this section would produce. → <see cref="OperationId"/>.</summary>
     public static string IdFor(ExamSessionId sessionId, ExamModule module, string rubricVersion) =>
@@ -210,6 +221,25 @@ public interface IMarkingOutbox
     /// worker is inside is not backlog.
     /// </summary>
     Task<QueueBacklog> BacklogAsync(DateTimeOffset asOf, CancellationToken ct);
+
+    /// <summary>
+    /// Pages jobs across sittings, optionally filtered by state and module.
+    /// Failed jobs are newest-first on the moment they died.
+    /// </summary>
+    Task<MarkingJobPage> QueryAsync(MarkingJobQuery query, CancellationToken ct) =>
+        throw new NotSupportedException("This outbox does not provide cross-session job listing.");
+
+    /// <summary>
+    /// Moves a Failed job back to Pending so a worker will run it again.
+    ///
+    /// <b>The operation id does not change.</b> A rerun is a new evaluation of
+    /// the same owed marking, which then supersedes the prior band; it is not
+    /// a second queue entry. The idempotency key is what makes two operators
+    /// hitting retry, or one retry retried, produce at most one such transition.
+    /// </summary>
+    Task<MarkingJobReopenResult> ReopenFailedAsync(
+        string operationId, string idempotencyKey, DateTimeOffset now, CancellationToken ct) =>
+        throw new NotSupportedException("This outbox does not provide a failed-job reopen.");
 }
 
 /// <param name="Depth">Jobs owed and not currently being worked on.</param>
@@ -221,6 +251,212 @@ public interface IMarkingOutbox
 public readonly record struct QueueBacklog(long Depth, TimeSpan OldestAge)
 {
     public static readonly QueueBacklog Empty = new(0, TimeSpan.Zero);
+}
+
+/// <summary>Filters the operator-facing marking-job list across all sittings.</summary>
+public sealed record MarkingJobQuery(
+    MarkingJobState? State = null,
+    ExamModule? Module = null,
+    DateTimeOffset? From = null,
+    DateTimeOffset? To = null,
+    int Page = 1,
+    int PageSize = 50)
+{
+    public const int MaxPageSize = 50;
+
+    public void Validate()
+    {
+        if (From is { } from && To is { } to && from > to)
+            throw new ArgumentException("The job-list start must not be after its end.");
+        if (Page < 1) throw new ArgumentOutOfRangeException(nameof(Page));
+        if (PageSize < 1 || PageSize > MaxPageSize)
+            throw new ArgumentOutOfRangeException(nameof(PageSize));
+    }
+}
+
+public sealed record MarkingJobPage(
+    IReadOnlyList<MarkingJob> Items,
+    long TotalCount,
+    int Page,
+    int PageSize);
+
+public enum MarkingJobReopenStatus
+{
+    /// <summary>This call performed the Failed→Pending transition.</summary>
+    Reopened,
+
+    /// <summary>The same idempotency key already drove a reopen of this job.</summary>
+    Replayed,
+
+    /// <summary>No job with this operation id exists.</summary>
+    NotFound,
+
+    /// <summary>The job exists but is not Failed, and the key is not a replay.</summary>
+    Illegal,
+
+    /// <summary>Another caller won the Failed→Pending race with a different key.</summary>
+    Conflict,
+}
+
+public sealed record MarkingJobReopenResult(
+    MarkingJobReopenStatus Status,
+    MarkingJob? Job,
+    MarkingJobState? CurrentState = null);
+
+public enum EvaluationAttemptOutcome
+{
+    Succeeded,
+    Rejected,
+    ProviderError,
+}
+
+/// <summary>
+/// One provider call, kept even when validation refuses the JSON before a
+/// <c>SectionMarking</c> exists.
+///
+/// <b>Raw output lives here and nowhere else.</b> Application logs must not
+/// carry it; the bound below is the only trim, and it is a size cap rather
+/// than an editorial one.
+/// </summary>
+public sealed record EvaluationAttempt(
+    string Id,
+    string OperationId,
+    ExamSessionId SessionId,
+    ExamModule Module,
+    int? TaskNumber,
+    string? Provider,
+    string? Model,
+    string? RequestId,
+    DateTimeOffset StartedAt,
+    DateTimeOffset FinishedAt,
+    EvaluationAttemptOutcome Outcome,
+    string? ErrorCode,
+    string? ErrorMessage,
+    string? RawOutput,
+    bool RawOutputTruncated,
+    string? MarkingId,
+    int? MarkingVersion)
+{
+    /// <summary>1 MiB — the persist ceiling, matching a provider response-size bound rather than a log-line trim.</summary>
+    public const int MaxRawOutputChars = 1_048_576;
+
+    public const int MaxErrorChars = 1_000;
+
+    public static EvaluationAttempt Capture(
+        string operationId,
+        ExamSessionId sessionId,
+        ExamModule module,
+        int? taskNumber,
+        string? provider,
+        string? model,
+        string? requestId,
+        DateTimeOffset startedAt,
+        DateTimeOffset finishedAt,
+        EvaluationAttemptOutcome outcome,
+        string? errorCode,
+        string? errorMessage,
+        string? rawOutput) =>
+        new(
+            Guid.NewGuid().ToString("N"),
+            operationId,
+            sessionId,
+            module,
+            taskNumber,
+            provider,
+            model,
+            requestId,
+            startedAt,
+            finishedAt,
+            outcome,
+            BoundError(errorCode),
+            BoundError(errorMessage),
+            BoundRaw(rawOutput, out var truncated),
+            truncated,
+            MarkingId: null,
+            MarkingVersion: null);
+
+    public static string? BoundRaw(string? raw, out bool truncated)
+    {
+        if (raw is null)
+        {
+            truncated = false;
+            return null;
+        }
+
+        if (raw.Length <= MaxRawOutputChars)
+        {
+            truncated = false;
+            return raw;
+        }
+
+        truncated = true;
+        return raw[..MaxRawOutputChars];
+    }
+
+    public static string? BoundError(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+        return text.Length > MaxErrorChars ? text[..MaxErrorChars] : text;
+    }
+}
+
+public interface IEvaluationAttemptStore
+{
+    Task RecordAsync(EvaluationAttempt attempt, CancellationToken ct);
+
+    Task AttachMarkingAsync(string attemptId, string markingId, int version, CancellationToken ct);
+
+    /// <summary>
+    /// Ties the newest unmarked attempt for this operation/task to the
+    /// marking version the worker just stored. A rematch therefore points at
+    /// the new current version, not the superseded one.
+    /// </summary>
+    Task AttachLatestUnmarkedAsync(
+        string operationId,
+        ExamModule module,
+        int? taskNumber,
+        string markingId,
+        int version,
+        CancellationToken ct);
+
+    Task<IReadOnlyList<EvaluationAttempt>> ListByOperationAsync(
+        string operationId, CancellationToken ct);
+}
+
+/// <summary>
+/// Ambient correlation for one evaluator call.
+///
+/// The port takes primitives and a rubric, not a session. The runner opens
+/// this before the call so the adapter can file the raw output against the
+/// job that bought it — the same shape as <c>EvaluationUsageReport</c>.
+/// </summary>
+public static class EvaluationAttemptContext
+{
+    private static readonly AsyncLocal<Correlation?> Current = new();
+
+    public sealed record Correlation(
+        string OperationId,
+        ExamSessionId SessionId,
+        ExamModule Module,
+        int? TaskNumber);
+
+    public static IDisposable Open(Correlation correlation)
+    {
+        var previous = Current.Value;
+        Current.Value = correlation;
+        return new Pop(previous);
+    }
+
+    public static Correlation? Peek => Current.Value;
+
+    private sealed class Pop(Correlation? previous) : IDisposable
+    {
+        public void Dispose()
+        {
+            if (ReferenceEquals(Current.Value, previous) is false)
+                Current.Value = previous;
+        }
+    }
 }
 
 /// <summary>

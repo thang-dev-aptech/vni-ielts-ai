@@ -15,7 +15,8 @@ public sealed class WritingSectionEvaluator(
     IOptions<AiOptions> aiOptions,
     IOptions<AssessmentOptions> assessmentOptions,
     WritingEvaluationRouter router,
-    ILogger<WritingSectionEvaluator> logger) : ISectionEvaluator
+    ILogger<WritingSectionEvaluator> logger,
+    IEvaluationAttemptStore? attempts = null) : ISectionEvaluator
 {
     private readonly WritingRubricArtifact _artifact = LoadArtifact(assessmentOptions.Value.WritingMarking);
 
@@ -79,40 +80,101 @@ public sealed class WritingSectionEvaluator(
          * the budget and the router's retry was cancelled mid-flight — which
          * the worker then recorded as a failed job, not a transient.
          */
-        var response = await router.EvaluateAsync(evalRequest, ticket, ct);
+        var startedAt = DateTimeOffset.UtcNow;
+        WritingEvaluationResponse? response = null;
 
-        logger.LogInformation(
-            "Writing evaluation completed via {Provider} model {Model}, request {RequestId}, "
-            + "rubric {RubricVersion}, prompt {PromptVersion}.",
-            response.Provider,
-            response.Model,
-            response.RequestId,
-            _artifact.Version,
-            evalRequest.PromptVersion);
+        try
+        {
+            response = await router.EvaluateAsync(evalRequest, ticket, ct);
 
-        var claim = WritingEvaluationValidator.ToClaimedEvaluation(response.Json, wholeBands);
-        var limiterInput = WritingEvaluationValidator.LimitersFrom(
-            response.Json,
-            request.TaskNumber,
-            generalTraining,
-            WritingAdmission.LooksLikeNotes(sanitized),
-            insufficientSentenceControl: wordCount < 50);
-        var limited = WritingLimiters.Apply(claim.Criteria, limiterInput);
-
-        var requested = response.RequestedModel ?? requestedModel ?? response.Model;
-        var mismatch = !string.Equals(requested, response.Model, StringComparison.OrdinalIgnoreCase);
-
-        return new ClaimedEvaluation(
-            limited.Criteria,
-            claim.ReportedBand,
-            limited.Advisories,
-            new WritingMarkingProvenance(
-                evalRequest.PromptVersion,
+            logger.LogInformation(
+                "Writing evaluation completed via {Provider} model {Model}, request {RequestId}, "
+                + "rubric {RubricVersion}, prompt {PromptVersion}.",
                 response.Provider,
-                requested,
                 response.Model,
-                mismatch,
-                response.RequestId));
+                response.RequestId,
+                _artifact.Version,
+                evalRequest.PromptVersion);
+
+            var claim = WritingEvaluationValidator.ToClaimedEvaluation(response.Json, wholeBands);
+            var limiterInput = WritingEvaluationValidator.LimitersFrom(
+                response.Json,
+                request.TaskNumber,
+                generalTraining,
+                WritingAdmission.LooksLikeNotes(sanitized),
+                insufficientSentenceControl: wordCount < 50);
+            var limited = WritingLimiters.Apply(claim.Criteria, limiterInput);
+
+            var requested = response.RequestedModel ?? requestedModel ?? response.Model;
+            var mismatch = !string.Equals(requested, response.Model, StringComparison.OrdinalIgnoreCase);
+
+            var result = new ClaimedEvaluation(
+                limited.Criteria,
+                claim.ReportedBand,
+                limited.Advisories,
+                new WritingMarkingProvenance(
+                    evalRequest.PromptVersion,
+                    response.Provider,
+                    requested,
+                    response.Model,
+                    mismatch,
+                    response.RequestId));
+
+            await RecordAttemptAsync(
+                EvaluationAttemptOutcome.Succeeded, response, startedAt, errorCode: null, errorMessage: null, ct);
+
+            return result;
+        }
+        catch (Exception e) when (e is MarkingRejectedException or ArgumentException)
+        {
+            await RecordAttemptAsync(
+                EvaluationAttemptOutcome.Rejected, response, startedAt,
+                errorCode: e is MarkingRejectedException ? "SCHEMA_REJECTED" : "ARGUMENT",
+                errorMessage: e.Message, ct);
+            throw;
+        }
+    }
+
+    private async Task RecordAttemptAsync(
+        EvaluationAttemptOutcome outcome,
+        WritingEvaluationResponse? response,
+        DateTimeOffset startedAt,
+        string? errorCode,
+        string? errorMessage,
+        CancellationToken ct)
+    {
+        if (attempts is null) return;
+        if (EvaluationAttemptContext.Peek is not { } correlation) return;
+
+        var attempt = EvaluationAttempt.Capture(
+            correlation.OperationId,
+            correlation.SessionId,
+            correlation.Module,
+            correlation.TaskNumber,
+            response?.Provider,
+            response?.Model,
+            response?.RequestId,
+            startedAt,
+            DateTimeOffset.UtcNow,
+            outcome,
+            errorCode,
+            errorMessage,
+            response?.Json);
+
+        try
+        {
+            await attempts.RecordAsync(attempt, ct);
+        }
+        catch (Exception e)
+        {
+            // Identifiers only — the JSON is already on the attempt document, or
+            // it is not, and either way it must not appear in a log line.
+            logger.LogError(
+                e,
+                "Failed to persist evaluation attempt {AttemptId} for request {RequestId}.",
+                attempt.Id,
+                attempt.RequestId);
+        }
     }
 
     /// <summary>

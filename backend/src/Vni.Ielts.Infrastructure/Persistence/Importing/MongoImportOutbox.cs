@@ -427,3 +427,362 @@ internal sealed class ImportJobDocument
     [BsonIgnoreIfNull]
     public string? TraceParent { get; set; }
 }
+
+/// <summary>
+/// Package-upload history, in Mongo.
+///
+/// <b>A different collection from <see cref="ImportJobDocument"/> on
+/// purpose.</b> The outbox row is the work queue and is keyed on the bytes;
+/// this row is the attempt, including the ones that never became a job. Mixing
+/// them would force a job row for a bomb the door refused, which is the
+/// archive-retention the door exists to prevent.
+/// </summary>
+internal sealed class MongoPackageImportHistoryStore(MongoContext context, IClock clock)
+    : IPackageImportHistoryStore
+{
+    private IMongoCollection<PackageImportHistoryDocument> History =>
+        context.PackageImportHistory;
+
+    public async Task RecordDoorRejectionAsync(PackageImportHistory record, CancellationToken ct)
+    {
+        var now = clock.UtcNow.UtcDateTime;
+        var document = ToDocument(
+            record with
+            {
+                Id = record.Id == Guid.Empty ? Guid.NewGuid() : record.Id,
+                OperationId = null,
+                OriginalFileName = PackageImportHistoryBounds.SanitizeFileName(record.OriginalFileName),
+                Findings = PackageImportHistoryBounds.BoundFindings(record.Findings),
+                Result = PackageImportHistoryResult.DoorRejected,
+                DraftId = null,
+                Stage = null,
+                CreatedAt = new DateTimeOffset(now, TimeSpan.Zero),
+                UpdatedAt = new DateTimeOffset(now, TimeSpan.Zero),
+            });
+
+        await History.InsertOneAsync(document, cancellationToken: ct);
+    }
+
+    public async Task RecordQueuedAsync(PackageImportHistory record, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(record.OperationId))
+            throw new ArgumentException("A queued history row needs an operation id.", nameof(record));
+
+        var now = clock.UtcNow.UtcDateTime;
+        var fileName = PackageImportHistoryBounds.SanitizeFileName(record.OriginalFileName);
+        var findings = PackageImportHistoryBounds.BoundFindings(record.Findings);
+        var id = record.Id == Guid.Empty ? Guid.NewGuid().ToString("n") : record.Id.ToString("n");
+
+        var filter = Builders<PackageImportHistoryDocument>.Filter.Eq(
+            d => d.OperationId, record.OperationId);
+
+        var upsert = Builders<PackageImportHistoryDocument>.Update
+            .SetOnInsert(d => d.Id, id)
+            .SetOnInsert(d => d.OperationId, record.OperationId)
+            .SetOnInsert(d => d.CreatedAt, now)
+            .SetOnInsert(d => d.Result, PackageImportHistoryResult.Queued.ToString())
+            .SetOnInsert(d => d.Stage, (int?)ImportJobStage.Extracting)
+            .SetOnInsert(d => d.DefinitionId, record.DefinitionId?.Value)
+            .SetOnInsert(d => d.VersionNumber, record.VersionNumber)
+            .SetOnInsert(d => d.SourceSha256, record.SourceSha256)
+            .SetOnInsert(d => d.Findings, findings.Select(ToFinding).ToList())
+            .Set(d => d.ActorId, record.ActorId)
+            .Set(d => d.OriginalFileName, fileName)
+            .Set(d => d.UpdatedAt, now);
+
+        try
+        {
+            await History.UpdateOneAsync(
+                filter, upsert, new UpdateOptions { IsUpsert = true }, ct);
+        }
+        catch (MongoWriteException e)
+            when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            // Two accepted uploads of the same bytes raced the insert. The
+            // unique index on operationId decided; refresh the actor on the
+            // row that won.
+            await History.UpdateOneAsync(
+                filter,
+                Builders<PackageImportHistoryDocument>.Update
+                    .Set(d => d.ActorId, record.ActorId)
+                    .Set(d => d.OriginalFileName, fileName)
+                    .Set(d => d.UpdatedAt, now),
+                cancellationToken: ct);
+        }
+
+        // A re-upload of a failed attempt is the operator asking to try
+        // again. Completed and Running stay put: the first is already done,
+        // and resetting a live worker's result would lie about work in hand.
+        await History.UpdateOneAsync(
+            Builders<PackageImportHistoryDocument>.Filter.And(
+                filter,
+                Builders<PackageImportHistoryDocument>.Filter.In(
+                    d => d.Result,
+                    new[]
+                    {
+                        PackageImportHistoryResult.Failed.ToString(),
+                        PackageImportHistoryResult.Rejected.ToString(),
+                    })),
+            Builders<PackageImportHistoryDocument>.Update
+                .Set(d => d.Result, PackageImportHistoryResult.Queued.ToString())
+                .Set(d => d.Stage, (int?)ImportJobStage.Extracting)
+                .Set(d => d.Findings, findings.Select(ToFinding).ToList())
+                .Set(d => d.UpdatedAt, now),
+            cancellationToken: ct);
+    }
+
+    public async Task ApplyTransitionAsync(
+        string operationId,
+        PackageImportHistoryResult result,
+        ImportJobStage? stage,
+        Guid? draftId,
+        IReadOnlyList<PackageFinding>? findings,
+        CancellationToken ct)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
+
+        var now = clock.UtcNow.UtcDateTime;
+        var id = Guid.NewGuid().ToString("n");
+
+        var update = Builders<PackageImportHistoryDocument>.Update
+            .SetOnInsert(d => d.Id, id)
+            .SetOnInsert(d => d.OperationId, operationId)
+            .SetOnInsert(d => d.ActorId, string.Empty)
+            .SetOnInsert(d => d.OriginalFileName, "unnamed.zip")
+            .SetOnInsert(d => d.CreatedAt, now)
+            .Set(d => d.Result, result.ToString())
+            .Set(d => d.UpdatedAt, now);
+
+        if (stage is { } recorded)
+            update = update.Set(d => d.Stage, (int?)recorded);
+
+        if (draftId is { } draft)
+            update = update.Set(d => d.DraftId, draft.ToString("D"));
+
+        if (findings is not null)
+        {
+            update = update.Set(
+                d => d.Findings,
+                PackageImportHistoryBounds.BoundFindings(findings).Select(ToFinding).ToList());
+        }
+
+        try
+        {
+            await History.UpdateOneAsync(
+                Builders<PackageImportHistoryDocument>.Filter.Eq(d => d.OperationId, operationId),
+                update,
+                new UpdateOptions { IsUpsert = true },
+                ct);
+        }
+        catch (MongoWriteException e)
+            when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            // The door's queued insert won the race. Retry without upsert so
+            // the transition still lands on that row.
+            var retry = Builders<PackageImportHistoryDocument>.Update
+                .Set(d => d.Result, result.ToString())
+                .Set(d => d.UpdatedAt, now);
+
+            if (stage is { } recordedAgain)
+                retry = retry.Set(d => d.Stage, (int?)recordedAgain);
+
+            if (draftId is { } draftAgain)
+                retry = retry.Set(d => d.DraftId, draftAgain.ToString("D"));
+
+            if (findings is not null)
+            {
+                retry = retry.Set(
+                    d => d.Findings,
+                    PackageImportHistoryBounds.BoundFindings(findings).Select(ToFinding).ToList());
+            }
+
+            await History.UpdateOneAsync(
+                Builders<PackageImportHistoryDocument>.Filter.Eq(d => d.OperationId, operationId),
+                retry,
+                cancellationToken: ct);
+        }
+    }
+
+    public async Task<PackageImportHistory?> FindByOperationAsync(
+        string operationId, CancellationToken ct)
+    {
+        var document = await History
+            .Find(d => d.OperationId == operationId)
+            .FirstOrDefaultAsync(ct);
+
+        return document is null ? null : Map(document);
+    }
+
+    public async Task<PackageImportHistory?> FindByIdAsync(Guid id, CancellationToken ct)
+    {
+        var document = await History
+            .Find(d => d.Id == id.ToString("n"))
+            .FirstOrDefaultAsync(ct);
+
+        return document is null ? null : Map(document);
+    }
+
+    public async Task<PackageImportHistoryPage> QueryAsync(
+        PackageImportHistoryQuery query, CancellationToken ct)
+    {
+        query.Validate();
+
+        var filter = Builders<PackageImportHistoryDocument>.Filter.Empty;
+
+        if (query.Result is { } result)
+        {
+            filter &= Builders<PackageImportHistoryDocument>.Filter.Eq(
+                d => d.Result, result.ToString());
+        }
+
+        if (query.Stage is { } stage)
+        {
+            filter &= Builders<PackageImportHistoryDocument>.Filter.Eq(
+                d => d.Stage, (int?)stage);
+        }
+
+        if (query.ActorId is { Length: > 0 } actor)
+        {
+            filter &= Builders<PackageImportHistoryDocument>.Filter.Eq(d => d.ActorId, actor);
+        }
+
+        if (query.From is { } from)
+        {
+            filter &= Builders<PackageImportHistoryDocument>.Filter.Gte(
+                d => d.UpdatedAt, from.UtcDateTime);
+        }
+
+        if (query.To is { } to)
+        {
+            filter &= Builders<PackageImportHistoryDocument>.Filter.Lte(
+                d => d.UpdatedAt, to.UtcDateTime);
+        }
+
+        var sort = Builders<PackageImportHistoryDocument>.Sort
+            .Descending(d => d.UpdatedAt)
+            .Descending(d => d.CreatedAt)
+            .Descending(d => d.Id);
+
+        var total = await History.CountDocumentsAsync(filter, cancellationToken: ct);
+        var skip = (query.Page - 1) * query.PageSize;
+
+        var items = await History
+            .Find(filter)
+            .Sort(sort)
+            .Skip(skip)
+            .Limit(query.PageSize)
+            .ToListAsync(ct);
+
+        return new PackageImportHistoryPage(
+            [.. items.Select(Map)], total, query.Page, query.PageSize);
+    }
+
+    private static PackageImportFindingDocument ToFinding(PackageFinding finding) => new()
+    {
+        Severity = finding.Severity,
+        Code = finding.Code,
+        Path = finding.Path,
+        Message = finding.Message,
+    };
+
+    private static PackageImportHistoryDocument ToDocument(PackageImportHistory record) => new()
+    {
+        Id = record.Id.ToString("n"),
+        OperationId = record.OperationId,
+        ActorId = record.ActorId,
+        OriginalFileName = record.OriginalFileName,
+        DefinitionId = record.DefinitionId?.Value,
+        VersionNumber = record.VersionNumber,
+        SourceSha256 = record.SourceSha256,
+        DraftId = record.DraftId?.ToString("D"),
+        Stage = record.Stage is { } stage ? (int?)stage : null,
+        Result = record.Result.ToString(),
+        Findings = record.Findings.Select(ToFinding).ToList(),
+        CreatedAt = record.CreatedAt.UtcDateTime,
+        UpdatedAt = record.UpdatedAt.UtcDateTime,
+    };
+
+    private static PackageImportHistory Map(PackageImportHistoryDocument d) => new(
+        Guid.TryParse(d.Id, out var id) ? id : Guid.Empty,
+        d.OperationId,
+        d.ActorId,
+        d.OriginalFileName,
+        string.IsNullOrEmpty(d.DefinitionId) ? null : new ExamDefinitionId(d.DefinitionId),
+        d.VersionNumber,
+        d.SourceSha256,
+        d.DraftId is null ? null : Guid.Parse(d.DraftId),
+        d.Stage is { } stage && Enum.IsDefined(typeof(ImportJobStage), stage)
+            ? (ImportJobStage)stage
+            : null,
+        Enum.TryParse<PackageImportHistoryResult>(d.Result, ignoreCase: true, out var result)
+            ? result
+            : PackageImportHistoryResult.Queued,
+        d.Findings.Select(f => new PackageFinding(f.Severity, f.Code, f.Path, f.Message)).ToArray(),
+        new DateTimeOffset(d.CreatedAt, TimeSpan.Zero),
+        new DateTimeOffset(d.UpdatedAt, TimeSpan.Zero));
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class PackageImportHistoryDocument
+{
+    [BsonId]
+    public string Id { get; set; } = Guid.NewGuid().ToString("n");
+
+    [BsonElement("operationId")]
+    [BsonIgnoreIfNull]
+    public string? OperationId { get; set; }
+
+    [BsonElement("actorId")]
+    public string ActorId { get; set; } = string.Empty;
+
+    [BsonElement("originalFileName")]
+    public string OriginalFileName { get; set; } = "unnamed.zip";
+
+    [BsonElement("definitionId")]
+    [BsonIgnoreIfNull]
+    public string? DefinitionId { get; set; }
+
+    [BsonElement("versionNumber")]
+    [BsonIgnoreIfNull]
+    public int? VersionNumber { get; set; }
+
+    [BsonElement("sourceSha256")]
+    [BsonIgnoreIfNull]
+    public string? SourceSha256 { get; set; }
+
+    [BsonElement("draftId")]
+    [BsonIgnoreIfNull]
+    public string? DraftId { get; set; }
+
+    [BsonElement("stage")]
+    [BsonIgnoreIfNull]
+    public int? Stage { get; set; }
+
+    [BsonElement("result")]
+    public string Result { get; set; } = string.Empty;
+
+    [BsonElement("findings")]
+    public List<PackageImportFindingDocument> Findings { get; set; } = [];
+
+    [BsonElement("createdAt")]
+    public DateTime CreatedAt { get; set; }
+
+    [BsonElement("updatedAt")]
+    public DateTime UpdatedAt { get; set; }
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class PackageImportFindingDocument
+{
+    [BsonElement("severity")]
+    public string Severity { get; set; } = string.Empty;
+
+    [BsonElement("code")]
+    public string Code { get; set; } = string.Empty;
+
+    [BsonElement("path")]
+    public string Path { get; set; } = string.Empty;
+
+    [BsonElement("message")]
+    public string Message { get; set; } = string.Empty;
+}

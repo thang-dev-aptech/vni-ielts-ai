@@ -278,6 +278,26 @@ public sealed class SectionMarkingRunnerTests
     }
 
     [Fact]
+    public async Task A_rematch_evaluates_again_so_the_store_can_supersede()
+    {
+        var evaluator = new StubEvaluator(ExamModule.Writing, _ => new(FourClaims(), null));
+        var store = new FakeMarkingStore();
+        var runner = Runner(new FakeRubricSource(WritingRubric), store, [evaluator]);
+        var sheet = WritingSheet();
+        var version = Version();
+
+        await runner.RunAsync(version, ExamModule.Writing, Session, sheet, default);
+        Assert.Equal(2, evaluator.Requests.Count);
+
+        await runner.RunAsync(
+            version, ExamModule.Writing, Session, sheet, default,
+            operationId: "op-rematch", rematch: true);
+
+        Assert.Equal(4, evaluator.Requests.Count);
+        Assert.Equal(4, store.Saved.Count);
+    }
+
+    [Fact]
     public async Task A_response_that_fails_validation_is_refused_and_nothing_is_stored()
     {
         // Three criteria where the rubric names four. A quarter of the mark is

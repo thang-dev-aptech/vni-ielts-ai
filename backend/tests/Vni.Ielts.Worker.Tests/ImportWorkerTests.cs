@@ -244,6 +244,26 @@ public sealed class ImportWorkerTests
     }
 
     /// <summary>
+    /// Refuses inspection with a caller-supplied finding list, so a test can
+    /// prove the history row kept every finding rather than only the first.
+    /// </summary>
+    private sealed class RefusingInspector(IReadOnlyList<PackageFinding> findings)
+        : IExamPackageArchiveInspector
+    {
+        public Task<ArchiveInspection> InspectAsync(
+            Stream zip, ImportArchiveLimits limits, CancellationToken ct) =>
+            Task.FromResult(new ArchiveInspection(false, findings, PackageLayout.Empty));
+
+        public Task<ArchiveExtraction> ExtractToSandboxAsync(
+            Stream zip,
+            ArchiveInspection inspection,
+            string sandboxRoot,
+            ImportArchiveLimits limits,
+            CancellationToken ct) =>
+            throw new InvalidOperationException("A refused inspection must not be extracted.");
+    }
+
+    /// <summary>
     /// A stream that refuses to seek, standing in for an S3 response body.
     ///
     /// <b>Not a <c>MemoryStream</c>, on purpose.</b> A seekable double would
@@ -307,6 +327,24 @@ public sealed class ImportWorkerTests
             definitionId, 1, hash, ImportJob.NoParserConfigured, key, harness.Clock.UtcNow);
 
         Assert.True(await harness.Outbox.EnqueueAsync(job, default));
+
+        var history = harness.Provider.GetRequiredService<IPackageImportHistoryStore>();
+        await history.RecordQueuedAsync(
+            new PackageImportHistory(
+                Guid.NewGuid(),
+                job.OperationId,
+                "worker-test-actor",
+                "package.zip",
+                definitionId,
+                1,
+                hash,
+                DraftId: null,
+                job.Stage,
+                PackageImportHistoryResult.Queued,
+                [],
+                harness.Clock.UtcNow,
+                harness.Clock.UtcNow),
+            default);
 
         return (job.OperationId, definitionId);
     }
@@ -426,6 +464,16 @@ public sealed class ImportWorkerTests
         // An uploaded exam package is third-party copyright. The one moment it
         // is certainly no longer needed is when the job settles.
         Assert.Equal(job.ArchiveKey, Assert.Single(archives.Deleted));
+
+        var history = harness.Provider.GetRequiredService<IPackageImportHistoryStore>();
+        var recorded = await history.FindByOperationAsync(operationId, default);
+        Assert.NotNull(recorded);
+        Assert.Equal(PackageImportHistoryResult.Completed, recorded!.Result);
+        Assert.Equal(ImportJobStage.Done, recorded.Stage);
+        Assert.Equal(job.DraftId, recorded.DraftId);
+        Assert.Equal(definitionId, recorded.DefinitionId);
+        Assert.Equal("worker-test-actor", recorded.ActorId);
+        Assert.Equal("package.zip", recorded.OriginalFileName);
     }
 
     /// <summary>
@@ -451,6 +499,49 @@ public sealed class ImportWorkerTests
         Assert.Equal(ImportJobState.Failed, job!.State);
         Assert.Equal(1, job.Attempts);
         Assert.Contains("ZIP_COMPRESSION_RATIO", job.LastError);
+        Assert.Equal(job.ArchiveKey, Assert.Single(archives.Deleted));
+    }
+
+    /// <summary>
+    /// The job row keeps a single LastError sentence; the history row keeps
+    /// every finding the pipeline reported. A refusal with three findings that
+    /// only stored the first would pass the existing LastError assertion and
+    /// still leave an operator without the other two reasons.
+    /// </summary>
+    [SkippableFact]
+    public async Task A_refused_package_stores_every_finding_on_the_history_row()
+    {
+        Skip.IfNot(MongoAvailable, SkipReason);
+
+        var findings = new PackageFinding[]
+        {
+            new("error", "PATH_ESCAPE", "../x", "escaped the sandbox"),
+            new("error", "ZIP_COMPRESSION_RATIO", "reading/a.bin", "ratio cap"),
+            new("error", "SCHEMA_INVALID", "exam.json", "missing sections"),
+        };
+
+        var archives = new FakeArchiveStore();
+        await using var harness = await NewHarnessAsync(
+            archives,
+            services => services.AddSingleton<IExamPackageArchiveInspector>(
+                new RefusingInspector(findings)));
+
+        var (operationId, _) = await EnqueueAsync(harness, StructuredPackage());
+        await harness.Worker.RunOnceAsync(default);
+
+        var job = await harness.Outbox.FindAsync(operationId, default);
+        Assert.Equal(ImportJobState.Failed, job!.State);
+        Assert.Contains("PATH_ESCAPE", job.LastError);
+        Assert.DoesNotContain("SCHEMA_INVALID", job.LastError);
+
+        var history = harness.Provider.GetRequiredService<IPackageImportHistoryStore>();
+        var recorded = await history.FindByOperationAsync(operationId, default);
+
+        Assert.NotNull(recorded);
+        Assert.Equal(PackageImportHistoryResult.Rejected, recorded!.Result);
+        Assert.Equal(
+            ["PATH_ESCAPE", "ZIP_COMPRESSION_RATIO", "SCHEMA_INVALID"],
+            recorded.Findings.Select(f => f.Code));
         Assert.Equal(job.ArchiveKey, Assert.Single(archives.Deleted));
     }
 
