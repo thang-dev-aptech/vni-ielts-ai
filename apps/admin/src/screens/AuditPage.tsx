@@ -219,6 +219,12 @@ const LABELS: Record<string, string> = {
   UserReinstated: 'Mở khoá',
   RoleAssigned: 'Gán vai trò',
   RoleRemoved: 'Gỡ vai trò',
+  PackageUploadAccepted: 'Đã nhận gói đề',
+  PackageUploadRejected: 'Từ chối gói đề',
+  PackageImportRejected: 'Từ chối nhập gói đề',
+  PackageImportApproved: 'Phê duyệt nhập gói đề',
+  EvaluationContentAccessed: 'Đã xem nội dung bài làm',
+  EvaluationRerunRequested: 'Đã yêu cầu chấm lại',
 };
 
 export const actionLabel = (action: string) => LABELS[action] ?? action;

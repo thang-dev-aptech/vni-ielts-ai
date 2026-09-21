@@ -752,3 +752,234 @@ export const fetchMediaObjectUrl = async (
   const blob = await response.blob();
   return URL.createObjectURL(blob);
 };
+
+// ── Evaluation history, package history, and safe runtime configuration ────
+// These are projections of the API contracts. Configuration deliberately has
+// no credentials, endpoints, connection strings or provider headers.
+
+export interface AdminEvaluationListItem {
+  sessionId: string;
+  markingId: string;
+  module: string;
+  taskNumber: number | null;
+  rubricVersion: string;
+  recomputedBand: number;
+  reportedBand: number | null;
+  flags: string[];
+  isCurrent: boolean;
+  version: number;
+  markedAt: string;
+}
+
+export interface AdminEvaluationPage {
+  items: AdminEvaluationListItem[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface AdminEvaluationFilters {
+  from?: string;
+  to?: string;
+  module?: string;
+  flagged?: boolean;
+  current?: boolean;
+  page?: number;
+}
+
+export interface AdminEvaluationCriterion {
+  criterion: string;
+  band: number;
+  feedback: string;
+  /** Present only after an audited `includeContent` request. */
+  evidence?: unknown;
+}
+
+export interface AdminEvaluationAttempt {
+  id: string;
+  taskNumber: number | null;
+  provider: string | null;
+  model: string | null;
+  requestId: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+  outcome: string;
+  errorCode: string | null;
+  errorMessage: string | null;
+  rawOutputTruncated: boolean;
+  /** Present only after an audited `includeContent` request. */
+  rawOutput?: string;
+  markingId: string | null;
+  markingVersion: number | null;
+}
+
+export interface AdminEvaluationDetail extends AdminEvaluationListItem {
+  criteria: AdminEvaluationCriterion[];
+  /** Present only after an audited `includeContent` request. */
+  ungroundedEvidence?: unknown;
+  advisories: string[];
+  provenance: Record<string, unknown>;
+  supersedesId: string | null;
+  supersededById: string | null;
+  attempts: AdminEvaluationAttempt[];
+  /** Present only after an audited `includeContent` request. */
+  learnerSubmission?: Record<string, string | null>;
+}
+
+export interface FailedMarkingJob {
+  operationId: string;
+  sessionId: string;
+  module: string;
+  rubricVersion: string;
+  state: string;
+  attempts: number;
+  lastError: string | null;
+  createdAt: string;
+  failedAt: string | null;
+  nextAttemptAt: string | null;
+  completedAt: string | null;
+}
+
+export interface FailedMarkingJobPage {
+  items: FailedMarkingJob[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface FailedMarkingJobFilters {
+  from?: string;
+  to?: string;
+  module?: string;
+  page?: number;
+}
+
+export interface EvaluationRerunResult {
+  operationId: string;
+  state: string;
+  replayed: boolean;
+  costConsequence: string;
+  pricingStatus: string;
+  pricingBlockers: string[];
+}
+
+const queryFor = (values: object) => {
+  const query = new URLSearchParams();
+  for (const [name, value] of Object.entries(values)) {
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      query.set(name, String(value));
+    }
+  }
+  return query.toString();
+};
+
+export const listEvaluations = (accessToken: string, filters: AdminEvaluationFilters = {}) =>
+  request<AdminEvaluationPage>(`/api/v1/admin/evaluations?${queryFor(filters)}`, { accessToken });
+
+export const getEvaluation = (
+  accessToken: string,
+  sessionId: string,
+  markingId: string,
+  includeContent = false,
+) =>
+  request<AdminEvaluationDetail>(
+    `/api/v1/admin/evaluations/${encodeURIComponent(sessionId)}/${encodeURIComponent(markingId)}`
+      + `?${queryFor({ includeContent })}`,
+    { accessToken },
+  );
+
+export const listFailedMarkingJobs = (accessToken: string, filters: FailedMarkingJobFilters = {}) =>
+  request<FailedMarkingJobPage>(
+    `/api/v1/admin/evaluations/failed-jobs?${queryFor(filters)}`,
+    { accessToken },
+  );
+
+export const rerunEvaluation = (accessToken: string, operationId: string) =>
+  request<EvaluationRerunResult>(
+    `/api/v1/admin/evaluations/failed-jobs/${encodeURIComponent(operationId)}/rerun`,
+    { method: 'POST', accessToken, idempotencyKey: crypto.randomUUID() },
+  );
+
+export interface PackageImportHistorySummary {
+  historyId: string;
+  operationId: string | null;
+  actorId: string;
+  originalFileName: string;
+  definitionId: string | null;
+  versionNumber: number | null;
+  sourceSha256: string | null;
+  draftId: string | null;
+  stage: string | null;
+  result: string;
+  findingCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PackageImportHistoryDetail extends Omit<PackageImportHistorySummary, 'findingCount'> {
+  findings: ImportFinding[];
+}
+
+export interface PackageImportHistoryPage {
+  items: PackageImportHistorySummary[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface PackageImportHistoryFilters {
+  result?: string;
+  stage?: string;
+  uploader?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export const listPackageHistory = (
+  accessToken: string,
+  filters: PackageImportHistoryFilters = {},
+) =>
+  request<PackageImportHistoryPage>(
+    `/api/v1/admin/import/packages?${queryFor(filters)}`,
+    { accessToken },
+  );
+
+export const getPackageHistory = (accessToken: string, historyId: string) =>
+  request<PackageImportHistoryDetail>(
+    `/api/v1/admin/import/package-history/${encodeURIComponent(historyId)}`,
+    { accessToken },
+  );
+
+export interface AdminRuntimeConfiguration {
+  ai: {
+    skills: Array<{
+      skill: string;
+      status: string;
+      provider: string | null;
+      model: string | null;
+      version: string | null;
+      fallback: { provider: string; status: string; model: string | null } | null;
+    }>;
+  };
+  writing: {
+    rubricVersion: string | null;
+    task1Weight: number | null;
+    task2Weight: number | null;
+    feedbackLanguage: string;
+    criterionGranularity: string;
+  };
+  importArchive: {
+    maxEntries: number;
+    maxTotalUncompressedBytes: number;
+    maxEntryUncompressedBytes: number;
+    maxCompressionRatio: number;
+    maxArchiveBytes: number;
+    extractionTimeoutSeconds: number;
+  };
+  tokenPricing: { status: string; blockers: string[] };
+}
+
+export const getRuntimeConfiguration = (accessToken: string) =>
+  request<AdminRuntimeConfiguration>('/api/v1/admin/config', { accessToken });

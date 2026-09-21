@@ -505,9 +505,11 @@ app.MapExamEndpoints();
 app.MapDictationEndpoints();
 app.MapLibraryEndpoints();
 app.MapAdminEndpoints();
-        app.MapAdminLibraryEndpoints();
-        app.MapAdminMediaEndpoints();
-        app.MapAdminImportEndpoints();
+app.MapAdminLibraryEndpoints();
+app.MapAdminMediaEndpoints();
+app.MapAdminImportEndpoints();
+app.MapAdminEvaluationEndpoints();
+app.MapAdminConfigEndpoints();
 
 /*
  * <b>Two endpoints, because they answer two different questions.</b> What stood

@@ -22,7 +22,13 @@ export const AdminPaths = {
   documents: '/documents',
   articles: '/articles',
   packages: '/packages',
+  packageHistory: (historyId: string) => `/packages/history/${historyId}`,
+  packageHistoryPattern: '/packages/history/:historyId',
   evaluations: '/evaluations',
+  evaluation: (sessionId: string, markingId: string) =>
+    `/evaluations/${encodeURIComponent(sessionId)}/${encodeURIComponent(markingId)}`,
+  evaluationPattern: '/evaluations/:sessionId/:markingId',
+  failedEvaluations: '/evaluations/failed-jobs',
   users: '/users',
   user: (userId: string) => `/users/${userId}`,
   userPattern: '/users/:userId',

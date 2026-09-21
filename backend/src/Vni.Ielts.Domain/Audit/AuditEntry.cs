@@ -126,4 +126,12 @@ public enum AuditAction
     PackageImportRejected,
     /// <summary>An import draft was approved for review publication.</summary>
     PackageImportApproved,
+
+    // Evaluation operations are deliberately distinct from a normal score
+    // read: the former grants access to learner/model content and the latter
+    // can spend provider money. Details stay identifier/count metadata only.
+    /// <summary>Protected learner submission or evaluator output was viewed.</summary>
+    EvaluationContentAccessed,
+    /// <summary>A failed evaluator job was reopened for another provider call.</summary>
+    EvaluationRerunRequested,
 }
