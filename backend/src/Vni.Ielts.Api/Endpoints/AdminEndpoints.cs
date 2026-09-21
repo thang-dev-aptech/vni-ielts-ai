@@ -251,25 +251,17 @@ public static class AdminEndpoints
 
     private static async Task<IResult> AuditEndpoint(
         ClaimsPrincipal principal, IAuditLog audit,
-        string? actor, string? action, int? page, CancellationToken ct)
+        string? actor, string? action, string? cursor, CancellationToken ct)
     {
         if (Denied(principal, PermissionKeys.AuditRead) is { } denial) return denial;
 
         const int PageSize = 40;
 
-        // Clamped at both ends. An unbounded page number turns into an
-        // unbounded `skip`, and Mongo walks every skipped document — a cheap
-        // request to send and an expensive one to serve.
-        var current = Math.Clamp(page ?? 1, 1, MaxPage);
-
-        var (entries, total) = await audit.ListAsync(
-            actor, action, (current - 1) * PageSize, PageSize, ct);
+        var (entries, nextCursor) = await audit.ListCursorAsync(
+            actor, action, PageSize, ct, cursor);
 
         return Results.Ok(new
         {
-            total,
-            page = current,
-            pageSize = PageSize,
             actions = Enum.GetNames<AuditAction>(),
             entries = entries.Select(e => new
             {
@@ -282,6 +274,7 @@ public static class AdminEndpoints
                 targetLabel = e.TargetLabel,
                 detail = e.Detail,
             }),
+            nextCursor,
         });
     }
 

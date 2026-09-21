@@ -21,10 +21,11 @@ export function AuditPage() {
 
   const [entries, setEntries] = useState<AuditEntry[] | null>(null);
   const [actions, setActions] = useState<string[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
   const [filter, setFilter] = useState({ actor: '', action: '' });
   const [actorDraft, setActorDraft] = useState('');
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  const [previousCursors, setPreviousCursors] = useState<(string | undefined)[]>([]);
   const alive = useRef(true);
 
   useEffect(() => {
@@ -35,19 +36,18 @@ export function AuditPage() {
   const load = useCallback(async () => {
     if (accessToken === null) return;
     try {
-      const result = await listAudit(accessToken, filter, page);
+      const result = await listAudit(accessToken, filter, cursor);
       if (!alive.current) return;
       setEntries(result.entries);
       setActions(result.actions);
-      setTotal(result.total);
+      setNextCursor(result.nextCursor);
     } catch {
       if (alive.current) setEntries([]);
     }
-  }, [accessToken, filter, page]);
+  }, [accessToken, filter, cursor]);
 
   useEffect(() => void load(), [load]);
 
-  const pages = Math.max(1, Math.ceil(total / 40));
   const filtered = filter.actor !== '' || filter.action !== '';
 
   return (
@@ -63,7 +63,9 @@ export function AuditPage() {
         className="cms-toolbar"
         onSubmit={(event) => {
           event.preventDefault();
-          setPage(1);
+          setCursor(undefined);
+          setPreviousCursors([]);
+          setNextCursor(undefined);
           setFilter((f) => ({ ...f, actor: actorDraft.trim() }));
         }}
       >
@@ -80,7 +82,9 @@ export function AuditPage() {
           <select
             value={filter.action}
             onChange={(e) => {
-              setPage(1);
+              setCursor(undefined);
+              setPreviousCursors([]);
+              setNextCursor(undefined);
               setFilter((f) => ({ ...f, action: e.target.value }));
             }}
           >
@@ -103,7 +107,9 @@ export function AuditPage() {
             className="cms-link-button"
             onClick={() => {
               setActorDraft('');
-              setPage(1);
+              setCursor(undefined);
+              setPreviousCursors([]);
+              setNextCursor(undefined);
               setFilter({ actor: '', action: '' });
             }}
           >
@@ -114,7 +120,7 @@ export function AuditPage() {
 
       {entries === null && <p className="cms-muted">Đang tải…</p>}
 
-      {entries !== null && entries.length === 0 && (
+      {entries !== null && entries.length === 0 && previousCursors.length === 0 && (
         <div className="cms-empty">
           <h3>{filtered ? 'Không có mục nào khớp bộ lọc' : 'Chưa có hành động nào được ghi'}</h3>
           <p>
@@ -128,7 +134,7 @@ export function AuditPage() {
       {entries !== null && entries.length > 0 && (
         <>
           <p className="cms-muted">
-            <span className="num">{total}</span> mục
+            {entries.length} mục
             {filtered ? ' khớp bộ lọc' : ''}.
           </p>
 
@@ -182,19 +188,26 @@ export function AuditPage() {
             <button
               type="button"
               className="cms-secondary"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
+              disabled={previousCursors.length === 0}
+              onClick={() => {
+                const prev = [...previousCursors];
+                const prevCursor = prev.pop();
+                setPreviousCursors(prev);
+                setCursor(prevCursor);
+                setNextCursor(undefined);
+              }}
             >
               Trang trước
             </button>
-            <span className="num">
-              {page} / {pages}
-            </span>
             <button
               type="button"
               className="cms-secondary"
-              disabled={page >= pages}
-              onClick={() => setPage((p) => p + 1)}
+              disabled={!nextCursor}
+              onClick={() => {
+                setPreviousCursors([...previousCursors, cursor]);
+                setCursor(nextCursor);
+                setNextCursor(undefined);
+              }}
             >
               Trang sau
             </button>

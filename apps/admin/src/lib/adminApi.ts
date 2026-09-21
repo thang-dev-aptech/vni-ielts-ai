@@ -117,18 +117,17 @@ export const getUser = (accessToken: string, userId: string) =>
 export const listAudit = (
   accessToken: string,
   filter: { actor: string; action: string },
-  page: number,
+  cursor?: string,
 ) => {
-  const query = new URLSearchParams({ page: String(page) });
+  const query = new URLSearchParams();
   if (filter.actor) query.set('actor', filter.actor);
   if (filter.action) query.set('action', filter.action);
+  if (cursor) query.set('cursor', cursor);
 
   return request<{
-    total: number;
-    page: number;
-    pageSize: number;
     actions: string[];
     entries: AuditEntry[];
+    nextCursor?: string;
   }>(`/api/v1/admin/audit?${query}`, { accessToken });
 };
 
@@ -662,9 +661,22 @@ export const approveImportDraft = async (
  * One row of the media library � the server's view, field for field the shape
  * `lib/media.ts` has carried since the screen existed.
  */
+/**
+ * One version reference from an exam that uses this media asset.
+ */
+export interface AdminMediaVersionReference {
+  versionId: string;
+  title: string;
+  state: string;
+}
+
+/**
+ * One row of the media library · the server's view, field for field the shape
+ * `lib/media.ts` has carried since the screen existed.
+ */
 export interface AdminMediaAsset {
   mediaId: string;
-  /** `audio` � `image` � `file` � derived by the server from the file's own magic bytes. */
+  /** `audio` · `image` · `file` · derived by the server from the file's own magic bytes. */
   kind: string;
   fileName: string;
   contentType: string;
@@ -674,6 +686,7 @@ export interface AdminMediaAsset {
   uploadedByName: string;
   uploadedAt: string;
   retired: boolean;
+  referencedBy: AdminMediaVersionReference[];
 }
 
 export const listMedia = (accessToken: string) =>

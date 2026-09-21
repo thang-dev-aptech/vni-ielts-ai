@@ -1,3 +1,4 @@
+using System.Text;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -46,6 +47,50 @@ internal sealed class DetailPair
 
     [BsonElement("v")]
     public string Value { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// An opaque cursor for audit log pagination, encoding the last seen row's
+/// timestamp and id. Cursors are base64-encoded strings that the client
+/// passes back unchanged; they are never parsed on the client.
+/// </summary>
+internal sealed record AuditCursor
+{
+    private const string Scheme = "audit:v1:";
+
+    public DateTime At { get; init; }
+    public string Id { get; init; } = string.Empty;
+
+    public static AuditCursor Create(DateTime at, string id) => new() { At = at, Id = id };
+
+    public static AuditCursor? TryDecode(string? encoded)
+    {
+        if (string.IsNullOrWhiteSpace(encoded))
+            return null;
+
+        try
+        {
+            var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+            if (!decoded.StartsWith(Scheme, StringComparison.Ordinal))
+                return null;
+
+            var parts = decoded[Scheme.Length..].Split(':', 2);
+            if (parts.Length != 2 || !long.TryParse(parts[0], out var ticks))
+                return null;
+
+            return new AuditCursor { At = new DateTime(ticks, DateTimeKind.Utc), Id = parts[1] };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public string Encode()
+    {
+        var decoded = $"{Scheme}{At.Ticks}:{Id}";
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(decoded));
+    }
 }
 
 /// <summary>
@@ -104,6 +149,69 @@ internal sealed class MongoAuditLog(MongoContext context) : IAuditLog
             .ToListAsync(ct);
 
         return ([.. docs.Select(ToDomain)], total);
+    }
+
+    /// <summary>
+    /// One page of the audit log, keyed by cursor rather than offset.
+    ///
+    /// <para>
+    /// <b>Why not offset:</b> entries insert at the head as they are made.
+    /// Offset paging counts from the top, so every insert above the current
+    /// position shifts the offset down, causing the next page to either skip
+    /// rows or show one again. A cursor names a position in the sort order,
+    /// not a count of rows to skip, so an insert above it changes nothing.
+    /// </para>
+    /// </summary>
+    public async Task<(IReadOnlyList<AuditEntry> Entries, string? NextCursor)> ListCursorAsync(
+        string? actorId, string? action, int take, CancellationToken ct, string? cursor = null)
+    {
+        var filters = new List<FilterDefinition<AuditDocument>>();
+
+        if (!string.IsNullOrWhiteSpace(actorId))
+            filters.Add(Builders<AuditDocument>.Filter.Eq(e => e.ActorId, actorId));
+
+        if (!string.IsNullOrWhiteSpace(action))
+            filters.Add(Builders<AuditDocument>.Filter.Eq(e => e.Action, action));
+
+        var baseFilter = filters.Count == 0
+            ? Builders<AuditDocument>.Filter.Empty
+            : Builders<AuditDocument>.Filter.And(filters);
+
+        var filter = baseFilter;
+
+        // Decode the cursor to apply position filtering
+        if (AuditCursor.TryDecode(cursor) is { } after)
+        {
+            var cursorFilter = Builders<AuditDocument>.Filter.Or(
+                Builders<AuditDocument>.Filter.Lt(e => e.At, after.At),
+                Builders<AuditDocument>.Filter.And(
+                    Builders<AuditDocument>.Filter.Eq(e => e.At, after.At),
+                    Builders<AuditDocument>.Filter.Lt(e => e.Id, after.Id)
+                )
+            );
+            filter = Builders<AuditDocument>.Filter.And(baseFilter, cursorFilter);
+        }
+
+        var docs = await Entries
+            .Find(filter)
+            .SortByDescending(e => e.At)
+            .ThenByDescending(e => e.Id)
+            .Limit(take + 1)  // Fetch one extra to see if there are more
+            .ToListAsync(ct);
+
+        string? nextCursor = null;
+        if (docs.Count > take)
+        {
+            // There are more rows; provide a cursor pointing to the last row we're returning
+            docs = docs.Take(take).ToList();
+            if (docs.Count > 0)
+            {
+                var lastDoc = docs[^1];
+                nextCursor = AuditCursor.Create(lastDoc.At, lastDoc.Id).Encode();
+            }
+        }
+
+        return ([.. docs.Select(ToDomain)], nextCursor);
     }
 
     public static Task EnsureIndexesAsync(IMongoDatabase database, CancellationToken ct) =>

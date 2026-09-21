@@ -258,4 +258,26 @@ public interface IAuditLog
     /// <summary>Newest first. Filters are optional and combine with AND.</summary>
     Task<(IReadOnlyList<Vni.Ielts.Domain.Audit.AuditEntry> Entries, long Total)> ListAsync(
         string? actorId, string? action, int skip, int take, CancellationToken ct);
+
+    /// <summary>
+    /// One page of the audit log, keyed by cursor rather than offset.
+    ///
+    /// <para>
+    /// <b>Why not offset:</b> entries insert at the head as they are made.
+    /// Offset paging counts from the top, so every insert above the current
+    /// position shifts the offset down, causing the next page to either skip
+    /// rows or show one again. A cursor names a position in the sort order,
+    /// not a count of rows to skip, so an insert above it changes nothing.
+    /// </para>
+    /// </summary>
+    /// <param name="cursor">
+    /// Where the previous page stopped, or null for the first page. An opaque
+    /// string the client receives in <c>nextCursor</c> and passes back unchanged.
+    /// </param>
+    /// <returns>
+    /// The entries on this page and a cursor for the next page, or null if there
+    /// are no more entries. Filters are optional and combine with AND.
+    /// </returns>
+    Task<(IReadOnlyList<Vni.Ielts.Domain.Audit.AuditEntry> Entries, string? NextCursor)> ListCursorAsync(
+        string? actorId, string? action, int take, CancellationToken ct, string? cursor = null);
 }
