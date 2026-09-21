@@ -185,25 +185,35 @@ The owner restated the product scope on 2026-08-20, adding four modules, a token
 AI-assisted exam import. Each large question below is **split into sub-decisions** so one part can be
 settled without waiting on the rest.
 
-### B-5 · Token charging policy `[BUSINESS DECISION]` — **partly answered 2026-09-18 by `Q-05`**
+### B-5 · Token charging policy — ~~`[BUSINESS DECISION]`~~ **CLOSED 2026-09-21 by `Q-06`**
 
-**Blocks:** entitlement logic, cost model, and the exam-start flow. Since `Q-05` it also blocks
-`W2` in `_workspace/queue/web-enduser-completion.md`, which must not start on a guess.
+**Was blocking:** entitlement logic, the cost model, the exam-start flow, and `W2` in
+`_workspace/queue/web-enduser-completion.md`. **Nothing is blocked now.**
 
-> **What `Q-05` settled (18/09/2026):** the ledger becomes a spendable currency named **VNI**.
-> Daily sign-in **+3**, a registration through a referral link **+5**, one AI-marked Writing task
-> **−5**. Reading and Listening are free — they are marked from the answer key and call no
-> provider (`A-11`). This supersedes `P-14` on the single point that usage is recorded but never
-> priced.
+`Q-05` (18/09) named the currency and left three amounts open. `Q-06` (21/09) settled all three.
+The canonical text is [`confirmed.md`](confirmed.md) § *Decisions of 21/09/2026*; the rows below
+are kept so that a reader arriving from an old link finds the answer rather than the question.
 
-| | |
-|---|---|
-| **B-5a** | **Which operations actually consume a token?** — *partly answered.* Writing AI band **costs** (`Q-05`); Reading/Listening answer-key scoring is **free** (`A-11`); Speaking AI band does not arise yet (`P-02`); AI Chat is outside the MVP (`F-2`); AI Parse is an admin operation and is not charged to a learner. **Still open, and it is the expensive one: the Reading/Listening AI explanation.** `GET /sessions/{id}/questions/{questionId}/explanation` calls a provider for real and a learner presses it many times while reviewing a paper — free of charge, it is the largest AI bill in the product with no matching earn |
-| **B-5b** | **How many tokens** each earn and spend is worth — *figures given, confirmation pending.* The owner offered `+3 / +5 / −5` with the word *"ví dụ"*, so they read as illustrative rather than final. Two further amounts have no figure at all: the initial grant, today `Usage:InitialGrantTurns = 10` in *turns* and needing a VNI denomination (**50 VNI** would preserve today's ten markings), and Speaking, which costs ASR **plus** LLM and so cannot sensibly equal Writing |
-| **B-5c** | **What happens at a zero balance?** *(opened 18/09/2026 by `Q-05`)* — **(a)** refuse to send the essay for marking until the learner has enough, the submission itself still saved; **(b)** mark anyway and let the balance go negative; **(c)** a soft cap, marking still happens but rate-limited per day. Only (a) makes the number mean anything, and only (a) can leave a paying-nothing learner with no feedback — which is the exact outcome `P-14` was written to prevent. **Nothing may be coded on either side of this until the owner answers**; a provisional "let it through for now" is precisely the invented default `G-11` forbids |
+| | Question | Answer |
+|---|---|---|
+| **B-5a** | Which operations consume VNI | **CLOSED by `Q-06c`.** A *sitting* is the charged unit — not an operation. 5 VNI on submit covers the whole sitting: both Writing tasks marked by AI, and every AI explanation of a wrong answer in it. The explanation is therefore no longer an uncapped AI bill with no matching earn, which was this row's actual worry |
+| **B-5b** | How much each earn and spend is worth | **CLOSED by `Q-06a`/`Q-06b`.** Registration **+10 VNI**, daily sign-in **+3**, referral **+5 to the inviter**, a sitting **−5**. The `+3/+5/−5` are final, not illustrative. **The initial grant went to 10 VNI, not the 50 this row proposed** — two sittings rather than today's ten markings, chosen with that consequence stated |
+| **B-5c** | What happens at a zero balance | **CLOSED by `Q-06d`**, option (b): nothing is blocked, the balance goes negative, marking continues. VNI is not sold yet, so a refusal would protect nothing |
 
-Without B-5a stated explicitly, a later reader will assume "every AI operation costs tokens" — which
-would wrongly charge for Reading and Listening, whose scoring needs no provider at all (`A-11`).
+**Two things `Q-06` deliberately did not settle, and neither may be guessed:**
+
+1. **Whether the invited learner is credited too.** Only the inviter's +5 is decided. The invitee
+   earns **0**, held as a configured seam under `G-11`.
+2. **What a Speaking marking costs.** Speaking is outside the MVP (`P-02`), and it consumes ASR
+   **plus** LLM, so it cannot sensibly inherit the sitting price. It gets a figure when `W9` gets
+   a decision, not before.
+
+**A third thing is a consequence rather than an open question, and belongs in `W2`:** a marking job
+that ends `Failed` has taken 5 VNI and returned nothing. `Q-06d` removed the pressure — a negative
+balance costs the learner nothing today — but a refund is still the only honest ledger entry.
+
+**When VNI is sold, `B-5c` reopens.** `Q-06d` is a decision about a currency with no price, and the
+moment one is attached the answer stops following from its premise.
 
 **Market reference:** Edly's unit economics are summarised under `B-4`, which this supersedes in
 specificity but not in substance.

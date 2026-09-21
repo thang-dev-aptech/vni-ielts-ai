@@ -42,12 +42,37 @@ Năm luật trong `claude-code-handoff.md` § *Năm luật xuyên suốt* vẫn 
 | ID | Câu hỏi | Chặn |
 |---|---|---|
 | `B-5a` | **Giải thích câu sai bằng AI tính bao nhiêu VNI?** Endpoint `/sessions/{id}/questions/{id}/explanation` gọi AI thật và học viên bấm nhiều lần khi xem lại bài — đây là chỗ tốn chi phí AI nhất mà chưa có giá | `W2` |
-| `B-5c` *(mới)* | **Hết VNI thì chặn hay không chặn?** A: không gửi AI chấm cho tới khi đủ · B: vẫn chấm, số dư âm · C: chặn mềm theo ngày | `W2` |
-| `B-5b` | Các con số `+3 / +5 / −5` chủ sản phẩm nêu kèm chữ *"ví dụ"* — cần xác nhận là số chính thức hay số minh hoạ | `W2` |
+| ~~`B-5a`~~ ~~`B-5b`~~ ~~`B-5c`~~ | **Đã đóng 21/09/2026 bằng `Q-06`.** Xem § *Bảng giá VNI* ngay dưới bảng này. `W2` hết chặn | — |
 | `P-02` | Đảo quyết định "Speaking không chấm trong MVP" | `W9` |
 | `B-1` | Chọn nhà cung cấp ASR | `W9` |
 | `B-2` | Chấp nhận rủi ro PDPL cho giọng nói học viên, bằng văn bản như `Q-03` | `W9` |
 | — | Ai soạn nội dung nghe chép, và bản quyền audio | `W4`, `W8` |
+
+### Bảng giá VNI — chốt 21/09/2026 (`Q-06`)
+
+| Việc | VNI |
+|---|---|
+| Đăng ký tài khoản thành công | **+10** |
+| Đăng nhập hằng ngày | **+3** |
+| Người được mời đăng ký (trả cho **người mời**) | **+5** |
+| **Một phiên thi bất kỳ** — R · L · W · thi thử | **−5, trừ lúc NỘP BÀI** |
+| Hết VNI | **không chặn gì cả** — vẫn làm, vẫn chấm, sổ cái âm |
+
+**`Q-06` đảo `Q-05` ở hai chỗ, và cả hai đều đụng tiền:** đơn vị tính chuyển từ *một task Writing
+được AI chấm* sang *một phiên*; và **Reading/Listening không còn miễn phí** — mọi phiên đều 5 VNI.
+Đổi lại, nút *AI giải thích câu sai* nằm gọn trong giá phiên, nên nó thôi là khoản chi AI không có
+nguồn thu đối ứng — đó đúng là điều `B-5a` lo.
+
+**Trừ lúc nộp chứ không phải lúc bắt đầu, và đây là chi tiết chịu lực:** mở đề rồi bỏ thì không mất
+gì, và «Kiểm tra lại» không thể tính tiền vì phiên đã bị trừ đúng một lần từ trước.
+
+**Hai con số cố ý để trống, `G-11`:** người *được mời* có được cộng không (nay **0**), và chấm
+Speaking giá bao nhiêu (`P-02` nên chưa phát sinh).
+
+**Grant 10 VNI = 2 phiên, không phải 10.** Hôm nay `Usage:InitialGrantTurns = 10` là 10 *lượt*.
+Chủ sản phẩm được báo hệ quả này trước khi chốt và vẫn chọn 10.
+
+---
 
 ---
 
@@ -147,7 +172,7 @@ những kỹ năng nào; lịch sử thì không. Thêm vào là **đổi hình 
 
 ## W2 — Nền kinh tế VNI
 
-**Chặn:** `B-5a`, `B-5b`, `B-5c`. **Không bắt đầu khi ba câu này chưa có lời.**
+**Chặn:** không — ~~`B-5a`, `B-5b`, `B-5c`~~ đã đóng 21/09/2026 bằng `Q-06`. Giá lấy ở § *Bảng giá VNI*.
 
 Hôm nay `UsageRecorder` **ghi nhận mà không định giá** — đúng `P-14` và `G-11`. `Q-05` đảo điều đó:
 VNI là đồng ảo có kiếm, có tiêu.
@@ -611,7 +636,7 @@ Gom về một chỗ để khỏi trôi. Không cái nào chặn `W*` nào.
 |---|---|---|---|
 | `W0` Drill Foundation | ✅ đóng 18/09 `9098ed7` | — | 2–3h |
 | `W1` Band tổng thống nhất | ✅ đóng 18/09 `163de91` | — | 3–4h |
-| `W2` Nền kinh tế VNI | ⛔ chặn | `B-5a` `B-5b` `B-5c` | 2–3 ngày |
+| `W2` Nền kinh tế VNI | ▶ chạy được | — (mở khoá 21/09 `Q-06`) | 2–3 ngày |
 | `W3` Ví lên giao diện | ⛔ chặn | `W2` | 1–1.5 ngày |
 | `W4` Kho nghe chép | ✅ đóng 18/09 `7a0c43f` — nội dung thật vẫn chờ | nội dung | 2h + soạn bài |
 | `W5` Lịch sử đầy đủ | ✅ đóng 18/09 `19df38b`, cursor đóng đợt 3 | — | 4–6h |
@@ -622,7 +647,7 @@ Gom về một chỗ để khỏi trôi. Không cái nào chặn `W*` nào.
 | `W10` Đọc theo lô cho lịch sử | ✅ đóng 18/09 `014ee7f`, hai cổng cuối đóng đợt 3 | — | 0.5–1 ngày |
 
 **Đợt 2 (`W7`, `W10`) chạy được ngay, không chờ quyết định nào.**
-`W2` → `W3` chờ ba câu về VNI. `W9` chờ ba quyết định ngoài code.
+`W2` → `W3` **hết chờ từ 21/09** (`Q-06`). `W9` chờ ba quyết định ngoài code — chủ sản phẩm 21/09: *nghiên cứu ASR ngay khi bắt đầu lát đó*, không chốt trước.
 
 **`W8` hoãn, và không phải vì chặn kỹ thuật** (quyết định chủ sản phẩm 18/09): nó là CMS chứ không nằm
 trên đường tới "web người học 100%", và câu *ai soạn nội dung nghe chép, bản quyền audio ra sao* vẫn

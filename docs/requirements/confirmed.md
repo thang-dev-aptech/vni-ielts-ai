@@ -288,7 +288,9 @@ and which AI provider the MVP pays for. `Q-05` came later the same day, from the
 the learner web app still lacks. Three supersede rows above. **`Q-01`…`Q-04` are implemented;
 `Q-05` is not** — it is the subject of `W2` in
 `_workspace/queue/web-enduser-completion.md` and cannot start until the three amounts it leaves
-open are settled.
+open are settled. **Those three amounts were settled on 21/09/2026 by `Q-06` below, which
+supersedes `Q-05` on two points** — the unit that is charged, and whether Reading and Listening
+are free.
 
 | ID | Decision | Status | Source |
 |---|---|---|---|
@@ -297,6 +299,28 @@ open are settled.
 | Q-03 | **The papers already in use are published, and the exposure is accepted.** Narrows `P-21`, which said publish only what VNI owns or holds rights to. `ContentRightsPolicy` is unchanged and still refuses; `ContentRights:AllowPublicationWithoutProvenRights` records the acceptance, every such publication is audited as an override, and startup announces it. **An accepted risk under `M-53`, not a licence** — do not describe it as resolved | CONFIRMED | Owner decision 18/09/2026 |
 | Q-04 | **Keep the reseller key already in use; do not move to OpenAI directly.** Direct pricing is not affordable for the MVP. No code change: `api.vietapi.tech` stays the configured base URL. The compliance position is unchanged and still open — `B-2` and `M-28` remain accepted risks, and a data-processing agreement still does not exist | CONFIRMED | Owner decision 18/09/2026 |
 | Q-05 | **The turn ledger becomes a virtual currency called VNI, which a learner earns and spends.** Supersedes `P-14` on the one point that it records without pricing: a marking run now costs. The owner's figures, given as an example and awaiting confirmation under `B-5b` — daily sign-in **+3 VNI**, a registration through a referral link **+5 VNI**, one AI-marked Writing task **−5 VNI**. Reading and Listening stay free: they are marked from the answer key and call no provider (`A-11`). **Three things this does not yet say, and none may be guessed under `G-11`** — what an AI explanation costs (`B-5a`), what happens at zero balance (`B-5c`), and whether the invited learner is credited too. The referral mechanism itself is unchanged and already settled by `P-16`: credited on registration, farming held off by the unique phone number | CONFIRMED | Owner decision 18/09/2026 |
+
+### Decisions of 21/09/2026 — `Q-06`, the VNI price list
+
+`Q-05` named a currency and left three amounts open, which is why `W2` could not start. The owner
+settled all three on 21/09/2026 and, in doing so, **changed two things `Q-05` had said**. Both
+changes are recorded as supersedes rather than as clarifications, because each one moves money.
+
+| ID | Decision | Status | Source |
+|---|---|---|---|
+| Q-06a | **A new account is credited +10 VNI on successful registration.** This replaces `Usage:InitialGrantTurns = 10`, which granted ten *turns*. At the `Q-06c` price of 5 VNI a sitting, ten VNI buys **two** sittings, not ten — the owner was told this before the figure was fixed and chose it. The amount is **configuration**, not a constant | CONFIRMED | Owner decision 21/09/2026 |
+| Q-06b | **The earn figures of `Q-05` are final, not illustrative.** Daily sign-in **+3 VNI**; a registration through a referral link credits the **inviter +5 VNI**. Closes `B-5b`. The mechanism is untouched — `P-16` still pays at registration and still holds farming off with the unique phone number | CONFIRMED | Owner decision 21/09/2026 |
+| Q-06c | **One sitting costs 5 VNI, charged when the learner submits, and that price covers everything the sitting consumes** — both Writing tasks marked by AI *and* every AI explanation of a wrong answer in that sitting. **Supersedes `Q-05` twice:** the charged unit moves from *an AI-marked Writing task* to *a sitting*, and **Reading and Listening are no longer free** — every sitting is 5 VNI whatever its skill. Closes `B-5a`. One price, no table to consult, and the explanation button stops being an AI bill with no matching earn | CONFIRMED | Owner decision 21/09/2026 |
+| Q-06d | **A zero or negative balance blocks nothing.** The learner keeps taking and keeps being marked; the ledger simply goes negative. VNI exists today to be sold later, and that sale has not happened, so there is nothing yet for a refusal to protect. Closes `B-5c`, choosing option (b). **This is a decision to keep, not a placeholder to grow out of** — when selling begins it becomes a live `[BUSINESS DECISION]` again | CONFIRMED | Owner decision 21/09/2026 |
+
+**Still open after `Q-06`, and it must not be guessed:** whether the *invited* learner is credited
+as well as the inviter. `Q-05` raised it, `Q-06` did not answer it, so the invitee earns **0** and
+the amount stays a configured seam under `G-11`.
+
+**Charging on submit rather than on start is load-bearing, not cosmetic.** A learner who opens a
+paper and abandons it pays nothing, and `«Kiểm tra lại»` — which reloads a result and never reopens
+the marking outbox — cannot charge, because by then the sitting has already been charged exactly
+once.
 
 ### Import-time exam preparation — `IP-01`…`IP-06`, 10/09/2026
 
