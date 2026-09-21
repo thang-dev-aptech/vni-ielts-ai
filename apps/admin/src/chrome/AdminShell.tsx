@@ -38,6 +38,11 @@ interface Entry {
   permission: string | string[] | null;
   /** Shown beside an entry whose screen is not built. */
   pending?: string;
+  /**
+   * Match the path exactly. Sibling routes that share a prefix — `/evaluations`
+   * and `/evaluations/failed-jobs` — both look active without this.
+   */
+  end?: boolean;
 }
 
 const GROUPS: { title: string | null; entries: Entry[] }[] = [
@@ -108,7 +113,12 @@ const GROUPS: { title: string | null; entries: Entry[] }[] = [
         to: AdminPaths.evaluations,
         label: 'Đánh giá AI',
         permission: 'evaluation.read',
-        pending: 'Chờ API AI',
+        end: true,
+      },
+      {
+        to: AdminPaths.failedEvaluations,
+        label: 'Hàng chờ chấm hỏng',
+        permission: 'evaluation.read',
       },
       { to: AdminPaths.users, label: 'Người dùng', permission: 'user.read' },
       { to: AdminPaths.roles, label: 'Vai và quyền', permission: 'role.read' },
@@ -167,7 +177,7 @@ export function AdminShell() {
                     <NavLink
                       key={entry.to}
                       to={entry.to}
-                      end={entry.to === AdminPaths.overview}
+                      end={entry.end === true || entry.to === AdminPaths.overview}
                       className={({ isActive }) => `cms-nav-item${isActive ? ' is-active' : ''}`}
                     >
                       {entry.label}

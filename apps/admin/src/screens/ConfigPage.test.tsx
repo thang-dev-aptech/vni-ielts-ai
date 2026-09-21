@@ -122,6 +122,25 @@ describe('ConfigPage', () => {
     expect(screen.getByText('80.0 MB')).toBeInTheDocument();
   });
 
+  it('keeps two live configuration sections usable while token pricing stays Pending on B-5a/B-5b', async () => {
+    vi.mocked(getRuntimeConfiguration).mockResolvedValue(payload());
+    render(<ConfigPage />);
+
+    // Token panel alone is Pending — and names the blockers. No invented price.
+    expect(await screen.findByText('Pending.')).toBeInTheDocument();
+    expect(screen.getByText(/B-5a và B-5b/)).toBeInTheDocument();
+    expect(screen.queryByText(/\d+\s*(VNI|token)/i)).not.toBeInTheDocument();
+
+    // Two real sections still carry live values from the payload.
+    expect(screen.getByText('Nhà cung cấp theo kỹ năng')).toBeInTheDocument();
+    expect(screen.getByText('Đã cấu hình')).toBeInTheDocument();
+    expect(screen.getByText('gpt-4.1')).toBeInTheDocument();
+
+    expect(screen.getByRole('heading', { name: 'Chấm Writing' })).toBeInTheDocument();
+    expect(screen.getByText('ielts-writing-synthetic-v1')).toBeInTheDocument();
+    expect(screen.getByText('1 : 2')).toBeInTheDocument();
+  });
+
   it('keeps the token panel Pending on B-5a/B-5b while the rest of the screen is usable', async () => {
     vi.mocked(getRuntimeConfiguration).mockResolvedValue(payload());
     render(<ConfigPage />);

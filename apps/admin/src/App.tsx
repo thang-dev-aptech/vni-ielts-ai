@@ -15,10 +15,15 @@ import { UsersPage } from './screens/UsersPage.js';
 import { UserDetailPage } from './screens/UserDetailPage.js';
 import { RolesPage } from './screens/RolesPage.js';
 import { AuditPage } from './screens/AuditPage.js';
-import { ConfigPage, EvaluationsPage, PackagesPage } from './screens/PendingPages.js';
 import { ReviewQueuePage } from './screens/ReviewQueuePage.js';
 import { PendingPublishPage } from './screens/PendingPublishPage.js';
 import { MediaLibraryPage } from './screens/MediaLibraryPage.js';
+import { ConfigPage } from './screens/ConfigPage.js';
+import { EvaluationsPage } from './screens/EvaluationsPage.js';
+import { EvaluationDetailPage } from './screens/EvaluationDetailPage.js';
+import { FailedMarkingQueuePage } from './screens/FailedMarkingQueuePage.js';
+import { PackagesPage } from './screens/PackagesPage.js';
+import { PackageHistoryDetailPage } from './screens/PackageHistoryDetailPage.js';
 import './styles/palette.css';
 import './styles/admin.css';
 import './styles/workflow.css';
@@ -144,6 +149,14 @@ function Routed() {
           }
         />
         <Route
+          path={AdminPaths.packageHistoryPattern}
+          element={
+            <Gate permission="package.read">
+              <PackageHistoryDetailPage />
+            </Gate>
+          }
+        />
+        <Route
           path={AdminPaths.documents}
           element={
             <Gate permission={['document.write', 'document.publish']}>
@@ -156,6 +169,22 @@ function Routed() {
           element={
             <Gate permission={['article.write', 'article.publish']}>
               <ArticlesPage />
+            </Gate>
+          }
+        />
+        <Route
+          path={AdminPaths.failedEvaluations}
+          element={
+            <Gate permission="evaluation.read">
+              <FailedMarkingQueuePage />
+            </Gate>
+          }
+        />
+        <Route
+          path={AdminPaths.evaluationPattern}
+          element={
+            <Gate permission="evaluation.read">
+              <EvaluationDetailPage />
             </Gate>
           }
         />

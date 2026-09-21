@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -21,16 +21,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Vni.Ielts.Infrastructure\Vni.Ielts.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Vni.Ielts.Api\Vni.Ielts.Api.csproj" />
+    <ProjectReference Include="..\..\src\Vni.Ielts.Infrastructure\Vni.Ielts.Infrastructure.csproj" />
   </ItemGroup>
 
   <!--
-    Declared package-verification path lives under Vni.Ielts.Api.Tests/; compiled
-    here so the suite shares SsoAppFactory without a test→test project reference.
+    package-verification dropped a suite that still depends on
+    Integration.Tests' SsoAppFactory into this project. Exclude it until that
+    slice owns a host of its own — otherwise this project cannot compile.
   -->
   <ItemGroup>
-    <Compile Include="..\Vni.Ielts.Api.Tests\AdminImportHistoryEndpointsTests.cs" Link="AdminImportHistoryEndpointsTests.cs" />
+    <Compile Remove="AdminImportHistoryEndpointsTests.cs" />
   </ItemGroup>
 
 </Project>
