@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
+import { NEGATIVE_OBSERVATION_MS } from './observation-budget.js';
 import { remember, restore, resetJournalConnection } from '../features/exam/patchJournal.js';
 import { AUTOSAVE_MS } from '../features/exam/useAnswerSheet.js';
 
@@ -597,6 +598,27 @@ it('brings back an answer the tab was carrying when it went away', async () => {
 
   const sent: Record<string, string | null>[] = [];
 
+  /*
+   * <b>The first save is held open, and that is what makes the chip assertion
+   * below mean something.</b>
+   *
+   * Restoring from the journal arms the same 1.2 s debounce a keystroke does,
+   * so the flush this test is about is already on its way while the test is
+   * still looking at the screen. Until 21/09/2026 the chip was asserted at
+   * whatever moment the preceding `waitFor` happened to return, and on a loaded
+   * machine that moment arrived after the flush had completed — the chip then
+   * said "Đã lưu" honestly and the test failed for a reason that had nothing to
+   * do with the product. Measured that day by inserting a 1.5 s pause and
+   * changing nothing else: `expected 'Đã lưu' not to contain 'Đã lưu'`.
+   *
+   * Holding the request open removes the clock from the assertion rather than
+   * widening the window it races in. A save completes when the server answers,
+   * so while this promise is unresolved there is no honest route to "Đã lưu" at
+   * any elapsed time — and the dishonest one, marking restored work as saved
+   * without sending it, is the defect being guarded and still fails here.
+   */
+  const firstSave: { release: (() => void) | null } = { release: null };
+
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -604,6 +626,9 @@ it('brings back an answer the tab was carrying when it went away', async () => {
 
       if (url.endsWith('/answers') && (init?.method ?? 'GET') === 'PUT') {
         sent.push(JSON.parse(String(init?.body)).changes);
+        if (sent.length === 1) {
+          await new Promise<void>((resolve) => (firstSave.release = resolve));
+        }
         return json({ revision: 1 });
       }
 
@@ -625,8 +650,50 @@ it('brings back an answer the tab was carrying when it went away', async () => {
     ),
   );
 
-  // Unsent, not saved: the chip does not claim it, and the next flush carries it.
-  expect(document.querySelector('.save-chip')?.textContent).not.toContain('Đã lưu');
+  /*
+   * <b>Unsent, not saved — watched across the whole interval rather than read
+   * at one instant.</b>
+   *
+   * Two different single-instant versions of this assertion were tried on
+   * 21/09/2026 and both were blind, in opposite directions:
+   *
+   *   - <b>Reading it immediately</b> (the version that shipped until today)
+   *     loses to elapsed time. The restore arms the same 1.2 s debounce a
+   *     keystroke does, so on a loaded machine the flush had already completed
+   *     and the chip said "Đã lưu" honestly. Measured: inserting a 1.5 s pause
+   *     and changing nothing else produced
+   *     `expected 'Đã lưu' not to contain 'Đã lưu'`.
+   *   - <b>Reading it late</b>, after holding the save open, loses to the flush
+   *     itself. Measured: `setSave('pending')` in the restore path changed to
+   *     `setSave('saved')` — the exact lie this line exists to catch — and the
+   *     test still <b>passed</b>, because by the time it looked, the flush had
+   *     moved the chip on to "saving" and overwritten the lie.
+   *
+   * The invariant was never about a moment. It is that the chip does not claim
+   * this work is saved at <i>any</i> point before the server has said so — so
+   * the test samples the chip across the interval and judges the whole record.
+   * With the first save held open there is no honest "Đã lưu" anywhere in it.
+   */
+  const chipSaid: string[] = [];
+
+  await act(async () => {
+    const until = Date.now() + NEGATIVE_OBSERVATION_MS;
+    while (Date.now() < until) {
+      chipSaid.push(document.querySelector('.save-chip')?.textContent ?? '');
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+  });
+
+  // The distinct texts, not the 150 samples — a failure should name what the
+  // chip said, not print one string a hundred and forty times.
+  expect([...new Set(chipSaid)].filter((text) => text.includes('Đã lưu'))).toEqual([]);
+
+  // The restore did reach the wire, though — unsent work that never tries to
+  // send is a different bug, and passing this test must not be a way to have it.
+  expect(sent).toHaveLength(1);
+  expect(sent[0]!['r-1']).toBe('cartography');
+
+  firstSave.release?.();
 
   await confirmSubmit();
   await waitFor(() => expect(sent.length).toBeGreaterThan(0));

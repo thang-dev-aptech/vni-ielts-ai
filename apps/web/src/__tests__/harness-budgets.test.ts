@@ -5,6 +5,8 @@ import {
   BUDGETED_WAITS_PER_TEST,
   TEST_TIMEOUT_MS,
 } from '../test-timeouts.js';
+import { NEGATIVE_OBSERVATION_MS } from './observation-budget.js';
+import { AUTOSAVE_MS } from '../features/exam/useAnswerSheet.js';
 
 /**
  * The ruler, measured.
@@ -95,4 +97,37 @@ it('keeps the name of what a wait was looking for, even when a slow wait ran fir
   // Both budgets were spent inside one test, which is only possible because the
   // test deadline is a multiple of the wait budget rather than 1.875 times it.
   expect(Date.now() - started).toBeGreaterThan(budget * 1.5);
+});
+
+/**
+ * The other budget that decides what a test measures rather than how long it
+ * waits — and the only one that fails <i>silently</i> when it is wrong.
+ *
+ * <b>A negative assertion is the dangerous shape.</b> "No second request went
+ * out" cannot wait for its own condition; it watches for a fixed time and then
+ * looks. Set that time below the interval it is meant to outlast and the
+ * assertion becomes unfalsifiable — it passes because nothing had a chance to
+ * happen, which is indistinguishable, in the report, from passing because the
+ * product is correct.
+ *
+ * <b>Measured, not imagined (21/09/2026).</b> With the budget at its old
+ * hand-picked `3_000` and `AUTOSAVE_MS` raised to 9000, the drain-lock test in
+ * `exam-flow.test.tsx` stayed green while measuring nothing at all. Deleting
+ * the lock it guards would not have reddened it either.
+ */
+it('watches a negative assertion for longer than the debounce it must outlast', () => {
+  /*
+   * Two full debounce windows, strictly. One is not enough and the reason is
+   * not margin: the first window is consumed by the flush the test deliberately
+   * holds open, so a budget under two windows never reaches the second debounce
+   * — the only event that can prove a drain lock exists.
+   */
+  expect(NEGATIVE_OBSERVATION_MS).toBeGreaterThan(AUTOSAVE_MS * 2);
+
+  /*
+   * And an upper bound, because this budget is pure wall clock on every run.
+   * It is spent whether or not anything is wrong, so a budget that grows
+   * without anyone noticing is how a suite becomes too slow to run.
+   */
+  expect(NEGATIVE_OBSERVATION_MS).toBeLessThanOrEqual(AUTOSAVE_MS * 3);
 });

@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
+import { NEGATIVE_OBSERVATION_MS } from './observation-budget.js';
 
 /**
  * The exam surfaces, and the four rules that must hold on them.
@@ -1871,9 +1872,7 @@ it("takes in another tab's answer without disturbing the one being typed", async
   held.release?.();
 
   // The other tab's answer arrives and is taken in.
-  await waitFor(() => expect(screen.getByRole('radio', { name: 'TRUE' })).toBeChecked(), {
-    timeout: 5_000,
-  });
+  await waitFor(() => expect(screen.getByRole('radio', { name: 'TRUE' })).toBeChecked());
 
   /*
    * <b>And r-1 is not.</b> The merged sheet says "cartography"; the learner is
@@ -1926,9 +1925,7 @@ it('sends only the questions that changed, and a cleared one as null', async () 
   const field = await screen.findByRole('textbox');
   await userEvent.type(field, 'maps');
 
-  await waitFor(() => expect(sent.at(-1)?.changes).toEqual({ 'r-1': 'maps' }), {
-    timeout: 3000,
-  });
+  await waitFor(() => expect(sent.at(-1)?.changes).toEqual({ 'r-1': 'maps' }));
 
   await userEvent.clear(field);
 
@@ -1936,9 +1933,7 @@ it('sends only the questions that changed, and a cleared one as null', async () 
   // only reason a patch may carry one at all.
   // `null`, not `''` — an empty field is an unanswered question, and the input
   // reports it as one rather than as the empty string it literally holds.
-  await waitFor(() => expect(sent.at(-1)?.changes).toEqual({ 'r-1': null }), {
-    timeout: 3000,
-  });
+  await waitFor(() => expect(sent.at(-1)?.changes).toEqual({ 'r-1': null }));
 });
 
 /**
@@ -2432,7 +2427,7 @@ it('keeps one autosave in flight at a time however fast the learner types', asyn
    */
   await userEvent.type(field, 'efgh');
 
-  await settle(() => false, 3_000);
+  await settle(() => false, NEGATIVE_OBSERVATION_MS);
 
   // The second flush joined the first rather than racing it.
   expect(maxInFlight).toBe(1);
