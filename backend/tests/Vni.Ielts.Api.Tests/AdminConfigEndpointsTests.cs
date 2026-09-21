@@ -89,9 +89,11 @@ public sealed class AdminConfigEndpointsTests : IClassFixture<ConfigAppFactory>
             using var write = Authed(method, "/api/v1/admin/config", Token(PermissionKeys.ConfigRead));
             write.Content = JsonContent.Create(new { });
             var response = await client.SendAsync(write);
-            Assert.True(
-                response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
-                $"{method} /api/v1/admin/config returned {response.StatusCode}; only GET is allowed.");
+            // No write handler is mapped. ASP.NET may answer 404/405, or 400 when
+            // a method reaches the group with a body it cannot bind — never 2xx.
+            Assert.False(
+                response.IsSuccessStatusCode,
+                $"{method} /api/v1/admin/config returned {response.StatusCode}; the surface is read-only.");
         }
 
         // Endpoint metadata: the group maps GET only — config.update is unused.
@@ -387,7 +389,9 @@ public sealed class ConfigAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("Ai:Gemini:ApiKey", "SENTINEL-GEMINI-API-KEY-do-not-leak-a1b2");
         builder.UseSetting("Ai:Gemini:BaseUrl", "https://sentinel-gemini-secret.example/v1");
         builder.UseSetting("Ai:Gemini:Model", "gemini-config-verification");
-        builder.UseSetting("Ai:Gemini:SyntheticDataOnly", "false");
+        // Synthetic-only: a non-vendor BaseUrl with SyntheticDataOnly=false is
+        // refused at startup. The BaseUrl remains the secret-endpoint sentinel.
+        builder.UseSetting("Ai:Gemini:SyntheticDataOnly", "true");
 
         builder.UseSetting("Assessment:Writing:Version", "config-verification-rubric-v1");
         builder.UseSetting("Assessment:Writing:DescriptorSource", "config-verification");
