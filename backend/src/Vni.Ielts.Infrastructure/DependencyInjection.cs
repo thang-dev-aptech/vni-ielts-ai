@@ -275,6 +275,7 @@ public static class DependencyInjection
         services.AddScoped<IMediaAssetStore, MongoMediaAssetStore>();
         services.AddScoped<UploadMediaAsset>();
         services.AddScoped<ListMediaAssets>();
+        services.AddScoped<ListMediaVersionReferences>();
         services.AddScoped<OpenMediaAssetContent>();
         services.AddScoped<RetireMediaAsset>();
         services.AddScoped<DeleteMediaAsset>();

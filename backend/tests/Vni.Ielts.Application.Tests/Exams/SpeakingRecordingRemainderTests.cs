@@ -470,5 +470,9 @@ public sealed class SpeakingRecordingRemainderTests
         public Task<(IReadOnlyList<AuditEntry> Entries, long Total)> ListAsync(
             string? actorId, string? action, int skip, int take, CancellationToken ct) =>
             Task.FromResult<(IReadOnlyList<AuditEntry>, long)>((Entries, Entries.Count));
+
+        public Task<(IReadOnlyList<AuditEntry>, string?)> ListCursorAsync(
+            string? actorId, string? action, int take, CancellationToken ct, string? cursor = null) =>
+            throw new NotSupportedException();
     }
 }

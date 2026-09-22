@@ -1,6 +1,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Infrastructure.Persistence.Importing;
@@ -92,6 +93,19 @@ internal sealed class ExamImportDraftDocument
 
     [BsonElement("packageJson")]
     public string PackageJson { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The uploading operator's id, threaded through revalidation on every
+    /// read so <c>Version.AuthorId</c> survives the round trip. Without this
+    /// field, <see cref="MongoImportDraftStore.ToDraft"/> re-derives
+    /// <c>Version</c> from <see cref="PackageJson"/> alone — which carries no
+    /// author — and the reviewer != author guard in
+    /// <c>ImportReviewWorkflow.ApproveAsync</c> silently stops applying to
+    /// every draft the instant it round-trips through Mongo. → ADR-0017
+    /// </summary>
+    [BsonElement("authorId")]
+    [BsonIgnoreIfNull]
+    public string? AuthorId { get; set; }
 
     [BsonElement("checklist")]
     public List<string> Checklist { get; set; } = [];
@@ -219,7 +233,8 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
     private ExamImportDraft ToDraft(ExamImportDraftDocument doc)
     {
         var definitionId = new ExamDefinitionId(doc.DefinitionId);
-        var validation = validator.Validate(doc.PackageJson, definitionId, doc.VersionNumber);
+        var authorId = doc.AuthorId is null ? (UserId?)null : new UserId(doc.AuthorId);
+        var validation = validator.Validate(doc.PackageJson, definitionId, doc.VersionNumber, authorId);
 
         if (!validation.IsValid || validation.Version is null)
         {
@@ -273,6 +288,7 @@ internal sealed class MongoImportDraftStore(MongoContext context, IExamPackageVa
         Findings = draft.Findings.Select(ImportFindingDocument.From).ToList(),
         SourceText = draft.SourceText,
         PackageJson = draft.PackageJson,
+        AuthorId = draft.Version.AuthorId?.Value,
         Checklist = draft.Checklist.Confirmed.Select(c => c.ToString()).ToList(),
         Warnings = draft.Warnings.Select(w => new ImportWarningDocument
         {

@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
 using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Infrastructure.Content.Import;
@@ -72,7 +73,7 @@ public sealed class ExamPackageImportPipeline(
     /// </param>
     public async Task<ExamImportAttempt> ImportAsync(
         Stream zip, ExamDefinitionId definitionId, int versionNumber, CancellationToken ct,
-        IProgress<ImportJobStage>? progress = null, ImportJobStage? recordedStage = null)
+        IProgress<ImportJobStage>? progress = null, ImportJobStage? recordedStage = null, UserId? authorId = null)
     {
         if (!zip.CanSeek)
         {
@@ -99,7 +100,7 @@ public sealed class ExamPackageImportPipeline(
 
             var attempt = await ImportFromSandboxAsync(
                 inspection.Layout, extraction.SandboxDirectory, definitionId, versionNumber, ct,
-                progress, recordedStage > ImportJobStage.Parsing);
+                progress, recordedStage > ImportJobStage.Parsing, authorId);
 
             return await AttachRoleFolderWarningsAsync(attempt, inspection.Findings, ct);
         }
@@ -147,7 +148,7 @@ public sealed class ExamPackageImportPipeline(
     /// </summary>
     private async Task<ExamImportAttempt> ImportFromSandboxAsync(
         PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
-        CancellationToken ct, IProgress<ImportJobStage>? progress, bool resumeExistingDraft)
+        CancellationToken ct, IProgress<ImportJobStage>? progress, bool resumeExistingDraft, UserId? authorId = null)
     {
         var allEntries = layout.AcceptedEntries.ToArray();
 
@@ -162,7 +163,7 @@ public sealed class ExamPackageImportPipeline(
             // which route their upload took.
             Report(progress, ImportJobStage.Parsing);
 
-            var structured = await workflow.ImportStructuredAsync(packageJson, definitionId, versionNumber, ct);
+            var structured = await workflow.ImportStructuredAsync(packageJson, definitionId, versionNumber, ct, authorId);
             return await EnrichExplanationsAsync(structured, ct, progress);
         }
 
@@ -193,7 +194,7 @@ public sealed class ExamPackageImportPipeline(
             "package", "text/plain", text, hash, hash, ImportDataClassification.Restricted);
 
         var attempt = await workflow.ImportExtractedAsync(
-            source, definitionId, versionNumber, ct, resumeExistingDraft);
+            source, definitionId, versionNumber, ct, resumeExistingDraft, authorId);
         if (!attempt.IsAccepted || attempt.Draft is null) return attempt;
 
         /*

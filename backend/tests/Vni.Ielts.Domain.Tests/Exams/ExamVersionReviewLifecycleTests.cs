@@ -81,13 +81,13 @@ public sealed class ExamVersionReviewLifecycleTests
     }
 
     [Fact]
-    public void An_unknown_author_cannot_trigger_the_reviewer_equals_author_refusal()
+    public void A_version_with_unknown_author_may_be_approved_by_anyone()
     {
-        // Documented gap, not an oversight: a version imported through
-        // ExamPackageReader today carries no author at all, and Approve must
-        // still be usable on it — refusing every review until the import
-        // pipeline threads an actor id through would stop content shipping
-        // for a reason no operator on this screen could fix.
+        // Batch or legacy import paths with no captured actor leave the
+        // author null. Such versions can always be approved because there
+        // is no author to conflict with the reviewer. This is safe: the
+        // reviewer!=author rule is honoured — there is simply no author
+        // to honour it against. → G-11, ADR-0017
         var version = Draft(authorId: null);
         version.SubmitForReview();
 

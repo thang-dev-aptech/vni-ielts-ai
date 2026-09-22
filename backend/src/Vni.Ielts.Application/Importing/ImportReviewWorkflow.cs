@@ -1,4 +1,6 @@
+using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Explanations;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Importing;
@@ -114,6 +116,18 @@ public sealed class ImportReviewWorkflow(
         var draft = await drafts.FindAsync(draftId, ct);
         if (draft is null) return ImportReviewResult.Refused("IMPORT_DRAFT_NOT_FOUND");
         if (draft.Revision != expectedRevision) return ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+        /*
+         * P-20's rule, mirrored from ExamVersion.Approve(): a reviewer may not
+         * sign off content they authored. This workflow never drives
+         * draft.Version's own status machine (import review runs on
+         * ImportApprovalState, a separate field), so the check is repeated
+         * here rather than reached by calling ExamVersion.Approve() itself.
+         * A no-op when AuthorId is null, for the same reason the domain
+         * method is: batch/legacy imports that captured no actor must stay
+         * approvable, since there is no author to conflict with. → ADR-0017
+         */
+        if (draft.Version.AuthorId is { } author && author == new UserId(actor.ActorId))
+            return ImportReviewResult.Refused(ErrorCodes.ReviewerIsAuthor);
         /*
          * A blocking finding has no override, and that is the difference from a
          * warning. `P-19`'s warnings are judgements a reviewer may make with a

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Importing;
@@ -98,7 +99,8 @@ public sealed class ExamImportWorkflow(
         string packageJson,
         ExamDefinitionId definitionId,
         int versionNumber,
-        CancellationToken ct) =>
+        CancellationToken ct,
+        UserId? authorId = null) =>
         ValidateAndSaveAsync(
             packageJson,
             definitionId,
@@ -107,7 +109,8 @@ public sealed class ExamImportWorkflow(
             Hash(packageJson),
             packageJson,
             parserMetadata: null,
-            ct);
+            ct,
+            authorId);
 
     /// <param name="resumeExistingDraft">
     /// <b>True only when the caller has evidence the parse already happened.</b>
@@ -129,7 +132,8 @@ public sealed class ExamImportWorkflow(
         ExamDefinitionId definitionId,
         int versionNumber,
         CancellationToken ct,
-        bool resumeExistingDraft = false)
+        bool resumeExistingDraft = false,
+        UserId? authorId = null)
     {
         var observedHash = Hash(source.Text);
         if (!FixedTimeEquals(source.TextSha256, observedHash))
@@ -175,7 +179,8 @@ public sealed class ExamImportWorkflow(
             source.SourceSha256.ToLowerInvariant(),
             source.Text,
             parsed.Metadata,
-            ct);
+            ct,
+            authorId);
     }
 
     private async Task<ExamImportAttempt> ValidateAndSaveAsync(
@@ -186,9 +191,10 @@ public sealed class ExamImportWorkflow(
         string sourceHash,
         string sourceText,
         ParserRunMetadata? parserMetadata,
-        CancellationToken ct)
+        CancellationToken ct,
+        UserId? authorId = null)
     {
-        var validation = validator.Validate(packageJson, definitionId, versionNumber);
+        var validation = validator.Validate(packageJson, definitionId, versionNumber, authorId);
         if (!validation.IsValid || validation.Version is null)
             return ExamImportAttempt.Rejected(validation.Findings);
 

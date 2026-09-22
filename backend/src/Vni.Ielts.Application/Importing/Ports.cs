@@ -1,3 +1,4 @@
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Importing;
@@ -9,7 +10,7 @@ namespace Vni.Ielts.Application.Importing;
 public interface IExamPackageValidator
 {
     PackageValidationResult Validate(
-        string packageJson, ExamDefinitionId definitionId, int versionNumber);
+        string packageJson, ExamDefinitionId definitionId, int versionNumber, UserId? authorId = null);
 }
 
 public sealed record PackageFinding(string Severity, string Code, string Path, string Message);

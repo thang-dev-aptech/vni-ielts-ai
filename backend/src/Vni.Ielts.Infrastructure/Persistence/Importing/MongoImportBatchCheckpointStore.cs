@@ -66,6 +66,15 @@ internal sealed class MongoImportBatchCheckpointStore(MongoContext context) : II
             new ReplaceOptions { IsUpsert = true },
             ct);
 
+    public async Task<IReadOnlyList<ImportBatchCheckpoint>> ListByBatchIdAsync(
+        string batchId, CancellationToken ct)
+    {
+        var docs = await context.ImportBatchCheckpoints
+            .Find(Builders<ImportBatchCheckpointDocument>.Filter.Eq(d => d.BatchId, batchId))
+            .ToListAsync(ct);
+        return docs.Select(ToCheckpoint).ToList();
+    }
+
     private static string Key(string batchId, string itemId) => $"{batchId}:{itemId}";
 
     private static ImportBatchCheckpoint ToCheckpoint(ImportBatchCheckpointDocument doc) => new(

@@ -1,4 +1,6 @@
+using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Tests.Importing;
@@ -81,6 +83,41 @@ public sealed class ImportReviewWorkflowTests
         Assert.False(result.IsSuccess);
         Assert.Equal("IMPORT_WARNING_REASON_REQUIRED", result.ErrorCode);
         Assert.False(store.Draft.Warnings.Single().Resolved);
+    }
+
+    /// <summary>
+    /// `P-20` through the import path: `ImportReviewWorkflow.ApproveAsync`
+    /// never drives `draft.Version`'s own status machine (import review runs
+    /// entirely on `ImportApprovalState`), so it cannot rely on
+    /// `ExamVersion.Approve` to enforce reviewer != author for an imported
+    /// draft — it has to check `draft.Version.AuthorId` itself. This is the
+    /// red-when-removed target for that check.
+    /// </summary>
+    [Fact]
+    public async Task A_reviewer_who_uploaded_the_package_cannot_approve_their_own_draft()
+    {
+        var uploader = new UserId(Reviewer.ActorId);
+        var store = new Store(Draft(complete: true, authorId: uploader));
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.ReviewerIsAuthor, result.ErrorCode);
+        Assert.Equal(ImportApprovalState.ReviewRequired, store.Draft.ApprovalState);
+    }
+
+    [Fact]
+    public async Task A_different_reviewer_may_approve_an_authored_draft()
+    {
+        var uploader = UserId.New();
+        var store = new Store(Draft(complete: true, authorId: uploader));
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(ImportApprovalState.Approved, result.Draft!.ApprovalState);
     }
 
     [Fact]
@@ -166,10 +203,11 @@ public sealed class ImportReviewWorkflowTests
     }
 
     private static ExamImportDraft Draft(
-        bool warning = false, bool complete = false, IReadOnlyList<PackageFinding>? findings = null)
+        bool warning = false, bool complete = false, IReadOnlyList<PackageFinding>? findings = null,
+        UserId? authorId = null)
     {
         var definition = ExamDefinitionId.New();
-        var paper = Validator.Paper(definition, 1);
+        var paper = Validator.Paper(definition, 1, authorId);
         return new ExamImportDraft(
             Guid.NewGuid(), definition, 1, ExamImportRoute.AiParsedSource,
             new string('a', 64), ExamImportWorkflow.Hash("valid"), paper, null,
@@ -206,15 +244,16 @@ public sealed class ImportReviewWorkflowTests
 
     private sealed class Validator : IExamPackageValidator
     {
-        public PackageValidationResult Validate(string json, ExamDefinitionId id, int version) =>
+        public PackageValidationResult Validate(string json, ExamDefinitionId id, int version, UserId? authorId = null) =>
             json == "invalid"
                 ? new(false, null, [new PackageFinding("error", "INVALID", "/", "invalid")])
-                : new(true, Paper(id, version), []);
+                : new(true, Paper(id, version, authorId), []);
 
-        public static ExamVersion Paper(ExamDefinitionId id, int version) => ExamVersion.CreateDraft(
+        public static ExamVersion Paper(ExamDefinitionId id, int version, UserId? authorId = null) => ExamVersion.CreateDraft(
             id, version, "Paper", ExamVariant.Academic,
             new ScoringProfile(new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(), AnswerMatchingRules.Default),
             new TimingProfile(new Dictionary<ExamModule, int>(), null, []),
-            [new Section(ExamModule.Reading, 1, [])]);
+            [new Section(ExamModule.Reading, 1, [])],
+            authorId: authorId);
     }
 }

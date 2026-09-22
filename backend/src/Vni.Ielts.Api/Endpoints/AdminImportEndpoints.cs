@@ -23,11 +23,9 @@ namespace Vni.Ielts.Api.Endpoints;
 /// <see cref="ExamPackageImportPipeline"/> for the ZIP-to-draft sequence and
 /// <see cref="ImportReviewWorkflow"/> for everything past that.
 ///
-/// <b>A batch endpoint is deliberately not here.</b> <c>ImportBatchRunner</c>
-/// and its Mongo-backed checkpoint store are built and tested; wiring a batch
-/// HTTP surface on top is left for a later slice so the single-package path —
-/// the one the CMS's <c>ImportPage</c> is already waiting on — lands complete
-/// rather than both landing half-done.
+/// Batch endpoints are also here: <c>POST /import/batches</c> starts or resumes
+/// a multi-package import via <c>ImportBatchRunner</c>, and <c>GET /import/batches/{id}</c>
+/// reports per-item checkpoint state from <c>IImportBatchCheckpointStore</c>.
 /// </summary>
 public sealed record OverrideWarningRequest(string Reason);
 
@@ -99,6 +97,24 @@ public sealed record PackageImportHistoryDetailView(
     IReadOnlyList<ImportFindingView> Findings,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);
+
+/// <summary>One item in a batch import, reporting only its checkpoint state — never archive contents.</summary>
+public sealed record ImportBatchItemView(
+    string ItemId,
+    string? DefinitionId,
+    int? VersionNumber,
+    string State,
+    string? DraftId,
+    IReadOnlyList<ImportFindingView> Findings,
+    int Attempts);
+
+/// <summary>Status of an entire batch import — per-item results and aggregate counts.</summary>
+public sealed record ImportBatchStatusView(
+    string BatchId,
+    IReadOnlyList<ImportBatchItemView> Items,
+    int SucceededCount,
+    int FailedCount,
+    int SkippedCount);
 
 public sealed record PackageImportHistoryPageView(
     IReadOnlyList<PackageImportHistorySummaryView> Items,
@@ -258,6 +274,15 @@ public static class AdminImportEndpoints
         group.MapPost("/packages/{draftId}/approve", ApproveEndpoint)
             .WithName("AdminApproveImportDraft")
             .WithSummary("Approve a draft once every warning is resolved and the checklist is complete");
+
+        group.MapPost("/batches", StartImportBatchEndpoint)
+            .WithName("AdminStartImportBatch")
+            .WithSummary("Start or resume a batch import with multiple packages")
+            .DisableAntiforgery();
+
+        group.MapGet("/batches/{batchId}", GetImportBatchStatusEndpoint)
+            .WithName("AdminGetImportBatchStatus")
+            .WithSummary("Get the status of a batch import, including per-item checkpoint state");
     }
 
     /// <summary>
@@ -840,6 +865,10 @@ public static class AdminImportEndpoints
         var status = result.ErrorCode switch
         {
             "IMPORT_EDIT_FORBIDDEN" or "IMPORT_REVIEW_FORBIDDEN" or "IMPORT_PUBLISH_FORBIDDEN"
+                // Same status as the twin rule on `AdminEndpoints.ApproveEndpoint`
+                // for an exam version authored directly in the CMS — one rule,
+                // one status, regardless of which door reaches it.
+                or ErrorCodes.ReviewerIsAuthor
                 => StatusCodes.Status403Forbidden,
             "IMPORT_DRAFT_NOT_FOUND" or "IMPORT_WARNING_NOT_FOUND" => StatusCodes.Status404NotFound,
             "PACKAGE_INVALID" => StatusCodes.Status422UnprocessableEntity,
@@ -870,6 +899,192 @@ public static class AdminImportEndpoints
 
     private static IResult Conflict(string detail, HttpContext http) =>
         Problem(ErrorCodes.ValidationFailed, detail, StatusCodes.Status409Conflict, http);
+
+    /// <summary>
+    /// Start or resume a multi-package batch import. Accepts multipart form with multiple files,
+    /// validates and stores them, then runs ImportBatchRunner to process the batch.
+    /// Returns checkpoint state for each item.
+    /// </summary>
+    private static async Task<IResult> StartImportBatchEndpoint(
+        HttpRequest request, ClaimsPrincipal principal, IImportArchiveStore archives,
+        ExamImportWorkflow workflow, IImportBatchCheckpointStore checkpoints,
+        IExamSourceParser parser, IClock clock, IExamPackageArchiveInspector inspector,
+        IAuditLog audit, IOptions<ImportArchiveOptions> archiveOptions,
+        HttpContext http, CancellationToken ct)
+    {
+        if (principal.UserId() is null) return Results.Unauthorized();
+        if (Denied(principal, PermissionKeys.PackageUpload) is { } denial) return denial;
+
+        if (!request.HasFormContentType)
+            return Problem(ErrorCodes.ValidationFailed, "Expected a multipart upload.", 400, http);
+
+        var batchId = Guid.NewGuid().ToString("n");
+        var items = new List<ImportBatchItem>();
+
+        if (request.HttpContext.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } cap)
+            cap.MaxRequestBodySize = archiveOptions.Value.MaxArchiveBytes + MultipartOverheadBytes;
+
+        IFormCollection form;
+        try
+        {
+            form = await request.ReadFormAsync(ct);
+        }
+        catch (InvalidDataException)
+        {
+            // A multipart body with no parts at all (no file input selected)
+            // is malformed enough that Kestrel's own reader refuses it before
+            // this code ever sees a file list — same 422 as "zero files",
+            // since that is what a caller sending this actually means.
+            return Problem(ErrorCodes.ValidationFailed, "At least one file must be provided.", 422, http);
+        }
+
+        foreach (var file in form.Files)
+        {
+            if (file.Length == 0)
+                return Problem(ErrorCodes.ValidationFailed, $"File '{file.FileName}' is empty.", 400, http);
+
+            var definitionId = new ExamDefinitionId($"batch-{batchId}-{file.FileName}");
+            var versionNumber = 1;
+
+            string sourceSha256;
+            string archiveKey;
+
+            await using (var uploadStream = file.OpenReadStream())
+            {
+                await using var spooled = new FileStream(
+                    Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.None,
+                    81_920, FileOptions.DeleteOnClose | FileOptions.Asynchronous);
+
+                await uploadStream.CopyToAsync(spooled, ct);
+                spooled.Position = 0;
+
+                sourceSha256 = Convert.ToHexString(await SHA256.HashDataAsync(spooled, ct)).ToLowerInvariant();
+                spooled.Position = 0;
+
+                var inspection = await inspector.InspectAsync(spooled, archiveOptions.Value.ToLimits(), ct);
+                if (!inspection.IsAcceptable)
+                {
+                    return Rejected(inspection.Findings, http);
+                }
+
+                spooled.Position = 0;
+                archiveKey = await archives.SaveAsync(sourceSha256, spooled, ct);
+            }
+
+            items.Add(new ImportBatchItem(
+                ItemId: file.FileName,
+                DefinitionId: definitionId,
+                VersionNumber: versionNumber,
+                StructuredPackage: archiveKey,
+                ExtractedSource: null));
+        }
+
+        if (items.Count == 0)
+            return Problem(ErrorCodes.ValidationFailed, "At least one file must be provided.", 400, http);
+
+        var runner = new ImportBatchRunner(workflow, checkpoints);
+        var result = await runner.RunAsync(batchId, items, ct);
+
+        await RecordAuditQuietly(() => audit.AppendAsync(
+            AuditEntry.Record(
+                new UserId(principal.UserId()!), principal.Email() ?? principal.DisplayName(),
+                AuditAction.PackageUploadAccepted, "batch-import",
+                batchId, $"{items.Count} packages", clock.UtcNow,
+                new Dictionary<string, string>
+                {
+                    ["itemCount"] = items.Count.ToString(),
+                    ["succeeded"] = result.Succeeded.ToString(),
+                    ["failed"] = result.Failed.ToString(),
+                    ["skipped"] = result.Skipped.ToString(),
+                }),
+            ct));
+
+        var statusView = await GetBatchStatusAsync(batchId, checkpoints, items, ct);
+        return Results.Accepted($"/api/v1/admin/import/batches/{Uri.EscapeDataString(batchId)}", statusView);
+    }
+
+    /// <summary>
+    /// Get the status of a batch import, including per-item checkpoint state.
+    /// Gated on package.read or package.upload (same as GetJobEndpoint).
+    /// </summary>
+    private static async Task<IResult> GetImportBatchStatusEndpoint(
+        string batchId, ClaimsPrincipal principal, IImportBatchCheckpointStore checkpoints,
+        HttpContext http, CancellationToken ct)
+    {
+        if (DeniedUnlessAny(principal, PermissionKeys.PackageRead, PermissionKeys.PackageUpload)
+            is { } denial)
+        {
+            return denial;
+        }
+
+        var allCheckpoints = await checkpoints.ListByBatchIdAsync(batchId, ct);
+        if (allCheckpoints.Count == 0)
+        {
+            return Results.Problem(
+                detail: "Batch not found.",
+                statusCode: StatusCodes.Status404NotFound,
+                extensions: new Dictionary<string, object?> { ["code"] = "BATCH_NOT_FOUND" });
+        }
+
+        var items = new List<ImportBatchItemView>();
+        int succeeded = 0, failed = 0;
+
+        foreach (var checkpoint in allCheckpoints)
+        {
+            items.Add(new ImportBatchItemView(
+                ItemId: checkpoint.ItemId,
+                DefinitionId: null,
+                VersionNumber: null,
+                State: checkpoint.State.ToString(),
+                DraftId: checkpoint.DraftId?.ToString("D"),
+                Findings: checkpoint.Findings
+                    .Select(f => new ImportFindingView(f.Severity, f.Code, f.Path, f.Message))
+                    .ToList(),
+                Attempts: checkpoint.Attempts));
+
+            if (checkpoint.State == ImportBatchItemState.Succeeded) succeeded++;
+            else failed++;
+        }
+
+        var statusView = new ImportBatchStatusView(
+            BatchId: batchId,
+            Items: items,
+            SucceededCount: succeeded,
+            FailedCount: failed,
+            SkippedCount: 0);
+
+        return Results.Ok(statusView);
+    }
+
+    private static async Task<ImportBatchStatusView> GetBatchStatusAsync(
+        string batchId, IImportBatchCheckpointStore checkpoints,
+        IReadOnlyList<ImportBatchItem> items, CancellationToken ct)
+    {
+        var statusItems = new List<ImportBatchItemView>();
+        int succeeded = 0, failed = 0;
+
+        foreach (var item in items)
+        {
+            var checkpoint = await checkpoints.FindAsync(batchId, item.ItemId, ct);
+            if (checkpoint is null) continue;
+
+            statusItems.Add(new ImportBatchItemView(
+                ItemId: checkpoint.ItemId,
+                DefinitionId: item.DefinitionId.Value,
+                VersionNumber: item.VersionNumber,
+                State: checkpoint.State.ToString(),
+                DraftId: checkpoint.DraftId?.ToString("D"),
+                Findings: checkpoint.Findings
+                    .Select(f => new ImportFindingView(f.Severity, f.Code, f.Path, f.Message))
+                    .ToList(),
+                Attempts: checkpoint.Attempts));
+
+            if (checkpoint.State == ImportBatchItemState.Succeeded) succeeded++;
+            else failed++;
+        }
+
+        return new ImportBatchStatusView(batchId, statusItems, succeeded, failed, 0);
+    }
 
     /// <summary>403 with a stable code, not 404 — the caller is a named operator. Same reasoning as <c>AdminEndpoints.Denied</c>.</summary>
     private static IResult? Denied(ClaimsPrincipal principal, string permission)

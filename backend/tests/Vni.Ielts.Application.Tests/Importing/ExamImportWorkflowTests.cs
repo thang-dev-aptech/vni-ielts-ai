@@ -1,4 +1,5 @@
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Tests.Importing;
@@ -10,7 +11,7 @@ public sealed class ExamImportWorkflowTests
         public List<string> Seen { get; } = [];
 
         public PackageValidationResult Validate(
-            string packageJson, ExamDefinitionId definitionId, int versionNumber)
+            string packageJson, ExamDefinitionId definitionId, int versionNumber, UserId? authorId = null)
         {
             Seen.Add(packageJson);
             if (packageJson == "invalid-ai-package")
@@ -21,7 +22,7 @@ public sealed class ExamImportWorkflowTests
                         "Every auto-scored response slot must carry an answer key."),
                 ]);
 
-            return new(true, Paper(definitionId, versionNumber), []);
+            return new(true, Paper(definitionId, versionNumber, authorId), []);
         }
     }
 
@@ -162,7 +163,7 @@ public sealed class ExamImportWorkflowTests
         Assert.Empty(store.Saved);
     }
 
-    private static ExamVersion Paper(ExamDefinitionId definitionId, int versionNumber) =>
+    private static ExamVersion Paper(ExamDefinitionId definitionId, int versionNumber, UserId? authorId = null) =>
         ExamVersion.CreateDraft(
             definitionId,
             versionNumber,
@@ -172,7 +173,8 @@ public sealed class ExamImportWorkflowTests
                 new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(),
                 AnswerMatchingRules.Default),
             new TimingProfile(new Dictionary<ExamModule, int>(), null, []),
-            [new Section(ExamModule.Reading, 1, [])]);
+            [new Section(ExamModule.Reading, 1, [])],
+            authorId: authorId);
 
     /// <summary>
     /// <b>F-11 at the seam that decides it: a resume reuses a draft only when

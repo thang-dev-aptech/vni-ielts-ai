@@ -26,6 +26,11 @@ namespace Vni.Ielts.Api.Endpoints;
 /// → docs/ux/cms-content-operations.md § 5
 /// </para>
 /// </summary>
+public sealed record MediaVersionReferenceView(
+    string VersionId,
+    string Title,
+    string State);
+
 public sealed record MediaAssetView(
     string MediaId,
     string Kind,
@@ -36,7 +41,8 @@ public sealed record MediaAssetView(
     string Checksum,
     string UploadedByName,
     string UploadedAt,
-    bool Retired);
+    bool Retired,
+    IReadOnlyList<MediaVersionReferenceView> ReferencedBy);
 
 public sealed record MediaLibraryView(IReadOnlyList<MediaAssetView> Media);
 
@@ -82,7 +88,9 @@ public static class AdminMediaEndpoints
             .WithSummary("Remove an asset and its stored bytes; audited");
     }
 
-    private static MediaAssetView ToView(MediaAsset asset) => new(
+    private static MediaAssetView ToView(
+        MediaAsset asset,
+        IReadOnlyList<Application.Media.MediaVersionReference> referencedBy) => new(
         asset.MediaId,
         asset.Kind.ToString().ToLowerInvariant(),
         asset.FileName,
@@ -92,14 +100,27 @@ public static class AdminMediaEndpoints
         asset.ChecksumSha256,
         asset.UploadedByName,
         asset.UploadedAt.ToString("o"),
-        asset.Retired);
+        asset.Retired,
+        referencedBy.Select(v => new MediaVersionReferenceView(v.VersionId, v.Title, v.State))
+            .ToList());
 
     private static async Task<IResult> ListEndpoint(
-        ClaimsPrincipal principal, ListMediaAssets handler, CancellationToken ct)
+        ClaimsPrincipal principal, ListMediaAssets assetHandler,
+        Application.Media.ListMediaVersionReferences versionHandler, CancellationToken ct)
     {
         if (Denied(principal, PermissionKeys.MediaRead) is { } denial) return denial;
-        var assets = await handler.HandleAsync(ct);
-        return Results.Ok(new MediaLibraryView(assets.Select(ToView).ToList()));
+        var assets = await assetHandler.HandleAsync(ct);
+        var versionMapping = await versionHandler.HandleAsync(ct);
+
+        var views = assets.Select(asset =>
+        {
+            var referencedBy = versionMapping.TryGetValue(asset.MediaId, out var versions)
+                ? versions
+                : new List<Application.Media.MediaVersionReference>();
+            return ToView(asset, referencedBy);
+        }).ToList();
+
+        return Results.Ok(new MediaLibraryView(views));
     }
 
     private static async Task<IResult> UploadEndpoint(
@@ -135,7 +156,8 @@ public static class AdminMediaEndpoints
 
         var asset = result.Value!;
         await Record(audit, principal, AuditAction.MediaUploaded, asset, clock, http, ct);
-        return Results.Created($"/api/v1/admin/media/{asset.MediaId}/content", ToView(asset));
+        return Results.Created($"/api/v1/admin/media/{asset.MediaId}/content",
+            ToView(asset, new List<Application.Media.MediaVersionReference>()));
     }
 
     private static async Task<IResult> ContentEndpoint(
@@ -173,7 +195,7 @@ public static class AdminMediaEndpoints
 
         var retired = result.Value!;
         await Record(audit, principal, AuditAction.MediaRetired, retired, clock, http, ct);
-        return Results.Ok(ToView(retired));
+        return Results.Ok(ToView(retired, new List<Application.Media.MediaVersionReference>()));
     }
 
     private static async Task<IResult> DeleteEndpoint(

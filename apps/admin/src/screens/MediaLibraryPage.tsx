@@ -9,6 +9,7 @@ import {
   retireMedia,
   uploadMedia,
   type AdminMediaAsset,
+  type AdminMediaVersionReference,
 } from '../lib/adminApi.js';
 import { objectUrlFor, rememberObjectUrl } from '../lib/mediaUrls.js';
 import { useOperator } from '../lib/operator.js';
@@ -55,14 +56,14 @@ export function MediaLibraryPage() {
   const { accessToken } = useAdminAuth();
   const { flash, say } = useFlash();
 
-  const [media, setMedia] = useState<MediaAsset[] | null>(null);
+  const [adminMedia, setAdminMedia] = useState<AdminMediaAsset[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [kind, setKind] = useState<MediaKind | 'all'>('all');
   const [busy, setBusy] = useState(false);
   const [rejected, setRejected] = useState<{ code: string; text: string; file: string } | null>(
     null,
   );
-  const [pending, setPending] = useState<{ asset: MediaAsset; action: 'retire' | 'delete' } | null>(
+  const [pending, setPending] = useState<{ asset: AdminMediaAsset; action: 'retire' | 'delete' } | null>(
     null,
   );
   const input = useRef<HTMLInputElement>(null);
@@ -71,7 +72,7 @@ export function MediaLibraryPage() {
     if (accessToken === null) return;
     try {
       const { media: rows } = await listMedia(accessToken);
-      setMedia(rows.map(serverToAsset));
+      setAdminMedia(rows);
       setLoadError(null);
     } catch (error) {
       setLoadError(describe(error));
@@ -116,17 +117,17 @@ export function MediaLibraryPage() {
     }
   }
 
-  async function apply(asset: MediaAsset, action: 'retire' | 'delete') {
+  async function apply(adminAsset: AdminMediaAsset, action: 'retire' | 'delete') {
     if (accessToken === null) return;
     try {
-      if (action === 'delete') await deleteMedia(accessToken, asset.mediaId);
-      else await retireMedia(accessToken, asset.mediaId);
+      if (action === 'delete') await deleteMedia(accessToken, adminAsset.mediaId);
+      else await retireMedia(accessToken, adminAsset.mediaId);
       say({
         tone: 'ok',
         text:
           action === 'delete'
-            ? `Đã xoá ${asset.fileName}.`
-            : `Đã gỡ ${asset.fileName} khỏi bộ chọn.`,
+            ? `Đã xoá ${adminAsset.fileName}.`
+            : `Đã gỡ ${adminAsset.fileName} khỏi bộ chọn.`,
       });
     } catch (error) {
       say({ tone: 'bad', text: describe(error) });
@@ -136,17 +137,17 @@ export function MediaLibraryPage() {
   }
 
   /** Play through the API on demand — an <audio> element cannot carry a token. */
-  async function attachPlayback(asset: MediaAsset) {
+  async function attachPlayback(adminAsset: AdminMediaAsset) {
     if (accessToken === null) return;
     try {
-      rememberObjectUrl(asset.mediaId, await fetchMediaObjectUrl(accessToken, asset.mediaId));
-      setMedia((current) => current); // re-render with the URL now remembered
+      rememberObjectUrl(adminAsset.mediaId, await fetchMediaObjectUrl(accessToken, adminAsset.mediaId));
+      setAdminMedia((current) => current); // re-render with the URL now remembered
     } catch (error) {
       say({ tone: 'bad', text: describe(error) });
     }
   }
 
-  if (media === null && loadError === null) {
+  if (adminMedia === null && loadError === null) {
     return (
       <>
         <Head />
@@ -167,7 +168,7 @@ export function MediaLibraryPage() {
     );
   }
 
-  const rows = media ?? [];
+  const rows = adminMedia ?? [];
   const shown = kind === 'all' ? rows : rows.filter((m) => m.kind === kind);
   const mayUpload = operator.can('media.upload');
 
@@ -259,11 +260,37 @@ export function MediaLibraryPage() {
               </tr>
             </thead>
             <tbody>
-              {shown.map((asset) => {
-                // The version↔media mapping does not exist yet — see the file
-                // comment. Every rule below already accepts this list; when
-                // the mapping lands, this is the one line that changes.
-                const versions = NO_KNOWN_VERSIONS;
+              {shown.map((adminAsset) => {
+                // Convert AdminMediaAsset to MediaAsset
+                const asset: MediaAsset = {
+                  mediaId: adminAsset.mediaId,
+                  kind: adminAsset.kind as MediaKind,
+                  fileName: adminAsset.fileName,
+                  contentType: adminAsset.contentType,
+                  bytes: adminAsset.bytes,
+                  durationMs: adminAsset.durationMs,
+                  checksum: adminAsset.checksum,
+                  uploadedByName: adminAsset.uploadedByName,
+                  uploadedAt: adminAsset.uploadedAt,
+                  retired: adminAsset.retired,
+                };
+
+                // Convert server version references to the media rule format
+                const versions: import('../lib/media.js').ReferencingVersion[] = adminAsset.referencedBy.map(
+                  (v: AdminMediaVersionReference) => ({
+                    versionId: v.versionId,
+                    title: v.title,
+                    state: v.state,
+                    assets: [
+                      {
+                        ref: `media/${asset.mediaId}`,
+                        mediaId: asset.mediaId,
+                        usedAt: 'Exam version',
+                        kind: asset.kind,
+                      },
+                    ],
+                  }),
+                );
                 const users = usedBy(asset, versions);
                 const state = assetState(asset, versions);
                 const url = objectUrlFor(asset.mediaId);
@@ -284,7 +311,7 @@ export function MediaLibraryPage() {
                         <button
                           type="button"
                           className="cms-secondary"
-                          onClick={() => void attachPlayback(asset)}
+                          onClick={() => void attachPlayback(adminAsset)}
                         >
                           Phát qua máy chủ
                         </button>
@@ -319,7 +346,7 @@ export function MediaLibraryPage() {
                           <button
                             type="button"
                             className="cms-secondary"
-                            onClick={() => setPending({ asset, action: 'retire' })}
+                            onClick={() => setPending({ asset: adminAsset, action: 'retire' })}
                           >
                             Gỡ khỏi bộ chọn
                           </button>
@@ -328,7 +355,7 @@ export function MediaLibraryPage() {
                           <button
                             type="button"
                             className="cms-danger"
-                            onClick={() => setPending({ asset, action: 'delete' })}
+                            onClick={() => setPending({ asset: adminAsset, action: 'delete' })}
                           >
                             Xoá
                           </button>
@@ -380,22 +407,6 @@ export function MediaLibraryPage() {
   );
 }
 
-/** The library view of the server's asset row — the two types already agree field for field. */
-function serverToAsset(row: AdminMediaAsset): MediaAsset {
-  return {
-    mediaId: row.mediaId,
-    kind: row.kind as MediaKind,
-    fileName: row.fileName,
-    contentType: row.contentType,
-    bytes: row.bytes,
-    durationMs: row.durationMs,
-    checksum: row.checksum,
-    uploadedByName: row.uploadedByName,
-    uploadedAt: row.uploadedAt,
-    retired: row.retired,
-  };
-}
-
 /** "The API refused" and "the API was not reached" need opposite advice. */
 function describe(error: unknown): string {
   if (error instanceof ApiError) {
@@ -406,9 +417,6 @@ function describe(error: unknown): string {
   }
   return 'Có lỗi không mong muốn. Thử lại.';
 }
-
-/** Empty until the version-asset mapping exists — see the file comment. */
-const NO_KNOWN_VERSIONS: import('../lib/media.js').ReferencingVersion[] = [];
 
 function Head() {
   return (

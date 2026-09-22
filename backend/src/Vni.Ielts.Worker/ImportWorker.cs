@@ -284,6 +284,8 @@ public sealed class ImportWorker(
         await RecordHistoryAsync(
             history, job.OperationId, PackageImportHistoryResult.Running, job.Stage, null, null);
 
+        var authorId = await FetchAuthorIdAsync(history, job.OperationId, ct);
+
         await using var archive = await archives.OpenAsync(job.ArchiveKey, ct);
 
         if (archive is null)
@@ -340,7 +342,7 @@ public sealed class ImportWorker(
              * skip — the parse, and nothing else.
              */
             attempt = await pipeline.ImportAsync(
-                seekable, job.DefinitionId, job.VersionNumber, ct, stages, job.Stage);
+                seekable, job.DefinitionId, job.VersionNumber, ct, stages, job.Stage, authorId);
         }
         finally
         {
@@ -574,6 +576,26 @@ public sealed class ImportWorker(
             logger.LogWarning(
                 e, "Could not record package-import history for {Operation}.", operationId);
         }
+    }
+
+    private async Task<UserId?> FetchAuthorIdAsync(
+        IPackageImportHistoryStore? history, string operationId, CancellationToken ct)
+    {
+        if (history is null) return null;
+
+        try
+        {
+            var record = await history.FindByOperationAsync(operationId, ct);
+            if (record is not null && !string.IsNullOrEmpty(record.ActorId))
+                return new UserId(record.ActorId);
+        }
+        catch (Exception e)
+        {
+            logger.LogWarning(
+                e, "Could not fetch author ID from package-import history for {Operation}.", operationId);
+        }
+
+        return null;
     }
 
     /// <summary>

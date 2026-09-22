@@ -1,6 +1,17 @@
 using Vni.Ielts.Application.Common;
+using Vni.Ielts.Application.Exams;
+using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Media;
+
+/// <summary>
+/// A version that references a media asset, reduced to what the admin screen needs.
+/// </summary>
+public sealed record MediaVersionReference(
+    string VersionId,
+    string Title,
+    string State,
+    IReadOnlyList<string> ReferencedAssetIds);
 
 /// <summary>
 /// The library itself, newest first. Every CMS operator with
@@ -11,6 +22,74 @@ public sealed class ListMediaAssets(IMediaAssetStore store)
 {
     public async Task<IReadOnlyList<MediaAsset>> HandleAsync(CancellationToken ct) =>
         await store.ListAsync(ct);
+}
+
+/// <summary>
+/// Extract media asset references from all exam versions, producing a mapping
+/// of which versions use which media assets.
+/// </summary>
+public sealed class ListMediaVersionReferences(IExamCatalogue catalogue)
+{
+    public async Task<IReadOnlyDictionary<string, IReadOnlyList<MediaVersionReference>>> HandleAsync(
+        CancellationToken ct)
+    {
+        var versions = await catalogue.ListAllAsync(ct);
+        var mapping = new Dictionary<string, List<MediaVersionReference>>();
+
+        foreach (var version in versions)
+        {
+            var referencedAssets = ExtractMediaAssetReferences(version);
+            if (referencedAssets.Count == 0) continue;
+
+            var reference = new MediaVersionReference(
+                version.Id.Value,
+                version.Title,
+                version.Status.ToString(),
+                referencedAssets);
+
+            foreach (var assetId in referencedAssets)
+            {
+                if (!mapping.ContainsKey(assetId))
+                    mapping[assetId] = new();
+                mapping[assetId].Add(reference);
+            }
+        }
+
+        return mapping.ToDictionary(x => x.Key, x => (IReadOnlyList<MediaVersionReference>)x.Value);
+    }
+
+    /// <summary>
+    /// Extract all media asset references (audio and image keys) from an exam version.
+    /// </summary>
+    private static List<string> ExtractMediaAssetReferences(ExamVersion version)
+    {
+        var assets = new HashSet<string>();
+
+        foreach (var section in version.Sections)
+        {
+            foreach (var part in section.Parts)
+            {
+                if (!string.IsNullOrEmpty(part.AudioKey))
+                    assets.Add(ExtractMediaId(part.AudioKey));
+                if (!string.IsNullOrEmpty(part.ImageKey))
+                    assets.Add(ExtractMediaId(part.ImageKey));
+            }
+        }
+
+        return assets.ToList();
+    }
+
+    /// <summary>
+    /// Extract the media ID from a reference like "media/abc123" or "assets/audio.mp3".
+    /// For now, we only handle the "media/" prefix which points to library assets.
+    /// </summary>
+    private static string ExtractMediaId(string reference)
+    {
+        const string MediaPrefix = "media/";
+        return reference.StartsWith(MediaPrefix, StringComparison.Ordinal)
+            ? reference[MediaPrefix.Length..]
+            : reference;
+    }
 }
 
 /// <summary>

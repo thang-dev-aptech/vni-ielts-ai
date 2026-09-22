@@ -201,3 +201,37 @@ describe('formatting', () => {
     expect(formatDuration(null)).toBe('—');
   });
 });
+
+describe('real exam-version to media mappings', () => {
+  it('blocks deletion of a media asset referenced by a published version', () => {
+    const a = asset();
+    const publishedVersion = version('published');
+    expect(mayDelete(a, [publishedVersion])).toBe(false);
+    expect(assetState(a, [publishedVersion])).toBe('locked');
+  });
+
+  it('allows retirement of an in-use asset but not deletion', () => {
+    const a = asset();
+    const draftVersion = version('draft');
+    expect(mayRetire(a, [draftVersion])).toBe(true);
+    expect(mayDelete(a, [draftVersion])).toBe(false);
+  });
+
+  it('reports which versions use an asset', () => {
+    const a = asset({ mediaId: 'audio1' });
+    const published = version('published', 'audio1');
+    const draft = version('draft', 'audio1');
+    const unrelated = version('draft', null);
+    const users = usedBy(a, [published, draft, unrelated]);
+    expect(users).toHaveLength(2);
+    expect(users.map((v) => v.state)).toEqual(['published', 'draft']);
+  });
+
+  it('distinguishes an asset used only by unpublished versions', () => {
+    const a = asset();
+    const draftVersion = version('draft');
+    const inReviewVersion = version('in-review');
+    expect(assetState(a, [draftVersion, inReviewVersion])).toBe('in-use');
+    expect(mayRetire(a, [draftVersion, inReviewVersion])).toBe(true);
+  });
+});

@@ -27,6 +27,8 @@ public interface IImportBatchCheckpointStore
 {
     Task<ImportBatchCheckpoint?> FindAsync(string batchId, string itemId, CancellationToken ct);
     Task SaveAsync(ImportBatchCheckpoint checkpoint, CancellationToken ct);
+    Task<IReadOnlyList<ImportBatchCheckpoint>> ListByBatchIdAsync(string batchId, CancellationToken ct) =>
+        throw new NotSupportedException("This checkpoint store does not support batch listing.");
 }
 
 public sealed record ImportBatchRunResult(int Succeeded, int Failed, int Skipped);

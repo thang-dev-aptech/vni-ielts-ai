@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Infrastructure.Content;
 using Vni.Ielts.Infrastructure.Persistence;
@@ -42,10 +43,11 @@ public sealed class MongoImportDraftStoreTests
         throw new InvalidOperationException("contracts/schemas/exam.schema.json not found above " + AppContext.BaseDirectory);
     }
 
-    private static ExamImportDraft Draft(ExamPackageValidator validator, string packageJson, Guid? id = null)
+    private static ExamImportDraft Draft(
+        ExamPackageValidator validator, string packageJson, Guid? id = null, UserId? authorId = null)
     {
         var definitionId = ExamDefinitionId.New();
-        var validation = validator.Validate(packageJson, definitionId, 1);
+        var validation = validator.Validate(packageJson, definitionId, 1, authorId);
         Assert.True(validation.IsValid, string.Join("; ", validation.Findings.Select(f => f.Message)));
 
         return new ExamImportDraft(
@@ -91,6 +93,42 @@ public sealed class MongoImportDraftStoreTests
         Assert.Equal(draft.PackageJson, found.PackageJson);
         Assert.Equal(ImportApprovalState.ReviewRequired, found.ApprovalState);
         Assert.Equal(0, found.Revision);
+    }
+
+    /// <summary>
+    /// <b>The red-when-removed target for ADR-0017's persistence half.</b>
+    /// <c>ToDraft</c> reconstructs <c>Version</c> by revalidating
+    /// <c>PackageJson</c> alone; without <c>AuthorId</c> stored and threaded
+    /// back into that revalidation, every draft's author is silently
+    /// discarded the instant it round-trips through Mongo — which is every
+    /// read, since <c>FindAsync</c>/<c>ReplaceAsync</c>/the approve endpoint
+    /// all go through this store. That makes
+    /// <c>ImportReviewWorkflow.ApproveAsync</c>'s reviewer != author check a
+    /// no-op in production even though it passes against an in-memory store.
+    /// </summary>
+    [Fact]
+    public async Task Save_then_find_round_trips_the_uploading_operators_author_id()
+    {
+        var (store, validator) = NewStore();
+        var author = UserId.New();
+        var draft = Draft(validator, PackageJson, authorId: author);
+
+        await store.SaveAsync(draft, default);
+        var found = await store.FindAsync(draft.Id, default);
+
+        Assert.Equal(author, found!.Version.AuthorId);
+    }
+
+    [Fact]
+    public async Task A_draft_with_no_author_still_round_trips_as_authorless()
+    {
+        var (store, validator) = NewStore();
+        var draft = Draft(validator, PackageJson);
+
+        await store.SaveAsync(draft, default);
+        var found = await store.FindAsync(draft.Id, default);
+
+        Assert.Null(found!.Version.AuthorId);
     }
 
     [Fact]

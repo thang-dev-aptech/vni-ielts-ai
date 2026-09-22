@@ -1,4 +1,5 @@
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Application.Tests.Importing;
@@ -60,6 +61,9 @@ public sealed class ImportBatchRunnerTests
             Items[(checkpoint.BatchId, checkpoint.ItemId)] = checkpoint;
             return Task.CompletedTask;
         }
+        public Task<IReadOnlyList<ImportBatchCheckpoint>> ListByBatchIdAsync(string batchId, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ImportBatchCheckpoint>>(
+                Items.Where(kv => kv.Key.Item1 == batchId).Select(kv => kv.Value).ToList());
     }
 
     private sealed class Drafts : IImportDraftStore
@@ -94,16 +98,17 @@ public sealed class ImportBatchRunnerTests
     private sealed class Validator : IExamPackageValidator
     {
         public bool AcceptInvalid { get; set; }
-        public PackageValidationResult Validate(string json, ExamDefinitionId id, int version)
+        public PackageValidationResult Validate(string json, ExamDefinitionId id, int version, UserId? authorId = null)
         {
             if (json == "invalid" && !AcceptInvalid)
                 return new(false, null, [new PackageFinding("error", "INVALID", "/", "invalid")]);
-            return new(true, Paper(id, version), []);
+            return new(true, Paper(id, version, authorId), []);
         }
-        private static ExamVersion Paper(ExamDefinitionId id, int version) => ExamVersion.CreateDraft(
+        private static ExamVersion Paper(ExamDefinitionId id, int version, UserId? authorId = null) => ExamVersion.CreateDraft(
             id, version, "Paper", ExamVariant.Academic,
             new ScoringProfile(new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(), AnswerMatchingRules.Default),
             new TimingProfile(new Dictionary<ExamModule, int>(), null, []),
-            [new Section(ExamModule.Reading, 1, [])]);
+            [new Section(ExamModule.Reading, 1, [])],
+            authorId: authorId);
     }
 }

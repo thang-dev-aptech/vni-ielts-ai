@@ -1,4 +1,5 @@
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
 
 namespace Vni.Ielts.Infrastructure.Content;
@@ -7,9 +8,9 @@ namespace Vni.Ielts.Infrastructure.Content;
 public sealed class ExamPackageValidator(ExamPackageReader reader) : IExamPackageValidator
 {
     public PackageValidationResult Validate(
-        string packageJson, ExamDefinitionId definitionId, int versionNumber)
+        string packageJson, ExamDefinitionId definitionId, int versionNumber, UserId? authorId = null)
     {
-        var result = reader.Read(packageJson, definitionId, versionNumber);
+        var result = reader.Read(packageJson, definitionId, versionNumber, authorId);
         return new PackageValidationResult(
             result.IsValid,
             result.Version,
