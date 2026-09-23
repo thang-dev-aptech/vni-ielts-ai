@@ -24,7 +24,37 @@ const YES_NO_NOT_GIVEN = ['YES', 'NO', 'NOT GIVEN'];
 /** Multiple-select joins its picks with a pipe — a character no answer contains. */
 const MULTI_SEPARATOR = '|';
 
+/** Namespaced payload: a bare `A` cannot identify which answer bank it came from. */
+export const ANSWER_BANK_DRAG_MIME = 'application/x-vni-ielts-answer-bank';
+
+export function writeAnswerBankDrag(
+  dataTransfer: DataTransfer,
+  scopeId: string,
+  key: string,
+): void {
+  dataTransfer.setData(ANSWER_BANK_DRAG_MIME, JSON.stringify({ scopeId, key }));
+  // Keep a readable fallback for browser drag previews and external tooling.
+  // Drop targets deliberately trust only the namespaced payload above.
+  dataTransfer.setData('text/plain', key);
+}
+
+function readAnswerBankDrag(dataTransfer: DataTransfer, scopeId: string): string | null {
+  try {
+    const payload = JSON.parse(dataTransfer.getData(ANSWER_BANK_DRAG_MIME)) as unknown;
+    if (payload === null || typeof payload !== 'object') return null;
+
+    const candidate = payload as { scopeId?: unknown; key?: unknown };
+    return candidate.scopeId === scopeId && typeof candidate.key === 'string'
+      ? candidate.key
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export interface BankInteraction {
+  /** Stable identity of the one bank whose tokens these targets accept. */
+  scopeId: string;
   selectedKey: string | null;
   onSelect: (key: string) => void;
   onAssigned: () => void;
@@ -37,6 +67,8 @@ export function QuestionInput({
   labelledBy,
   takenBy,
   bankInteraction,
+  bankListId,
+  optionDisplay = 'full',
   onChange,
 }: {
   question: QuestionView;
@@ -57,6 +89,16 @@ export function QuestionInput({
   takenBy?: Record<string, number>;
   /** Shared matching/labelling bank owned by the surrounding question group. */
   bankInteraction?: BankInteraction;
+  /**
+   * When options display as keys only (Matching Headings), point assistive
+   * tech at the shared List of Headings so the full text stays available.
+   */
+  bankListId?: string;
+  /**
+   * `full` keeps "i — The Leatherback's contribution". `key` shows only the
+   * Roman numeral in the control; the adjacent heading list carries the text.
+   */
+  optionDisplay?: 'full' | 'key';
   onChange: (next: string | null) => void;
 }) {
   const { t } = useI18n();
@@ -105,111 +147,125 @@ export function QuestionInput({
     );
   }
 
-  /* Matching/labelling supports three equivalent paths: drag a bank item onto
-     the target, tap/click a bank item and then the target, or use the native
-     select. The select remains the robust platform fallback; it is no longer
-     the only experience. */
+  /* Matching/labelling: one labelled drop target per question.
+   *
+   * Three equivalent paths remain — drag a bank item onto the target, pick a
+   * bank item (click or keyboard) then activate the target, or clear by
+   * activating a filled target with nothing selected. The native select that
+   * used to sit beside the target is gone: two controls for one value meant
+   * two names, two focus stops, and a combobox that duplicated the bank.
+   */
   if (question.type === 'matching' || question.type === 'labelling') {
+    const dragScopeId = bankInteraction?.scopeId ?? `question:${question.id}`;
     const selectedKey = bankInteraction?.selectedKey ?? localBankSelection;
     const selectedOption = question.options.find((option) => option.key === selectedKey) ?? null;
     const current = question.options.find((option) => option.key === value) ?? null;
     const pick = bankInteraction?.onSelect ?? setLocalBankSelection;
     const assigned = bankInteraction?.onAssigned ?? (() => setLocalBankSelection(null));
     const assign = (key: string) => {
+      // Invalid payloads (and empty drops) leave the stored answer alone.
       if (!question.options.some((option) => option.key === key)) return;
       onChange(key);
       assigned();
     };
+    const clear = () => {
+      onChange(null);
+      assigned();
+    };
+    const keyOnly = optionDisplay === 'key';
+    const stateId = `${name}-bank-state`;
+    const describedBy =
+      bankListId === undefined ? stateId : `${stateId} ${bankListId}`;
+    const pending = current === null && selectedOption !== null;
+    const filled = current !== null;
+    const targetClass = [
+      'q-drop-target',
+      filled ? 'is-filled' : null,
+      pending ? 'is-pending' : null,
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    const labelFor = (option: { key: string; text: string }) =>
+      keyOnly || option.text === option.key ? option.key : option.text;
+
+    const liveStatus =
+      current !== null
+        ? `${current.key} — ${current.text}`
+        : selectedOption !== null
+          ? t('exam.assignAnswer', { key: selectedOption.key })
+          : t('exam.dropAnswer');
 
     return (
-      <div className="q-bank">
+      <div className={`q-bank${keyOnly ? ' q-bank-key-only' : ''}`}>
         {bankInteraction === undefined && (
           <ul className="q-inline-bank" aria-label={t('exam.answerBank')}>
-            {question.options.map((option) => (
-              <li key={option.key}>
-                <button
-                  type="button"
-                  className="q-bank-token"
-                  draggable={!disabled}
-                  disabled={disabled}
-                  aria-pressed={selectedKey === option.key}
-                  onClick={() => pick(option.key)}
-                  onDragStart={(event) => {
-                    event.dataTransfer.effectAllowed = 'copy';
-                    event.dataTransfer.setData('text/plain', option.key);
-                    pick(option.key);
-                  }}
-                >
-                  <b>{option.key}</b> {option.text}
-                </button>
-              </li>
-            ))}
+            {question.options.map((option) => {
+              const taken = takenBy?.[option.key];
+              return (
+                <li key={option.key}>
+                  <button
+                    type="button"
+                    className="q-bank-token"
+                    draggable={!disabled}
+                    disabled={disabled}
+                    aria-pressed={selectedKey === option.key}
+                    onClick={() => pick(option.key)}
+                    onDragStart={(event) => {
+                      event.dataTransfer.effectAllowed = 'copy';
+                      writeAnswerBankDrag(event.dataTransfer, dragScopeId, option.key);
+                      pick(option.key);
+                    }}
+                  >
+                    <b>{option.key}</b> {option.text}
+                    {taken !== undefined && taken !== question.order && (
+                      <span className="q-bank-used">{t('exam.usedAt', { number: taken })}</span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
 
-        <button
-          type="button"
-          className={`q-drop-target${current !== null ? ' is-filled' : ''}`}
-          disabled={disabled}
-          {...naming}
-          aria-describedby={`${name}-bank-state`}
-          onClick={() => {
-            if (selectedOption !== null) assign(selectedOption.key);
-          }}
-          onDragOver={(event) => {
-            if (!disabled) event.preventDefault();
-          }}
-          onDrop={(event) => {
-            event.preventDefault();
-            assign(event.dataTransfer.getData('text/plain'));
-          }}
-        >
-          {/*
-            The answer as a person reads it: drop "A. go" here and the box says
-            "go". `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026. A bank whose options
-            are bare letters — a map's A–J — has nothing but the letter to show,
-            so the letter stays. The key is still what is saved and marked; the
-            select below keeps both halves for anyone who wants them.
-          */}
-          {current === null
-            ? selectedOption === null
-              ? t('exam.dropAnswer')
-              : t('exam.assignAnswer', { key: selectedOption.key })
-            : current.text === current.key
-              ? current.key
-              : current.text}
-        </button>
-        <span className="sr-only" id={`${name}-bank-state`} aria-live="polite">
-          {current === null ? t('exam.dropAnswer') : `${current.key} — ${current.text}`}
-        </span>
-
-        <select
-          className="q-bank-select"
-          value={value ?? ''}
-          disabled={disabled}
-          {...naming}
-          onChange={(event) => {
-            const next = event.target.value;
-            if (next === '') onChange(null);
-            else assign(next);
-          }}
-        >
-          <option value="">{t('exam.pickAnswer')}</option>
-          {question.options.map((option) => {
-            const taken = takenBy?.[option.key];
-
-            return (
-              <option key={option.key} value={option.key}>
-                {/* The letter and its text, because a bank of ten roman
-                    numerals tells nobody anything on its own. */}
-                {option.key === option.text ? option.key : `${option.key} — ${option.text}`}
-                {taken !== undefined && taken !== question.order
-                  ? ` ${t('exam.usedAt', { number: taken })}`
-                  : ''}
-              </option>
-            );
-          })}
-        </select>
+        <div className="q-drop-slot">
+          <button
+            type="button"
+            className={targetClass}
+            disabled={disabled}
+            {...naming}
+            aria-describedby={describedBy}
+            onClick={() => {
+              if (selectedOption !== null) assign(selectedOption.key);
+              else if (current !== null) clear();
+            }}
+            onDragOver={(event) => {
+              if (!disabled) event.preventDefault();
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              const key = readAnswerBankDrag(event.dataTransfer, dragScopeId);
+              if (key !== null) assign(key);
+            }}
+          >
+            {/*
+              The answer as a person reads it: drop "A. go" here and the box says
+              "go". `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026. A bank whose options
+              are bare letters — a map's A–J — has nothing but the letter to show,
+              so the letter stays. Matching Headings (`key`) keeps only the Roman
+              numeral visible; the List of Headings beside the table holds the
+              full text. The key is still what is saved and marked.
+            */}
+            {current === null
+              ? selectedOption === null
+                ? t('exam.dropAnswer')
+                : t('exam.assignAnswer', { key: selectedOption.key })
+              : labelFor(current)}
+          </button>
+          <span className="sr-only" id={stateId} aria-live="polite">
+            {liveStatus}
+          </span>
+        </div>
       </div>
     );
   }

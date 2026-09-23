@@ -949,6 +949,16 @@ internal sealed class MongoSectionMarkingStore(MongoContext context, IClock cloc
         return [.. docs.Select(d => d.ToDomain())];
     }
 
+    public async Task<IReadOnlyList<SectionMarking>> ListAllVersionsAsync(
+        ExamSessionId sessionId, CancellationToken ct)
+    {
+        var docs = await context.SectionMarkings
+            .Find(Builders<SectionMarkingDocument>.Filter.Eq(m => m.SessionId, sessionId.Value))
+            .ToListAsync(ct);
+
+        return [.. docs.Select(d => d.ToDomain())];
+    }
+
     /// <summary>
     /// One `$in` over <c>ix_section_markings_session_current</c>, the index
     /// <see cref="ListAsync"/> already uses — the same index lookup, done once

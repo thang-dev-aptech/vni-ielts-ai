@@ -8,7 +8,7 @@ const MAX_FONT_SIZE: FontSize = 20;
  * Reading passage toolbar adhering to D-8:
  * - Font size adjustment widget (A- / A+) with step controls (14px, 16px default, 18px, 20px)
  * - Highlight tool for passage text with visual active state
- * - Clear highlights button when any highlighted selections exist
+ * - Eraser tool for removing selected highlights
  */
 export function PassageToolbar({
   fontSize,
@@ -16,14 +16,16 @@ export function PassageToolbar({
   highlighterActive,
   onToggleHighlighter,
   hasHighlights,
-  onClearHighlights,
+  eraserActive,
+  onToggleEraser,
 }: {
   fontSize: FontSize;
   onChangeFontSize: (size: FontSize) => void;
   highlighterActive: boolean;
   onToggleHighlighter: () => void;
   hasHighlights: boolean;
-  onClearHighlights: () => void;
+  eraserActive: boolean;
+  onToggleEraser: () => void;
 }) {
   const canDecrease = fontSize > MIN_FONT_SIZE;
   const canIncrease = fontSize < MAX_FONT_SIZE;
@@ -94,10 +96,15 @@ export function PassageToolbar({
         {hasHighlights && (
           <button
             type="button"
-            className="passage-tool-btn clear-highlights-btn"
-            aria-label="Xóa tất cả đánh dấu"
-            title="Xóa tất cả đánh dấu"
-            onClick={onClearHighlights}
+            className={`passage-tool-btn clear-highlights-btn${eraserActive ? ' is-active' : ''}`}
+            aria-pressed={eraserActive}
+            aria-label={
+              eraserActive
+                ? 'Đang bật xóa tô sáng (chọn văn bản để xóa)'
+                : 'Bật công cụ xóa tô sáng'
+            }
+            title="Bật/Tắt xóa tô sáng"
+            onClick={onToggleEraser}
           >
             <span aria-hidden="true">✕</span>
             <span className="passage-tool-label">Xóa</span>

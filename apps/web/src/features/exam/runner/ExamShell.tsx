@@ -1,11 +1,41 @@
-import type { ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+} from 'react';
 import { useI18n } from '../../../i18n/index.js';
 import type { SaveState } from '../useAnswerSheet.js';
 import { SaveNote } from '../practice-runner/SaveNote.js';
 import { ExamClock } from './ExamClock.js';
 import { ExamHelp } from './ExamHelp.js';
+import { ResizeGripGlyph } from './ExamIcons.js';
 import { ExamOpenClock } from './ExamOpenClock.js';
 import type { ControlState } from './TargetControl.js';
+
+const READING_RATIO_MIN = 30;
+const READING_RATIO_MAX = 70;
+const READING_RATIO_STEP = 2;
+const READING_RATIO_DEFAULT = 49;
+const READING_COMPACT_QUERY = '(max-width: 1180px)';
+
+/** Keep the divider out of both the DOM and focus order once Reading stacks. */
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const update = () => setMatches(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, [query]);
+
+  return matches;
+}
 
 /**
  * The frame every sitting is drawn in — `/exam/:attemptId` and
@@ -26,7 +56,9 @@ import type { ControlState } from './TargetControl.js';
  * from a deadline sitting — the distinction lives in `timing`, not in a
  * second shell. Listening, Reading, Writing and Speaking all pass through
  * here with the same header, the same footer and the same question cards;
- * only `splitMode` decides whether there is a left column.
+ * only `splitMode` decides whether there is a left column, and whether a
+ * single-column skill (Listening, Speaking) spends the full workspace width
+ * the way Reading's panes do.
  *
  * <b>It is deliberately a page frame and not a layout route.</b> Everything it
  * needs is passed in, so the runner keeps ownership of every decision that
@@ -81,11 +113,12 @@ export function ExamShell({
   tabs?: ReactNode;
   progressStrip?: ReactNode;
   /**
-   * `reading` and `writing` draw a left column; `single` centres one column.
-   * Listening is `single` — its audio sits above its questions in the same
-   * card stack every other skill uses.
+   * `reading` / `writing` draw a left column. `listening` and `single` are one
+   * column that spends the same full workspace width as Reading's panes
+   * (viewport minus the responsive gutter) — not the old centred 900px strip.
+   * Listening's audio sits above its questions in the shared card stack.
    */
-  splitMode: 'reading' | 'writing' | 'single';
+  splitMode: 'reading' | 'writing' | 'listening' | 'single';
   mobilePane?: 'passage' | 'questions';
   /** "Thu nhỏ" — the passage folds to a rail and the questions take the width. */
   passageCollapsed?: boolean;
@@ -95,6 +128,69 @@ export function ExamShell({
 }) {
   const { t } = useI18n();
   const open = timing === 'open';
+  const workspace = useRef<HTMLDivElement>(null);
+  const activePointer = useRef<number | null>(null);
+  const [readingRatio, setReadingRatio] = useState(READING_RATIO_DEFAULT);
+  const compactReading = useMediaQuery(READING_COMPACT_QUERY);
+  const canResizeReading = splitMode === 'reading' && !passageCollapsed && !compactReading;
+
+  function updateReadingRatio(next: number) {
+    setReadingRatio(Math.min(READING_RATIO_MAX, Math.max(READING_RATIO_MIN, Math.round(next))));
+  }
+
+  function resizeFromPointer(clientX: number) {
+    const rect = workspace.current?.getBoundingClientRect();
+    if (rect === undefined || rect.width === 0) return;
+    updateReadingRatio(((clientX - rect.left) / rect.width) * 100);
+  }
+
+  function startResize(event: PointerEvent<HTMLDivElement>) {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    activePointer.current = event.pointerId;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    resizeFromPointer(event.clientX);
+  }
+
+  function moveResize(event: PointerEvent<HTMLDivElement>) {
+    if (activePointer.current !== event.pointerId) return;
+    resizeFromPointer(event.clientX);
+  }
+
+  function stopResize(event: PointerEvent<HTMLDivElement>) {
+    if (activePointer.current !== event.pointerId) return;
+    activePointer.current = null;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
+  }
+
+  function resizeWithKeyboard(event: KeyboardEvent<HTMLDivElement>) {
+    switch (event.key) {
+      case 'ArrowLeft':
+        event.preventDefault();
+        updateReadingRatio(readingRatio - READING_RATIO_STEP);
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        updateReadingRatio(readingRatio + READING_RATIO_STEP);
+        break;
+      case 'Home':
+        event.preventDefault();
+        updateReadingRatio(READING_RATIO_MIN);
+        break;
+      case 'End':
+        event.preventDefault();
+        updateReadingRatio(READING_RATIO_MAX);
+        break;
+    }
+  }
+
+  const workspaceStyle = canResizeReading
+    ? ({
+        '--exr-reading-passage': `${readingRatio}fr`,
+        '--exr-reading-questions': `${100 - readingRatio}fr`,
+      } as CSSProperties)
+    : undefined;
 
   return (
     /*
@@ -197,12 +293,37 @@ export function ExamShell({
 
       <main className="exr-body">
         <div
-          className="exr-wrap exr-body-in"
+          ref={workspace}
+          className="exr-body-in"
+          style={workspaceStyle}
           data-split={splitMode}
           data-passage={passageCollapsed ? 'collapsed' : 'open'}
           {...(mobilePane !== undefined ? { 'data-mobile-pane': mobilePane } : {})}
         >
           {passage}
+          {canResizeReading && (
+            <div
+              className="exr-reading-divider"
+              role="separator"
+              tabIndex={0}
+              aria-label={t('exam.readingDividerLabel')}
+              aria-orientation="vertical"
+              aria-valuemin={READING_RATIO_MIN}
+              aria-valuemax={READING_RATIO_MAX}
+              aria-valuenow={readingRatio}
+              aria-valuetext={t('exam.readingDividerValue', { percent: readingRatio })}
+              onPointerDown={startResize}
+              onPointerMove={moveResize}
+              onPointerUp={stopResize}
+              onPointerCancel={stopResize}
+              onKeyDown={resizeWithKeyboard}
+            >
+              {/* Decorative grip — announces via the separator label only. */}
+              <span className="exr-reading-divider-grip" aria-hidden="true">
+                <ResizeGripGlyph />
+              </span>
+            </div>
+          )}
           {questions}
         </div>
       </main>

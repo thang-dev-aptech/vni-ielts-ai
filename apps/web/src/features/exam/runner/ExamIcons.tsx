@@ -182,3 +182,18 @@ export function TargetGlyph({ size = 16 }: GlyphProps) {
     </Svg>
   );
 }
+
+/** Left/right chevrons for the Reading pane resize grip. */
+export function ResizeGripGlyph({ size = 14 }: GlyphProps) {
+  return (
+    <Svg size={size}>
+      <path
+        d="M9.5 7.5 6 12l3.5 4.5M14.5 7.5 18 12l-3.5 4.5"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}

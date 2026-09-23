@@ -60,6 +60,36 @@ import '../../../styles/listening.css';
  * mid-run ends with "Tiếp theo" (`advanceSection`). `E-13`: Single Skill ends
  * only with "Nộp bài".
  */
+function selectedPassageFragments(root: HTMLElement | null): string[] {
+  const selection = window.getSelection();
+  if (root === null || selection === null || selection.isCollapsed || selection.rangeCount === 0) {
+    return [];
+  }
+
+  const range = selection.getRangeAt(0);
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const fragments: string[] = [];
+
+  for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+    const parent = node.parentElement;
+    if (
+      parent?.closest('.exam-passage-text') === null ||
+      parent?.closest('.sr-only') !== null ||
+      !range.intersectsNode(node)
+    ) {
+      continue;
+    }
+
+    const text = node.textContent ?? '';
+    const start = node === range.startContainer ? range.startOffset : 0;
+    const end = node === range.endContainer ? range.endOffset : text.length;
+    const fragment = text.slice(start, end).trim();
+    if (fragment.length > 1) fragments.push(fragment);
+  }
+
+  return fragments;
+}
+
 export function PracticeRunnerPage() {
   /*
    * One route now, `/exam/:attemptId` — the old `/students/practice/
@@ -105,7 +135,7 @@ export function PracticeRunnerPage() {
     } catch {}
     return 16;
   });
-  const [highlighterActive, setHighlighterActive] = useState(false);
+  const [highlightMode, setHighlightMode] = useState<'add' | 'remove' | null>(null);
   const [highlightsByPart, setHighlightsByPart] = useState<Record<number, string[]>>({});
   /*
    * "Thu nhỏ" on the timed sitting: the passage folds to a rail and the
@@ -190,20 +220,34 @@ export function PracticeRunnerPage() {
     } catch {}
   }
 
-  function handleClearHighlights() {
-    setHighlightsByPart((prev) => ({ ...prev, [activePart]: [] }));
-  }
-
   function handlePassageMouseUp() {
-    if (!highlighterActive) return;
-    const sel = window.getSelection()?.toString().trim();
-    if (sel && sel.length > 1 && sel.length < 150) {
-      setHighlightsByPart((prev) => {
-        const list = prev[activePart] ?? [];
-        if (list.includes(sel)) return prev;
-        return { ...prev, [activePart]: [...list, sel] };
-      });
-    }
+    if (highlightMode === null) return;
+    const selected = selectedPassageFragments(passage.current);
+    if (selected.length === 0) return;
+
+    setHighlightsByPart((prev) => {
+      const list = prev[activePart] ?? [];
+      const selectedText = new Set(selected.map((fragment) => fragment.toLocaleLowerCase()));
+
+      if (highlightMode === 'remove') {
+        const remaining = list.filter(
+          (highlight) => !selectedText.has(highlight.toLocaleLowerCase()),
+        );
+        if (remaining.length === list.length) return prev;
+        return { ...prev, [activePart]: remaining };
+      }
+
+      const next = [...list];
+      for (const fragment of selected) {
+        if (
+          !next.some((highlight) => highlight.toLocaleLowerCase() === fragment.toLocaleLowerCase())
+        ) {
+          next.push(fragment);
+        }
+      }
+      if (next.length === list.length) return prev;
+      return { ...prev, [activePart]: next };
+    });
   }
 
   const goToPart = useCallback(
@@ -700,9 +744,17 @@ export function PracticeRunnerPage() {
    * nhau"*. Listening used to draw its own rail, its own bottom bar and its
    * own question renderer in luyện đề only; all of that is gone. Its audio
    * now sits in the same card stack above the same `QuestionList`, under the
-   * same header and footer, in both timings.
+   * same header and footer, in both timings — and its workspace uses the same
+   * full-width contract as Reading (`data-split="listening"`), not a centred
+   * 900px column.
    */
-  const splitMode = isReading ? 'reading' : isWriting ? 'writing' : 'single';
+  const splitMode = isListening
+    ? 'listening'
+    : isReading
+      ? 'reading'
+      : isWriting
+        ? 'writing'
+        : 'single';
   const skill = SKILLS[section.module];
   const moduleSequence = resolveModuleSequence(session.moduleSequence);
   const currentIndex = moduleSequence.indexOf(section.module);
@@ -777,6 +829,13 @@ export function PracticeRunnerPage() {
     </div>
   );
 
+  /*
+   * Listening part map/diagram: beside the answers on one desktop row, not
+   * stacked above the question list (and not also left in the lead card).
+   * Declared before `QuestionList` so groups can suppress the same asset.
+   */
+  const listeningPartImage = isListening && part.imageKey !== null ? part.imageKey : null;
+
   const questionListNode = (
     <QuestionList
       questions={part.questions}
@@ -785,6 +844,8 @@ export function PracticeRunnerPage() {
       /* One chrome means one question rendering. The `classic` variant is
          now unused by the runner and stays only for surfaces outside it. */
       variant="exam"
+      mediaBesideAnswers={isListening}
+      suppressImageKey={listeningPartImage}
       onChange={markEdited}
       renderSpecial={(question, value) =>
         question.type === 'speaking-response' ? (
@@ -829,10 +890,11 @@ export function PracticeRunnerPage() {
     <PassageToolbar
       fontSize={passageFontSize}
       onChangeFontSize={handleFontSizeChange}
-      highlighterActive={highlighterActive}
-      onToggleHighlighter={() => setHighlighterActive((v) => !v)}
+      highlighterActive={highlightMode === 'add'}
+      onToggleHighlighter={() => setHighlightMode((mode) => (mode === 'add' ? null : 'add'))}
       hasHighlights={currentPartHighlights.length > 0}
-      onClearHighlights={handleClearHighlights}
+      eraserActive={highlightMode === 'remove'}
+      onToggleEraser={() => setHighlightMode((mode) => (mode === 'remove' ? null : 'remove'))}
     />
   );
 
@@ -1003,16 +1065,21 @@ export function PracticeRunnerPage() {
       {/*
         Listening's audio, a Speaking cue card, a diagram: the part's own
         material, above the questions it belongs to. Reading and Writing carry
-        theirs in the left column instead.
+        theirs in the left column instead. Listening maps move into the
+        media-and-answers row below when present.
       */}
       {!isReading &&
         !isWriting &&
-        (audioBlock || part.imageKey !== null || cueBlock || part.body !== null) && (
+        (audioBlock ||
+          (!isListening && part.imageKey !== null) ||
+          cueBlock ||
+          part.body !== null ||
+          part.title !== null) && (
           <div className="exr-qcard">
             <div className="exr-qcard-body">
               {part.title !== null && <h2 className="exam-passage-title">{part.title}</h2>}
               {audioBlock}
-              {part.imageKey !== null && (
+              {!isListening && part.imageKey !== null && (
                 <ExamImage reference={part.imageKey} caption={part.title} />
               )}
               {cueBlock}
@@ -1021,7 +1088,16 @@ export function PracticeRunnerPage() {
           </div>
         )}
 
-      {questionListNode}
+      {listeningPartImage !== null ? (
+        <div className="exr-media-answers">
+          <div className="exr-media-answers-media">
+            <ExamImage reference={listeningPartImage} caption={part.title} />
+          </div>
+          <div className="exr-media-answers-controls">{questionListNode}</div>
+        </div>
+      ) : (
+        questionListNode
+      )}
     </section>
   );
 

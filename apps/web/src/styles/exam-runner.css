@@ -561,6 +561,16 @@
   padding-bottom: var(--s-5);
 }
 
+/* The paper is intentionally wider than the shared chrome wrapper. Header,
+   notices, progress strip, and footer continue to use `.exr-wrap`; only the
+   working panes spend the available viewport width. */
+.exr-body > .exr-body-in {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-inline: var(--s-6);
+}
+
 .exr-body-in {
   height: 100%;
   min-height: 0;
@@ -570,7 +580,69 @@
 }
 
 .exr-body-in[data-split='reading'] {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+  --exr-reading-passage: 1fr;
+  --exr-reading-questions: 1.02fr;
+  grid-template-columns:
+    minmax(20rem, var(--exr-reading-passage))
+    16px
+    minmax(20rem, var(--exr-reading-questions));
+}
+
+/* A wide, visible hit area keeps the separator usable without turning the
+   split into a third panel. Its values live on the workspace so one ratio
+   survives Reading part changes for this sitting. */
+.exr-reading-divider {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+
+.exr-reading-divider::before {
+  content: '';
+  position: absolute;
+  inset: 0 7px;
+  border-radius: var(--r-pill);
+  background: var(--exr-line);
+}
+
+/* Circle with a resize icon sits on the rail so the divider reads as a handle,
+   not a static gutter. Pointer events stay on the parent hit area. */
+.exr-reading-divider-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: 50%;
+  background: var(--exr-card);
+  color: var(--exr-ink-2);
+  line-height: 0;
+  pointer-events: none;
+  box-shadow: 0 1px 2px rgba(23, 37, 29, 0.08);
+}
+
+.exr-reading-divider:hover::before,
+.exr-reading-divider:focus-visible::before {
+  background: var(--exr-green);
+}
+
+.exr-reading-divider:hover .exr-reading-divider-grip,
+.exr-reading-divider:focus-visible .exr-reading-divider-grip {
+  border-color: var(--exr-green-line);
+  color: var(--exr-green-ink);
+}
+
+.exr-reading-divider:focus-visible {
+  outline: 2px solid var(--exr-green);
+  outline-offset: 2px;
 }
 
 .exr-body-in[data-split='writing'] {
@@ -579,18 +651,28 @@
 
 .exr-body-in[data-split='single'] {
   grid-template-columns: minmax(0, 1fr);
-  max-width: 900px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   width: 100%;
 }
 
-/* Listening lays itself out — a section rail and a main column. The shell
-   gives it the width and the height and stays out of the way. */
+/*
+ * Listening — same full-width workspace contract as Reading's panes.
+ *
+ * Header / notices / footer stay on `.exr-wrap` (1376px). The working column
+ * spends the viewport minus the gutter from `.exr-body > .exr-body-in`, and
+ * must not re-introduce the old centred 900px single-column cap.
+ */
 .exr-body-in[data-split='listening'] {
   grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
-.exr-body-in[data-split='listening'] > .lst-body {
+/* Listening has no left pane — audio + prompts + questions share one
+   scrolling column (same contract as Speaking under `single`). */
+.exr-body-in[data-split='listening'] > .exr-questions-col {
   min-height: 0;
   overflow-y: auto;
   position: relative;
@@ -668,10 +750,24 @@
 
 /* `PassageBody` wraps its paragraphs in a div of its own; the size it is given
    has to reach through it. */
-.exr-passage-body .exam-passage-body {
+.exr-page .exr-passage-body .exam-passage-body {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
   font-size: inherit;
   line-height: inherit;
   color: inherit;
+}
+
+/*
+ * Authored A/B/C markers stay in normal flow with their paragraph. Sticky or
+ * fixed here pins the wrong letter beside the wrong text and causes a
+ * handoff where the next letter appears before its paragraph reaches the
+ * viewport. Keep the left-column scan layout; only the positioning changes.
+ */
+.exr-page .exam-passage-label {
+  position: static;
+  top: auto;
 }
 
 .exr-passage-body h1,
@@ -962,6 +1058,61 @@
   padding-left: 36px;
 }
 
+/*
+ * Matching / labelling drop row — prompt left, drop target right.
+ *
+ * `.q-bank` uses `display: contents` so the optional inline bank and the
+ * drop slot participate in this grid without an extra wrapper column. The
+ * Matching Headings table keeps its own layout and never sets `drop-row`.
+ */
+.exr-page .exam-question[data-layout='drop-row'] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem);
+  grid-template-areas:
+    'prompt answer'
+    'bank bank';
+  column-gap: var(--s-4);
+  row-gap: var(--s-3);
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+}
+
+.exr-page .exam-question[data-layout='drop-row'] > .exam-question-head {
+  grid-area: prompt;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.exr-page .exam-question[data-layout='drop-row'] > .q-bank {
+  display: contents;
+  flex: unset;
+  padding-left: 0;
+}
+
+.exr-page .exam-question[data-layout='drop-row'] .q-inline-bank {
+  grid-area: bank;
+  min-width: 0;
+}
+
+.exr-page .exam-question[data-layout='drop-row'] .q-drop-slot {
+  grid-area: answer;
+  min-width: 0;
+  width: 100%;
+}
+
+.exr-page .exam-question[data-layout='drop-row'] .q-drop-target {
+  width: 100%;
+  max-width: none;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.exr-page .exam-question[data-layout='drop-row'] .exr-prompt {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* Verdict strip: statement left, the three responses right, on one line. */
 .exr-page .exam-question[data-layout='row'] {
   align-items: center;
@@ -1156,7 +1307,23 @@
   font-size: var(--t-14);
 }
 
-/* The shared answer bank, above the questions it is chosen from. */
+/* Group questions stay left of the shared answer bank on desktop. */
+.exam-group-bank-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.72fr);
+  gap: var(--s-4);
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.exam-group-bank-questions,
+.exam-group-bank-options {
+  min-width: 0;
+}
+
+/* The shared answer bank, to the right of the questions it is chosen from. */
 .exr-page .exam-bank {
   list-style: none;
   margin: 0 0 var(--s-4);
@@ -1166,6 +1333,10 @@
   border: var(--bw-1) solid var(--exr-line-soft);
   border-radius: var(--r-md);
   background: var(--sunk);
+}
+
+.exam-group-bank-options .exam-bank {
+  margin-bottom: 0;
 }
 
 .exr-page .exam-bank-item {
@@ -1205,6 +1376,208 @@
   margin: 0 0 var(--s-2);
   font-size: var(--t-13);
   color: var(--exr-muted);
+}
+
+/*
+ * Matching Headings — answer table left, List of Headings right.
+ *
+ * Desktop keeps both columns on one row inside the question card. Narrow
+ * viewports stack table then list (DOM and reading order) without horizontal
+ * overflow.
+ */
+.exam-headings-layout {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.85fr) minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+}
+
+.exam-headings-list {
+  min-width: 0;
+}
+
+.exam-headings-list .exam-bank {
+  margin-bottom: 0;
+}
+
+/*
+ * Listening media-and-answers row — map/diagram beside the controls it labels.
+ *
+ * Desktop: two columns, media then answers. Narrow: stack in DOM order
+ * (media before answers) with no sideways scroll. Aspect ratio stays on the
+ * image (`height: auto` / `object-fit: contain`); the answer column keeps a
+ * usable min-width for selects and text fields.
+ */
+.exr-media-answers {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(16rem, 1fr);
+  gap: var(--s-5);
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.exr-media-answers-media {
+  min-width: 0;
+}
+
+.exr-media-answers-media .exam-figure {
+  height: 100%;
+}
+
+.exr-media-answers-media .exam-figure-image {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 40vh;
+  object-fit: contain;
+  object-position: center top;
+}
+
+.exr-media-answers-controls {
+  min-width: 0;
+  display: grid;
+  gap: var(--s-4);
+  align-content: start;
+}
+
+.exr-media-answers-controls > .exam-question-list {
+  margin: 0;
+}
+
+/* Enlarge control + lightbox for `ExamImage` (D-8). */
+.exam-figure-wrap {
+  position: relative;
+  display: block;
+}
+
+.exam-figure-enlarge-btn {
+  position: absolute;
+  right: var(--s-3);
+  bottom: var(--s-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 36px;
+  padding: var(--s-2) var(--s-3);
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--exr-card) 92%, transparent);
+  color: var(--exr-ink-2);
+  font: inherit;
+  font-size: var(--t-13);
+  font-weight: var(--w-emph);
+  cursor: pointer;
+}
+
+.exam-figure-enlarge-btn:focus-visible {
+  outline: 2px solid var(--exr-green);
+  outline-offset: 2px;
+}
+
+.exam-image-modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: var(--s-5);
+  background: color-mix(in srgb, #0b1220 55%, transparent);
+}
+
+.exam-image-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: min(960px, 100%);
+  max-height: min(90vh, 100%);
+  padding: var(--s-4);
+  border-radius: 16px;
+  background: var(--exr-card);
+  border: var(--bw-1) solid var(--exr-line);
+  overflow: auto;
+}
+
+.exam-image-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.exam-image-modal-title {
+  font-size: var(--t-16);
+  font-weight: 700;
+  color: var(--exr-ink);
+}
+
+.exam-image-modal-close {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: var(--bw-1) solid var(--exr-line);
+  border-radius: var(--r-md);
+  background: var(--sunk);
+  color: var(--exr-ink-2);
+  font: inherit;
+  cursor: pointer;
+}
+
+.exam-image-modal-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 75vh;
+  object-fit: contain;
+  background: #fff;
+  border-radius: var(--r-md);
+}
+
+.exam-headings-table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-14);
+  color: var(--exr-ink-2);
+}
+
+.exam-headings-table th,
+.exam-headings-table td {
+  padding: var(--s-2) var(--s-3);
+  border: var(--bw-1) solid var(--exr-line);
+  vertical-align: middle;
+  text-align: left;
+}
+
+.exam-headings-table thead th {
+  background: var(--sunk);
+  font-weight: 700;
+  color: var(--exr-ink);
+}
+
+.exam-headings-paragraph {
+  width: 3.5rem;
+  text-align: center;
+  font-weight: 700;
+  color: var(--exr-green-ink);
+}
+
+.exam-headings-answer .q-bank {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.exam-headings-answer .q-bank-key-only .q-drop-target {
+  min-height: 36px;
+  justify-content: center;
+}
+
+.exam-headings-answer .q-bank-select {
+  width: 100%;
+  max-width: 8rem;
 }
 
 .exr-page .q-essay {
@@ -1509,6 +1882,10 @@
  * DESIGN.md anti-pattern #14.
  */
 @media (max-width: 1180px) {
+  .exr-reading-divider {
+    display: none;
+  }
+
   .exr-page {
     height: auto;
     min-height: 100vh;
@@ -1545,6 +1922,42 @@
 
   .exr-wrap {
     padding: 0 var(--s-4);
+  }
+
+  .exr-body > .exr-body-in {
+    padding-inline: var(--s-4);
+  }
+
+  /* Matching Headings: list above table, no sideways scroll. */
+  .exam-headings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Shared banks follow their questions when the two columns stack. */
+  .exam-group-bank-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Matching/labelling: prompt then drop target, association preserved. */
+  .exr-page .exam-question[data-layout='drop-row'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'prompt'
+      'answer'
+      'bank';
+  }
+
+  /* Listening media row: map above answers, DOM order preserved. */
+  .exr-media-answers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .exr-media-answers-media .exam-figure-image {
+    max-height: 36vh;
+  }
+
+  .exam-headings-answer .q-bank-select {
+    max-width: none;
   }
 
   .exr-tabs {

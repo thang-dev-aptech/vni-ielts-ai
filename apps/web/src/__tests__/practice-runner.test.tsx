@@ -1,8 +1,37 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { StrictMode } from 'react';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { App } from '../App.js';
+
+const examRunnerCss = readFileSync(resolve(process.cwd(), 'src/styles/exam-runner.css'), 'utf8');
+const examCss = readFileSync(resolve(process.cwd(), 'src/styles/exam.css'), 'utf8');
+const practiceRunCss = readFileSync(resolve(process.cwd(), 'src/styles/practice-run.css'), 'utf8');
+
+/** Extract one balanced CSS block without enabling Vitest's suite-wide CSS pipeline. */
+function cssBlock(source: string, header: string): string | null {
+  const headerStart = source.indexOf(header);
+  if (headerStart === -1) return null;
+
+  const blockStart = source.indexOf('{', headerStart + header.length);
+  if (blockStart === -1) return null;
+
+  let depth = 0;
+  for (let index = blockStart; index < source.length; index += 1) {
+    const character = source[index];
+    if (character === '{') depth += 1;
+    if (character !== '}') continue;
+
+    depth -= 1;
+    if (depth === 0) {
+      return source.slice(blockStart + 1, index);
+    }
+  }
+
+  return null;
+}
 
 /**
  * Luyện đề — the runner with a stopwatch instead of a deadline.
@@ -755,6 +784,101 @@ it('splits Reading into a passage pane and a question pane', async () => {
 
   const body = document.querySelector('.exr-body-in') as HTMLElement;
   expect(body.dataset.split).toBe('reading');
+  expect(body.parentElement).toHaveClass('exr-body');
+  expect(body).not.toHaveClass('exr-wrap');
+
+  const desktopWorkspace = cssBlock(examRunnerCss, '.exr-body > .exr-body-in');
+  expect(desktopWorkspace).not.toBeNull();
+  expect(desktopWorkspace).toContain('max-width: none;');
+  expect(desktopWorkspace).toContain('padding-inline: var(--s-6);');
+
+  const singlePane = cssBlock(examRunnerCss, ".exr-body-in[data-split='single']");
+  expect(singlePane).not.toBeNull();
+  expect(singlePane).toContain('max-width: none;');
+
+  const mobileRules = cssBlock(examRunnerCss, '@media (max-width: 900px)');
+  expect(mobileRules).not.toBeNull();
+  const mobileWorkspace = cssBlock(mobileRules ?? '', '.exr-body > .exr-body-in');
+  expect(mobileWorkspace).not.toBeNull();
+  expect(mobileWorkspace).toContain('padding-inline: var(--s-4);');
+
+  const divider = screen.getByRole('separator', { name: 'Điều chỉnh độ rộng bài đọc' });
+  expect(divider).toHaveClass('exr-reading-divider');
+  expect(divider).toHaveAttribute('aria-orientation', 'vertical');
+  expect(divider).toHaveAttribute('aria-valuemin', '30');
+  expect(divider).toHaveAttribute('aria-valuemax', '70');
+  expect(divider).toHaveAttribute('aria-valuenow', '49');
+  expect(divider).toHaveAttribute('aria-valuetext', '49% chiều rộng cho bài đọc');
+  // Visible resize-grip circle signals drag; decorative so the separator name stays one.
+  const grip = divider.querySelector('.exr-reading-divider-grip');
+  expect(grip).not.toBeNull();
+  expect(grip).toHaveAttribute('aria-hidden', 'true');
+  expect(grip!.querySelector('svg')).not.toBeNull();
+
+  // The shared passage style uses a comfortable fixed reading measure on
+  // ordinary pages. Inside a resizable runner that cap would resize only the
+  // card while leaving the paragraph column unchanged.
+  const responsivePassage = cssBlock(
+    examRunnerCss,
+    '.exr-page .exr-passage-body .exam-passage-body',
+  );
+  expect(responsivePassage).not.toBeNull();
+  expect(responsivePassage).toContain('width: 100%');
+  expect(responsivePassage).toContain('max-width: none');
+  expect(responsivePassage).toContain('min-width: 0');
+
+  const workspaceRect = vi.spyOn(body, 'getBoundingClientRect').mockReturnValue({
+    bottom: 600,
+    height: 600,
+    left: 0,
+    right: 1000,
+    toJSON: () => ({}),
+    top: 0,
+    width: 1000,
+    x: 0,
+    y: 0,
+  });
+
+  // A left drag shrinks the passage; a right drag grows it. Both extremes
+  // stop at the usable 30–70% range rather than letting either pane collapse.
+  fireEvent.pointerDown(divider, { clientX: 490, pointerId: 1 });
+  fireEvent.pointerMove(divider, { clientX: 360, pointerId: 1 });
+  expect(divider).toHaveAttribute('aria-valuenow', '36');
+  expect(body.style.getPropertyValue('--exr-reading-passage')).toBe('36fr');
+  expect(body.style.getPropertyValue('--exr-reading-questions')).toBe('64fr');
+  fireEvent.pointerMove(divider, { clientX: 650, pointerId: 1 });
+  expect(divider).toHaveAttribute('aria-valuenow', '65');
+  fireEvent.pointerMove(divider, { clientX: 0, pointerId: 1 });
+  expect(divider).toHaveAttribute('aria-valuenow', '30');
+  fireEvent.pointerMove(divider, { clientX: 1000, pointerId: 1 });
+  expect(divider).toHaveAttribute('aria-valuenow', '70');
+  fireEvent.pointerUp(divider, { pointerId: 1 });
+  workspaceRect.mockRestore();
+
+  fireEvent.keyDown(divider, { key: 'Home' });
+  expect(divider).toHaveAttribute('aria-valuenow', '30');
+  fireEvent.keyDown(divider, { key: 'ArrowRight' });
+  expect(divider).toHaveAttribute('aria-valuenow', '32');
+  fireEvent.keyDown(divider, { key: 'ArrowLeft' });
+  expect(divider).toHaveAttribute('aria-valuenow', '30');
+  fireEvent.keyDown(divider, { key: 'End' });
+  expect(divider).toHaveAttribute('aria-valuenow', '70');
+
+  expect(body.firstElementChild?.nextElementSibling).toBe(divider);
+  expect(divider.nextElementSibling).toHaveClass('exr-questions-col');
+
+  await userEvent.click(screen.getByRole('button', { name: 'Thu nhỏ' }));
+  expect(screen.queryByRole('separator', { name: 'Điều chỉnh độ rộng bài đọc' })).toBeNull();
+  await userEvent.click(screen.getByRole('button', { name: 'Mở rộng' }));
+  expect(screen.getByRole('separator', { name: 'Điều chỉnh độ rộng bài đọc' })).toHaveAttribute(
+    'aria-valuenow',
+    '70',
+  );
+
+  const tabletRules = cssBlock(examRunnerCss, '@media (max-width: 1180px)');
+  const hiddenDivider = cssBlock(tabletRules ?? '', '.exr-reading-divider');
+  expect(hiddenDivider).not.toBeNull();
+  expect(hiddenDivider).toContain('display: none');
 
   const passage = screen.getByRole('region', { name: 'Bài đọc' });
   const questions = screen.getByRole('region', { name: 'Câu hỏi' });
@@ -779,6 +903,78 @@ it('splits Reading into a passage pane and a question pane', async () => {
   // not erase the answer waiting for autosave.
   expect(within(questions).getByRole('textbox', { name: /Câu hỏi 1/ })).toBe(answer);
   expect(answer).toHaveValue('atlas');
+
+  await userEvent.click(screen.getByRole('button', { name: 'Section sau' }));
+  await screen.findByText('Wayfinding');
+  expect(screen.getByRole('separator', { name: 'Điều chỉnh độ rộng bài đọc' })).toHaveAttribute(
+    'aria-valuenow',
+    '70',
+  );
+});
+
+it('localizes the Reading divider for English learners', async () => {
+  localStorage.setItem('vni.locale', 'en');
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  const divider = screen.getByRole('separator', { name: 'Resize reading passage' });
+  expect(divider).toHaveAttribute('aria-valuetext', '49% width for reading passage');
+  expect(screen.queryByRole('separator', { name: 'Điều chỉnh độ rộng bài đọc' })).toBeNull();
+});
+
+it('removes the Reading divider from focus order when the viewport stacks the panes', async () => {
+  const listeners = new Set<EventListener>();
+  let viewportWidth = 1280;
+
+  vi.spyOn(window, 'matchMedia').mockImplementation(
+    (query) =>
+      ({
+        get matches() {
+          return query === '(max-width: 1180px)' && viewportWidth <= 1180;
+        },
+        media: query,
+        onchange: null,
+        addEventListener: (_type: string, listener: EventListenerOrEventListenerObject) => {
+          if (typeof listener === 'function') listeners.add(listener);
+        },
+        removeEventListener: (_type: string, listener: EventListenerOrEventListenerObject) => {
+          if (typeof listener === 'function') listeners.delete(listener);
+        },
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      }) as MediaQueryList,
+  );
+
+  const setViewport = (width: number) => {
+    viewportWidth = width;
+    act(() => {
+      for (const listener of listeners) listener(new Event('change'));
+    });
+  };
+
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+
+  const divider = screen.getByRole('separator', { name: 'Điều chỉnh độ rộng bài đọc' });
+  divider.focus();
+  expect(divider).toHaveFocus();
+
+  setViewport(1100);
+  expect(screen.queryByRole('separator', { name: 'Điều chỉnh độ rộng bài đọc' })).toBeNull();
+  expect(divider).not.toHaveFocus();
+
+  setViewport(800);
+  const view = screen.getByRole('group', { name: 'Chọn phần hiển thị trên màn hình nhỏ' });
+  const questionsButton = within(view).getByRole('button', { name: 'Câu hỏi' });
+  await userEvent.click(questionsButton);
+  expect(questionsButton).toHaveAttribute('aria-pressed', 'true');
+
+  setViewport(1280);
+  expect(screen.getByRole('separator', { name: 'Điều chỉnh độ rộng bài đọc' })).toHaveAttribute(
+    'aria-valuenow',
+    '49',
+  );
 });
 
 it('restores both Reading pane scroll positions for each part', async () => {
@@ -1093,4 +1289,275 @@ it('states connection as words, not as a colour alone', async () => {
   const offline = await screen.findByText('Mất kết nối');
   expect(offline).toHaveAttribute('role', 'status');
   expect(screen.queryByText('Đã kết nối')).toBeNull();
+});
+
+it('stacks Matching Headings columns on tablet/mobile without sideways scroll', () => {
+  /*
+   * Desktop keeps the List of Headings beside the answer table. Below 900px
+   * the same layout class becomes a single column so the table stays usable
+   * without inventing a second component.
+   */
+  const desktop = cssBlock(examRunnerCss, '.exam-headings-layout');
+  expect(desktop).not.toBeNull();
+  expect(desktop).toContain('grid-template-columns: minmax(12rem, 0.85fr) minmax(0, 1fr)');
+  expect(desktop).toContain('max-width: 100%');
+
+  const mobileRules = cssBlock(examRunnerCss, '@media (max-width: 900px)');
+  expect(mobileRules).not.toBeNull();
+  const stacked = cssBlock(mobileRules ?? '', '.exam-headings-layout');
+  expect(stacked).not.toBeNull();
+  expect(stacked).toContain('grid-template-columns: minmax(0, 1fr)');
+});
+
+it('keeps matching drop targets in a right-hand column on desktop', () => {
+  /*
+   * Exam-mode matching/labelling: number + prompt left, drop target right.
+   * Below 900px the same class stacks prompt then answer.
+   */
+  const desktop = cssBlock(examRunnerCss, ".exr-page .exam-question[data-layout='drop-row']");
+  expect(desktop).not.toBeNull();
+  expect(desktop).toContain('grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem)');
+  expect(desktop).toContain("'prompt answer'");
+  expect(desktop).toContain('max-width: 100%');
+
+  const mobileRules = cssBlock(examRunnerCss, '@media (max-width: 900px)');
+  const stacked = cssBlock(mobileRules ?? '', ".exr-page .exam-question[data-layout='drop-row']");
+  expect(stacked).not.toBeNull();
+  expect(stacked).toContain('grid-template-columns: minmax(0, 1fr)');
+  expect(stacked).toContain("'prompt'");
+  expect(stacked).toContain("'answer'");
+});
+
+it('keeps Reading paragraph letters in normal scroll flow', () => {
+  /*
+   * Sticky/fixed labels pin the wrong letter beside the wrong text and hand
+   * off to the next letter before its paragraph reaches the viewport. The
+   * runner must keep them static in the left column of their own paragraph.
+   */
+  const base = cssBlock(examCss, '.exam-passage-label');
+  expect(base).not.toBeNull();
+  expect(base).toContain('position: static');
+  expect(base).not.toMatch(/position:\s*(sticky|fixed)/);
+
+  const runner = cssBlock(examRunnerCss, '.exr-page .exam-passage-label');
+  expect(runner).not.toBeNull();
+  expect(runner).toContain('position: static');
+  expect(runner).not.toMatch(/position:\s*(sticky|fixed)/);
+  expect(runner).toContain('top: auto');
+});
+
+it('renders Reading highlights as background colour only', () => {
+  const highlight = cssBlock(practiceRunCss, '.exam-highlight');
+  expect(highlight).not.toBeNull();
+  expect(
+    highlight
+      ?.trim()
+      .split('\n')
+      .map((declaration) => declaration.trim()),
+  ).toEqual(['background-color: #fef08a;', 'color: inherit;']);
+});
+
+it('highlights long Reading selections and erases only the selected highlight', async () => {
+  const longSelection =
+    'Cartographers compared coastlines, measured distances, recorded landmarks, and revised their maps whenever new journeys revealed more accurate details.';
+  const secondSelection = 'This separate sentence must stay highlighted.';
+  expect(longSelection.length).toBeGreaterThanOrEqual(150);
+
+  const base = practiceSession();
+  sessionPayload = practiceSession({
+    current: {
+      parts: [
+        {
+          ...base.current.parts[0],
+          body: `**A** ${longSelection}\n\n**B** ${secondSelection}`,
+        },
+        base.current.parts[1],
+      ],
+    },
+  });
+
+  open('/students/practice/sit-1');
+  await screen.findByText('The History of Cartography');
+  await userEvent.click(screen.getByRole('button', { name: 'Bật công cụ tô sáng' }));
+
+  const selectParagraph = (index: number) => {
+    const paragraph = document.querySelectorAll('.exam-passage-para')[index] as HTMLElement;
+    const range = document.createRange();
+    range.selectNodeContents(paragraph);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  };
+
+  selectParagraph(0);
+  fireEvent.mouseUp(document.querySelector('.exr-passage-panel .exr-panel-scroll') as HTMLElement);
+  await waitFor(() => expect(screen.getByText(longSelection)).toHaveClass('exam-highlight'));
+
+  selectParagraph(1);
+  fireEvent.mouseUp(document.querySelector('.exr-passage-panel .exr-panel-scroll') as HTMLElement);
+  await waitFor(() => expect(screen.getByText(secondSelection)).toHaveClass('exam-highlight'));
+
+  const highlighter = screen.getByRole('button', { name: 'Đang bật tô sáng (chọn văn bản để tô)' });
+  await userEvent.click(screen.getByRole('button', { name: 'Bật công cụ xóa tô sáng' }));
+  expect(highlighter).toHaveAttribute('aria-pressed', 'false');
+
+  selectParagraph(0);
+  fireEvent.mouseUp(document.querySelector('.exr-passage-panel .exr-panel-scroll') as HTMLElement);
+  await waitFor(() => expect(screen.getByText(longSelection)).not.toHaveClass('exam-highlight'));
+  expect(screen.getByText(secondSelection)).toHaveClass('exam-highlight');
+});
+
+it('places Listening maps beside answers on desktop and stacks on mobile', async () => {
+  /*
+   * Part-level image sits in `.exr-media-answers` next to the question list —
+   * once, not also in the audio lead card. A group image gets its own row
+   * beside that group's controls. Below 900px both rows become one column
+   * with media before answers.
+   */
+  const mapGroup = {
+    id: 'map-1',
+    title: 'Plan of the sports centre',
+    instruction: 'Label the map.',
+    imageKey: 'assets/listening/map.png',
+    text: null,
+    eachLetterOnce: false,
+  };
+
+  const base = listeningSession({ playOnce: false, allowSeek: true });
+  sessionPayload = {
+    ...base,
+    current: {
+      ...base.current,
+      parts: [
+        {
+          order: 1,
+          kind: 'listening',
+          title: 'Listening Part 2',
+          body: null,
+          audioKey: 'assets/listening/part-2.mp3',
+          imageKey: 'assets/listening/part-plan.png',
+          taskNumber: null,
+          partNumber: 2,
+          cueCard: null,
+          minWords: null,
+          transcript: null,
+          questions: [
+            {
+              id: 'l-11',
+              order: 11,
+              type: 'labelling',
+              prompt: 'Reception',
+              options: [
+                { key: 'A', text: 'A' },
+                { key: 'B', text: 'B' },
+              ],
+              maxWords: null,
+              group: mapGroup,
+            },
+            {
+              id: 'l-12',
+              order: 12,
+              type: 'labelling',
+              prompt: 'Cafe',
+              options: [
+                { key: 'A', text: 'A' },
+                { key: 'B', text: 'B' },
+              ],
+              maxWords: null,
+              group: mapGroup,
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  mockApi((url) => {
+    if (url.includes('/api/v1/exams/assets/')) {
+      return new Response(new Blob(['img']), {
+        status: 200,
+        headers: { 'Content-Type': 'image/png' },
+      });
+    }
+    return null;
+  });
+
+  open('/students/practice/sit-1');
+  await screen.findByRole('button', { name: 'Phát' });
+
+  const workspace = document.querySelector('.exr-body-in') as HTMLElement;
+  // Listening spends the same full-width workspace as Reading. Keeping this
+  // assertion on the media fixture catches a future "single-column" shortcut
+  // that puts the map and its controls back inside the constrained chrome.
+  expect(workspace.dataset.split).toBe('listening');
+  expect(workspace.parentElement).toHaveClass('exr-body');
+  expect(workspace).not.toHaveClass('exr-wrap');
+
+  const rows = document.querySelectorAll('.exr-media-answers');
+  // Part plan beside the list, plus the group map beside its controls.
+  // The part plan key is suppressed inside the group, so the group still
+  // shows its own distinct map — two rows, two figures, no duplicate of
+  // part-plan.png.
+  expect(rows.length).toBe(2);
+  expect(rows[0]!.querySelector('.exr-media-answers-media')).not.toBeNull();
+  expect(rows[0]!.querySelector('.exr-media-answers-controls')).not.toBeNull();
+  expect(rows[0]!.querySelector('.exam-question-list')).not.toBeNull();
+  expect(
+    rows[1]!.querySelector('.exr-media-answers-controls .exam-group-questions'),
+  ).not.toBeNull();
+  // The group row is nested in the part row's controls, so `:scope` matters:
+  // each row owns exactly its direct media figure, rather than counting its
+  // descendant's image as a duplicate.
+  expect(rows[0]!.querySelectorAll(':scope > .exr-media-answers-media .exam-figure')).toHaveLength(
+    1,
+  );
+  expect(rows[1]!.querySelectorAll(':scope > .exr-media-answers-media .exam-figure')).toHaveLength(
+    1,
+  );
+
+  // Labelling questions sit in the drop-row layout (prompt then target).
+  const dropRows = [...document.querySelectorAll('.exam-question[data-layout="drop-row"]')];
+  expect(dropRows).toHaveLength(2);
+  expect(screen.queryByRole('combobox')).toBeNull();
+  for (const row of dropRows) {
+    const head = row.querySelector('.exam-question-head');
+    const slot = row.querySelector('.q-drop-slot .q-drop-target');
+    expect(head).not.toBeNull();
+    expect(slot).not.toBeNull();
+    expect(head!.compareDocumentPosition(slot!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  }
+
+  const leadCard = document.querySelector('.exr-questions-col > .exr-qcard');
+  expect(leadCard).not.toBeNull();
+  expect(leadCard!.querySelector('.exam-figure')).toBeNull();
+
+  const desktop = cssBlock(examRunnerCss, '.exr-media-answers');
+  expect(desktop).not.toBeNull();
+  expect(desktop).toContain('grid-template-columns: minmax(0, 1.1fr) minmax(16rem, 1fr)');
+  expect(desktop).toContain('max-width: 100%');
+
+  const mediaImage = cssBlock(examRunnerCss, '.exr-media-answers-media .exam-figure-image');
+  expect(mediaImage).not.toBeNull();
+  expect(mediaImage).toContain('max-height: 40vh');
+  expect(mediaImage).toContain('object-fit: contain');
+
+  const mobileRules = cssBlock(examRunnerCss, '@media (max-width: 900px)');
+  const stacked = cssBlock(mobileRules ?? '', '.exr-media-answers');
+  expect(stacked).not.toBeNull();
+  expect(stacked).toContain('grid-template-columns: minmax(0, 1fr)');
+
+  // Selecting from the group bank must still update its own response while
+  // that group is rendered in the media row; the part image must not cause
+  // the action to land on a sibling question or an unrelated standalone row.
+  const groupRow = rows[1] as HTMLElement;
+  await userEvent.click(within(groupRow).getByRole('button', { name: /A\s*A/ }));
+  const reception = within(groupRow).getByRole('button', { name: /Reception/ });
+  await userEvent.click(reception);
+  expect(reception).toHaveTextContent('A');
+
+  await until(() => calls.answers.some((body) => body.module === 'listening'));
+  expect(calls.answers.at(-1)).toMatchObject({
+    module: 'listening',
+    changes: { 'l-11': 'A' },
+  });
 });

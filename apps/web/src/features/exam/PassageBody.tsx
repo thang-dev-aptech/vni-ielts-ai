@@ -9,6 +9,11 @@ import { Fragment } from 'react';
  * is what a plain text split does — the reader is asked to find a paragraph
  * that is not labelled, and the whole question set becomes guesswork.
  *
+ * The visible letter is decorative (`aria-hidden`); the same letter is spoken
+ * once via an `sr-only` prefix on the paragraph text. Labels stay in normal
+ * document flow with their paragraph — they must not stick or pin in the
+ * passage pane.
+ *
  * Supports font size customization and user-selected highlights per D-8.
  */
 export function PassageBody({
@@ -32,7 +37,9 @@ export function PassageBody({
                 Pulled out of the flow of the sentence rather than left inline.
                 A candidate matching six headings scans this column six times,
                 and a bold letter inside a justified paragraph is not something
-                you can scan — it is something you have to read past.
+                you can scan — it is something you have to read past. The letter
+                still scrolls with this paragraph; sticky/fixed positioning is
+                refused in CSS so it cannot pin beside the next paragraph's text.
               */
               <span className="exam-passage-label" aria-hidden="true">
                 {label[1]}

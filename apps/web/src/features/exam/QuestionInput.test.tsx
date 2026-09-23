@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, expect, it } from 'vitest';
 import { I18nProvider } from '../../i18n/index.js';
-import { QuestionInput } from './QuestionInput.js';
+import { ANSWER_BANK_DRAG_MIME, QuestionInput } from './QuestionInput.js';
 import type { QuestionView } from './examApi.js';
 
 const options = [
@@ -133,18 +133,66 @@ it('renders completion as an uncorrected text input with its word limit', async 
   expect(screen.getByTestId('value')).toHaveTextContent('map');
 });
 
-it.each(['matching', 'labelling'])('%s offers tap and native-select paths', async (type) => {
+it.each(['matching', 'labelling'])('%s offers tap and drop-target paths without a select', async (type) => {
   render(<Controlled item={question(type)} />);
 
   const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
   await userEvent.click(within(bank).getByRole('button', { name: /B Beta/ }));
-  await userEvent.click(screen.getByRole('button', { name: /Renderer prompt/ }));
+
+  const target = screen.getByRole('button', { name: /Renderer prompt/ });
+  expect(target).toHaveClass('is-pending');
+  expect(screen.queryByRole('combobox')).toBeNull();
+
+  await userEvent.click(target);
 
   expect(screen.getByTestId('value')).toHaveTextContent('B');
-  expect(screen.getByRole('combobox', { name: /Renderer prompt/ })).toHaveValue('B');
   // The box says what was dropped in it the way a person reads it — "Beta",
   // not "B — Beta". The key is still what is saved.
   expect(screen.getByRole('button', { name: /Renderer prompt/ })).toHaveTextContent(/^Beta$/);
+  expect(screen.getByRole('button', { name: /Renderer prompt/ })).toHaveClass('is-filled');
+  expect(screen.queryByRole('combobox')).toBeNull();
+});
+
+it.each(['matching', 'labelling'])('%s assigns by drag-and-drop onto the drop target', async (type) => {
+  render(<Controlled item={question(type)} />);
+
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+  const option = within(bank).getByRole('button', { name: /C Gamma/ });
+  const target = screen.getByRole('button', { name: /Renderer prompt/ });
+
+  const data = new Map<string, string>();
+  const dataTransfer = {
+    effectAllowed: 'none',
+    setData: (typeName: string, value: string) => data.set(typeName, value),
+    getData: (typeName: string) => data.get(typeName) ?? '',
+  };
+
+  fireEvent.dragStart(option, { dataTransfer });
+  fireEvent.dragOver(target, { dataTransfer });
+  fireEvent.drop(target, { dataTransfer });
+
+  expect(screen.getByTestId('value')).toHaveTextContent('C');
+  expect(target).toHaveTextContent(/^Gamma$/);
+  expect(target).toHaveClass('is-filled');
+  expect(screen.queryByRole('combobox')).toBeNull();
+});
+
+it.each(['matching', 'labelling'])('%s assigns by keyboard only', async (type) => {
+  render(<Controlled item={question(type)} />);
+
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+  const option = within(bank).getByRole('button', { name: /A Alpha/ });
+  option.focus();
+  await userEvent.keyboard('{Enter}');
+
+  const target = screen.getByRole('button', { name: /Renderer prompt/ });
+  expect(target).toHaveClass('is-pending');
+  target.focus();
+  await userEvent.keyboard('{Enter}');
+
+  expect(screen.getByTestId('value')).toHaveTextContent('A');
+  expect(target).toHaveTextContent(/^Alpha$/);
+  expect(screen.queryByRole('combobox')).toBeNull();
 });
 
 it('a bank of bare letters keeps the letter in the box', async () => {
@@ -159,6 +207,73 @@ it('a bank of bare letters keeps the letter in the box', async () => {
   await userEvent.click(screen.getByRole('button', { name: /Renderer prompt/ }));
 
   expect(screen.getByRole('button', { name: /Renderer prompt/ })).toHaveTextContent(/^B$/);
+});
+
+it('clears a filled drop target when activated with no bank selection', async () => {
+  render(<Controlled item={question('matching')} />);
+
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+  const target = screen.getByRole('button', { name: /Renderer prompt/ });
+  await userEvent.click(within(bank).getByRole('button', { name: /A Alpha/ }));
+  await userEvent.click(target);
+  expect(screen.getByTestId('value')).toHaveTextContent('A');
+
+  await userEvent.click(target);
+  expect(screen.getByTestId('value')).toHaveTextContent('');
+  expect(target).not.toHaveClass('is-filled');
+});
+
+it('ignores a drop whose key is not in the question bank', async () => {
+  render(<Controlled item={question('matching')} />);
+
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+  const target = screen.getByRole('button', { name: /Renderer prompt/ });
+  const option = within(bank).getByRole('button', { name: /A Alpha/ });
+
+  const data = new Map<string, string>();
+  const dataTransfer = {
+    effectAllowed: 'none',
+    setData: (type: string, value: string) => data.set(type, value),
+    getData: (type: string) => data.get(type) ?? '',
+  };
+
+  fireEvent.dragStart(option, { dataTransfer });
+  fireEvent.dragOver(target, { dataTransfer });
+  fireEvent.drop(target, { dataTransfer });
+  expect(screen.getByTestId('value')).toHaveTextContent('A');
+  expect(target).toHaveTextContent(/^Alpha$/);
+
+  data.set(
+    ANSWER_BANK_DRAG_MIME,
+    JSON.stringify({ scopeId: 'question:q-matching', key: 'not-in-bank' }),
+  );
+  fireEvent.drop(target, { dataTransfer });
+  expect(screen.getByTestId('value')).toHaveTextContent('A');
+  expect(target).toHaveTextContent(/^Alpha$/);
+});
+
+it('ignores a valid key dragged from a different answer bank', () => {
+  render(<Controlled item={question('matching')} />);
+
+  const target = screen.getByRole('button', { name: /Renderer prompt/ });
+  const data = new Map<string, string>([
+    [
+      ANSWER_BANK_DRAG_MIME,
+      JSON.stringify({ scopeId: 'question:some-other-question', key: 'A' }),
+    ],
+    ['text/plain', 'A'],
+  ]);
+  const dataTransfer = {
+    effectAllowed: 'copy',
+    setData: (type: string, value: string) => data.set(type, value),
+    getData: (type: string) => data.get(type) ?? '',
+  };
+
+  fireEvent.dragOver(target, { dataTransfer });
+  fireEvent.drop(target, { dataTransfer });
+
+  expect(screen.getByTestId('value')).toHaveTextContent('');
+  expect(target).not.toHaveClass('is-filled');
 });
 
 it('keeps essay spellcheck off and surfaces under-min as text, not colour alone', () => {

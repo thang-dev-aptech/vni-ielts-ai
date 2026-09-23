@@ -114,6 +114,23 @@ public interface ISectionMarkingStore
     Task<IReadOnlyList<SectionMarking>> ListAsync(ExamSessionId sessionId, CancellationToken ct);
 
     /// <summary>
+    /// Every version of every marking for one sitting — current and
+    /// superseded alike.
+    ///
+    /// <b>For resolving a supersession link, not for a learner read.</b> The
+    /// admin detail screen renders "Thay cho" / "Bị thay bởi" as links to a
+    /// specific <c>markingId</c>, and that id is, by definition, often not
+    /// the sitting's current one. <see cref="ListAsync"/> must stay
+    /// current-only — that is the guarantee a learner's own results screen
+    /// depends on — so this is a second method rather than a parameter that
+    /// would let a caller accidentally loosen that guarantee. Discovered
+    /// 2026-09-21 verifying the evaluation-history slice: the UI already
+    /// shipped these links; nothing behind them could resolve a superseded id.
+    /// </summary>
+    Task<IReadOnlyList<SectionMarking>> ListAllVersionsAsync(ExamSessionId sessionId, CancellationToken ct) =>
+        throw new NotSupportedException("This marking store does not provide full version history.");
+
+    /// <summary>
     /// Paged, newest-first marking history for the CMS. Unlike learner reads,
     /// this intentionally permits superseded versions when requested.
     /// </summary>

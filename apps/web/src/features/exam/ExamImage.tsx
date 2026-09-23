@@ -17,8 +17,22 @@ import '../../styles/audio.css';
  * Adheres to D-8:
  * - max-height: 40vh on prompt display
  * - Click-to-enlarge modal dialog with Escape dismissal
+ *
+ * Caption and the "no description" note stay on the figcaption. The image
+ * itself keeps an empty `alt` when the paper did not supply one — inventing
+ * alt text would be a different exam. Callers that put this in an
+ * `.exr-media-answers` column get aspect-ratio-preserving sizing from CSS.
  */
-export function ExamImage({ reference, caption }: { reference: string; caption?: string | null }) {
+export function ExamImage({
+  reference,
+  caption,
+  className,
+}: {
+  reference: string;
+  caption?: string | null;
+  /** Optional figure class — used by the Listening media column. */
+  className?: string;
+}) {
   const { accessToken } = useAuth();
   const { t } = useI18n();
 
@@ -80,9 +94,12 @@ export function ExamImage({ reference, caption }: { reference: string; caption?:
     );
   }
 
+  const figureClass =
+    className === undefined || className === '' ? 'exam-figure' : `exam-figure ${className}`;
+
   return (
     <>
-      <figure className="exam-figure">
+      <figure className={figureClass}>
         {source === null ? (
           <p className="exam-figure-loading">{t('exam.imageLoading')}</p>
         ) : (

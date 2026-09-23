@@ -911,7 +911,7 @@ const groupedSession = {
   },
 };
 
-function openGrouped() {
+function openGrouped(session = groupedSession) {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL) => {
@@ -924,7 +924,7 @@ function openGrouped() {
       if (url.includes('/auth/sso/providers')) return json({ providers: [] });
       if (url.includes('/auth/refresh')) return json(refreshed());
       if (url.endsWith('/answers')) return new Response(null, { status: 204 });
-      if (url.includes('/api/v1/sessions/')) return json(groupedSession);
+      if (url.includes('/api/v1/sessions/')) return json(session);
       return json({ code: 'NOT_FOUND' }, 404);
     }),
   );
@@ -932,25 +932,76 @@ function openGrouped() {
   return open('/exam/sit-2');
 }
 
-it('shows the bank of headings above the questions, not only inside them', async () => {
+it('shows the paragraph answer table left of the bank of headings', async () => {
   /*
-   * On paper a "List of Headings" sits above the set and you scan it. With the
-   * options living only inside each dropdown, reading the bank means opening
-   * and closing a dropdown once per heading, and comparing two means doing it
-   * twice — which turns a reading exercise into a memory one.
+   * On paper a "List of Headings" sits where you can scan it while filling
+   * paragraph → heading rows. Options buried only inside dropdowns turn the
+   * exercise into a memory test.
    */
   openGrouped();
   await screen.findByText('Leatherback Turtles');
+
+  const layout = document.querySelector('.exam-headings-layout');
+  expect(layout).not.toBeNull();
+  expect(layout!.firstElementChild).toHaveClass('exam-headings-table');
+  expect(layout!.lastElementChild).toHaveClass('exam-headings-list');
 
   const bank = document.querySelectorAll('.exam-bank-item');
   expect(bank).toHaveLength(2);
   expect(bank[0]!.textContent).toContain('Sea turtles are found in unusual locations');
 
+  const table = screen.getByRole('table');
+  expect(within(table).getByRole('columnheader', { name: 'Paragraph' })).toBeInTheDocument();
+  expect(within(table).getByRole('columnheader', { name: 'Heading' })).toBeInTheDocument();
+  expect(within(table).getByRole('rowheader', { name: 'B' })).toBeInTheDocument();
+  expect(within(table).getByRole('rowheader', { name: 'C' })).toBeInTheDocument();
+
   // And the rubric, verbatim: it decides whether an answer is marked right.
   expect(screen.getByText(/NB Use each letter once only/)).toBeInTheDocument();
 });
 
-it('assigns a matching answer by tap/click without opening the select', async () => {
+it('labels section-based Matching Headings rows with their authored section letters', async () => {
+  const sectionSession = structuredClone(groupedSession);
+  sectionSession.current.parts[0]!.questions[0]!.prompt = 'Section A';
+  sectionSession.current.parts[0]!.questions[1]!.prompt = 'Section B';
+
+  openGrouped(sectionSession);
+  await screen.findByText('Leatherback Turtles');
+
+  const table = screen.getByRole('table');
+  expect(within(table).getByRole('columnheader', { name: 'Section' })).toBeInTheDocument();
+  expect(within(table).queryByRole('columnheader', { name: 'Paragraph' })).toBeNull();
+  expect(within(table).getByRole('rowheader', { name: 'A' })).toBeInTheDocument();
+  expect(within(table).getByRole('rowheader', { name: 'B' })).toBeInTheDocument();
+  expect(within(table).queryByRole('rowheader', { name: '1' })).toBeNull();
+  expect(within(table).queryByRole('rowheader', { name: '2' })).toBeNull();
+});
+
+it('shows only Roman-numeral keys in Matching Headings answer controls', async () => {
+  openGrouped();
+  await screen.findByText('Leatherback Turtles');
+
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+  expect(screen.queryByRole('combobox')).toBeNull();
+
+  await userEvent.click(
+    within(bank).getByRole('button', {
+      name: 'iSea turtles are found in unusual locations',
+    }),
+  );
+  const target = screen.getByRole('button', {
+    name: /Choose the most suitable heading for paragraph B/,
+  });
+  expect(target).toHaveClass('is-pending');
+  expect(target).toHaveTextContent(/Chọn i/);
+  expect(target.textContent).not.toContain('Sea turtles');
+
+  await userEvent.click(target);
+  expect(target).toHaveTextContent(/^i$/);
+  expect(target).toHaveClass('is-filled');
+});
+
+it('assigns a matching answer by tap/click without a select', async () => {
   openGrouped();
   await screen.findByText('Leatherback Turtles');
   const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
@@ -967,10 +1018,11 @@ it('assigns a matching answer by tap/click without opening the select', async ()
   );
 
   expect(
-    screen.getByRole('combobox', {
+    screen.getByRole('button', {
       name: /Choose the most suitable heading for paragraph B/,
     }),
-  ).toHaveValue('i');
+  ).toHaveTextContent(/^i$/);
+  expect(screen.queryByRole('combobox')).toBeNull();
 });
 
 it('supports the answer-bank flow with keyboard only', async () => {
@@ -990,11 +1042,8 @@ it('supports the answer-bank flow with keyboard only', async () => {
   target.focus();
   await userEvent.keyboard('{Enter}');
 
-  expect(
-    screen.getByRole('combobox', {
-      name: /Choose the most suitable heading for paragraph C/,
-    }),
-  ).toHaveValue('ii');
+  expect(target).toHaveTextContent(/^ii$/);
+  expect(screen.queryByRole('combobox')).toBeNull();
 });
 
 it('accepts a real drag payload only when its key belongs to the question bank', async () => {
@@ -1018,41 +1067,242 @@ it('accepts a real drag payload only when its key belongs to the question bank',
   fireEvent.dragStart(option, { dataTransfer });
   fireEvent.dragOver(target, { dataTransfer });
   fireEvent.drop(target, { dataTransfer });
-  expect(
-    screen.getByRole('combobox', {
-      name: /Choose the most suitable heading for paragraph B/,
-    }),
-  ).toHaveValue('i');
+  expect(target).toHaveTextContent(/^i$/);
 
   data.set('text/plain', 'not-in-bank');
   fireEvent.drop(target, { dataTransfer });
-  expect(
-    screen.getByRole('combobox', {
-      name: /Choose the most suitable heading for paragraph B/,
-    }),
-  ).toHaveValue('i');
+  expect(target).toHaveTextContent(/^i$/);
 });
 
 it('says where a letter is already used when the rubric allows it once', async () => {
   openGrouped();
   await screen.findByText('Leatherback Turtles');
 
-  const first = screen.getByRole('combobox', {
-    name: /Choose the most suitable heading for paragraph B/,
-  });
-  await userEvent.selectOptions(first, 'i');
-
-  const second = screen.getByRole('combobox', {
-    name: /Choose the most suitable heading for paragraph C/,
-  });
-
-  // Shown, not enforced: moving a letter from one line to another is normal
-  // halfway through a matching set, and a control that refuses the first half
-  // of that leaves the candidate stuck.
-  await waitFor(() =>
-    expect(within(second).getByRole('option', { name: /đã dùng ở câu 1/ })).toBeInTheDocument(),
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+  await userEvent.click(
+    within(bank).getByRole('button', {
+      name: 'iSea turtles are found in unusual locations',
+    }),
   );
-  expect(within(second).getByRole('option', { name: /đã dùng ở câu 1/ })).not.toBeDisabled();
+  await userEvent.click(
+    screen.getByRole('button', {
+      name: /Choose the most suitable heading for paragraph B/,
+    }),
+  );
+
+  // Shown on the shared bank, not enforced: moving a letter from one line to
+  // another is normal halfway through a matching set.
+  await waitFor(() =>
+    expect(
+      within(bank).getByRole('button', {
+        name: /đã dùng ở câu 1/,
+      }),
+    ).toBeInTheDocument(),
+  );
+  expect(
+    within(bank).getByRole('button', {
+      name: /đã dùng ở câu 1/,
+    }),
+  ).not.toBeDisabled();
+});
+
+it('leaves letter-keyed matching groups on the ordinary bank renderer', async () => {
+  /*
+   * Continents A–D are matching, but not Matching Headings. The side-by-side
+   * table is for Roman-numeral heading banks only — this group must keep the
+   * list-above-rows layout and full option text on the bank tokens.
+   */
+  const continents = {
+    ...groupedSession,
+    sessionId: 'sit-continents',
+    current: {
+      ...groupedSession.current,
+      parts: [
+        {
+          ...groupedSession.current.parts[0],
+          questions: [
+            {
+              id: 'r-36',
+              order: 36,
+              type: 'matching',
+              prompt: 'Which continent is mentioned in paragraph A?',
+              maxWords: null,
+              options: [
+                { key: 'A', text: 'Africa' },
+                { key: 'B', text: 'Asia' },
+              ],
+              group: {
+                id: 'r-matching-36-37',
+                title: null,
+                instruction: 'Choose the correct letter. NB Use each letter once only.',
+                imageKey: null,
+                text: null,
+                eachLetterOnce: true,
+              },
+            },
+            {
+              id: 'r-37',
+              order: 37,
+              type: 'matching',
+              prompt: 'Which continent is mentioned in paragraph B?',
+              maxWords: null,
+              options: [
+                { key: 'A', text: 'Africa' },
+                { key: 'B', text: 'Asia' },
+              ],
+              group: {
+                id: 'r-matching-36-37',
+                title: null,
+                instruction: 'Choose the correct letter. NB Use each letter once only.',
+                imageKey: null,
+                text: null,
+                eachLetterOnce: true,
+              },
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
+      if (url.includes('/api/v1/me')) return json(me);
+      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
+      if (url.includes('/auth/refresh')) return json(refreshed());
+      if (url.endsWith('/answers')) return new Response(null, { status: 204 });
+      if (url.includes('/api/v1/sessions/')) return json(continents);
+      return json({ code: 'NOT_FOUND' }, 404);
+    }),
+  );
+
+  open('/exam/sit-continents');
+  await screen.findByText('Leatherback Turtles');
+
+  expect(document.querySelector('.exam-headings-layout')).toBeNull();
+  expect(document.querySelector('.exam-headings-table')).toBeNull();
+  expect(document.querySelectorAll('.exam-bank-item')).toHaveLength(2);
+  expect(screen.queryByRole('combobox')).toBeNull();
+
+  const bank = screen.getByRole('list', { name: 'Ngân hàng đáp án' });
+  const bankLayout = bank.closest('.exam-group-bank-layout');
+  expect(bankLayout).not.toBeNull();
+  expect(bankLayout!.firstElementChild).toHaveClass('exam-group-bank-questions');
+  expect(bankLayout!.lastElementChild).toHaveClass('exam-group-bank-options');
+  expect(bankLayout!.querySelector('.exam-group-questions')).not.toBeNull();
+  expect(within(bank).getByRole('button', { name: /AAfrica/ })).toBeInTheDocument();
+
+  const rows = [...document.querySelectorAll('.exam-question[data-layout="drop-row"]')];
+  expect(rows).toHaveLength(2);
+  for (const row of rows) {
+    const head = row.querySelector('.exam-question-head');
+    const slot = row.querySelector('.q-drop-slot .q-drop-target');
+    expect(head).not.toBeNull();
+    expect(slot).not.toBeNull();
+    // Prompt left / drop target right is a CSS grid; DOM order still keeps
+    // the association when the layout stacks below 900px.
+    expect(head!.compareDocumentPosition(slot!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  }
+
+  const option = within(bank).getByRole('button', { name: /BAsia/ });
+  option.focus();
+  await userEvent.keyboard('{Enter}');
+  const target = screen.getByRole('button', {
+    name: /Which continent is mentioned in paragraph A/,
+  });
+  target.focus();
+  await userEvent.keyboard('{Enter}');
+  expect(target).toHaveTextContent(/^Asia$/);
+  expect(target).toHaveClass('is-filled');
+});
+
+it('puts labelling items on the drop-row layout with prompt before the target', async () => {
+  const mapGroup = {
+    id: 'l-map-11-12',
+    title: null,
+    instruction: 'Label the map. Choose the correct letter.',
+    imageKey: null,
+    text: null,
+    eachLetterOnce: true,
+  };
+  const labelling = {
+    ...groupedSession,
+    sessionId: 'sit-labelling',
+    current: {
+      ...groupedSession.current,
+      parts: [
+        {
+          ...groupedSession.current.parts[0],
+          questions: [
+            {
+              id: 'l-11',
+              order: 11,
+              type: 'labelling',
+              prompt: 'Reception',
+              maxWords: null,
+              options: [
+                { key: 'A', text: 'A' },
+                { key: 'B', text: 'B' },
+              ],
+              group: mapGroup,
+            },
+            {
+              id: 'l-12',
+              order: 12,
+              type: 'labelling',
+              prompt: 'Cafe',
+              maxWords: null,
+              options: [
+                { key: 'A', text: 'A' },
+                { key: 'B', text: 'B' },
+              ],
+              group: mapGroup,
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/me/sessions')) return json({ sessions: [] });
+      if (url.includes('/api/v1/me/coaching')) return json(coachingFixture);
+      if (url.includes('/api/v1/me/activity')) return json(activityFixture);
+      if (url.includes('/api/v1/me/goal')) return new Response(null, { status: 204 });
+      if (url.includes('/api/v1/me')) return json(me);
+      if (url.includes('/auth/sso/providers')) return json({ providers: [] });
+      if (url.includes('/auth/refresh')) return json(refreshed());
+      if (url.endsWith('/answers')) return new Response(null, { status: 204 });
+      if (url.includes('/api/v1/sessions/')) return json(labelling);
+      return json({ code: 'NOT_FOUND' }, 404);
+    }),
+  );
+
+  open('/exam/sit-labelling');
+  await screen.findByText('Leatherback Turtles');
+
+  expect(screen.queryByRole('combobox')).toBeNull();
+  const rows = [...document.querySelectorAll('.exam-question[data-layout="drop-row"]')];
+  expect(rows).toHaveLength(2);
+  for (const row of rows) {
+    const head = row.querySelector('.exam-question-head');
+    const slot = row.querySelector('.q-drop-slot .q-drop-target');
+    expect(head).not.toBeNull();
+    expect(slot).not.toBeNull();
+    expect(head!.compareDocumentPosition(slot!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  }
+
+  expect(screen.getByRole('button', { name: /Reception/ })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Cafe/ })).toBeInTheDocument();
 });
 
 it('puts a summary gap inside the sentence rather than under it', async () => {
@@ -1078,9 +1328,19 @@ it('shows the paragraph letters a matching question refers to', async () => {
   openGrouped();
   await screen.findByText('Leatherback Turtles');
 
-  const labels = [...document.querySelectorAll('.exam-passage-label')].map((e) => e.textContent);
-  expect(labels).toEqual(['A', 'B']);
+  const labelNodes = [...document.querySelectorAll('.exam-passage-label')];
+  expect(labelNodes.map((e) => e.textContent)).toEqual(['A', 'B']);
   expect(document.body.textContent).not.toContain('**');
+
+  // Visual letters are decorative; the spoken letter lives once in sr-only.
+  for (const node of labelNodes) {
+    expect(node).toHaveAttribute('aria-hidden', 'true');
+    const para = node.closest('.exam-passage-para');
+    expect(para).not.toBeNull();
+    const spoken = para!.querySelectorAll('.sr-only');
+    expect(spoken).toHaveLength(1);
+    expect(spoken[0]!.textContent).toMatch(/^[AB]\. $/);
+  }
 });
 
 /**

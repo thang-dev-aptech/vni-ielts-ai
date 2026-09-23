@@ -126,7 +126,10 @@ public static class AdminEvaluationEndpoints
         if (string.IsNullOrWhiteSpace(sessionId) || string.IsNullOrWhiteSpace(markingId)) return Results.NotFound();
 
         var id = new ExamSessionId(sessionId);
-        var all = await markings.ListAsync(id, ct);
+        // Current-only would 404 the "Thay cho" / "Bị thay bởi" links the
+        // detail screen itself renders — a superseded marking is exactly
+        // what those links resolve to. → ISectionMarkingStore.ListAllVersionsAsync
+        var all = await markings.ListAllVersionsAsync(id, ct);
         var marking = all.FirstOrDefault(x => string.Equals(x.MarkingId, markingId, StringComparison.Ordinal));
         if (marking is null) return Results.NotFound();
 

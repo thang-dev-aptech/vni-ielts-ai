@@ -12,6 +12,9 @@ import { CollapseGlyph, ExpandGlyph } from './ExamIcons.js';
  *
  * The panel scrolls, the page does not. The footer's part map has to stay
  * reachable without hunting for it — that is the whole reason it is a map.
+ * Paragraph letters A/B/C live inside this scroll container in normal flow;
+ * they must leave the viewport with their paragraph rather than sticking under
+ * the panel head.
  */
 export function PassagePanel({
   label,

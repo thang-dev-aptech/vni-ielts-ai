@@ -1772,6 +1772,13 @@
   line-height: var(--lh-body);
 }
 
+.q-bank-token {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
 .q-bank-token[aria-pressed='true'],
 .q-drop-target.is-filled {
   border-color: var(--acc-line);
@@ -1786,29 +1793,38 @@
   border-style: dashed;
 }
 
+/* Groups the drop button with its live status so a parent grid can place
+   them as one answer cell (exam `data-layout="drop-row"`). */
+.q-drop-slot {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  max-width: 46ch;
+}
+
+.q-drop-slot .q-drop-target {
+  max-width: none;
+}
+
+/* A bank item is selected but not yet written onto this question. Solid
+   border, not filled tint — filled means the answer is saved. */
+.q-drop-target.is-pending {
+  border-style: solid;
+  border-color: var(--acc-line);
+  color: var(--acc-700);
+}
+
 .q-bank-token:focus-visible,
 .q-drop-target:focus-visible {
   outline: 2px solid var(--acc);
   outline-offset: 2px;
 }
 
-.q-bank-select {
-  width: 100%;
-  max-width: 46ch;
-  min-height: 44px;
-  padding-inline: var(--s-3);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--card);
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-}
-
-.q-bank-select:focus-visible {
-  outline: 2px solid var(--acc);
-  outline-offset: 2px;
+.q-bank-used {
+  margin-inline-start: auto;
+  color: var(--ink-2);
+  white-space: nowrap;
+  font-size: var(--t-13);
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -1871,9 +1887,14 @@
   align-items: start;
 }
 
+/*
+ * The letter sits in the left column of its own paragraph and scrolls away
+ * with that paragraph. Sticky/`fixed` pinned the wrong letter beside the
+ * wrong text once a long paragraph scrolled past its first line, and handed
+ * the next letter into view while the previous paragraph was still on screen.
+ */
 .exam-passage-label {
-  position: sticky;
-  top: var(--s-4);
+  position: static;
   display: grid;
   place-items: center;
   width: var(--s-6);

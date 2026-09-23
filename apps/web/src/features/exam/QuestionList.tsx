@@ -1,7 +1,7 @@
 import { Fragment, useId, useState, type ReactNode } from 'react';
 import { useI18n } from '../../i18n/index.js';
 import { ExamImage } from './ExamImage.js';
-import { QuestionInput, type BankInteraction } from './QuestionInput.js';
+import { QuestionInput, writeAnswerBankDrag, type BankInteraction } from './QuestionInput.js';
 import type { QuestionGroupView, QuestionView } from './examApi.js';
 
 /**
@@ -37,6 +37,8 @@ export function QuestionList({
   answers,
   disabled,
   variant = 'classic',
+  mediaBesideAnswers = false,
+  suppressImageKey = null,
   onChange,
   renderSpecial,
 }: {
@@ -44,6 +46,16 @@ export function QuestionList({
   answers: Record<string, string | null>;
   disabled: boolean;
   variant?: QuestionListVariant;
+  /**
+   * Listening maps/diagrams sit beside their answer controls on wide screens.
+   * Off for Reading/Writing/Speaking so those skills keep a stacked body.
+   */
+  mediaBesideAnswers?: boolean;
+  /**
+   * When the part already shows this asset in its media-and-answers row,
+   * groups that reference the same key must not draw it again.
+   */
+  suppressImageKey?: string | null;
   onChange: (questionId: string, value: string | null) => void;
   /**
    * Question types the list does not own — a speaking recorder, an essay box
@@ -101,6 +113,8 @@ export function QuestionList({
               answers={answers}
               disabled={disabled}
               variant={variant}
+              mediaBesideAnswers={mediaBesideAnswers}
+              suppressImageKey={suppressImageKey}
               onChange={onChange}
               renderSpecial={renderSpecial}
             />
@@ -114,6 +128,23 @@ export function QuestionList({
 export interface Run {
   group: QuestionGroupView | null;
   questions: QuestionView[];
+}
+
+/** True only when every row offers the same keys with the same meanings. */
+export function sharesAnswerBank(questions: readonly Pick<QuestionView, 'options'>[]): boolean {
+  const first = questions[0];
+  return (
+    first !== undefined &&
+    first.options.length > 0 &&
+    questions.every(
+      (question) =>
+        question.options.length === first.options.length &&
+        question.options.every(
+          (option, at) =>
+            option.key === first.options[at]?.key && option.text === first.options[at]?.text,
+        ),
+    )
+  );
 }
 
 /**
@@ -299,6 +330,8 @@ function GroupBlock({
   answers,
   disabled,
   variant,
+  mediaBesideAnswers,
+  suppressImageKey,
   onChange,
   renderSpecial,
 }: {
@@ -307,12 +340,15 @@ function GroupBlock({
   answers: Record<string, string | null>;
   disabled: boolean;
   variant: QuestionListVariant;
+  mediaBesideAnswers: boolean;
+  suppressImageKey: string | null;
   onChange: (questionId: string, value: string | null) => void;
   renderSpecial: (question: QuestionView, value: string | null) => ReactNode | null;
 }) {
   const { t } = useI18n();
   const headingId = useId();
   const captionId = useId();
+  const bankListId = useId();
   const range = useRange(questions, variant);
   const [selectedBankKey, setSelectedBankKey] = useState<string | null>(null);
 
@@ -339,26 +375,31 @@ function GroupBlock({
    * offer the wrong options to the second.
    */
   const first0 = questions[0];
-  const sameOptions =
-    first0 !== undefined &&
-    first0.options.length > 0 &&
-    questions.every(
-      (question) =>
-        question.options.length === first0.options.length &&
-        question.options.every((option, at) => option.key === first0.options[at]?.key),
-    );
+  const sharedOptions = sharesAnswerBank(questions) ? (first0?.options ?? null) : null;
   const interactiveBank =
-    sameOptions && questions.every((question) => ['matching', 'labelling'].includes(question.type))
-      ? first0.options
+    sharedOptions !== null &&
+    questions.every((question) => ['matching', 'labelling'].includes(question.type))
+      ? sharedOptions
       : null;
   const bank =
-    sameOptions && first0.options.some((option) => option.text !== option.key)
-      ? first0.options
+    sharedOptions !== null && sharedOptions.some((option) => option.text !== option.key)
+      ? sharedOptions
       : null;
+  /*
+   * Matching Headings — narrowly: a shared *matching* bank whose keys are
+   * Roman numerals and whose text carries the heading. Letter-keyed matching
+   * (continents A–D) and map labelling keep the existing renderer.
+   */
+  const matchingHeadings =
+    interactiveBank !== null &&
+    questions.every((question) => question.type === 'matching') &&
+    interactiveBank.some((option) => option.text !== option.key) &&
+    interactiveBank.every((option) => isRomanNumeralKey(option.key));
   const bankInteraction: BankInteraction | undefined =
     interactiveBank === null
       ? undefined
       : {
+          scopeId: `group:${group.id}`,
           selectedKey: selectedBankKey,
           onSelect: setSelectedBankKey,
           onAssigned: () => setSelectedBankKey(null),
@@ -368,7 +409,11 @@ function GroupBlock({
     interactiveBank !== null ? (
       <div className="exam-bank-dnd">
         <p className="exam-bank-instructions">{t('exam.bankInstructions')}</p>
-        <ol className="exam-bank" aria-label={t('exam.answerBank')}>
+        <ol
+          className="exam-bank"
+          id={matchingHeadings ? bankListId : undefined}
+          aria-label={t('exam.answerBank')}
+        >
           {interactiveBank.map((option) => {
             const taken = takenBy?.[option.key];
             return (
@@ -382,7 +427,7 @@ function GroupBlock({
                   onClick={() => setSelectedBankKey(option.key)}
                   onDragStart={(event) => {
                     event.dataTransfer.effectAllowed = 'copy';
-                    event.dataTransfer.setData('text/plain', option.key);
+                    writeAnswerBankDrag(event.dataTransfer, `group:${group.id}`, option.key);
                     setSelectedBankKey(option.key);
                   }}
                 >
@@ -417,6 +462,16 @@ function GroupBlock({
         disabled={disabled}
         onChange={onChange}
       />
+    ) : matchingHeadings ? (
+      <MatchingHeadingsTable
+        questions={questions}
+        answers={answers}
+        disabled={disabled}
+        bankListId={bankListId}
+        {...(takenBy !== undefined ? { takenBy } : {})}
+        {...(bankInteraction !== undefined ? { bankInteraction } : {})}
+        onChange={onChange}
+      />
     ) : (
       <QuestionRows
         questions={questions}
@@ -428,6 +483,42 @@ function GroupBlock({
         onChange={onChange}
         renderSpecial={renderSpecial}
       />
+    );
+
+  const framedBody = matchingHeadings ? (
+    <div className="exam-headings-layout">
+      {questionsBlock}
+      <div className="exam-headings-list">{bankBlock}</div>
+    </div>
+  ) : bankBlock !== null ? (
+    <div className="exam-group-bank-layout">
+      <div className="exam-group-bank-questions">{questionsBlock}</div>
+      <div className="exam-group-bank-options">{bankBlock}</div>
+    </div>
+  ) : (
+    questionsBlock
+  );
+
+  /*
+   * Listening map / diagram beside the controls it labels. Groups without
+   * media keep the stacked body; the prop is false for every other skill.
+   * A key already shown on the part-level media row is skipped here.
+   */
+  const groupImageKey =
+    group.imageKey !== null && group.imageKey !== suppressImageKey ? group.imageKey : null;
+  const mediaAndAnswers =
+    mediaBesideAnswers && groupImageKey !== null ? (
+      <div className="exr-media-answers">
+        <div className="exr-media-answers-media">
+          <ExamImage reference={groupImageKey} caption={group.title} />
+        </div>
+        <div className="exr-media-answers-controls">{framedBody}</div>
+      </div>
+    ) : (
+      <>
+        {groupImageKey !== null && <ExamImage reference={groupImageKey} caption={group.title} />}
+        {framedBody}
+      </>
     );
 
   if (variant === 'exam') {
@@ -454,12 +545,7 @@ function GroupBlock({
 
           <VerdictLegend questions={questions} />
 
-          {group.imageKey !== null && (
-            <ExamImage reference={group.imageKey} caption={group.title} />
-          )}
-
-          {bankBlock}
-          {questionsBlock}
+          {mediaAndAnswers}
         </div>
       </section>
     );
@@ -481,10 +567,11 @@ function GroupBlock({
         {group.instruction !== null && <p className="exam-group-rubric">{group.instruction}</p>}
       </header>
 
-      {group.imageKey !== null && <ExamImage reference={group.imageKey} caption={group.title} />}
-
       {/*
-        The bank, once, above the questions.
+        The bank, once, to the right of the group questions. Matching Headings
+        uses its compact paragraph/section table in the left column. On
+        Listening, a group image sits in a media-and-answers row with the
+        controls instead of stacking above them.
 
         On paper a "List of Headings" sits above the set and you scan it: read
         ten, look at the paragraph, pick one. With the options living only
@@ -496,9 +583,125 @@ function GroupBlock({
         letters A–J and the labels are the letters, so listing them separately
         would be ten rows saying "A. A".
       */}
-      {bankBlock}
-      {questionsBlock}
+      {mediaAndAnswers}
     </section>
+  );
+}
+
+/** Roman-numeral option keys as Cambridge Matching Headings banks use them. */
+const ROMAN_NUMERAL_KEY = /^[ivxlcdm]+$/i;
+
+export function isRomanNumeralKey(key: string): boolean {
+  return ROMAN_NUMERAL_KEY.test(key);
+}
+
+type HeadingLocation = {
+  kind: 'paragraph' | 'section';
+  label: string;
+};
+
+/**
+ * Location named by an authored Matching Headings prompt.
+ *
+ * Cambridge papers use both "Paragraph B" and "Section B". Keep the authored
+ * term as well as its letter so the answer table does not relabel sections as
+ * paragraphs or fall back to question numbers.
+ */
+export function headingLocationFromPrompt(prompt: string | null): HeadingLocation | null {
+  if (prompt === null) return null;
+  const match = /\b(paragraph|section)\s+([A-Z])\b/i.exec(prompt);
+  const kind = match?.[1]?.toLowerCase();
+  const label = match?.[2]?.toUpperCase();
+  if ((kind !== 'paragraph' && kind !== 'section') || label === undefined) return null;
+  return { kind, label };
+}
+
+/** Kept for callers that only need the visible letter. */
+export function paragraphLabelFromPrompt(prompt: string | null): string | null {
+  return headingLocationFromPrompt(prompt)?.label ?? null;
+}
+
+/**
+ * Matching Headings answer sheet: one table row per paragraph or section.
+ *
+ * The List of Headings stays outside this table (sibling column). Keys in the
+ * answer cells are Roman numerals only; full heading text lives in the bank.
+ */
+function MatchingHeadingsTable({
+  questions,
+  answers,
+  disabled,
+  takenBy,
+  bankInteraction,
+  bankListId,
+  onChange,
+}: {
+  questions: QuestionView[];
+  answers: Record<string, string | null>;
+  disabled: boolean;
+  takenBy?: Record<string, number>;
+  bankInteraction?: BankInteraction;
+  bankListId: string;
+  onChange: (questionId: string, value: string | null) => void;
+}) {
+  const locations = questions.map((question) => headingLocationFromPrompt(question.prompt));
+  const locationKinds = new Set(
+    locations.flatMap((location) => (location === null ? [] : [location.kind])),
+  );
+  const locationHeading =
+    locationKinds.size === 1
+      ? locationKinds.has('section')
+        ? 'Section'
+        : 'Paragraph'
+      : locationKinds.size === 0
+        ? 'Question'
+        : 'Paragraph / Section';
+
+  return (
+    <table className="exam-headings-table">
+      <thead>
+        <tr>
+          <th scope="col">{locationHeading}</th>
+          <th scope="col">Heading</th>
+        </tr>
+      </thead>
+      <tbody>
+        {questions.map((question, index) => {
+          const location = locations[index];
+          const promptId = `q-${question.id}-name`;
+
+          return (
+            <tr key={question.id} id={`q-${question.id}`}>
+              <th scope="row" className="exam-headings-paragraph num">
+                {location?.label ?? question.order}
+              </th>
+              <td className="exam-headings-answer">
+                {/*
+                  The authored prompt remains the accessible name of the
+                  control. It is not shown again beside the row — the authored
+                  location letter is the visible row header on paper — but a screen
+                  reader still hears the full question.
+                */}
+                <span className="sr-only" id={promptId}>
+                  {question.order}. {question.prompt}
+                </span>
+                <QuestionInput
+                  question={question}
+                  value={answers[question.id] ?? null}
+                  disabled={disabled}
+                  labelledBy={promptId}
+                  optionDisplay="key"
+                  bankListId={bankListId}
+                  {...(takenBy !== undefined ? { takenBy } : {})}
+                  {...(bankInteraction !== undefined ? { bankInteraction } : {})}
+                  onChange={(next) => onChange(question.id, next)}
+                />
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }
 
@@ -599,12 +802,15 @@ function splitOnGap(prompt: string): { before: string; after: string } | null {
  * How a row is laid out in the exam variant.
  *
  * `row` puts the statement left and the answers right — a True/False/Not Given
- * strip, or any choice whose options are bare letters. `inline` drops the field
- * into the sentence. Everything else stacks, because a nine-word option does
- * not fit on a strip.
+ * strip, or any choice whose options are bare letters. `drop-row` is matching
+ * and labelling: number + prompt left, drop target right. `inline` drops the
+ * field into the sentence. Everything else stacks, because a nine-word option
+ * does not fit on a strip.
  */
 function layoutOf(question: QuestionView, inlineGap: boolean): string | undefined {
   if (inlineGap) return 'inline';
+
+  if (question.type === 'matching' || question.type === 'labelling') return 'drop-row';
 
   const verdict = question.type === 'true-false-notgiven' || question.type === 'yes-no-notgiven';
   const bareLetters =

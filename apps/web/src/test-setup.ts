@@ -3,6 +3,37 @@ import { cleanup, configure } from '@testing-library/react';
 import { ASYNC_UTIL_TIMEOUT_MS } from './test-timeouts.js';
 
 /**
+ * Node 26 exposes an experimental global `localStorage` accessor whose value
+ * is undefined unless Node was started with `--localstorage-file`. Prefer
+ * jsdom's browser storage when it exists, otherwise provide one shared memory
+ * implementation for every test file instead of patching individual suites.
+ */
+function memoryStorage(): Storage {
+  const values = new Map<string, string>();
+
+  return {
+    get length() {
+      return values.size;
+    },
+    clear: () => values.clear(),
+    getItem: (key) => values.get(key) ?? null,
+    key: (index) => [...values.keys()][index] ?? null,
+    removeItem: (key) => values.delete(key),
+    setItem: (key, value) => values.set(key, String(value)),
+  };
+}
+
+const testLocalStorage = window.localStorage ?? memoryStorage();
+Object.defineProperty(window, 'localStorage', {
+  configurable: true,
+  value: testLocalStorage,
+});
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: testLocalStorage,
+});
+
+/**
  * jsdom implements neither of these, and both are optional at runtime — the
  * app guards for them. Providing inert versions here keeps every test
  * exercising the ordinary path rather than the fallback, so a component that
