@@ -3395,6 +3395,49 @@
         ]
       }
     },
+    "/api/v1/admin/import/packages/{draftId}/assets/{reference}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Stream one privately staged asset for a draft under review \u2014 never a promoted exam asset",
+        "operationId": "AdminGetImportDraftAsset",
+        "parameters": [
+          {
+            "name": "draftId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/import/packages/{draftId}/warnings/{warningId}/override": {
       "post": {
         "tags": [
