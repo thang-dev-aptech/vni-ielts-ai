@@ -136,6 +136,35 @@ public interface IPrivateImportAssetStore
     Task<StagedImportAsset?> OpenPrivateAsync(string key, CancellationToken ct);
 }
 
+/// <summary>
+/// Copies a privately staged import asset into the public exam-asset key space
+/// that <c>IExamAssetStore</c> reads. Deliberately a separate port so the
+/// learner-facing store stays read-only.
+/// </summary>
+public interface IImportAssetPromoter
+{
+    /// <summary>
+    /// Same-bucket copy from <paramref name="stagedKey"/> (under
+    /// <c>imports/</c>) to <paramref name="publicKey"/> (an
+    /// <c>assets/…</c> reference). Throws when the source is missing or either
+    /// key is malformed — callers treat that as a hard failure, not a skip.
+    /// </summary>
+    Task PromoteAsync(string stagedKey, string publicKey, CancellationToken ct);
+}
+
+/// <summary>
+/// Used when object storage is not configured: Put was discarded, so there is
+/// nothing to copy. Approval of packages that reference media still goes
+/// through; serving those media remains a Development fixture concern.
+/// </summary>
+public sealed class NoOpImportAssetPromoter : IImportAssetPromoter
+{
+    public static NoOpImportAssetPromoter Instance { get; } = new();
+
+    public Task PromoteAsync(string stagedKey, string publicKey, CancellationToken ct) =>
+        Task.CompletedTask;
+}
+
 public interface ISourceDocumentExtractor
 {
     Task<SourceExtractionResult> ExtractAsync(

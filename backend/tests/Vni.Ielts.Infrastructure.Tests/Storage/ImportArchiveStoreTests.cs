@@ -4,7 +4,10 @@ using Amazon.S3;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Importing;
+using Vni.Ielts.Domain.Common;
+using Vni.Ielts.Domain.Exams;
 using Vni.Ielts.Infrastructure;
 using Vni.Ielts.Infrastructure.Content.Import;
 using Vni.Ielts.Infrastructure.Storage;
@@ -93,12 +96,31 @@ public sealed class ImportArchiveStoreTests
     }
 
     [Fact]
+    public void With_object_storage_configured_approval_uses_the_real_asset_promoter()
+    {
+        using var provider = Build(ObjectStorageConfigured);
+
+        Assert.IsType<S3ImportAssetPromoter>(
+            provider.GetRequiredService<IImportAssetPromoter>());
+    }
+
+    [Fact]
     public void With_no_object_storage_a_staged_import_asset_is_discarded()
     {
         using var provider = Build();
 
         Assert.IsType<DiscardedImportAssetStore>(
             provider.GetRequiredService<IPrivateImportAssetStore>());
+    }
+
+    [Fact]
+    public void With_no_object_storage_approval_uses_the_noop_asset_promoter()
+    {
+        using var provider = Build();
+
+        Assert.Same(
+            NoOpImportAssetPromoter.Instance,
+            provider.GetRequiredService<IImportAssetPromoter>());
     }
 
     /// <summary>
@@ -290,6 +312,91 @@ public sealed class ImportArchiveStoreTests
         await NewStore().DeleteAsync($"imports/archives/{absent}.zip", default);
     }
 
+    /// <summary>
+    /// Approval copies every staged asset into the public key space
+    /// <see cref="IExamAssetStore"/> reads — same bucket, different prefix —
+    /// and the learner store stays read-only. Without this, ApproveAsync only
+    /// flipped ApprovalState and Listening audio stayed unreachable.
+    /// </summary>
+    [SkippableFact]
+    public async Task Approve_promotes_staged_assets_so_the_exam_asset_store_can_open_them()
+    {
+        Skip.IfNot(MinioAvailable, SkipReason);
+
+        using var client = NewClient();
+        var options = new ObjectStorageOptions { ExamAssetsBucket = RealBucket };
+        var privateStore = new S3PrivateImportAssetStore(client, options);
+        var promoter = new S3ImportAssetPromoter(client, options);
+        var examStore = new S3ExamAssetStore(
+            new S3ObjectStore(client, NullLogger<S3ObjectStore>.Instance), options);
+
+        var draftId = Guid.NewGuid();
+        // Unique public ref so parallel test runs do not collide on the
+        // destination key (KeyFor strips assets/ → one object per relative path).
+        var publicRef = $"assets/promote-{draftId:n}.mp3";
+        var publicObjectKey = publicRef["assets/".Length..];
+        var stagedKey = ImportReviewWorkflow.StagedKeyFor(draftId, publicRef);
+        var bytes = System.Text.Encoding.UTF8.GetBytes($"promote-payload-{draftId:n}");
+        var hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+
+        await using (var input = new MemoryStream(bytes, writable: false))
+        {
+            await privateStore.PutPrivateAsync(stagedKey, input, "audio/mpeg", hash, default);
+        }
+
+        Assert.Null(await examStore.OpenAsync(publicRef, default));
+
+        var draft = ApprovableDraftWithAudio(draftId, publicRef);
+        var drafts = new MemoryDraftStore(draft);
+        var review = new ImportReviewWorkflow(
+            drafts, new AlwaysValidValidator(), assetPromoter: promoter);
+
+        var approved = await review.ApproveAsync(
+            draftId, 0, new ImportReviewActor("reviewer", false, true, false), default);
+
+        Assert.True(approved.IsSuccess, approved.ErrorCode);
+        Assert.Equal(ImportApprovalState.Approved, approved.Draft!.ApprovalState);
+
+        try
+        {
+            var opened = await examStore.OpenAsync(publicRef, default);
+            Assert.NotNull(opened);
+            await using (opened!.Content)
+            {
+                using var copy = new MemoryStream();
+                await opened.Content.CopyToAsync(copy);
+                Assert.Equal(bytes, copy.ToArray());
+                Assert.Equal("audio/mpeg", opened.ContentType);
+            }
+        }
+        finally
+        {
+            await client.DeleteObjectAsync(RealBucket, stagedKey);
+            await client.DeleteObjectAsync(RealBucket, publicObjectKey);
+        }
+    }
+
+    /// <summary>
+    /// A failed promote must refuse approval rather than leaving an Approved
+    /// draft whose media never reached the learner store.
+    /// </summary>
+    [Fact]
+    public async Task Approve_refuses_when_asset_promotion_throws()
+    {
+        var draftId = Guid.NewGuid();
+        var draft = ApprovableDraftWithAudio(draftId, "assets/missing.mp3");
+        var drafts = new MemoryDraftStore(draft);
+        var review = new ImportReviewWorkflow(
+            drafts, new AlwaysValidValidator(), assetPromoter: new ThrowingPromoter());
+
+        var refused = await review.ApproveAsync(
+            draftId, 0, new ImportReviewActor("reviewer", false, true, false), default);
+
+        Assert.False(refused.IsSuccess);
+        Assert.Equal("IMPORT_ASSET_PROMOTE_FAILED", refused.ErrorCode);
+        Assert.Equal(ImportApprovalState.ReviewRequired, drafts.Draft.ApprovalState);
+    }
+
     private static S3ImportArchiveStore NewStore() =>
         new(
             NewClient(),
@@ -315,4 +422,72 @@ public sealed class ImportArchiveStoreTests
                 RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
                 ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
             });
+
+    private static ExamImportDraft ApprovableDraftWithAudio(Guid draftId, string audioKey)
+    {
+        var definition = ExamDefinitionId.New();
+        var paper = ExamVersion.CreateDraft(
+            definition, 1, "Promote assets paper", ExamVariant.Academic,
+            new ScoringProfile(new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(), AnswerMatchingRules.Default),
+            new TimingProfile(new Dictionary<ExamModule, int>(), null, []),
+            [
+                new Section(ExamModule.Listening, 1,
+                [
+                    new SectionPart(
+                        1, "listening-part", "Part 1", null, audioKey, null, null,
+                        null, 1, null, null, []),
+                ]),
+            ]);
+
+        return new ExamImportDraft(
+            draftId, definition, 1, ExamImportRoute.StructuredPackage,
+            new string('a', 64), ExamImportWorkflow.Hash("valid"), paper, null,
+            ImportApprovalState.ReviewRequired, [], "raw source", "valid",
+            new ImportReviewChecklist(Enum.GetValues<ImportReviewCategory>().ToHashSet()),
+            [], 0, null);
+    }
+
+    private sealed class MemoryDraftStore(ExamImportDraft draft) : IImportDraftStore
+    {
+        public ExamImportDraft Draft { get; private set; } = draft;
+
+        public Task SaveAsync(ExamImportDraft value, CancellationToken ct)
+        {
+            Draft = value;
+            return Task.CompletedTask;
+        }
+
+        public Task<ExamImportDraft?> FindAsync(Guid id, CancellationToken ct) =>
+            Task.FromResult<ExamImportDraft?>(Draft.Id == id ? Draft : null);
+
+        public Task<ExamImportDraft?> FindBySourceAsync(
+            ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route,
+            string sourceHash, string parsePromptVersion, CancellationToken ct) =>
+            Task.FromResult<ExamImportDraft?>(null);
+
+        public Task<bool> ReplaceAsync(ExamImportDraft value, int expected, CancellationToken ct)
+        {
+            if (Draft.Id != value.Id || Draft.Revision != expected) return Task.FromResult(false);
+            Draft = value;
+            return Task.FromResult(true);
+        }
+    }
+
+    private sealed class AlwaysValidValidator : IExamPackageValidator
+    {
+        public PackageValidationResult Validate(
+            string json, ExamDefinitionId id, int version, UserId? authorId = null) =>
+            new(true, ExamVersion.CreateDraft(
+                id, version, "ok", ExamVariant.Academic,
+                new ScoringProfile(new Dictionary<ExamModule, IReadOnlyList<BandBoundary>>(), AnswerMatchingRules.Default),
+                new TimingProfile(new Dictionary<ExamModule, int>(), null, []),
+                [new Section(ExamModule.Listening, 1, [])],
+                authorId: authorId), []);
+    }
+
+    private sealed class ThrowingPromoter : IImportAssetPromoter
+    {
+        public Task PromoteAsync(string stagedKey, string publicKey, CancellationToken ct) =>
+            throw new InvalidOperationException("staged asset missing");
+    }
 }

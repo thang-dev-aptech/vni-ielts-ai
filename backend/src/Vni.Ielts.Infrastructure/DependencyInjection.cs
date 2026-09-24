@@ -419,6 +419,9 @@ public static class DependencyInjection
         if (!objectStorageRegistered)
             services.AddScoped<IPrivateImportAssetStore, DiscardedImportAssetStore>();
 
+        if (!objectStorageRegistered)
+            services.AddSingleton<IImportAssetPromoter>(_ => NoOpImportAssetPromoter.Instance);
+
         /*
          * <b>Where the uploaded ZIP waits for the worker.</b> When object
          * storage is configured, `AddObjectStorage` above already registered

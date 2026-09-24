@@ -30,8 +30,11 @@ public sealed record ImportReviewResult(
 public sealed class ImportReviewWorkflow(
     IImportDraftStore drafts,
     IExamPackageValidator validator,
-    CanonicalExplanationWorkflow? canonicalExplanations = null)
+    CanonicalExplanationWorkflow? canonicalExplanations = null,
+    IImportAssetPromoter? assetPromoter = null)
 {
+    private readonly IImportAssetPromoter promoter = assetPromoter ?? NoOpImportAssetPromoter.Instance;
+
     public static ImportReviewDiff Diff(ExamImportDraft draft) => new(
         draft.SourceText, draft.PackageJson, draft.SourceHash, draft.PackageHash,
         string.Equals(draft.SourceText, draft.PackageJson, StringComparison.Ordinal));
@@ -222,6 +225,22 @@ public sealed class ImportReviewWorkflow(
             return ImportReviewResult.Refused("IMPORT_WARNINGS_UNRESOLVED");
         if (!draft.Checklist.IsComplete)
             return ImportReviewResult.Refused("IMPORT_CHECKLIST_INCOMPLETE");
+
+        /*
+         * Promote before flipping ApprovalState. A failed copy must not leave
+         * an Approved draft whose learner-facing media is still only in private
+         * staging — and a successful copy that then loses the revision race is
+         * far rarer than approving first and discovering the copy failed.
+         */
+        try
+        {
+            await PromoteDraftAssetsAsync(draft, ct);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            return ImportReviewResult.Refused("IMPORT_ASSET_PROMOTE_FAILED");
+        }
+
         var approved = draft with
         {
             ApprovalState = ImportApprovalState.Approved,
@@ -232,6 +251,38 @@ public sealed class ImportReviewWorkflow(
             ? ImportReviewResult.Success(approved)
             : ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
     }
+
+    /// <summary>
+    /// Every <c>AudioKey</c>, <c>ImageKey</c> and group <c>Image</c> on the
+    /// draft's validated Version, promoted from
+    /// <c>imports/{draftId}/{reference}</c> to the plain <c>assets/…</c>
+    /// reference <c>IExamAssetStore</c> opens.
+    /// </summary>
+    private async Task PromoteDraftAssetsAsync(ExamImportDraft draft, CancellationToken ct)
+    {
+        foreach (var reference in AssetReferences(draft.Version))
+        {
+            ct.ThrowIfCancellationRequested();
+            var staged = StagedKeyFor(draft.Id, reference);
+            await promoter.PromoteAsync(staged, reference, ct);
+        }
+    }
+
+    /// <summary>Same key shape the admin draft-asset preview composes.</summary>
+    public static string StagedKeyFor(Guid draftId, string publicReference)
+    {
+        var normalized = publicReference.Replace('\\', '/').Trim('/');
+        return $"imports/{draftId:D}/{normalized}";
+    }
+
+    private static IEnumerable<string> AssetReferences(ExamVersion version) =>
+        version.Sections
+            .SelectMany(s => s.Parts)
+            .SelectMany(p => new[] { p.AudioKey, p.ImageKey }
+                .Concat(p.Questions.Select(q => q.Group?.Image)))
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Cast<string>()
+            .Distinct(StringComparer.Ordinal);
 
     public async Task<ImportReviewResult> EnrichCanonicalExplanationsAsync(
         Guid draftId, int expectedRevision, ImportReviewActor actor, CancellationToken ct)

@@ -501,6 +501,65 @@ internal sealed class S3PrivateImportAssetStore(IAmazonS3 client, ObjectStorageO
 }
 
 /// <summary>
+/// Same-bucket copy from private import staging into the public key space
+/// <see cref="IExamAssetStore"/> reads. Deliberately not a write method on
+/// that store — the learner-facing port stays read-only.
+/// </summary>
+internal sealed class S3ImportAssetPromoter(IAmazonS3 client, ObjectStorageOptions options)
+    : IImportAssetPromoter
+{
+    public async Task PromoteAsync(string stagedKey, string publicKey, CancellationToken ct)
+    {
+        if (!IsValidPrivateKey(stagedKey))
+            throw new ArgumentException("Staged key must stay below imports/.", nameof(stagedKey));
+
+        var publicRelative = PublicRelativeKey(publicKey)
+            ?? throw new ArgumentException("Public key must be an assets/… reference.", nameof(publicKey));
+
+        var bucket = options.ExamAssetsBucket;
+        var sourceKey = ObjectStorageOptions.Under(options.ExamAssetsPrefix, stagedKey);
+        var destinationKey = ObjectStorageOptions.Under(options.ExamAssetsPrefix, publicRelative);
+
+        try
+        {
+            await client.CopyObjectAsync(
+                new CopyObjectRequest
+                {
+                    SourceBucket = bucket,
+                    SourceKey = sourceKey,
+                    DestinationBucket = bucket,
+                    DestinationKey = destinationKey,
+                    CannedACL = S3CannedACL.Private,
+                },
+                ct);
+        }
+        catch (AmazonS3Exception e) when (e.ErrorCode is "NoSuchKey" or "NoSuchBucket")
+        {
+            throw new InvalidOperationException(
+                $"Staged import asset '{stagedKey}' is missing in '{bucket}'.", e);
+        }
+    }
+
+    // Mirrors S3ObjectStore.KeyFor so the destination is exactly what OpenAsync looks up.
+    private static string? PublicRelativeKey(string reference)
+    {
+        if (!reference.StartsWith("assets/", StringComparison.Ordinal)) return null;
+
+        var relative = reference["assets/".Length..];
+        if (relative.Length == 0) return null;
+
+        var segments = relative.Split('/', StringSplitOptions.None);
+        if (segments.Any(s => s is "" or "." or "..")) return null;
+
+        return relative;
+    }
+
+    private static bool IsValidPrivateKey(string key) =>
+        key.StartsWith("imports/", StringComparison.Ordinal)
+        && !key.Split('/').Any(segment => segment is "" or "." or "..");
+}
+
+/// <summary>
 /// The readiness port. Registered only when object storage is configured, the
 /// same way <see cref="IExamAssetStore"/> and <see cref="IDictationAssetStore"/>
 /// are — a Development process has nothing to probe and nothing to report.
@@ -556,6 +615,7 @@ internal static class ObjectStorageRegistration
         services.AddSingleton<IExamAssetStore, S3ExamAssetStore>();
         services.AddSingleton<IDictationAssetStore, S3DictationAssetStore>();
         services.AddSingleton<IPrivateImportAssetStore, S3PrivateImportAssetStore>();
+        services.AddSingleton<IImportAssetPromoter, S3ImportAssetPromoter>();
 
         /*
          * The uploaded archive itself, which the import worker reads back in
