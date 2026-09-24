@@ -804,6 +804,134 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
         }
     }
 
+    /// <summary>
+    /// Mirrors <c>Overriding_a_warning_requires_a_reason_and_is_audited</c>'s
+    /// shape exactly, per <c>hotspot-positions-endpoint</c>'s acceptance
+    /// criteria: 200 with the new positions on success, 403 without
+    /// <c>package.upload</c>, 404 for an unknown draft or an unknown group
+    /// id, and exactly one audit entry for the call.
+    /// </summary>
+    [SkippableFact]
+    public async Task Setting_group_positions_succeeds_is_gated_and_is_audited_once()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await SeedDraftWithHotspotGroupAsync();
+
+        // 403: reader holds package.read, not package.upload — CanEdit is false.
+        var (reader, readAccess) = await SignInWithOnlyAsync(PermissionKeys.PackageRead);
+        var forbidden = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/groups/g-1/positions", readAccess);
+        forbidden.Content = JsonContent.Create(new
+        {
+            positions = new[] { new { key = "A", x = 0.25, y = 0.4 } },
+        });
+        Assert.Equal(HttpStatusCode.Forbidden, (await reader.SendAsync(forbidden)).StatusCode);
+
+        // 404: unknown draft.
+        var unknownDraft = Request(
+            HttpMethod.Post,
+            $"/api/v1/admin/import/packages/{Guid.NewGuid():D}/groups/g-1/positions", access);
+        unknownDraft.Content = JsonContent.Create(new
+        {
+            positions = new[] { new { key = "A", x = 0.25, y = 0.4 } },
+        });
+        Assert.Equal(HttpStatusCode.NotFound, (await client.SendAsync(unknownDraft)).StatusCode);
+
+        // 404: unknown group id on a real draft.
+        var unknownGroup = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/groups/no-such-group/positions", access);
+        unknownGroup.Content = JsonContent.Create(new
+        {
+            positions = new[] { new { key = "A", x = 0.25, y = 0.4 } },
+        });
+        Assert.Equal(HttpStatusCode.NotFound, (await client.SendAsync(unknownGroup)).StatusCode);
+
+        // 200: success, with the new positions on the response view.
+        var success = Request(
+            HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/groups/g-1/positions", access);
+        success.Content = JsonContent.Create(new
+        {
+            positions = new[]
+            {
+                new { key = "A", x = 0.25, y = 0.4 },
+                new { key = "B", x = 0.75, y = 0.6 },
+            },
+        });
+        var response = await client.SendAsync(success);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await BodyOf(response);
+        var group = body.GetProperty("groups").EnumerateArray().Single(g => g.GetProperty("id").GetString() == "g-1");
+        var positions = group.GetProperty("positions").EnumerateArray().ToArray();
+        Assert.Equal(2, positions.Length);
+        Assert.Contains(positions, p => p.GetProperty("key").GetString() == "A"
+            && p.GetProperty("x").GetDouble() == 0.25 && p.GetProperty("y").GetDouble() == 0.4);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var audit = scope.ServiceProvider.GetRequiredService<IAuditLog>();
+            var (entries, _) = await audit.ListAsync(
+                null, nameof(AuditAction.GroupPositionsSet), 0, 50, default);
+            var mine = entries.Where(e => e.TargetId == draftId).ToArray();
+            var single = Assert.Single(mine);
+            Assert.Equal("g-1", single.Detail["groupId"]);
+            Assert.Equal("2", single.Detail["count"]);
+            Assert.DoesNotContain(single.Detail.Values, v => v.Contains("0.25", StringComparison.Ordinal));
+        }
+    }
+
+    /// <summary>
+    /// A structured, valid draft with a labelling group ("g-1") repeated
+    /// across two questions, an image, and a shared two-option bank — the
+    /// shape <see cref="ImportReviewWorkflow.SetGroupPositionsAsync"/> and
+    /// <c>ImportDraftView.Groups</c> both need, which
+    /// <see cref="ValidPackageJson"/> does not carry (its one question has no
+    /// image and is not matching/labelling).
+    /// </summary>
+    private async Task<string> SeedDraftWithHotspotGroupAsync()
+    {
+        using var scope = app.Services.CreateScope();
+        var workflow = scope.ServiceProvider.GetRequiredService<ExamImportWorkflow>();
+
+        var packageJson = HotspotPackageJson.Replace("hotspot-import-test", $"hotspot-{Guid.NewGuid():n}");
+        var attempt = await workflow.ImportStructuredAsync(
+            packageJson, Vni.Ielts.Domain.Exams.ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, string.Join("; ", attempt.Findings.Select(f => f.Message)));
+        return attempt.Draft!.Id.ToString("D");
+    }
+
+    private const string HotspotPackageJson = """
+    {
+      "formatVersion": "2.0", "formatProfile": "vni-practice", "scoringProfileRef": "hotspot-import-test",
+      "contentSourceRef": { "sourceId": "synthetic-validation", "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+      "title": "Admin import HTTP test — hotspot group", "variant": "academic",
+      "timingProfile": { "sections": { "reading": { "durationSeconds": 3600 } } },
+      "scoringProfile": { "rawToBand": { "reading": [
+        { "minRaw": 0, "band": 0 }, { "minRaw": 1, "band": 1 }, { "minRaw": 2, "band": 2 } ] } },
+      "sequenceProfile": { "modules": ["reading"] },
+      "assetManifest": [{ "path": "assets/map.jpg", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }],
+      "sections": [{ "module": "reading", "order": 1, "parts": [{ "order": 1, "kind": "passage",
+        "body": "Evidence here.", "questions": [
+          {
+            "id": "q-1", "order": 1, "type": "labelling", "marks": 1,
+            "options": [{ "key": "A", "text": "Kitchen" }, { "key": "B", "text": "Garden" }],
+            "group": { "id": "g-1", "instruction": "Label the map.", "image": "assets/map.jpg" },
+            "answerKey": { "accepted": ["A"] }
+          },
+          {
+            "id": "q-2", "order": 2, "type": "labelling", "marks": 1,
+            "options": [{ "key": "A", "text": "Kitchen" }, { "key": "B", "text": "Garden" }],
+            "group": { "id": "g-1", "instruction": "Label the map.", "image": "assets/map.jpg" },
+            "answerKey": { "accepted": ["B"] }
+          }
+        ]
+      }]}]
+    }
+    """;
+
     [SkippableFact]
     public async Task A_draft_with_an_unresolved_warning_cannot_be_approved()
     {

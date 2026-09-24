@@ -1925,11 +1925,10 @@
             }
           },
           {
-            "name": "page",
+            "name": "cursor",
             "in": "query",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           }
         ],
@@ -3449,6 +3448,59 @@
         ]
       }
     },
+    "/api/v1/admin/import/packages/{draftId}/groups/{groupId}/positions": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Persist hotspot positions for a group; resets ApprovalState/Checklist like any edit",
+        "operationId": "AdminSetImportGroupPositions",
+        "parameters": [
+          {
+            "name": "draftId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetGroupPositionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/import/packages/{draftId}/approve": {
       "post": {
         "tags": [
@@ -3469,6 +3521,297 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/import/batches": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Start or resume a batch import with multiple packages",
+        "operationId": "AdminStartImportBatch",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/import/batches/{batchId}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get the status of a batch import, including per-item checkpoint state",
+        "operationId": "AdminGetImportBatchStatus",
+        "parameters": [
+          {
+            "name": "batchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          },
+          "429": {
+            "description": "Rate limited. Always carries Retry-After \u2014 a 429 without it invites an immediate retry, which makes the problem worse."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/evaluations": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Paged AI marking history, including current/superseded filters",
+        "operationId": "AdminListEvaluations",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "module",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "flagged",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "current",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/evaluations/failed-jobs": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Paged failed marking queue, newest failure first",
+        "operationId": "AdminListFailedMarkingJobs",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "module",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/evaluations/{sessionId}/{markingId}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "One marking, its provenance, attempts and supersession links",
+        "operationId": "AdminGetEvaluation",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "markingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeContent",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/evaluations/failed-jobs/{operationId}/rerun": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Reopen one failed marking job; this can incur a provider charge",
+        "operationId": "AdminRerunEvaluation",
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "No token, or one this API will not accept."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/config": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Safe, read-only view of effective runtime configuration",
+        "operationId": "AdminGetRuntimeConfig",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminConfigResponse"
+                }
+              }
+            }
           },
           "401": {
             "description": "No token, or one this API will not accept."
@@ -3580,6 +3923,112 @@
           "flameThreshold": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "AdminConfigResponse": {
+        "required": [
+          "ai",
+          "writing",
+          "importArchive",
+          "tokenPricing"
+        ],
+        "type": "object",
+        "properties": {
+          "ai": {
+            "$ref": "#/components/schemas/AiConfigurationResponse"
+          },
+          "writing": {
+            "$ref": "#/components/schemas/WritingConfigurationResponse"
+          },
+          "importArchive": {
+            "$ref": "#/components/schemas/ImportArchiveConfigurationResponse"
+          },
+          "tokenPricing": {
+            "$ref": "#/components/schemas/TokenPricingConfigurationResponse"
+          }
+        }
+      },
+      "AiConfigurationResponse": {
+        "required": [
+          "skills"
+        ],
+        "type": "object",
+        "properties": {
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiSkillConfigurationResponse"
+            }
+          }
+        }
+      },
+      "AiProviderFallbackResponse": {
+        "required": [
+          "provider",
+          "status",
+          "model"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "model": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AiSkillConfigurationResponse": {
+        "required": [
+          "skill",
+          "status",
+          "provider",
+          "model",
+          "version",
+          "fallback"
+        ],
+        "type": "object",
+        "properties": {
+          "skill": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "model": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fallback": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AiProviderFallbackResponse"
+              }
+            ]
           }
         }
       },
@@ -4363,6 +4812,64 @@
           }
         }
       },
+      "GroupPositionInput": {
+        "required": [
+          "key",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ImportArchiveConfigurationResponse": {
+        "required": [
+          "maxEntries",
+          "maxTotalUncompressedBytes",
+          "maxEntryUncompressedBytes",
+          "maxCompressionRatio",
+          "maxArchiveBytes",
+          "extractionTimeoutSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "maxEntries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxTotalUncompressedBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "maxEntryUncompressedBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "maxCompressionRatio": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxArchiveBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "extractionTimeoutSeconds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "InitRecordingRequest": {
         "required": [
           "questionId",
@@ -4728,7 +5235,8 @@
           "checksum",
           "uploadedByName",
           "uploadedAt",
-          "retired"
+          "retired",
+          "referencedBy"
         ],
         "type": "object",
         "properties": {
@@ -4766,6 +5274,12 @@
           },
           "retired": {
             "type": "boolean"
+          },
+          "referencedBy": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MediaVersionReferenceView"
+            }
           }
         }
       },
@@ -4780,6 +5294,25 @@
             "items": {
               "$ref": "#/components/schemas/MediaAssetView"
             }
+          }
+        }
+      },
+      "MediaVersionReferenceView": {
+        "required": [
+          "versionId",
+          "title",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
           }
         }
       },
@@ -4831,6 +5364,27 @@
           },
           "mustChangePassword": {
             "type": "boolean"
+          }
+        }
+      },
+      "OptionPositionView": {
+        "required": [
+          "key",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -5123,6 +5677,15 @@
           },
           "eachLetterOnce": {
             "type": "boolean"
+          },
+          "positions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/OptionPositionView"
+            }
           }
         }
       },
@@ -5752,6 +6315,20 @@
           }
         }
       },
+      "SetGroupPositionsRequest": {
+        "required": [
+          "positions"
+        ],
+        "type": "object",
+        "properties": {
+          "positions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupPositionInput"
+            }
+          }
+        }
+      },
       "SetPasswordRequest": {
         "required": [
           "currentPassword",
@@ -6058,6 +6635,24 @@
           }
         }
       },
+      "TokenPricingConfigurationResponse": {
+        "required": [
+          "status",
+          "blockers"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "UsageEntryView": {
         "required": [
           "id",
@@ -6185,6 +6780,44 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "WritingConfigurationResponse": {
+        "required": [
+          "rubricVersion",
+          "task1Weight",
+          "task2Weight",
+          "feedbackLanguage",
+          "criterionGranularity"
+        ],
+        "type": "object",
+        "properties": {
+          "rubricVersion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "task1Weight": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "task2Weight": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "feedbackLanguage": {
+            "type": "string"
+          },
+          "criterionGranularity": {
+            "type": "string"
           }
         }
       },

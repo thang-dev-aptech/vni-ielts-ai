@@ -193,6 +193,148 @@ public sealed class ImportReviewWorkflowTests
         Assert.Equal("IMPORT_FINDINGS_BLOCKING", result.ErrorCode);
     }
 
+    /// <summary>
+    /// The whole point of the "mutate every occurrence" contract: a group
+    /// repeated across two questions must come out byte-identical in both
+    /// places, proving this isn't a "first occurrence only" patch.
+    /// </summary>
+    [Fact]
+    public async Task Setting_positions_writes_them_into_every_occurrence_and_resets_review()
+    {
+        var store = new Store(PositionDraft());
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.SetGroupPositionsAsync(
+            store.Draft.Id, 0, "g-1",
+            [new GroupPositionInput("A", 0.25, 0.4), new GroupPositionInput("B", 0.75, 0.6)],
+            Editor, default);
+
+        Assert.True(result.IsSuccess);
+        var draft = result.Draft!;
+        Assert.Equal(1, draft.Revision);
+        Assert.Equal(ImportApprovalState.ReviewRequired, draft.ApprovalState);
+        Assert.False(draft.Checklist.IsComplete);
+        Assert.Null(draft.ReviewedBy);
+        Assert.Equal(ExamImportWorkflow.Hash(draft.PackageJson), draft.PackageHash);
+
+        var root = System.Text.Json.Nodes.JsonNode.Parse(draft.PackageJson)!.AsObject();
+        var groups = root["sections"]![0]!["parts"]![0]!["questions"]!.AsArray()
+            .Select(q => q!["group"]!["positions"]!.ToJsonString())
+            .ToArray();
+        Assert.Equal(2, groups.Length);
+        Assert.Equal(groups[0], groups[1]);
+        Assert.Contains("\"key\":\"A\"", groups[0]);
+    }
+
+    [Fact]
+    public async Task Setting_positions_at_the_wrong_revision_is_a_conflict()
+    {
+        var store = new Store(PositionDraft());
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.SetGroupPositionsAsync(
+            store.Draft.Id, 5, "g-1", [new GroupPositionInput("A", 0.1, 0.1)], Editor, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_REVISION_CONFLICT", result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task Setting_positions_without_edit_permission_is_forbidden()
+    {
+        var store = new Store(PositionDraft());
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.SetGroupPositionsAsync(
+            store.Draft.Id, 0, "g-1", [new GroupPositionInput("A", 0.1, 0.1)], Reviewer, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_EDIT_FORBIDDEN", result.ErrorCode);
+        Assert.Equal(0, store.Draft.Revision);
+    }
+
+    [Fact]
+    public async Task A_key_outside_the_group_s_own_option_bank_is_refused()
+    {
+        var store = new Store(PositionDraft());
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.SetGroupPositionsAsync(
+            store.Draft.Id, 0, "g-1", [new GroupPositionInput("Z", 0.1, 0.1)], Editor, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_POSITION_UNKNOWN_KEY", result.ErrorCode);
+        Assert.Equal(0, store.Draft.Revision);
+    }
+
+    [Fact]
+    public async Task An_unknown_group_id_is_refused()
+    {
+        var store = new Store(PositionDraft());
+        var review = new ImportReviewWorkflow(store, new Validator());
+
+        var result = await review.SetGroupPositionsAsync(
+            store.Draft.Id, 0, "no-such-group", [new GroupPositionInput("A", 0.1, 0.1)], Editor, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_GROUP_NOT_FOUND", result.ErrorCode);
+    }
+
+    /// <summary>
+    /// A package JSON shaped like a real labelling group repeated across two
+    /// questions — the fake <see cref="Validator"/> only special-cases the
+    /// literal string "invalid", so any other well-formed JSON here is
+    /// accepted, letting these tests exercise
+    /// <see cref="ImportReviewWorkflow.SetGroupPositionsAsync"/> against text
+    /// <see cref="System.Text.Json.Nodes.JsonNode.Parse(string, System.Text.Json.Nodes.JsonNodeOptions?, System.Text.Json.JsonDocumentOptions)"/>
+    /// can actually parse, unlike the bare-word "valid" the other fixture uses.
+    /// </summary>
+    private static ExamImportDraft PositionDraft()
+    {
+        const string packageJson = """
+            {
+              "sections": [
+                {
+                  "module": "reading",
+                  "order": 1,
+                  "parts": [
+                    {
+                      "order": 1,
+                      "questions": [
+                        {
+                          "id": "q-1",
+                          "order": 1,
+                          "type": "labelling",
+                          "options": [{ "key": "A", "text": "Kitchen" }, { "key": "B", "text": "Garden" }],
+                          "group": { "id": "g-1", "image": "assets/map.jpg" },
+                          "answerKey": { "accepted": ["A"] }
+                        },
+                        {
+                          "id": "q-2",
+                          "order": 2,
+                          "type": "labelling",
+                          "options": [{ "key": "A", "text": "Kitchen" }, { "key": "B", "text": "Garden" }],
+                          "group": { "id": "g-1", "image": "assets/map.jpg" },
+                          "answerKey": { "accepted": ["B"] }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            """;
+
+        var definition = ExamDefinitionId.New();
+        var paper = Validator.Paper(definition, 1);
+        return new ExamImportDraft(
+            Guid.NewGuid(), definition, 1, ExamImportRoute.StructuredPackage,
+            new string('a', 64), ExamImportWorkflow.Hash(packageJson), paper, null,
+            ImportApprovalState.Approved, [], "raw source", packageJson,
+            new ImportReviewChecklist(Enum.GetValues<ImportReviewCategory>().ToHashSet()),
+            [], 0, "some-reviewer");
+    }
+
     [Fact]
     public void Diff_keeps_source_and_parsed_package_side_by_side()
     {

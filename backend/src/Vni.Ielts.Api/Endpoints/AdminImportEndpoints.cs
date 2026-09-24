@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using Vni.Ielts.Api.Common;
 using Vni.Ielts.Application.Common;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Identity;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Audit;
@@ -46,7 +47,11 @@ public sealed record ImportDraftView(
     IReadOnlyList<ImportFindingView> Findings,
     IReadOnlyList<ImportWarningView> Warnings,
     IReadOnlyList<string> ChecklistConfirmed,
-    bool ChecklistComplete);
+    bool ChecklistComplete,
+    IReadOnlyList<ImportDraftGroupView> Groups);
+
+/// <summary>The full set of positions an admin wants a group to have; replaces whatever was there.</summary>
+public sealed record SetGroupPositionsRequest(IReadOnlyList<GroupPositionInput> Positions);
 
 public sealed record ImportRejectionView(bool IsAccepted, IReadOnlyList<ImportFindingView> Findings);
 
@@ -188,6 +193,15 @@ public static class PackageImportAudit
             ["reason"] = reason,
         };
 
+    public static IReadOnlyDictionary<string, string> GroupPositionsSet(
+        string draftId, string groupId, int count) =>
+        new Dictionary<string, string>
+        {
+            ["draftId"] = draftId,
+            ["groupId"] = groupId,
+            ["count"] = count.ToString(),
+        };
+
     private static string Codes(IReadOnlyList<PackageFinding> findings)
     {
         var joined = string.Join(",", findings.Select(f => f.Code).Where(c => c.Length > 0).Take(20));
@@ -270,6 +284,10 @@ public static class AdminImportEndpoints
         group.MapPost("/packages/{draftId}/warnings/{warningId}/override", OverrideWarningEndpoint)
             .WithName("AdminOverrideImportWarning")
             .WithSummary("Resolve a warning with a mandatory reason; audited as WarningOverridden");
+
+        group.MapPost("/packages/{draftId}/groups/{groupId}/positions", SetGroupPositionsEndpoint)
+            .WithName("AdminSetImportGroupPositions")
+            .WithSummary("Persist hotspot positions for a group; resets ApprovalState/Checklist like any edit");
 
         group.MapPost("/packages/{draftId}/approve", ApproveEndpoint)
             .WithName("AdminApproveImportDraft")
@@ -753,6 +771,42 @@ public static class AdminImportEndpoints
         return Results.Ok(ToView(draft));
     }
 
+    /// <summary>
+    /// Mirrors <see cref="OverrideWarningEndpoint"/>'s shape exactly: permission
+    /// falls out of <see cref="ImportReviewWorkflow.SetGroupPositionsAsync"/>'s
+    /// own <c>actor.CanEdit</c> gate (mapped from <c>package.upload</c> by
+    /// <see cref="BuildActor"/>), refusals map through <see cref="RefusedResult"/>,
+    /// and a success is audited before the updated view goes back.
+    /// </summary>
+    private static async Task<IResult> SetGroupPositionsEndpoint(
+        string draftId, string groupId, SetGroupPositionsRequest request, ClaimsPrincipal principal,
+        IImportDraftStore drafts, ImportReviewWorkflow review, IAuditLog audit, IClock clock,
+        HttpContext http, CancellationToken ct)
+    {
+        if (principal.UserId() is not { } actorId) return Results.Unauthorized();
+        if (!Guid.TryParse(draftId, out var id)) return Results.NotFound();
+
+        var current = await drafts.FindAsync(id, ct);
+        if (current is null) return Results.NotFound();
+
+        var positions = request.Positions ?? [];
+        var actor = BuildActor(principal);
+        var result = await review.SetGroupPositionsAsync(id, current.Revision, groupId, positions, actor, ct);
+        if (!result.IsSuccess) return RefusedResult(result, http);
+
+        var draft = result.Draft!;
+        await audit.AppendAsync(
+            AuditEntry.Record(
+                new UserId(actorId), principal.Email() ?? principal.DisplayName(),
+                AuditAction.GroupPositionsSet, "import-draft", draftId,
+                $"{draft.DefinitionId.Value} v{draft.VersionNumber}",
+                clock.UtcNow,
+                PackageImportAudit.GroupPositionsSet(draftId, groupId, positions.Count)),
+            ct);
+
+        return Results.Ok(ToView(draft));
+    }
+
     private static async Task<IResult> ApproveEndpoint(
         string draftId, ClaimsPrincipal principal, IImportDraftStore drafts, ImportReviewWorkflow review,
         IAuditLog audit, IClock clock, HttpContext http, CancellationToken ct)
@@ -813,7 +867,8 @@ public static class AdminImportEndpoints
             w.Id, w.Category.ToString().ToLowerInvariant(), w.Path, w.Message, w.Resolved, w.OverrideReason))
             .ToArray(),
         draft.Checklist.Confirmed.Select(c => c.ToString().ToLowerInvariant()).ToArray(),
-        draft.Checklist.IsComplete);
+        draft.Checklist.IsComplete,
+        draft.Version.ToGroupViews());
 
     /// <summary>
     /// History is bookkeeping. A write failure here must not change the door's
@@ -870,7 +925,8 @@ public static class AdminImportEndpoints
                 // one status, regardless of which door reaches it.
                 or ErrorCodes.ReviewerIsAuthor
                 => StatusCodes.Status403Forbidden,
-            "IMPORT_DRAFT_NOT_FOUND" or "IMPORT_WARNING_NOT_FOUND" => StatusCodes.Status404NotFound,
+            "IMPORT_DRAFT_NOT_FOUND" or "IMPORT_WARNING_NOT_FOUND" or "IMPORT_GROUP_NOT_FOUND"
+                => StatusCodes.Status404NotFound,
             "PACKAGE_INVALID" => StatusCodes.Status422UnprocessableEntity,
             _ => StatusCodes.Status409Conflict,
         };

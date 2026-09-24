@@ -126,6 +126,12 @@ public enum AuditAction
     PackageImportRejected,
     /// <summary>An import draft was approved for review publication.</summary>
     PackageImportApproved,
+    /// <summary>
+    /// An admin placed or moved hotspot positions on a group's image. Detail
+    /// carries the group id and a position count only — never coordinate
+    /// values or option text.
+    /// </summary>
+    GroupPositionsSet,
 
     // Evaluation operations are deliberately distinct from a normal score
     // read: the former grants access to learner/model content and the latter

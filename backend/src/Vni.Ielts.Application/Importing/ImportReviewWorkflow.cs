@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Vni.Ielts.Application.Common;
 using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Domain.Common;
@@ -7,6 +8,9 @@ namespace Vni.Ielts.Application.Importing;
 
 public sealed record ImportReviewActor(
     string ActorId, bool CanEdit, bool CanReview, bool CanPublish);
+
+/// <summary>One hotspot placement, as an admin submits it — a fraction of the group's image content box.</summary>
+public sealed record GroupPositionInput(string Key, double X, double Y);
 
 public sealed record ImportReviewDiff(
     string SourceText, string ParsedPackageJson, string SourceHash, string PackageHash,
@@ -56,6 +60,82 @@ public sealed class ImportReviewWorkflow(
         };
         return await drafts.ReplaceAsync(edited, expectedRevision, ct)
             ? ImportReviewResult.Success(edited)
+            : ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+    }
+
+    /// <summary>
+    /// Persists hotspot positions for one shared group. Follows
+    /// <see cref="EditAsync"/>'s shape — mutate <see cref="ExamImportDraft.PackageJson"/>
+    /// text, re-validate the whole package, keep <c>Version</c> and
+    /// <c>PackageJson</c> in lockstep — rather than
+    /// <see cref="ResolveWarningAsync"/>'s "patch one in-memory field" shape,
+    /// because a group's fields (positions included) are repeated once per
+    /// question occurrence in the package text, the same as everywhere else
+    /// a group's data lives. Placing or moving a pin is content, so it resets
+    /// <c>ApprovalState</c>/<c>Checklist</c> exactly like any other edit.
+    /// </summary>
+    public async Task<ImportReviewResult> SetGroupPositionsAsync(
+        Guid draftId, int expectedRevision, string groupId,
+        IReadOnlyList<GroupPositionInput> positions, ImportReviewActor actor, CancellationToken ct)
+    {
+        if (!actor.CanEdit) return ImportReviewResult.Refused("IMPORT_EDIT_FORBIDDEN");
+        var draft = await drafts.FindAsync(draftId, ct);
+        if (draft is null) return ImportReviewResult.Refused("IMPORT_DRAFT_NOT_FOUND");
+        if (draft.Revision != expectedRevision) return ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
+
+        var root = JsonNode.Parse(draft.PackageJson)!.AsObject();
+        var occurrences = new List<JsonObject>();
+        HashSet<string>? bankKeys = null;
+
+        foreach (var sectionNode in root["sections"]!.AsArray())
+        foreach (var partNode in sectionNode!["parts"]!.AsArray())
+        foreach (var questionNode in (partNode!["questions"]?.AsArray() ?? []))
+        {
+            if (questionNode!["group"] is not JsonObject group
+                || group["id"]?.GetValue<string>() != groupId)
+            {
+                continue;
+            }
+
+            occurrences.Add(group);
+            // Every occurrence carries the same bank (CheckGroups already
+            // enforces this); the first one found is representative.
+            bankKeys ??= [.. (questionNode["options"]?.AsArray() ?? [])
+                .Select(o => o!["key"]!.GetValue<string>())];
+        }
+
+        if (occurrences.Count == 0) return ImportReviewResult.Refused("IMPORT_GROUP_NOT_FOUND");
+        if (positions.Any(p => !bankKeys!.Contains(p.Key)))
+            return ImportReviewResult.Refused("IMPORT_POSITION_UNKNOWN_KEY");
+
+        foreach (var group in occurrences)
+        {
+            group["positions"] = new JsonArray(
+                [.. positions.Select(p => (JsonNode)new JsonObject
+                {
+                    ["key"] = p.Key,
+                    ["x"] = p.X,
+                    ["y"] = p.Y,
+                })]);
+        }
+
+        var packageJson = root.ToJsonString();
+        var validation = validator.Validate(packageJson, draft.DefinitionId, draft.VersionNumber);
+        if (!validation.IsValid || validation.Version is null)
+            return ImportReviewResult.Invalid(validation.Findings);
+
+        var updated = draft with
+        {
+            PackageJson = packageJson,
+            PackageHash = ExamImportWorkflow.Hash(packageJson),
+            Version = validation.Version,
+            ApprovalState = ImportApprovalState.ReviewRequired,
+            Checklist = ImportReviewChecklist.Empty,
+            ReviewedBy = null,
+            Revision = draft.Revision + 1,
+        };
+        return await drafts.ReplaceAsync(updated, expectedRevision, ct)
+            ? ImportReviewResult.Success(updated)
             : ImportReviewResult.Refused("IMPORT_REVISION_CONFLICT");
     }
 

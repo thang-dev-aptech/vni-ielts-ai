@@ -77,6 +77,7 @@ public sealed record ImportDraftGroupView(
     string? ImageKey,
     string? Text,
     bool EachLetterOnce,
+    IReadOnlyList<QuestionOptionView> Options,
     IReadOnlyList<OptionPositionView>? Positions = null);
 
 public sealed record OptionPositionView(string Key, double X, double Y);
@@ -639,6 +640,27 @@ public static class SittingBand
     }
 }
 
+/// <summary>
+/// The one piece of <see cref="ExamViewMapping"/>'s mapping an API-layer
+/// caller needs directly — everything else there stays internal because it
+/// is reached through an Application-layer workflow method instead.
+/// </summary>
+public static class ImportDraftGroupMapping
+{
+    /// <summary>
+    /// One row per hotspot-eligible group — matching/labelling questions
+    /// whose shared group carries an image — grouped by group id so a group
+    /// repeated across several questions appears once.
+    /// </summary>
+    public static IReadOnlyList<ImportDraftGroupView> ToGroupViews(this ExamVersion version) =>
+        [.. version.Sections
+            .SelectMany(s => s.Questions)
+            .Where(q => q.Type is QuestionType.Matching or QuestionType.Labelling
+                && q.Group is { Image: not null })
+            .GroupBy(q => q.Group!.Id)
+            .Select(g => g.First().Group!.ToImportDraftView(g.First().Options))];
+}
+
 internal static class ExamViewMapping
 {
     public static ExamCatalogueItem ToCatalogueItem(this ExamVersion version) =>
@@ -676,7 +698,8 @@ internal static class ExamViewMapping
             group.EachLetterOnce,
             MapPositions(group.Positions));
 
-    public static ImportDraftGroupView ToImportDraftView(this QuestionGroup group) =>
+    public static ImportDraftGroupView ToImportDraftView(
+        this QuestionGroup group, IReadOnlyList<QuestionOption> options) =>
         new(
             group.Id,
             group.Title,
@@ -684,6 +707,7 @@ internal static class ExamViewMapping
             group.Image,
             group.Text,
             group.EachLetterOnce,
+            [.. options.Select(o => new QuestionOptionView(o.Key, o.Text))],
             MapPositions(group.Positions));
 
     private static IReadOnlyList<OptionPositionView>? MapPositions(
