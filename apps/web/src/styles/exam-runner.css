@@ -1376,6 +1376,28 @@
   background: var(--exr-green-soft);
 }
 
+/* Image answer-bank options are pins, not list rows. The shared bank button
+   intentionally fills its column; without this stronger override every
+   absolutely positioned A–G token becomes an image-wide white bar. */
+.exr-page .exam-bank-button.exam-map-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  gap: 0;
+  border-color: var(--exr-green-line);
+  border-radius: 50%;
+  background: var(--exr-card);
+  box-shadow: var(--shadow-elevation);
+  text-align: center;
+  white-space: nowrap;
+  z-index: 2;
+}
+
 .exr-page .exam-bank-instructions {
   margin: 0 0 var(--s-2);
   font-size: var(--t-13);

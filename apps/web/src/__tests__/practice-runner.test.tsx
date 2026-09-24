@@ -1905,6 +1905,10 @@ it('renders positioned options as image pins and accepts a pin drag onto a drop 
     expect(group.querySelector('.exam-figure-overlay')).not.toBeNull();
     expect(group.querySelectorAll('.exam-map-pin')).toHaveLength(2);
   });
+  const pinRule = cssBlock(examRunnerCss, '.exr-page .exam-bank-button.exam-map-pin');
+  expect(pinRule).toMatch(/width:\s*44px/);
+  expect(pinRule).toMatch(/height:\s*44px/);
+  expect(pinRule).toMatch(/border-radius:\s*50%/);
   // Off-image bank is suppressed — only the pins carry the letters.
   expect(group.querySelector('.exam-bank-dnd')).toBeNull();
   expect(group.querySelector('.exam-bank')).toBeNull();

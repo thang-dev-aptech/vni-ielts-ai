@@ -174,6 +174,41 @@ describe('GroupPositionEditor', () => {
     expect(pinB.style.top).toBe('80%');
   });
 
+  it('keeps an unsaved pin when the parent refreshes the same group', async () => {
+    const onSaved = vi.fn();
+    const { rerender } = render(
+      <GroupPositionEditor
+        accessToken="token-1"
+        draftId="draft-1"
+        group={group({ positions: [] })}
+        onSaved={onSaved}
+      />,
+    );
+
+    const img = await screen.findByAltText('Sơ đồ bảo tàng');
+    stubImageBox(img);
+
+    fireEvent.click(screen.getByRole('button', { name: /^A —/ }));
+    fireEvent.click(img, { clientX: 50, clientY: 25 });
+
+    // Checklist and warning mutations replace the parent draft with a fresh
+    // response, including a new positions array for this unchanged group.
+    rerender(
+      <GroupPositionEditor
+        accessToken="token-1"
+        draftId="draft-1"
+        group={group({ positions: [] })}
+        onSaved={onSaved}
+      />,
+    );
+
+    expect(screen.getByText('1/2 đã đặt')).toBeInTheDocument();
+    const pin = screen.getByRole('button', { name: /Vị trí A/ });
+    expect(pin.style.left).toBe('25%');
+    expect(pin.style.top).toBe('25%');
+    expect(setGroupPositions).not.toHaveBeenCalled();
+  });
+
   it('save sends the full current position set and hands the response to onSaved', async () => {
     const onSaved = vi.fn();
     const updated = draftWith(group({ positions: [{ key: 'A', x: 0.25, y: 0.25 }] }));

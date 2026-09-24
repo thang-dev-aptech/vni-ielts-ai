@@ -61,13 +61,15 @@ export function GroupPositionEditor({
   const [imageError, setImageError] = useState<string | null>(null);
   const objectUrl = useRef<string | null>(null);
 
-  // A save (or a different draft loading) hands back a fresh `group` — local
-  // state re-syncs from it rather than staying stuck on what was pending
-  // before the request went out.
+  // Parent draft refreshes (for example, checklist changes) replace every
+  // group object and positions array. Re-seeding for those reference-only
+  // changes would silently discard pins that the reviewer has placed but not
+  // saved yet. Only a genuinely different group needs fresh local state.
   useEffect(() => {
     setPending(toRecord(group.positions));
     setArmedKey(null);
-  }, [group.id, group.positions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [group.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -233,12 +235,7 @@ export function GroupPositionEditor({
       )}
 
       <div className="cms-version-actions">
-        <button
-          type="button"
-          className="cms-primary"
-          disabled={saving}
-          onClick={() => void save()}
-        >
+        <button type="button" className="cms-primary" disabled={saving} onClick={() => void save()}>
           {saving ? 'Đang lưu…' : 'Lưu vị trí'}
         </button>
       </div>

@@ -21,6 +21,7 @@ public sealed class ExamResponseSlotMappingTests
         {
           "formatVersion": "2.0", "formatProfile": "vni-practice", "scoringProfileRef": "mapping-v1",
           "contentSourceRef": { "sourceId": "synthetic-mapping", "sourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+          "assetManifest": [{ "path": "assets/map.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }],
           "title": "Mapping", "variant": "academic",
           "timingProfile": { "sections": { "reading": { "durationSeconds": 60 } } },
           "policyProfile": { "listeningPlayback": {
@@ -33,7 +34,11 @@ public sealed class ExamResponseSlotMappingTests
             "order": 1, "kind": "passage", "body": "Evidence here.", "timing": { "durationSeconds": 45 },
             "questions": [{ "id": "q-1", "order": 1, "type": "multiple-select", "marks": 2,
               "options": [{ "key": "A", "text": "A" }, { "key": "B", "text": "B" }],
-              "group": { "id": "bank-1", "instruction": "Choose two." },
+              "group": { "id": "bank-1", "instruction": "Choose two.",
+                "image": "assets/map.png", "positions": [
+                  { "key": "A", "x": 0.25, "y": 0.4 },
+                  { "key": "B", "x": 0.75, "y": 0.6 }
+                ] },
               "slots": [
                 { "id": "slot-1", "number": 1, "answerKey": { "accepted": ["A"] } },
                 { "id": "slot-2", "number": 2, "answerKey": { "accepted": ["B"] } }
@@ -64,6 +69,9 @@ public sealed class ExamResponseSlotMappingTests
         Assert.Equal(new[] { 1, 2 }, slots.Select(s => s.Number));
         Assert.Equal("A", slots[0].AnswerKey!.Accepted[0].Single);
         Assert.Equal("Evidence here.", question.Explanation!.Evidence[0]);
+        Assert.Equal(
+            [new OptionPosition("A", 0.25, 0.4), new OptionPosition("B", 0.75, 0.6)],
+            question.Group.Positions);
         Assert.Equal(new AudioPlaybackRule(false, true), roundTrip.ListeningPlayback.Practice);
         Assert.Equal(new AudioPlaybackRule(true, false), roundTrip.ListeningPlayback.Mock);
     }

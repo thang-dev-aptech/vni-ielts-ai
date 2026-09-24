@@ -460,6 +460,23 @@ internal sealed class QuestionGroupDocument
 
     [BsonElement("eachLetterOnce")]
     public bool EachLetterOnce { get; set; }
+
+    [BsonElement("positions")]
+    [BsonIgnoreIfNull]
+    public List<OptionPositionDocument>? Positions { get; set; }
+}
+
+[BsonIgnoreExtraElements]
+internal sealed class OptionPositionDocument
+{
+    [BsonElement("key")]
+    public string Key { get; set; } = string.Empty;
+
+    [BsonElement("x")]
+    public double X { get; set; }
+
+    [BsonElement("y")]
+    public double Y { get; set; }
 }
 
 [BsonIgnoreExtraElements]

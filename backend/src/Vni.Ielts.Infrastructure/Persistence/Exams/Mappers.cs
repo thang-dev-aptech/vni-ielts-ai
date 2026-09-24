@@ -254,6 +254,14 @@ internal static class ExamMappers
                         Image = g.Image,
                         Text = g.Text,
                         EachLetterOnce = g.EachLetterOnce,
+                        Positions = g.Positions is null
+                            ? null
+                            : [.. g.Positions.Select(p => new OptionPositionDocument
+                            {
+                                Key = p.Key,
+                                X = p.X,
+                                Y = p.Y,
+                            })],
                     }
                     : null,
                 AnswerKey = q.AnswerKey is { } key
@@ -388,7 +396,11 @@ internal static class ExamMappers
                 q.MaxWords,
                 questionKey,
                 q.Group is { } g
-                    ? new QuestionGroup(g.Id, g.Title, g.Instruction, g.Image, g.Text, g.EachLetterOnce)
+                    ? new QuestionGroup(
+                        g.Id, g.Title, g.Instruction, g.Image, g.Text, g.EachLetterOnce,
+                        g.Positions is null
+                            ? null
+                            : [.. g.Positions.Select(p => new OptionPosition(p.Key, p.X, p.Y))])
                     : null,
                 q.Marks,
                 slots,

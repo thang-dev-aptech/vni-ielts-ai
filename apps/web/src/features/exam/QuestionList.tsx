@@ -474,6 +474,8 @@ function GroupBlock({
               const option = interactiveBank.find((entry) => entry.key === position.key);
               if (option === undefined) return null;
               const taken = takenBy?.[option.key];
+              const optionLabel =
+                option.text === option.key ? option.key : `${option.key} ${option.text}`;
               return (
                 <button
                   type="button"
@@ -482,7 +484,8 @@ function GroupBlock({
                   draggable={!disabled}
                   disabled={disabled}
                   aria-pressed={selectedBankKey === option.key}
-                  aria-label={option.text === option.key ? option.key : `${option.key} ${option.text}`}
+                  aria-label={optionLabel}
+                  title={optionLabel}
                   style={{
                     position: 'absolute',
                     left: box.x + position.x * box.width,
@@ -498,9 +501,8 @@ function GroupBlock({
                   }}
                 >
                   <span className="exam-bank-key num">{option.key}</span>
-                  {option.text !== option.key && <span>{option.text}</span>}
                   {taken !== undefined && (
-                    <span className="exam-bank-used">{t('exam.usedAt', { number: taken })}</span>
+                    <span className="sr-only">{t('exam.usedAt', { number: taken })}</span>
                   )}
                 </button>
               );
