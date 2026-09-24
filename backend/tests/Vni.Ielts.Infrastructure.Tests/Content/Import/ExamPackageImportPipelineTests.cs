@@ -62,7 +62,7 @@ public sealed class ExamPackageImportPipelineTests
         /// 2026-09-02 was invisible. Here the model guesses FALSE; the supplied
         /// key says TRUE, and the pipeline must end up with TRUE.
         /// </summary>
-        private static string OneReadingQuestion() =>
+        public static string OneReadingQuestion() =>
             """
             {
               "formatVersion": "2.0", "formatProfile": "vni-practice",
@@ -292,6 +292,38 @@ public sealed class ExamPackageImportPipelineTests
         READING 1
         ........
         """;
+
+    /// <summary>
+    /// de-1-full-4-ky-nang.zip shape: root <c>manifest.json</c> +
+    /// <c>exam.json</c> + <c>assets/</c>. Must take the structured route (not
+    /// the AI parser) and stage every asset under its own relative path.
+    /// </summary>
+    [Fact]
+    public async Task A_manifest_exam_json_assets_package_imports_as_structured_and_stages_assets()
+    {
+        var assets = new RecordingAssets();
+        var parser = new RecordingParser();
+        var (pipeline, drafts, _) = PipelineWithStore(parser, privateAssets: assets);
+        var examJson = RecordingParser.OneReadingQuestion();
+        var archive = Build(
+            File("manifest.json", """{"formatVersion":"1.0","exams":["exam.json"]}"""),
+            File("exam.json", examJson),
+            File("assets/exam-1-listening-part1.mp3", "audio-bytes"),
+            File("assets/images/map.png", "png-bytes"));
+
+        var attempt = await pipeline.ImportAsync(archive, ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, Describe(attempt.Findings));
+        Assert.NotNull(attempt.Draft);
+        Assert.Equal(ExamImportRoute.StructuredPackage, attempt.Draft.Route);
+        Assert.Null(parser.LastSourceText);
+        Assert.Equal(
+            ["assets/exam-1-listening-part1.mp3", "assets/images/map.png"],
+            assets.Uploaded.Select(u => u.Key).OrderBy(k => k, StringComparer.Ordinal).ToArray());
+        Assert.Equal("audio/mpeg", assets.Uploaded.Single(u => u.Key.EndsWith(".mp3")).ContentType);
+        Assert.Equal("image/png", assets.Uploaded.Single(u => u.Key.EndsWith(".png")).ContentType);
+        Assert.NotNull(await drafts.FindAsync(attempt.Draft.Id, default));
+    }
 
     [Fact]
     public async Task The_answer_key_never_reaches_the_parser()
@@ -1271,6 +1303,7 @@ public sealed class ExamPackageImportPipelineTests
             drafts,
             Options.Create(new ImportArchiveOptions()),
             new UnconfiguredAudioTranscriber(),
+            new NoAssets(),
             reviewWorkflow);
 
         var archive = Build(
@@ -1399,7 +1432,10 @@ public sealed class ExamPackageImportPipelineTests
     /// saved, not a copy built by hand.
     /// </summary>
     private static (ExamPackageImportPipeline Pipeline, IImportDraftStore Drafts, IExamPackageValidator Validator)
-        PipelineWithStore(IExamSourceParser parser, IAudioTranscriber? transcriber = null)
+        PipelineWithStore(
+            IExamSourceParser parser,
+            IAudioTranscriber? transcriber = null,
+            IPrivateImportAssetStore? privateAssets = null)
     {
         var drafts = new InMemoryDraftStore();
         var validator = new ExamPackageValidator(
@@ -1417,7 +1453,8 @@ public sealed class ExamPackageImportPipelineTests
             Options.Create(new ImportArchiveOptions()),
             // The production default: no transcription provider, so the stage
             // is a no-op and every existing fact in this suite is unaffected.
-            transcriber ?? new UnconfiguredAudioTranscriber());
+            transcriber ?? new UnconfiguredAudioTranscriber(),
+            privateAssets ?? new NoAssets());
 
         return (pipeline, drafts, validator);
     }
@@ -1476,6 +1513,21 @@ public sealed class ExamPackageImportPipelineTests
         public Task<string> PutPrivateAsync(
             string key, Stream content, string contentType, string sha256, CancellationToken ct) =>
             Task.FromResult($"private://{key}");
+    }
+
+    private sealed class RecordingAssets : IPrivateImportAssetStore
+    {
+        public List<(string Key, string ContentType, string Hash)> Uploaded { get; } = [];
+
+        public async Task<string> PutPrivateAsync(
+            string key, Stream content, string contentType, string sha256, CancellationToken ct)
+        {
+            // Drain the stream so a caller that forgets to rewind still fails
+            // loudly if the pipeline hands a consumed stream to promotion later.
+            await content.CopyToAsync(Stream.Null, ct);
+            Uploaded.Add((key, contentType, sha256));
+            return $"private://{key}";
+        }
     }
 
     private sealed class InMemoryDraftStore : IImportDraftStore

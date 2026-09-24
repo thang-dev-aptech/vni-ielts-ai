@@ -109,13 +109,27 @@ public sealed record SkillEntries(
 /// <summary>
 /// Where each accepted file belongs, decided by its top-level folder name
 /// alone (<c>P-18</c>). A skill whose folder is absent is simply not present.
+///
+/// <b>Two layout shapes are accepted.</b> The Cambridge skill-folder layout
+/// (<c>reading/</c>…<c>speaking/</c>) and the structured package layout
+/// (root <c>exam.json</c> / <c>manifest.json</c> plus an optional
+/// <c>assets/</c> tree). Root JSON and <c>assets/</c> entries are extracted
+/// and counted as accepted; they are not "unknown".
 /// </summary>
 public sealed record PackageLayout(
     IReadOnlyDictionary<ExamModule, SkillEntries> EntriesBySkill,
-    IReadOnlyList<string> UnknownEntries)
+    IReadOnlyList<string> UnknownEntries,
+    IReadOnlyList<string> RootJsonEntries = null!,
+    IReadOnlyList<string> AssetEntries = null!)
 {
     public static PackageLayout Empty { get; } =
-        new(new Dictionary<ExamModule, SkillEntries>(), []);
+        new(new Dictionary<ExamModule, SkillEntries>(), [], [], []);
+
+    /// <summary>Root-level <c>*.json</c> files (e.g. <c>exam.json</c>, <c>manifest.json</c>).</summary>
+    public IReadOnlyList<string> RootJson => RootJsonEntries ?? [];
+
+    /// <summary>Every file under a root-level <c>assets/</c> folder, any depth.</summary>
+    public IReadOnlyList<string> Assets => AssetEntries ?? [];
 
     /// <summary>Skills with at least one file. Order follows <see cref="ExamModule"/>.</summary>
     public IReadOnlyList<ExamModule> PresentSkills =>
@@ -123,8 +137,12 @@ public sealed record PackageLayout(
             .Where(m => EntriesBySkill.TryGetValue(m, out var e) && e.Count > 0)
             .ToArray();
 
-    /// <summary>Every relative path that would be extracted, across all skills and roles.</summary>
-    public IEnumerable<string> AcceptedEntries => EntriesBySkill.Values.SelectMany(e => e.All);
+    /// <summary>
+    /// Every relative path that would be extracted — skill-folder files, root
+    /// JSON, and <c>assets/</c> files.
+    /// </summary>
+    public IEnumerable<string> AcceptedEntries =>
+        EntriesBySkill.Values.SelectMany(e => e.All).Concat(RootJson).Concat(Assets);
 
     public SkillEntries For(ExamModule module) =>
         EntriesBySkill.TryGetValue(module, out var e) ? e : SkillEntries.Empty;

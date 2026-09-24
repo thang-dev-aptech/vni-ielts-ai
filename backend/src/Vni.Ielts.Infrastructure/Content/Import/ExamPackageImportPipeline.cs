@@ -26,6 +26,7 @@ public sealed class ExamPackageImportPipeline(
     IImportDraftStore drafts,
     IOptions<ImportArchiveOptions> archiveOptions,
     IAudioTranscriber transcriber,
+    IPrivateImportAssetStore privateAssets,
     ImportReviewWorkflow? reviewWorkflow = null)
 {
     /// <param name="zip">
@@ -124,14 +125,15 @@ public sealed class ExamPackageImportPipeline(
     }
 
     /// <summary>
-    /// <b>Structured route:</b> the archive holds exactly one accepted file
-    /// and it is JSON — a package already assembled by a human, or by the
-    /// operator CLI, which already ran <see cref="FabricatedAnswerKeyGuard"/>
-    /// itself before anyone would upload its output here. Running the guard
-    /// again on a package the CLI has already keyed would flag every
-    /// legitimate answer key it wrote, so this route deliberately does not
-    /// call it — see <see cref="FabricatedWarnings"/> for
-    /// where the guard actually runs.
+    /// <b>Structured route:</b> a root-level exam JSON (prefer <c>exam.json</c>
+    /// when several root <c>.json</c> files are present; otherwise exactly one),
+    /// optionally accompanied by <c>assets/</c> and <c>manifest.json</c>. A
+    /// package already assembled by a human, or by the operator CLI, which
+    /// already ran <see cref="FabricatedAnswerKeyGuard"/> itself before anyone
+    /// would upload its output here. Running the guard again on a package the
+    /// CLI has already keyed would flag every legitimate answer key it wrote,
+    /// so this route deliberately does not call it — see
+    /// <see cref="FabricatedWarnings"/> for where the guard actually runs.
     ///
     /// <b>AI-parsed route:</b> every other shape. <c>P-18</c>: the folder name
     /// alone decides the skill, and a missing folder is simply not present —
@@ -150,11 +152,20 @@ public sealed class ExamPackageImportPipeline(
         PackageLayout layout, string sandboxDirectory, ExamDefinitionId definitionId, int versionNumber,
         CancellationToken ct, IProgress<ImportJobStage>? progress, bool resumeExistingDraft, UserId? authorId = null)
     {
-        var allEntries = layout.AcceptedEntries.ToArray();
-
-        if (allEntries.Length == 1 && allEntries[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        /*
+         * Structured route: a root-level exam JSON, optionally accompanied by
+         * `assets/` and `manifest.json`. The old gate counted *every* accepted
+         * entry and demanded length == 1, so the moment assets/ files were
+         * accepted the route became unreachable. Gate on root JSON instead —
+         * prefer `exam.json` when several root .json files are present (the
+         * de-1 layout), otherwise require exactly one.
+         */
+        if (TryResolveStructuredPackageJson(layout) is { } packageJsonPath)
         {
-            var packageJson = await File.ReadAllTextAsync(Path.Combine(sandboxDirectory, allEntries[0]), ct);
+            await StageStructuredAssetsAsync(layout, sandboxDirectory, ct);
+
+            var packageJson = await File.ReadAllTextAsync(
+                Path.Combine(sandboxDirectory, packageJsonPath), ct);
 
             // <b>Reported even though no parser runs.</b> The structured route
             // reads a package somebody already assembled, so `Parsing` here
@@ -163,7 +174,8 @@ public sealed class ExamPackageImportPipeline(
             // which route their upload took.
             Report(progress, ImportJobStage.Parsing);
 
-            var structured = await workflow.ImportStructuredAsync(packageJson, definitionId, versionNumber, ct, authorId);
+            var structured = await workflow.ImportStructuredAsync(
+                packageJson, definitionId, versionNumber, ct, authorId);
             return await EnrichExplanationsAsync(structured, ct, progress);
         }
 
@@ -219,6 +231,59 @@ public sealed class ExamPackageImportPipeline(
         return await ApplyKeysAndGuardAsync(
             attempt.Draft, layout, sandboxDirectory, ct, progress, transcription);
     }
+
+    /// <summary>
+    /// Picks the structured package JSON path, or null when this archive is
+    /// not a structured package (skill-folder material for the AI route).
+    /// </summary>
+    private static string? TryResolveStructuredPackageJson(PackageLayout layout)
+    {
+        if (layout.PresentSkills.Count > 0) return null;
+
+        var rootJson = layout.RootJson;
+        if (rootJson.Count == 0) return null;
+
+        var exam = rootJson.FirstOrDefault(p =>
+            p.Equals("exam.json", StringComparison.OrdinalIgnoreCase));
+        if (exam is not null) return exam;
+
+        // Exactly one root-level .json — the historical single-file package.
+        return rootJson.Count == 1 ? rootJson[0] : null;
+    }
+
+    /// <summary>
+    /// Stages every accepted <c>assets/</c> file under its own relative path
+    /// so later promotion is a rename, not a remapping.
+    /// </summary>
+    private async Task StageStructuredAssetsAsync(
+        PackageLayout layout, string sandboxDirectory, CancellationToken ct)
+    {
+        foreach (var relativePath in layout.Assets)
+        {
+            ct.ThrowIfCancellationRequested();
+            var absolute = Path.Combine(sandboxDirectory, relativePath);
+            var bytes = await File.ReadAllBytesAsync(absolute, ct);
+            var sha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes))
+                .ToLowerInvariant();
+            await using var upload = new MemoryStream(bytes, writable: false);
+            await privateAssets.PutPrivateAsync(
+                relativePath, upload, ContentTypeFor(relativePath), sha256, ct);
+        }
+    }
+
+    private static string ContentTypeFor(string relativePath) =>
+        Path.GetExtension(relativePath).ToLowerInvariant() switch
+        {
+            ".mp3" => "audio/mpeg",
+            ".m4a" => "audio/mp4",
+            ".wav" => "audio/wav",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            ".gif" => "image/gif",
+            ".json" => "application/json",
+            _ => "application/octet-stream",
+        };
 
     /// <summary>
     /// Every <see cref="PackageEntryRole.Audio"/> file in the package, across
@@ -688,11 +753,11 @@ public sealed class ExamPackageImportPipeline(
     /// not be approvable until they have.
     ///
     /// <b>Placed here rather than inside <see cref="ApplyKeysAndGuardAsync"/>
-    /// on purpose.</b> The structured route (one accepted <c>.json</c> entry)
-    /// never reaches that method, and <c>reading/dap_an/exam.json</c> is a
-    /// package that takes it. One call site covers both routes; the cost is
-    /// one extra draft revision on a package that has the problem, and none
-    /// on a package that does not.
+    /// on purpose.</b> The structured route (root <c>exam.json</c>, optionally
+    /// with <c>assets/</c>) never reaches that method, and
+    /// <c>reading/dap_an/exam.json</c> is a package that takes it. One call
+    /// site covers both routes; the cost is one extra draft revision on a
+    /// package that has the problem, and none on a package that does not.
     /// </summary>
     private async Task<ExamImportAttempt> AttachRoleFolderWarningsAsync(
         ExamImportAttempt attempt, IReadOnlyList<PackageFinding> inspectionFindings, CancellationToken ct)

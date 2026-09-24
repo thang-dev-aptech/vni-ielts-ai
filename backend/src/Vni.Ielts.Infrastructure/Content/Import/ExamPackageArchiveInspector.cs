@@ -206,6 +206,8 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
             var findings = new List<PackageFinding>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var bySkill = new Dictionary<ExamModule, (List<string> Paper, List<string> Key, List<string> Audio)>();
+            var rootJson = new List<string>();
+            var assets = new List<string>();
             var unknown = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             // Second-level folders under a recognised skill folder that match
@@ -286,6 +288,20 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                         default: lists.Paper.Add(verdict.Path); break;
                     }
                 }
+                else if (segments.Length >= 2
+                    && segments[0].Equals("assets", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Structured package media — any depth under assets/, no
+                    // role subfolders. Accepted and extracted; promotion later
+                    // is a rename of this same relative path.
+                    assets.Add(verdict.Path);
+                }
+                else if (segments.Length == 1
+                    && verdict.Path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Root exam.json / manifest.json — the structured layout.
+                    rootJson.Add(verdict.Path);
+                }
                 else
                 {
                     var key = segments.Length == 1 ? segments[0] : segments[0] + "/";
@@ -303,8 +319,8 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                     ArchiveFindingCodes.LayoutUnknownEntry,
                     Display(key),
                     key.EndsWith('/')
-                        ? $"Top-level folder is not one of reading/, listening/, writing/ or speaking/; its {count} file(s) are ignored."
-                        : "File at the root of the package is not inside a skill folder; it is ignored."));
+                        ? $"Top-level folder is not one of reading/, listening/, writing/, speaking/ or assets/; its {count} file(s) are ignored."
+                        : "File at the root of the package is not a .json exam/manifest and is not inside a skill or assets folder; it is ignored."));
             }
 
             foreach (var (folder, count) in unknownRoles.OrderBy(u => u.Key, StringComparer.Ordinal))
@@ -320,13 +336,15 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                     + "and upload again."));
             }
 
-            if (bySkill.Count == 0)
+            // Empty only when neither layout shape is present: no skill folder
+            // and no root .json. assets/ alone is not a package.
+            if (bySkill.Count == 0 && rootJson.Count == 0)
             {
                 findings.Add(Finding(
                     Error,
                     ArchiveFindingCodes.LayoutEmpty,
                     ArchivePath,
-                    "The package has no files under reading/, listening/, writing/ or speaking/."));
+                    "The package has no files under reading/, listening/, writing/ or speaking/, and no root-level .json exam file."));
             }
 
             var layout = new PackageLayout(
@@ -336,7 +354,9 @@ public sealed class ExamPackageArchiveInspector(ILogger<ExamPackageArchiveInspec
                         p.Value.Paper.AsReadOnly(),
                         p.Value.Key.AsReadOnly(),
                         p.Value.Audio.AsReadOnly())),
-                unknown.Keys.OrderBy(k => k, StringComparer.Ordinal).ToArray());
+                unknown.Keys.OrderBy(k => k, StringComparer.Ordinal).ToArray(),
+                rootJson.OrderBy(p => p, StringComparer.Ordinal).ToArray(),
+                assets.OrderBy(p => p, StringComparer.Ordinal).ToArray());
 
             var acceptable = findings.All(f => f.Severity != Error);
             return new ArchiveInspection(acceptable, findings, layout);

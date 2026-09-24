@@ -469,6 +469,52 @@ public sealed class ExamPackageArchiveInspectorTests : IDisposable
         Assert.Empty(result.Layout.PresentSkills);
     }
 
+    /// <summary>
+    /// The de-1-full-4-ky-nang shape: root <c>manifest.json</c> +
+    /// <c>exam.json</c> + an <c>assets/</c> tree, and no skill folders. Until
+    /// this layout was accepted, every such package hit <c>LAYOUT_EMPTY</c>
+    /// and the structured import route was unreachable.
+    /// </summary>
+    [Fact]
+    public async Task A_root_exam_json_with_assets_is_accepted_without_skill_folders()
+    {
+        var archive = Build(
+            File("manifest.json", """{"formatVersion":"1.0","exams":["exam.json"]}"""),
+            File("exam.json", """{"formatVersion":"2.0","title":"T"}"""),
+            File("assets/exam-1-listening-part1.mp3", "audio-bytes"),
+            File("assets/images/map.png", "png-bytes"),
+            File("assets/nested/cue.webp", "webp-bytes"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.True(result.IsAcceptable, Describe(result));
+        Assert.DoesNotContain(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutEmpty);
+        Assert.Empty(result.Layout.PresentSkills);
+        Assert.Equal(
+            ["exam.json", "manifest.json"],
+            result.Layout.RootJson);
+        Assert.Equal(
+            [
+                "assets/exam-1-listening-part1.mp3",
+                "assets/images/map.png",
+                "assets/nested/cue.webp",
+            ],
+            result.Layout.Assets);
+        Assert.Empty(result.Layout.UnknownEntries);
+    }
+
+    [Fact]
+    public async Task An_assets_folder_alone_is_still_refused_as_empty()
+    {
+        var archive = Build(File("assets/part1.mp3", "audio"));
+
+        var result = await inspector.InspectAsync(archive, Tight, default);
+
+        Assert.False(result.IsAcceptable);
+        Assert.Contains(result.Findings, f => f.Code == ArchiveFindingCodes.LayoutEmpty && f.Severity == Error);
+        Assert.Equal(["assets/part1.mp3"], result.Layout.Assets);
+    }
+
     [Fact]
     public async Task Every_finding_is_reported_at_once_not_just_the_first()
     {
