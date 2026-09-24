@@ -2,6 +2,7 @@ import { Fragment, useId, useState, type ReactNode } from 'react';
 import { useI18n } from '../../i18n/index.js';
 import { ExamImage } from './ExamImage.js';
 import { QuestionInput, writeAnswerBankDrag, type BankInteraction } from './QuestionInput.js';
+import type { ImageContentBox } from './imageContentBox.js';
 import type { QuestionGroupView, QuestionView } from './examApi.js';
 
 /**
@@ -405,8 +406,19 @@ function GroupBlock({
           onAssigned: () => setSelectedBankKey(null),
         };
 
+  /*
+   * Positions on the group image replace the off-image bank list. The gate is
+   * deliberately only `interactiveBank` + a non-empty `positions` array —
+   * null/empty keeps every existing path (bankBlock, framedBody, media row)
+   * byte-for-byte as it was.
+   */
+  const pinnedPositions =
+    interactiveBank !== null && group.positions !== null && group.positions.length > 0
+      ? group.positions
+      : null;
+
   const bankBlock =
-    interactiveBank !== null ? (
+    pinnedPositions !== null ? null : interactiveBank !== null ? (
       <div className="exam-bank-dnd">
         <p className="exam-bank-instructions">{t('exam.bankInstructions')}</p>
         <ol
@@ -452,6 +464,49 @@ function GroupBlock({
         ))}
       </ol>
     ) : null;
+
+  const pinOverlay =
+    pinnedPositions === null || interactiveBank === null
+      ? undefined
+      : (box: ImageContentBox) => (
+          <div className="exam-map-pins" role="group" aria-label={t('exam.answerBank')}>
+            {pinnedPositions.map((position) => {
+              const option = interactiveBank.find((entry) => entry.key === position.key);
+              if (option === undefined) return null;
+              const taken = takenBy?.[option.key];
+              return (
+                <button
+                  type="button"
+                  key={option.key}
+                  className="exam-bank-button exam-map-pin"
+                  draggable={!disabled}
+                  disabled={disabled}
+                  aria-pressed={selectedBankKey === option.key}
+                  aria-label={option.text === option.key ? option.key : `${option.key} ${option.text}`}
+                  style={{
+                    position: 'absolute',
+                    left: box.x + position.x * box.width,
+                    top: box.y + position.y * box.height,
+                    transform: 'translate(-50%, -50%)',
+                    pointerEvents: 'auto',
+                  }}
+                  onClick={() => setSelectedBankKey(option.key)}
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = 'copy';
+                    writeAnswerBankDrag(event.dataTransfer, `group:${group.id}`, option.key);
+                    setSelectedBankKey(option.key);
+                  }}
+                >
+                  <span className="exam-bank-key num">{option.key}</span>
+                  {option.text !== option.key && <span>{option.text}</span>}
+                  {taken !== undefined && (
+                    <span className="exam-bank-used">{t('exam.usedAt', { number: taken })}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        );
 
   const questionsBlock =
     group.text !== null ? (
@@ -506,17 +561,23 @@ function GroupBlock({
    */
   const groupImageKey =
     group.imageKey !== null && group.imageKey !== suppressImageKey ? group.imageKey : null;
+  const groupImage =
+    groupImageKey === null ? null : (
+      <ExamImage
+        reference={groupImageKey}
+        caption={group.title}
+        {...(pinOverlay !== undefined ? { overlay: pinOverlay } : {})}
+      />
+    );
   const mediaAndAnswers =
     mediaBesideAnswers && groupImageKey !== null ? (
       <div className="exr-media-answers">
-        <div className="exr-media-answers-media">
-          <ExamImage reference={groupImageKey} caption={group.title} />
-        </div>
+        <div className="exr-media-answers-media">{groupImage}</div>
         <div className="exr-media-answers-controls">{framedBody}</div>
       </div>
     ) : (
       <>
-        {groupImageKey !== null && <ExamImage reference={groupImageKey} caption={group.title} />}
+        {groupImage}
         {framedBody}
       </>
     );

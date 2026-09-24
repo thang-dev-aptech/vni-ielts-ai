@@ -301,3 +301,19 @@ it('keeps essay spellcheck off and surfaces under-min as text, not colour alone'
   expect(screen.getByText('Còn thiếu 148 từ')).toBeVisible();
   expect(screen.getByText('2 từ')).toBeVisible();
 });
+
+it('surfaces met-minimum as text beside green colour, not colour alone', () => {
+  render(
+    <I18nProvider>
+      <p className="word-count is-met">
+        <span className="num">150 từ</span>
+        <span>Cần ít nhất 150 từ</span>
+      </p>
+    </I18nProvider>,
+  );
+
+  expect(screen.getByText('Cần ít nhất 150 từ')).toBeVisible();
+  expect(screen.getByText('150 từ')).toBeVisible();
+  expect(document.querySelector('.word-count')).toHaveClass('is-met');
+  expect(document.querySelector('.word-count')).not.toHaveClass('is-short');
+});

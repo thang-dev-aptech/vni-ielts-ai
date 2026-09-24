@@ -45,6 +45,7 @@ const noteGroup = {
   imageKey: null,
   text: null,
   eachLetterOnce: false,
+  positions: null,
 };
 
 const verdictGroup = {
@@ -54,6 +55,7 @@ const verdictGroup = {
   imageKey: null,
   text: null,
   eachLetterOnce: false,
+  positions: null,
 };
 
 const notes = [

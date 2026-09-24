@@ -1,7 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { apiBase, authedFetch } from '../../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { useI18n } from '../../i18n/index.js';
+import {
+  measureImageContentBox,
+  trivialImageContentBox,
+  type ImageContentBox,
+} from './imageContentBox.js';
 import '../../styles/audio.css';
 
 /**
@@ -22,16 +27,30 @@ import '../../styles/audio.css';
  * itself keeps an empty `alt` when the paper did not supply one — inventing
  * alt text would be a different exam. Callers that put this in an
  * `.exr-media-answers` column get aspect-ratio-preserving sizing from CSS.
+ *
+ * `overlay` is an optional layer pinned to the painted content box (see
+ * {@link ImageContentBox}) — map-labelling pins land here, not in the
+ * letterboxed margin.
  */
+
+export type { ImageContentBox };
+
 export function ExamImage({
   reference,
   caption,
   className,
+  overlay,
 }: {
   reference: string;
   caption?: string | null;
   /** Optional figure class — used by the Listening media column. */
   className?: string;
+  /**
+   * Rendered as an absolutely-positioned sibling of `<img>` inside the
+   * relative `.exam-figure-wrap`. Receives the painted content box so pins
+   * can sit on the image under `object-fit: contain`.
+   */
+  overlay?: (box: ImageContentBox) => ReactNode;
 }) {
   const { accessToken } = useAuth();
   const { t } = useI18n();
@@ -39,7 +58,21 @@ export function ExamImage({
   const [source, setSource] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const [enlarged, setEnlarged] = useState(false);
+  const [contentBox, setContentBox] = useState<ImageContentBox | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+
+  const refreshContentBox = useCallback(() => {
+    const image = imageRef.current;
+    if (image === null) return;
+    if (image.naturalWidth === 0 || image.naturalHeight === 0) {
+      setContentBox(
+        trivialImageContentBox(Math.max(image.clientWidth, 1), Math.max(image.clientHeight, 1)),
+      );
+      return;
+    }
+    setContentBox(measureImageContentBox(image));
+  }, []);
 
   useEffect(() => {
     if (!enlarged) return;
@@ -86,6 +119,22 @@ export function ExamImage({
     };
   }, [accessToken, reference]);
 
+  useEffect(() => {
+    setContentBox(null);
+  }, [source]);
+
+  useEffect(() => {
+    const image = imageRef.current;
+    if (image === null || overlay === undefined) return;
+
+    refreshContentBox();
+    if (typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => refreshContentBox());
+    observer.observe(image);
+    return () => observer.disconnect();
+  }, [source, overlay, refreshContentBox]);
+
   if (failed) {
     return (
       <p className="audio-failed" role="alert">
@@ -105,11 +154,27 @@ export function ExamImage({
         ) : (
           <div className="exam-figure-wrap">
             <img
+              ref={imageRef}
               className="exam-figure-image"
               src={source}
               alt=""
+              onLoad={refreshContentBox}
               onClick={() => setEnlarged(true)}
             />
+            {overlay !== undefined && (
+              <div
+                className="exam-figure-overlay"
+                style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+              >
+                {overlay(
+                  contentBox ??
+                    trivialImageContentBox(
+                      Math.max(imageRef.current?.clientWidth ?? 0, 1),
+                      Math.max(imageRef.current?.clientHeight ?? 0, 1),
+                    ),
+                )}
+              </div>
+            )}
             <button
               ref={triggerRef}
               type="button"

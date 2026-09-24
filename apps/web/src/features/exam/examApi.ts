@@ -36,6 +36,13 @@ export interface QuestionOptionView {
   text: string;
 }
 
+/** Hotspot on a group's image — fractions of the painted content box. */
+export interface OptionPositionView {
+  key: string;
+  x: number;
+  y: number;
+}
+
 /**
  * The shared frame a run of questions is answered inside.
  *
@@ -66,6 +73,11 @@ export interface QuestionGroupView {
   text: string | null;
   /** "NB Use each letter once only." */
   eachLetterOnce: boolean;
+  /**
+   * Group-level hotspot placements. Null/empty keeps the off-image answer
+   * bank; a non-empty list pins those letters on the group's image instead.
+   */
+  positions: OptionPositionView[] | null;
 }
 
 export interface QuestionView {

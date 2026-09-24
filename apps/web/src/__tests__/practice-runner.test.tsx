@@ -792,6 +792,18 @@ it('splits Reading into a passage pane and a question pane', async () => {
   expect(desktopWorkspace).toContain('max-width: none;');
   expect(desktopWorkspace).toContain('padding-inline: var(--s-6);');
 
+  // Footer matches the full-width workspace gutters; `.exr-wrap` must not cap it.
+  const footIn = document.querySelector('.exr-foot-in') as HTMLElement;
+  expect(footIn).not.toBeNull();
+  expect(footIn).not.toHaveClass('exr-wrap');
+  expect(footIn.parentElement).toHaveClass('exr-foot');
+
+  const desktopFoot = cssBlock(examRunnerCss, '.exr-foot-in');
+  expect(desktopFoot).not.toBeNull();
+  expect(desktopFoot).toContain('width: 100%;');
+  expect(desktopFoot).toContain('max-width: none;');
+  expect(desktopFoot).toContain('padding: var(--s-2) var(--s-6);');
+
   const singlePane = cssBlock(examRunnerCss, ".exr-body-in[data-split='single']");
   expect(singlePane).not.toBeNull();
   expect(singlePane).toContain('max-width: none;');
@@ -801,6 +813,11 @@ it('splits Reading into a passage pane and a question pane', async () => {
   const mobileWorkspace = cssBlock(mobileRules ?? '', '.exr-body > .exr-body-in');
   expect(mobileWorkspace).not.toBeNull();
   expect(mobileWorkspace).toContain('padding-inline: var(--s-4);');
+
+  const mobileFoot = cssBlock(mobileRules ?? '', '.exr-foot-in');
+  expect(mobileFoot).not.toBeNull();
+  expect(mobileFoot).toContain('padding-inline: var(--s-4);');
+  expect(mobileFoot).toContain('flex-direction: column;');
 
   const divider = screen.getByRole('separator', { name: 'Điều chỉnh độ rộng bài đọc' });
   expect(divider).toHaveClass('exr-reading-divider');
@@ -1328,6 +1345,135 @@ it('keeps matching drop targets in a right-hand column on desktop', () => {
   expect(stacked).toContain("'answer'");
 });
 
+it('keeps Writing essay textarea padding compact on the exam runner', () => {
+  /*
+   * Runner used to pad `.q-essay` with --s-4 (16px) on all sides, which ate
+   * writing room without helping readability. Keep a tight uniform inset.
+   */
+  const runner = cssBlock(examRunnerCss, '.exr-page .q-essay');
+  expect(runner).not.toBeNull();
+  expect(runner).toContain('padding: 10px;');
+  expect(runner).not.toContain('padding: var(--s-4)');
+});
+
+it('colours Writing word count green only once a published minimum is met', () => {
+  /*
+   * Under-min stays warn (`.is-short`); met-or-above is green (`.is-met`);
+   * no minimum published means neither class — colour must not invent "ok".
+   */
+  const short = cssBlock(examRunnerCss, '.exr-page .word-count.is-short');
+  expect(short).not.toBeNull();
+  expect(short).toContain('color: var(--warn);');
+
+  const met = cssBlock(examRunnerCss, '.exr-page .word-count.is-met');
+  expect(met).not.toBeNull();
+  expect(met).toContain('color: var(--exr-green-ink);');
+
+  const practiceMet = cssBlock(practiceRunCss, '.word-count.is-met');
+  expect(practiceMet).not.toBeNull();
+  expect(practiceMet).toContain('color: var(--ok);');
+});
+
+it('turns the Writing word-count control green when the minimum is reached', async () => {
+  sessionPayload = practiceSession({
+    current: {
+      module: 'writing',
+      parts: [
+        {
+          order: 1,
+          kind: 'task',
+          title: 'Task 1',
+          body: 'Describe the chart.',
+          audioKey: null,
+          imageKey: null,
+          taskNumber: 1,
+          partNumber: null,
+          cueCard: null,
+          minWords: 3,
+          transcript: null,
+          questions: [
+            {
+              id: 'w-1',
+              order: 1,
+              type: 'essay-task',
+              prompt: null,
+              options: [],
+              maxWords: null,
+              group: null,
+              slots: [],
+            },
+          ],
+        },
+      ],
+    },
+  });
+
+  open('/students/practice/sit-1');
+  const essay = await screen.findByRole('textbox');
+  const count = document.querySelector('.word-count') as HTMLElement;
+  expect(count).not.toBeNull();
+
+  // Empty / under-min: warn class, never invent green.
+  expect(count).toHaveClass('is-short');
+  expect(count).not.toHaveClass('is-met');
+  expect(within(count).getByText(/Còn thiếu 3 từ|3 words short/)).toBeVisible();
+
+  await userEvent.type(essay, 'one two');
+  expect(count).toHaveClass('is-short');
+  expect(count).not.toHaveClass('is-met');
+  expect(within(count).getByText(/Còn thiếu 1 từ|1 words short/)).toBeVisible();
+
+  await userEvent.type(essay, ' three');
+  expect(count).toHaveClass('is-met');
+  expect(count).not.toHaveClass('is-short');
+  expect(within(count).getByText(/Cần ít nhất 3 từ|At least 3 words/)).toBeVisible();
+});
+
+it('does not paint Writing word count green when no minimum is published', async () => {
+  sessionPayload = practiceSession({
+    current: {
+      module: 'writing',
+      parts: [
+        {
+          order: 1,
+          kind: 'task',
+          title: 'Task 1',
+          body: 'Describe the chart.',
+          audioKey: null,
+          imageKey: null,
+          taskNumber: 1,
+          partNumber: null,
+          cueCard: null,
+          minWords: null,
+          transcript: null,
+          questions: [
+            {
+              id: 'w-1',
+              order: 1,
+              type: 'essay-task',
+              prompt: null,
+              options: [],
+              maxWords: null,
+              group: null,
+              slots: [],
+            },
+          ],
+        },
+      ],
+    },
+  });
+
+  open('/students/practice/sit-1');
+  const essay = await screen.findByRole('textbox');
+  await userEvent.type(essay, 'plenty of words already typed here');
+
+  const count = document.querySelector('.word-count') as HTMLElement;
+  expect(count).not.toBeNull();
+  expect(count).not.toHaveClass('is-short');
+  expect(count).not.toHaveClass('is-met');
+  expect(screen.queryByText(/Cần ít nhất|At least/)).toBeNull();
+});
+
 it('keeps Reading paragraph letters in normal scroll flow', () => {
   /*
    * Sticky/fixed labels pin the wrong letter beside the wrong text and hand
@@ -1421,6 +1567,7 @@ it('places Listening maps beside answers on desktop and stacks on mobile', async
     imageKey: 'assets/listening/map.png',
     text: null,
     eachLetterOnce: false,
+    positions: null,
   };
 
   const base = listeningSession({ playOnce: false, allowSeek: true });
@@ -1550,9 +1697,226 @@ it('places Listening maps beside answers on desktop and stacks on mobile', async
   // that group is rendered in the media row; the part image must not cause
   // the action to land on a sibling question or an unrelated standalone row.
   const groupRow = rows[1] as HTMLElement;
+  // Null positions keep the off-image bank — the pin branch must not fire.
+  expect(groupRow.querySelector('.exam-bank-dnd')).not.toBeNull();
+  expect(groupRow.querySelector('.exam-map-pin')).toBeNull();
   await userEvent.click(within(groupRow).getByRole('button', { name: /A\s*A/ }));
   const reception = within(groupRow).getByRole('button', { name: /Reception/ });
   await userEvent.click(reception);
+  expect(reception).toHaveTextContent('A');
+
+  await until(() => calls.answers.some((body) => body.module === 'listening'));
+  expect(calls.answers.at(-1)).toMatchObject({
+    module: 'listening',
+    changes: { 'l-11': 'A' },
+  });
+});
+
+/** Drag payload bag — same shape QuestionInput / exam-flow drag tests use. */
+function answerBankDataTransfer(initial?: Iterable<readonly [string, string]>) {
+  const data = new Map<string, string>(initial);
+  return {
+    data,
+    dataTransfer: {
+      effectAllowed: 'none' as string,
+      setData: (type: string, value: string) => {
+        data.set(type, value);
+      },
+      getData: (type: string) => data.get(type) ?? '',
+    },
+  };
+}
+
+/**
+ * jsdom does not report real image metrics. Force a content box so the
+ * overlay can mount pins the way a loaded Listening map would.
+ */
+function settleFigureContentBox(root: ParentNode = document) {
+  const image = root.querySelector('.exam-figure-image') as HTMLImageElement | null;
+  if (image === null) return;
+  Object.defineProperty(image, 'naturalWidth', { configurable: true, value: 400 });
+  Object.defineProperty(image, 'naturalHeight', { configurable: true, value: 300 });
+  Object.defineProperty(image, 'clientWidth', { configurable: true, value: 400 });
+  Object.defineProperty(image, 'clientHeight', { configurable: true, value: 300 });
+  fireEvent.load(image);
+}
+
+it('keeps the off-image bank when positions is an empty array', async () => {
+  /*
+   * Identical to the Listening media fixture except `positions: []` — empty
+   * must take the same path as null, not the pin branch.
+   */
+  const mapGroup = {
+    id: 'map-1',
+    title: 'Plan of the sports centre',
+    instruction: 'Label the map.',
+    imageKey: 'assets/listening/map.png',
+    text: null,
+    eachLetterOnce: false,
+    positions: [] as { key: string; x: number; y: number }[],
+  };
+
+  const base = listeningSession({ playOnce: false, allowSeek: true });
+  sessionPayload = {
+    ...base,
+    current: {
+      ...base.current,
+      parts: [
+        {
+          order: 1,
+          kind: 'listening',
+          title: 'Listening Part 2',
+          body: null,
+          audioKey: 'assets/listening/part-2.mp3',
+          imageKey: null,
+          taskNumber: null,
+          partNumber: 2,
+          cueCard: null,
+          minWords: null,
+          transcript: null,
+          questions: [
+            {
+              id: 'l-11',
+              order: 11,
+              type: 'labelling',
+              prompt: 'Reception',
+              options: [
+                { key: 'A', text: 'A' },
+                { key: 'B', text: 'B' },
+              ],
+              maxWords: null,
+              group: mapGroup,
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  mockApi((url) => {
+    if (url.includes('/api/v1/exams/assets/')) {
+      return new Response(new Blob(['img']), {
+        status: 200,
+        headers: { 'Content-Type': 'image/png' },
+      });
+    }
+    return null;
+  });
+
+  open('/students/practice/sit-1');
+  await screen.findByRole('button', { name: 'Phát' });
+
+  const group = document.querySelector('.exam-group') as HTMLElement;
+  expect(group.querySelector('.exam-bank-dnd')).not.toBeNull();
+  expect(group.querySelector('.exr-media-answers')).not.toBeNull();
+  expect(group.querySelector('.exam-map-pin')).toBeNull();
+});
+
+it('renders positioned options as image pins and accepts a pin drag onto a drop target', async () => {
+  const mapGroup = {
+    id: 'map-1',
+    title: 'Plan of the sports centre',
+    instruction: 'Label the map.',
+    imageKey: 'assets/listening/map.png',
+    text: null,
+    eachLetterOnce: false,
+    positions: [
+      { key: 'A', x: 0.25, y: 0.4 },
+      { key: 'B', x: 0.75, y: 0.6 },
+    ],
+  };
+
+  const base = listeningSession({ playOnce: false, allowSeek: true });
+  sessionPayload = {
+    ...base,
+    current: {
+      ...base.current,
+      parts: [
+        {
+          order: 1,
+          kind: 'listening',
+          title: 'Listening Part 2',
+          body: null,
+          audioKey: 'assets/listening/part-2.mp3',
+          imageKey: null,
+          taskNumber: null,
+          partNumber: 2,
+          cueCard: null,
+          minWords: null,
+          transcript: null,
+          questions: [
+            {
+              id: 'l-11',
+              order: 11,
+              type: 'labelling',
+              prompt: 'Reception',
+              options: [
+                { key: 'A', text: 'A' },
+                { key: 'B', text: 'B' },
+              ],
+              maxWords: null,
+              group: mapGroup,
+            },
+            {
+              id: 'l-12',
+              order: 12,
+              type: 'labelling',
+              prompt: 'Cafe',
+              options: [
+                { key: 'A', text: 'A' },
+                { key: 'B', text: 'B' },
+              ],
+              maxWords: null,
+              group: mapGroup,
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  mockApi((url) => {
+    if (url.includes('/api/v1/exams/assets/')) {
+      return new Response(new Blob(['img']), {
+        status: 200,
+        headers: { 'Content-Type': 'image/png' },
+      });
+    }
+    return null;
+  });
+
+  open('/students/practice/sit-1');
+  await screen.findByRole('button', { name: 'Phát' });
+
+  const group = document.querySelector('.exam-group') as HTMLElement;
+  await waitFor(() => {
+    expect(group.querySelector('.exam-figure-image')).not.toBeNull();
+  });
+  expect(
+    group.querySelector('.exam-bank-dnd'),
+    'bank should be suppressed when positions are present',
+  ).toBeNull();
+
+  await act(async () => {
+    settleFigureContentBox(group);
+  });
+
+  await waitFor(() => {
+    expect(group.querySelector('.exam-figure-overlay')).not.toBeNull();
+    expect(group.querySelectorAll('.exam-map-pin')).toHaveLength(2);
+  });
+  // Off-image bank is suppressed — only the pins carry the letters.
+  expect(group.querySelector('.exam-bank-dnd')).toBeNull();
+  expect(group.querySelector('.exam-bank')).toBeNull();
+
+  const pinA = within(group).getByRole('button', { name: 'A' });
+  const reception = within(group).getByRole('button', { name: /Reception/ });
+  const { dataTransfer } = answerBankDataTransfer();
+
+  fireEvent.dragStart(pinA, { dataTransfer });
+  fireEvent.dragOver(reception, { dataTransfer });
+  fireEvent.drop(reception, { dataTransfer });
+
   expect(reception).toHaveTextContent('A');
 
   await until(() => calls.answers.some((body) => body.module === 'listening'));

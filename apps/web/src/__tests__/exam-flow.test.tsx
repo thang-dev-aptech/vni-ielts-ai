@@ -634,6 +634,15 @@ it('shows the Reading band once the exam version marks its table verified', asyn
   expect(document.querySelector('.exs-score-value')).toHaveTextContent('4.5');
   // Verified: the band-table reason has nothing to explain any more.
   expect(screen.queryByText(/bảng quy đổi của đề này chưa được xác minh/)).toBeNull();
+
+  // Paper difficulty has no source — omit the card/stat entirely, not a `—`.
+  expect(screen.queryByText('Độ khó của đề')).toBeNull();
+  expect(screen.queryByText('Paper difficulty')).toBeNull();
+  const overview = document.querySelector('.exs-cards');
+  expect(overview).not.toBeNull();
+  expect(overview!.querySelectorAll('.exs-card')).toHaveLength(3);
+  expect(within(overview as HTMLElement).getByText('Tỷ lệ chính xác')).toBeInTheDocument();
+  expect(within(overview as HTMLElement).getByText('Thời gian làm bài')).toBeInTheDocument();
 });
 
 it('submits once however many times the button is pressed', async () => {
@@ -868,6 +877,7 @@ const groupedSession = {
               imageKey: null,
               text: null,
               eachLetterOnce: true,
+              positions: null,
             },
           },
           {
@@ -887,6 +897,7 @@ const groupedSession = {
               imageKey: null,
               text: null,
               eachLetterOnce: true,
+              positions: null,
             },
           },
           {
@@ -903,6 +914,7 @@ const groupedSession = {
               imageKey: null,
               text: 'The elk became extinct about [3] at the end of the ice age.',
               eachLetterOnce: false,
+              positions: null,
             },
           },
         ],
@@ -1138,6 +1150,7 @@ it('leaves letter-keyed matching groups on the ordinary bank renderer', async ()
                 imageKey: null,
                 text: null,
                 eachLetterOnce: true,
+                positions: null,
               },
             },
             {
@@ -1157,6 +1170,7 @@ it('leaves letter-keyed matching groups on the ordinary bank renderer', async ()
                 imageKey: null,
                 text: null,
                 eachLetterOnce: true,
+                positions: null,
               },
             },
           ],
@@ -1230,6 +1244,7 @@ it('puts labelling items on the drop-row layout with prompt before the target', 
     imageKey: null,
     text: null,
     eachLetterOnce: true,
+    positions: null,
   };
   const labelling = {
     ...groupedSession,
