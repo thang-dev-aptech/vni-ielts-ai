@@ -468,6 +468,20 @@
         "eachLetterOnce": {
           "description": "Every option may be chosen at most once across the group — \"NB Use each letter once only\". The candidate is told this, so the interface has to honour it visibly rather than leaving the scorer to reject it afterwards.",
           "type": "boolean"
+        },
+        "positions": {
+          "description": "Hotspot coordinates for labelling (and similar) interactions: fractions of the group's image content box, keyed by option letter. Shared at the group level the same way the option bank is — not per question. Partial placement is allowed; a key that is not in the bank is not.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "x", "y"],
+            "properties": {
+              "key": { "type": "string", "minLength": 1, "maxLength": 8 },
+              "x": { "type": "number", "minimum": 0, "maximum": 1 },
+              "y": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          }
         }
       }
     },

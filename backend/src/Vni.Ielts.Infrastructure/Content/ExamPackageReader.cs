@@ -279,8 +279,11 @@ public sealed class ExamPackageReader(JsonSchema schema)
 
             foreach (var group in part.Questions.Where(q => q.Group is not null).GroupBy(q => q.Group!.Id))
             {
-                var definition = group.First().Group;
-                if (group.Any(q => q.Group != definition))
+                var definition = group.First().Group!;
+                // Field-by-field: record `!=` would false-positive once Positions
+                // is a list — ConvertGroup allocates a fresh list per member, and
+                // List<T> compares by reference.
+                if (group.Any(q => !GroupDefinitionsEqual(q.Group!, definition)))
                     findings.Add(new ValidationFinding(
                         "error", "QUESTION_GROUP_CONFLICT", $"/parts/{part.Order}",
                         $"Question group '{group.Key}' has conflicting shared definitions."));
@@ -290,8 +293,49 @@ public sealed class ExamPackageReader(JsonSchema schema)
                     findings.Add(new ValidationFinding(
                         "error", "QUESTION_GROUP_OPTION_MISMATCH", $"/parts/{part.Order}",
                         $"Question group '{group.Key}' must use one identical option bank."));
+
+                if (definition.Positions is { } positions)
+                {
+                    var bankKeys = group.First().Options.Select(o => o.Key).ToHashSet(StringComparer.Ordinal);
+                    var seen = new HashSet<string>(StringComparer.Ordinal);
+                    foreach (var position in positions)
+                    {
+                        if (!bankKeys.Contains(position.Key))
+                            findings.Add(new ValidationFinding(
+                                "error", "OPTION_POSITION_UNKNOWN_KEY", $"/parts/{part.Order}",
+                                $"Question group '{group.Key}' places unknown option key '{position.Key}'."));
+                        if (!seen.Add(position.Key))
+                            findings.Add(new ValidationFinding(
+                                "error", "OPTION_POSITION_DUPLICATE_KEY", $"/parts/{part.Order}",
+                                $"Question group '{group.Key}' repeats position key '{position.Key}'."));
+                    }
+                }
             }
         }
+    }
+
+    private static bool GroupDefinitionsEqual(QuestionGroup a, QuestionGroup b) =>
+        a.Id == b.Id
+        && a.Title == b.Title
+        && a.Instruction == b.Instruction
+        && a.Image == b.Image
+        && a.Text == b.Text
+        && a.EachLetterOnce == b.EachLetterOnce
+        && PositionsEqual(a.Positions, b.Positions);
+
+    /// <summary>
+    /// Order-independent structural equality. Two members of one group each
+    /// carry their own Positions list instance from ConvertGroup; content must
+    /// match, order need not.
+    /// </summary>
+    private static bool PositionsEqual(
+        IReadOnlyList<OptionPosition>? left, IReadOnlyList<OptionPosition>? right)
+    {
+        if (ReferenceEquals(left, right)) return true;
+        if (left is null || right is null) return false;
+        if (left.Count != right.Count) return false;
+        return left.OrderBy(p => p.Key, StringComparer.Ordinal)
+            .SequenceEqual(right.OrderBy(p => p.Key, StringComparer.Ordinal));
     }
 
     private static void CheckAssets(
@@ -464,13 +508,33 @@ public sealed class ExamPackageReader(JsonSchema schema)
         return new AnswerKey(accepted, key.Overrides);
     }
 
-    private static QuestionGroup ConvertGroup(JsonObject g) => new(
-        g["id"]!.GetValue<string>(),
-        g["title"]?.GetValue<string>(),
-        g["instruction"]?.GetValue<string>(),
-        g["image"]?.GetValue<string>(),
-        g["text"]?.GetValue<string>(),
-        g["eachLetterOnce"]?.GetValue<bool>() ?? false);
+    private static QuestionGroup ConvertGroup(JsonObject g)
+    {
+        IReadOnlyList<OptionPosition>? positions = null;
+        if (g["positions"] is JsonArray arr && arr.Count > 0)
+        {
+            positions =
+            [
+                .. arr.Select(p =>
+                {
+                    var o = p!.AsObject();
+                    return new OptionPosition(
+                        o["key"]!.GetValue<string>(),
+                        o["x"]!.GetValue<double>(),
+                        o["y"]!.GetValue<double>());
+                }),
+            ];
+        }
+
+        return new(
+            g["id"]!.GetValue<string>(),
+            g["title"]?.GetValue<string>(),
+            g["instruction"]?.GetValue<string>(),
+            g["image"]?.GetValue<string>(),
+            g["text"]?.GetValue<string>(),
+            g["eachLetterOnce"]?.GetValue<bool>() ?? false,
+            positions);
+    }
 
     private static AnswerKey ConvertAnswerKey(JsonObject key) => new(
         [.. key["accepted"]!.AsArray().Select(a => a switch

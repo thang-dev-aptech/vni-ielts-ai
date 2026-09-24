@@ -323,6 +323,14 @@ public sealed record CueCard(string Topic, IReadOnlyList<string> Bullets);
 public sealed record QuestionOption(string Key, string Text);
 
 /// <summary>
+/// Where an option letter sits on a group's shared image, as fractions of the
+/// rendered content box. Keyed by option letter and owned by the group — the
+/// same letter is one hotspot for every member, matching how the option bank
+/// itself is shared.
+/// </summary>
+public sealed record OptionPosition(string Key, double X, double Y);
+
+/// <summary>
 /// The shared frame a run of questions is answered inside — a heading bank, a
 /// table, a diagram, a map, a summary paragraph.
 ///
@@ -345,7 +353,8 @@ public sealed record QuestionGroup(
     string? Instruction,
     string? Image,
     string? Text,
-    bool EachLetterOnce);
+    bool EachLetterOnce,
+    IReadOnlyList<OptionPosition>? Positions = null);
 
 /// <summary>
 /// One answer-sheet position. A question may occupy more than one position

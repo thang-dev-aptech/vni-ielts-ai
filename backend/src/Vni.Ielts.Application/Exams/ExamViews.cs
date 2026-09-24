@@ -62,7 +62,24 @@ public sealed record QuestionGroupView(
     string? Instruction,
     string? ImageKey,
     string? Text,
-    bool EachLetterOnce);
+    bool EachLetterOnce,
+    IReadOnlyList<OptionPositionView>? Positions = null);
+
+/// <summary>
+/// Admin import draft projection of a shared question group. Same shape as
+/// <see cref="QuestionGroupView"/> so the CMS can show hotspot placements
+/// without borrowing the learner sitting DTO.
+/// </summary>
+public sealed record ImportDraftGroupView(
+    string Id,
+    string? Title,
+    string? Instruction,
+    string? ImageKey,
+    string? Text,
+    bool EachLetterOnce,
+    IReadOnlyList<OptionPositionView>? Positions = null);
+
+public sealed record OptionPositionView(string Key, double X, double Y);
 
 /// <summary>
 /// A public answer-sheet position. It deliberately has no answer key or
@@ -646,10 +663,34 @@ internal static class ExamViewMapping
             question.Prompt,
             [.. question.Options.Select(o => new QuestionOptionView(o.Key, o.Text))],
             question.MaxWords,
-            question.Group is { } g
-                ? new QuestionGroupView(g.Id, g.Title, g.Instruction, g.Image, g.Text, g.EachLetterOnce)
-                : null,
+            question.Group is { } g ? g.ToView() : null,
             [.. (question.Slots ?? []).OrderBy(s => s.Number).Select(s => new ResponseSlotView(s.Id, s.Number))]);
+
+    public static QuestionGroupView ToView(this QuestionGroup group) =>
+        new(
+            group.Id,
+            group.Title,
+            group.Instruction,
+            group.Image,
+            group.Text,
+            group.EachLetterOnce,
+            MapPositions(group.Positions));
+
+    public static ImportDraftGroupView ToImportDraftView(this QuestionGroup group) =>
+        new(
+            group.Id,
+            group.Title,
+            group.Instruction,
+            group.Image,
+            group.Text,
+            group.EachLetterOnce,
+            MapPositions(group.Positions));
+
+    private static IReadOnlyList<OptionPositionView>? MapPositions(
+        IReadOnlyList<OptionPosition>? positions) =>
+        positions is null
+            ? null
+            : [.. positions.Select(p => new OptionPositionView(p.Key, p.X, p.Y))];
 
     /// <summary>
     /// <paramref name="transcript"/> defaults to null so every caller except

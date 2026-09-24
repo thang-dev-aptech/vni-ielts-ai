@@ -713,4 +713,128 @@ public sealed class ExamPackageReaderTests
         Assert.True(without.IsValid);
         Assert.Null(without.Version!.Sections[0].Questions.Single().Explanation!.Translation);
     }
+
+    /// <summary>
+    /// Two members with byte-identical positions but distinct list instances
+    /// must not raise QUESTION_GROUP_CONFLICT. ConvertGroup allocates a fresh
+    /// list per occurrence; record <c>!=</c> would false-positive because
+    /// <c>List&lt;T&gt;</c> compares by reference. Reverting the conflict check
+    /// to bare <c>!=</c> makes this test fail red.
+    /// </summary>
+    [Fact]
+    public void Identical_positions_on_distinct_list_instances_do_not_conflict()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        var questions = root["sections"]![0]!["parts"]![0]!["questions"]!.AsArray();
+        var first = questions[0]!.AsObject();
+        first["marks"] = 1;
+        first["slots"]!.AsArray().RemoveAt(1);
+        first["group"]!["positions"] = JsonNode.Parse("""
+            [
+              { "key": "A", "x": 0.25, "y": 0.4 },
+              { "key": "B", "x": 0.75, "y": 0.6 }
+            ]
+            """);
+
+        var second = first.DeepClone().AsObject();
+        second["id"] = "q-2";
+        second["order"] = 2;
+        second["slots"]![0]!["id"] = "slot-2";
+        second["slots"]![0]!["number"] = 2;
+        second["slots"]![0]!["answerKey"]!["accepted"]![0] = "B";
+        // Same content, deliberately a separate JSON array so ConvertGroup
+        // builds a second list instance.
+        second["group"]!["positions"] = JsonNode.Parse("""
+            [
+              { "key": "A", "x": 0.25, "y": 0.4 },
+              { "key": "B", "x": 0.75, "y": 0.6 }
+            ]
+            """);
+        questions.Add(second);
+
+        var result = Read(root.ToJsonString());
+
+        Assert.True(result.IsValid,
+            "Rejected: " + string.Join("; ", result.Findings.Select(f => $"{f.Code} {f.Message}")));
+        Assert.DoesNotContain(result.Findings, f => f.Code == "QUESTION_GROUP_CONFLICT");
+
+        var members = result.Version!.Sections[0].Parts[0].Questions;
+        Assert.Equal(2, members.Count);
+        Assert.NotSame(members[0].Group!.Positions, members[1].Group!.Positions);
+        Assert.Equal(
+            members[0].Group!.Positions!.Select(p => (p.Key, p.X, p.Y)),
+            members[1].Group!.Positions!.Select(p => (p.Key, p.X, p.Y)));
+    }
+
+    [Fact]
+    public void Positions_are_parsed_and_absent_or_empty_normalise_to_null()
+    {
+        var withPositions = JsonNode.Parse(ValidV2Json())!.AsObject();
+        withPositions["sections"]![0]!["parts"]![0]!["questions"]![0]!["group"]!["positions"] =
+            JsonNode.Parse("""[{ "key": "A", "x": 0.1, "y": 0.2 }]""");
+
+        var parsed = Read(withPositions.ToJsonString());
+        Assert.True(parsed.IsValid, string.Join("; ", parsed.Findings.Select(f => f.Message)));
+        var positions = Assert.Single(parsed.Version!.Sections[0].Parts[0].Questions[0].Group!.Positions!);
+        Assert.Equal("A", positions.Key);
+        Assert.Equal(0.1, positions.X);
+        Assert.Equal(0.2, positions.Y);
+
+        var empty = JsonNode.Parse(ValidV2Json())!.AsObject();
+        empty["sections"]![0]!["parts"]![0]!["questions"]![0]!["group"]!["positions"] = new JsonArray();
+        var emptyResult = Read(empty.ToJsonString());
+        Assert.True(emptyResult.IsValid);
+        Assert.Null(emptyResult.Version!.Sections[0].Parts[0].Questions[0].Group!.Positions);
+
+        var absent = Read(ValidV2Json());
+        Assert.True(absent.IsValid);
+        Assert.Null(absent.Version!.Sections[0].Parts[0].Questions[0].Group!.Positions);
+    }
+
+    [Fact]
+    public void Position_key_not_in_option_bank_is_rejected()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["sections"]![0]!["parts"]![0]!["questions"]![0]!["group"]!["positions"] =
+            JsonNode.Parse("""[{ "key": "Z", "x": 0.5, "y": 0.5 }]""");
+
+        var result = Read(root.ToJsonString());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "OPTION_POSITION_UNKNOWN_KEY");
+    }
+
+    [Fact]
+    public void Duplicate_position_key_within_a_group_is_rejected()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["sections"]![0]!["parts"]![0]!["questions"]![0]!["group"]!["positions"] =
+            JsonNode.Parse("""
+                [
+                  { "key": "A", "x": 0.1, "y": 0.1 },
+                  { "key": "A", "x": 0.9, "y": 0.9 }
+                ]
+                """);
+
+        var result = Read(root.ToJsonString());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Findings, f => f.Code == "OPTION_POSITION_DUPLICATE_KEY");
+    }
+
+    [Fact]
+    public void Partial_position_placement_is_not_an_error()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        // Bank has A and B; only A is placed.
+        root["sections"]![0]!["parts"]![0]!["questions"]![0]!["group"]!["positions"] =
+            JsonNode.Parse("""[{ "key": "A", "x": 0.3, "y": 0.7 }]""");
+
+        var result = Read(root.ToJsonString());
+
+        Assert.True(result.IsValid,
+            "Rejected: " + string.Join("; ", result.Findings.Select(f => $"{f.Code} {f.Message}")));
+        Assert.Empty(result.Findings);
+        Assert.Single(result.Version!.Sections[0].Parts[0].Questions[0].Group!.Positions!);
+    }
 }
