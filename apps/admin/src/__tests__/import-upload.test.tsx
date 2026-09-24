@@ -76,6 +76,7 @@ function draft(overrides: Partial<ImportDraft> = {}): ImportDraft {
     warnings: [],
     checklistConfirmed: [],
     checklistComplete: false,
+    groups: [],
     ...overrides,
   };
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { useOperator } from '../lib/operator.js';
 import { Confirm, useFlash } from '../chrome/Confirm.js';
+import { GroupPositionEditor } from '../components/GroupPositionEditor.js';
 import {
   approveImportDraft,
   downloadImportTemplate,
@@ -576,6 +577,21 @@ export function ImportPage() {
                   </li>
                 ))}
               </ul>
+            </>
+          )}
+
+          {operator.can('exam.upload') && draft.groups.length > 0 && accessToken !== null && (
+            <>
+              <h3>Vị trí trên ảnh ({draft.groups.length})</h3>
+              {draft.groups.map((group) => (
+                <GroupPositionEditor
+                  key={group.id}
+                  accessToken={accessToken}
+                  draftId={draft.draftId}
+                  group={group}
+                  onSaved={setDraft}
+                />
+              ))}
             </>
           )}
 

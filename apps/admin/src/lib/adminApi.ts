@@ -425,6 +425,35 @@ export interface ImportWarning {
   overrideReason: string | null;
 }
 
+export interface ImportDraftOption {
+  key: string;
+  text: string;
+}
+
+/** A fraction of the group's image content box — 0..1, top-left origin. */
+export interface ImportDraftPosition {
+  key: string;
+  x: number;
+  y: number;
+}
+
+/**
+ * One shared group the draft carries that is eligible for hotspot placement —
+ * a matching/labelling group with an image. The server already filters
+ * `draft.groups` to exactly this set (`ExamVersion.ToGroupViews`); a group
+ * with no image or the wrong question type is never in this list.
+ */
+export interface ImportDraftGroup {
+  id: string;
+  title: string | null;
+  instruction: string | null;
+  imageKey: string | null;
+  text: string | null;
+  eachLetterOnce: boolean;
+  options: ImportDraftOption[];
+  positions: ImportDraftPosition[] | null;
+}
+
 export interface ImportDraft {
   draftId: string;
   definitionId: string;
@@ -439,6 +468,7 @@ export interface ImportDraft {
   warnings: ImportWarning[];
   checklistConfirmed: string[];
   checklistComplete: boolean;
+  groups: ImportDraftGroup[];
 }
 
 /**
@@ -653,6 +683,67 @@ export const approveImportDraft = async (
   );
 
   return parseImportResponse<ImportDraft>(response);
+};
+
+/**
+ * Persists the full set of hotspot positions for one shared group — a
+ * replace, not a patch: every call sends the complete current pin set for
+ * that group, mirroring `SetGroupPositionsAsync`'s own "write the identical
+ * array into every occurrence" contract. Like every other content edit here,
+ * this resets `approvalState`/`checklistConfirmed` on the server, which is
+ * why the caller must replace its whole draft with the response rather than
+ * patching just the one group in place.
+ */
+export const setGroupPositions = async (
+  accessToken: string,
+  draftId: string,
+  groupId: string,
+  positions: ImportDraftPosition[],
+): Promise<ImportDraft> => {
+  const response = await authedFetch(
+    `${apiBase()}/api/v1/admin/import/packages/${draftId}/groups/${groupId}/positions`,
+    accessToken,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() },
+      body: JSON.stringify({ positions }),
+    },
+  );
+
+  return parseImportResponse<ImportDraft>(response);
+};
+
+/**
+ * Fetches one privately staged draft asset (authorized) and hands back a
+ * local `blob:` URL — same reasoning as `fetchMediaObjectUrl`: an `<img>`
+ * cannot present a bearer token, and before approval this asset exists only
+ * in private staging, never at the learner-facing asset route.
+ *
+ * `reference` is the raw path a group's `imageKey` already carries (e.g.
+ * `assets/map.jpg`) — passed through unencoded, since the server's route is a
+ * catch-all (`{**reference}`) that expects the path's own slashes.
+ */
+export const fetchImportDraftAssetObjectUrl = async (
+  accessToken: string,
+  draftId: string,
+  reference: string,
+): Promise<string> => {
+  const response = await authedFetch(
+    `${apiBase()}/api/v1/admin/import/packages/${draftId}/assets/${reference}`,
+    accessToken,
+    {},
+  );
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as Partial<ApiProblem> | null;
+    throw new ApiError({
+      title: problem?.title ?? 'Không tải được ảnh',
+      status: response.status,
+      detail: problem?.detail ?? `HTTP ${response.status}`,
+      code: problem?.code ?? 'UNKNOWN',
+    });
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 };
 
 // -- CMS media library --------------------------------------------------------
