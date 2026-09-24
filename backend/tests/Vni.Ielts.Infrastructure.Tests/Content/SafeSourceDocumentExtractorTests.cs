@@ -111,5 +111,8 @@ public sealed class SafeSourceDocumentExtractorTests : IDisposable
             Uploaded.Add((key, contentType, sha256));
             return Task.FromResult($"private://{key}");
         }
+
+        public Task<StagedImportAsset?> OpenPrivateAsync(string key, CancellationToken ct) =>
+            Task.FromResult<StagedImportAsset?>(null);
     }
 }

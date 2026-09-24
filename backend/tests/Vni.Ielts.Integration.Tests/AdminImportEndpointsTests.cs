@@ -5,7 +5,9 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Vni.Ielts.Api.Endpoints;
 using Vni.Ielts.Application.Identity;
@@ -1283,5 +1285,170 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
             Request(HttpMethod.Get, "/api/v1/admin/import/template", access));
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    // ── Draft staged-asset preview ─────────────────────────────────────────
+
+    /// <summary>
+    /// Same gate as <see cref="GetJobEndpoint"/>: either <c>package.read</c>
+    /// or <c>package.upload</c> opens the preview; holding neither is 403.
+    /// </summary>
+    [SkippableFact]
+    public async Task Package_read_or_upload_can_fetch_a_staged_draft_asset_and_neither_cannot()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var memory = new MemoryPrivateImportAssetStore();
+        await using var factory = WithMemoryPrivateAssets(memory);
+
+        var draftId = await SeedDraftOnAsync(factory);
+        const string reference = "assets/hotspot-map.png";
+        var payload = Encoding.UTF8.GetBytes("staged-png-bytes");
+        await memory.PutPrivateAsync(
+            AdminImportEndpoints.DraftStagingKey(Guid.Parse(draftId), reference)!,
+            new MemoryStream(payload), "image/png", "abc", default);
+
+        foreach (var permission in new[] { PermissionKeys.PackageRead, PermissionKeys.PackageUpload })
+        {
+            var (client, access) = await SignInWithOnlyOnAsync(factory, permission);
+            var response = await client.SendAsync(
+                Request(HttpMethod.Get,
+                    $"/api/v1/admin/import/packages/{draftId}/assets/{reference}", access));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("image/png", response.Content.Headers.ContentType?.MediaType);
+            Assert.Equal(payload, await response.Content.ReadAsByteArrayAsync());
+        }
+
+        var (deniedClient, deniedAccess) = await SignInWithOnlyOnAsync(factory, PermissionKeys.ExamRead);
+        var denied = await deniedClient.SendAsync(
+            Request(HttpMethod.Get,
+                $"/api/v1/admin/import/packages/{draftId}/assets/{reference}", deniedAccess));
+        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+    }
+
+    /// <summary>
+    /// Draft-scoped keys: an asset staged under draft A is invisible through
+    /// draft B's URL. And this route never falls through to
+    /// <c>IExamAssetStore</c> — a reference that was never staged is 404 even
+    /// when a promoted/fixture asset of the same relative path might exist.
+    /// </summary>
+    [SkippableFact]
+    public async Task A_staged_asset_is_bound_to_its_draft_and_never_reads_the_learner_store()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var memory = new MemoryPrivateImportAssetStore();
+        await using var factory = WithMemoryPrivateAssets(memory);
+
+        var draftA = await SeedDraftOnAsync(factory);
+        var draftB = await SeedDraftOnAsync(factory);
+        const string reference = "assets/exam-1-listening-part1.mp3";
+        var payload = Encoding.UTF8.GetBytes("audio-for-draft-a-only");
+
+        await memory.PutPrivateAsync(
+            AdminImportEndpoints.DraftStagingKey(Guid.Parse(draftA), reference)!,
+            new MemoryStream(payload), "audio/mpeg", "def", default);
+
+        var (client, access) = await SignInWithOnlyOnAsync(factory, PermissionKeys.PackageRead);
+
+        var crossDraft = await client.SendAsync(
+            Request(HttpMethod.Get,
+                $"/api/v1/admin/import/packages/{draftB}/assets/{reference}", access));
+        Assert.Equal(HttpStatusCode.NotFound, crossDraft.StatusCode);
+
+        var neverStaged = await client.SendAsync(
+            Request(HttpMethod.Get,
+                $"/api/v1/admin/import/packages/{draftA}/assets/assets/not-staged.png", access));
+        Assert.Equal(HttpStatusCode.NotFound, neverStaged.StatusCode);
+
+        var own = await client.SendAsync(
+            Request(HttpMethod.Get,
+                $"/api/v1/admin/import/packages/{draftA}/assets/{reference}", access));
+        Assert.Equal(HttpStatusCode.OK, own.StatusCode);
+        Assert.Equal(payload, await own.Content.ReadAsByteArrayAsync());
+    }
+
+    private WebApplicationFactory<Program> WithMemoryPrivateAssets(MemoryPrivateImportAssetStore memory) =>
+        app.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureTestServices(services =>
+            {
+                services.RemoveAll<IPrivateImportAssetStore>();
+                services.AddSingleton<IPrivateImportAssetStore>(memory);
+            });
+        });
+
+    private async Task<string> SeedDraftOnAsync(WebApplicationFactory<Program> factory)
+    {
+        using var scope = factory.Services.CreateScope();
+        var workflow = scope.ServiceProvider.GetRequiredService<ExamImportWorkflow>();
+
+        var attempt = await workflow.ImportStructuredAsync(
+            ValidPackageJson.Replace("admin-import-test", $"asset-preview-{Guid.NewGuid():n}"),
+            Vni.Ielts.Domain.Exams.ExamDefinitionId.New(), 1, default);
+
+        Assert.True(attempt.IsAccepted, string.Join("; ", attempt.Findings.Select(f => f.Message)));
+        return attempt.Draft!.Id.ToString("D");
+    }
+
+    private async Task<(HttpClient Client, string Access)> SignInWithOnlyOnAsync(
+        WebApplicationFactory<Program> factory, params string[] permissions)
+    {
+        var client = factory.CreateClient(
+            new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        await SsoRoundTripAsync(client);
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            var roles = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
+
+            var user = await users.FindByEmailAsync(
+                Vni.Ielts.Domain.Identity.Email.Create("stub.learner@example.com"), default);
+            Assert.NotNull(user);
+
+            foreach (var existing in await roles.ListAsync(default))
+            {
+                if (user!.HasRole(existing.Id)) user.RemoveRole(existing.Id);
+            }
+
+            var limited = Role.Create($"test-limited-{Guid.NewGuid():n}", isSystem: false, permissions);
+            await roles.AddAsync(limited, default);
+            user!.AssignRole(limited.Id);
+            await users.SaveAsync(user, default);
+        }
+
+        var access = await SsoRoundTripAsync(client);
+        return (client, access);
+    }
+
+    /// <summary>
+    /// In-process stand-in for object storage so the preview route can be
+    /// exercised without MinIO. Keys are exact — draft isolation is what the
+    /// endpoint composes, not what this store invents.
+    /// </summary>
+    private sealed class MemoryPrivateImportAssetStore : IPrivateImportAssetStore
+    {
+        private readonly Dictionary<string, (byte[] Bytes, string ContentType)> _items =
+            new(StringComparer.Ordinal);
+
+        public async Task<string> PutPrivateAsync(
+            string key, Stream content, string contentType, string sha256, CancellationToken ct)
+        {
+            using var copy = new MemoryStream();
+            await content.CopyToAsync(copy, ct);
+            _items[key] = (copy.ToArray(), contentType);
+            return key;
+        }
+
+        public Task<StagedImportAsset?> OpenPrivateAsync(string key, CancellationToken ct)
+        {
+            if (!_items.TryGetValue(key, out var item))
+                return Task.FromResult<StagedImportAsset?>(null);
+
+            return Task.FromResult<StagedImportAsset?>(
+                new StagedImportAsset(new MemoryStream(item.Bytes), item.ContentType, item.Bytes.Length));
+        }
     }
 }

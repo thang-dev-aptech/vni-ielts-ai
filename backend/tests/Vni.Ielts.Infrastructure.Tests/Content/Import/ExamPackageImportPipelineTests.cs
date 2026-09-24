@@ -1513,6 +1513,9 @@ public sealed class ExamPackageImportPipelineTests
         public Task<string> PutPrivateAsync(
             string key, Stream content, string contentType, string sha256, CancellationToken ct) =>
             Task.FromResult($"private://{key}");
+
+        public Task<StagedImportAsset?> OpenPrivateAsync(string key, CancellationToken ct) =>
+            Task.FromResult<StagedImportAsset?>(null);
     }
 
     private sealed class RecordingAssets : IPrivateImportAssetStore
@@ -1528,6 +1531,9 @@ public sealed class ExamPackageImportPipelineTests
             Uploaded.Add((key, contentType, sha256));
             return $"private://{key}";
         }
+
+        public Task<StagedImportAsset?> OpenPrivateAsync(string key, CancellationToken ct) =>
+            Task.FromResult<StagedImportAsset?>(null);
     }
 
     private sealed class InMemoryDraftStore : IImportDraftStore

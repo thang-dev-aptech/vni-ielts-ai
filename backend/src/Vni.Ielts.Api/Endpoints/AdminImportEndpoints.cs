@@ -281,6 +281,10 @@ public static class AdminImportEndpoints
             .WithName("AdminGetImportDraft")
             .WithSummary("Status and findings for one import draft");
 
+        group.MapGet("/packages/{draftId}/assets/{**reference}", GetDraftAssetEndpoint)
+            .WithName("AdminGetImportDraftAsset")
+            .WithSummary("Stream one privately staged asset for a draft under review — never a promoted exam asset");
+
         group.MapPost("/packages/{draftId}/warnings/{warningId}/override", OverrideWarningEndpoint)
             .WithName("AdminOverrideImportWarning")
             .WithSummary("Resolve a warning with a mandatory reason; audited as WarningOverridden");
@@ -729,6 +733,55 @@ public static class AdminImportEndpoints
 
         var draft = await drafts.FindAsync(id, ct);
         return draft is null ? Results.NotFound() : Results.Ok(ToView(draft));
+    }
+
+    /// <summary>
+    /// Admin-only preview of a draft's privately staged media. The learner
+    /// asset route (<c>IExamAssetStore</c>) must keep serving only promoted
+    /// content; this door talks only to <see cref="IPrivateImportAssetStore"/>
+    /// and scopes every key under the draft's own id so one draft cannot
+    /// read another's bytes.
+    /// </summary>
+    private static async Task<IResult> GetDraftAssetEndpoint(
+        string draftId, string reference, ClaimsPrincipal principal,
+        IImportDraftStore drafts, IPrivateImportAssetStore privateAssets, CancellationToken ct)
+    {
+        if (DeniedUnlessAny(principal, PermissionKeys.PackageRead, PermissionKeys.PackageUpload)
+            is { } denial)
+        {
+            return denial;
+        }
+
+        if (!Guid.TryParse(draftId, out var id)) return Results.NotFound();
+
+        var draft = await drafts.FindAsync(id, ct);
+        if (draft is null) return Results.NotFound();
+
+        if (DraftStagingKey(id, reference) is not { } key) return Results.NotFound();
+
+        if (await privateAssets.OpenPrivateAsync(key, ct) is not { } asset)
+            return Results.NotFound();
+
+        return Results.Stream(
+            asset.Content,
+            asset.ContentType,
+            enableRangeProcessing: true);
+    }
+
+    /// <summary>
+    /// <c>imports/{draftId}/{reference}</c>. Promotion later copies to the
+    /// plain <c>assets/…</c> public key; this route never opens that tree.
+    /// A traversal segment or empty reference collapses to null → 404.
+    /// </summary>
+    public static string? DraftStagingKey(Guid draftId, string reference)
+    {
+        if (string.IsNullOrWhiteSpace(reference)) return null;
+
+        var normalized = reference.Replace('\\', '/').Trim('/');
+        if (normalized.Length == 0) return null;
+        if (normalized.Split('/').Any(segment => segment is "" or "." or "..")) return null;
+
+        return $"imports/{draftId:D}/{normalized}";
     }
 
     /// <summary>

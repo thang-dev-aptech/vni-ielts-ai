@@ -449,8 +449,7 @@ internal sealed class S3PrivateImportAssetStore(IAmazonS3 client, ObjectStorageO
     public async Task<string> PutPrivateAsync(
         string key, Stream content, string contentType, string sha256, CancellationToken ct)
     {
-        if (!key.StartsWith("imports/", StringComparison.Ordinal)
-            || key.Split('/').Any(segment => segment is "" or "." or ".."))
+        if (!IsValidPrivateKey(key))
             throw new ArgumentException("Import asset key must stay below imports/.", nameof(key));
 
         var request = new PutObjectRequest
@@ -467,6 +466,38 @@ internal sealed class S3PrivateImportAssetStore(IAmazonS3 client, ObjectStorageO
         await client.PutObjectAsync(request, ct);
         return key;
     }
+
+    public async Task<StagedImportAsset?> OpenPrivateAsync(string key, CancellationToken ct)
+    {
+        // Same shape as IExamAssetStore: a bad key and a missing object are
+        // both null. The admin route turns either into 404.
+        if (!IsValidPrivateKey(key)) return null;
+
+        try
+        {
+            var response = await client.GetObjectAsync(
+                new GetObjectRequest
+                {
+                    BucketName = options.ExamAssetsBucket,
+                    Key = ObjectStorageOptions.Under(options.ExamAssetsPrefix, key),
+                },
+                ct);
+
+            var contentType = string.IsNullOrWhiteSpace(response.Headers.ContentType)
+                ? "application/octet-stream"
+                : response.Headers.ContentType;
+
+            return new StagedImportAsset(response.ResponseStream, contentType, response.ContentLength);
+        }
+        catch (AmazonS3Exception e) when (e.ErrorCode == "NoSuchKey")
+        {
+            return null;
+        }
+    }
+
+    private static bool IsValidPrivateKey(string key) =>
+        key.StartsWith("imports/", StringComparison.Ordinal)
+        && !key.Split('/').Any(segment => segment is "" or "." or "..");
 }
 
 /// <summary>

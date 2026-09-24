@@ -106,10 +106,34 @@ public sealed record SourceExtractionLimits(
 public sealed record PrivateImportAsset(
     string Reference, string ContentType, long Length, string Sha256);
 
+/// <summary>
+/// Bytes of a privately staged import asset. The caller owns the stream and
+/// must dispose it. Null from <see cref="IPrivateImportAssetStore.OpenPrivateAsync"/>
+/// means the key resolves to nothing — same 404 shape as
+/// <c>IExamAssetStore.OpenAsync</c>, and deliberately never thrown.
+/// </summary>
+public sealed record StagedImportAsset(
+    Stream Content, string ContentType, long? ContentLength = null);
+
+/// <summary>
+/// Private staging for media discovered during import. A staged object is not
+/// an exam asset and therefore cannot be served by the learner-facing
+/// <c>IExamAssetStore</c> until review maps it explicitly.
+///
+/// <b>Write and read, but only for the admin import door.</b> Put is what the
+/// import pipeline uses; Open is what the draft-asset preview endpoint uses.
+/// Neither path is a substitute for the learner asset reader.
+/// </summary>
 public interface IPrivateImportAssetStore
 {
     Task<string> PutPrivateAsync(
         string key, Stream content, string contentType, string sha256, CancellationToken ct);
+
+    /// <summary>
+    /// Null when the key was never staged, or is malformed. Never throws on a
+    /// missing object — the admin preview route turns null into 404.
+    /// </summary>
+    Task<StagedImportAsset?> OpenPrivateAsync(string key, CancellationToken ct);
 }
 
 public interface ISourceDocumentExtractor
@@ -131,14 +155,14 @@ public sealed record SourceExtractionResult(
 /// The uploaded archive, parked where another process can fetch it.
 ///
 /// <b>Separate from <see cref="IPrivateImportAssetStore"/> on purpose, and the
-/// name of that one is the trap.</b> It is write-only —
-/// <see cref="IPrivateImportAssetStore.PutPrivateAsync"/> and nothing else —
-/// and the implementation registered by default discards what it is given and
-/// hands back <c>"discarded:{key}"</c>. It exists so
-/// <c>SafeSourceDocumentExtractor</c> has somewhere to drop embedded media it
-/// does not want. Building an out-of-band import on it would produce a system
-/// that accepts every upload, enqueues it, and loses it — with the failure
-/// appearing minutes later, in a worker, as a package that cannot be opened.
+/// name of that one is the trap.</b> Its default registration
+/// (<c>DiscardedImportAssetStore</c>) accepts Put and keeps nothing — Open
+/// always returns null — so it is not a place to park an archive a worker must
+/// reopen minutes later. It exists so <c>SafeSourceDocumentExtractor</c> has
+/// somewhere to drop embedded media it does not want. Building an out-of-band
+/// import on the discarded store would produce a system that accepts every
+/// upload, enqueues it, and loses it — with the failure appearing minutes
+/// later, in a worker, as a package that cannot be opened.
 ///
 /// <para>
 /// An import archive has to survive the request that carried it and be read

@@ -683,4 +683,7 @@ internal sealed class DiscardedImportAssetStore : IPrivateImportAssetStore
     public Task<string> PutPrivateAsync(
         string key, Stream content, string contentType, string sha256, CancellationToken ct) =>
         Task.FromResult($"discarded:{key}");
+
+    public Task<StagedImportAsset?> OpenPrivateAsync(string key, CancellationToken ct) =>
+        Task.FromResult<StagedImportAsset?>(null);
 }

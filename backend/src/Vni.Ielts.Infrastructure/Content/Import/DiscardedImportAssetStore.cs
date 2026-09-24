@@ -11,10 +11,17 @@ namespace Vni.Ielts.Infrastructure.Content.Import;
 /// them) is a separate, not-yet-built concern, and this type exists only so
 /// <see cref="SafeSourceDocumentExtractor"/> — which needs somewhere to put
 /// media before it will hand back text — has somewhere to put it.
+///
+/// <b>Open always returns null.</b> Nothing was kept, so a preview of a
+/// "staged" asset against this store is a 404 — which is the correct answer
+/// when object storage is not configured.
 /// </summary>
 public sealed class DiscardedImportAssetStore : IPrivateImportAssetStore
 {
     public Task<string> PutPrivateAsync(
         string key, Stream content, string contentType, string sha256, CancellationToken ct) =>
         Task.FromResult($"discarded:{key}");
+
+    public Task<StagedImportAsset?> OpenPrivateAsync(string key, CancellationToken ct) =>
+        Task.FromResult<StagedImportAsset?>(null);
 }
