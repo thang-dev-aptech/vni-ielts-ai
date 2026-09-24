@@ -230,7 +230,14 @@ public sealed class ExamImportWorkflow(
     public static string Hash(string value) =>
         Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 
-    private static Guid StableDraftId(
+    /// <summary>
+    /// Deterministic, and public for that reason: a caller that needs the id
+    /// a structured import's draft will get — before that draft exists — can
+    /// compute the exact same value from the same inputs. Staging an asset
+    /// under its eventual draft's key (<c>ExamPackageImportPipeline</c>) is
+    /// the reason this was widened past private.
+    /// </summary>
+    public static Guid StableDraftId(
         ExamDefinitionId definitionId, int versionNumber, ExamImportRoute route, string packageHash)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(

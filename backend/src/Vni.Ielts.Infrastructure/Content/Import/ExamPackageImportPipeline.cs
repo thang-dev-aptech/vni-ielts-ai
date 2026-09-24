@@ -162,10 +162,26 @@ public sealed class ExamPackageImportPipeline(
          */
         if (TryResolveStructuredPackageJson(layout) is { } packageJsonPath)
         {
-            await StageStructuredAssetsAsync(layout, sandboxDirectory, ct);
-
             var packageJson = await File.ReadAllTextAsync(
                 Path.Combine(sandboxDirectory, packageJsonPath), ct);
+
+            /*
+             * <b>Staged under the draft's own eventual id, computed before the
+             * draft exists.</b> `ImportReviewWorkflow.PromoteDraftAssetsAsync`
+             * (approval) and `AdminImportEndpoints.GetDraftAssetEndpoint`
+             * (preview) both read staged assets at
+             * `imports/{draftId}/{reference}` — a per-draft prefix that stops
+             * one draft's preview route from serving another draft's file.
+             * `ExamImportWorkflow.StableDraftId` is a pure function of
+             * exactly the inputs available here, so the same id can be
+             * computed on this side of `ImportStructuredAsync` rather than
+             * staging under a draft-blind key nothing downstream would ever
+             * find.
+             */
+            var draftId = ExamImportWorkflow.StableDraftId(
+                definitionId, versionNumber, ExamImportRoute.StructuredPackage,
+                ExamImportWorkflow.Hash(packageJson));
+            await StageStructuredAssetsAsync(layout, sandboxDirectory, draftId, ct);
 
             // <b>Reported even though no parser runs.</b> The structured route
             // reads a package somebody already assembled, so `Parsing` here
@@ -252,11 +268,18 @@ public sealed class ExamPackageImportPipeline(
     }
 
     /// <summary>
-    /// Stages every accepted <c>assets/</c> file under its own relative path
-    /// so later promotion is a rename, not a remapping.
+    /// Stages every accepted <c>assets/</c> file under
+    /// <c>imports/{draftId}/{relativePath}</c> — <see cref="ImportReviewWorkflow.StagedKeyFor"/>,
+    /// the exact key shape both the admin draft-asset preview route and
+    /// approval-time promotion already read from. Keying on the bare relative
+    /// path alone (no draft prefix) would let two concurrent imports that
+    /// happen to share an asset name — two packages each with an
+    /// <c>assets/map.jpg</c> — overwrite each other's staged bytes, and
+    /// <see cref="S3PrivateImportAssetStore"/> refuses a key outside
+    /// <c>imports/</c> outright.
     /// </summary>
     private async Task StageStructuredAssetsAsync(
-        PackageLayout layout, string sandboxDirectory, CancellationToken ct)
+        PackageLayout layout, string sandboxDirectory, Guid draftId, CancellationToken ct)
     {
         foreach (var relativePath in layout.Assets)
         {
@@ -267,7 +290,8 @@ public sealed class ExamPackageImportPipeline(
                 .ToLowerInvariant();
             await using var upload = new MemoryStream(bytes, writable: false);
             await privateAssets.PutPrivateAsync(
-                relativePath, upload, ContentTypeFor(relativePath), sha256, ct);
+                ImportReviewWorkflow.StagedKeyFor(draftId, relativePath), upload,
+                ContentTypeFor(relativePath), sha256, ct);
         }
     }
 

@@ -296,7 +296,15 @@ public sealed class ExamPackageImportPipelineTests
     /// <summary>
     /// de-1-full-4-ky-nang.zip shape: root <c>manifest.json</c> +
     /// <c>exam.json</c> + <c>assets/</c>. Must take the structured route (not
-    /// the AI parser) and stage every asset under its own relative path.
+    /// the AI parser) and stage every asset under
+    /// <c>imports/{draftId}/{relativePath}</c> — <see cref="ImportReviewWorkflow.StagedKeyFor"/>,
+    /// the exact key both approval-time promotion
+    /// (<c>ImportReviewWorkflow.PromoteDraftAssetsAsync</c>) and the admin
+    /// draft-asset preview route (<c>AdminImportEndpoints.GetDraftAssetEndpoint</c>)
+    /// read from. A bare relative-path key (no draft prefix) would mean
+    /// neither of those ever finds what was staged here, and
+    /// <c>S3PrivateImportAssetStore</c> refuses any key outside
+    /// <c>imports/</c> outright.
     /// </summary>
     [Fact]
     public async Task A_manifest_exam_json_assets_package_imports_as_structured_and_stages_assets()
@@ -317,11 +325,20 @@ public sealed class ExamPackageImportPipelineTests
         Assert.NotNull(attempt.Draft);
         Assert.Equal(ExamImportRoute.StructuredPackage, attempt.Draft.Route);
         Assert.Null(parser.LastSourceText);
+
+        var draftId = attempt.Draft.Id;
         Assert.Equal(
-            ["assets/exam-1-listening-part1.mp3", "assets/images/map.png"],
+            [
+                ImportReviewWorkflow.StagedKeyFor(draftId, "assets/exam-1-listening-part1.mp3"),
+                ImportReviewWorkflow.StagedKeyFor(draftId, "assets/images/map.png"),
+            ],
             assets.Uploaded.Select(u => u.Key).OrderBy(k => k, StringComparer.Ordinal).ToArray());
-        Assert.Equal("audio/mpeg", assets.Uploaded.Single(u => u.Key.EndsWith(".mp3")).ContentType);
-        Assert.Equal("image/png", assets.Uploaded.Single(u => u.Key.EndsWith(".png")).ContentType);
+        Assert.Equal(
+            "audio/mpeg",
+            assets.Uploaded.Single(u => u.Key.EndsWith(".mp3", StringComparison.Ordinal)).ContentType);
+        Assert.Equal(
+            "image/png",
+            assets.Uploaded.Single(u => u.Key.EndsWith(".png", StringComparison.Ordinal)).ContentType);
         Assert.NotNull(await drafts.FindAsync(attempt.Draft.Id, default));
     }
 
