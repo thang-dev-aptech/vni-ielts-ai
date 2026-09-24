@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Infrastructure;
+using Vni.Ielts.Infrastructure.Content.Import;
 using Vni.Ielts.Infrastructure.Storage;
 
 namespace Vni.Ielts.Infrastructure.Tests.Storage;
@@ -71,6 +72,33 @@ public sealed class ImportArchiveStoreTests
 
         Assert.IsType<LocalFileImportArchiveStore>(
             provider.GetRequiredService<IImportArchiveStore>());
+    }
+
+    /// <summary>
+    /// <b>The hole this closes.</b> The discard-store fallback for
+    /// <see cref="IPrivateImportAssetStore"/> used to register unconditionally,
+    /// after <c>AddObjectStorage</c> had already bound the real
+    /// <c>S3PrivateImportAssetStore</c> — last registration wins, so the real
+    /// store was never resolved in any environment, including production with
+    /// object storage fully configured. Nothing that staged an asset through
+    /// this port ever kept what it was given.
+    /// </summary>
+    [Fact]
+    public void With_object_storage_configured_a_staged_import_asset_uses_the_real_store()
+    {
+        using var provider = Build(ObjectStorageConfigured);
+
+        Assert.IsType<S3PrivateImportAssetStore>(
+            provider.GetRequiredService<IPrivateImportAssetStore>());
+    }
+
+    [Fact]
+    public void With_no_object_storage_a_staged_import_asset_is_discarded()
+    {
+        using var provider = Build();
+
+        Assert.IsType<DiscardedImportAssetStore>(
+            provider.GetRequiredService<IPrivateImportAssetStore>());
     }
 
     /// <summary>

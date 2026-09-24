@@ -408,7 +408,16 @@ public static class DependencyInjection
         services.AddSingleton<IExamPackageValidator>(
             _ => new Content.ExamPackageValidator(Content.ExamPackageReader.FromSchemaFile(LocateExamSchemaPath())));
 
-        services.AddScoped<IPrivateImportAssetStore, DiscardedImportAssetStore>();
+        /*
+         * <b>Guarded, like every other fallback below it.</b> This used to be
+         * unconditional, registered after `AddObjectStorage` had already bound
+         * the real `S3PrivateImportAssetStore` above — last registration wins,
+         * so the discard store silently replaced it in every environment,
+         * including production with object storage fully configured. Nothing
+         * that staged an asset through this port ever kept what it was given.
+         */
+        if (!objectStorageRegistered)
+            services.AddScoped<IPrivateImportAssetStore, DiscardedImportAssetStore>();
 
         /*
          * <b>Where the uploaded ZIP waits for the worker.</b> When object
@@ -416,11 +425,6 @@ public static class DependencyInjection
          * the S3-backed store and this is skipped — the last registration
          * wins, and silently replacing a real bucket with a local directory is
          * how an import works on one machine and vanishes on the next.
-         *
-         * <b>Not `IPrivateImportAssetStore`, however much the name invites
-         * it.</b> That port is write-only and the implementation registered on
-         * the line above discards what it is given; an import built on it
-         * would accept every upload and lose it. → `IImportArchiveStore`
          */
         if (!objectStorageRegistered)
         {
