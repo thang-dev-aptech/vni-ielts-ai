@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PartView, SectionContentView, SectionResultView } from '../examApi.js';
 import {
+  breakdownBySkill,
   listeningAudioIndex,
   listeningSectionIndex,
   listeningSectionsFrom,
@@ -184,5 +185,182 @@ describe('listeningAudioIndex', () => {
 
   it('is empty when content is undefined', () => {
     expect(listeningAudioIndex(undefined).size).toBe(0);
+  });
+});
+
+describe('breakdownBySkill', () => {
+  it('groups typed answer-key rows by skill, not as one flat list', () => {
+    const readingPart: PartView = {
+      order: 1,
+      kind: 'passage',
+      title: 'Passage 1',
+      body: 'Text.',
+      audioKey: null,
+      imageKey: null,
+      taskNumber: null,
+      partNumber: null,
+      cueCard: null,
+      minWords: null,
+      transcript: null,
+      questions: [
+        {
+          id: 'r-1',
+          order: 1,
+          type: 'true-false-notgiven',
+          prompt: null,
+          options: [],
+          maxWords: null,
+          group: null,
+          slots: [{ id: 'r-1-slot', number: 1 }],
+        },
+        {
+          id: 'r-2',
+          order: 2,
+          type: 'matching',
+          prompt: null,
+          options: [],
+          maxWords: null,
+          group: null,
+          slots: [{ id: 'r-2-slot', number: 2 }],
+        },
+      ],
+    };
+
+    const listeningPart = part(1, ['l-1', 'l-2'], null, 1);
+    listeningPart.questions[0]!.type = 'matching';
+    listeningPart.questions[1]!.type = 'multiple-choice';
+
+    const results = {
+      sessionId: 'sit-1',
+      examTitle: 'Full mock',
+      mode: 'full' as const,
+      status: 'submitted',
+      submittedAt: new Date().toISOString(),
+      sections: [
+        {
+          module: 'reading' as const,
+          rawScore: 1,
+          maxScore: 2,
+          band: null,
+          bandVerified: false,
+          questions: [
+            {
+              questionId: 'r-1',
+              submitted: 'TRUE',
+              isCorrect: true,
+              correctAnswer: 'TRUE',
+              canonicalExplanation: null,
+            },
+            {
+              questionId: 'r-2',
+              submitted: 'A',
+              isCorrect: false,
+              correctAnswer: 'B',
+              canonicalExplanation: null,
+            },
+          ],
+        },
+        sectionResult([
+          ['l-1', true],
+          ['l-2', false],
+        ]),
+      ],
+      markings: [],
+      markingStatuses: [],
+      explanationStatuses: [],
+      overallBand: null,
+      overallBandModules: [],
+      writingBand: null,
+      writingBandReason: null,
+      content: [
+        { module: 'reading' as const, parts: [readingPart], submissions: {} },
+        content([listeningPart]),
+      ],
+    };
+
+    const groups = breakdownBySkill(results);
+
+    expect(groups.map((group) => group.module)).toEqual(['reading', 'listening']);
+    expect(groups[0]!.rows.map((row) => row.type)).toEqual(['true-false-notgiven', 'matching']);
+    expect(groups[1]!.rows.map((row) => row.type).sort()).toEqual(['matching', 'multiple-choice']);
+    // Matching appears in both skills as separate rows — not merged.
+    expect(groups[0]!.rows.find((row) => row.type === 'matching')).toEqual({
+      type: 'matching',
+      label: 'Matching Information',
+      correct: 0,
+      total: 1,
+      percent: 0,
+    });
+    expect(groups[1]!.rows.find((row) => row.type === 'matching')).toEqual({
+      type: 'matching',
+      label: 'Matching Information',
+      correct: 1,
+      total: 1,
+      percent: 100,
+    });
+  });
+
+  it('omits skills with only non-key types and invents no empty groups', () => {
+    const writingPart: PartView = {
+      order: 1,
+      kind: 'task',
+      title: 'Task 1',
+      body: 'Chart.',
+      audioKey: null,
+      imageKey: null,
+      taskNumber: 1,
+      partNumber: null,
+      cueCard: null,
+      minWords: 150,
+      transcript: null,
+      questions: [
+        {
+          id: 'w-1',
+          order: 1,
+          type: 'essay-task',
+          prompt: null,
+          options: [],
+          maxWords: null,
+          group: null,
+          slots: [],
+        },
+      ],
+    };
+
+    const results = {
+      sessionId: 'sit-1',
+      examTitle: 'Writing only',
+      mode: 'single' as const,
+      status: 'submitted',
+      submittedAt: new Date().toISOString(),
+      sections: [
+        {
+          module: 'writing' as const,
+          rawScore: 0,
+          maxScore: 0,
+          band: null,
+          bandVerified: false,
+          questions: [
+            {
+              questionId: 'w-1',
+              submitted: 'An essay.',
+              isCorrect: false,
+              correctAnswer: '',
+              canonicalExplanation: null,
+            },
+          ],
+        },
+      ],
+      markings: [],
+      markingStatuses: [],
+      explanationStatuses: [],
+      overallBand: null,
+      overallBandModules: [],
+      writingBand: null,
+      writingBandReason: null,
+      content: [{ module: 'writing' as const, parts: [writingPart], submissions: {} }],
+    };
+
+    expect(breakdownBySkill(results)).toEqual([]);
   });
 });

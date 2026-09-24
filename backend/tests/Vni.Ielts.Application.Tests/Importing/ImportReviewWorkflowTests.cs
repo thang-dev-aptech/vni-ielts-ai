@@ -1,4 +1,5 @@
 using Vni.Ielts.Application.Common;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Importing;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
@@ -118,6 +119,46 @@ public sealed class ImportReviewWorkflowTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(ImportApprovalState.Approved, result.Draft!.ApprovalState);
+    }
+
+    /// <summary>
+    /// The gap this task closes: approving an import draft used to only flip
+    /// <c>ImportApprovalState</c> — the draft's already-validated
+    /// <c>ExamVersion</c> never reached the catalogue, so it never appeared
+    /// on the CMS "Đề thi" screen (which reads <c>IExamCatalogue.ListAllAsync</c>,
+    /// a different collection than the import-draft store). Red when the
+    /// <c>catalogue.UpsertAsync</c> call is removed from <c>ApproveAsync</c>.
+    /// </summary>
+    [Fact]
+    public async Task Approving_a_draft_writes_its_version_to_the_exam_catalogue()
+    {
+        var store = new Store(Draft(complete: true));
+        var catalogue = new RecordingCatalogue();
+        var review = new ImportReviewWorkflow(store, new Validator(), catalogue: catalogue);
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.True(result.IsSuccess);
+        var written = Assert.Single(catalogue.Upserted);
+        Assert.Equal(result.Draft!.Version.Id, written.Id);
+        Assert.Equal(ExamVersionStatus.Draft, written.Status);
+    }
+
+    /// <summary>
+    /// A catalogue write failure must not leave the draft looking approved —
+    /// same "fail together" reasoning already applied to asset promotion.
+    /// </summary>
+    [Fact]
+    public async Task A_catalogue_write_failure_refuses_approval_and_leaves_the_draft_unapproved()
+    {
+        var store = new Store(Draft(complete: true));
+        var review = new ImportReviewWorkflow(store, new Validator(), catalogue: new ThrowingCatalogue());
+
+        var result = await review.ApproveAsync(store.Draft.Id, 0, Reviewer, default);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("IMPORT_CATALOGUE_WRITE_FAILED", result.ErrorCode);
+        Assert.Equal(ImportApprovalState.ReviewRequired, store.Draft.ApprovalState);
     }
 
     [Fact]
@@ -361,6 +402,49 @@ public sealed class ImportReviewWorkflowTests
                 ? [new ImportReviewWarning("w1", ImportReviewCategory.Questions, "/q/1", "check", false)]
                 : [],
             0, null);
+    }
+
+    private sealed class RecordingCatalogue : IExamCatalogue
+    {
+        public List<ExamVersion> Upserted { get; } = [];
+
+        public Task UpsertAsync(ExamVersion version, CancellationToken ct)
+        {
+            Upserted.Add(version);
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<ExamVersion>> ListSittableAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamVersion>>([]);
+        public Task<IReadOnlyList<ExamVersion>> ListAllAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamVersion>>(Upserted);
+        public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct) =>
+            Task.FromResult(Upserted.FirstOrDefault(v => v.Id == id));
+        public Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
+            IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyDictionary<ExamVersionId, ExamVersion>>(
+                Upserted.Where(v => ids.Contains(v.Id)).ToDictionary(v => v.Id));
+        public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) =>
+            Task.CompletedTask;
+    }
+
+    private sealed class ThrowingCatalogue : IExamCatalogue
+    {
+        public Task UpsertAsync(ExamVersion version, CancellationToken ct) =>
+            throw new InvalidOperationException("catalogue unreachable");
+
+        public Task<IReadOnlyList<ExamVersion>> ListSittableAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamVersion>>([]);
+        public Task<IReadOnlyList<ExamVersion>> ListAllAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamVersion>>([]);
+        public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct) =>
+            Task.FromResult<ExamVersion?>(null);
+        public Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
+            IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyDictionary<ExamVersionId, ExamVersion>>(
+                new Dictionary<ExamVersionId, ExamVersion>());
+        public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) =>
+            Task.CompletedTask;
     }
 
     private sealed class Store(ExamImportDraft draft) : IImportDraftStore

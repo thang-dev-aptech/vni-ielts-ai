@@ -73,10 +73,11 @@ import { useAlive } from '../../lib/useAlive.js';
  * breadcrumb. This reverses the 04/09 arrangement that put results inside the
  * student shell — the paper's own ending is not a page of the student area.
  *
- * <b>Three of the reference's figures have no source, and none of them is
- * invented.</b> The difficulty rating, the cohort percentile and the band
- * distribution do not exist in this product; each keeps its place in the layout
- * and shows an absence with a note. DESIGN.md anti-pattern #12.
+ * <b>Two of the reference's figures have no source, and neither is
+ * invented.</b> The cohort percentile and the band distribution do not exist
+ * in this product; each keeps its place where drawn and shows an absence with
+ * a note. Paper difficulty is omitted entirely — no rating is computed.
+ * DESIGN.md anti-pattern #12.
  *
  * <b>A section with no band is absent, not zero.</b> Reading and Listening are
  * marked the moment they are submitted; Writing and Speaking wait on an
@@ -455,12 +456,12 @@ export function ExamResultsPage() {
             <p>{t('exam.overviewLead')}</p>
           </div>
 
-          <ResultSummaryCards stats={stats} examTitle={results.examTitle} />
+          <ResultSummaryCards stats={stats} />
 
           {primaryModule === 'listening' && <ListeningSectionBreakdown rows={listeningSections} />}
 
           <div className="exs-two">
-            <QuestionTypeBreakdown rows={stats.breakdown} />
+            <QuestionTypeBreakdown groups={stats.breakdown} />
             <BandComparisonChart distribution={null} myBand={heroBand} skillName={skillName} />
           </div>
         </>

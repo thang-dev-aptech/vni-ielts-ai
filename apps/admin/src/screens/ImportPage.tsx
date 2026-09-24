@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { ApiError } from '@vni/auth';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { useOperator } from '../lib/operator.js';
 import { Confirm, useFlash } from '../chrome/Confirm.js';
@@ -9,8 +11,10 @@ import {
   getImportDraft,
   getImportJob,
   overrideImportWarning,
+  setImportChecklist,
   uploadImportPackage,
   ImportApiError,
+  type ImportChecklistCategory,
   type ImportDraft,
   type ImportFinding,
   type ImportJobState,
@@ -146,15 +150,62 @@ function unresolvedWarnings(draft: ImportDraft): ImportWarning[] {
   return draft.warnings.filter((w) => !w.resolved);
 }
 
+/**
+ * `ApproveAsync`'s refusal codes, said in a sentence. `RefusedResult` on the
+ * server sends the bare code as `problem.detail` — `REVIEWER_IS_AUTHOR` reads
+ * clearly enough on its own, the rest do not. The button is not hidden ahead
+ * of time for any of these (`canApprove` covers findings/warnings/checklist,
+ * but `IMPORT_REVISION_CONFLICT` and the two write-failure codes can only be
+ * known by trying), so every code this endpoint can return gets a sentence
+ * here rather than leaving some to fall through as the bare string.
+ */
+const APPROVE_ERROR_TEXT: Record<string, string> = {
+  REVIEWER_IS_AUTHOR:
+    'Bạn không thể tự duyệt gói mình đã tải lên — cần một người khác duyệt bản nháp này.',
+  IMPORT_REVIEW_FORBIDDEN: 'Bạn không có quyền duyệt bản nháp nhập.',
+  IMPORT_CHECKLIST_INCOMPLETE: 'Còn mục trong danh sách kiểm tra chưa xác nhận.',
+  IMPORT_FINDINGS_BLOCKING: 'Còn finding lỗi chưa xử lý.',
+  IMPORT_WARNINGS_UNRESOLVED: 'Còn cảnh báo chưa xử lý.',
+  IMPORT_REVISION_CONFLICT: 'Bản nháp đã đổi từ lúc bạn mở trang — tải lại rồi thử lại.',
+  IMPORT_ASSET_PROMOTE_FAILED: 'Không đưa được ảnh/audio sang kho công khai — thử lại.',
+  IMPORT_CATALOGUE_WRITE_FAILED: 'Đã duyệt nhưng không ghi được vào danh mục đề — thử lại.',
+};
+
+function approveErrorText(error: unknown): string {
+  if (error instanceof ApiError && error.problem.code !== undefined) {
+    const known = APPROVE_ERROR_TEXT[error.problem.code];
+    if (known !== undefined) return known;
+  }
+  return reasonOf(error);
+}
+
+/**
+ * `ImportReviewCategory`, said in Vietnamese, wire spelling first. Same six
+ * categories `ImportReviewPanel.tsx`'s orphaned `REVIEW_CHECKS` names — but
+ * these keys are the real wire format (`SetChecklistAsync` compares against
+ * `ImportReviewCategory.ToString().ToLowerInvariant()`), not that panel's
+ * hyphenated guesses, which never matched anything the server understood.
+ */
+const CHECKLIST_ITEMS: readonly [ImportChecklistCategory, string][] = [
+  ['questions', 'Câu hỏi'],
+  ['options', 'Lựa chọn'],
+  ['wordlimits', 'Giới hạn từ'],
+  ['acceptedvariants', 'Biến thể đáp án'],
+  ['transcriptandevidence', 'Transcript và bằng chứng'],
+  ['assetmapping', 'Ánh xạ media'],
+];
+
 export function ImportPage() {
   const { accessToken } = useAdminAuth();
   const operator = useOperator();
   const { flash, say } = useFlash();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [rejection, setRejection] = useState<ImportApiError | null>(null);
   const [draft, setDraft] = useState<ImportDraft | null>(null);
+  const [draftLoading, setDraftLoading] = useState(false);
 
   // The out-of-band job: `operationId` is set the moment the upload is
   // accepted, `job` is filled in by the first poll. Both are cleared on
@@ -177,8 +228,27 @@ export function ImportPage() {
   const [overrideBusy, setOverrideBusy] = useState(false);
 
   const [approving, setApproving] = useState(false);
+  const [checklistBusy, setChecklistBusy] = useState<ImportChecklistCategory | null>(null);
 
   const input = useRef<HTMLInputElement>(null);
+
+  /**
+   * The draft id lives in the URL (`?draftId=`), not only in React state —
+   * a reload wipes state but not the address bar. `replace: true` so
+   * checking a package does not fill the back button with one entry per
+   * poll tick.
+   */
+  function openDraft(loadedDraft: ImportDraft) {
+    setDraft(loadedDraft);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('draftId', loadedDraft.draftId);
+        return next;
+      },
+      { replace: true },
+    );
+  }
 
   /**
    * One poll: refresh the job, and load the draft the moment a job is
@@ -196,7 +266,7 @@ export function ImportPage() {
       if (latest.state === 'Completed' && latest.draftId !== null) {
         try {
           const loadedDraft = await getImportDraft(accessToken, latest.draftId);
-          setDraft(loadedDraft);
+          openDraft(loadedDraft);
           setDraftLoadFailed(null);
         } catch (error) {
           setDraftLoadFailed(reasonOf(error));
@@ -207,6 +277,39 @@ export function ImportPage() {
       say({ tone: 'bad', text: reasonOf(error) });
     }
   }
+
+  /**
+   * Reload survival. `ImportPage`'s whole review state — `draft`, `job`,
+   * `operationId` — lives in React state and a reload wipes it, even though
+   * the draft itself is sitting on the server exactly as it was. The URL's
+   * `draftId` is what survives: on mount, if one is present, fetch that
+   * draft directly and skip the upload/poll flow entirely.
+   */
+  useEffect(() => {
+    const wanted = searchParams.get('draftId');
+    if (wanted === null || accessToken === null) return;
+
+    let cancelled = false;
+    setDraftLoading(true);
+
+    getImportDraft(accessToken, wanted)
+      .then((loaded) => {
+        if (!cancelled) setDraft(loaded);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) say({ tone: 'bad', text: reasonOf(error) });
+      })
+      .finally(() => {
+        if (!cancelled) setDraftLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // Only on mount / when the account signing in changes — this restores
+    // the draft named by the URL once, not every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken]);
 
   /*
    * Poll only while the job is alive — a completed or failed job stops.
@@ -247,6 +350,14 @@ export function ImportPage() {
     setJobTimedOut(false);
     setDraftLoadFailed(null);
     pollCount.current = 0;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('draftId');
+        return next;
+      },
+      { replace: true },
+    );
 
     try {
       const accepted = await uploadImportPackage(accessToken, file);
@@ -332,9 +443,34 @@ export function ImportPage() {
         text: 'Đã duyệt bản nháp. Vẫn cần một thao tác xuất bản riêng để tới học viên.',
       });
     } catch (error) {
-      say({ tone: 'bad', text: reasonOf(error) });
+      say({ tone: 'bad', text: approveErrorText(error) });
     } finally {
       setApproving(false);
+    }
+  }
+
+  /**
+   * Sends the full next set on every toggle — `SetChecklistAsync` replaces,
+   * it does not patch — so this reads the confirmed set fresh off `draft`
+   * rather than accumulating local state that could drift from what the
+   * server actually holds after a concurrent edit.
+   */
+  async function toggleChecklistItem(category: ImportChecklistCategory) {
+    if (accessToken === null || draft === null) return;
+    const current = new Set(draft.checklistConfirmed);
+    if (current.has(category)) current.delete(category);
+    else current.add(category);
+
+    setChecklistBusy(category);
+    try {
+      const updated = await setImportChecklist(accessToken, draft.draftId, [
+        ...current,
+      ] as ImportChecklistCategory[]);
+      setDraft(updated);
+    } catch (error) {
+      say({ tone: 'bad', text: reasonOf(error) });
+    } finally {
+      setChecklistBusy(null);
     }
   }
 
@@ -342,7 +478,11 @@ export function ImportPage() {
   const openWarnings = draft === null ? [] : unresolvedWarnings(draft);
   const alreadyApproved = draft?.approvalState === 'approved';
   const canApprove =
-    draft !== null && !alreadyApproved && blocking.length === 0 && openWarnings.length === 0;
+    draft !== null &&
+    !alreadyApproved &&
+    blocking.length === 0 &&
+    openWarnings.length === 0 &&
+    draft.checklistComplete;
 
   return (
     <>
@@ -495,6 +635,12 @@ export function ImportPage() {
         </section>
       )}
 
+      {draftLoading && draft === null && (
+        <section className="cms-panel">
+          <p className="cms-muted">Đang mở lại bản nháp từ đường dẫn…</p>
+        </section>
+      )}
+
       {draft !== null && (
         <section className="cms-panel">
           <div className="cms-panel-head">
@@ -580,7 +726,7 @@ export function ImportPage() {
             </>
           )}
 
-          {operator.can('exam.upload') && draft.groups.length > 0 && accessToken !== null && (
+          {operator.can('package.upload') && draft.groups.length > 0 && accessToken !== null && (
             <>
               <h3>Vị trí trên ảnh ({draft.groups.length})</h3>
               {draft.groups.map((group) => (
@@ -592,6 +738,29 @@ export function ImportPage() {
                   onSaved={setDraft}
                 />
               ))}
+            </>
+          )}
+
+          {operator.can('exam.review') && (
+            <>
+              <h3>
+                Danh sách kiểm tra ({draft.checklistConfirmed.length}/{CHECKLIST_ITEMS.length})
+              </h3>
+              <ul className="cms-notes">
+                {CHECKLIST_ITEMS.map(([category, label]) => (
+                  <li key={category}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={draft.checklistConfirmed.includes(category)}
+                        disabled={checklistBusy !== null}
+                        onChange={() => void toggleChecklistItem(category)}
+                      />{' '}
+                      {label}
+                    </label>
+                  </li>
+                ))}
+              </ul>
             </>
           )}
 
@@ -609,7 +778,9 @@ export function ImportPage() {
                 <span className="cms-muted">
                   {blocking.length > 0
                     ? `Còn ${blocking.length} finding lỗi chưa xử lý.`
-                    : `Còn ${openWarnings.length} cảnh báo chưa xử lý.`}
+                    : openWarnings.length > 0
+                      ? `Còn ${openWarnings.length} cảnh báo chưa xử lý.`
+                      : 'Còn mục trong danh sách kiểm tra chưa xác nhận.'}
                 </span>
               )}
             </div>

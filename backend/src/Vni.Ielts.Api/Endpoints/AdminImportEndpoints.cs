@@ -53,6 +53,15 @@ public sealed record ImportDraftView(
 /// <summary>The full set of positions an admin wants a group to have; replaces whatever was there.</summary>
 public sealed record SetGroupPositionsRequest(IReadOnlyList<GroupPositionInput> Positions);
 
+/// <summary>
+/// The full set of confirmed checklist categories, replacing whatever was
+/// confirmed before — same "replace, not patch" contract as positions.
+/// Category names are <see cref="ImportReviewCategory"/> members, matched
+/// case-insensitively so the wire format an admin client already sends
+/// elsewhere (lower-case, no separators) works unchanged.
+/// </summary>
+public sealed record SetChecklistRequest(IReadOnlyList<string> Confirmed);
+
 public sealed record ImportRejectionView(bool IsAccepted, IReadOnlyList<ImportFindingView> Findings);
 
 /// <summary>
@@ -202,6 +211,14 @@ public static class PackageImportAudit
             ["count"] = count.ToString(),
         };
 
+    public static IReadOnlyDictionary<string, string> ChecklistConfirmed(
+        string draftId, int confirmedCount) =>
+        new Dictionary<string, string>
+        {
+            ["draftId"] = draftId,
+            ["confirmedCount"] = confirmedCount.ToString(),
+        };
+
     private static string Codes(IReadOnlyList<PackageFinding> findings)
     {
         var joined = string.Join(",", findings.Select(f => f.Code).Where(c => c.Length > 0).Take(20));
@@ -292,6 +309,10 @@ public static class AdminImportEndpoints
         group.MapPost("/packages/{draftId}/groups/{groupId}/positions", SetGroupPositionsEndpoint)
             .WithName("AdminSetImportGroupPositions")
             .WithSummary("Persist hotspot positions for a group; resets ApprovalState/Checklist like any edit");
+
+        group.MapPost("/packages/{draftId}/checklist", SetChecklistEndpoint)
+            .WithName("AdminSetImportChecklist")
+            .WithSummary("Replace the confirmed review-checklist categories; approval needs all six confirmed");
 
         group.MapPost("/packages/{draftId}/approve", ApproveEndpoint)
             .WithName("AdminApproveImportDraft")
@@ -855,6 +876,49 @@ public static class AdminImportEndpoints
                 $"{draft.DefinitionId.Value} v{draft.VersionNumber}",
                 clock.UtcNow,
                 PackageImportAudit.GroupPositionsSet(draftId, groupId, positions.Count)),
+            ct);
+
+        return Results.Ok(ToView(draft));
+    }
+
+    /// <summary>
+    /// Replaces the confirmed checklist categories — the one write
+    /// <c>ApproveAsync</c> has always required (<c>draft.Checklist.IsComplete</c>)
+    /// with no HTTP door onto it until now. Category names are matched
+    /// case-insensitively against <see cref="ImportReviewCategory"/>; an
+    /// unrecognised name is a 400, not a silently-dropped confirmation.
+    /// </summary>
+    private static async Task<IResult> SetChecklistEndpoint(
+        string draftId, SetChecklistRequest request, ClaimsPrincipal principal,
+        IImportDraftStore drafts, ImportReviewWorkflow review, IAuditLog audit, IClock clock,
+        HttpContext http, CancellationToken ct)
+    {
+        if (principal.UserId() is not { } actorId) return Results.Unauthorized();
+        if (!Guid.TryParse(draftId, out var id)) return Results.NotFound();
+
+        var confirmed = new HashSet<ImportReviewCategory>();
+        foreach (var name in request.Confirmed ?? [])
+        {
+            if (!Enum.TryParse<ImportReviewCategory>(name, ignoreCase: true, out var category))
+                return Problem(ErrorCodes.ValidationFailed, $"Unknown checklist category '{name}'.", 400, http);
+            confirmed.Add(category);
+        }
+
+        var current = await drafts.FindAsync(id, ct);
+        if (current is null) return Results.NotFound();
+
+        var actor = BuildActor(principal);
+        var result = await review.SetChecklistAsync(id, current.Revision, confirmed, actor, ct);
+        if (!result.IsSuccess) return RefusedResult(result, http);
+
+        var draft = result.Draft!;
+        await audit.AppendAsync(
+            AuditEntry.Record(
+                new UserId(actorId), principal.Email() ?? principal.DisplayName(),
+                AuditAction.ImportChecklistConfirmed, "import-draft", draftId,
+                $"{draft.DefinitionId.Value} v{draft.VersionNumber}",
+                clock.UtcNow,
+                PackageImportAudit.ChecklistConfirmed(draftId, confirmed.Count)),
             ct);
 
         return Results.Ok(ToView(draft));

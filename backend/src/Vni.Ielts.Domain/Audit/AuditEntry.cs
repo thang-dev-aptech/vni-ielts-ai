@@ -132,6 +132,11 @@ public enum AuditAction
     /// values or option text.
     /// </summary>
     GroupPositionsSet,
+    /// <summary>
+    /// An admin confirmed (or unconfirmed) review-checklist categories on an
+    /// import draft. Detail carries the draft id and a confirmed count only.
+    /// </summary>
+    ImportChecklistConfirmed,
 
     // Evaluation operations are deliberately distinct from a normal score
     // read: the former grants access to learner/model content and the latter

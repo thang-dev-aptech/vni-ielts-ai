@@ -36,6 +36,18 @@ export interface TypeBreakdownRow {
   percent: number;
 }
 
+/**
+ * One skill's typed-question breakdown inside the results panel.
+ *
+ * <b>Omitted when the skill has no answer-key typed rows.</b> Writing and
+ * Speaking do not invent matching/TFNG rows; a skill with only essay or
+ * speaking-response questions never appears here.
+ */
+export interface SkillBreakdownGroup {
+  module: ExamModule;
+  rows: TypeBreakdownRow[];
+}
+
 export interface ResultStats {
   /** Answer-key sections only: Reading and Listening. Null for a marked skill. */
   correct: number | null;
@@ -46,7 +58,8 @@ export interface ResultStats {
   attempted: number | null;
   /** Seconds between opening the paper and submitting it, when both are known. */
   durationSeconds: number | null;
-  breakdown: TypeBreakdownRow[];
+  /** Per-skill type bars; empty when no answer-key typed questions exist. */
+  breakdown: SkillBreakdownGroup[];
 }
 
 /**
@@ -94,14 +107,23 @@ function questionsById(content: SectionContentView[]): Map<string, QuestionView>
 }
 
 /**
- * The per-type breakdown.
+ * The per-type breakdown, one group per skill that has answer-key typed rows.
  *
  * <b>Empty when the sitting is still in progress.</b> `content` is gated
  * server-side on the whole sitting having ended, so a Full Test candidate
  * still on Listening gets no breakdown for the Reading section that already
  * closed — which is right, and means this returns an empty list rather than a
  * breakdown built from question ids with no types behind them.
+ *
+ * <b>Grouped by skill, never a flat cross-paper list.</b> Matching in Reading
+ * and Matching in Listening stay in their own sections. Skills with only
+ * essay/speaking responses (or no typed questions at all) are omitted.
  */
+const SKILL_BREAKDOWN_ORDER: ExamModule[] = ['reading', 'listening', 'writing', 'speaking'];
+
+/** Judgement types — no answer key, so they never become typed-bar rows. */
+const NON_KEY_TYPES = new Set(['essay-task', 'speaking-response']);
+
 function breakdownOf(
   questions: QuestionResultView[],
   index: Map<string, QuestionView>,
@@ -110,7 +132,7 @@ function breakdownOf(
 
   for (const result of questions) {
     const type = index.get(result.questionId)?.type;
-    if (type === undefined) continue;
+    if (type === undefined || NON_KEY_TYPES.has(type)) continue;
 
     const row = tally.get(type) ?? { correct: 0, total: 0 };
     row.total += 1;
@@ -133,6 +155,19 @@ function breakdownOf(
   );
 }
 
+/** Build per-skill groups from every section that has typed answer-key rows. */
+export function breakdownBySkill(results: SessionResultsView): SkillBreakdownGroup[] {
+  const index = questionsById(results.content ?? []);
+  const byModule = new Map(results.sections.map((section) => [section.module, section]));
+
+  return SKILL_BREAKDOWN_ORDER.flatMap((module) => {
+    const section = byModule.get(module);
+    if (section === undefined) return [];
+    const rows = breakdownOf(section.questions, index);
+    return rows.length === 0 ? [] : [{ module, rows }];
+  });
+}
+
 function round1(value: number): number {
   return Math.round(value * 10) / 10;
 }
@@ -149,8 +184,6 @@ export function statsFor(
   section: SectionResultView | undefined,
   startedAt: string | null,
 ): ResultStats {
-  const index = questionsById(results.content ?? []);
-
   const correct = section?.rawScore ?? null;
   const total = section?.maxScore ?? null;
   const attempted =
@@ -175,7 +208,7 @@ export function statsFor(
       correct === null || total === null || total === 0 ? null : round1((correct / total) * 100),
     attempted,
     durationSeconds,
-    breakdown: section === undefined ? [] : breakdownOf(section.questions, index),
+    breakdown: breakdownBySkill(results),
   };
 }
 
@@ -215,7 +248,8 @@ export interface Suggestion {
 export function suggestionsFrom(stats: ResultStats): Suggestion[] {
   const out: Suggestion[] = [];
 
-  const weakest = [...stats.breakdown]
+  const weakest = stats.breakdown
+    .flatMap((group) => group.rows)
     .filter((row) => row.total > 0)
     .sort((a, b) => a.percent - b.percent)[0];
 

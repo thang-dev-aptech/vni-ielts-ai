@@ -431,10 +431,10 @@ const vi = {
   'exam.chipSingleSkill': 'Luyện một kỹ năng',
   'exam.chipTimed': 'Tính giờ như thi thật',
   /* ── The result screen (`/results/:attemptId`) ──────────────────────────
-   * Three of the reference screenshot's figures have no source in this
-   * product — a difficulty rating, a cohort percentile and a band
-   * distribution. The strings for those slots say so; they never stand in for
-   * a number. → DESIGN.md anti-pattern #12
+   * Two of the reference screenshot's figures have no source in this
+   * product — a cohort percentile and a band distribution. The strings for
+   * those slots say so; they never stand in for a number. Paper difficulty
+   * is not shown at all. → DESIGN.md anti-pattern #12
    */
   'exam.resultHeading': 'Kết quả {skill}',
   'exam.resultPaper': 'Đề thi: {title}',
@@ -451,7 +451,6 @@ const vi = {
   'exam.statCorrect': 'Số câu đúng',
   'exam.statAccuracy': 'Tỷ lệ chính xác',
   'exam.statTime': 'Thời gian làm bài',
-  'exam.statDifficulty': 'Độ khó của đề',
   'exam.statCompletion': 'Hoàn thành bài thi',
   'exam.statCorrectOf': '{correct}/{total} câu đúng',
   'exam.statAttemptedOf': 'Đã làm {attempted}/{total} câu',
@@ -463,8 +462,8 @@ const vi = {
   'exam.keepPractising': 'Tiếp tục luyện tập',
   'exam.overviewTitle': 'Tổng quan kết quả',
   'exam.overviewLead': 'Xem chi tiết hiệu suất làm bài của bạn trong từng khía cạnh.',
-  'exam.breakdownTitle': 'Kết quả theo dạng câu hỏi',
-  'exam.breakdownLead': 'Hiểu rõ điểm mạnh, điểm cần cải thiện của bạn.',
+  'exam.breakdownTitle': 'Kết quả theo kỹ năng và dạng câu hỏi',
+  'exam.breakdownLead': 'Xem từng kỹ năng: điểm mạnh và dạng cần cải thiện.',
   'exam.breakdownEmpty': 'Chưa có dữ liệu theo dạng câu hỏi cho buổi làm bài này.',
   'exam.compareTitle': 'So sánh kết quả',
   'exam.compareLead': 'Vị trí điểm của bạn so với những người học khác.',
@@ -1359,7 +1358,6 @@ const en: Record<StringKey, string> = {
   'exam.statCorrect': 'Correct answers',
   'exam.statAccuracy': 'Accuracy',
   'exam.statTime': 'Time taken',
-  'exam.statDifficulty': 'Paper difficulty',
   'exam.statCompletion': 'Questions attempted',
   'exam.statCorrectOf': '{correct}/{total} correct',
   'exam.statAttemptedOf': '{attempted}/{total} attempted',
@@ -1371,8 +1369,8 @@ const en: Record<StringKey, string> = {
   'exam.keepPractising': 'Keep practising',
   'exam.overviewTitle': 'Result overview',
   'exam.overviewLead': 'How the sitting went, broken down.',
-  'exam.breakdownTitle': 'By question type',
-  'exam.breakdownLead': 'Where you are strong, and what to work on.',
+  'exam.breakdownTitle': 'By skill and question type',
+  'exam.breakdownLead': 'Per skill: where you are strong, and what to work on.',
   'exam.breakdownEmpty': 'No question-type data for this sitting.',
   'exam.compareTitle': 'How this compares',
   'exam.compareLead': 'Where your band sits against other learners.',

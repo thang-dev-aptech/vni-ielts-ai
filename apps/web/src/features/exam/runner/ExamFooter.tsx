@@ -102,7 +102,7 @@ export function ExamFooter({
 
   return (
     <footer className="exr-foot">
-      <div className="exr-wrap exr-foot-in">
+      <div className="exr-foot-in">
         <div className="exr-nav" role="group" aria-label={t('practice.sectionMap')}>
           {parts.map((one, index) =>
             index === activePart ? (
@@ -250,7 +250,7 @@ export function ExamFooter({
 
       {/* Said beside "Tiếp theo": irreversible, and it names both skills. */}
       {ending === 'advance' && nextNote != null && nextNote !== '' && (
-        <p className="exr-wrap exr-notice is-quiet">{nextNote}</p>
+        <p className="exr-foot-note exr-notice is-quiet">{nextNote}</p>
       )}
 
       {sheetOpen && (

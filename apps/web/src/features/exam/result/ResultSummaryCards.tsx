@@ -1,24 +1,19 @@
 import { useI18n } from '../../../i18n/index.js';
 import { formatDurationClock, perQuestionPace, type ResultStats } from './resultModel.js';
-import { BarsGlyph, CheckCircleGlyph, PagesGlyph, StopwatchGlyph } from './ResultIcons.js';
+import { CheckCircleGlyph, PagesGlyph, StopwatchGlyph } from './ResultIcons.js';
 
 /**
- * "Tổng quan kết quả" — four cards, each one a figure with its own basis.
+ * "Tổng quan kết quả" — accuracy, completion, and time.
  *
  * <b>A card with no figure keeps its place and shows `—`.</b> Removing it
  * would change the layout depending on what the server happened to send, and
- * a learner comparing two sittings would see a different grid each time. The
- * fourth card, difficulty, has no source in this product at all — it is drawn
- * as an absence with a note rather than as a rating nobody computed.
+ * a learner comparing two sittings would see a different grid each time.
  * → DESIGN.md anti-pattern #12, product law L3
+ *
+ * Paper difficulty is not drawn here: no exam version carries a rating, so
+ * the slot is omitted rather than shown as an empty `—`.
  */
-export function ResultSummaryCards({
-  stats,
-  examTitle,
-}: {
-  stats: ResultStats;
-  examTitle: string;
-}) {
+export function ResultSummaryCards({ stats }: { stats: ResultStats }) {
   const { t } = useI18n();
   const pace = perQuestionPace(stats.durationSeconds, stats.total);
 
@@ -59,18 +54,6 @@ export function ResultSummaryCards({
           pace === null ? t('exam.statNoStartTime') : t('exam.statPacePerQuestion', { time: pace })
         }
       />
-      {/*
-        Difficulty: the reference's fourth card. No exam version in this
-        product carries a rating, so this is `—` with the paper named beneath
-        it — the one true thing available in that slot.
-      */}
-      <Card
-        tone="violet"
-        icon={<BarsGlyph />}
-        label={t('exam.statDifficulty')}
-        value={null}
-        sub={examTitle}
-      />
     </ul>
   );
 }
@@ -82,7 +65,7 @@ function Card({
   value,
   sub,
 }: {
-  tone: 'green' | 'blue' | 'amber' | 'violet';
+  tone: 'green' | 'blue' | 'amber';
   icon: React.ReactNode;
   label: string;
   /** Null draws an em dash in the quiet weight — never `0`, never a skeleton. */

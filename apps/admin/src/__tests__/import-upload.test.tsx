@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { ApiError } from '@vni/auth';
 import type { ImportDraft, ImportJobView } from '../lib/adminApi.js';
 
@@ -49,6 +50,7 @@ vi.mock('../lib/adminApi.js', async (importOriginal) => {
     downloadImportTemplate: vi.fn(),
     overrideImportWarning: vi.fn(),
     approveImportDraft: vi.fn(),
+    setImportChecklist: vi.fn(),
   };
 });
 
@@ -58,9 +60,28 @@ const {
   getImportDraft,
   downloadImportTemplate,
   overrideImportWarning,
+  setImportChecklist,
   ImportApiError,
 } = await import('../lib/adminApi.js');
 const { ImportPage } = await import('../screens/ImportPage.js');
+
+/** `ImportPage` reads/writes `?draftId=` via `useSearchParams`, which needs a router context. */
+function renderImportPage() {
+  return render(
+    <MemoryRouter>
+      <ImportPage />
+    </MemoryRouter>,
+  );
+}
+
+/** Same, but opened straight at a draft's URL — `getImportDraft` fetches it on mount. */
+function renderImportPageWithDraft(draftId: string) {
+  return render(
+    <MemoryRouter initialEntries={[`/import?draftId=${draftId}`]}>
+      <ImportPage />
+    </MemoryRouter>,
+  );
+}
 
 function draft(overrides: Partial<ImportDraft> = {}): ImportDraft {
   return {
@@ -112,6 +133,7 @@ describe('ImportPage', () => {
     vi.mocked(getImportDraft).mockReset();
     vi.mocked(downloadImportTemplate).mockReset();
     vi.mocked(overrideImportWarning).mockReset();
+    vi.mocked(setImportChecklist).mockReset();
   });
 
   afterEach(() => {
@@ -136,7 +158,7 @@ describe('ImportPage', () => {
       );
     vi.mocked(getImportDraft).mockResolvedValue(draft());
 
-    render(<ImportPage />);
+    renderImportPage();
     chooseFile();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
@@ -192,7 +214,7 @@ describe('ImportPage', () => {
       }),
     );
 
-    render(<ImportPage />);
+    renderImportPage();
     chooseFile();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
@@ -234,7 +256,7 @@ describe('ImportPage', () => {
       }),
     );
 
-    render(<ImportPage />);
+    renderImportPage();
     chooseFile();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
@@ -269,7 +291,7 @@ describe('ImportPage', () => {
       job({ operationId: 'op-3', stage: 'Transcribing', state: 'Running' }),
     );
 
-    render(<ImportPage />);
+    renderImportPage();
     chooseFile();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
@@ -314,7 +336,7 @@ describe('ImportPage', () => {
       job({ operationId: 'op-5', stage: 'Explaining', state: 'Running' }),
     );
 
-    render(<ImportPage />);
+    renderImportPage();
     chooseFile();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
@@ -343,7 +365,7 @@ describe('ImportPage', () => {
     vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL });
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
-    render(<ImportPage />);
+    renderImportPage();
     fireEvent.click(screen.getByRole('button', { name: 'Tải mẫu gói (.zip)' }));
 
     await waitFor(() => expect(downloadImportTemplate).toHaveBeenCalledWith('token-1'));
@@ -375,7 +397,7 @@ describe('ImportPage', () => {
       ),
     );
 
-    render(<ImportPage />);
+    renderImportPage();
     chooseFile();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
@@ -402,7 +424,7 @@ describe('ImportPage', () => {
       ),
     );
 
-    render(<ImportPage />);
+    renderImportPage();
     chooseFile('raw-documents.zip');
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
 
@@ -450,7 +472,7 @@ describe('ImportPage', () => {
       }),
     );
 
-    render(<ImportPage />);
+    renderImportPage();
     chooseFile();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên và kiểm' }));
     await screen.findByText(/Asset không khớp\./);
@@ -474,5 +496,31 @@ describe('ImportPage', () => {
         'Đã đối chiếu thủ công với file gốc.',
       ),
     );
+  });
+
+  /**
+   * `SetChecklistAsync` has always been required for approval; until the
+   * checklist endpoint existed nothing on this screen could ever satisfy it.
+   * Proves the checkbox sends the full next set (a replace, not a patch) and
+   * that the response — not local optimism — is what the checkbox reflects.
+   */
+  it('confirming a checklist item sends the full next set and reflects the response', async () => {
+    vi.mocked(getImportDraft).mockResolvedValue(draft());
+    vi.mocked(setImportChecklist).mockResolvedValue(draft({ checklistConfirmed: ['questions'] }));
+
+    renderImportPageWithDraft('draft-1');
+    await screen.findByText('Bản nháp draft-1');
+
+    expect(screen.getByRole('heading', { name: /0\/6/ })).toBeInTheDocument();
+    const checkbox = screen.getByRole('checkbox', { name: 'Câu hỏi' });
+    expect(checkbox).not.toBeChecked();
+
+    fireEvent.click(checkbox);
+
+    await waitFor(() =>
+      expect(setImportChecklist).toHaveBeenCalledWith('token-1', 'draft-1', ['questions']),
+    );
+    await waitFor(() => expect(checkbox).toBeChecked());
+    expect(screen.getByRole('heading', { name: /1\/6/ })).toBeInTheDocument();
   });
 });

@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Vni.Ielts.Application.Common;
+using Vni.Ielts.Application.Exams;
 using Vni.Ielts.Application.Explanations;
 using Vni.Ielts.Domain.Common;
 using Vni.Ielts.Domain.Exams;
@@ -31,7 +32,8 @@ public sealed class ImportReviewWorkflow(
     IImportDraftStore drafts,
     IExamPackageValidator validator,
     CanonicalExplanationWorkflow? canonicalExplanations = null,
-    IImportAssetPromoter? assetPromoter = null)
+    IImportAssetPromoter? assetPromoter = null,
+    IExamCatalogue? catalogue = null)
 {
     private readonly IImportAssetPromoter promoter = assetPromoter ?? NoOpImportAssetPromoter.Instance;
 
@@ -91,21 +93,21 @@ public sealed class ImportReviewWorkflow(
         HashSet<string>? bankKeys = null;
 
         foreach (var sectionNode in root["sections"]!.AsArray())
-        foreach (var partNode in sectionNode!["parts"]!.AsArray())
-        foreach (var questionNode in (partNode!["questions"]?.AsArray() ?? []))
-        {
-            if (questionNode!["group"] is not JsonObject group
-                || group["id"]?.GetValue<string>() != groupId)
-            {
-                continue;
-            }
+            foreach (var partNode in sectionNode!["parts"]!.AsArray())
+                foreach (var questionNode in (partNode!["questions"]?.AsArray() ?? []))
+                {
+                    if (questionNode!["group"] is not JsonObject group
+                        || group["id"]?.GetValue<string>() != groupId)
+                    {
+                        continue;
+                    }
 
-            occurrences.Add(group);
-            // Every occurrence carries the same bank (CheckGroups already
-            // enforces this); the first one found is representative.
-            bankKeys ??= [.. (questionNode["options"]?.AsArray() ?? [])
+                    occurrences.Add(group);
+                    // Every occurrence carries the same bank (CheckGroups already
+                    // enforces this); the first one found is representative.
+                    bankKeys ??= [.. (questionNode["options"]?.AsArray() ?? [])
                 .Select(o => o!["key"]!.GetValue<string>())];
-        }
+                }
 
         if (occurrences.Count == 0) return ImportReviewResult.Refused("IMPORT_GROUP_NOT_FOUND");
         if (positions.Any(p => !bankKeys!.Contains(p.Key)))
@@ -239,6 +241,31 @@ public sealed class ImportReviewWorkflow(
         catch (Exception e) when (e is not OperationCanceledException)
         {
             return ImportReviewResult.Refused("IMPORT_ASSET_PROMOTE_FAILED");
+        }
+
+        /*
+         * <b>The gap this closes.</b> Approving an import draft used to only
+         * flip ImportApprovalState — draft.Version (already a real, validated
+         * ExamVersion) was never written to the catalogue IExamCatalogue
+         * backs, so an approved import never appeared on the CMS "Đề thi"
+         * screen (ExamsPage reads ListAllAsync, which reads exam_versions,
+         * a collection this write path never touched). Upserted here as
+         * whatever status Convert() gave it — CreateDraft leaves it at
+         * ExamVersionStatus.Draft — so the operator still walks the normal
+         * submit → review → publish lifecycle afterward; approving an
+         * import is not a publish decision, only the step that makes the
+         * version visible to make one from.
+         */
+        if (catalogue is not null)
+        {
+            try
+            {
+                await catalogue.UpsertAsync(draft.Version, ct);
+            }
+            catch (Exception e) when (e is not OperationCanceledException)
+            {
+                return ImportReviewResult.Refused("IMPORT_CATALOGUE_WRITE_FAILED");
+            }
         }
 
         var approved = draft with

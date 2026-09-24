@@ -76,7 +76,7 @@ export function OverviewPage() {
 
     if (can('audit.read')) {
       try {
-        const { entries } = await listAudit(accessToken, { actor: '', action: '' }, 1);
+        const { entries } = await listAudit(accessToken, { actor: '', action: '' });
         if (alive.current) setRecent(entries.slice(0, 8));
       } catch {
         if (alive.current) setRecent([]);

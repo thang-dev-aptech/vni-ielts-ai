@@ -1,0 +1,13 @@
+Thư mục này chứa ĐÁP ÁN (answer key) do nhà cung cấp đề đưa ra.
+
+Định dạng tệp được đọc: .docx, .pdf, .txt
+
+Lưu ý bắt buộc — quan trọng:
+- Tên thư mục không được có dấu, ví dụ "dap-an", không phải "đáp án".
+  Nếu tên thư mục sai chính tả hoặc có dấu, hệ thống sẽ không nhận ra
+  đây là đáp án và sẽ xử lý các tệp trong đó như thể chúng là ĐỀ BÀI —
+  nghĩa là đáp án sẽ bị gửi cho mô hình AI. Đây là lỗi nghiêm trọng
+  nhất có thể xảy ra khi đặt sai tên thư mục.
+- Đáp án chỉ được đọc bằng mã nguồn của hệ thống, không bao giờ được
+  gửi cho mô hình AI.
+- Xoá tệp hướng dẫn này trước khi nộp gói đề thật; đây chỉ là khung mẫu.

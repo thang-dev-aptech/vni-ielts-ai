@@ -1184,16 +1184,21 @@ function timingFor(section: SessionView['current'], partNumber: number | null) {
  * Under the minimum uses `--warn`, never `--bad`: a short essay is unfinished,
  * not broken, and colouring it like a fault while someone is still writing is
  * the interface panicking on their behalf.
+ *
+ * At or above the minimum uses green (`is-met`) only when a minimum is
+ * published — no minimum means no invented "ok" colour. Text still carries
+ * both states; colour is never the only channel.
  */
 function WordCount({ text, minWords }: { text: string; minWords: number | null }) {
   const { t } = useI18n();
   const words = countWords(text);
   const short = minWords !== null && words < minWords;
+  const met = minWords !== null && words >= minWords;
 
   return (
-    <p className={`word-count${short ? ' is-short' : ''}`}>
+    <p className={`word-count${short ? ' is-short' : ''}${met ? ' is-met' : ''}`}>
       {/*
-        Text carries the under-min state; colour is never the only channel.
+        Text carries the under-min / met state; colour is never the only channel.
         No live region: the count moves on every keystroke, and announcing that
         would make the essay unusable with a screen reader.
       */}

@@ -1,0 +1,10 @@
+Thư mục này chứa ĐỀ BÀI của phần Đọc (Reading): đoạn văn, câu hỏi, đề bài — nội dung
+thí sinh sẽ đọc hoặc làm bài.
+
+Định dạng tệp được đọc: .docx, .pdf, .txt
+
+Lưu ý bắt buộc:
+- Tên thư mục và tên tệp không được có dấu (viết không dấu tiếng Việt),
+  ví dụ "de", không phải "đề". Một công cụ nén ZIP có thể ghi sai tên có dấu,
+  khiến hệ thống không nhận ra đúng vai trò của thư mục.
+- Xoá tệp hướng dẫn này trước khi nộp gói đề thật; đây chỉ là khung mẫu.

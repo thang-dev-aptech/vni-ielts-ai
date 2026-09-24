@@ -4,6 +4,17 @@ import { useAdminAuth } from '../lib/AdminAuth.js';
 import { AdminPaths } from '../routes/paths.js';
 import { listExams, type AdminExam } from '../lib/adminApi.js';
 import { StatusBadge } from '../components/StatusBadge.js';
+import { STATE, type ExamState } from '../lib/lifecycle.js';
+
+/** `'all'` plus the five real `ExamVersionStatus` values, in lifecycle order. */
+const STATUS_FILTERS: readonly (ExamState | 'all')[] = [
+  'all',
+  'draft',
+  'inreview',
+  'approved',
+  'published',
+  'unpublished',
+];
 
 /**
  * Screen 3.1 — every exam, drafts included.
@@ -24,6 +35,7 @@ export function ExamsPage() {
   const [exams, setExams] = useState<AdminExam[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [query, setQuery] = useState('');
+  const [status, setStatus] = useState<ExamState | 'all'>('all');
   const alive = useRef(true);
 
   useEffect(() => {
@@ -43,8 +55,10 @@ export function ExamsPage() {
 
   useEffect(() => void load(), [load]);
 
-  const shown = (exams ?? []).filter((e) =>
-    e.title.toLowerCase().includes(query.trim().toLowerCase()),
+  const shown = (exams ?? []).filter(
+    (e) =>
+      e.title.toLowerCase().includes(query.trim().toLowerCase()) &&
+      (status === 'all' || e.status === status),
   );
 
   return (
@@ -62,6 +76,16 @@ export function ExamsPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+        <label className="cms-field-inline">
+          <span>Trạng thái</span>
+          <select value={status} onChange={(e) => setStatus(e.target.value as ExamState | 'all')}>
+            {STATUS_FILTERS.map((value) => (
+              <option key={value} value={value}>
+                {value === 'all' ? 'Mọi trạng thái' : STATE[value].label}
+              </option>
+            ))}
+          </select>
+        </label>
         <Link className="cms-primary" to={AdminPaths.import}>
           Nhập đề mới
         </Link>

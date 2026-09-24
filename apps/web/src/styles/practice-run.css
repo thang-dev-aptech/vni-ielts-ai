@@ -520,6 +520,16 @@
   padding: var(--s-4);
 }
 
+/*
+ * Shared with the exam runner: green only once a published minimum is met.
+ * Under-min stays on `.is-short` / `--warn` from exam.css; no minimum means
+ * neither class, so colour does not invent an "ok" state.
+ */
+.word-count.is-met,
+.word-count.is-met .num {
+  color: var(--ok);
+}
+
 .prun-mobile-tabs {
   display: none;
 }

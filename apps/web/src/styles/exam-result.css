@@ -2,7 +2,7 @@
  * The result screen — `/results/:attemptId`.
  *
  * <b>A clone of the supplied reference, not a derivation from it.</b>
- * `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026. Hero with the band, four summary
+ * `[QUYẾT ĐỊNH]` chủ sản phẩm 08/09/2026. Hero with the band, three summary
  * cards, the per-type breakdown beside the band comparison, then the answer
  * review with its two sidebar cards, then the closing banner.
  *
@@ -455,7 +455,7 @@
 
 .exs-score-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   border: var(--bw-1) solid var(--exs-line-soft);
   border-radius: var(--r-md);
   overflow: hidden;
@@ -579,7 +579,7 @@
 /* ── Summary cards ───────────────────────────────────────────────────────*/
 .exs-cards {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--s-4);
   list-style: none;
   margin: 0;
@@ -735,6 +735,18 @@
 }
 
 /* ── Breakdown bars ──────────────────────────────────────────────────────*/
+.exs-breakdown-skills {
+  display: grid;
+  gap: var(--s-5);
+}
+
+.exs-breakdown-skill-title {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-14);
+  font-weight: 800;
+  color: var(--exs-ink);
+}
+
 .exs-bars {
   list-style: none;
   margin: 0;

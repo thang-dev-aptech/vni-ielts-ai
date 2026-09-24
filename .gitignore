@@ -79,6 +79,20 @@ google-services.json
 tmp/
 *.local
 
+# Root-level research/import scratch. These are local downloads, generated
+# packages, logs, and agent context — never source or distributable fixtures.
+/.project-context/
+/Study4_layout/
+/aptis_de_zip/
+/#36.txt
+/codex-session-*.md
+/de-1-full-4-ky-nang.zip
+/ielts-collection-1-full-test.zip
+/jenkins-log.txt
+/listenning_exam.txt
+/reading_exam.txt
+/package-lock.json
+
 # ── Added with the monorepo, 2026-08-20 ───────────────────────────────
 coverage/
 .turbo/

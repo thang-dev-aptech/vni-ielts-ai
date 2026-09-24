@@ -807,6 +807,66 @@ public sealed class AdminImportEndpointsTests(SsoAppFactory app) : IClassFixture
     }
 
     /// <summary>
+    /// <c>ApproveAsync</c> has always required <c>draft.Checklist.IsComplete</c>,
+    /// but nothing before this endpoint could ever set it — every draft's
+    /// checklist started empty and stayed empty. This is the red-when-removed
+    /// proof that a caller can now fill it in, that an unrecognised category
+    /// is refused rather than silently dropped, and that the write is
+    /// audited with a count only, never the category names or draft content.
+    /// </summary>
+    [SkippableFact]
+    public async Task Setting_the_checklist_completes_it_and_is_audited_once()
+    {
+        Skip.IfNot(SsoAppFactory.MongoAvailable, SsoAppFactory.SkipReason);
+
+        var (client, access) = await SignInAsAdminAsync();
+        var draftId = await SeedDraftWithWarningAsync();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+            var seeded = await drafts.FindAsync(Guid.Parse(draftId), default);
+            Assert.False(seeded!.Checklist.IsComplete);
+            Assert.Empty(seeded.Checklist.Confirmed);
+        }
+
+        // 1. An unrecognised category is refused, not silently dropped.
+        var bad = Request(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        bad.Content = JsonContent.Create(new { confirmed = new[] { "questions", "not-a-real-category" } });
+        var badResponse = await client.SendAsync(bad);
+        Assert.Equal(HttpStatusCode.BadRequest, badResponse.StatusCode);
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var drafts = scope.ServiceProvider.GetRequiredService<IImportDraftStore>();
+            var stillEmpty = await drafts.FindAsync(Guid.Parse(draftId), default);
+            Assert.Empty(stillEmpty!.Checklist.Confirmed);
+        }
+
+        // 2. All six real categories — the wire format is lower-case, no separators.
+        var all = new[] { "questions", "options", "wordlimits", "acceptedvariants", "transcriptandevidence", "assetmapping" };
+        var good = Request(HttpMethod.Post, $"/api/v1/admin/import/packages/{draftId}/checklist", access);
+        good.Content = JsonContent.Create(new { confirmed = all });
+        var goodResponse = await client.SendAsync(good);
+        var body = await BodyOf(goodResponse);
+
+        Assert.Equal(HttpStatusCode.OK, goodResponse.StatusCode);
+        Assert.True(body.GetProperty("checklistComplete").GetBoolean());
+        Assert.Equal(6, body.GetProperty("checklistConfirmed").GetArrayLength());
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var audit = scope.ServiceProvider.GetRequiredService<IAuditLog>();
+            var (entries, _) = await audit.ListAsync(
+                null, nameof(AuditAction.ImportChecklistConfirmed), 0, 50, default);
+            var mine = entries.Where(e => e.TargetId == draftId).ToArray();
+            var single = Assert.Single(mine);
+            Assert.Equal("6", single.Detail["confirmedCount"]);
+            Assert.DoesNotContain(single.Detail.Values, v => v.Contains("questions", StringComparison.Ordinal));
+        }
+    }
+
+    /// <summary>
     /// Mirrors <c>Overriding_a_warning_requires_a_reason_and_is_audited</c>'s
     /// shape exactly, per <c>hotspot-positions-endpoint</c>'s acceptance
     /// criteria: 200 with the new positions on success, 403 without

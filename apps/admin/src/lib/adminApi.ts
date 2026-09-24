@@ -714,6 +714,43 @@ export const setGroupPositions = async (
 };
 
 /**
+ * `ImportDraft.checklistConfirmed`'s own values — `ImportReviewCategory`
+ * members, lower-case with no separators, exactly as the server sends them
+ * on the draft view. Matched case-insensitively server-side, but these are
+ * the canonical wire spellings.
+ */
+export type ImportChecklistCategory =
+  | 'questions'
+  | 'options'
+  | 'wordlimits'
+  | 'acceptedvariants'
+  | 'transcriptandevidence'
+  | 'assetmapping';
+
+/**
+ * Replaces the full set of confirmed checklist categories — a replace, not a
+ * patch, same contract as `setGroupPositions`. Approval refuses with
+ * `IMPORT_CHECKLIST_INCOMPLETE` until all six are confirmed.
+ */
+export const setImportChecklist = async (
+  accessToken: string,
+  draftId: string,
+  confirmed: ImportChecklistCategory[],
+): Promise<ImportDraft> => {
+  const response = await authedFetch(
+    `${apiBase()}/api/v1/admin/import/packages/${draftId}/checklist`,
+    accessToken,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() },
+      body: JSON.stringify({ confirmed }),
+    },
+  );
+
+  return parseImportResponse<ImportDraft>(response);
+};
+
+/**
  * Fetches one privately staged draft asset (authorized) and hands back a
  * local `blob:` URL — same reasoning as `fetchMediaObjectUrl`: an `<img>`
  * cannot present a bearer token, and before approval this asset exists only
@@ -987,16 +1024,15 @@ export const getEvaluation = (
   includeContent = false,
 ) =>
   request<AdminEvaluationDetail>(
-    `/api/v1/admin/evaluations/${encodeURIComponent(sessionId)}/${encodeURIComponent(markingId)}`
-      + `?${queryFor({ includeContent })}`,
+    `/api/v1/admin/evaluations/${encodeURIComponent(sessionId)}/${encodeURIComponent(markingId)}` +
+      `?${queryFor({ includeContent })}`,
     { accessToken },
   );
 
 export const listFailedMarkingJobs = (accessToken: string, filters: FailedMarkingJobFilters = {}) =>
-  request<FailedMarkingJobPage>(
-    `/api/v1/admin/evaluations/failed-jobs?${queryFor(filters)}`,
-    { accessToken },
-  );
+  request<FailedMarkingJobPage>(`/api/v1/admin/evaluations/failed-jobs?${queryFor(filters)}`, {
+    accessToken,
+  });
 
 export const rerunEvaluation = (accessToken: string, operationId: string) =>
   request<EvaluationRerunResult>(
@@ -1020,7 +1056,8 @@ export interface PackageImportHistorySummary {
   updatedAt: string;
 }
 
-export interface PackageImportHistoryDetail extends Omit<PackageImportHistorySummary, 'findingCount'> {
+export interface PackageImportHistoryDetail
+  extends Omit<PackageImportHistorySummary, 'findingCount'> {
   findings: ImportFinding[];
 }
 
@@ -1045,10 +1082,9 @@ export const listPackageHistory = (
   accessToken: string,
   filters: PackageImportHistoryFilters = {},
 ) =>
-  request<PackageImportHistoryPage>(
-    `/api/v1/admin/import/packages?${queryFor(filters)}`,
-    { accessToken },
-  );
+  request<PackageImportHistoryPage>(`/api/v1/admin/import/packages?${queryFor(filters)}`, {
+    accessToken,
+  });
 
 export const getPackageHistory = (accessToken: string, historyId: string) =>
   request<PackageImportHistoryDetail>(

@@ -1,0 +1,7 @@
+Thư mục này chứa các tệp ÂM THANH (audio) của phần Nghe (Listening).
+
+Định dạng tệp được đọc: .mp3
+
+Lưu ý bắt buộc:
+- Tên thư mục không được có dấu, ví dụ "audio".
+- Xoá tệp hướng dẫn này trước khi nộp gói đề thật; đây chỉ là khung mẫu.

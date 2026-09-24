@@ -2,7 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ApiError } from '@vni/auth';
 import { useAdminAuth } from '../lib/AdminAuth.js';
-import { getPackageHistory, type ImportFinding, type PackageImportHistoryDetail } from '../lib/adminApi.js';
+import {
+  getPackageHistory,
+  type ImportFinding,
+  type PackageImportHistoryDetail,
+} from '../lib/adminApi.js';
 import { AdminPaths } from '../routes/paths.js';
 import {
   describe,
@@ -114,9 +118,7 @@ export function PackageHistoryDetailPage() {
         <h2 id="package-outcome">{title}</h2>
         <p>{outcomeCopy(kind, row)}</p>
         {!archiveKept && (
-          <p>
-            Gói không được giữ lại. Không có đường tải xuống hay xem nội dung đã tải.
-          </p>
+          <p>Gói không được giữ lại. Không có đường tải xuống hay xem nội dung đã tải.</p>
         )}
       </section>
 
@@ -141,7 +143,13 @@ export function PackageHistoryDetailPage() {
           <dd>{row.stage === null ? '—' : stageLabel(row.stage)}</dd>
 
           <dt>Bản nháp</dt>
-          <dd className="cms-code">{row.draftId ?? '—'}</dd>
+          <dd className="cms-code">
+            {row.draftId === null ? (
+              '—'
+            ) : (
+              <Link to={`${AdminPaths.import}?draftId=${row.draftId}`}>{row.draftId}</Link>
+            )}
+          </dd>
 
           <dt>Mã lần tải</dt>
           <dd className="num">{row.historyId}</dd>

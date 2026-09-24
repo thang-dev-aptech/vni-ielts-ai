@@ -4,7 +4,6 @@ import { Paths } from '../../../routes/paths.js';
 import { formatDurationClock, type ResultStats } from './resultModel.js';
 import {
   ArrowRightGlyph,
-  BarsGlyph,
   BookGlyph,
   CheckCircleGlyph,
   LeafGlyph,
@@ -23,12 +22,11 @@ import {
  * gate: a band whose conversion table was not equated is withheld with the
  * reason beside it, even though the scorer computed a number.
  *
- * <b>Three of the reference's figures are not in the payload.</b> The
- * difficulty rating, the cohort percentile ("tốt hơn 78% người học") and the
- * band distribution have no source in this product — nothing measures them.
- * They keep their place in the layout and show what is true instead: an
- * absence. DESIGN.md anti-pattern #12 — a figure nobody has confirmed is `—`
- * with a note, not a number that looks researched.
+ * <b>Two of the reference's figures are not in the payload.</b> The cohort
+ * percentile ("tốt hơn 78% người học") and the band distribution have no
+ * source in this product — nothing measures them. They keep their place where
+ * they still appear and show an absence. Paper difficulty is omitted entirely
+ * (no rating exists to display). DESIGN.md anti-pattern #12.
  */
 export function ResultHero({
   examTitle,
@@ -182,17 +180,6 @@ export function ResultHero({
               stats.durationSeconds === null ? '—' : formatDurationClock(stats.durationSeconds)
             }
           />
-          {/*
-            Difficulty is the reference's fourth figure and this product does
-            not hold one — no field on the exam version, no rating anywhere.
-            The card keeps its place and says so.
-          */}
-          <Stat
-            tone="violet"
-            icon={<BarsGlyph size={18} />}
-            label={t('exam.statDifficulty')}
-            value="—"
-          />
         </div>
 
         <div className="exs-score-actions">
@@ -220,7 +207,7 @@ function Stat({
   label,
   value,
 }: {
-  tone: 'green' | 'blue' | 'amber' | 'violet';
+  tone: 'green' | 'blue' | 'amber';
   icon: React.ReactNode;
   label: string;
   value: string;
