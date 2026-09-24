@@ -61,7 +61,25 @@ public sealed class ExamPackageReader(JsonSchema schema)
     /// Validates and converts. Findings carry a JSON Pointer path so an author
     /// gets an addressable list of what to fix rather than a stack trace.
     /// </summary>
-    public ExamPackageResult Read(string json, ExamDefinitionId definitionId, int versionNumber, UserId? authorId = null)
+    /// <param name="presentAssetPaths">
+    /// The package's actual accepted <c>assets/</c> entries — real files the
+    /// ZIP inspector confirmed exist — or null when the caller has no such
+    /// listing (every caller today).
+    ///
+    /// <b>Optional, and null changes nothing.</b> This reader parses JSON
+    /// text; it has no way to look inside a ZIP on its own; only a caller that
+    /// already inspected the archive (<c>ExamPackageArchiveInspector</c>'s
+    /// <c>PackageLayout.Assets</c>) can supply this. Passing it turns on
+    /// <see cref="CheckAssets"/>'s existence check — a reference to a path
+    /// that was never in the package, as opposed to one the manifest simply
+    /// has no hash for. Omitting it keeps every existing caller's behaviour
+    /// exactly as it was, including the skill-folder layout, whose assets
+    /// live under a per-skill role folder rather than a flat <c>assets/</c>
+    /// this check is not meant to reach.
+    /// </param>
+    public ExamPackageResult Read(
+        string json, ExamDefinitionId definitionId, int versionNumber, UserId? authorId = null,
+        IReadOnlySet<string>? presentAssetPaths = null)
     {
         JsonNode? node;
         try
@@ -102,7 +120,7 @@ public sealed class ExamPackageReader(JsonSchema schema)
         if (slots.Count > 0)
             return ExamPackageResult.Rejected(slots);
 
-        var invariants = CheckPackageInvariants(node.AsObject(), version);
+        var invariants = CheckPackageInvariants(node.AsObject(), version, presentAssetPaths);
         if (invariants.Count > 0)
             return ExamPackageResult.Rejected(invariants);
 
@@ -197,13 +215,14 @@ public sealed class ExamPackageReader(JsonSchema schema)
         return findings;
     }
 
-    private static List<ValidationFinding> CheckPackageInvariants(JsonObject root, ExamVersion version)
+    private static List<ValidationFinding> CheckPackageInvariants(
+        JsonObject root, ExamVersion version, IReadOnlySet<string>? presentAssetPaths)
     {
         var findings = new List<ValidationFinding>();
         CheckSequence(root, version, findings);
         CheckFormatProfile(root, version, findings);
         CheckGroups(version, findings);
-        CheckAssets(root, version, findings);
+        CheckAssets(root, version, findings, presentAssetPaths);
         CheckAuthoredExplanations(root, version, findings);
         return findings;
     }
@@ -339,7 +358,8 @@ public sealed class ExamPackageReader(JsonSchema schema)
     }
 
     private static void CheckAssets(
-        JsonObject root, ExamVersion version, ICollection<ValidationFinding> findings)
+        JsonObject root, ExamVersion version, ICollection<ValidationFinding> findings,
+        IReadOnlySet<string>? presentAssetPaths)
     {
         var refs = version.Sections.SelectMany(s => s.Parts).SelectMany(p =>
                 new[] { p.AudioKey, p.ImageKey }.Concat(p.Questions.Select(q => q.Group?.Image)))
@@ -359,6 +379,29 @@ public sealed class ExamPackageReader(JsonSchema schema)
                 findings.Add(new ValidationFinding(
                     "error", "ASSET_CHECKSUM_MISSING", "/assetManifest",
                     $"Referenced asset '{missing}' has no SHA-256 manifest entry."));
+        }
+
+        /*
+         * A manifest hash entry is a claim, not proof — CheckAssets above only
+         * checks the claim was made. This checks it against reality, and only
+         * when a caller actually inspected the ZIP and can say what reality
+         * is: `presentAssetPaths` is the accepted `assets/` layout
+         * `ExamPackageArchiveInspector` confirmed on disk, threaded in by
+         * whichever caller extracted the archive. Every caller that has no
+         * such listing — every caller today — passes null and this is a
+         * no-op, which is also the correct answer for the skill-folder
+         * layout: its assets live under a per-skill role folder, not the flat
+         * `assets/` this check was built to verify.
+         */
+        if (presentAssetPaths is not null)
+        {
+            foreach (var missing in refs.Except(presentAssetPaths, StringComparer.Ordinal)
+                .OrderBy(path => path, StringComparer.Ordinal))
+            {
+                findings.Add(new ValidationFinding(
+                    "error", "ASSET_FILE_MISSING", "/assetManifest",
+                    $"Referenced asset '{missing}' was not found in the package."));
+            }
         }
     }
 

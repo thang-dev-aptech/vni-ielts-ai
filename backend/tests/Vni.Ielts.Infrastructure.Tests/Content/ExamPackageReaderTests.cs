@@ -634,6 +634,77 @@ public sealed class ExamPackageReaderTests
         Assert.Contains(result.Findings, f => f.Code == "ASSET_CHECKSUM_MISSING");
     }
 
+    /// <summary>
+    /// A manifest hash entry is a claim an asset was included; it is not
+    /// proof. This is the check that verifies the claim against a real
+    /// listing — <see cref="ExamPackageReader.Read"/>'s new
+    /// <c>presentAssetPaths</c> parameter, supplied here directly since no
+    /// production caller wires it yet (that is later plan work; see
+    /// <c>verify-asset-references-exist</c>'s dependents).
+    /// </summary>
+    [Fact]
+    public void A_referenced_asset_absent_from_a_supplied_listing_is_rejected()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["sections"]![0]!["parts"]![0]!["audio"] = "assets/part-1.mp3";
+        root["assetManifest"] = new JsonArray(new JsonObject
+        {
+            ["path"] = "assets/part-1.mp3",
+            ["sha256"] = new string('c', 64),
+        });
+
+        var result = Reader.Read(
+            root.ToJsonString(), ExamDefinitionId.New(), 1, authorId: null,
+            presentAssetPaths: new HashSet<string> { "assets/some-other-file.mp3" });
+
+        Assert.False(result.IsValid);
+        var finding = Assert.Single(result.Findings, f => f.Code == "ASSET_FILE_MISSING");
+        Assert.Contains("assets/part-1.mp3", finding.Message);
+    }
+
+    [Fact]
+    public void A_referenced_asset_present_in_the_supplied_listing_is_accepted()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["sections"]![0]!["parts"]![0]!["audio"] = "assets/part-1.mp3";
+        root["assetManifest"] = new JsonArray(new JsonObject
+        {
+            ["path"] = "assets/part-1.mp3",
+            ["sha256"] = new string('c', 64),
+        });
+
+        var result = Reader.Read(
+            root.ToJsonString(), ExamDefinitionId.New(), 1, authorId: null,
+            presentAssetPaths: new HashSet<string> { "assets/part-1.mp3" });
+
+        Assert.True(result.IsValid, string.Join("; ", result.Findings.Select(f => f.Message)));
+        Assert.DoesNotContain(result.Findings, f => f.Code == "ASSET_FILE_MISSING");
+    }
+
+    /// <summary>
+    /// No production caller supplies a listing today, including the
+    /// skill-folder / AI-parsed route, whose assets live under a per-skill
+    /// role folder rather than the flat <c>assets/</c> this check verifies.
+    /// The default (null) must not flag anything, so that route's existing
+    /// behaviour is unchanged.
+    /// </summary>
+    [Fact]
+    public void With_no_asset_listing_supplied_a_missing_file_is_not_flagged()
+    {
+        var root = JsonNode.Parse(ValidV2Json())!.AsObject();
+        root["sections"]![0]!["parts"]![0]!["audio"] = "assets/part-1.mp3";
+        root["assetManifest"] = new JsonArray(new JsonObject
+        {
+            ["path"] = "assets/part-1.mp3",
+            ["sha256"] = new string('c', 64),
+        });
+
+        var result = Read(root.ToJsonString());
+
+        Assert.True(result.IsValid, string.Join("; ", result.Findings.Select(f => f.Message)));
+        Assert.DoesNotContain(result.Findings, f => f.Code == "ASSET_FILE_MISSING");
+    }
+
     [Fact]
     public void Duplicate_option_key_is_rejected()
     {
