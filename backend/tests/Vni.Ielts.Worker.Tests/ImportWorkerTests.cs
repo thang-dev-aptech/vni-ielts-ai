@@ -349,8 +349,21 @@ public sealed class ImportWorkerTests
         return (job.OperationId, definitionId);
     }
 
+    /// <summary>
+    /// A root-level <c>exam.json</c>, deliberately not <c>reading/exam.json</c>
+    /// — the plan that taught <c>ExamPackageImportPipeline</c> to accept a real
+    /// root <c>assets/</c> layout also narrowed its structured-route condition
+    /// from "exactly one accepted entry" to "no skill folder present, and
+    /// exactly one root <c>.json</c>". A skill-folder path, even a single bare
+    /// file directly under <c>reading/</c>, is classified as that skill's Paper
+    /// (`ExamPackageArchiveInspector`) and no longer qualifies — it now falls
+    /// through to the AI-parsed route, which this test harness has no parser
+    /// configured for, turning every job here into an
+    /// <c>AI_PARSER_UNAVAILABLE</c> failure instead of the completed structured
+    /// import these tests are about.
+    /// </summary>
     private static byte[] StructuredPackage() =>
-        BuildZip(("reading/exam.json", ValidPackageJson.Replace(
+        BuildZip(("exam.json", ValidPackageJson.Replace(
             "worker-import-test", $"worker-{Guid.NewGuid():n}")));
 
     /// <summary>Many zero bytes that deflate shrinks hundredfold — refused on the ratio cap.</summary>
