@@ -40,6 +40,21 @@
   --exr-foot-h: 68px;
 
   /*
+   * Type scale, bumped for the sitting screen only. The shared design-system
+   * tokens (`packages/design-system/src/tokens.css`) stay untouched — this
+   * redefines them inside `.exr-page`'s cascade so every descendant that
+   * reads `var(--t-*)` (this file, `practice-run.css`, `listening.css`,
+   * `exam.css`) renders larger while the dashboard, CMS and every other
+   * screen keep the base scale.
+   */
+  --t-13: 14px;
+  --t-14: 15px;
+  --t-16: 18px;
+  --t-18: 20px;
+  --t-20: 22px;
+  --t-24: 26px;
+
+  /*
    * <b>The page does not scroll; the two panels do.</b> The footer carries the
    * part map and the submit button, and both have to stay put — a learner who
    * has to scroll a paper to find "Nộp bài" is one who runs out of time
@@ -646,7 +661,7 @@
 }
 
 .exr-body-in[data-split='writing'] {
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
 }
 
 .exr-body-in[data-split='single'] {
@@ -713,7 +728,7 @@
 
 .exr-panel-title {
   margin: 0;
-  font-size: 21px;
+  font-size: 23px;
   line-height: 1.3;
   font-weight: 800;
   letter-spacing: -0.01em;
@@ -733,7 +748,7 @@
    1.75 sits comfortably above the 1.5 floor Vietnamese needs, and the
    passage itself is English. */
 .exr-passage-body {
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.75;
   color: var(--exr-ink-2);
 }
@@ -877,7 +892,7 @@
   border: 0;
   background: none;
   border-radius: 0;
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.5;
   font-weight: var(--w-emph);
   color: var(--exr-blue);
@@ -913,7 +928,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--exr-muted);
 }
@@ -924,7 +939,7 @@
   height: 20px;
   padding: 0 var(--s-2);
   border-radius: var(--r-sm);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -1225,7 +1240,7 @@
   border: 0;
   background: none;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: var(--w-emph);
   letter-spacing: 0.02em;
   color: var(--exr-muted);

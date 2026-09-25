@@ -219,20 +219,26 @@ export function ExamFooter({
           </button>
 
           {ending === 'advance' ? (
-            <button
-              type="button"
-              className="exr-btn exr-btn-primary"
-              disabled={busy}
-              aria-label={t('exam.next')}
-              onClick={() => onAdvance?.()}
-            >
-              <span aria-hidden="true">
-                {nextSkillName === null || nextSkillName === undefined
-                  ? t('exam.next')
-                  : t('exam.nextSkill', { skill: nextSkillName })}
-              </span>
-              <ArrowRightGlyph />
-            </button>
+            // The move to a different section only belongs at the end of
+            // this one — mid-section it would let a learner skip parts they
+            // have not opened yet. TRƯỚC/TIẾP above already cover moving
+            // between this section's own parts.
+            atLast && (
+              <button
+                type="button"
+                className="exr-btn exr-btn-primary"
+                disabled={busy}
+                aria-label={t('exam.next')}
+                onClick={() => onAdvance?.()}
+              >
+                <span aria-hidden="true">
+                  {nextSkillName === null || nextSkillName === undefined
+                    ? t('exam.next')
+                    : t('exam.nextSkill', { skill: nextSkillName })}
+                </span>
+                <ArrowRightGlyph />
+              </button>
+            )
           ) : (
             <button
               type="button"
@@ -249,7 +255,7 @@ export function ExamFooter({
       </div>
 
       {/* Said beside "Tiếp theo": irreversible, and it names both skills. */}
-      {ending === 'advance' && nextNote != null && nextNote !== '' && (
+      {ending === 'advance' && atLast && nextNote != null && nextNote !== '' && (
         <p className="exr-foot-note exr-notice is-quiet">{nextNote}</p>
       )}
 
