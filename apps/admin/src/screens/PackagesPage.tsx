@@ -65,110 +65,113 @@ export function PackagesPage() {
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Lịch sử gói</h1>
-        <p>Mọi lần tải gói lên, kể cả những lần cửa HTTP từ chối trước khi gói được lưu.</p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Lịch sử gói</h1>
+        <p className="cms-muted">
+          Mọi lần tải gói lên, kể cả những lần cửa HTTP từ chối trước khi gói được lưu.
+        </p>
+        <form
+          className="cms-page-header__row"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setPage(1);
+            setApplied({
+              result: draft.result,
+              stage: draft.stage,
+              uploader: draft.uploader.trim(),
+              from: draft.from,
+              to: draft.to,
+            });
+          }}
+        >
+          <label className="cms-search">
+            <span className="cms-sr-only">Mã người tải</span>
+            <span className="cms-icon cms-search__icon" aria-hidden="true">
+              <Search strokeWidth={1.7} />
+            </span>
+            <input
+              type="search"
+              className="cms-search__input"
+              placeholder="Mã người tải"
+              value={draft.uploader}
+              onChange={(e) => setDraft((f) => ({ ...f, uploader: e.target.value }))}
+            />
+          </label>
+
+          <div className="cms-page-header__actions">
+            <label className="cms-field-inline" htmlFor="package-result">
+              <span>Kết quả</span>
+              <select
+                id="package-result"
+                value={draft.result}
+                onChange={(e) => setDraft((f) => ({ ...f, result: e.target.value }))}
+              >
+                <option value="">Tất cả</option>
+                {RESULT_FILTERS.map((value) => (
+                  <option key={value} value={value}>
+                    {RESULT_LABELS[value]}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="cms-field-inline" htmlFor="package-stage">
+              <span>Chặng</span>
+              <select
+                id="package-stage"
+                value={draft.stage}
+                onChange={(e) => setDraft((f) => ({ ...f, stage: e.target.value }))}
+              >
+                <option value="">Tất cả</option>
+                {STAGE_FILTERS.map((value) => (
+                  <option key={value} value={value}>
+                    {stageLabel(value)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="cms-field-inline" htmlFor="package-from">
+              <span>Từ ngày</span>
+              <input
+                id="package-from"
+                type="date"
+                value={draft.from}
+                onChange={(e) => setDraft((f) => ({ ...f, from: e.target.value }))}
+              />
+            </label>
+
+            <label className="cms-field-inline" htmlFor="package-to">
+              <span>Đến ngày</span>
+              <input
+                id="package-to"
+                type="date"
+                value={draft.to}
+                onChange={(e) => setDraft((f) => ({ ...f, to: e.target.value }))}
+              />
+            </label>
+
+            <button type="submit" className="cms-button cms-button--secondary">
+              Lọc
+            </button>
+
+            {filtered && (
+              <button
+                type="button"
+                className="cms-link-button"
+                onClick={() => {
+                  const next = emptyDraft();
+                  setDraft(next);
+                  setPage(1);
+                  setApplied(next);
+                }}
+              >
+                Xoá bộ lọc
+              </button>
+            )}
+          </div>
+        </form>
       </header>
-
-      <form
-        className="cms-toolbar"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setPage(1);
-          setApplied({
-            result: draft.result,
-            stage: draft.stage,
-            uploader: draft.uploader.trim(),
-            from: draft.from,
-            to: draft.to,
-          });
-        }}
-      >
-        <label className="cms-field-inline" htmlFor="package-result">
-          <span>Kết quả</span>
-          <select
-            id="package-result"
-            value={draft.result}
-            onChange={(e) => setDraft((f) => ({ ...f, result: e.target.value }))}
-          >
-            <option value="">Tất cả</option>
-            {RESULT_FILTERS.map((value) => (
-              <option key={value} value={value}>
-                {RESULT_LABELS[value]}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="cms-field-inline" htmlFor="package-stage">
-          <span>Chặng</span>
-          <select
-            id="package-stage"
-            value={draft.stage}
-            onChange={(e) => setDraft((f) => ({ ...f, stage: e.target.value }))}
-          >
-            <option value="">Tất cả</option>
-            {STAGE_FILTERS.map((value) => (
-              <option key={value} value={value}>
-                {stageLabel(value)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="cms-search">
-          <span className="cms-sr-only">Mã người tải</span>
-          <span className="cms-icon cms-search__icon" aria-hidden="true">
-            <Search strokeWidth={1.7} />
-          </span>
-          <input
-            type="search"
-            className="cms-search__input"
-            placeholder="Mã người tải"
-            value={draft.uploader}
-            onChange={(e) => setDraft((f) => ({ ...f, uploader: e.target.value }))}
-          />
-        </label>
-
-        <label className="cms-field-inline" htmlFor="package-from">
-          <span>Từ ngày</span>
-          <input
-            id="package-from"
-            type="date"
-            value={draft.from}
-            onChange={(e) => setDraft((f) => ({ ...f, from: e.target.value }))}
-          />
-        </label>
-
-        <label className="cms-field-inline" htmlFor="package-to">
-          <span>Đến ngày</span>
-          <input
-            id="package-to"
-            type="date"
-            value={draft.to}
-            onChange={(e) => setDraft((f) => ({ ...f, to: e.target.value }))}
-          />
-        </label>
-
-        <button type="submit" className="cms-button cms-button--secondary">
-          Lọc
-        </button>
-
-        {filtered && (
-          <button
-            type="button"
-            className="cms-link-button"
-            onClick={() => {
-              const next = emptyDraft();
-              setDraft(next);
-              setPage(1);
-              setApplied(next);
-            }}
-          >
-            Xoá bộ lọc
-          </button>
-        )}
-      </form>
 
       {items === null && loadError === null && (
         <p className="cms-muted" aria-live="polite">
@@ -186,81 +189,88 @@ export function PackagesPage() {
       )}
 
       {items !== null && items.length === 0 && (
-        <div className="cms-empty">
-          <h3>{filtered ? 'Không có lần tải nào khớp bộ lọc' : 'Chưa có lần tải gói nào'}</h3>
-          <p>
-            {filtered
-              ? 'Thử bỏ bớt điều kiện lọc.'
-              : 'Lịch sử ghi cả gói bị từ chối ở cửa. Tải một gói trên trang Nhập đề thì hàng đầu tiên sẽ xuất hiện ở đây.'}
-          </p>
-        </div>
+        <article className="cms-card">
+          <div className="cms-card-body cms-card-body--empty">
+            <h3 className="cms-card-body__title">
+              {filtered ? 'Không có lần tải nào khớp bộ lọc' : 'Chưa có lần tải gói nào'}
+            </h3>
+            <p className="cms-card-body__message">
+              {filtered
+                ? 'Thử bỏ bớt điều kiện lọc.'
+                : 'Lịch sử ghi cả gói bị từ chối ở cửa. Tải một gói trên trang Nhập đề thì hàng đầu tiên sẽ xuất hiện ở đây.'}
+            </p>
+          </div>
+        </article>
       )}
 
       {items !== null && items.length > 0 && (
-        <>
-          <p className="cms-muted">
-            <span className="num">{total}</span> lần tải
-            {filtered ? ' khớp bộ lọc' : ''}.
-          </p>
+        <article className="cms-card">
+          <div className="cms-card-body">
+            <p className="cms-muted">
+              <span className="num">{total}</span> lần tải
+              {filtered ? ' khớp bộ lọc' : ''}.
+            </p>
 
-          <div className="cms-table-wrap">
-            <table className="cms-table">
-              <thead>
-                <tr>
-                  <th>Thời điểm</th>
-                  <th>Người tải</th>
-                  <th>Tên tệp</th>
-                  <th>Kết quả</th>
-                  <th>Chặng</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((row) => (
-                  <tr key={row.historyId}>
-                    <td className="num cms-nowrap">{formatWhen(row.createdAt)}</td>
-                    <td>{uploaderLabel(row.actorId)}</td>
-                    <td>
-                      <Link to={AdminPaths.packageHistory(row.historyId)}>
-                        {fileNameLabel(row.originalFileName)}
-                      </Link>
-                      {row.findingCount > 0 && (
-                        <span className="cms-sub num">{row.findingCount} finding</span>
-                      )}
-                    </td>
-                    <td>
-                      <span className="cms-badge" data-tone={cmsBadgeTone(resultTone(row.result))}>
-                        {resultLabel(row.result)}
-                      </span>
-                    </td>
-                    <td>{row.stage === null ? '—' : stageLabel(row.stage)}</td>
+            <div className="cms-table-wrap">
+              <table className="cms-table">
+                <thead>
+                  <tr>
+                    <th>Thời điểm</th>
+                    <th>Người tải</th>
+                    <th>Tên tệp</th>
+                    <th>Kết quả</th>
+                    <th>Chặng</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {items.map((row) => (
+                    <tr key={row.historyId}>
+                      <td className="num cms-nowrap">{formatWhen(row.createdAt)}</td>
+                      <td>{uploaderLabel(row.actorId)}</td>
+                      <td>
+                        <Link to={AdminPaths.packageHistory(row.historyId)}>
+                          {fileNameLabel(row.originalFileName)}
+                        </Link>
+                        {row.findingCount > 0 && (
+                          <span className="cms-sub num">{row.findingCount} finding</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className="cms-badge" data-tone={cmsBadgeTone(resultTone(row.result))}>
+                          {resultLabel(row.result)}
+                        </span>
+                      </td>
+                      <td>{row.stage === null ? '—' : stageLabel(row.stage)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-
-          <div className="cms-pager">
-            <button
-              type="button"
-              className="cms-button cms-button--secondary"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              Trang trước
-            </button>
-            <span className="num">
-              {page} / {pages}
-            </span>
-            <button
-              type="button"
-              className="cms-button cms-button--secondary"
-              disabled={page >= pages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Trang sau
-            </button>
-          </div>
-        </>
+          <footer className="cms-card-foot">
+            <div className="cms-pager">
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Trang trước
+              </button>
+              <span className="num">
+                {page} / {pages}
+              </span>
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={page >= pages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Trang sau
+              </button>
+            </div>
+          </footer>
+        </article>
       )}
     </>
   );

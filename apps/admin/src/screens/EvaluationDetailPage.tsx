@@ -61,13 +61,15 @@ export function EvaluationDetailPage() {
 
   if (missing) {
     return (
-      <div className="cms-empty">
-        <h3>Không tìm thấy đánh giá này</h3>
-        <p>
-          Mã trong địa chỉ có thể sai, hoặc lần chấm đã không còn.{' '}
-          <Link to={AdminPaths.evaluations}>Về danh sách đánh giá</Link>
-        </p>
-      </div>
+      <article className="cms-card">
+        <div className="cms-card-body cms-card-body--empty">
+          <h3 className="cms-card-body__title">Không tìm thấy đánh giá này</h3>
+          <p className="cms-card-body__message">
+            Mã trong địa chỉ có thể sai, hoặc lần chấm đã không còn.{' '}
+            <Link to={AdminPaths.evaluations}>Về danh sách đánh giá</Link>
+          </p>
+        </div>
+      </article>
     );
   }
 
@@ -101,12 +103,12 @@ export function EvaluationDetailPage() {
         <span>{moduleLabel(view.module)}</span>
       </nav>
 
-      <header className="cms-head">
-        <h1>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">
           {moduleLabel(view.module)}
           {view.taskNumber !== null ? ` · Task ${view.taskNumber}` : ''}
         </h1>
-        <p>
+        <p className="cms-muted">
           Điểm đang dùng là điểm tính lại từ từng tiêu chí. Điểm mô hình tự báo chỉ để đối chiếu —
           không được kẹp, không được thay.
         </p>
@@ -119,194 +121,260 @@ export function EvaluationDetailPage() {
       )}
 
       <div className="cms-columns">
-        <section className="cms-panel">
-          <h2>Điểm</h2>
-          <dl className="cms-detail-list">
-            <dt>Điểm tính lại</dt>
-            <dd className="num">{formatBand(view.recomputedBand)}</dd>
-            <dt>Điểm mô hình báo</dt>
-            <dd className="num">
-              {view.reportedBand === null ? '—' : formatBand(view.reportedBand)}
-              {mismatch && (
-                <>
-                  {' '}
-                  <span className="cms-badge" data-tone="warning">Khác điểm tính lại</span>
-                </>
-              )}
-            </dd>
-            <dt>Phiên bản</dt>
-            <dd>
-              <span className="cms-badge" data-tone={view.isCurrent  ? "ok" : "warning"}>
-                {view.isCurrent ? 'Đang dùng' : 'Đã thay'}
-              </span>
-              <span className="cms-sub num">v{view.version}</span>
-            </dd>
-            <dt>Rubric</dt>
-            <dd>{view.rubricVersion}</dd>
-            <dt>Chấm lúc</dt>
-            <dd className="num">{formatWhen(view.markedAt)}</dd>
-            <dt>Phiên thi</dt>
-            <dd className="num">{view.sessionId}</dd>
-            <dt>Mã lần chấm</dt>
-            <dd className="num">{view.markingId}</dd>
-          </dl>
-        </section>
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Điểm</h2>
+            </div>
+          </header>
+          <footer className="cms-card-foot">
+            <div className="cms-metadata">
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Điểm tính lại</span>
+                <span className="cms-metadata__value num">{formatBand(view.recomputedBand)}</span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Điểm mô hình báo</span>
+                <span className="cms-metadata__value num">
+                  {view.reportedBand === null ? '—' : formatBand(view.reportedBand)}
+                  {mismatch && (
+                    <>
+                      {' '}
+                      <span className="cms-badge" data-tone="warning">Khác điểm tính lại</span>
+                    </>
+                  )}
+                </span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Phiên bản</span>
+                <span className="cms-metadata__value">
+                  <span className="cms-badge" data-tone={view.isCurrent ? 'ok' : 'warning'}>
+                    {view.isCurrent ? 'Đang dùng' : 'Đã thay'}
+                  </span>
+                  <span className="cms-sub num">v{view.version}</span>
+                </span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Rubric</span>
+                <span className="cms-metadata__value">{view.rubricVersion}</span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Chấm lúc</span>
+                <span className="cms-metadata__value num">{formatWhen(view.markedAt)}</span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Phiên thi</span>
+                <span className="cms-metadata__value num">{view.sessionId}</span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Mã lần chấm</span>
+                <span className="cms-metadata__value num">{view.markingId}</span>
+              </div>
+            </div>
+          </footer>
+        </article>
 
-        <section className="cms-panel">
-          <h2>Lịch sử thay thế</h2>
-          <p className="cms-muted">
-            Mỗi lần chấm lại tạo bản mới. Bản đang dùng là bản học viên thấy; bản đã thay vẫn đọc
-            được để đối chiếu.
-          </p>
-          <dl className="cms-detail-list">
-            <dt>Thay cho</dt>
-            <dd>
-              {view.supersedesId ? (
-                <Link to={AdminPaths.evaluation(view.sessionId, view.supersedesId)}>
-                  {view.supersedesId}
-                </Link>
-              ) : (
-                '—'
-              )}
-            </dd>
-            <dt>Bị thay bởi</dt>
-            <dd>
-              {view.supersededById ? (
-                <Link to={AdminPaths.evaluation(view.sessionId, view.supersededById)}>
-                  {view.supersededById}
-                </Link>
-              ) : (
-                '—'
-              )}
-            </dd>
-          </dl>
-        </section>
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Lịch sử thay thế</h2>
+            </div>
+          </header>
+          <div className="cms-card-body">
+            <p className="cms-muted">
+              Mỗi lần chấm lại tạo bản mới. Bản đang dùng là bản học viên thấy; bản đã thay vẫn đọc
+              được để đối chiếu.
+            </p>
+          </div>
+          <footer className="cms-card-foot">
+            <div className="cms-metadata">
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Thay cho</span>
+                <span className="cms-metadata__value">
+                  {view.supersedesId ? (
+                    <Link to={AdminPaths.evaluation(view.sessionId, view.supersedesId)}>
+                      {view.supersedesId}
+                    </Link>
+                  ) : (
+                    '—'
+                  )}
+                </span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Bị thay bởi</span>
+                <span className="cms-metadata__value">
+                  {view.supersededById ? (
+                    <Link to={AdminPaths.evaluation(view.sessionId, view.supersededById)}>
+                      {view.supersededById}
+                    </Link>
+                  ) : (
+                    '—'
+                  )}
+                </span>
+              </div>
+            </div>
+          </footer>
+        </article>
       </div>
 
-      <section className="cms-panel">
-        <h2>Cờ và khuyến nghị</h2>
-        {view.flags.length === 0 ? (
-          <p className="cms-muted">Không có cờ.</p>
-        ) : (
-          <p>
-            <span className="cms-modules">
-              {view.flags.map((flag) => (
-                <span className="cms-badge" data-tone="warning" key={flag}>
-                  {flagLabel(flag)}
-                </span>
-              ))}
-            </span>
-          </p>
-        )}
-        {view.advisories.length === 0 ? (
-          <p className="cms-muted">Không có khuyến nghị.</p>
-        ) : (
-          <ul className="cms-notes">
-            {view.advisories.map((advisory) => (
-              <li key={advisory}>{advisory}</li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="cms-panel">
-        <h2>Nguồn gốc lần chấm</h2>
-        <ProvenanceList provenance={view.provenance} />
-      </section>
-
-      <section className="cms-panel">
-        <h2>Từng tiêu chí</h2>
-        <div className="cms-table-wrap">
-          <table className="cms-table">
-            <caption className="cms-muted">Band, nhận xét và trích dẫn theo từng tiêu chí.</caption>
-            <thead>
-              <tr>
-                <th scope="col">Tiêu chí</th>
-                <th scope="col">Band</th>
-                <th scope="col">Nhận xét</th>
-                <th scope="col">Trích dẫn</th>
-              </tr>
-            </thead>
-            <tbody>
-              {view.criteria.map((criterion) => (
-                <tr key={criterion.criterion}>
-                  <td>{criterion.criterion}</td>
-                  <td className="num">{formatBand(criterion.band)}</td>
-                  <td>{criterion.feedback}</td>
-                  <td>
-                    {criterion.evidence === undefined ? (
-                      <span className="cms-muted">Không có trong phản hồi này</span>
-                    ) : (
-                      <EvidenceList value={criterion.evidence} />
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {evidenceOmitted && (
-          <p className="cms-muted">Trích dẫn từ bài làm không có trong phản hồi này.</p>
-        )}
-      </section>
-
-      {ungrounded !== null && (
-        <section className="cms-panel">
-          <h2>Trích dẫn không bám bài</h2>
-          {ungrounded.length === 0 ? (
-            <p className="cms-muted">Không có.</p>
+      <article className="cms-card">
+        <header className="cms-card-head">
+          <div className="cms-card-head__identity">
+            <h2 className="cms-card-head__title">Cờ và khuyến nghị</h2>
+          </div>
+        </header>
+        <div className="cms-card-body">
+          {view.flags.length === 0 ? (
+            <p className="cms-muted">Không có cờ.</p>
+          ) : (
+            <p>
+              <span className="cms-modules">
+                {view.flags.map((flag) => (
+                  <span className="cms-badge" data-tone="warning" key={flag}>
+                    {flagLabel(flag)}
+                  </span>
+                ))}
+              </span>
+            </p>
+          )}
+          {view.advisories.length === 0 ? (
+            <p className="cms-muted">Không có khuyến nghị.</p>
           ) : (
             <ul className="cms-notes">
-              {ungrounded.map((line) => (
-                <li key={line}>{line}</li>
+              {view.advisories.map((advisory) => (
+                <li key={advisory}>{advisory}</li>
               ))}
             </ul>
           )}
-        </section>
-      )}
+        </div>
+      </article>
 
-      {submission !== undefined && (
-        <section className="cms-panel">
-          <h2>Bài làm</h2>
-          <dl className="cms-detail-list">
-            {Object.entries(submission).map(([slot, text]) => (
-              <Fragment key={slot}>
-                <dt>{slot}</dt>
-                <dd>{text === null || text === '' ? '—' : text}</dd>
-              </Fragment>
-            ))}
-          </dl>
-        </section>
-      )}
+      <article className="cms-card">
+        <header className="cms-card-head">
+          <div className="cms-card-head__identity">
+            <h2 className="cms-card-head__title">Nguồn gốc lần chấm</h2>
+          </div>
+        </header>
+        <ProvenanceList provenance={view.provenance} />
+      </article>
 
-      <section className="cms-panel">
-        <h2>Lần gọi mô hình</h2>
-        {view.attempts.length === 0 ? (
-          <p className="cms-muted">Không có lần gọi nào được ghi cho lần chấm này.</p>
-        ) : (
+      <article className="cms-card">
+        <header className="cms-card-head">
+          <div className="cms-card-head__identity">
+            <h2 className="cms-card-head__title">Từng tiêu chí</h2>
+          </div>
+        </header>
+        <div className="cms-card-body">
           <div className="cms-table-wrap">
             <table className="cms-table">
-              <caption className="cms-muted">
-                Lịch sử gọi nhà cung cấp. Đầu ra thô bị từ chối không phải là điểm.
-              </caption>
+              <caption className="cms-muted">Band, nhận xét và trích dẫn theo từng tiêu chí.</caption>
               <thead>
                 <tr>
-                  <th scope="col">Bắt đầu</th>
-                  <th scope="col">Kết thúc</th>
-                  <th scope="col">Kết quả</th>
-                  <th scope="col">Nhà cung cấp</th>
-                  <th scope="col">Lỗi</th>
+                  <th scope="col">Tiêu chí</th>
+                  <th scope="col">Band</th>
+                  <th scope="col">Nhận xét</th>
+                  <th scope="col">Trích dẫn</th>
                 </tr>
               </thead>
               <tbody>
-                {view.attempts.map((attempt) => (
-                  <AttemptRows key={attempt.id} attempt={attempt} />
+                {view.criteria.map((criterion) => (
+                  <tr key={criterion.criterion}>
+                    <td>{criterion.criterion}</td>
+                    <td className="num">{formatBand(criterion.band)}</td>
+                    <td>{criterion.feedback}</td>
+                    <td>
+                      {criterion.evidence === undefined ? (
+                        <span className="cms-muted">Không có trong phản hồi này</span>
+                      ) : (
+                        <EvidenceList value={criterion.evidence} />
+                      )}
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        )}
-      </section>
+          {evidenceOmitted && (
+            <p className="cms-muted">Trích dẫn từ bài làm không có trong phản hồi này.</p>
+          )}
+        </div>
+      </article>
+
+      {ungrounded !== null && (
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Trích dẫn không bám bài</h2>
+            </div>
+          </header>
+          <div className="cms-card-body">
+            {ungrounded.length === 0 ? (
+              <p className="cms-muted">Không có.</p>
+            ) : (
+              <ul className="cms-notes">
+                {ungrounded.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </article>
+      )}
+
+      {submission !== undefined && (
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Bài làm</h2>
+            </div>
+          </header>
+          <div className="cms-card-body">
+            <dl className="cms-detail-list">
+              {Object.entries(submission).map(([slot, text]) => (
+                <Fragment key={slot}>
+                  <dt>{slot}</dt>
+                  <dd>{text === null || text === '' ? '—' : text}</dd>
+                </Fragment>
+              ))}
+            </dl>
+          </div>
+        </article>
+      )}
+
+      <article className="cms-card">
+        <header className="cms-card-head">
+          <div className="cms-card-head__identity">
+            <h2 className="cms-card-head__title">Lần gọi mô hình</h2>
+          </div>
+        </header>
+        <div className="cms-card-body">
+          {view.attempts.length === 0 ? (
+            <p className="cms-muted">Không có lần gọi nào được ghi cho lần chấm này.</p>
+          ) : (
+            <div className="cms-table-wrap">
+              <table className="cms-table">
+                <caption className="cms-muted">
+                  Lịch sử gọi nhà cung cấp. Đầu ra thô bị từ chối không phải là điểm.
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Bắt đầu</th>
+                    <th scope="col">Kết thúc</th>
+                    <th scope="col">Kết quả</th>
+                    <th scope="col">Nhà cung cấp</th>
+                    <th scope="col">Lỗi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {view.attempts.map((attempt) => (
+                    <AttemptRows key={attempt.id} attempt={attempt} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </article>
     </>
   );
 }
@@ -367,19 +435,29 @@ function AttemptRows({ attempt }: { attempt: AdminEvaluationAttempt }) {
 
 function ProvenanceList({ provenance }: { provenance: Record<string, unknown> | null | undefined }) {
   const entries = Object.entries(provenance ?? {});
-  if (entries.length === 0) return <p className="cms-muted">Không có thông tin nguồn gốc.</p>;
+  if (entries.length === 0) {
+    return (
+      <div className="cms-card-body">
+        <p className="cms-muted">Không có thông tin nguồn gốc.</p>
+      </div>
+    );
+  }
 
   return (
-    <dl className="cms-detail-list">
-      {entries.map(([key, value]) => (
-        <Fragment key={key}>
-          <dt>{provenanceLabel(key)}</dt>
-          <dd className={typeof value === 'boolean' || typeof value === 'number' ? 'num' : undefined}>
-            {formatProvenance(value)}
-          </dd>
-        </Fragment>
-      ))}
-    </dl>
+    <footer className="cms-card-foot">
+      <div className="cms-metadata">
+        {entries.map(([key, value]) => (
+          <div className="cms-metadata__item" key={key}>
+            <span className="cms-metadata__label">{provenanceLabel(key)}</span>
+            <span
+              className={`cms-metadata__value${typeof value === 'boolean' || typeof value === 'number' ? ' num' : ''}`}
+            >
+              {formatProvenance(value)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </footer>
   );
 }
 

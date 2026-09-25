@@ -68,13 +68,15 @@ export function PackageHistoryDetailPage() {
 
   if (missing) {
     return (
-      <div className="cms-empty">
-        <h3>Không tìm thấy lần tải này</h3>
-        <p>
-          Mã trong địa chỉ không khớp một hàng lịch sử, hoặc hàng đó chưa bao giờ được ghi.{' '}
-          <Link to={AdminPaths.packages}>Về lịch sử gói</Link>
-        </p>
-      </div>
+      <article className="cms-card">
+        <div className="cms-card-body cms-card-body--empty">
+          <h3 className="cms-card-body__title">Không tìm thấy lần tải này</h3>
+          <p className="cms-card-body__message">
+            Mã trong địa chỉ không khớp một hàng lịch sử, hoặc hàng đó chưa bao giờ được ghi.{' '}
+            <Link to={AdminPaths.packages}>Về lịch sử gói</Link>
+          </p>
+        </div>
+      </article>
     );
   }
 
@@ -110,9 +112,9 @@ export function PackageHistoryDetailPage() {
         <span>{fileName}</span>
       </nav>
 
-      <header className="cms-head">
-        <h1>{fileName}</h1>
-        <p>{title}</p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">{fileName}</h1>
+        <p className="cms-muted">{title}</p>
       </header>
 
       <section className="cms-alert" data-tone={alertTone(kind)} aria-labelledby="package-outcome">
@@ -123,42 +125,68 @@ export function PackageHistoryDetailPage() {
         )}
       </section>
 
-      <section className="cms-panel">
-        <h2>Lần tải</h2>
-        <dl className="cms-detail-list">
-          <dt>Thời điểm</dt>
-          <dd className="num">{formatWhen(row.createdAt)}</dd>
+      <article className="cms-card">
+        <header className="cms-card-head">
+          <div className="cms-card-head__identity">
+            <h2 className="cms-card-head__title">Lần tải</h2>
+          </div>
+        </header>
+        <footer className="cms-card-foot">
+          <div className="cms-metadata">
+            <div className="cms-metadata__item">
+              <span className="cms-metadata__label">Thời điểm</span>
+              <span className="cms-metadata__value num">{formatWhen(row.createdAt)}</span>
+            </div>
 
-          <dt>Người tải</dt>
-          <dd>{uploaderLabel(row.actorId)}</dd>
+            <div className="cms-metadata__item">
+              <span className="cms-metadata__label">Người tải</span>
+              <span className="cms-metadata__value">{uploaderLabel(row.actorId)}</span>
+            </div>
 
-          <dt>Tên tệp gốc</dt>
-          <dd>{fileName}</dd>
+            <div className="cms-metadata__item">
+              <span className="cms-metadata__label">Tên tệp gốc</span>
+              <span className="cms-metadata__value">{fileName}</span>
+            </div>
 
-          <dt>Kết quả</dt>
-          <dd>
-            <span className="cms-badge" data-tone={cmsBadgeTone(badgeTone(kind))}>{resultLabel(row.result)}</span>
-          </dd>
+            <div className="cms-metadata__item">
+              <span className="cms-metadata__label">Kết quả</span>
+              <span className="cms-metadata__value">
+                <span className="cms-badge" data-tone={cmsBadgeTone(badgeTone(kind))}>
+                  {resultLabel(row.result)}
+                </span>
+              </span>
+            </div>
 
-          <dt>Chặng</dt>
-          <dd>{row.stage === null ? '—' : stageLabel(row.stage)}</dd>
+            <div className="cms-metadata__item">
+              <span className="cms-metadata__label">Chặng</span>
+              <span className="cms-metadata__value">
+                {row.stage === null ? '—' : stageLabel(row.stage)}
+              </span>
+            </div>
 
-          <dt>Bản nháp</dt>
-          <dd className="cms-code">
-            {row.draftId === null ? (
-              '—'
-            ) : (
-              <Link to={`${AdminPaths.import}?draftId=${row.draftId}`}>{row.draftId}</Link>
-            )}
-          </dd>
+            <div className="cms-metadata__item">
+              <span className="cms-metadata__label">Bản nháp</span>
+              <span className="cms-metadata__value cms-code">
+                {row.draftId === null ? (
+                  '—'
+                ) : (
+                  <Link to={`${AdminPaths.import}?draftId=${row.draftId}`}>{row.draftId}</Link>
+                )}
+              </span>
+            </div>
 
-          <dt>Mã lần tải</dt>
-          <dd className="num">{row.historyId}</dd>
+            <div className="cms-metadata__item">
+              <span className="cms-metadata__label">Mã lần tải</span>
+              <span className="cms-metadata__value num">{row.historyId}</span>
+            </div>
 
-          <dt>Mã theo dõi</dt>
-          <dd className="cms-code">{row.operationId ?? '—'}</dd>
-        </dl>
-      </section>
+            <div className="cms-metadata__item">
+              <span className="cms-metadata__label">Mã theo dõi</span>
+              <span className="cms-metadata__value cms-code">{row.operationId ?? '—'}</span>
+            </div>
+          </div>
+        </footer>
+      </article>
 
       <FindingsPanel findings={row.findings} />
     </>
@@ -167,43 +195,52 @@ export function PackageHistoryDetailPage() {
 
 function FindingsPanel({ findings }: { findings: ImportFinding[] }) {
   return (
-    <section className="cms-panel" aria-labelledby="package-findings">
-      <div className="cms-panel-head">
-        <h2 id="package-findings">Findings</h2>
-      </div>
-      {findings.length === 0 ? (
-        <p className="cms-muted">Không có finding nào được ghi cho lần tải này.</p>
-      ) : (
-        <div className="cms-table-wrap">
-          <table className="cms-table">
-            <thead>
-              <tr>
-                <th>Mức</th>
-                <th>Mã</th>
-                <th>Đường dẫn</th>
-                <th>Nội dung</th>
-              </tr>
-            </thead>
-            <tbody>
-              {findings.map((finding, i) => (
-                <tr key={`${finding.code}-${finding.path}-${i}`}>
-                  <td>
-                    <span
-                      className="cms-badge" data-tone={cmsBadgeTone(finding.severity.toLowerCase() === 'error' ? 'attention' : 'muted')}
-                    >
-                      {finding.severity}
-                    </span>
-                  </td>
-                  <td className="cms-code">{finding.code}</td>
-                  <td className="cms-code">{finding.path}</td>
-                  <td>{finding.message}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <article className="cms-card" aria-labelledby="package-findings">
+      <header className="cms-card-head">
+        <div className="cms-card-head__identity">
+          <h2 className="cms-card-head__title" id="package-findings">
+            Findings
+          </h2>
         </div>
-      )}
-    </section>
+      </header>
+      <div className="cms-card-body">
+        {findings.length === 0 ? (
+          <p className="cms-muted">Không có finding nào được ghi cho lần tải này.</p>
+        ) : (
+          <div className="cms-table-wrap">
+            <table className="cms-table">
+              <thead>
+                <tr>
+                  <th>Mức</th>
+                  <th>Mã</th>
+                  <th>Đường dẫn</th>
+                  <th>Nội dung</th>
+                </tr>
+              </thead>
+              <tbody>
+                {findings.map((finding, i) => (
+                  <tr key={`${finding.code}-${finding.path}-${i}`}>
+                    <td>
+                      <span
+                        className="cms-badge"
+                        data-tone={cmsBadgeTone(
+                          finding.severity.toLowerCase() === 'error' ? 'attention' : 'muted',
+                        )}
+                      >
+                        {finding.severity}
+                      </span>
+                    </td>
+                    <td className="cms-code">{finding.code}</td>
+                    <td className="cms-code">{finding.path}</td>
+                    <td>{finding.message}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </article>
   );
 }
 

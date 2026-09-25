@@ -487,9 +487,9 @@ export function ImportPage() {
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Nhập đề</h1>
-        <p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Nhập đề</h1>
+        <p className="cms-muted">
           Gói nhập thành công sẽ ra <strong>bản nháp</strong> — học viên chưa thấy được. Muốn đưa
           vào sử dụng thì cần một thao tác xuất bản riêng.
         </p>
@@ -497,323 +497,350 @@ export function ImportPage() {
 
       {flash}
 
-      <section className="cms-panel">
-        <h2>Chọn gói</h2>
-
-        <dl className="cms-facts">
-          <div>
-            <dt>Định dạng</dt>
-            <dd>
-              <code>.zip</code> chứa một đề — hôm nay chỉ nhận gói đã có sẵn một{' '}
-              <code>exam.json</code> hoàn chỉnh
-            </dd>
+      <article className="cms-card">
+        <header className="cms-card-head">
+          <div className="cms-card-head__identity">
+            <h2 className="cms-card-head__title">Chọn gói</h2>
           </div>
-          <div>
-            <dt>Phiên bản định dạng</dt>
-            <dd>
-              <code>formatVersion 1.0</code>
-            </dd>
+        </header>
+        <div className="cms-card-body">
+          <p className="cms-muted">
+            <code>.zip</code> chứa một đề — hôm nay chỉ nhận gói đã có sẵn một <code>exam.json</code>{' '}
+            hoàn chỉnh.
+          </p>
+
+          <p className="cms-muted">
+            Gói gồm tài liệu thô (.docx/.pdf/.txt theo từng kỹ năng) chưa nhập được: API hiện chưa
+            nối nhà cung cấp AI để phân tích tài liệu thô. Dựng gói bằng CLI vận hành (
+            <code>backend/tools/Vni.Ielts.ExamImporter</code>) trước, rồi tải file{' '}
+            <code>exam.json</code> kết quả lên đây.
+          </p>
+
+          <p className="cms-muted">
+            Chưa chắc tên thư mục? Tải khung mẫu — đặt sai tên thư mục đáp án là đáp án bị gửi cho mô
+            hình AI.{' '}
+            <button
+              type="button"
+              className="cms-button cms-button--secondary"
+              disabled={templateBusy}
+              onClick={() => void downloadTemplate()}
+            >
+              {templateBusy ? 'Đang tải mẫu…' : 'Tải mẫu gói (.zip)'}
+            </button>
+          </p>
+
+          <label className="cms-drop">
+            <input
+              ref={input}
+              type="file"
+              accept=".zip,.json"
+              disabled={uploading}
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
+            <span>{file === null ? 'Chọn tệp gói đề' : file.name}</span>
+          </label>
+
+          <div className="cms-version-actions">
+            <button
+              type="button"
+              className="cms-button cms-button--primary"
+              disabled={file === null || uploading}
+              onClick={() => void upload()}
+            >
+              {uploading ? 'Đang tải lên và kiểm…' : 'Tải lên và kiểm'}
+            </button>
           </div>
-          <div>
-            <dt>Dung lượng tối đa</dt>
-            <dd>200 MB mỗi gói</dd>
-          </div>
-        </dl>
 
-        <p className="cms-muted">
-          Gói gồm tài liệu thô (.docx/.pdf/.txt theo từng kỹ năng) chưa nhập được: API hiện chưa nối
-          nhà cung cấp AI để phân tích tài liệu thô. Dựng gói bằng CLI vận hành (
-          <code>backend/tools/Vni.Ielts.ExamImporter</code>) trước, rồi tải file{' '}
-          <code>exam.json</code> kết quả lên đây.
-        </p>
-
-        <p className="cms-muted">
-          Chưa chắc tên thư mục? Tải khung mẫu — đặt sai tên thư mục đáp án là đáp án bị gửi cho mô
-          hình AI.{' '}
-          <button
-            type="button"
-            className="cms-button cms-button--secondary"
-            disabled={templateBusy}
-            onClick={() => void downloadTemplate()}
-          >
-            {templateBusy ? 'Đang tải mẫu…' : 'Tải mẫu gói (.zip)'}
-          </button>
-        </p>
-
-        <label className="cms-drop">
-          <input
-            ref={input}
-            type="file"
-            accept=".zip,.json"
-            disabled={uploading}
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
-          <span>{file === null ? 'Chọn tệp gói đề' : file.name}</span>
-        </label>
-
-        <div className="cms-version-actions">
-          <button
-            type="button"
-            className="cms-button cms-button--primary"
-            disabled={file === null || uploading}
-            onClick={() => void upload()}
-          >
-            {uploading ? 'Đang tải lên và kiểm…' : 'Tải lên và kiểm'}
-          </button>
+          {rejection !== null && <RejectionPanel error={rejection} />}
         </div>
-
-        {rejection !== null && <RejectionPanel error={rejection} />}
-      </section>
+        <footer className="cms-card-foot">
+          <div className="cms-metadata">
+            <div className="cms-metadata__item">
+              <span className="cms-metadata__label">Phiên bản định dạng</span>
+              <span className="cms-metadata__value">
+                <code>formatVersion 1.0</code>
+              </span>
+            </div>
+            <div className="cms-metadata__item">
+              <span className="cms-metadata__label">Dung lượng tối đa</span>
+              <span className="cms-metadata__value">200 MB mỗi gói</span>
+            </div>
+          </div>
+        </footer>
+      </article>
 
       {operationId !== null && draft === null && (
-        <section className="cms-panel">
-          <div className="cms-panel-head">
-            <h2>Mã theo dõi {operationId}</h2>
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Mã theo dõi {operationId}</h2>
+            </div>
             {job !== null && (
-              <span
-                className="cms-status-pill"
-                data-tone={cmsBadgeTone(JOB_STATE_BADGE[job.state])}
-              >
-                <span className="cms-status-pill__dot" aria-hidden="true" />
-                {JOB_STATE_LABELS[job.state]}
-              </span>
+              <div className="cms-card-head__status">
+                <span
+                  className="cms-status-pill"
+                  data-tone={cmsBadgeTone(JOB_STATE_BADGE[job.state])}
+                >
+                  <span className="cms-status-pill__dot" aria-hidden="true" />
+                  {JOB_STATE_LABELS[job.state]}
+                </span>
+              </div>
             )}
-          </div>
+          </header>
+          <div className="cms-card-body">
+            {job === null && <p className="cms-muted">Đang lấy trạng thái…</p>}
 
-          {job === null && <p className="cms-muted">Đang lấy trạng thái…</p>}
+            {job !== null && isJobInFlight(job.state) && (
+              <p className="cms-muted" role="status">
+                {JOB_STAGE_LABELS[job.stage] ?? job.stage} — lần thử {job.attempts + 1}/
+                {job.maxAttempts}. Việc này có thể mất vài phút; trang sẽ tự cập nhật.
+              </p>
+            )}
 
-          {job !== null && isJobInFlight(job.state) && (
-            <p className="cms-muted" role="status">
-              {JOB_STAGE_LABELS[job.stage] ?? job.stage} — lần thử {job.attempts + 1}/
-              {job.maxAttempts}. Việc này có thể mất vài phút; trang sẽ tự cập nhật.
-            </p>
-          )}
+            {job !== null && job.state === 'Completed' && job.draftId === null && (
+              <p className="cms-muted" role="status">
+                Đã xử lý xong nhưng chưa thấy bản nháp — thử kiểm tra lại.
+              </p>
+            )}
 
-          {job !== null && job.state === 'Completed' && job.draftId === null && (
-            <p className="cms-muted" role="status">
-              Đã xử lý xong nhưng chưa thấy bản nháp — thử kiểm tra lại.
-            </p>
-          )}
+            {/*
+             * Fix round 2: the upload-only-operator case. The import finished
+             * and a draft exists (`job.draftId !== null`), but this account
+             * could not load it — read that as a fact about who is signed in,
+             * never as a verdict on whether that is correct: `P-20` splits
+             * "may start an import" from "may review one" on purpose, and which
+             * side an upload-only account should sit on is a role decision for
+             * the product owner, not this screen.
+             */}
+            {job !== null &&
+              job.state === 'Completed' &&
+              job.draftId !== null &&
+              draft === null &&
+              draftLoadFailed !== null && (
+                <div className="cms-alert" data-tone="danger" role="alert">
+                  <strong>Đã nhập xong, nhưng chưa mở được bản nháp.</strong> Bản nháp{' '}
+                  <code>{job.draftId}</code> đã được tạo (mã theo dõi <code>{operationId}</code>),
+                  nhưng tài khoản đang đăng nhập không tải được nó — {draftLoadFailed} Cần một tài
+                  khoản có quyền xem bản nháp nhập kiểm tra tiếp.{' '}
+                  <button type="button" className="cms-button cms-button--secondary" onClick={() => void retryCheck()}>
+                    Kiểm tra lại
+                  </button>
+                </div>
+              )}
 
-          {/*
-           * Fix round 2: the upload-only-operator case. The import finished
-           * and a draft exists (`job.draftId !== null`), but this account
-           * could not load it — read that as a fact about who is signed in,
-           * never as a verdict on whether that is correct: `P-20` splits
-           * "may start an import" from "may review one" on purpose, and which
-           * side an upload-only account should sit on is a role decision for
-           * the product owner, not this screen.
-           */}
-          {job !== null &&
-            job.state === 'Completed' &&
-            job.draftId !== null &&
-            draft === null &&
-            draftLoadFailed !== null && (
+            {job !== null && job.state === 'Failed' && (
               <div className="cms-alert" data-tone="danger" role="alert">
-                <strong>Đã nhập xong, nhưng chưa mở được bản nháp.</strong> Bản nháp{' '}
-                <code>{job.draftId}</code> đã được tạo (mã theo dõi <code>{operationId}</code>),
-                nhưng tài khoản đang đăng nhập không tải được nó — {draftLoadFailed} Cần một tài
-                khoản có quyền xem bản nháp nhập kiểm tra tiếp.{' '}
-                <button type="button" className="cms-button cms-button--secondary" onClick={() => void retryCheck()}>
-                  Kiểm tra lại
-                </button>
+                <strong>Nhập gói thất bại.</strong>{' '}
+                {job.lastError ?? 'Máy chủ không ghi lý do cụ thể.'}
               </div>
             )}
 
-          {job !== null && job.state === 'Failed' && (
-            <div className="cms-alert" data-tone="danger" role="alert">
-              <strong>Nhập gói thất bại.</strong>{' '}
-              {job.lastError ?? 'Máy chủ không ghi lý do cụ thể.'}
-            </div>
-          )}
-
-          {jobTimedOut && job !== null && isJobInFlight(job.state) && (
-            <p className="cms-muted" role="status">
-              Gói vẫn đang chạy ở phía máy chủ — bước phân tích, dịch băng và tạo giải thích cho một
-              gói lớn có thể mất nhiều phút. Trang đã ngừng tự động cập nhật; bấm để kiểm tra lại
-              bất cứ lúc nào.{' '}
-              <button type="button" className="cms-button cms-button--secondary" onClick={() => void retryCheck()}>
-                Kiểm tra lại
-              </button>
-            </p>
-          )}
-        </section>
+            {jobTimedOut && job !== null && isJobInFlight(job.state) && (
+              <p className="cms-muted" role="status">
+                Gói vẫn đang chạy ở phía máy chủ — bước phân tích, dịch băng và tạo giải thích cho
+                một gói lớn có thể mất nhiều phút. Trang đã ngừng tự động cập nhật; bấm để kiểm tra
+                lại bất cứ lúc nào.{' '}
+                <button type="button" className="cms-button cms-button--secondary" onClick={() => void retryCheck()}>
+                  Kiểm tra lại
+                </button>
+              </p>
+            )}
+          </div>
+        </article>
       )}
 
       {draftLoading && draft === null && (
-        <section className="cms-panel">
-          <p className="cms-muted">Đang mở lại bản nháp từ đường dẫn…</p>
-        </section>
+        <article className="cms-card">
+          <div className="cms-card-body">
+            <p className="cms-muted">Đang mở lại bản nháp từ đường dẫn…</p>
+          </div>
+        </article>
       )}
 
       {draft !== null && (
-        <section className="cms-panel">
-          <div className="cms-panel-head">
-            <h2>Bản nháp {draft.draftId}</h2>
-            <span className="cms-badge" data-tone={cmsBadgeTone(alreadyApproved ? 'ready' : 'hold')}>
-              {alreadyApproved ? 'Đã duyệt' : 'Chờ duyệt'}
-            </span>
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Bản nháp {draft.draftId}</h2>
+            </div>
+            <div className="cms-card-head__status">
+              <span className="cms-badge" data-tone={cmsBadgeTone(alreadyApproved ? 'ready' : 'hold')}>
+                {alreadyApproved ? 'Đã duyệt' : 'Chờ duyệt'}
+              </span>
+            </div>
+          </header>
+
+          <div className="cms-card-body">
+            {draft.findings.length === 0 && draft.warnings.length === 0 && (
+              <p className="cms-muted">Gói sạch — không có finding hay cảnh báo nào.</p>
+            )}
+
+            {draft.findings.length > 0 && (
+              <>
+                <h3>Finding ({draft.findings.length})</h3>
+                <ul className="cms-notes">
+                  {draft.findings.map((finding, i) => (
+                    <li key={`${finding.code}-${i}`}>
+                      <span
+                        className="cms-badge" data-tone={cmsBadgeTone(finding.severity === 'error' ? 'attention' : 'muted')}
+                      >
+                        {finding.severity}
+                      </span>{' '}
+                      <strong className="cms-code">{finding.code}</strong>{' '}
+                      <span className="cms-code">{finding.path}</span> — {finding.message}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {draft.warnings.length > 0 && (
+              <>
+                <h3>
+                  Cảnh báo ({openWarnings.length} chưa xử lý / {draft.warnings.length})
+                </h3>
+                <ul className="cms-notes">
+                  {draft.warnings.map((warning) => (
+                    <li key={warning.id}>
+                      <span className="cms-badge" data-tone={cmsBadgeTone(warning.resolved ? 'muted' : 'hold')}>
+                        {warning.resolved ? 'đã xử lý' : 'chưa xử lý'}
+                      </span>{' '}
+                      <strong>{warning.category}</strong>{' '}
+                      <span className="cms-code">{warning.path}</span> — {warning.message}
+                      {warning.resolved && warning.overrideReason !== null && (
+                        <span className="cms-sub"> · Lý do bỏ qua: {warning.overrideReason}</span>
+                      )}
+                      {!warning.resolved && operator.can('exam.review') && (
+                        <button
+                          type="button"
+                          className="cms-button cms-button--secondary"
+                          onClick={() => {
+                            setOverriding(warning);
+                            setOverrideReason('');
+                          }}
+                        >
+                          Bỏ qua, có lý do
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {operator.can('package.upload') && draft.groups.length > 0 && accessToken !== null && (
+              <>
+                <h3>Vị trí trên ảnh ({draft.groups.length})</h3>
+                {draft.groups.map((group) => (
+                  <GroupPositionEditor
+                    key={group.id}
+                    accessToken={accessToken}
+                    draftId={draft.draftId}
+                    group={group}
+                    onSaved={setDraft}
+                  />
+                ))}
+              </>
+            )}
+
+            {operator.can('exam.review') && (
+              <>
+                <h3>
+                  Danh sách kiểm tra ({draft.checklistConfirmed.length}/{CHECKLIST_ITEMS.length})
+                </h3>
+                <ul className="cms-notes">
+                  {CHECKLIST_ITEMS.map(([category, label]) => (
+                    <li key={category}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={draft.checklistConfirmed.includes(category)}
+                          disabled={checklistBusy !== null}
+                          onChange={() => void toggleChecklistItem(category)}
+                        />{' '}
+                        {label}
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {operator.can('exam.review') ? (
+              <div className="cms-version-actions">
+                <button
+                  type="button"
+                  className="cms-button cms-button--primary"
+                  disabled={!canApprove || approving}
+                  onClick={() => void approve()}
+                >
+                  {approving ? 'Đang duyệt…' : 'Duyệt'}
+                </button>
+                {!canApprove && !alreadyApproved && (
+                  <span className="cms-muted">
+                    {blocking.length > 0
+                      ? `Còn ${blocking.length} finding lỗi chưa xử lý.`
+                      : openWarnings.length > 0
+                        ? `Còn ${openWarnings.length} cảnh báo chưa xử lý.`
+                        : 'Còn mục trong danh sách kiểm tra chưa xác nhận.'}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <p className="cms-muted">Bạn không có quyền duyệt bản nháp nhập.</p>
+            )}
           </div>
 
-          <dl className="cms-facts">
-            <div>
-              <dt>Đường nhập</dt>
-              <dd>
-                <code>{draft.route}</code>
-              </dd>
-            </div>
-            <div>
-              <dt>Kỹ năng có trong gói</dt>
-              <dd>{draft.presentSkills.length > 0 ? draft.presentSkills.join(' · ') : '—'}</dd>
-            </div>
-            <div>
-              <dt>Định danh đề</dt>
-              <dd>
-                <code>{draft.definitionId}</code> v{draft.versionNumber}
-              </dd>
-            </div>
-          </dl>
-
-          {draft.findings.length === 0 && draft.warnings.length === 0 && (
-            <p className="cms-muted">Gói sạch — không có finding hay cảnh báo nào.</p>
-          )}
-
-          {draft.findings.length > 0 && (
-            <>
-              <h3>Finding ({draft.findings.length})</h3>
-              <ul className="cms-notes">
-                {draft.findings.map((finding, i) => (
-                  <li key={`${finding.code}-${i}`}>
-                    <span
-                      className="cms-badge" data-tone={cmsBadgeTone(finding.severity === 'error' ? 'attention' : 'muted')}
-                    >
-                      {finding.severity}
-                    </span>{' '}
-                    <strong className="cms-code">{finding.code}</strong>{' '}
-                    <span className="cms-code">{finding.path}</span> — {finding.message}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          {draft.warnings.length > 0 && (
-            <>
-              <h3>
-                Cảnh báo ({openWarnings.length} chưa xử lý / {draft.warnings.length})
-              </h3>
-              <ul className="cms-notes">
-                {draft.warnings.map((warning) => (
-                  <li key={warning.id}>
-                    <span className="cms-badge" data-tone={cmsBadgeTone(warning.resolved ? 'muted' : 'hold')}>
-                      {warning.resolved ? 'đã xử lý' : 'chưa xử lý'}
-                    </span>{' '}
-                    <strong>{warning.category}</strong>{' '}
-                    <span className="cms-code">{warning.path}</span> — {warning.message}
-                    {warning.resolved && warning.overrideReason !== null && (
-                      <span className="cms-sub"> · Lý do bỏ qua: {warning.overrideReason}</span>
-                    )}
-                    {!warning.resolved && operator.can('exam.review') && (
-                      <button
-                        type="button"
-                        className="cms-button cms-button--secondary"
-                        onClick={() => {
-                          setOverriding(warning);
-                          setOverrideReason('');
-                        }}
-                      >
-                        Bỏ qua, có lý do
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          {operator.can('package.upload') && draft.groups.length > 0 && accessToken !== null && (
-            <>
-              <h3>Vị trí trên ảnh ({draft.groups.length})</h3>
-              {draft.groups.map((group) => (
-                <GroupPositionEditor
-                  key={group.id}
-                  accessToken={accessToken}
-                  draftId={draft.draftId}
-                  group={group}
-                  onSaved={setDraft}
-                />
-              ))}
-            </>
-          )}
-
-          {operator.can('exam.review') && (
-            <>
-              <h3>
-                Danh sách kiểm tra ({draft.checklistConfirmed.length}/{CHECKLIST_ITEMS.length})
-              </h3>
-              <ul className="cms-notes">
-                {CHECKLIST_ITEMS.map(([category, label]) => (
-                  <li key={category}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={draft.checklistConfirmed.includes(category)}
-                        disabled={checklistBusy !== null}
-                        onChange={() => void toggleChecklistItem(category)}
-                      />{' '}
-                      {label}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          {operator.can('exam.review') ? (
-            <div className="cms-version-actions">
-              <button
-                type="button"
-                className="cms-button cms-button--primary"
-                disabled={!canApprove || approving}
-                onClick={() => void approve()}
-              >
-                {approving ? 'Đang duyệt…' : 'Duyệt'}
-              </button>
-              {!canApprove && !alreadyApproved && (
-                <span className="cms-muted">
-                  {blocking.length > 0
-                    ? `Còn ${blocking.length} finding lỗi chưa xử lý.`
-                    : openWarnings.length > 0
-                      ? `Còn ${openWarnings.length} cảnh báo chưa xử lý.`
-                      : 'Còn mục trong danh sách kiểm tra chưa xác nhận.'}
+          <footer className="cms-card-foot">
+            <div className="cms-metadata">
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Đường nhập</span>
+                <span className="cms-metadata__value">
+                  <code>{draft.route}</code>
                 </span>
-              )}
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Kỹ năng có trong gói</span>
+                <span className="cms-metadata__value">
+                  {draft.presentSkills.length > 0 ? draft.presentSkills.join(' · ') : '—'}
+                </span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Định danh đề</span>
+                <span className="cms-metadata__value">
+                  <code>{draft.definitionId}</code> v{draft.versionNumber}
+                </span>
+              </div>
             </div>
-          ) : (
-            <p className="cms-muted">Bạn không có quyền duyệt bản nháp nhập.</p>
-          )}
-        </section>
+          </footer>
+        </article>
       )}
 
-      <section className="cms-panel">
-        <h2>Gói đi qua bảy chặng</h2>
-        <p className="cms-muted">
-          Không có gì được ghi vào hệ thống cho tới chặng cuối. Gói bị từ chối ở bất kỳ chặng nào
-          đều không để lại dấu vết nào ngoài một dòng lịch sử.
-        </p>
+      <article className="cms-card">
+        <header className="cms-card-head">
+          <div className="cms-card-head__identity">
+            <h2 className="cms-card-head__title">Gói đi qua bảy chặng</h2>
+          </div>
+        </header>
+        <div className="cms-card-body">
+          <p className="cms-muted">
+            Không có gì được ghi vào hệ thống cho tới chặng cuối. Gói bị từ chối ở bất kỳ chặng nào
+            đều không để lại dấu vết nào ngoài một dòng lịch sử.
+          </p>
 
-        <ol className="cms-stages">
-          {STAGES.map((stage, index) => (
-            <li className="cms-stage" key={stage.key}>
-              <span className="cms-stage-no num">{index + 1}</span>
-              <span>
-                <strong>{stage.label}</strong>
-                <span className="cms-sub">{stage.note}</span>
-              </span>
-            </li>
-          ))}
-        </ol>
-      </section>
+          <ol className="cms-stages">
+            {STAGES.map((stage, index) => (
+              <li className="cms-stage" key={stage.key}>
+                <span className="cms-stage-no num">{index + 1}</span>
+                <span>
+                  <strong>{stage.label}</strong>
+                  <span className="cms-sub">{stage.note}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </article>
 
       <Confirm
         open={overriding !== null}

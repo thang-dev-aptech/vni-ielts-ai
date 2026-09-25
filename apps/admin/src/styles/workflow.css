@@ -2,33 +2,24 @@
  *
  * A separate file from `admin.css` on purpose. This is the surface Phase 1
  * adds, and keeping it apart means the part that will be deleted when the
- * preview store goes away — the notice and the "xem như" strip — is visible as
- * a block rather than threaded through a thousand lines.
+ * preview store goes away — the "xem như" strip — is visible as a block
+ * rather than threaded through a thousand lines.
+ *
+ * <b>Shrinking, not static.</b> The restyle to `cms-style-reference/` moved
+ * every screen that used to depend on this file's queue/detail-screen rules
+ * onto `cms-card`/`cms-page-header`/`cms-metadata` instead
+ * (`phase4c-cards-high-risk-workflow`). What is left is what genuinely has no
+ * reference-component equivalent (chips, dropzone helpers) or is still used
+ * by a component outside that migration's file scope
+ * (`.cms-panel-head` ← `GroupPositionEditor.tsx`). The dead rest was deleted
+ * rather than kept "for later" — a rule with no call site is a maintenance
+ * trap, not documentation.
  *
  * Every colour here is a token from `palette.css`. Nothing in this file
  * introduces a hex.
  */
 
 /* ── Preview scaffolding ────────────────────────────────────────────────── */
-
-/* Loud enough to be read, quiet enough not to compete with the screen it sits
-   on. It is information about the data, not a warning about a failure — so it
-   is not red. */
-.cms-preview-notice {
-  margin: 0 0 var(--s-4);
-  padding: var(--s-3) var(--s-4);
-  border: 1px solid var(--hold-line);
-  border-radius: var(--r-md);
-  background: var(--hold-soft);
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-  color: var(--ink-2);
-}
-
-.cms-preview-notice strong {
-  color: var(--hold);
-  font-weight: var(--w-emph);
-}
 
 .cms-viewas {
   display: flex;
@@ -190,12 +181,12 @@
 
 /* ── Detail screen ──────────────────────────────────────────────────────── */
 
-.cms-state-hint {
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-  color: var(--muted);
-}
-
+/*
+ * Still needed: GroupPositionEditor.tsx's own panel head (out of this task's
+ * file scope — phase4c-cards-high-risk-workflow migrated every screen that
+ * used to depend on this rule directly to .cms-card-head, but that component
+ * is not a screen and was not in scope here).
+ */
 .cms-panel-head {
   display: flex;
   flex-wrap: wrap;
@@ -203,114 +194,6 @@
   justify-content: space-between;
   gap: var(--s-3);
   margin-bottom: var(--s-4);
-}
-
-.cms-fact dt {
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-  color: var(--muted);
-}
-
-.cms-fact dd {
-  margin: var(--s-1) 0 0;
-  font-size: var(--t-14);
-  font-weight: var(--w-emph);
-  line-height: var(--lh-body);
-  color: var(--ink);
-}
-
-.cms-steps {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.cms-steps li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-3);
-  padding: var(--s-3);
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-md);
-  background: var(--sunk);
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-}
-
-/* A step that has not happened is stated, not hidden — the gap is the
-   information an operator came for. It recedes rather than disappearing. */
-.cms-steps li.is-pending {
-  background: transparent;
-  border-style: dashed;
-}
-
-.cms-step-label {
-  font-weight: var(--w-emph);
-  color: var(--ink);
-}
-
-.cms-steps li.is-pending .cms-step-label {
-  color: var(--ink-2);
-  font-weight: var(--w-body);
-}
-
-.cms-step-when .num {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
-}
-
-.cms-review-notes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.cms-review-notes li {
-  padding: var(--s-4);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--card);
-}
-
-.cms-review-notes p {
-  margin: var(--s-2) 0 0;
-  font-size: var(--t-16);
-  line-height: var(--lh-body);
-  color: var(--ink);
-}
-
-.cms-note-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--s-2);
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-}
-
-/* Which question the note is pinned to. Monospaced because it is a locator,
-   and a locator that reflows into the prose stops being scannable. */
-.cms-anchor {
-  padding: 0 var(--s-2);
-  border: 1px solid var(--acc-line);
-  border-radius: var(--r-pill);
-  background: var(--acc-soft);
-  font-family: var(--mono);
-  font-size: var(--t-13);
-  color: var(--acc);
-}
-
-.cms-wait {
-  font-weight: var(--w-emph);
-  color: var(--ink-2);
 }
 
 /* A button that lives inside a sentence. Underlined, because colour alone does
@@ -363,64 +246,12 @@
   line-height: var(--lh-body);
 }
 
-.cms-table audio,
-.cms-assets audio {
+.cms-table audio {
   display: block;
   width: 100%;
   max-width: 320px;
   margin-top: var(--s-2);
   height: 32px;
-}
-
-.cms-assets {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: var(--s-3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.cms-assets li {
-  padding: var(--s-3);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--card);
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-}
-
-/* A missing file is a real failure — the exam cannot be sat as it stands — so
-   this is one of the few places in the CMS that earns the red. */
-.cms-assets li.is-missing {
-  border-color: var(--bad);
-  background: var(--bad-soft);
-}
-
-/* The tint costs contrast: `--muted` reads 4.36 on `--bad-soft`, under the
-   floor. Secondary text on this card steps up to `--ink-2` — 5.60 — rather
-   than the card losing its tint. */
-.cms-assets li.is-missing .cms-muted,
-.cms-assets li.is-missing .cms-code {
-  color: var(--ink-2);
-}
-
-.cms-assets p {
-  margin: var(--s-2) 0 0;
-  color: var(--ink);
-}
-
-.cms-asset-bad {
-  color: var(--bad);
-  font-weight: var(--w-emph);
-}
-
-.cms-asset-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-2);
 }
 
 /* ── A held-shut action, and why ────────────────────────────────────────── */

@@ -126,49 +126,50 @@ export function FailedMarkingQueuePage() {
         <span>Hàng chờ chấm hỏng</span>
       </nav>
 
-      <header className="cms-head">
-        <h1>Hàng chờ chấm hỏng</h1>
-        <p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Hàng chờ chấm hỏng</h1>
+        <p className="cms-muted">
           Những lần chấm không ra điểm. Chạy lại là gửi bài cho nhà cung cấp lần nữa — xác nhận trước
           khi bấm, vì chi phí là thật dù số token chưa chốt.
         </p>
+        <form className="cms-page-header__row" onSubmit={apply}>
+          <label className="cms-field-inline">
+            <span>Từ ngày</span>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          </label>
+          <label className="cms-field-inline">
+            <span>Đến ngày</span>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          </label>
+          <label className="cms-field-inline">
+            <span>Kỹ năng</span>
+            <select value={module} onChange={(e) => setModule(e.target.value)}>
+              <option value="">Tất cả</option>
+              {MODULES.map((value) => (
+                <option key={value} value={value}>
+                  {moduleLabel(value)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="cms-page-header__actions">
+            <button type="submit" className="cms-button cms-button--secondary">
+              Lọc
+            </button>
+            {filtered && (
+              <button
+                type="button"
+                className="cms-link-button"
+                onClick={() => setParams(new URLSearchParams(), { replace: true })}
+              >
+                Xoá bộ lọc
+              </button>
+            )}
+          </div>
+        </form>
       </header>
 
       {flash}
-
-      <form className="cms-toolbar" onSubmit={apply}>
-        <label className="cms-field-inline">
-          <span>Từ ngày</span>
-          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-        </label>
-        <label className="cms-field-inline">
-          <span>Đến ngày</span>
-          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-        </label>
-        <label className="cms-field-inline">
-          <span>Kỹ năng</span>
-          <select value={module} onChange={(e) => setModule(e.target.value)}>
-            <option value="">Tất cả</option>
-            {MODULES.map((value) => (
-              <option key={value} value={value}>
-                {moduleLabel(value)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit" className="cms-button cms-button--secondary">
-          Lọc
-        </button>
-        {filtered && (
-          <button
-            type="button"
-            className="cms-link-button"
-            onClick={() => setParams(new URLSearchParams(), { replace: true })}
-          >
-            Xoá bộ lọc
-          </button>
-        )}
-      </form>
 
       {error !== null && (
         <p className="cms-alert" data-tone="danger" role="alert">
@@ -179,105 +180,112 @@ export function FailedMarkingQueuePage() {
       {items === null && error === null && <p className="cms-muted">Đang tải…</p>}
 
       {items !== null && items.length === 0 && error === null && (
-        <div className="cms-empty">
-          <h3>{filtered ? 'Không có việc nào khớp bộ lọc' : 'Hàng chờ trống'}</h3>
-          <p>
-            {filtered
-              ? 'Thử bỏ bớt điều kiện lọc.'
-              : 'Việc chấm hỏng sẽ xuất hiện ở đây. Đánh giá đã ra điểm nằm ở danh sách đánh giá.'}
-          </p>
-        </div>
+        <article className="cms-card">
+          <div className="cms-card-body cms-card-body--empty">
+            <h3 className="cms-card-body__title">
+              {filtered ? 'Không có việc nào khớp bộ lọc' : 'Hàng chờ trống'}
+            </h3>
+            <p className="cms-card-body__message">
+              {filtered
+                ? 'Thử bỏ bớt điều kiện lọc.'
+                : 'Việc chấm hỏng sẽ xuất hiện ở đây. Đánh giá đã ra điểm nằm ở danh sách đánh giá.'}
+            </p>
+          </div>
+        </article>
       )}
 
       {items !== null && items.length > 0 && (
-        <>
-          <p className="cms-muted">
-            <span className="num">{total}</span> việc
-            {filtered ? ' khớp bộ lọc' : ''}.
-          </p>
+        <article className="cms-card">
+          <div className="cms-card-body">
+            <p className="cms-muted">
+              <span className="num">{total}</span> việc
+              {filtered ? ' khớp bộ lọc' : ''}.
+            </p>
 
-          <div className="cms-table-wrap">
-            <table className="cms-table">
-              <caption className="cms-muted">Hàng chờ chấm hỏng, lần hỏng mới nhất trước.</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Việc</th>
-                  <th scope="col">Kỹ năng</th>
-                  <th scope="col">Trạng thái</th>
-                  <th scope="col">Lần thử</th>
-                  <th scope="col">Lỗi</th>
-                  <th scope="col">Thời điểm</th>
-                  {canRerun && <th scope="col">Thao tác</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((job) => (
-                  <tr key={job.operationId}>
-                    <td>
-                      <span className="num">{job.operationId}</span>
-                      <span className="cms-sub num">{job.sessionId}</span>
-                    </td>
-                    <td>
-                      {moduleLabel(job.module)}
-                      <span className="cms-sub">{job.rubricVersion}</span>
-                    </td>
-                    <td>
-                      <span className="cms-status-pill" data-tone={stateTone(job.state)}>
-                        <span className="cms-status-pill__dot" aria-hidden="true" />
-                        {stateLabel(job.state)}
-                      </span>
-                    </td>
-                    <td className="num">{job.attempts}</td>
-                    <td>{job.lastError ?? <span className="cms-muted">—</span>}</td>
-                    <td className="num cms-nowrap">
-                      Hỏng: {formatWhen(job.failedAt)}
-                      <span className="cms-sub">Tạo: {formatWhen(job.createdAt)}</span>
-                      {job.nextAttemptAt !== null && (
-                        <span className="cms-sub">Lần tới: {formatWhen(job.nextAttemptAt)}</span>
-                      )}
-                      {job.completedAt !== null && (
-                        <span className="cms-sub">Xong: {formatWhen(job.completedAt)}</span>
-                      )}
-                    </td>
-                    {canRerun && (
-                      <td>
-                        <button
-                          type="button"
-                          className="cms-button cms-button--danger"
-                          onClick={() => setAsk(job)}
-                        >
-                          Chạy lại
-                        </button>
-                      </td>
-                    )}
+            <div className="cms-table-wrap">
+              <table className="cms-table">
+                <caption className="cms-muted">Hàng chờ chấm hỏng, lần hỏng mới nhất trước.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Việc</th>
+                    <th scope="col">Kỹ năng</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col">Lần thử</th>
+                    <th scope="col">Lỗi</th>
+                    <th scope="col">Thời điểm</th>
+                    {canRerun && <th scope="col">Thao tác</th>}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {items.map((job) => (
+                    <tr key={job.operationId}>
+                      <td>
+                        <span className="num">{job.operationId}</span>
+                        <span className="cms-sub num">{job.sessionId}</span>
+                      </td>
+                      <td>
+                        {moduleLabel(job.module)}
+                        <span className="cms-sub">{job.rubricVersion}</span>
+                      </td>
+                      <td>
+                        <span className="cms-status-pill" data-tone={stateTone(job.state)}>
+                          <span className="cms-status-pill__dot" aria-hidden="true" />
+                          {stateLabel(job.state)}
+                        </span>
+                      </td>
+                      <td className="num">{job.attempts}</td>
+                      <td>{job.lastError ?? <span className="cms-muted">—</span>}</td>
+                      <td className="num cms-nowrap">
+                        Hỏng: {formatWhen(job.failedAt)}
+                        <span className="cms-sub">Tạo: {formatWhen(job.createdAt)}</span>
+                        {job.nextAttemptAt !== null && (
+                          <span className="cms-sub">Lần tới: {formatWhen(job.nextAttemptAt)}</span>
+                        )}
+                        {job.completedAt !== null && (
+                          <span className="cms-sub">Xong: {formatWhen(job.completedAt)}</span>
+                        )}
+                      </td>
+                      {canRerun && (
+                        <td>
+                          <button
+                            type="button"
+                            className="cms-button cms-button--danger"
+                            onClick={() => setAsk(job)}
+                          >
+                            Chạy lại
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-
-          <div className="cms-pager">
-            <button
-              type="button"
-              className="cms-button cms-button--secondary"
-              disabled={page <= 1}
-              onClick={() => writeFilters(setParams, { ...formOf(filters), page: page - 1 })}
-            >
-              Trang trước
-            </button>
-            <span className="num">
-              {page} / {pages}
-            </span>
-            <button
-              type="button"
-              className="cms-button cms-button--secondary"
-              disabled={page >= pages}
-              onClick={() => writeFilters(setParams, { ...formOf(filters), page: page + 1 })}
-            >
-              Trang sau
-            </button>
-          </div>
-        </>
+          <footer className="cms-card-foot">
+            <div className="cms-pager">
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={page <= 1}
+                onClick={() => writeFilters(setParams, { ...formOf(filters), page: page - 1 })}
+              >
+                Trang trước
+              </button>
+              <span className="num">
+                {page} / {pages}
+              </span>
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={page >= pages}
+                onClick={() => writeFilters(setParams, { ...formOf(filters), page: page + 1 })}
+              >
+                Trang sau
+              </button>
+            </div>
+          </footer>
+        </article>
       )}
 
       <Confirm

@@ -91,66 +91,67 @@ export function EvaluationsPage() {
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Đánh giá AI</h1>
-        <p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Đánh giá AI</h1>
+        <p className="cms-muted">
           Kết quả chấm Writing và Speaking. Điểm trên hàng là điểm tính lại từ từng tiêu chí — không
           phải số mô hình tự báo.
         </p>
+        <form className="cms-page-header__row" onSubmit={apply}>
+          <label className="cms-field-inline">
+            <span>Từ ngày</span>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          </label>
+          <label className="cms-field-inline">
+            <span>Đến ngày</span>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          </label>
+          <label className="cms-field-inline">
+            <span>Kỹ năng</span>
+            <select value={module} onChange={(e) => setModule(e.target.value)}>
+              <option value="">Tất cả</option>
+              {MODULES.map((value) => (
+                <option key={value} value={value}>
+                  {moduleLabel(value)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="cms-field-inline">
+            <span>Cờ</span>
+            <select value={flagged} onChange={(e) => setFlagged(e.target.value)}>
+              <option value="">Tất cả</option>
+              <option value="true">Có cờ</option>
+              <option value="false">Không cờ</option>
+            </select>
+          </label>
+          <label className="cms-field-inline">
+            <span>Phiên bản</span>
+            <select value={current} onChange={(e) => setCurrent(e.target.value)}>
+              <option value="">Tất cả</option>
+              <option value="true">Đang dùng</option>
+              <option value="false">Đã thay</option>
+            </select>
+          </label>
+          <div className="cms-page-header__actions">
+            <button type="submit" className="cms-button cms-button--secondary">
+              Lọc
+            </button>
+            {filtered && (
+              <button
+                type="button"
+                className="cms-link-button"
+                onClick={() => setParams(new URLSearchParams(), { replace: true })}
+              >
+                Xoá bộ lọc
+              </button>
+            )}
+            <Link className="cms-button cms-button--secondary" to={AdminPaths.failedEvaluations}>
+              Hàng chờ chấm hỏng
+            </Link>
+          </div>
+        </form>
       </header>
-
-      <form className="cms-toolbar" onSubmit={apply}>
-        <label className="cms-field-inline">
-          <span>Từ ngày</span>
-          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-        </label>
-        <label className="cms-field-inline">
-          <span>Đến ngày</span>
-          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-        </label>
-        <label className="cms-field-inline">
-          <span>Kỹ năng</span>
-          <select value={module} onChange={(e) => setModule(e.target.value)}>
-            <option value="">Tất cả</option>
-            {MODULES.map((value) => (
-              <option key={value} value={value}>
-                {moduleLabel(value)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="cms-field-inline">
-          <span>Cờ</span>
-          <select value={flagged} onChange={(e) => setFlagged(e.target.value)}>
-            <option value="">Tất cả</option>
-            <option value="true">Có cờ</option>
-            <option value="false">Không cờ</option>
-          </select>
-        </label>
-        <label className="cms-field-inline">
-          <span>Phiên bản</span>
-          <select value={current} onChange={(e) => setCurrent(e.target.value)}>
-            <option value="">Tất cả</option>
-            <option value="true">Đang dùng</option>
-            <option value="false">Đã thay</option>
-          </select>
-        </label>
-        <button type="submit" className="cms-button cms-button--secondary">
-          Lọc
-        </button>
-        {filtered && (
-          <button
-            type="button"
-            className="cms-link-button"
-            onClick={() => setParams(new URLSearchParams(), { replace: true })}
-          >
-            Xoá bộ lọc
-          </button>
-        )}
-        <Link className="cms-button cms-button--secondary" to={AdminPaths.failedEvaluations}>
-          Hàng chờ chấm hỏng
-        </Link>
-      </form>
 
       {error !== null && (
         <p className="cms-alert" data-tone="danger" role="alert">
@@ -161,105 +162,112 @@ export function EvaluationsPage() {
       {items === null && error === null && <p className="cms-muted">Đang tải…</p>}
 
       {items !== null && items.length === 0 && error === null && (
-        <div className="cms-empty">
-          <h3>{filtered ? 'Không có đánh giá nào khớp bộ lọc' : 'Chưa có đánh giá nào'}</h3>
-          <p>
-            {filtered
-              ? 'Thử bỏ bớt điều kiện, hoặc mở hàng chờ chấm hỏng nếu đang tìm một lần chấm không ra điểm.'
-              : 'Đánh giá xuất hiện ở đây sau khi một bài Writing được chấm. Việc chấm hỏng nằm ở hàng chờ riêng.'}
-          </p>
-        </div>
+        <article className="cms-card">
+          <div className="cms-card-body cms-card-body--empty">
+            <h3 className="cms-card-body__title">
+              {filtered ? 'Không có đánh giá nào khớp bộ lọc' : 'Chưa có đánh giá nào'}
+            </h3>
+            <p className="cms-card-body__message">
+              {filtered
+                ? 'Thử bỏ bớt điều kiện, hoặc mở hàng chờ chấm hỏng nếu đang tìm một lần chấm không ra điểm.'
+                : 'Đánh giá xuất hiện ở đây sau khi một bài Writing được chấm. Việc chấm hỏng nằm ở hàng chờ riêng.'}
+            </p>
+          </div>
+        </article>
       )}
 
       {items !== null && items.length > 0 && (
-        <>
-          <p className="cms-muted">
-            <span className="num">{total}</span> đánh giá
-            {filtered ? ' khớp bộ lọc' : ''}.
-          </p>
+        <article className="cms-card">
+          <div className="cms-card-body">
+            <p className="cms-muted">
+              <span className="num">{total}</span> đánh giá
+              {filtered ? ' khớp bộ lọc' : ''}.
+            </p>
 
-          <div className="cms-table-wrap">
-            <table className="cms-table">
-              <caption className="cms-muted">Danh sách đánh giá AI, mới nhất trước.</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Phiên / lần chấm</th>
-                  <th scope="col">Kỹ năng</th>
-                  <th scope="col">Điểm tính lại</th>
-                  <th scope="col">Điểm mô hình báo</th>
-                  <th scope="col">Trạng thái</th>
-                  <th scope="col">Cờ</th>
-                  <th scope="col">Chấm lúc</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((row) => (
-                  <tr key={`${row.sessionId}:${row.markingId}`}>
-                    <td>
-                      <Link to={AdminPaths.evaluation(row.sessionId, row.markingId)}>
-                        {shortId(row.markingId)}
-                      </Link>
-                      <span className="cms-sub num">{row.sessionId}</span>
-                    </td>
-                    <td>
-                      {moduleLabel(row.module)}
-                      {row.taskNumber !== null && (
-                        <span className="cms-sub">Task {row.taskNumber}</span>
-                      )}
-                      <span className="cms-sub">{row.rubricVersion}</span>
-                    </td>
-                    <td className="num">{formatBand(row.recomputedBand)}</td>
-                    <td className="num">
-                      {row.reportedBand === null ? '—' : formatBand(row.reportedBand)}
-                    </td>
-                    <td>
-                      <span className="cms-badge" data-tone={row.isCurrent  ? "ok" : "warning"}>
-                        {row.isCurrent ? 'Đang dùng' : 'Đã thay'}
-                      </span>
-                      <span className="cms-sub num">v{row.version}</span>
-                    </td>
-                    <td>
-                      {row.flags.length === 0 ? (
-                        <span className="cms-muted">—</span>
-                      ) : (
-                        <span className="cms-modules">
-                          {row.flags.map((flag) => (
-                            <span className="cms-badge" data-tone="warning" key={flag}>
-                              {flagLabel(flag)}
-                            </span>
-                          ))}
-                        </span>
-                      )}
-                    </td>
-                    <td className="num cms-nowrap">{formatWhen(row.markedAt)}</td>
+            <div className="cms-table-wrap">
+              <table className="cms-table">
+                <caption className="cms-muted">Danh sách đánh giá AI, mới nhất trước.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Phiên / lần chấm</th>
+                    <th scope="col">Kỹ năng</th>
+                    <th scope="col">Điểm tính lại</th>
+                    <th scope="col">Điểm mô hình báo</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col">Cờ</th>
+                    <th scope="col">Chấm lúc</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {items.map((row) => (
+                    <tr key={`${row.sessionId}:${row.markingId}`}>
+                      <td>
+                        <Link to={AdminPaths.evaluation(row.sessionId, row.markingId)}>
+                          {shortId(row.markingId)}
+                        </Link>
+                        <span className="cms-sub num">{row.sessionId}</span>
+                      </td>
+                      <td>
+                        {moduleLabel(row.module)}
+                        {row.taskNumber !== null && (
+                          <span className="cms-sub">Task {row.taskNumber}</span>
+                        )}
+                        <span className="cms-sub">{row.rubricVersion}</span>
+                      </td>
+                      <td className="num">{formatBand(row.recomputedBand)}</td>
+                      <td className="num">
+                        {row.reportedBand === null ? '—' : formatBand(row.reportedBand)}
+                      </td>
+                      <td>
+                        <span className="cms-badge" data-tone={row.isCurrent ? 'ok' : 'warning'}>
+                          {row.isCurrent ? 'Đang dùng' : 'Đã thay'}
+                        </span>
+                        <span className="cms-sub num">v{row.version}</span>
+                      </td>
+                      <td>
+                        {row.flags.length === 0 ? (
+                          <span className="cms-muted">—</span>
+                        ) : (
+                          <span className="cms-modules">
+                            {row.flags.map((flag) => (
+                              <span className="cms-badge" data-tone="warning" key={flag}>
+                                {flagLabel(flag)}
+                              </span>
+                            ))}
+                          </span>
+                        )}
+                      </td>
+                      <td className="num cms-nowrap">{formatWhen(row.markedAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-
-          <div className="cms-pager">
-            <button
-              type="button"
-              className="cms-button cms-button--secondary"
-              disabled={page <= 1}
-              onClick={() => writeFilters(setParams, { ...formOf(filters), page: page - 1 })}
-            >
-              Trang trước
-            </button>
-            <span className="num">
-              {page} / {pages}
-            </span>
-            <button
-              type="button"
-              className="cms-button cms-button--secondary"
-              disabled={page >= pages}
-              onClick={() => writeFilters(setParams, { ...formOf(filters), page: page + 1 })}
-            >
-              Trang sau
-            </button>
-          </div>
-        </>
+          <footer className="cms-card-foot">
+            <div className="cms-pager">
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={page <= 1}
+                onClick={() => writeFilters(setParams, { ...formOf(filters), page: page - 1 })}
+              >
+                Trang trước
+              </button>
+              <span className="num">
+                {page} / {pages}
+              </span>
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={page >= pages}
+                onClick={() => writeFilters(setParams, { ...formOf(filters), page: page + 1 })}
+              >
+                Trang sau
+              </button>
+            </div>
+          </footer>
+        </article>
       )}
     </>
   );

@@ -61,9 +61,9 @@ export function ReviewQueuePage() {
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Hàng chờ duyệt</h1>
-        <p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Hàng chờ duyệt</h1>
+        <p className="cms-muted">
           Đề đã nộp, chờ đọc. Duyệt hoặc trả lại từ trang chi tiết của từng đề — duyệt xong đề
           chuyển sang danh sách chờ xuất bản, và bạn không xuất bản từ đây.
         </p>
@@ -78,49 +78,54 @@ export function ReviewQueuePage() {
       {exams === null && !failed && <p className="cms-muted">Đang tải…</p>}
 
       {exams !== null && queue.length === 0 && (
-        <div className="cms-empty">
-          <h3>Hàng chờ trống</h3>
-          <p>Không có đề nào đang chờ duyệt. Đề mới sẽ xuất hiện ở đây ngay khi người soạn nộp.</p>
-        </div>
+        <article className="cms-card">
+          <div className="cms-card-body cms-card-body--empty">
+            <h3 className="cms-card-body__title">Hàng chờ trống</h3>
+            <p className="cms-card-body__message">
+              Không có đề nào đang chờ duyệt. Đề mới sẽ xuất hiện ở đây ngay khi người soạn nộp.
+            </p>
+          </div>
+        </article>
       )}
 
       {queue.length > 0 && (
-        <div className="cms-table-wrap">
-          <table className="cms-table">
-            <thead>
-              <tr>
-                <th>Tên đề</th>
-                <th>Kỹ năng</th>
-                <th>Version</th>
-                <th>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {queue.map((version) => (
-                <tr key={version.examVersionId}>
-                  <td>
-                    <Link to={AdminPaths.exam(version.definitionId)}>{version.title}</Link>
-                    <span className="cms-sub">{version.variant}</span>
-                  </td>
-                  <td>
-                    <span className="cms-modules">
-                      {version.modules.map((m) => (
-                        <span className="cms-module" key={m.module}>
-                          {m.module}
-                          <b className="num">{m.questionCount}</b>
+        <article className="cms-card">
+          <div className="cms-card-body">
+            <div className="cms-table-wrap">
+              <table className="cms-table">
+                <thead>
+                  <tr>
+                    <th>Tên đề</th>
+                    <th>Kỹ năng</th>
+                    <th>Version</th>
+                    <th>Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {queue.map((version) => (
+                    <tr key={version.examVersionId}>
+                      <td>
+                        <Link to={AdminPaths.exam(version.definitionId)}>{version.title}</Link>
+                        <span className="cms-sub">{version.variant}</span>
+                      </td>
+                      <td>
+                        <span className="cms-sub">
+                          {version.modules
+                            .map((m) => `${m.module} (${m.questionCount})`)
+                            .join(' · ')}
                         </span>
-                      ))}
-                    </span>
-                  </td>
-                  <td className="num">v{version.versionNumber}</td>
-                  <td>
-                    <StatusBadge status={version.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      </td>
+                      <td className="num">v{version.versionNumber}</td>
+                      <td>
+                        <StatusBadge status={version.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
       )}
     </>
   );
