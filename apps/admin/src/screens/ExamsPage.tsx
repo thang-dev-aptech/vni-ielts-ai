@@ -67,7 +67,7 @@ export function ExamsPage() {
 
   useEffect(() => void load(), [load]);
 
-  const pageSize = 25;
+  const pageSize = 10;
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
   return (

@@ -157,7 +157,7 @@ public static class AdminEndpoints
         }
 
         // Clamped, not trusted — same reason as UsersEndpoint's PageSize.
-        const int PageSize = 25;
+        const int PageSize = 10;
         var current = Math.Clamp(page ?? 1, 1, MaxPage);
 
         ExamVersionStatus? parsedStatus = status is not null
