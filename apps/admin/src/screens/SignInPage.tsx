@@ -59,10 +59,15 @@ export function SignInPage() {
 
   return (
     <div className="cms-auth">
-      <form className="cms-auth-card" onSubmit={(e) => void submit(e)} noValidate>
+      {/*
+        `cms-auth-card` keeps the centred 420px layout (auth layout CSS is
+        outside this task's file scope). `cms-card` adds the shared card chrome
+        so the form matches shell pages — border, radius, surface, soft shadow.
+      */}
+      <form className="cms-card cms-auth-card" onSubmit={(e) => void submit(e)} noValidate>
         <img src="/favicon-192.png" alt="" aria-hidden="true" />
-        <h1>Quản trị VNI IELTS AI</h1>
-        <p>Đăng nhập bằng tài khoản đã được cấp quyền quản trị.</p>
+        <h1 className="cms-card-head__title">Quản trị VNI IELTS AI</h1>
+        <p className="cms-muted">Đăng nhập bằng tài khoản đã được cấp quyền quản trị.</p>
 
         {error !== null && (
           <p className="cms-alert" data-tone="danger" role="alert">

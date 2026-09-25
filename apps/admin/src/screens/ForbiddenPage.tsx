@@ -18,28 +18,32 @@ export function ForbiddenPage({ permission }: { permission?: string }) {
 
   return (
     <div className="cms-auth">
-      <div className="cms-auth-card">
-        <h1>Không đủ quyền</h1>
+      {/*
+        Same split as SignInPage: `cms-auth-card` for the centred layout,
+        `cms-card` for the shared entity-card chrome.
+      */}
+      <article className="cms-card cms-auth-card">
+        <h1 className="cms-card-head__title">Không đủ quyền</h1>
 
         <p>
           Tài khoản <strong>{user?.email}</strong> đã đăng nhập nhưng không có quyền mở phần này.
         </p>
 
         {permission !== undefined && (
-          <p className="cms-alert">
-            Quyền cần có: <code>{permission}</code>
+          <p className="cms-alert" data-tone="warning" role="status">
+            Quyền cần có: <code className="cms-code">{permission}</code>
           </p>
         )}
 
         <p className="cms-muted">
-          Nếu bạn cho rằng đây là nhầm lẫn, gửi mã tài khoản <code>{user?.userId}</code> cho quản
-          trị viên để được cấp quyền.
+          Nếu bạn cho rằng đây là nhầm lẫn, gửi mã tài khoản{' '}
+          <code className="cms-code">{user?.userId}</code> cho quản trị viên để được cấp quyền.
         </p>
 
         <button type="button" className="cms-button cms-button--primary" onClick={signOut}>
           Đăng xuất
         </button>
-      </div>
+      </article>
     </div>
   );
 }
