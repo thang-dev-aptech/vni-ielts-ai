@@ -99,13 +99,15 @@ export function ExamDetailPage() {
 
   if (versions.length === 0) {
     return (
-      <div className="cms-empty">
-        <h3>Không tìm thấy đề này</h3>
-        <p>
-          Đề có thể đã bị xoá, hoặc mã trong địa chỉ không đúng.{' '}
-          <Link to={AdminPaths.exams}>Về danh sách đề</Link>
-        </p>
-      </div>
+      <article className="cms-card">
+        <div className="cms-card-body cms-card-body--empty">
+          <h3 className="cms-card-body__title">Không tìm thấy đề này</h3>
+          <p className="cms-card-body__message">
+            Đề có thể đã bị xoá, hoặc mã trong địa chỉ không đúng.{' '}
+            <Link to={AdminPaths.exams}>Về danh sách đề</Link>
+          </p>
+        </div>
+      </article>
     );
   }
 
@@ -119,9 +121,9 @@ export function ExamDetailPage() {
         <span>{latest.title}</span>
       </nav>
 
-      <header className="cms-head">
-        <h1>{latest.title}</h1>
-        <p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">{latest.title}</h1>
+        <p className="cms-muted">
           {versions.length} version. Nội dung đã xuất bản không sửa được — muốn đổi thì nhập một
           version mới.
         </p>
@@ -129,45 +131,49 @@ export function ExamDetailPage() {
 
       {flash}
 
-      <ol className="cms-timeline">
-        {versions.map((version) => (
-          <li className="cms-version" key={version.examVersionId}>
-            <div className="cms-version-head">
-              <span className="cms-version-no num">v{version.versionNumber}</span>
-              <StatusBadge status={version.status} />
+      {versions.map((version) => (
+        <article className="cms-card" key={version.examVersionId}>
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">v{version.versionNumber}</h2>
               <span className="cms-sub">
                 {version.publishedAt === null
                   ? 'Chưa xuất bản'
                   : `Xuất bản ${new Date(version.publishedAt).toLocaleString('vi-VN')}`}
               </span>
             </div>
-
-            <table className="cms-table is-inner">
-              <thead>
-                <tr>
-                  <th>Kỹ năng</th>
-                  <th>Số câu</th>
-                  <th>Thời lượng</th>
-                </tr>
-              </thead>
-              <tbody>
-                {version.modules.map((module) => (
-                  <tr key={module.module}>
-                    <td>{module.module}</td>
-                    <td className="num">{module.questionCount}</td>
-                    <td className="num">{Math.round(module.durationSeconds / 60)} phút</td>
+            <div className="cms-card-head__status">
+              <StatusBadge status={version.status} />
+            </div>
+          </header>
+          <div className="cms-card-body">
+            <div className="cms-table-wrap">
+              <table className="cms-table is-inner">
+                <thead>
+                  <tr>
+                    <th>Kỹ năng</th>
+                    <th>Số câu</th>
+                    <th>Thời lượng</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-
+                </thead>
+                <tbody>
+                  {version.modules.map((module) => (
+                    <tr key={module.module}>
+                      <td>{module.module}</td>
+                      <td className="num">{module.questionCount}</td>
+                      <td className="num">{Math.round(module.durationSeconds / 60)} phút</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <TransitionBar
               state={version.status as ExamState}
               onApply={(transition, note) => runTransition(version.examVersionId, transition, note)}
             />
-          </li>
-        ))}
-      </ol>
+          </div>
+        </article>
+      ))}
     </>
   );
 }

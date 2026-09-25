@@ -64,39 +64,42 @@ export function ExamsPage() {
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Đề thi</h1>
-        <p>Mọi version, kể cả bản nháp. Sửa nội dung đã xuất bản là tạo version mới.</p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Đề thi</h1>
+        <p className="cms-muted">
+          Mọi version, kể cả bản nháp. Sửa nội dung đã xuất bản là tạo version mới.
+        </p>
+        <div className="cms-page-header__row">
+          <label className="cms-search">
+            <span className="cms-sr-only">Tìm theo tên đề</span>
+            <span className="cms-icon cms-search__icon" aria-hidden="true">
+              <Search strokeWidth={1.7} />
+            </span>
+            <input
+              type="search"
+              className="cms-search__input"
+              placeholder="Tìm theo tên đề"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+          <div className="cms-page-header__actions">
+            <label className="cms-field-inline">
+              <span>Trạng thái</span>
+              <select value={status} onChange={(e) => setStatus(e.target.value as ExamState | 'all')}>
+                {STATUS_FILTERS.map((value) => (
+                  <option key={value} value={value}>
+                    {value === 'all' ? 'Mọi trạng thái' : STATE[value].label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Link className="cms-button cms-button--primary" to={AdminPaths.import}>
+              Nhập đề mới
+            </Link>
+          </div>
+        </div>
       </header>
-
-      <div className="cms-toolbar">
-        <label className="cms-search">
-          <span className="cms-sr-only">Tìm theo tên đề</span>
-          <span className="cms-icon cms-search__icon" aria-hidden="true">
-            <Search strokeWidth={1.7} />
-          </span>
-          <input
-            type="search"
-            className="cms-search__input"
-            placeholder="Tìm theo tên đề"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </label>
-        <label className="cms-field-inline">
-          <span>Trạng thái</span>
-          <select value={status} onChange={(e) => setStatus(e.target.value as ExamState | 'all')}>
-            {STATUS_FILTERS.map((value) => (
-              <option key={value} value={value}>
-                {value === 'all' ? 'Mọi trạng thái' : STATE[value].label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <Link className="cms-button cms-button--primary" to={AdminPaths.import}>
-          Nhập đề mới
-        </Link>
-      </div>
 
       {failed && (
         <p className="cms-alert" data-tone="danger" role="alert">
@@ -107,55 +110,60 @@ export function ExamsPage() {
       {exams === null && !failed && <p className="cms-muted">Đang tải…</p>}
 
       {exams !== null && shown.length === 0 && (
-        <div className="cms-empty">
-          <h3>Chưa có đề nào khớp</h3>
-          <p>Nhập một gói đề để bắt đầu, hoặc đổi từ khoá tìm kiếm.</p>
-        </div>
+        <article className="cms-card">
+          <div className="cms-card-body cms-card-body--empty">
+            <h3 className="cms-card-body__title">Chưa có đề nào khớp</h3>
+            <p className="cms-card-body__message">
+              Nhập một gói đề để bắt đầu, hoặc đổi từ khoá tìm kiếm.
+            </p>
+          </div>
+        </article>
       )}
 
       {shown.length > 0 && (
-        <div className="cms-table-wrap">
-          <table className="cms-table">
-            <thead>
-              <tr>
-                <th>Tên đề</th>
-                <th>Kỹ năng</th>
-                <th>Version</th>
-                <th>Trạng thái</th>
-                <th>Xuất bản lúc</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shown.map((exam) => (
-                <tr key={exam.examVersionId}>
-                  <td>
-                    <Link to={AdminPaths.exam(exam.definitionId)}>{exam.title}</Link>
-                    <span className="cms-sub">{exam.variant}</span>
-                  </td>
-                  <td>
-                    <span className="cms-modules">
-                      {exam.modules.map((m) => (
-                        <span className="cms-module" key={m.module}>
-                          {m.module}
-                          <b className="num">{m.questionCount}</b>
+        <article className="cms-card">
+          <div className="cms-card-body">
+            <div className="cms-table-wrap">
+              <table className="cms-table">
+                <thead>
+                  <tr>
+                    <th>Tên đề</th>
+                    <th>Kỹ năng</th>
+                    <th>Version</th>
+                    <th>Trạng thái</th>
+                    <th>Xuất bản lúc</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shown.map((exam) => (
+                    <tr key={exam.examVersionId}>
+                      <td>
+                        <Link to={AdminPaths.exam(exam.definitionId)}>{exam.title}</Link>
+                        <span className="cms-sub">{exam.variant}</span>
+                      </td>
+                      <td>
+                        <span className="cms-sub">
+                          {exam.modules
+                            .map((m) => `${m.module} (${m.questionCount})`)
+                            .join(' · ')}
                         </span>
-                      ))}
-                    </span>
-                  </td>
-                  <td className="num">v{exam.versionNumber}</td>
-                  <td>
-                    <StatusBadge status={exam.status} />
-                  </td>
-                  <td className="num">
-                    {exam.publishedAt === null
-                      ? '—'
-                      : new Date(exam.publishedAt).toLocaleDateString('vi-VN')}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      </td>
+                      <td className="num">v{exam.versionNumber}</td>
+                      <td>
+                        <StatusBadge status={exam.status} />
+                      </td>
+                      <td className="num">
+                        {exam.publishedAt === null
+                          ? '—'
+                          : new Date(exam.publishedAt).toLocaleDateString('vi-VN')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
       )}
     </>
   );

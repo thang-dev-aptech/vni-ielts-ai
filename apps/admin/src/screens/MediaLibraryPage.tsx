@@ -179,45 +179,48 @@ export function MediaLibraryPage() {
       {flash}
 
       {mayUpload && (
-        <section className="cms-panel">
-          <div className="cms-panel-head">
-            <h2>Tải tệp lên</h2>
-          </div>
-
-          {/* Limits before the choice, not after it. The refusal message still
-              names only the category — the thresholds themselves stay off the
-              error path, the same rule the ZIP pipeline follows. */}
-          <p className="cms-muted">
-            Âm thanh mp3 · m4a · wav · ogg, tối đa {formatBytes(MAX_BYTES.audio)}. Hình ảnh png ·
-            jpg · webp, tối đa {formatBytes(MAX_BYTES.image)}. Tài liệu pdf, tối đa{' '}
-            {formatBytes(MAX_BYTES.file)}.
-          </p>
-
-          <label className="cms-drop">
-            <input
-              ref={input}
-              type="file"
-              disabled={busy}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file !== undefined) void take(file);
-              }}
-            />
-            <span>{busy ? 'Đang tải lên…' : 'Chọn tệp'}</span>
-          </label>
-
-          {rejected !== null && (
-            <div className="cms-alert" data-tone="danger" role="alert">
-              <strong className="cms-code">{rejected.code}</strong> {rejected.text}{' '}
-              <span className="cms-muted">({rejected.file})</span>
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Tải tệp lên</h2>
             </div>
-          )}
+          </header>
+          <div className="cms-card-body">
+            {/* Limits before the choice, not after it. The refusal message still
+                names only the category — the thresholds themselves stay off the
+                error path, the same rule the ZIP pipeline follows. */}
+            <p className="cms-muted">
+              Âm thanh mp3 · m4a · wav · ogg, tối đa {formatBytes(MAX_BYTES.audio)}. Hình ảnh png ·
+              jpg · webp, tối đa {formatBytes(MAX_BYTES.image)}. Tài liệu pdf, tối đa{' '}
+              {formatBytes(MAX_BYTES.file)}.
+            </p>
 
-          <p className="cms-muted">
-            Kiểm tra ở đây đọc magic bytes của tệp để báo sớm — còn máy chủ kiểm lại từ đầu với
-            chính những byte đó, và lời của máy chủ mới là quyết định.
-          </p>
-        </section>
+            <label className="cms-drop">
+              <input
+                ref={input}
+                type="file"
+                disabled={busy}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file !== undefined) void take(file);
+                }}
+              />
+              <span>{busy ? 'Đang tải lên…' : 'Chọn tệp'}</span>
+            </label>
+
+            {rejected !== null && (
+              <div className="cms-alert" data-tone="danger" role="alert">
+                <strong className="cms-code">{rejected.code}</strong> {rejected.text}{' '}
+                <span className="cms-muted">({rejected.file})</span>
+              </div>
+            )}
+
+            <p className="cms-muted">
+              Kiểm tra ở đây đọc magic bytes của tệp để báo sớm — còn máy chủ kiểm lại từ đầu với
+              chính những byte đó, và lời của máy chủ mới là quyết định.
+            </p>
+          </div>
+        </article>
       )}
 
       <div className="cms-filters" role="group" aria-label="Lọc theo loại">
@@ -237,143 +240,151 @@ export function MediaLibraryPage() {
       </div>
 
       {shown.length === 0 && (
-        <div className="cms-empty">
-          <h3>{rows.length === 0 ? 'Kho đang trống' : 'Không có tệp nào thuộc loại này'}</h3>
-          <p>
-            {rows.length === 0
-              ? 'Tải một tệp âm thanh lên để bắt đầu.'
-              : 'Đổi bộ lọc để xem các loại khác.'}
-          </p>
-        </div>
+        <article className="cms-card">
+          <div className="cms-card-body cms-card-body--empty">
+            <h3 className="cms-card-body__title">
+              {rows.length === 0 ? 'Kho đang trống' : 'Không có tệp nào thuộc loại này'}
+            </h3>
+            <p className="cms-card-body__message">
+              {rows.length === 0
+                ? 'Tải một tệp âm thanh lên để bắt đầu.'
+                : 'Đổi bộ lọc để xem các loại khác.'}
+            </p>
+          </div>
+        </article>
       )}
 
       {shown.length > 0 && (
-        <div className="cms-table-wrap">
-          <table className="cms-table">
-            <thead>
-              <tr>
-                <th>Tệp</th>
-                <th>Dung lượng</th>
-                <th>Thời lượng</th>
-                <th>Trạng thái</th>
-                <th>Đang dùng ở</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shown.map((adminAsset) => {
-                // Convert AdminMediaAsset to MediaAsset
-                const asset: MediaAsset = {
-                  mediaId: adminAsset.mediaId,
-                  kind: adminAsset.kind as MediaKind,
-                  fileName: adminAsset.fileName,
-                  contentType: adminAsset.contentType,
-                  bytes: adminAsset.bytes,
-                  durationMs: adminAsset.durationMs,
-                  checksum: adminAsset.checksum,
-                  uploadedByName: adminAsset.uploadedByName,
-                  uploadedAt: adminAsset.uploadedAt,
-                  retired: adminAsset.retired,
-                };
-
-                // Convert server version references to the media rule format
-                const versions: import('../lib/media.js').ReferencingVersion[] = adminAsset.referencedBy.map(
-                  (v: AdminMediaVersionReference) => ({
-                    versionId: v.versionId,
-                    title: v.title,
-                    state: v.state,
-                    assets: [
-                      {
-                        ref: `media/${asset.mediaId}`,
-                        mediaId: asset.mediaId,
-                        usedAt: 'Exam version',
-                        kind: asset.kind,
-                      },
-                    ],
-                  }),
-                );
-                const users = usedBy(asset, versions);
-                const state = assetState(asset, versions);
-                const url = objectUrlFor(asset.mediaId);
-
-                return (
-                  <tr key={asset.mediaId}>
-                    <td>
-                      {asset.fileName}
-                      <span className="cms-sub">
-                        {KIND_LABEL[asset.kind]} · {asset.contentType} ·{' '}
-                        <span className="cms-code">{asset.checksum.slice(0, 12)}</span>
-                      </span>
-                      {asset.kind === 'audio' && url !== null && (
-                        // Byte-sniffed browser blob URL only. codeql[js/xss-through-dom]
-                        <audio controls src={url} preload="metadata" />
-                      )}
-                      {asset.kind === 'audio' && url === null && (
-                        <button
-                          type="button"
-                          className="cms-button cms-button--secondary"
-                          onClick={() => void attachPlayback(adminAsset)}
-                        >
-                          Phát qua máy chủ
-                        </button>
-                      )}
-                    </td>
-                    <td className="num">{formatBytes(asset.bytes)}</td>
-                    <td className="num">{formatDuration(asset.durationMs)}</td>
-                    <td>
-                      <span
-                        className="cms-badge" data-tone={cmsBadgeTone(badgeTone(state))}
-                        title={ASSET_STATE[state].hint}
-                      >
-                        {ASSET_STATE[state].label}
-                      </span>
-                    </td>
-                    <td>
-                      {users.length === 0 ? (
-                        <span className="cms-muted">
-                          — <span className="cms-sub">(chưa có ánh xạ đề ↔ media)</span>
-                        </span>
-                      ) : (
-                        <ul className="cms-usedby">
-                          {users.map((v) => (
-                            <li key={v.versionId}>{v.title}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </td>
-                    <td>
-                      <div className="cms-row-actions">
-                        {mayRetire(asset, versions) && operator.can('media.retire') && (
-                          <button
-                            type="button"
-                            className="cms-button cms-button--secondary"
-                            onClick={() => setPending({ asset: adminAsset, action: 'retire' })}
-                          >
-                            Gỡ khỏi bộ chọn
-                          </button>
-                        )}
-                        {mayDelete(asset, versions) && operator.can('media.retire') && (
-                          <button
-                            type="button"
-                            className="cms-button cms-button--danger"
-                            onClick={() => setPending({ asset: adminAsset, action: 'delete' })}
-                          >
-                            Xoá
-                          </button>
-                        )}
-                        {state === 'locked' && (
-                          <span className="cms-muted">
-                            Không sửa được — đề đã xuất bản đang dùng
-                          </span>
-                        )}
-                      </div>
-                    </td>
+        <article className="cms-card">
+          <div className="cms-card-body">
+            <div className="cms-table-wrap">
+              <table className="cms-table">
+                <thead>
+                  <tr>
+                    <th>Tệp</th>
+                    <th>Dung lượng</th>
+                    <th>Thời lượng</th>
+                    <th>Trạng thái</th>
+                    <th>Đang dùng ở</th>
+                    <th>Hành động</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {shown.map((adminAsset) => {
+                    // Convert AdminMediaAsset to MediaAsset
+                    const asset: MediaAsset = {
+                      mediaId: adminAsset.mediaId,
+                      kind: adminAsset.kind as MediaKind,
+                      fileName: adminAsset.fileName,
+                      contentType: adminAsset.contentType,
+                      bytes: adminAsset.bytes,
+                      durationMs: adminAsset.durationMs,
+                      checksum: adminAsset.checksum,
+                      uploadedByName: adminAsset.uploadedByName,
+                      uploadedAt: adminAsset.uploadedAt,
+                      retired: adminAsset.retired,
+                    };
+
+                    // Convert server version references to the media rule format
+                    const versions: import('../lib/media.js').ReferencingVersion[] =
+                      adminAsset.referencedBy.map((v: AdminMediaVersionReference) => ({
+                        versionId: v.versionId,
+                        title: v.title,
+                        state: v.state,
+                        assets: [
+                          {
+                            ref: `media/${asset.mediaId}`,
+                            mediaId: asset.mediaId,
+                            usedAt: 'Exam version',
+                            kind: asset.kind,
+                          },
+                        ],
+                      }));
+                    const users = usedBy(asset, versions);
+                    const state = assetState(asset, versions);
+                    const url = objectUrlFor(asset.mediaId);
+
+                    return (
+                      <tr key={asset.mediaId}>
+                        <td>
+                          {asset.fileName}
+                          <span className="cms-sub">
+                            {KIND_LABEL[asset.kind]} · {asset.contentType} ·{' '}
+                            <span className="cms-code">{asset.checksum.slice(0, 12)}</span>
+                          </span>
+                          {asset.kind === 'audio' && url !== null && (
+                            // Byte-sniffed browser blob URL only. codeql[js/xss-through-dom]
+                            <audio controls src={url} preload="metadata" />
+                          )}
+                          {asset.kind === 'audio' && url === null && (
+                            <button
+                              type="button"
+                              className="cms-button cms-button--secondary"
+                              onClick={() => void attachPlayback(adminAsset)}
+                            >
+                              Phát qua máy chủ
+                            </button>
+                          )}
+                        </td>
+                        <td className="num">{formatBytes(asset.bytes)}</td>
+                        <td className="num">{formatDuration(asset.durationMs)}</td>
+                        <td>
+                          <span
+                            className="cms-badge"
+                            data-tone={cmsBadgeTone(badgeTone(state))}
+                            title={ASSET_STATE[state].hint}
+                          >
+                            {ASSET_STATE[state].label}
+                          </span>
+                        </td>
+                        <td>
+                          {users.length === 0 ? (
+                            <span className="cms-muted">
+                              — <span className="cms-sub">(chưa có ánh xạ đề ↔ media)</span>
+                            </span>
+                          ) : (
+                            <ul className="cms-usedby">
+                              {users.map((v) => (
+                                <li key={v.versionId}>{v.title}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </td>
+                        <td>
+                          <div className="cms-row-actions">
+                            {mayRetire(asset, versions) && operator.can('media.retire') && (
+                              <button
+                                type="button"
+                                className="cms-button cms-button--secondary"
+                                onClick={() => setPending({ asset: adminAsset, action: 'retire' })}
+                              >
+                                Gỡ khỏi bộ chọn
+                              </button>
+                            )}
+                            {mayDelete(asset, versions) && operator.can('media.retire') && (
+                              <button
+                                type="button"
+                                className="cms-button cms-button--danger"
+                                onClick={() => setPending({ asset: adminAsset, action: 'delete' })}
+                              >
+                                Xoá
+                              </button>
+                            )}
+                            {state === 'locked' && (
+                              <span className="cms-muted">
+                                Không sửa được — đề đã xuất bản đang dùng
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
       )}
 
       <Confirm
@@ -421,9 +432,9 @@ function describe(error: unknown): string {
 
 function Head() {
   return (
-    <header className="cms-head">
-      <h1>Kho media</h1>
-      <p>
+    <header className="cms-page-header">
+      <h1 className="cms-page-header__title">Kho media</h1>
+      <p className="cms-muted">
         Âm thanh, hình ảnh và tệp dùng trong đề. Một tệp dùng được cho nhiều đề — và một tệp đã ra
         tới học viên thì không thay được nữa.
       </p>

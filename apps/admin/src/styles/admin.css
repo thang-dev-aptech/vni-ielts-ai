@@ -151,6 +151,11 @@ body {
   margin-top: var(--s-5);
 }
 
+.cms-filters + .cms-card,
+.cms-card + .cms-filters {
+  margin-top: var(--s-5);
+}
+
 .cms-card-body .cms-tiles {
   margin-bottom: 0;
 }

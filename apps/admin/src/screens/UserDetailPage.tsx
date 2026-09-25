@@ -156,13 +156,15 @@ export function UserDetailPage() {
 
   if (missing) {
     return (
-      <div className="cms-empty">
-        <h3>Không tìm thấy tài khoản này</h3>
-        <p>
-          Tài khoản có thể đã bị xoá, hoặc mã trong địa chỉ không đúng.{' '}
-          <Link to={AdminPaths.users}>Về danh sách người dùng</Link>
-        </p>
-      </div>
+      <article className="cms-card">
+        <div className="cms-card-body cms-card-body--empty">
+          <h3 className="cms-card-body__title">Không tìm thấy tài khoản này</h3>
+          <p className="cms-card-body__message">
+            Tài khoản có thể đã bị xoá, hoặc mã trong địa chỉ không đúng.{' '}
+            <Link to={AdminPaths.users}>Về danh sách người dùng</Link>
+          </p>
+        </div>
+      </article>
     );
   }
 
@@ -180,123 +182,149 @@ export function UserDetailPage() {
         <span>{account.displayName}</span>
       </nav>
 
-      <header className="cms-head">
-        <h1>{account.displayName}</h1>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">{account.displayName}</h1>
         {/* The phone is what the account is reached by, so it is the subtitle.
             An account created before 08/09/2026 has an address instead, and one
             imported with neither has to render as something an operator can
             read rather than an empty line. */}
-        <p>{account.phone ?? account.email ?? 'Chưa có số điện thoại hoặc email'}</p>
+        <p className="cms-muted">{account.phone ?? account.email ?? 'Chưa có số điện thoại hoặc email'}</p>
       </header>
 
       {flash}
 
       <div className="cms-columns">
-        <section className="cms-panel">
-          <h2>Tài khoản</h2>
-
-          <dl className="cms-detail-list">
-            <dt>Trạng thái</dt>
-            <dd>
-              <span className="cms-badge" data-tone={cmsBadgeTone(suspended ? 'draft' : 'published')}>
-                {suspended ? 'Đã khoá' : 'Hoạt động'}
-              </span>
-            </dd>
-
-            <dt>Số điện thoại</dt>
-            <dd>{account.phone ?? '—'}</dd>
-
-            {/* No "chưa xác minh" badge any more: the verification flow was
-                removed with the email-first sign-up it belonged to, so the
-                badge was rendering a state nothing on the server still
-                decides. An unverified-looking account is not what an operator
-                would have been seeing. */}
-            <dt>Email</dt>
-            <dd>{account.email ?? '—'}</dd>
-
-            <dt>Tạo lúc</dt>
-            <dd className="num">{new Date(account.createdAt).toLocaleString('vi-VN')}</dd>
-
-            <dt>Mã tài khoản</dt>
-            <dd className="num">{account.userId}</dd>
-          </dl>
-
-          {(can('user.suspend') || can('user.reset-password')) && !isSelf && (
-            <div className="cms-panel-actions">
-              {can('user.suspend') && (
-                <button
-                  type="button"
-                  className={suspended ? 'cms-button cms-button--primary' : 'cms-button cms-button--danger'}
-                  onClick={() => setAsk({ kind: 'status', suspend: !suspended })}
-                >
-                  {suspended ? 'Mở khoá tài khoản' : 'Khoá tài khoản'}
-                </button>
-              )}
-
-              {/* `user.reset-password` and nothing else. Reading the account
-                  list, editing a display name, and being able to sign in as
-                  somebody are three different amounts of trust, so this does
-                  not ride along on `user.update`. Hiding it is courtesy — the
-                  server checks the same key on the route. */}
-              {can('user.reset-password') && (
-                <button
-                  type="button"
-                  className="cms-button cms-button--secondary"
-                  onClick={() => {
-                    setNewPassword('');
-                    setAsk({ kind: 'password' });
-                  }}
-                >
-                  Cấp lại mật khẩu
-                </button>
-              )}
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Tài khoản</h2>
+            </div>
+          </header>
+          {isSelf && (
+            <div className="cms-card-body">
+              <p className="cms-muted">
+                Đây là tài khoản của bạn. Không thể tự khoá, tự gỡ quyền quản trị, hay tự đặt lại mật
+                khẩu của mình ở đây — đổi mật khẩu trong trang hồ sơ.
+              </p>
             </div>
           )}
-
-          {isSelf && (
-            <p className="cms-muted">
-              Đây là tài khoản của bạn. Không thể tự khoá, tự gỡ quyền quản trị, hay tự đặt lại mật
-              khẩu của mình ở đây — đổi mật khẩu trong trang hồ sơ.
-            </p>
-          )}
-        </section>
-
-        <section className="cms-panel">
-          <h2>Vai trò</h2>
-          <p className="cms-muted">
-            Vai trò quyết định người này mở được những gì trong CMS. Xem chi tiết từng quyền ở{' '}
-            <Link to={AdminPaths.roles}>Vai trò &amp; quyền</Link>.
-          </p>
-
-          {!can('role.assign') && <p className="cms-muted">Bạn không có quyền thay đổi vai trò.</p>}
-
-          <ul className="cms-role-list">
-            {account.availableRoles.map((role) => {
-              const on = held.has(role.roleId);
-
-              return (
-                <li key={role.roleId}>
-                  <span className="cms-role-name">
-                    {role.name}
-                    {on && <span className="cms-badge" data-tone="ok">Đang có</span>}
+          <footer className="cms-card-foot">
+            <div className="cms-metadata">
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Trạng thái</span>
+                <span className="cms-metadata__value">
+                  <span
+                    className="cms-badge"
+                    data-tone={cmsBadgeTone(suspended ? 'draft' : 'published')}
+                  >
+                    {suspended ? 'Đã khoá' : 'Hoạt động'}
                   </span>
+                </span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Số điện thoại</span>
+                <span className="cms-metadata__value">{account.phone ?? '—'}</span>
+              </div>
+              {/* No "chưa xác minh" badge any more: the verification flow was
+                  removed with the email-first sign-up it belonged to, so the
+                  badge was rendering a state nothing on the server still
+                  decides. An unverified-looking account is not what an operator
+                  would have been seeing. */}
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Email</span>
+                <span className="cms-metadata__value">{account.email ?? '—'}</span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Tạo lúc</span>
+                <span className="cms-metadata__value num">
+                  {new Date(account.createdAt).toLocaleString('vi-VN')}
+                </span>
+              </div>
+              <div className="cms-metadata__item">
+                <span className="cms-metadata__label">Mã tài khoản</span>
+                <span className="cms-metadata__value num">{account.userId}</span>
+              </div>
+            </div>
+            {(can('user.suspend') || can('user.reset-password')) && !isSelf && (
+              <div className="cms-page-header__actions">
+                {can('user.suspend') && (
+                  <button
+                    type="button"
+                    className={suspended ? 'cms-button cms-button--primary' : 'cms-button cms-button--danger'}
+                    onClick={() => setAsk({ kind: 'status', suspend: !suspended })}
+                  >
+                    {suspended ? 'Mở khoá tài khoản' : 'Khoá tài khoản'}
+                  </button>
+                )}
 
-                  {can('role.assign') && (
-                    <button
-                      type="button"
-                      className={on ? 'cms-button cms-button--secondary' : 'cms-button cms-button--primary'}
-                      onClick={() =>
-                        setAsk({ kind: 'role', roleId: role.roleId, name: role.name, grant: !on })
-                      }
-                    >
-                      {on ? 'Gỡ' : 'Gán'}
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+                {/* `user.reset-password` and nothing else. Reading the account
+                    list, editing a display name, and being able to sign in as
+                    somebody are three different amounts of trust, so this does
+                    not ride along on `user.update`. Hiding it is courtesy — the
+                    server checks the same key on the route. */}
+                {can('user.reset-password') && (
+                  <button
+                    type="button"
+                    className="cms-button cms-button--secondary"
+                    onClick={() => {
+                      setNewPassword('');
+                      setAsk({ kind: 'password' });
+                    }}
+                  >
+                    Cấp lại mật khẩu
+                  </button>
+                )}
+              </div>
+            )}
+          </footer>
+        </article>
+
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Vai trò</h2>
+            </div>
+          </header>
+          <div className="cms-card-body">
+            <p className="cms-muted">
+              Vai trò quyết định người này mở được những gì trong CMS. Xem chi tiết từng quyền ở{' '}
+              <Link to={AdminPaths.roles}>Vai trò &amp; quyền</Link>.
+            </p>
+
+            {!can('role.assign') && <p className="cms-muted">Bạn không có quyền thay đổi vai trò.</p>}
+
+            <ul className="cms-role-list">
+              {account.availableRoles.map((role) => {
+                const on = held.has(role.roleId);
+
+                return (
+                  <li key={role.roleId}>
+                    <span className="cms-role-name">
+                      {role.name}
+                      {on && (
+                        <span className="cms-badge" data-tone="ok">
+                          Đang có
+                        </span>
+                      )}
+                    </span>
+
+                    {can('role.assign') && (
+                      <button
+                        type="button"
+                        className={on ? 'cms-button cms-button--secondary' : 'cms-button cms-button--primary'}
+                        onClick={() =>
+                          setAsk({ kind: 'role', roleId: role.roleId, name: role.name, grant: !on })
+                        }
+                      >
+                        {on ? 'Gỡ' : 'Gán'}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </article>
       </div>
 
       <Confirm

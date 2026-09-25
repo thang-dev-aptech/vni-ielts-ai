@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Search } from 'lucide-react';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { AdminPaths } from '../routes/paths.js';
 import { listUsers, type AdminUser } from '../lib/adminApi.js';
@@ -65,107 +66,122 @@ export function UsersPage() {
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Người dùng</h1>
-        <p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Người dùng</h1>
+        <p className="cms-muted">
           <span className="num">{total}</span> tài khoản.
         </p>
+        <form
+          className="cms-page-header__row"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setPage(1);
+            setSearch(pending);
+          }}
+        >
+          {/* The server searches name, phone and email together, and normalises
+              a typed number before matching — `0912 345 678` finds the stored
+              `+84912345678`. Naming all three is what tells an operator on a
+              support call that the number in front of them is a usable key. */}
+          <label className="cms-search">
+            <span className="cms-sr-only">Tìm theo tên, số điện thoại hoặc email</span>
+            <span className="cms-icon cms-search__icon" aria-hidden="true">
+              <Search strokeWidth={1.7} />
+            </span>
+            <input
+              type="search"
+              className="cms-search__input"
+              placeholder="Tìm theo tên, số điện thoại hoặc email"
+              value={pending}
+              onChange={(e) => setPending(e.target.value)}
+            />
+          </label>
+          <div className="cms-page-header__actions">
+            <button type="submit" className="cms-button cms-button--secondary">
+              Tìm
+            </button>
+          </div>
+        </form>
       </header>
-
-      <form
-        className="cms-toolbar"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setPage(1);
-          setSearch(pending);
-        }}
-      >
-        {/* The server searches name, phone and email together, and normalises
-            a typed number before matching — `0912 345 678` finds the stored
-            `+84912345678`. Naming all three is what tells an operator on a
-            support call that the number in front of them is a usable key. */}
-        <input
-          type="search"
-          className="cms-search"
-          placeholder="Tìm theo tên, số điện thoại hoặc email"
-          value={pending}
-          onChange={(e) => setPending(e.target.value)}
-        />
-        <button type="submit" className="cms-button cms-button--secondary">
-          Tìm
-        </button>
-      </form>
 
       {rows === null && <p className="cms-muted">Đang tải…</p>}
 
       {rows !== null && rows.length === 0 && (
-        <div className="cms-empty">
-          <h3>Không có tài khoản nào khớp</h3>
-          <p>Thử một từ khoá khác, hoặc xoá ô tìm kiếm để xem toàn bộ.</p>
-        </div>
+        <article className="cms-card">
+          <div className="cms-card-body cms-card-body--empty">
+            <h3 className="cms-card-body__title">Không có tài khoản nào khớp</h3>
+            <p className="cms-card-body__message">
+              Thử một từ khoá khác, hoặc xoá ô tìm kiếm để xem toàn bộ.
+            </p>
+          </div>
+        </article>
       )}
 
       {rows !== null && rows.length > 0 && (
-        <>
-          <div className="cms-table-wrap">
-            <table className="cms-table">
-              <thead>
-                <tr>
-                  <th>Tên hiển thị</th>
-                  <th>Email</th>
-                  <th>Trạng thái</th>
-                  <th>Tạo lúc</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.userId}>
-                    <td>
-                      <Link to={AdminPaths.user(row.userId)}>{row.displayName}</Link>
-                      {/* The number under the name, where the account id used
-                          to sit. The id identifies a row to the system; the
-                          phone identifies the person to the operator, and only
-                          one of the two fits on the line that gets read. The
-                          id is still on the detail screen. */}
-                      <span className="cms-sub num">{row.phone ?? '—'}</span>
-                    </td>
-                    <td>{row.email ?? <span className="cms-muted">—</span>}</td>
-                    <td>
-                      <span
-                        className="cms-badge" data-tone={cmsBadgeTone(row.status === 'active' ? 'published' : 'draft')}
-                      >
-                        {row.status === 'active' ? 'Hoạt động' : 'Đã khoá'}
-                      </span>
-                    </td>
-                    <td className="num">{new Date(row.createdAt).toLocaleDateString('vi-VN')}</td>
+        <article className="cms-card">
+          <div className="cms-card-body">
+            <div className="cms-table-wrap">
+              <table className="cms-table">
+                <thead>
+                  <tr>
+                    <th>Tên hiển thị</th>
+                    <th>Email</th>
+                    <th>Trạng thái</th>
+                    <th>Tạo lúc</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.userId}>
+                      <td>
+                        <Link to={AdminPaths.user(row.userId)}>{row.displayName}</Link>
+                        {/* The number under the name, where the account id used
+                            to sit. The id identifies a row to the system; the
+                            phone identifies the person to the operator, and only
+                            one of the two fits on the line that gets read. The
+                            id is still on the detail screen. */}
+                        <span className="cms-sub num">{row.phone ?? '—'}</span>
+                      </td>
+                      <td>{row.email ?? <span className="cms-muted">—</span>}</td>
+                      <td>
+                        <span
+                          className="cms-badge"
+                          data-tone={cmsBadgeTone(row.status === 'active' ? 'published' : 'draft')}
+                        >
+                          {row.status === 'active' ? 'Hoạt động' : 'Đã khoá'}
+                        </span>
+                      </td>
+                      <td className="num">{new Date(row.createdAt).toLocaleDateString('vi-VN')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-
-          <div className="cms-pager">
-            <button
-              type="button"
-              className="cms-button cms-button--secondary"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              Trang trước
-            </button>
-            <span className="num">
-              {page} / {pages}
-            </span>
-            <button
-              type="button"
-              className="cms-button cms-button--secondary"
-              disabled={page >= pages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Trang sau
-            </button>
-          </div>
-        </>
+          <footer className="cms-card-foot">
+            <div className="cms-pager">
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Trang trước
+              </button>
+              <span className="num">
+                {page} / {pages}
+              </span>
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={page >= pages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Trang sau
+              </button>
+            </div>
+          </footer>
+        </article>
       )}
     </>
   );

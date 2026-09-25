@@ -232,36 +232,37 @@ export function DocumentsPage() {
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Tài liệu</h1>
-        <p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Tài liệu</h1>
+        <p className="cms-muted">
           Vòng đời bốn trạng thái: bản nháp → chờ duyệt → xuất bản ⇄ gỡ. Xuất bản được thẳng từ bản
           nháp — không có trạng thái "đã duyệt" riêng cho tài liệu.
         </p>
+        <div className="cms-page-header__row">
+          <label className="cms-search">
+            <span className="cms-sr-only">Tìm theo tiêu đề</span>
+            <span className="cms-icon cms-search__icon" aria-hidden="true">
+              <Search strokeWidth={1.7} />
+            </span>
+            <input
+              type="search"
+              className="cms-search__input"
+              placeholder="Tìm theo tiêu đề"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+          {canWrite && (
+            <div className="cms-page-header__actions">
+              <button type="button" className="cms-button cms-button--primary" onClick={openCreate}>
+                Tạo tài liệu mới
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {flash}
-
-      <div className="cms-toolbar">
-        <label className="cms-search">
-          <span className="cms-sr-only">Tìm theo tiêu đề</span>
-          <span className="cms-icon cms-search__icon" aria-hidden="true">
-            <Search strokeWidth={1.7} />
-          </span>
-          <input
-            type="search"
-            className="cms-search__input"
-            placeholder="Tìm theo tiêu đề"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </label>
-        {canWrite && (
-          <button type="button" className="cms-button cms-button--primary" onClick={openCreate}>
-            Tạo tài liệu mới
-          </button>
-        )}
-      </div>
 
       <div className="cms-filters" role="group" aria-label="Lọc theo trạng thái">
         <FilterChip active={filter === 'all'} onClick={() => setFilter('all')} count={all.length}>
@@ -300,112 +301,120 @@ export function DocumentsPage() {
       {documents === null && !failed && <p className="cms-muted">Đang tải…</p>}
 
       {documents !== null && documents.length === 0 && (
-        <div className="cms-empty">
-          <h3>Chưa có tài liệu nào</h3>
-          <p>
-            {canWrite
-              ? 'Tạo tài liệu đầu tiên để bắt đầu thư viện.'
-              : 'Khi có người soạn, tài liệu mới sẽ xuất hiện ở đây dưới dạng bản nháp.'}
-          </p>
-        </div>
+        <article className="cms-card">
+          <div className="cms-card-body cms-card-body--empty">
+            <h3 className="cms-card-body__title">Chưa có tài liệu nào</h3>
+            <p className="cms-card-body__message">
+              {canWrite
+                ? 'Tạo tài liệu đầu tiên để bắt đầu thư viện.'
+                : 'Khi có người soạn, tài liệu mới sẽ xuất hiện ở đây dưới dạng bản nháp.'}
+            </p>
+          </div>
+        </article>
       )}
 
       {documents !== null && documents.length > 0 && shown.length === 0 && (
-        <div className="cms-empty">
-          <h3>Không có tài liệu nào khớp</h3>
-          <p>
-            Đổi từ khoá tìm kiếm hoặc bỏ lọc trạng thái.{' '}
-            <button
-              type="button"
-              className="cms-link-inline"
-              onClick={() => {
-                setFilter('all');
-                setQuery('');
-              }}
-            >
-              Xem tất cả
-            </button>
-          </p>
-        </div>
+        <article className="cms-card">
+          <div className="cms-card-body cms-card-body--empty">
+            <h3 className="cms-card-body__title">Không có tài liệu nào khớp</h3>
+            <p className="cms-card-body__message">
+              Đổi từ khoá tìm kiếm hoặc bỏ lọc trạng thái.{' '}
+              <button
+                type="button"
+                className="cms-link-inline"
+                onClick={() => {
+                  setFilter('all');
+                  setQuery('');
+                }}
+              >
+                Xem tất cả
+              </button>
+            </p>
+          </div>
+        </article>
       )}
 
       {shown.length > 0 && (
-        <div className="cms-table-wrap">
-          <table className="cms-table">
-            <thead>
-              <tr>
-                <th>Tiêu đề</th>
-                <th>Kỹ năng</th>
-                <th>Định dạng</th>
-                <th>Trạng thái</th>
-                <th>Cập nhật lúc</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shown.map((doc) => {
-                const busy = busyRow === doc.id;
-                const transitions = libraryTransitionsFor(doc.status as LibraryStatus, can);
-
-                return (
-                  <tr key={doc.id}>
-                    <td>
-                      {doc.title}
-                      <span className="cms-sub">/{doc.slug}</span>
-                    </td>
-                    <td>{doc.skill}</td>
-                    <td>{doc.format}</td>
-                    <td>
-                      <LibraryStatusBadge status={doc.status} />
-                    </td>
-                    <td className="num">{new Date(doc.updatedAt).toLocaleDateString('vi-VN')}</td>
-                    <td>
-                      <div className="cms-version-actions">
-                        {canWrite && (
-                          <button
-                            type="button"
-                            className="cms-button cms-button--secondary"
-                            disabled={busy}
-                            onClick={() => openEdit(doc)}
-                          >
-                            Sửa
-                          </button>
-                        )}
-                        {transitions.map((t) => (
-                          <button
-                            key={t.id}
-                            type="button"
-                            className={
-                              t.tone === 'primary'
-                                ? 'cms-button cms-button--primary'
-                                : t.tone === 'danger'
-                                  ? 'cms-button cms-button--danger'
-                                  : 'cms-button cms-button--secondary'
-                            }
-                            disabled={busy}
-                            onClick={() => void runTransition(doc, t.id)}
-                          >
-                            {t.label}
-                          </button>
-                        ))}
-                        {canWrite && canDelete(doc.status as LibraryStatus) && (
-                          <button
-                            type="button"
-                            className="cms-button cms-button--danger"
-                            disabled={busy}
-                            onClick={() => void remove(doc)}
-                          >
-                            Xoá
-                          </button>
-                        )}
-                      </div>
-                    </td>
+        <article className="cms-card">
+          <div className="cms-card-body">
+            <div className="cms-table-wrap">
+              <table className="cms-table">
+                <thead>
+                  <tr>
+                    <th>Tiêu đề</th>
+                    <th>Kỹ năng</th>
+                    <th>Định dạng</th>
+                    <th>Trạng thái</th>
+                    <th>Cập nhật lúc</th>
+                    <th>Hành động</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {shown.map((doc) => {
+                    const busy = busyRow === doc.id;
+                    const transitions = libraryTransitionsFor(doc.status as LibraryStatus, can);
+
+                    return (
+                      <tr key={doc.id}>
+                        <td>
+                          {doc.title}
+                          <span className="cms-sub">/{doc.slug}</span>
+                        </td>
+                        <td>{doc.skill}</td>
+                        <td>{doc.format}</td>
+                        <td>
+                          <LibraryStatusBadge status={doc.status} />
+                        </td>
+                        <td className="num">{new Date(doc.updatedAt).toLocaleDateString('vi-VN')}</td>
+                        <td>
+                          <div className="cms-version-actions">
+                            {canWrite && (
+                              <button
+                                type="button"
+                                className="cms-button cms-button--secondary"
+                                disabled={busy}
+                                onClick={() => openEdit(doc)}
+                              >
+                                Sửa
+                              </button>
+                            )}
+                            {transitions.map((t) => (
+                              <button
+                                key={t.id}
+                                type="button"
+                                className={
+                                  t.tone === 'primary'
+                                    ? 'cms-button cms-button--primary'
+                                    : t.tone === 'danger'
+                                      ? 'cms-button cms-button--danger'
+                                      : 'cms-button cms-button--secondary'
+                                }
+                                disabled={busy}
+                                onClick={() => void runTransition(doc, t.id)}
+                              >
+                                {t.label}
+                              </button>
+                            ))}
+                            {canWrite && canDelete(doc.status as LibraryStatus) && (
+                              <button
+                                type="button"
+                                className="cms-button cms-button--danger"
+                                disabled={busy}
+                                onClick={() => void remove(doc)}
+                              >
+                                Xoá
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
       )}
     </>
   );
@@ -463,11 +472,14 @@ function DocumentForm({
     setForm((previous) => ({ ...previous, [key]: value }));
 
   return (
-    <form className="cms-panel" onSubmit={onSubmit}>
-      <div className="cms-panel-head">
-        <h2>{editing ? 'Sửa tài liệu' : 'Tài liệu mới'}</h2>
-      </div>
+    <form className="cms-card" onSubmit={onSubmit}>
+      <header className="cms-card-head">
+        <div className="cms-card-head__identity">
+          <h2 className="cms-card-head__title">{editing ? 'Sửa tài liệu' : 'Tài liệu mới'}</h2>
+        </div>
+      </header>
 
+      <div className="cms-card-body">
       <label className="cms-field">
         <span>Tiêu đề</span>
         <input required value={form.title} onChange={(e) => set('title', e.target.value)} />
@@ -633,15 +645,18 @@ function DocumentForm({
         <span>Đề thi liên quan</span>
         <input disabled placeholder="Chưa hỗ trợ trong giai đoạn này" />
       </label>
-
-      <div className="cms-panel-actions">
-        <button type="submit" className="cms-button cms-button--primary" disabled={saving}>
-          {saving ? 'Đang lưu…' : editing ? 'Lưu thay đổi' : 'Tạo tài liệu'}
-        </button>
-        <button type="button" className="cms-button cms-button--secondary" disabled={saving} onClick={onCancel}>
-          Huỷ
-        </button>
       </div>
+
+      <footer className="cms-card-foot">
+        <div className="cms-page-header__actions">
+          <button type="submit" className="cms-button cms-button--primary" disabled={saving}>
+            {saving ? 'Đang lưu…' : editing ? 'Lưu thay đổi' : 'Tạo tài liệu'}
+          </button>
+          <button type="button" className="cms-button cms-button--secondary" disabled={saving} onClick={onCancel}>
+            Huỷ
+          </button>
+        </div>
+      </footer>
     </form>
   );
 }
