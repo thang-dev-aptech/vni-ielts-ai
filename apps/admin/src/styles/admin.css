@@ -22,96 +22,75 @@ body {
 }
 
 .cms {
+  --cms-sidebar-width-collapsed: 4.5rem;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: var(--cms-sidebar-width) minmax(0, 1fr);
   align-items: stretch;
+  transition: grid-template-columns var(--cms-transition-fast);
 }
 
-/* ── Sidebar ────────────────────────────────────────────────────────────── */
-
-.cms-rail {
-  border-right: 1px solid var(--line);
-  background: var(--card);
+.cms.is-collapsed {
+  grid-template-columns: var(--cms-sidebar-width-collapsed) minmax(0, 1fr);
 }
 
-.cms-brand {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  padding: var(--s-4);
-  border-bottom: 1px solid var(--line-2);
+/* ── Sidebar (reference chrome; local collapse + Vietnamese heading) ───── */
+
+.cms-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  min-height: 100vh;
+  overflow: auto;
 }
 
-.cms-brand img {
-  width: 32px;
-  height: 32px;
+.cms.is-collapsed .cms-sidebar {
+  width: var(--cms-sidebar-width-collapsed);
+  padding-inline: var(--cms-space-2);
 }
 
-.cms-brand strong {
-  display: block;
-  font-size: var(--t-14);
-  font-weight: var(--w-display);
-  line-height: var(--lh-body);
-  color: var(--ink);
+.cms.is-collapsed .cms-sidebar__brand {
+  justify-content: center;
+  margin-inline: 0;
 }
 
-.cms-brand span span {
-  display: block;
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-  color: var(--muted);
+.cms.is-collapsed .cms-nav-group__heading {
+  justify-content: center;
+  margin-inline: 0;
 }
 
-.cms-nav {
-  padding: var(--s-3);
+.cms.is-collapsed .cms-nav-item {
+  justify-content: center;
+  padding-inline: var(--cms-space-2);
 }
 
-.cms-nav-group + .cms-nav-group {
-  margin-top: var(--s-4);
+.cms.is-collapsed .cms-sidebar__collapse {
+  justify-content: center;
 }
 
-/* Weight and tracking, never uppercase — capitalising Vietnamese strips the
-   diacritics on many renderers. */
-.cms-nav-title {
-  margin: 0 0 var(--s-2);
-  padding-inline: var(--s-3);
-  font-size: var(--t-14);
-  font-weight: var(--w-emph);
+/*
+ * Weight and tracking, never uppercase — capitalising Vietnamese strips the
+ * diacritics on many renderers. Override the reference's text-transform.
+ */
+.cms-nav-group__heading {
+  text-transform: none;
   letter-spacing: 0.04em;
-  line-height: var(--lh-body);
-  color: var(--muted);
 }
 
 .cms-nav-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-2);
-  min-height: 40px;
-  padding-inline: var(--s-3);
-  border-radius: var(--r-md);
-  color: var(--ink-2);
-  font-size: var(--t-14);
-  font-weight: var(--w-emph);
-  line-height: var(--lh-body);
-  text-decoration: none;
+  justify-content: flex-start;
 }
 
-.cms-nav-item:hover {
-  background: var(--sunk);
-  color: var(--ink);
-}
-
-.cms-nav-item.is-active {
-  background: var(--acc-soft);
-  color: var(--acc-700);
+.cms-nav-item__label {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 /* An entry whose feature does not exist yet still navigates — to a screen that
    explains what it is waiting on. The chip is what stops that being a
    surprise. */
 .cms-pending {
+  flex: 0 0 auto;
   padding: 2px var(--s-2);
   border-radius: var(--r-pill);
   background: var(--warn-soft);
@@ -129,37 +108,28 @@ body {
   flex-direction: column;
 }
 
-.cms-top {
+.cms-topbar {
   position: sticky;
   top: 0;
   z-index: 5;
-  display: flex;
+}
+
+.cms-topbar__viewas {
+  display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: var(--s-4);
-  min-height: 56px;
-  padding-inline: var(--s-5);
-  border-bottom: 1px solid var(--line);
-  background: var(--card);
+  min-height: var(--cms-control-height);
 }
 
-.cms-who {
-  text-align: right;
-}
-
-.cms-who strong {
-  display: block;
-  font-size: var(--t-14);
-  font-weight: var(--w-emph);
-  line-height: var(--lh-body);
-  color: var(--ink);
-}
-
-.cms-who span {
-  display: block;
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-  color: var(--muted);
+.cms-topbar__viewas select {
+  max-width: 16rem;
+  min-height: var(--cms-control-height);
+  padding-inline: var(--cms-space-3);
+  border: var(--cms-border-width) solid var(--cms-color-border);
+  border-radius: var(--cms-radius-md);
+  background: var(--cms-color-surface);
+  color: var(--cms-color-text-primary);
+  font: inherit;
+  font-size: var(--cms-font-size-sm);
 }
 
 .cms-main {
@@ -269,20 +239,6 @@ body {
   background: var(--card);
   color: var(--muted);
   cursor: not-allowed;
-}
-
-.cms-signout {
-  min-height: 36px;
-  padding-inline: var(--s-3);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--card);
-  color: var(--ink-2);
-  font: inherit;
-  font-size: var(--t-14);
-  font-weight: var(--w-emph);
-  line-height: var(--lh-body);
-  cursor: pointer;
 }
 
 /* ── Tiles, panels, tables ──────────────────────────────────────────────── */
@@ -760,26 +716,31 @@ code {
 }
 
 @media (max-width: 900px) {
-  .cms {
+  .cms,
+  .cms.is-collapsed {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .cms-rail {
+  .cms-sidebar {
+    position: static;
+    height: auto;
+    min-height: 0;
+    width: auto;
     border-right: 0;
-    border-bottom: 1px solid var(--line);
+    border-bottom: var(--cms-border-width) solid var(--cms-color-border);
   }
 
-  .cms-nav {
-    display: flex;
+  .cms-sidebar__nav {
+    flex-direction: row;
     flex-wrap: wrap;
-    gap: var(--s-2);
+    gap: var(--cms-space-2);
   }
 
-  .cms-nav-group + .cms-nav-group {
-    margin-top: 0;
+  .cms-nav-group__heading {
+    display: none;
   }
 
-  .cms-nav-title {
+  .cms-sidebar__collapse {
     display: none;
   }
 
