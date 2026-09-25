@@ -206,14 +206,6 @@ body {
 
 /* ── Controls ───────────────────────────────────────────────────────────── */
 
-.cms-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-3);
-  margin-bottom: var(--s-4);
-}
-
 /*
  * .cms-search is now the reference's wrapper component (cms-components.css):
  * a <label> holding an icon span plus a .cms-search__input. This local
@@ -272,12 +264,6 @@ body {
   font-weight: var(--w-emph);
   line-height: var(--lh-body);
   color: var(--ink-2);
-}
-
-.cms-tile-note {
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-  color: var(--muted);
 }
 
 .cms-panel {
@@ -386,47 +372,7 @@ body {
   gap: var(--s-2);
 }
 
-.cms-module {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-1);
-  padding: 2px var(--s-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  background: var(--sunk);
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-  color: var(--ink-2);
-}
-
-.cms-module b {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Badges: cms-badge[data-tone] in cms-components.css (Phase 2). */
-
-.cms-empty {
-  padding: var(--s-6);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--sunk);
-  text-align: center;
-}
-
-.cms-empty h3 {
-  margin: 0 0 var(--s-2);
-  font-size: var(--t-16);
-  font-weight: var(--w-emph);
-  line-height: var(--lh-body);
-}
-
-.cms-empty p {
-  margin: 0;
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-  color: var(--muted);
-}
+/* Module chips: cms-badge[data-tone] inside .cms-modules (Phase 2). */
 
 .cms-pager {
   display: flex;
@@ -441,36 +387,11 @@ body {
 
 /* ── Version timeline ───────────────────────────────────────────────────── */
 
-.cms-timeline {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 .cms-version {
   padding: var(--s-4);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--card);
-}
-
-.cms-version-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-3);
-  margin-bottom: var(--s-3);
-}
-
-.cms-version-no {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--t-18);
-  font-weight: var(--w-display);
-  line-height: var(--lh-body);
 }
 
 .cms-table.is-inner {
@@ -488,27 +409,6 @@ body {
 }
 
 /* ── Import ─────────────────────────────────────────────────────────────── */
-
-.cms-facts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--s-3);
-  margin: 0 0 var(--s-4);
-}
-
-.cms-facts dt {
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
-  color: var(--muted);
-}
-
-.cms-facts dd {
-  margin: var(--s-1) 0 0;
-  font-size: var(--t-14);
-  font-weight: var(--w-emph);
-  line-height: var(--lh-body);
-  color: var(--ink);
-}
 
 .cms-drop {
   display: flex;
@@ -807,22 +707,8 @@ code {
   align-items: start;
 }
 
-.cms-panel-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-3);
-}
-
-.cms-panel-head h2 {
-  margin: 0;
-}
-
-.cms-panel-actions {
-  margin-top: var(--s-4);
-  padding-top: var(--s-4);
-  border-top: 1px solid var(--line);
-}
+/* .cms-panel-head is now workflow.css's rule (kept there for
+   GroupPositionEditor.tsx; this file's copy was an exact duplicate). */
 
 /* Label above value, one pair per row — a detail list, not the 3-up summary. */
 .cms-detail-list {
