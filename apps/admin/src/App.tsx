@@ -24,6 +24,8 @@ import { EvaluationDetailPage } from './screens/EvaluationDetailPage.js';
 import { FailedMarkingQueuePage } from './screens/FailedMarkingQueuePage.js';
 import { PackagesPage } from './screens/PackagesPage.js';
 import { PackageHistoryDetailPage } from './screens/PackageHistoryDetailPage.js';
+import './styles/cms-tokens.css';
+import './styles/cms-components.css';
 import './styles/palette.css';
 import './styles/admin.css';
 import './styles/workflow.css';

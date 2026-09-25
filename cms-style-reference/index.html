@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A static, copy-ready CSS reference for an internal admin CMS.">
+    <title>Admin CMS — CSS Reference</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="components.css">
+  </head>
+  <body>
+    <main class="cms-reference">
+      <header class="cms-reference__intro">
+        <p class="cms-reference__eyebrow">Static HTML + CSS</p>
+        <h1 class="cms-reference__title">Admin CMS component reference</h1>
+        <p class="cms-reference__description">
+          Copy-ready shell, navigation, card, status, and utility patterns. Open this file directly in a browser;
+          the examples use plain HTML and the shared tokens in <code>tokens.css</code>.
+        </p>
+      </header>
+
+      <section class="cms-reference__section" aria-labelledby="topbar-heading">
+        <h2 class="cms-reference__section-title" id="topbar-heading">Top bar</h2>
+        <div class="cms-reference__stage cms-reference__stage--flush">
+          <header class="cms-topbar">
+            <div class="cms-topbar__context" aria-label="Current workspace">
+              <div class="cms-topbar__crumb">
+                <span class="cms-topbar__label">Organization</span>
+                <span class="cms-topbar__value">Northstar Learning</span>
+              </div>
+              <span class="cms-topbar__separator" aria-hidden="true">&gt;</span>
+              <div class="cms-topbar__crumb">
+                <span class="cms-topbar__label">Workspace</span>
+                <span class="cms-topbar__value">Assessment CMS</span>
+              </div>
+            </div>
+            <nav class="cms-topbar__utilities" aria-label="Utilities">
+              <a class="cms-topbar__utility" href="#help" aria-label="Help">
+                <span class="cms-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M9.8 9a2.25 2.25 0 1 1 3.75 1.68c-.96.87-1.55 1.24-1.55 2.57M12 16.9h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  </svg>
+                </span>
+              </a>
+              <a class="cms-topbar__utility" href="#docs" aria-label="Documentation">
+                <span class="cms-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M5.5 4.5h8a3 3 0 0 1 3 3v12h-8a3 3 0 0 0-3 1v-16Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                    <path d="M18.5 4.5h-2v15h2a2 2 0 0 1 2 1v-14a2 2 0 0 0-2-2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </a>
+              <a class="cms-topbar__utility" href="#notifications" aria-label="Notifications">
+                <span class="cms-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M18 9a6 6 0 0 0-12 0c0 7-2.5 7-2.5 9h17C20.5 16 18 16 18 9ZM10 21h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </a>
+              <span class="cms-topbar__avatar" aria-label="Account: Alex Kim">AK</span>
+            </nav>
+          </header>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="sidebar-heading">
+        <h2 class="cms-reference__section-title" id="sidebar-heading">Sidebar</h2>
+        <div class="cms-reference__stage cms-reference__stage--sidebar">
+          <aside class="cms-sidebar" aria-label="Main sidebar">
+            <div class="cms-sidebar__brand">
+              <span class="cms-sidebar__brand-mark" aria-hidden="true">N</span>
+              <span>Northstar CMS</span>
+            </div>
+            <nav class="cms-sidebar__nav" aria-label="Main navigation">
+              <div class="cms-nav-group">
+                <h3 class="cms-nav-group__heading">
+                  <span class="cms-icon cms-nav-group__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <rect x="4" y="4" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.7"/>
+                      <rect x="14" y="4" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.7"/>
+                      <rect x="4" y="14" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.7"/>
+                      <rect x="14" y="14" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.7"/>
+                    </svg>
+                  </span>
+                  Workspace
+                </h3>
+                <a class="cms-nav-item is-active" href="#overview" aria-current="page">
+                  <span class="cms-icon cms-nav-item__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path d="M4 13h7V4H4v9ZM4 20h7v-4H4v4ZM15 20h5V11h-5v9ZM15 4v4h5V4h-5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  Overview
+                </a>
+                <a class="cms-nav-item" href="#exams">Exams</a>
+                <a class="cms-nav-item" href="#import">Import</a>
+                <a class="cms-nav-item" href="#history">Package History</a>
+              </div>
+              <div class="cms-nav-group">
+                <h3 class="cms-nav-group__heading">
+                  <span class="cms-icon cms-nav-group__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.7"/>
+                      <path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 5.8M17 14a5 5 0 0 1 3.5 4.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  Administration
+                </h3>
+                <a class="cms-nav-item" href="#users">Users</a>
+                <a class="cms-nav-item" href="#roles">Roles</a>
+                <a class="cms-nav-item" href="#audit">Audit</a>
+              </div>
+              <div class="cms-nav-group">
+                <h3 class="cms-nav-group__heading">
+                  <span class="cms-icon cms-nav-group__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                      <circle cx="9" cy="9" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+                      <path d="m5 17 5-5 3 3 2-2 4 4" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  Content
+                </h3>
+                <a class="cms-nav-item" href="#media">Media Library</a>
+                <a class="cms-nav-item" href="#evaluations">Evaluations</a>
+              </div>
+            </nav>
+            <div class="cms-sidebar__collapse">
+              <button class="cms-button cms-button--ghost cms-button--small" type="button" aria-label="Collapse sidebar">
+                <span aria-hidden="true">‹</span>
+                Collapse
+              </button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="nav-group-heading">
+        <h2 class="cms-reference__section-title" id="nav-group-heading">Sidebar navigation group</h2>
+        <div class="cms-reference__stage cms-reference__stage--sidebar">
+          <div class="cms-nav-group">
+            <h3 class="cms-nav-group__heading">
+              <span class="cms-icon cms-nav-group__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 5.8M17 14a5 5 0 0 1 3.5 4.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+              </span>
+              Administration
+            </h3>
+            <a class="cms-nav-item" href="#users">Users</a>
+            <a class="cms-nav-item" href="#roles">Roles</a>
+            <a class="cms-nav-item" href="#audit">Audit</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="nav-item-heading">
+        <h2 class="cms-reference__section-title" id="nav-item-heading">Sidebar navigation item</h2>
+        <div class="cms-reference__stage cms-reference__stage--sidebar">
+          <a class="cms-nav-item is-active" href="#exams" aria-current="page">
+            <span class="cms-icon cms-nav-item__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M6 4.5h12v15H6zM9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            Exams
+          </a>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="page-header-heading">
+        <h2 class="cms-reference__section-title" id="page-header-heading">Page header</h2>
+        <div class="cms-reference__stage">
+          <header class="cms-page-header">
+            <h3 class="cms-page-header__title">Exams</h3>
+            <div class="cms-page-header__row">
+              <label class="cms-search">
+                <span class="cms-sr-only">Search exams</span>
+                <span class="cms-icon cms-search__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  </svg>
+                </span>
+                <input class="cms-search__input" type="search" placeholder="Search exams">
+              </label>
+              <div class="cms-page-header__actions">
+                <button class="cms-button cms-button--secondary" type="button">
+                  All statuses
+                  <span aria-hidden="true">⌄</span>
+                </button>
+                <button class="cms-button cms-button--primary" type="button">
+                  <span aria-hidden="true">+</span>
+                  Create exam
+                </button>
+              </div>
+            </div>
+          </header>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="search-heading">
+        <h2 class="cms-reference__section-title" id="search-heading">Search input</h2>
+        <div class="cms-reference__stage">
+          <label class="cms-search">
+            <span class="cms-sr-only">Search users</span>
+            <span class="cms-icon cms-search__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"/>
+                <path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <input class="cms-search__input" type="search" placeholder="Search users by name or email">
+          </label>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="buttons-heading">
+        <h2 class="cms-reference__section-title" id="buttons-heading">Buttons</h2>
+        <div class="cms-reference__stage">
+          <div class="cms-page-header__actions">
+            <button class="cms-button cms-button--primary" type="button">+ Create</button>
+            <button class="cms-button cms-button--secondary" type="button">View details</button>
+            <button class="cms-button cms-button--danger" type="button">Retire asset</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="entity-card-heading">
+        <h2 class="cms-reference__section-title" id="entity-card-heading">Entity card</h2>
+        <div class="cms-reference__stage">
+          <article class="cms-card">
+            <header class="cms-card-head">
+              <div class="cms-card-head__identity">
+                <span class="cms-card-head__dot" aria-hidden="true"></span>
+                <h3 class="cms-card-head__title"><a href="#exam-detail">Spring Biology 2026</a></h3>
+                <div class="cms-card-head__actions">
+                  <button class="cms-button cms-button--secondary cms-button--small" type="button">Edit</button>
+                  <button class="cms-button cms-button--secondary cms-button--small" type="button">Preview</button>
+                  <button class="cms-button cms-button--secondary cms-button--small" type="button">More actions</button>
+                </div>
+              </div>
+              <span class="cms-badge" data-tone="warning">Paused</span>
+            </header>
+            <div class="cms-card-body cms-card-body--empty">
+              <h4 class="cms-card-body__title">This exam is paused</h4>
+              <p class="cms-card-body__message">Learners cannot access it until it is resumed. Your content and settings are unchanged.</p>
+              <button class="cms-button cms-button--primary" type="button">Resume exam</button>
+            </div>
+            <footer class="cms-card-foot">
+              <div class="cms-metadata">
+                <div class="cms-metadata__item">
+                  <span class="cms-metadata__label">Questions</span>
+                  <span class="cms-metadata__value">42 items</span>
+                </div>
+                <div class="cms-metadata__item">
+                  <span class="cms-metadata__label">Last updated</span>
+                  <span class="cms-metadata__value">Sep 18, 2026</span>
+                </div>
+                <div class="cms-metadata__item">
+                  <span class="cms-metadata__label">Owner</span>
+                  <span class="cms-metadata__value">Alex Kim</span>
+                </div>
+                <div class="cms-metadata__item">
+                  <span class="cms-metadata__label">Version</span>
+                  <span class="cms-metadata__value">v3.2</span>
+                </div>
+              </div>
+              <button class="cms-button cms-button--ghost cms-button--small" type="button">+ Add field</button>
+            </footer>
+          </article>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="card-head-heading">
+        <h2 class="cms-reference__section-title" id="card-head-heading">Entity card header</h2>
+        <div class="cms-reference__stage cms-reference__stage--flush">
+          <header class="cms-card-head">
+            <div class="cms-card-head__identity">
+              <span class="cms-card-head__dot" aria-hidden="true"></span>
+              <h3 class="cms-card-head__title"><a href="#package-detail">Biology package — v3.2</a></h3>
+              <div class="cms-card-head__actions">
+                <button class="cms-button cms-button--secondary cms-button--small" type="button">Review</button>
+                <button class="cms-button cms-button--secondary cms-button--small" type="button">Download</button>
+                <button class="cms-button cms-button--secondary cms-button--icon cms-button--small" type="button" aria-label="More actions">···</button>
+              </div>
+            </div>
+            <span class="cms-badge" data-tone="ok">Ready</span>
+          </header>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="card-body-heading">
+        <h2 class="cms-reference__section-title" id="card-body-heading">Entity card body</h2>
+        <div class="cms-reference__stage">
+          <div class="cms-card-body cms-card-body--empty">
+            <h3 class="cms-card-body__title">No recent activity</h3>
+            <p class="cms-card-body__message">Activity for this package will appear here after it is processed.</p>
+            <button class="cms-button cms-button--primary" type="button">Upload package</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="card-foot-heading">
+        <h2 class="cms-reference__section-title" id="card-foot-heading">Entity card footer</h2>
+        <div class="cms-reference__stage cms-reference__stage--flush">
+          <footer class="cms-card-foot">
+            <div class="cms-metadata">
+              <div class="cms-metadata__item">
+                <span class="cms-metadata__label">Created</span>
+                <span class="cms-metadata__value">Sep 18, 2026</span>
+              </div>
+              <div class="cms-metadata__item">
+                <span class="cms-metadata__label">Uploaded by</span>
+                <span class="cms-metadata__value">Alex Kim</span>
+              </div>
+              <div class="cms-metadata__item">
+                <span class="cms-metadata__label">File size</span>
+                <span class="cms-metadata__value">14.8 MB</span>
+              </div>
+              <div class="cms-metadata__item">
+                <span class="cms-metadata__label">Version</span>
+                <span class="cms-metadata__value">v3.2</span>
+              </div>
+            </div>
+            <button class="cms-button cms-button--ghost cms-button--small" type="button">+ Add</button>
+          </footer>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="status-heading">
+        <h2 class="cms-reference__section-title" id="status-heading">Status badge and pill</h2>
+        <div class="cms-reference__stage">
+          <div class="cms-page-header__actions">
+            <span class="cms-badge" data-tone="ok">Approved</span>
+            <span class="cms-badge" data-tone="warning">Needs review</span>
+            <span class="cms-badge" data-tone="danger">Failed</span>
+            <span class="cms-status-pill" data-tone="ok">
+              <span class="cms-status-pill__dot" aria-hidden="true"></span>
+              All checks passed
+            </span>
+            <span class="cms-status-pill" data-tone="warning">
+              <span class="cms-status-pill__dot" aria-hidden="true"></span>
+              2 warnings
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="metadata-heading">
+        <h2 class="cms-reference__section-title" id="metadata-heading">Metadata grid</h2>
+        <div class="cms-reference__stage cms-reference__stage--flush">
+          <div class="cms-card-foot">
+            <div class="cms-metadata">
+              <div class="cms-metadata__item">
+                <span class="cms-metadata__label">Questions</span>
+                <span class="cms-metadata__value">42 items</span>
+              </div>
+              <div class="cms-metadata__item">
+                <span class="cms-metadata__label">Last updated</span>
+                <span class="cms-metadata__value">Sep 18, 2026</span>
+              </div>
+              <div class="cms-metadata__item">
+                <span class="cms-metadata__label">Owner</span>
+                <span class="cms-metadata__value">Alex Kim</span>
+              </div>
+              <div class="cms-metadata__item">
+                <span class="cms-metadata__label">Version</span>
+                <span class="cms-metadata__value">v3.2</span>
+              </div>
+            </div>
+            <button class="cms-button cms-button--ghost cms-button--small" type="button">+ Add</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="alert-heading">
+        <h2 class="cms-reference__section-title" id="alert-heading">Banner / alert</h2>
+        <div class="cms-reference__stage cms-reference__stage--flush">
+          <aside class="cms-alert" role="status">
+            <div class="cms-alert__message">
+              <span class="cms-icon cms-alert__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="m12 3 9 16H3l9-16Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                  <path d="M12 9v4.5M12 16.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span>Package import found 2 warnings. Review them before approving this upload.</span>
+            </div>
+            <div class="cms-alert__actions">
+              <button class="cms-button cms-button--secondary cms-button--small" type="button">Review warnings</button>
+              <button class="cms-button cms-button--danger cms-button--small" type="button">Dismiss</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="cms-reference__section" aria-labelledby="footer-heading">
+        <h2 class="cms-reference__section-title" id="footer-heading">Footer</h2>
+        <div class="cms-reference__stage cms-reference__stage--flush">
+          <footer class="cms-footer">
+            <div class="cms-footer__status">
+              <span class="cms-footer__status-dot" aria-hidden="true"></span>
+              All systems operational
+            </div>
+            <nav class="cms-footer__links" aria-label="Footer links">
+              <a href="#status">Status</a>
+              <a href="#privacy">Privacy</a>
+              <a href="#terms">Terms</a>
+              <span>© 2026 Northstar</span>
+            </nav>
+          </footer>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
