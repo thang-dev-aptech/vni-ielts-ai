@@ -172,6 +172,10 @@ public sealed class GracefulShutdownTests
         public Task<IReadOnlyList<ExamVersion>> ListAllAsync(CancellationToken ct) =>
             throw new NotSupportedException("Not exercised by this test.");
 
+        public Task<(IReadOnlyList<ExamVersion> Versions, long Total)> ListPagedAsync(
+            string? search, ExamVersionStatus? status, int skip, int take, CancellationToken ct) =>
+            throw new NotSupportedException("Not exercised by this test.");
+
         public Task<ExamVersion?> FindAsync(ExamVersionId requested, CancellationToken ct) =>
             Task.FromResult(requested == id ? version : null);
 

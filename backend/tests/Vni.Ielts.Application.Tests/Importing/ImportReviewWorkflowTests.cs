@@ -418,6 +418,9 @@ public sealed class ImportReviewWorkflowTests
             Task.FromResult<IReadOnlyList<ExamVersion>>([]);
         public Task<IReadOnlyList<ExamVersion>> ListAllAsync(CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<ExamVersion>>(Upserted);
+        public Task<(IReadOnlyList<ExamVersion> Versions, long Total)> ListPagedAsync(
+            string? search, ExamVersionStatus? status, int skip, int take, CancellationToken ct) =>
+            Task.FromResult<(IReadOnlyList<ExamVersion>, long)>(([.. Upserted.Skip(skip).Take(take)], Upserted.Count));
         public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct) =>
             Task.FromResult(Upserted.FirstOrDefault(v => v.Id == id));
         public Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
@@ -437,6 +440,9 @@ public sealed class ImportReviewWorkflowTests
             Task.FromResult<IReadOnlyList<ExamVersion>>([]);
         public Task<IReadOnlyList<ExamVersion>> ListAllAsync(CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<ExamVersion>>([]);
+        public Task<(IReadOnlyList<ExamVersion> Versions, long Total)> ListPagedAsync(
+            string? search, ExamVersionStatus? status, int skip, int take, CancellationToken ct) =>
+            Task.FromResult<(IReadOnlyList<ExamVersion>, long)>(([], 0));
         public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct) =>
             Task.FromResult<ExamVersion?>(null);
         public Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(

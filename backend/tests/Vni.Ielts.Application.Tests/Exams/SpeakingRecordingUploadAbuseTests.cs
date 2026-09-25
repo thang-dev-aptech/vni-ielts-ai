@@ -250,6 +250,10 @@ public sealed class SpeakingRecordingUploadAbuseTests
         public Task<IReadOnlyList<ExamVersion>> ListAllAsync(CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<ExamVersion>>([version]);
 
+        public Task<(IReadOnlyList<ExamVersion> Versions, long Total)> ListPagedAsync(
+            string? search, ExamVersionStatus? status, int skip, int take, CancellationToken ct) =>
+            Task.FromResult<(IReadOnlyList<ExamVersion>, long)>(([version], 1));
+
         public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct) =>
             Task.FromResult<ExamVersion?>(id == version.Id ? version : null);
 

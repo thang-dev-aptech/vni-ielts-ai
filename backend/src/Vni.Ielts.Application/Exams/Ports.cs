@@ -16,8 +16,31 @@ public interface IExamCatalogue
     /// <summary>Only published versions. A draft has not been reviewed and cannot be sat.</summary>
     Task<IReadOnlyList<ExamVersion>> ListSittableAsync(CancellationToken ct);
 
-    /// <summary>Everything, drafts included. The CMS surface, never a learner one.</summary>
+    /// <summary>
+    /// Everything, drafts included. The CMS surface, never a learner one.
+    ///
+    /// Still the right call for a screen that needs the *complete* set —
+    /// `OverviewPage`'s tiles, `ReviewQueuePage`, `PendingPublishPage` — where
+    /// paginating out from under them would silently truncate a count or drop
+    /// a row from a queue. <see cref="ListPagedAsync"/> is for the one screen
+    /// that lists rather than counts or queues.
+    /// </summary>
     Task<IReadOnlyList<ExamVersion>> ListAllAsync(CancellationToken ct);
+
+    /// <summary>
+    /// A page of the CMS's full catalogue — drafts included, search and status
+    /// filtered on the server.
+    ///
+    /// "Tất cả đề" used <see cref="ListAllAsync"/> and filtered in the browser
+    /// until this method existed. That works on the handful of exams a
+    /// development database holds and falls over the same way
+    /// <see cref="Identity.IUserRepository.ListAsync"/>'s own doc comment
+    /// already warned about for accounts — the failure just arrives later,
+    /// because a CMS operator loads this screen far less often than a learner
+    /// hits <c>/me</c>.
+    /// </summary>
+    Task<(IReadOnlyList<ExamVersion> Versions, long Total)> ListPagedAsync(
+        string? search, ExamVersionStatus? status, int skip, int take, CancellationToken ct);
 
     Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct);
 

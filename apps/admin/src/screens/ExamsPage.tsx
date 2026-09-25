@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { AdminPaths } from '../routes/paths.js';
-import { listExams, type AdminExam } from '../lib/adminApi.js';
+import { listExamsPaged, type AdminExam } from '../lib/adminApi.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { STATE, type ExamState } from '../lib/lifecycle.js';
 
@@ -29,14 +29,22 @@ const STATUS_FILTERS: readonly (ExamState | 'all')[] = [
  * produces a new version — so a row action that implies otherwise would be
  * teaching the wrong model from the list screen onwards. → `cms-spec.md`
  * ràng buộc 1
+ *
+ * <b>Paged on the server, like `UsersPage`.</b> This used to fetch every
+ * version and filter in the browser — same anti-pattern `UsersPage`'s own
+ * doc comment names, just slower to notice on a screen an operator opens
+ * less often than the account list.
  */
 export function ExamsPage() {
   const { accessToken } = useAdminAuth();
 
   const [exams, setExams] = useState<AdminExam[] | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [query, setQuery] = useState('');
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [pending, setPending] = useState('');
   const [status, setStatus] = useState<ExamState | 'all'>('all');
+  const [failed, setFailed] = useState(false);
   const alive = useRef(true);
 
   useEffect(() => {
@@ -47,29 +55,37 @@ export function ExamsPage() {
   const load = useCallback(async () => {
     if (accessToken === null) return;
     try {
-      const { exams: all } = await listExams(accessToken);
-      if (alive.current) setExams(all);
+      const result = await listExamsPaged(accessToken, search, status, page);
+      if (!alive.current) return;
+      setExams(result.exams);
+      setTotal(result.total);
+      setFailed(false);
     } catch {
       if (alive.current) setFailed(true);
     }
-  }, [accessToken]);
+  }, [accessToken, search, status, page]);
 
   useEffect(() => void load(), [load]);
 
-  const shown = (exams ?? []).filter(
-    (e) =>
-      e.title.toLowerCase().includes(query.trim().toLowerCase()) &&
-      (status === 'all' || e.status === status),
-  );
+  const pageSize = 25;
+  const pages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <>
       <header className="cms-page-header">
         <h1 className="cms-page-header__title">Đề thi</h1>
         <p className="cms-muted">
-          Mọi version, kể cả bản nháp. Sửa nội dung đã xuất bản là tạo version mới.
+          <span className="num">{total}</span> version, kể cả bản nháp. Sửa nội dung đã xuất bản là
+          tạo version mới.
         </p>
-        <div className="cms-page-header__row">
+        <form
+          className="cms-page-header__row"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setPage(1);
+            setSearch(pending);
+          }}
+        >
           <label className="cms-search">
             <span className="cms-sr-only">Tìm theo tên đề</span>
             <span className="cms-icon cms-search__icon" aria-hidden="true">
@@ -79,14 +95,20 @@ export function ExamsPage() {
               type="search"
               className="cms-search__input"
               placeholder="Tìm theo tên đề"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              value={pending}
+              onChange={(e) => setPending(e.target.value)}
             />
           </label>
           <div className="cms-page-header__actions">
             <label className="cms-field-inline">
               <span>Trạng thái</span>
-              <select value={status} onChange={(e) => setStatus(e.target.value as ExamState | 'all')}>
+              <select
+                value={status}
+                onChange={(e) => {
+                  setPage(1);
+                  setStatus(e.target.value as ExamState | 'all');
+                }}
+              >
                 {STATUS_FILTERS.map((value) => (
                   <option key={value} value={value}>
                     {value === 'all' ? 'Mọi trạng thái' : STATE[value].label}
@@ -94,11 +116,14 @@ export function ExamsPage() {
                 ))}
               </select>
             </label>
+            <button type="submit" className="cms-button cms-button--secondary">
+              Tìm
+            </button>
             <Link className="cms-button cms-button--primary" to={AdminPaths.import}>
               Nhập đề mới
             </Link>
           </div>
-        </div>
+        </form>
       </header>
 
       {failed && (
@@ -109,7 +134,7 @@ export function ExamsPage() {
 
       {exams === null && !failed && <p className="cms-muted">Đang tải…</p>}
 
-      {exams !== null && shown.length === 0 && (
+      {exams !== null && exams.length === 0 && (
         <article className="cms-card">
           <div className="cms-card-body cms-card-body--empty">
             <h3 className="cms-card-body__title">Chưa có đề nào khớp</h3>
@@ -120,7 +145,7 @@ export function ExamsPage() {
         </article>
       )}
 
-      {shown.length > 0 && (
+      {exams !== null && exams.length > 0 && (
         <article className="cms-card">
           <div className="cms-card-body">
             <div className="cms-table-wrap">
@@ -135,7 +160,7 @@ export function ExamsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {shown.map((exam) => (
+                  {exams.map((exam) => (
                     <tr key={exam.examVersionId}>
                       <td>
                         <Link to={AdminPaths.exam(exam.definitionId)}>{exam.title}</Link>
@@ -163,6 +188,29 @@ export function ExamsPage() {
               </table>
             </div>
           </div>
+          <footer className="cms-card-foot">
+            <div className="cms-pager">
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Trang trước
+              </button>
+              <span className="num">
+                {page} / {pages}
+              </span>
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={page >= pages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Trang sau
+              </button>
+            </div>
+          </footer>
         </article>
       )}
     </>

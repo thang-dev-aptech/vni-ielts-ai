@@ -127,6 +127,18 @@ public sealed class MediaVersionReferencesTests
         public Task<IReadOnlyList<ExamVersion>> ListAllAsync(CancellationToken ct) =>
             Task.FromResult(versions);
 
+        public Task<(IReadOnlyList<ExamVersion> Versions, long Total)> ListPagedAsync(
+            string? search, ExamVersionStatus? status, int skip, int take, CancellationToken ct)
+        {
+            var filtered = versions.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(search))
+                filtered = filtered.Where(v => v.Title.Contains(search, StringComparison.OrdinalIgnoreCase));
+            if (status is not null)
+                filtered = filtered.Where(v => v.Status == status);
+            var list = filtered.ToList();
+            return Task.FromResult<(IReadOnlyList<ExamVersion>, long)>(([.. list.Skip(skip).Take(take)], list.Count));
+        }
+
         public Task<ExamVersion?> FindAsync(ExamVersionId id, CancellationToken ct) =>
             Task.FromResult(versions.FirstOrDefault(v => v.Id == id));
 

@@ -137,34 +137,64 @@ public static class AdminEndpoints
     /// at.
     /// </summary>
     private static async Task<IResult> ExamsEndpoint(
-        ClaimsPrincipal principal, IExamCatalogue catalogue, CancellationToken ct)
+        ClaimsPrincipal principal, IExamCatalogue catalogue,
+        string? search, string? status, int? page, CancellationToken ct)
     {
         if (Denied(principal, PermissionKeys.ExamRead) is { } denial) return denial;
 
-        var versions = await catalogue.ListAllAsync(ct);
+        /*
+         * Two modes on one route, not two routes: `OverviewPage`,
+         * `ExamDetailPage`, `ReviewQueuePage` and `PendingPublishPage` all
+         * call this with no query string at all, because each needs the
+         * complete set for its own counting/queueing — paginating out from
+         * under them would silently truncate a dashboard tile or a review
+         * queue. `page` present is what "Tất cả đề" opts into.
+         */
+        if (page is null && search is null && status is null)
+        {
+            var all = await catalogue.ListAllAsync(ct);
+            return Results.Ok(new { exams = all.Select(ToExamRow) });
+        }
+
+        // Clamped, not trusted — same reason as UsersEndpoint's PageSize.
+        const int PageSize = 25;
+        var current = Math.Clamp(page ?? 1, 1, MaxPage);
+
+        ExamVersionStatus? parsedStatus = status is not null
+            && Enum.TryParse<ExamVersionStatus>(status, ignoreCase: true, out var s)
+            ? s
+            : null;
+
+        var (versions, total) = await catalogue.ListPagedAsync(
+            search, parsedStatus, (current - 1) * PageSize, PageSize, ct);
 
         return Results.Ok(new
         {
-            exams = versions.Select(v => new
-            {
-                examVersionId = v.Id.Value,
-                definitionId = v.DefinitionId.Value,
-                versionNumber = v.VersionNumber,
-                title = v.Title,
-                variant = v.Variant.ToString().ToLowerInvariant(),
-                status = v.Status.ToString().ToLowerInvariant(),
-                publishedAt = v.PublishedAt,
-                modules = v.Sections
-                    .OrderBy(s => s.Order)
-                    .Select(s => new
-                    {
-                        module = s.Module.ToString().ToLowerInvariant(),
-                        questionCount = s.Questions.Count(),
-                        durationSeconds = (int)v.Timing.DurationFor(s.Module).TotalSeconds,
-                    }),
-            }),
+            total,
+            page = current,
+            pageSize = PageSize,
+            exams = versions.Select(ToExamRow),
         });
     }
+
+    private static object ToExamRow(ExamVersion v) => new
+    {
+        examVersionId = v.Id.Value,
+        definitionId = v.DefinitionId.Value,
+        versionNumber = v.VersionNumber,
+        title = v.Title,
+        variant = v.Variant.ToString().ToLowerInvariant(),
+        status = v.Status.ToString().ToLowerInvariant(),
+        publishedAt = v.PublishedAt,
+        modules = v.Sections
+            .OrderBy(s => s.Order)
+            .Select(s => new
+            {
+                module = s.Module.ToString().ToLowerInvariant(),
+                questionCount = s.Questions.Count(),
+                durationSeconds = (int)v.Timing.DurationFor(s.Module).TotalSeconds,
+            }),
+    };
 
     private static async Task<IResult> UsersEndpoint(
         ClaimsPrincipal principal, IUserRepository users,

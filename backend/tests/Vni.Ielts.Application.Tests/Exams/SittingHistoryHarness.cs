@@ -350,6 +350,10 @@ internal sealed class CountingCatalogue(params ExamVersion[] versions) : IExamCa
     public Task<IReadOnlyList<ExamVersion>> ListAllAsync(CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<ExamVersion>>([.. _versions]);
 
+    public Task<(IReadOnlyList<ExamVersion> Versions, long Total)> ListPagedAsync(
+        string? search, ExamVersionStatus? status, int skip, int take, CancellationToken ct) =>
+        Task.FromResult<(IReadOnlyList<ExamVersion>, long)>(([.. _versions.Skip(skip).Take(take)], _versions.Count));
+
     public Task UpsertAsync(ExamVersion updated, CancellationToken ct) => Task.CompletedTask;
 
     public Task SetStatusAsync(ExamVersionId id, ExamVersionStatus status, CancellationToken ct) =>

@@ -35,6 +35,42 @@ internal sealed class MongoExamCatalogue(MongoContext context) : IExamCatalogue
         return [.. docs.Select(d => d.ToDomain())];
     }
 
+    public async Task<(IReadOnlyList<ExamVersion> Versions, long Total)> ListPagedAsync(
+        string? search, ExamVersionStatus? status, int skip, int take, CancellationToken ct)
+    {
+        var filters = new List<FilterDefinition<ExamVersionDocument>>();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            // Escaped before it reaches a regex, same reason as
+            // MongoUserRepository.ListAsync — an unescaped search box hands
+            // the database a pattern the caller chose.
+            var pattern = System.Text.RegularExpressions.Regex.Escape(search.Trim());
+            filters.Add(Builders<ExamVersionDocument>.Filter.Regex(
+                v => v.Title, new BsonRegularExpression(pattern, "i")));
+        }
+
+        if (status is not null)
+        {
+            filters.Add(Builders<ExamVersionDocument>.Filter.Eq(v => v.Status, status.Value.ToString()));
+        }
+
+        var filter = filters.Count == 0
+            ? Builders<ExamVersionDocument>.Filter.Empty
+            : Builders<ExamVersionDocument>.Filter.And(filters);
+
+        var total = await context.ExamVersions.CountDocumentsAsync(filter, cancellationToken: ct);
+
+        var docs = await context.ExamVersions
+            .Find(filter)
+            .SortBy(v => v.Title)
+            .Skip(skip)
+            .Limit(take)
+            .ToListAsync(ct);
+
+        return ([.. docs.Select(d => d.ToDomain())], total);
+    }
+
     public async Task<IReadOnlyDictionary<ExamVersionId, ExamVersion>> FindManyAsync(
         IReadOnlyCollection<ExamVersionId> ids, CancellationToken ct)
     {

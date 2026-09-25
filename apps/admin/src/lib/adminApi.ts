@@ -64,8 +64,27 @@ export interface AdminRole {
   permissions: string[];
 }
 
+/**
+ * Every exam version, unpaginated. `OverviewPage`, `ExamDetailPage`,
+ * `ReviewQueuePage` and `PendingPublishPage` each need the whole set for
+ * their own counting/queueing — only the list screen itself pages.
+ */
 export const listExams = (accessToken: string) =>
   request<{ exams: AdminExam[] }>('/api/v1/admin/exams', { accessToken });
+
+/** The paged, search/status-filtered read `ExamsPage` ("Tất cả đề") uses. */
+export const listExamsPaged = (
+  accessToken: string,
+  search: string,
+  status: string,
+  page: number,
+) =>
+  request<{ total: number; page: number; pageSize: number; exams: AdminExam[] }>(
+    `/api/v1/admin/exams?page=${page}` +
+      (search ? `&search=${encodeURIComponent(search)}` : '') +
+      (status && status !== 'all' ? `&status=${encodeURIComponent(status)}` : ''),
+    { accessToken },
+  );
 
 export const listUsers = (accessToken: string, search: string, page: number) =>
   request<{ total: number; page: number; pageSize: number; users: AdminUser[] }>(
