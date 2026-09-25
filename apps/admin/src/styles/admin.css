@@ -138,6 +138,37 @@ body {
   max-width: 1180px;
 }
 
+.cms-page-header {
+  margin-bottom: var(--s-5);
+}
+
+.cms-card + .cms-card {
+  margin-top: var(--s-5);
+}
+
+.cms-alert + .cms-card,
+.cms-muted + .cms-card {
+  margin-top: var(--s-5);
+}
+
+.cms-card-body .cms-tiles {
+  margin-bottom: 0;
+}
+
+.cms-card-body .cms-table-wrap {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.cms-card-body .cms-activity {
+  margin-top: 0;
+}
+
+.cms-card-foot .cms-pager {
+  margin: 0;
+}
+
 .cms-head {
   margin-bottom: var(--s-5);
 }

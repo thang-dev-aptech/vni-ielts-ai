@@ -58,9 +58,9 @@ export function ConfigPage() {
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Cấu hình</h1>
-        <p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Cấu hình</h1>
+        <p className="cms-muted">
           Giá trị đang hiệu lực trên máy chủ này. Chỉ xem — không sửa từ đây, vì chưa có đường
           ghi.
         </p>
@@ -101,55 +101,61 @@ function ProvidersPanel({
   skills: AdminRuntimeConfiguration['ai']['skills'];
 }) {
   return (
-    <section className="cms-panel" aria-labelledby="config-providers">
-      <div className="cms-panel-head">
-        <h2 id="config-providers">Nhà cung cấp theo kỹ năng</h2>
-      </div>
-      <p className="cms-muted">
-        Chỉ mô hình và phiên bản. Khoá, endpoint và chuỗi kết nối không đi qua API này.
-      </p>
-      <div className="cms-table-wrap">
-        <table className="cms-table">
-          <thead>
-            <tr>
-              <th>Kỹ năng</th>
-              <th>Trạng thái</th>
-              <th>Nhà cung cấp</th>
-              <th>Mô hình</th>
-              <th>Phiên bản</th>
-            </tr>
-          </thead>
-          <tbody>
-            {skills.map((row) => {
-              const configured = row.status === 'available';
-              return (
-                <tr key={row.skill}>
-                  <td>
-                    {skillLabel(row.skill)}
-                    <span className="cms-sub cms-code">{row.skill}</span>
-                  </td>
-                  <td>
-                    <span className="cms-badge" data-tone={cmsBadgeTone(configured ? 'published' : 'draft')}>
-                      {configured ? 'Đã cấu hình' : 'Chưa cấu hình'}
-                    </span>
-                  </td>
-                  <td>{present(row.provider)}</td>
-                  <td>
-                    <span className="cms-code">{present(row.model)}</span>
-                    {row.fallback !== null && (
-                      <span className="cms-sub">
-                        Dự phòng: {present(row.fallback.provider)} · {present(row.fallback.model)}
+    <article className="cms-card" aria-labelledby="config-providers">
+      <header className="cms-card-head">
+        <div className="cms-card-head__identity">
+          <h2 id="config-providers" className="cms-card-head__title">
+            Nhà cung cấp theo kỹ năng
+          </h2>
+        </div>
+      </header>
+      <div className="cms-card-body">
+        <p className="cms-muted">
+          Chỉ mô hình và phiên bản. Khoá, endpoint và chuỗi kết nối không đi qua API này.
+        </p>
+        <div className="cms-table-wrap">
+          <table className="cms-table">
+            <thead>
+              <tr>
+                <th>Kỹ năng</th>
+                <th>Trạng thái</th>
+                <th>Nhà cung cấp</th>
+                <th>Mô hình</th>
+                <th>Phiên bản</th>
+              </tr>
+            </thead>
+            <tbody>
+              {skills.map((row) => {
+                const configured = row.status === 'available';
+                return (
+                  <tr key={row.skill}>
+                    <td>
+                      {skillLabel(row.skill)}
+                      <span className="cms-sub cms-code">{row.skill}</span>
+                    </td>
+                    <td>
+                      <span className="cms-badge" data-tone={cmsBadgeTone(configured ? 'published' : 'draft')}>
+                        {configured ? 'Đã cấu hình' : 'Chưa cấu hình'}
                       </span>
-                    )}
-                  </td>
-                  <td className="cms-code">{present(row.version)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    </td>
+                    <td>{present(row.provider)}</td>
+                    <td>
+                      <span className="cms-code">{present(row.model)}</span>
+                      {row.fallback !== null && (
+                        <span className="cms-sub">
+                          Dự phòng: {present(row.fallback.provider)} · {present(row.fallback.model)}
+                        </span>
+                      )}
+                    </td>
+                    <td className="cms-code">{present(row.version)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </section>
+    </article>
   );
 }
 
@@ -159,21 +165,35 @@ function WritingPanel({
   writing: AdminRuntimeConfiguration['writing'];
 }) {
   return (
-    <section className="cms-panel" aria-labelledby="config-writing">
-      <div className="cms-panel-head">
-        <h2 id="config-writing">Chấm Writing</h2>
-      </div>
-      <dl className="cms-detail-list">
-        <dt>Phiên bản rubric</dt>
-        <dd className="cms-code">{present(writing.rubricVersion)}</dd>
-        <dt>Trọng số Task 1 : Task 2</dt>
-        <dd className="num">{weights(writing.task1Weight, writing.task2Weight)}</dd>
-        <dt>Ngôn ngữ phản hồi</dt>
-        <dd>{present(writing.feedbackLanguage)}</dd>
-        <dt>Độ chi tiết tiêu chí</dt>
-        <dd>{present(writing.criterionGranularity)}</dd>
-      </dl>
-    </section>
+    <article className="cms-card" aria-labelledby="config-writing">
+      <header className="cms-card-head">
+        <div className="cms-card-head__identity">
+          <h2 id="config-writing" className="cms-card-head__title">
+            Chấm Writing
+          </h2>
+        </div>
+      </header>
+      <footer className="cms-card-foot">
+        <div className="cms-metadata">
+          <div className="cms-metadata__item">
+            <span className="cms-metadata__label">Phiên bản rubric</span>
+            <span className="cms-metadata__value cms-code">{present(writing.rubricVersion)}</span>
+          </div>
+          <div className="cms-metadata__item">
+            <span className="cms-metadata__label">Trọng số Task 1 : Task 2</span>
+            <span className="cms-metadata__value num">{weights(writing.task1Weight, writing.task2Weight)}</span>
+          </div>
+          <div className="cms-metadata__item">
+            <span className="cms-metadata__label">Ngôn ngữ phản hồi</span>
+            <span className="cms-metadata__value">{present(writing.feedbackLanguage)}</span>
+          </div>
+          <div className="cms-metadata__item">
+            <span className="cms-metadata__label">Độ chi tiết tiêu chí</span>
+            <span className="cms-metadata__value">{present(writing.criterionGranularity)}</span>
+          </div>
+        </div>
+      </footer>
+    </article>
   );
 }
 
@@ -183,58 +203,72 @@ function ImportPanel({
   archive: AdminRuntimeConfiguration['importArchive'];
 }) {
   return (
-    <section className="cms-panel" aria-labelledby="config-import">
-      <div className="cms-panel-head">
-        <h2 id="config-import">Hạn mức gói nhập</h2>
+    <article className="cms-card" aria-labelledby="config-import">
+      <header className="cms-card-head">
+        <div className="cms-card-head__identity">
+          <h2 id="config-import" className="cms-card-head__title">
+            Hạn mức gói nhập
+          </h2>
+        </div>
+      </header>
+      <div className="cms-card-body">
+        <p className="cms-muted">
+          Các ngưỡng đang được cửa ZIP thi hành. Thông báo từ chối trên đường nhập không nêu các con
+          số này.
+        </p>
       </div>
-      <p className="cms-muted">
-        Các ngưỡng đang được cửa ZIP thi hành. Thông báo từ chối trên đường nhập không nêu các con
-        số này.
-      </p>
-      <dl className="cms-facts">
-        <div>
-          <dt>Số entry tối đa</dt>
-          <dd className="num">{archive.maxEntries.toLocaleString('vi-VN')}</dd>
+      <footer className="cms-card-foot">
+        <div className="cms-metadata">
+          <div className="cms-metadata__item">
+            <span className="cms-metadata__label">Số entry tối đa</span>
+            <span className="cms-metadata__value num">{archive.maxEntries.toLocaleString('vi-VN')}</span>
+          </div>
+          <div className="cms-metadata__item">
+            <span className="cms-metadata__label">Tổng giải nén</span>
+            <span className="cms-metadata__value num">{formatBytes(archive.maxTotalUncompressedBytes)}</span>
+          </div>
+          <div className="cms-metadata__item">
+            <span className="cms-metadata__label">Một entry giải nén</span>
+            <span className="cms-metadata__value num">{formatBytes(archive.maxEntryUncompressedBytes)}</span>
+          </div>
+          <div className="cms-metadata__item">
+            <span className="cms-metadata__label">Tỉ lệ nén tối đa</span>
+            <span className="cms-metadata__value num">{archive.maxCompressionRatio}:1</span>
+          </div>
+          <div className="cms-metadata__item">
+            <span className="cms-metadata__label">Kích thước archive</span>
+            <span className="cms-metadata__value num">{formatBytes(archive.maxArchiveBytes)}</span>
+          </div>
+          <div className="cms-metadata__item">
+            <span className="cms-metadata__label">Hết giờ giải nén</span>
+            <span className="cms-metadata__value num">{archive.extractionTimeoutSeconds} giây</span>
+          </div>
         </div>
-        <div>
-          <dt>Tổng giải nén</dt>
-          <dd className="num">{formatBytes(archive.maxTotalUncompressedBytes)}</dd>
-        </div>
-        <div>
-          <dt>Một entry giải nén</dt>
-          <dd className="num">{formatBytes(archive.maxEntryUncompressedBytes)}</dd>
-        </div>
-        <div>
-          <dt>Tỉ lệ nén tối đa</dt>
-          <dd className="num">{archive.maxCompressionRatio}:1</dd>
-        </div>
-        <div>
-          <dt>Kích thước archive</dt>
-          <dd className="num">{formatBytes(archive.maxArchiveBytes)}</dd>
-        </div>
-        <div>
-          <dt>Hết giờ giải nén</dt>
-          <dd className="num">{archive.extractionTimeoutSeconds} giây</dd>
-        </div>
-      </dl>
-    </section>
+      </footer>
+    </article>
   );
 }
 
 function TokenPanel({ status, blockers }: { status: string; blockers: string[] }) {
   const named = blockers.length > 0 ? blockers : ['B-5a', 'B-5b'];
   return (
-    <section className="cms-panel" aria-labelledby="config-tokens">
-      <div className="cms-panel-head">
-        <h2 id="config-tokens">Kinh tế token</h2>
+    <article className="cms-card" aria-labelledby="config-tokens">
+      <header className="cms-card-head">
+        <div className="cms-card-head__identity">
+          <h2 id="config-tokens" className="cms-card-head__title">
+            Kinh tế token
+          </h2>
+        </div>
+      </header>
+      <div className="cms-card-body">
+        <p className="cms-alert" data-tone="warning">
+          <strong>Pending.</strong> Màn này không hiện số token mỗi thao tác. Việc đó chờ{' '}
+          {named.join(' và ')}
+          {status !== 'pending' ? ` (máy chủ báo «${status}»)` : ''}. Dựng một ô nhập ở đây là mời
+          điền một con số bịa.
+        </p>
       </div>
-      <p className="cms-alert">
-        <strong>Pending.</strong> Màn này không hiện số token mỗi thao tác. Việc đó chờ{' '}
-        {named.join(' và ')}
-        {status !== 'pending' ? ` (máy chủ báo «${status}»)` : ''}. Dựng một ô nhập ở đây là mời
-        điền một con số bịa.
-      </p>
-    </section>
+    </article>
   );
 }
 

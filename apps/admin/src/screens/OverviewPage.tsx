@@ -91,9 +91,9 @@ export function OverviewPage() {
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Tổng quan</h1>
-        <p>Xin chào {user?.displayName}. Đây là những gì hệ thống đang có.</p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Tổng quan</h1>
+        <p className="cms-muted">Xin chào {user?.displayName}. Đây là những gì hệ thống đang có.</p>
       </header>
 
       <div className="cms-tiles">
@@ -107,61 +107,77 @@ export function OverviewPage() {
       </div>
 
       {(can('exam.review') || can('exam.publish')) && (
-        <section className="cms-panel">
-          <div className="cms-panel-head">
-            <h2>Quy trình nội dung</h2>
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Quy trình nội dung</h2>
+            </div>
+          </header>
+          <div className="cms-card-body">
+            <div className="cms-tiles">
+              {can('exam.review') && (
+                <Tile
+                  label="Đang chờ duyệt"
+                  value={exams === null ? null : exams.filter((e) => e.status === 'inreview').length}
+                  to={AdminPaths.reviewQueue}
+                />
+              )}
+              {can('exam.publish') && (
+                <Tile
+                  label="Đã duyệt, chờ xuất bản"
+                  value={exams === null ? null : exams.filter((e) => e.status === 'approved').length}
+                  to={AdminPaths.pendingPublish}
+                />
+              )}
+            </div>
           </div>
-
-          <div className="cms-tiles">
-            {can('exam.review') && (
-              <Tile
-                label="Đang chờ duyệt"
-                value={exams === null ? null : exams.filter((e) => e.status === 'inreview').length}
-                to={AdminPaths.reviewQueue}
-              />
-            )}
-            {can('exam.publish') && (
-              <Tile
-                label="Đã duyệt, chờ xuất bản"
-                value={exams === null ? null : exams.filter((e) => e.status === 'approved').length}
-                to={AdminPaths.pendingPublish}
-              />
-            )}
-          </div>
-        </section>
+        </article>
       )}
 
       {can('audit.read') && (
-        <section className="cms-panel">
-          <div className="cms-panel-head">
-            <h2>Hoạt động gần đây</h2>
-            <Link className="cms-link-button" to={AdminPaths.audit}>
-              Xem toàn bộ nhật ký
-            </Link>
-          </div>
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Hoạt động gần đây</h2>
+              <div className="cms-card-head__actions">
+                <Link className="cms-link-button" to={AdminPaths.audit}>
+                  Xem toàn bộ nhật ký
+                </Link>
+              </div>
+            </div>
+          </header>
 
-          {recent === null && <p className="cms-muted">Đang tải…</p>}
+          {recent === null && (
+            <div className="cms-card-body">
+              <p className="cms-muted">Đang tải…</p>
+            </div>
+          )}
 
           {recent !== null && recent.length === 0 && (
-            <p className="cms-muted">Chưa có thao tác quản trị nào được ghi.</p>
+            <div className="cms-card-body cms-card-body--empty">
+              <h3 className="cms-card-body__title">Chưa có hoạt động</h3>
+              <p className="cms-card-body__message">Chưa có thao tác quản trị nào được ghi.</p>
+            </div>
           )}
 
           {recent !== null && recent.length > 0 && (
-            <ul className="cms-activity">
-              {recent.map((entry) => (
-                <li key={entry.id}>
-                  <span className="cms-activity-when num">
-                    {new Date(entry.at).toLocaleString('vi-VN')}
-                  </span>
-                  <span className="cms-activity-what">
-                    <strong>{actionLabel(entry.action)}</strong> — {entry.targetLabel}
-                  </span>
-                  <span className="cms-activity-who">{entry.actorEmail}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="cms-card-body">
+              <ul className="cms-activity">
+                {recent.map((entry) => (
+                  <li key={entry.id}>
+                    <span className="cms-activity-when num">
+                      {new Date(entry.at).toLocaleString('vi-VN')}
+                    </span>
+                    <span className="cms-activity-what">
+                      <strong>{actionLabel(entry.action)}</strong> — {entry.targetLabel}
+                    </span>
+                    <span className="cms-activity-who">{entry.actorEmail}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
-        </section>
+        </article>
       )}
     </>
   );

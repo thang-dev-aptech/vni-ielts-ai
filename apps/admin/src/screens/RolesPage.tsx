@@ -53,88 +53,104 @@ export function RolesPage() {
 
   useEffect(() => void load(), [load]);
 
-  if (roles === null) return <p className="cms-muted">Đang tải…</p>;
-
   /**
    * Grouped by `permissions.ts`'s own group label when the key has one, and
    * by its dotted prefix otherwise — so a permission the domain grew without
    * a matching label entry still lands in a sensible section instead of one
    * "khác" bucket nobody expects to check.
    */
-  const groups = permissions.reduce<Record<string, string[]>>((acc, key) => {
-    const group = PERMISSION[key]?.group ?? key.split('.')[0] ?? 'khác';
-    (acc[group] ??= []).push(key);
-    return acc;
-  }, {});
+  const groups =
+    roles === null
+      ? {}
+      : permissions.reduce<Record<string, string[]>>((acc, key) => {
+          const group = PERMISSION[key]?.group ?? key.split('.')[0] ?? 'khác';
+          (acc[group] ??= []).push(key);
+          return acc;
+        }, {});
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Vai và quyền</h1>
-        <p>
-          {roles.length} vai, {permissions.length} quyền. Chỉ xem — cấp quyền chờ nhật ký audit.
-        </p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Vai và quyền</h1>
+        {roles !== null && (
+          <p className="cms-muted">
+            {roles.length} vai, {permissions.length} quyền. Chỉ xem — cấp quyền chờ nhật ký audit.
+          </p>
+        )}
       </header>
 
-      <div className="cms-table-wrap">
-        <table className="cms-table cms-matrix">
-          <thead>
-            <tr>
-              <th>Quyền</th>
-              {roles.map((role) => (
-                <th key={role.roleId} className="cms-matrix-role">
-                  {role.name}
-                  {role.isSystem && <span className="cms-sub">hệ thống</span>}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(groups).map(([group, keys]) => (
-              // `Fragment` with a key, not `<>`. The shorthand takes no key,
-              // so React saw one unkeyed child per group and said so.
-              <Fragment key={group}>
-                <tr className="cms-matrix-group">
-                  <th colSpan={roles.length + 1}>{group}</th>
-                </tr>
-                {keys.map((key) => (
-                  <tr key={key}>
-                    <td>
-                      <code>{key}</code>
-                      {/*
-                        The label is a display fallback of a fallback — most
-                        permissions have one, some genuinely do not, and both
-                        are correct states for this cell to be in.
-                      */}
-                      {PERMISSION[key] !== undefined && (
-                        <span className="cms-sub">{PERMISSION[key].label}</span>
-                      )}
-                    </td>
+      {roles === null && <p className="cms-muted">Đang tải…</p>}
+
+      {roles !== null && (
+        <article className="cms-card">
+          <header className="cms-card-head">
+            <div className="cms-card-head__identity">
+              <h2 className="cms-card-head__title">Ma trận quyền</h2>
+            </div>
+          </header>
+          <div className="cms-card-body">
+            <div className="cms-table-wrap">
+              <table className="cms-table cms-matrix">
+                <thead>
+                  <tr>
+                    <th>Quyền</th>
                     {roles.map((role) => (
-                      <td key={role.roleId} className="cms-matrix-cell">
-                        {/*
-                          A tick and a dash, not a coloured cell. The matrix has
-                          to be readable in a screenshot pasted into a ticket,
-                          and half of those are greyscale.
-                        */}
-                        {role.permissions.includes(key) ? (
-                          <span className="cms-yes" title="Có">
-                            ✓
-                          </span>
-                        ) : (
-                          <span className="cms-no" title="Không">
-                            —
-                          </span>
-                        )}
-                      </td>
+                      <th key={role.roleId} className="cms-matrix-role">
+                        {role.name}
+                        {role.isSystem && <span className="cms-sub">hệ thống</span>}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </thead>
+                <tbody>
+                  {Object.entries(groups).map(([group, keys]) => (
+                    // `Fragment` with a key, not `<>`. The shorthand takes no key,
+                    // so React saw one unkeyed child per group and said so.
+                    <Fragment key={group}>
+                      <tr className="cms-matrix-group">
+                        <th colSpan={roles.length + 1}>{group}</th>
+                      </tr>
+                      {keys.map((key) => (
+                        <tr key={key}>
+                          <td>
+                            <code>{key}</code>
+                            {/*
+                              The label is a display fallback of a fallback — most
+                              permissions have one, some genuinely do not, and both
+                              are correct states for this cell to be in.
+                            */}
+                            {PERMISSION[key] !== undefined && (
+                              <span className="cms-sub">{PERMISSION[key].label}</span>
+                            )}
+                          </td>
+                          {roles.map((role) => (
+                            <td key={role.roleId} className="cms-matrix-cell">
+                              {/*
+                                A tick and a dash, not a coloured cell. The matrix has
+                                to be readable in a screenshot pasted into a ticket,
+                                and half of those are greyscale.
+                              */}
+                              {role.permissions.includes(key) ? (
+                                <span className="cms-yes" title="Có">
+                                  ✓
+                                </span>
+                              ) : (
+                                <span className="cms-no" title="Không">
+                                  —
+                                </span>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+      )}
     </>
   );
 }

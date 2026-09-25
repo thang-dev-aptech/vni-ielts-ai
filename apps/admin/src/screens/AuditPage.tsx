@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Search } from 'lucide-react';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { AdminPaths } from '../routes/paths.js';
 import { listAudit, type AuditEntry } from '../lib/adminApi.js';
@@ -53,167 +54,182 @@ export function AuditPage() {
 
   return (
     <>
-      <header className="cms-head">
-        <h1>Nhật ký</h1>
-        <p>
+      <header className="cms-page-header">
+        <h1 className="cms-page-header__title">Nhật ký</h1>
+        <p className="cms-muted">
           Ai đã làm gì, lúc nào. Chỉ ghi thêm — không sửa, không xoá, không tự dọn theo thời gian.
         </p>
+        <form
+          className="cms-page-header__row"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setCursor(undefined);
+            setPreviousCursors([]);
+            setNextCursor(undefined);
+            setFilter((f) => ({ ...f, actor: actorDraft.trim() }));
+          }}
+        >
+          <label className="cms-search">
+            <span className="cms-sr-only">Lọc theo email người thực hiện</span>
+            <span className="cms-icon cms-search__icon" aria-hidden="true">
+              <Search strokeWidth={1.7} />
+            </span>
+            <input
+              type="search"
+              className="cms-search__input"
+              placeholder="Lọc theo email người thực hiện"
+              value={actorDraft}
+              onChange={(e) => setActorDraft(e.target.value)}
+            />
+          </label>
+
+          <div className="cms-page-header__actions">
+            <label className="cms-field-inline">
+              <span>Hành động</span>
+              <select
+                value={filter.action}
+                onChange={(e) => {
+                  setCursor(undefined);
+                  setPreviousCursors([]);
+                  setNextCursor(undefined);
+                  setFilter((f) => ({ ...f, action: e.target.value }));
+                }}
+              >
+                <option value="">Tất cả</option>
+                {actions.map((action) => (
+                  <option key={action} value={action}>
+                    {actionLabel(action)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button type="submit" className="cms-button cms-button--secondary">
+              Lọc
+            </button>
+
+            {filtered && (
+              <button
+                type="button"
+                className="cms-link-button"
+                onClick={() => {
+                  setActorDraft('');
+                  setCursor(undefined);
+                  setPreviousCursors([]);
+                  setNextCursor(undefined);
+                  setFilter({ actor: '', action: '' });
+                }}
+              >
+                Xoá bộ lọc
+              </button>
+            )}
+          </div>
+        </form>
       </header>
-
-      <form
-        className="cms-toolbar"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setCursor(undefined);
-          setPreviousCursors([]);
-          setNextCursor(undefined);
-          setFilter((f) => ({ ...f, actor: actorDraft.trim() }));
-        }}
-      >
-        <input
-          type="search"
-          className="cms-search"
-          placeholder="Lọc theo email người thực hiện"
-          value={actorDraft}
-          onChange={(e) => setActorDraft(e.target.value)}
-        />
-
-        <label className="cms-field-inline">
-          <span>Hành động</span>
-          <select
-            value={filter.action}
-            onChange={(e) => {
-              setCursor(undefined);
-              setPreviousCursors([]);
-              setNextCursor(undefined);
-              setFilter((f) => ({ ...f, action: e.target.value }));
-            }}
-          >
-            <option value="">Tất cả</option>
-            {actions.map((action) => (
-              <option key={action} value={action}>
-                {actionLabel(action)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <button type="submit" className="cms-button cms-button--secondary">
-          Lọc
-        </button>
-
-        {filtered && (
-          <button
-            type="button"
-            className="cms-link-button"
-            onClick={() => {
-              setActorDraft('');
-              setCursor(undefined);
-              setPreviousCursors([]);
-              setNextCursor(undefined);
-              setFilter({ actor: '', action: '' });
-            }}
-          >
-            Xoá bộ lọc
-          </button>
-        )}
-      </form>
 
       {entries === null && <p className="cms-muted">Đang tải…</p>}
 
       {entries !== null && entries.length === 0 && previousCursors.length === 0 && (
-        <div className="cms-empty">
-          <h3>{filtered ? 'Không có mục nào khớp bộ lọc' : 'Chưa có hành động nào được ghi'}</h3>
-          <p>
-            {filtered
-              ? 'Thử bỏ bớt điều kiện lọc.'
-              : 'Nhật ký ghi lại các thao tác quản trị: xuất bản đề, khoá tài khoản, gán vai trò.'}
-          </p>
-        </div>
+        <article className="cms-card">
+          <div className="cms-card-body cms-card-body--empty">
+            <h3 className="cms-card-body__title">
+              {filtered ? 'Không có mục nào khớp bộ lọc' : 'Chưa có hành động nào được ghi'}
+            </h3>
+            <p className="cms-card-body__message">
+              {filtered
+                ? 'Thử bỏ bớt điều kiện lọc.'
+                : 'Nhật ký ghi lại các thao tác quản trị: xuất bản đề, khoá tài khoản, gán vai trò.'}
+            </p>
+          </div>
+        </article>
       )}
 
       {entries !== null && entries.length > 0 && (
-        <>
-          <p className="cms-muted">
-            {entries.length} mục
-            {filtered ? ' khớp bộ lọc' : ''}.
-          </p>
+        <article className="cms-card">
+          <div className="cms-card-body">
+            <p className="cms-muted">
+              {entries.length} mục
+              {filtered ? ' khớp bộ lọc' : ''}.
+            </p>
 
-          <div className="cms-table-wrap">
-            <table className="cms-table">
-              <thead>
-                <tr>
-                  <th>Thời điểm</th>
-                  <th>Người thực hiện</th>
-                  <th>Hành động</th>
-                  <th>Đối tượng</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entries.map((entry) => (
-                  <tr key={entry.id}>
-                    <td className="num cms-nowrap">{new Date(entry.at).toLocaleString('vi-VN')}</td>
-                    <td>{entry.actorEmail}</td>
-                    <td>
-                      <span className="cms-badge" data-tone={cmsBadgeTone(toneOf(entry.action))}>
-                        {actionLabel(entry.action)}
-                      </span>
-                    </td>
-                    <td>
-                      {/*
-                        A user target links through; an exam target does not.
-                        The entry records the version id, and the exam screen is
-                        keyed by definition — a link built on a guess at that
-                        mapping would land on the wrong exam, which is worse on
-                        this screen than on any other.
-                      */}
-                      {entry.targetType === 'user' ? (
-                        <Link to={AdminPaths.user(entry.targetId)}>{entry.targetLabel}</Link>
-                      ) : (
-                        entry.targetLabel
-                      )}
-                      {Object.entries(entry.detail).map(([field, value]) => (
-                        <span className="cms-sub" key={field}>
-                          {field === 'role' ? `Vai trò: ${value}` : `${field}: ${value}`}
-                        </span>
-                      ))}
-                      <span className="cms-sub num">{entry.targetId}</span>
-                    </td>
+            <div className="cms-table-wrap">
+              <table className="cms-table">
+                <thead>
+                  <tr>
+                    <th>Thời điểm</th>
+                    <th>Người thực hiện</th>
+                    <th>Hành động</th>
+                    <th>Đối tượng</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {entries.map((entry) => (
+                    <tr key={entry.id}>
+                      <td className="num cms-nowrap">{new Date(entry.at).toLocaleString('vi-VN')}</td>
+                      <td>{entry.actorEmail}</td>
+                      <td>
+                        <span className="cms-badge" data-tone={cmsBadgeTone(toneOf(entry.action))}>
+                          {actionLabel(entry.action)}
+                        </span>
+                      </td>
+                      <td>
+                        {/*
+                          A user target links through; an exam target does not.
+                          The entry records the version id, and the exam screen is
+                          keyed by definition — a link built on a guess at that
+                          mapping would land on the wrong exam, which is worse on
+                          this screen than on any other.
+                        */}
+                        {entry.targetType === 'user' ? (
+                          <Link to={AdminPaths.user(entry.targetId)}>{entry.targetLabel}</Link>
+                        ) : (
+                          entry.targetLabel
+                        )}
+                        {Object.entries(entry.detail).map(([field, value]) => (
+                          <span className="cms-sub" key={field}>
+                            {field === 'role' ? `Vai trò: ${value}` : `${field}: ${value}`}
+                          </span>
+                        ))}
+                        <span className="cms-sub num">{entry.targetId}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div className="cms-pager">
-            <button
-              type="button"
-              className="cms-button cms-button--secondary"
-              disabled={previousCursors.length === 0}
-              onClick={() => {
-                const prev = [...previousCursors];
-                const prevCursor = prev.pop();
-                setPreviousCursors(prev);
-                setCursor(prevCursor);
-                setNextCursor(undefined);
-              }}
-            >
-              Trang trước
-            </button>
-            <button
-              type="button"
-              className="cms-button cms-button--secondary"
-              disabled={!nextCursor}
-              onClick={() => {
-                setPreviousCursors([...previousCursors, cursor]);
-                setCursor(nextCursor);
-                setNextCursor(undefined);
-              }}
-            >
-              Trang sau
-            </button>
-          </div>
-        </>
+          <footer className="cms-card-foot">
+            <div className="cms-pager">
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={previousCursors.length === 0}
+                onClick={() => {
+                  const prev = [...previousCursors];
+                  const prevCursor = prev.pop();
+                  setPreviousCursors(prev);
+                  setCursor(prevCursor);
+                  setNextCursor(undefined);
+                }}
+              >
+                Trang trước
+              </button>
+              <button
+                type="button"
+                className="cms-button cms-button--secondary"
+                disabled={!nextCursor}
+                onClick={() => {
+                  setPreviousCursors([...previousCursors, cursor]);
+                  setCursor(nextCursor);
+                  setNextCursor(undefined);
+                }}
+              >
+                Trang sau
+              </button>
+            </div>
+          </footer>
+        </article>
       )}
     </>
   );
