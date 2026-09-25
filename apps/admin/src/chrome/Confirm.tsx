@@ -157,7 +157,7 @@ export function useFlash() {
 
   const node =
     flash === null ? null : (
-      <p className={`cms-flash is-${flash.tone}`} role="status">
+      <p className="cms-alert" data-tone={flash.tone === 'bad' ? 'danger' : 'ok'} role="status">
         {flash.text}
       </p>
     );

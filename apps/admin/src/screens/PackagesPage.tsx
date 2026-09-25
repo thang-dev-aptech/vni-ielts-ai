@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Search } from 'lucide-react';
 import { ApiError, TRANSPORT_ERROR } from '@vni/auth';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import {
@@ -115,14 +116,19 @@ export function PackagesPage() {
           </select>
         </label>
 
-        <input
-          type="search"
-          className="cms-search"
-          aria-label="Mã người tải"
-          placeholder="Mã người tải"
-          value={draft.uploader}
-          onChange={(e) => setDraft((f) => ({ ...f, uploader: e.target.value }))}
-        />
+        <label className="cms-search">
+          <span className="cms-sr-only">Mã người tải</span>
+          <span className="cms-icon cms-search__icon" aria-hidden="true">
+            <Search strokeWidth={1.7} />
+          </span>
+          <input
+            type="search"
+            className="cms-search__input"
+            placeholder="Mã người tải"
+            value={draft.uploader}
+            onChange={(e) => setDraft((f) => ({ ...f, uploader: e.target.value }))}
+          />
+        </label>
 
         <label className="cms-field-inline" htmlFor="package-from">
           <span>Từ ngày</span>
@@ -171,7 +177,7 @@ export function PackagesPage() {
       )}
 
       {loadError !== null && (
-        <div className="cms-alert is-bad" role="alert">
+        <div className="cms-alert" data-tone="danger" role="alert">
           <strong>Không đọc được lịch sử gói.</strong> {loadError}
           <button type="button" className="cms-button cms-button--secondary" onClick={() => void load()}>
             Thử lại

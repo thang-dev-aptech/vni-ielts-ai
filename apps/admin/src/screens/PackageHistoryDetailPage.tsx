@@ -80,7 +80,7 @@ export function PackageHistoryDetailPage() {
 
   if (loadError !== null) {
     return (
-      <div className="cms-alert is-bad" role="alert">
+      <div className="cms-alert" data-tone="danger" role="alert">
         <strong>Không đọc được lần tải này.</strong> {loadError}
         <button type="button" className="cms-button cms-button--secondary" onClick={() => void load()}>
           Thử lại
@@ -115,7 +115,7 @@ export function PackageHistoryDetailPage() {
         <p>{title}</p>
       </header>
 
-      <section className={`cms-alert ${alertClass(kind)}`} aria-labelledby="package-outcome">
+      <section className="cms-alert" data-tone={alertTone(kind)} aria-labelledby="package-outcome">
         <h2 id="package-outcome">{title}</h2>
         <p>{outcomeCopy(kind, row)}</p>
         {!archiveKept && (
@@ -228,10 +228,10 @@ function outcomeCopy(kind: PackageHistoryOutcome, row: PackageImportHistoryDetai
   }
 }
 
-function alertClass(kind: PackageHistoryOutcome): string {
-  if (kind === 'approved') return '';
-  if (kind === 'queued' || kind === 'running') return '';
-  return 'is-bad';
+function alertTone(kind: PackageHistoryOutcome): 'warning' | 'danger' {
+  if (kind === 'approved') return 'warning';
+  if (kind === 'queued' || kind === 'running') return 'warning';
+  return 'danger';
 }
 
 function badgeTone(kind: PackageHistoryOutcome): string {

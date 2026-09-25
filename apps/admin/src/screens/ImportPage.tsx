@@ -609,7 +609,7 @@ export function ImportPage() {
             job.draftId !== null &&
             draft === null &&
             draftLoadFailed !== null && (
-              <div className="cms-alert is-bad" role="alert">
+              <div className="cms-alert" data-tone="danger" role="alert">
                 <strong>Đã nhập xong, nhưng chưa mở được bản nháp.</strong> Bản nháp{' '}
                 <code>{job.draftId}</code> đã được tạo (mã theo dõi <code>{operationId}</code>),
                 nhưng tài khoản đang đăng nhập không tải được nó — {draftLoadFailed} Cần một tài
@@ -621,7 +621,7 @@ export function ImportPage() {
             )}
 
           {job !== null && job.state === 'Failed' && (
-            <div className="cms-alert is-bad" role="alert">
+            <div className="cms-alert" data-tone="danger" role="alert">
               <strong>Nhập gói thất bại.</strong>{' '}
               {job.lastError ?? 'Máy chủ không ghi lý do cụ thể.'}
             </div>
@@ -859,14 +859,14 @@ function RejectionPanel({ error }: { error: ImportApiError }) {
 
   if (unavailable !== undefined) {
     return (
-      <div className="cms-alert is-bad" role="alert">
+      <div className="cms-alert" data-tone="danger" role="alert">
         <strong>Chỉ nhận gói đã có sẵn exam.json.</strong> {unavailable.message}
       </div>
     );
   }
 
   return (
-    <div className="cms-alert is-bad" role="alert">
+    <div className="cms-alert" data-tone="danger" role="alert">
       <strong>Gói bị từ chối.</strong> {error.problem.detail}
       {error.findings.length > 1 && (
         <ul className="cms-notes">

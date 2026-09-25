@@ -162,7 +162,7 @@ export function MediaLibraryPage() {
       <>
         <Head />
         {flash}
-        <div className="cms-alert is-bad" role="alert">
+        <div className="cms-alert" data-tone="danger" role="alert">
           <strong className="cms-code">Không mở được kho</strong> {loadError}
         </div>
       </>
@@ -207,7 +207,7 @@ export function MediaLibraryPage() {
           </label>
 
           {rejected !== null && (
-            <div className="cms-alert is-bad" role="alert">
+            <div className="cms-alert" data-tone="danger" role="alert">
               <strong className="cms-code">{rejected.code}</strong> {rejected.text}{' '}
               <span className="cms-muted">({rejected.file})</span>
             </div>

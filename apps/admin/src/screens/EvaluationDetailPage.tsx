@@ -80,7 +80,7 @@ export function EvaluationDetailPage() {
 
   if (shown === null) {
     return (
-      <p className="cms-alert is-bad" role="alert">
+      <p className="cms-alert" data-tone="danger" role="alert">
         {error}
       </p>
     );
@@ -113,7 +113,7 @@ export function EvaluationDetailPage() {
       </header>
 
       {error !== null && (
-        <p className="cms-alert is-bad" role="alert">
+        <p className="cms-alert" data-tone="danger" role="alert">
           {error}
         </p>
       )}
@@ -346,7 +346,7 @@ function AttemptRows({ attempt }: { attempt: AdminEvaluationAttempt }) {
       {(rejected || hasRaw) && (
         <tr>
           <td colSpan={5}>
-            <div className="cms-alert is-bad" role="note">
+            <div className="cms-alert" data-tone="danger" role="note">
               <p>
                 <strong>Đầu ra thô bị từ chối — không dùng làm điểm.</strong> Band ngoài thang nửa
                 bậc là hỏng; hệ thống không kẹp về giá trị gần nhất.

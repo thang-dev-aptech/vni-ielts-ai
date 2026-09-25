@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { Search } from 'lucide-react';
 import { ApiError } from '@vni/auth';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { useOperator } from '../lib/operator.js';
@@ -249,13 +250,19 @@ export function ArticlesPage() {
       {flash}
 
       <div className="cms-toolbar">
-        <input
-          type="search"
-          className="cms-search"
-          placeholder="Tìm theo tiêu đề"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <label className="cms-search">
+          <span className="cms-sr-only">Tìm theo tiêu đề</span>
+          <span className="cms-icon cms-search__icon" aria-hidden="true">
+            <Search strokeWidth={1.7} />
+          </span>
+          <input
+            type="search"
+            className="cms-search__input"
+            placeholder="Tìm theo tiêu đề"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
         {canWrite && (
           <button type="button" className="cms-button cms-button--primary" onClick={openCreate}>
             Viết bài mới
@@ -294,7 +301,7 @@ export function ArticlesPage() {
       )}
 
       {failed && (
-        <p className="cms-alert is-bad" role="alert">
+        <p className="cms-alert" data-tone="danger" role="alert">
           Không tải được danh sách bài viết.
         </p>
       )}
@@ -460,7 +467,7 @@ function ArticleForm({
 }) {
   const error = (path: string) =>
     fieldErrors[path] !== undefined ? (
-      <span className="cms-alert is-bad" role="alert">
+      <span className="cms-alert" data-tone="danger" role="alert">
         {fieldErrors[path]}
       </span>
     ) : null;
@@ -494,7 +501,7 @@ function ArticleForm({
       <label className="cms-field">
         <span>Tóm tắt</span>
         <textarea
-          className="cms-search"
+          className="cms-textarea"
           rows={2}
           value={form.excerpt}
           onChange={(e) => set('excerpt', e.target.value)}
@@ -533,7 +540,7 @@ function ArticleForm({
       <label className="cms-field">
         <span>Nội dung — để trống một dòng giữa các đoạn</span>
         <textarea
-          className="cms-search"
+          className="cms-textarea"
           rows={10}
           value={bodyText}
           onChange={(e) => setBodyText(e.target.value)}

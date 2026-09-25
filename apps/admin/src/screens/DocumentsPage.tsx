@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { Search } from 'lucide-react';
 import { ApiError } from '@vni/auth';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { useOperator } from '../lib/operator.js';
@@ -242,13 +243,19 @@ export function DocumentsPage() {
       {flash}
 
       <div className="cms-toolbar">
-        <input
-          type="search"
-          className="cms-search"
-          placeholder="Tìm theo tiêu đề"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <label className="cms-search">
+          <span className="cms-sr-only">Tìm theo tiêu đề</span>
+          <span className="cms-icon cms-search__icon" aria-hidden="true">
+            <Search strokeWidth={1.7} />
+          </span>
+          <input
+            type="search"
+            className="cms-search__input"
+            placeholder="Tìm theo tiêu đề"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
         {canWrite && (
           <button type="button" className="cms-button cms-button--primary" onClick={openCreate}>
             Tạo tài liệu mới
@@ -285,7 +292,7 @@ export function DocumentsPage() {
       )}
 
       {failed && (
-        <p className="cms-alert is-bad" role="alert">
+        <p className="cms-alert" data-tone="danger" role="alert">
           Không tải được danh sách tài liệu.
         </p>
       )}
@@ -447,7 +454,7 @@ function DocumentForm({
 }) {
   const error = (path: string) =>
     fieldErrors[path] !== undefined ? (
-      <span className="cms-alert is-bad" role="alert">
+      <span className="cms-alert" data-tone="danger" role="alert">
         {fieldErrors[path]}
       </span>
     ) : null;
@@ -481,7 +488,7 @@ function DocumentForm({
       <label className="cms-field">
         <span>Mô tả</span>
         <textarea
-          className="cms-search"
+          className="cms-textarea"
           rows={3}
           value={form.description}
           onChange={(e) => set('description', e.target.value)}

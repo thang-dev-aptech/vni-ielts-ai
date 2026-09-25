@@ -59,7 +59,7 @@ export function PendingPublishPage() {
       </header>
 
       {failed && (
-        <p className="cms-alert is-bad" role="alert">
+        <p className="cms-alert" data-tone="danger" role="alert">
           Không tải được danh sách.
         </p>
       )}

@@ -178,11 +178,17 @@ body {
   margin-bottom: var(--s-4);
 }
 
-.cms-search {
-  flex: 1;
-  min-width: 200px;
+/*
+ * .cms-search is now the reference's wrapper component (cms-components.css):
+ * a <label> holding an icon span plus a .cms-search__input. This local
+ * addition covers the one thing the reference doesn't have — a plain
+ * multi-line text box — for the excerpt/body/description textareas that used
+ * to borrow the old bare-element .cms-search look.
+ */
+.cms-textarea {
+  width: 100%;
   min-height: 40px;
-  padding-inline: var(--s-3);
+  padding: var(--s-2) var(--s-3);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--card);
@@ -190,6 +196,7 @@ body {
   font: inherit;
   font-size: var(--t-16);
   line-height: var(--lh-body);
+  resize: vertical;
 }
 
 /* Buttons: cms-button / cms-button--* in cms-components.css (Phase 2). */
@@ -270,19 +277,24 @@ body {
   color: var(--muted);
 }
 
-.cms-alert {
-  margin: var(--s-3) 0 0;
-  padding: var(--s-3);
-  border-radius: var(--r-md);
-  background: var(--warn-soft);
-  color: var(--warn);
-  font-size: var(--t-14);
-  line-height: var(--lh-body);
+/*
+ * .cms-alert's base rule (warning-toned) lives in cms-components.css, copied
+ * verbatim from the style reference. The reference only ships one tone; `ok`
+ * and `danger` are local additions built from the same success/danger tokens
+ * the reference already defines, so a single data-tone-driven component
+ * covers every case the old .cms-alert.is-bad and .cms-flash.is-ok/is-bad
+ * pairing used to split across two components.
+ */
+.cms-alert[data-tone="ok"] {
+  border-color: var(--cms-color-success-soft);
+  background: var(--cms-color-success-soft);
+  color: var(--cms-color-success);
 }
 
-.cms-alert.is-bad {
-  background: var(--bad-soft);
-  color: var(--bad);
+.cms-alert[data-tone="danger"] {
+  border-color: var(--cms-color-danger-border);
+  background: var(--cms-color-danger-soft);
+  color: var(--cms-color-danger);
 }
 
 /* The scroll lives on the wrapper, never on the page. */
@@ -732,27 +744,11 @@ code {
 }
 
 
-/* Said once, then gone. A banner that persists becomes furniture. */
-.cms-flash {
-  margin: 0 0 var(--s-4);
-  padding: var(--s-3) var(--s-4);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  font-size: var(--t-16);
-  line-height: var(--lh-body);
-}
-
-.cms-flash.is-ok {
-  border-color: #bfe3cd;
-  background: var(--ok-soft);
-  color: var(--ok);
-}
-
-.cms-flash.is-bad {
-  border-color: #edc3bf;
-  background: var(--bad-soft);
-  color: var(--bad);
-}
+/*
+ * Said once, then gone. A banner that persists becomes furniture.
+ * Now rendered as .cms-alert with data-tone — see the block near the top
+ * of this file. useFlash() in chrome/Confirm.tsx emits that markup.
+ */
 
 .cms-link-button {
   padding: 0;

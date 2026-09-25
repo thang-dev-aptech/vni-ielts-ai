@@ -171,7 +171,7 @@ export function FailedMarkingQueuePage() {
       </form>
 
       {error !== null && (
-        <p className="cms-alert is-bad" role="alert">
+        <p className="cms-alert" data-tone="danger" role="alert">
           {error}
         </p>
       )}

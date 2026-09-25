@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Search } from 'lucide-react';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { AdminPaths } from '../routes/paths.js';
 import { listExams, type AdminExam } from '../lib/adminApi.js';
@@ -69,13 +70,19 @@ export function ExamsPage() {
       </header>
 
       <div className="cms-toolbar">
-        <input
-          type="search"
-          className="cms-search"
-          placeholder="Tìm theo tên đề"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <label className="cms-search">
+          <span className="cms-sr-only">Tìm theo tên đề</span>
+          <span className="cms-icon cms-search__icon" aria-hidden="true">
+            <Search strokeWidth={1.7} />
+          </span>
+          <input
+            type="search"
+            className="cms-search__input"
+            placeholder="Tìm theo tên đề"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
         <label className="cms-field-inline">
           <span>Trạng thái</span>
           <select value={status} onChange={(e) => setStatus(e.target.value as ExamState | 'all')}>
@@ -92,7 +99,7 @@ export function ExamsPage() {
       </div>
 
       {failed && (
-        <p className="cms-alert is-bad" role="alert">
+        <p className="cms-alert" data-tone="danger" role="alert">
           Không tải được danh sách đề.
         </p>
       )}

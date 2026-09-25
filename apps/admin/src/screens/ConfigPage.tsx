@@ -73,7 +73,7 @@ export function ConfigPage() {
       )}
 
       {loadError !== null && (
-        <div className="cms-alert is-bad" role="alert">
+        <div className="cms-alert" data-tone="danger" role="alert">
           <strong>Không đọc được cấu hình.</strong> {loadError} Các hạn mức nhập không được hiện
           bằng số 0.
           <button type="button" className="cms-button cms-button--secondary" onClick={() => void load()}>
