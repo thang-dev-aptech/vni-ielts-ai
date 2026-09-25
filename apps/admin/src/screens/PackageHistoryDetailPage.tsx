@@ -8,6 +8,7 @@ import {
   type PackageImportHistoryDetail,
 } from '../lib/adminApi.js';
 import { AdminPaths } from '../routes/paths.js';
+import { cmsBadgeTone } from '../lib/lifecycle.js';
 import {
   describe,
   fileNameLabel,
@@ -81,7 +82,7 @@ export function PackageHistoryDetailPage() {
     return (
       <div className="cms-alert is-bad" role="alert">
         <strong>Không đọc được lần tải này.</strong> {loadError}
-        <button type="button" className="cms-secondary" onClick={() => void load()}>
+        <button type="button" className="cms-button cms-button--secondary" onClick={() => void load()}>
           Thử lại
         </button>
       </div>
@@ -136,7 +137,7 @@ export function PackageHistoryDetailPage() {
 
           <dt>Kết quả</dt>
           <dd>
-            <span className={`cms-badge is-${badgeTone(kind)}`}>{resultLabel(row.result)}</span>
+            <span className="cms-badge" data-tone={cmsBadgeTone(badgeTone(kind))}>{resultLabel(row.result)}</span>
           </dd>
 
           <dt>Chặng</dt>
@@ -188,7 +189,7 @@ function FindingsPanel({ findings }: { findings: ImportFinding[] }) {
                 <tr key={`${finding.code}-${finding.path}-${i}`}>
                   <td>
                     <span
-                      className={`cms-badge is-${finding.severity.toLowerCase() === 'error' ? 'attention' : 'muted'}`}
+                      className="cms-badge" data-tone={cmsBadgeTone(finding.severity.toLowerCase() === 'error' ? 'attention' : 'muted')}
                     >
                       {finding.severity}
                     </span>

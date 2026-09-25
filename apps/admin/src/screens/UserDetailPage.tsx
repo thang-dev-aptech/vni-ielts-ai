@@ -11,6 +11,7 @@ import {
   setUserStatus,
   type AdminUserDetail,
 } from '../lib/adminApi.js';
+import { cmsBadgeTone } from '../lib/lifecycle.js';
 
 /**
  * `PasswordPolicy.MinLength` on the server, restated here so the dialog can
@@ -197,7 +198,7 @@ export function UserDetailPage() {
           <dl className="cms-detail-list">
             <dt>Trạng thái</dt>
             <dd>
-              <span className={`cms-badge is-${suspended ? 'draft' : 'published'}`}>
+              <span className="cms-badge" data-tone={cmsBadgeTone(suspended ? 'draft' : 'published')}>
                 {suspended ? 'Đã khoá' : 'Hoạt động'}
               </span>
             </dd>
@@ -225,7 +226,7 @@ export function UserDetailPage() {
               {can('user.suspend') && (
                 <button
                   type="button"
-                  className={suspended ? 'cms-primary' : 'cms-danger'}
+                  className={suspended ? 'cms-button cms-button--primary' : 'cms-button cms-button--danger'}
                   onClick={() => setAsk({ kind: 'status', suspend: !suspended })}
                 >
                   {suspended ? 'Mở khoá tài khoản' : 'Khoá tài khoản'}
@@ -240,7 +241,7 @@ export function UserDetailPage() {
               {can('user.reset-password') && (
                 <button
                   type="button"
-                  className="cms-secondary"
+                  className="cms-button cms-button--secondary"
                   onClick={() => {
                     setNewPassword('');
                     setAsk({ kind: 'password' });
@@ -277,13 +278,13 @@ export function UserDetailPage() {
                 <li key={role.roleId}>
                   <span className="cms-role-name">
                     {role.name}
-                    {on && <span className="cms-badge is-published">Đang có</span>}
+                    {on && <span className="cms-badge" data-tone="ok">Đang có</span>}
                   </span>
 
                   {can('role.assign') && (
                     <button
                       type="button"
-                      className={on ? 'cms-secondary' : 'cms-primary'}
+                      className={on ? 'cms-button cms-button--secondary' : 'cms-button cms-button--primary'}
                       onClick={() =>
                         setAsk({ kind: 'role', roleId: role.roleId, name: role.name, grant: !on })
                       }

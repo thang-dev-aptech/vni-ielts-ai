@@ -36,7 +36,7 @@ export function ForbiddenPage({ permission }: { permission?: string }) {
           trị viên để được cấp quyền.
         </p>
 
-        <button type="button" className="cms-primary" onClick={signOut}>
+        <button type="button" className="cms-button cms-button--primary" onClick={signOut}>
           Đăng xuất
         </button>
       </div>

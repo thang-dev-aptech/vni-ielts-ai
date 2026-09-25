@@ -130,13 +130,13 @@ export function EvaluationDetailPage() {
               {mismatch && (
                 <>
                   {' '}
-                  <span className="cms-badge is-unknown">Khác điểm tính lại</span>
+                  <span className="cms-badge" data-tone="warning">Khác điểm tính lại</span>
                 </>
               )}
             </dd>
             <dt>Phiên bản</dt>
             <dd>
-              <span className={`cms-badge ${view.isCurrent ? 'is-published' : 'is-draft'}`}>
+              <span className="cms-badge" data-tone={view.isCurrent  ? "ok" : "warning"}>
                 {view.isCurrent ? 'Đang dùng' : 'Đã thay'}
               </span>
               <span className="cms-sub num">v{view.version}</span>
@@ -191,7 +191,7 @@ export function EvaluationDetailPage() {
           <p>
             <span className="cms-modules">
               {view.flags.map((flag) => (
-                <span className="cms-badge is-unknown" key={flag}>
+                <span className="cms-badge" data-tone="warning" key={flag}>
                   {flagLabel(flag)}
                 </span>
               ))}
@@ -321,7 +321,7 @@ function AttemptRows({ attempt }: { attempt: AdminEvaluationAttempt }) {
         <td className="num cms-nowrap">{formatWhen(attempt.startedAt)}</td>
         <td className="num cms-nowrap">{formatWhen(attempt.finishedAt)}</td>
         <td>
-          <span className={`cms-badge ${outcomeTone(attempt.outcome)}`}>
+          <span className="cms-badge" data-tone={outcomeTone(attempt.outcome)}>
             {outcomeLabel(attempt.outcome)}
           </span>
         </td>
@@ -426,10 +426,10 @@ function outcomeLabel(outcome: string) {
   return outcome;
 }
 
-function outcomeTone(outcome: string) {
-  if (outcome === 'succeeded') return 'is-published';
-  if (outcome === 'rejected') return 'is-unknown';
-  return 'is-draft';
+function outcomeTone(outcome: string): 'ok' | 'warning' | 'danger' {
+  if (outcome === 'succeeded') return 'ok';
+  if (outcome === 'rejected') return 'danger';
+  return 'warning';
 }
 
 function statusOf(error: unknown) {

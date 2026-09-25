@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { AdminPaths } from '../routes/paths.js';
 import { listUsers, type AdminUser } from '../lib/adminApi.js';
+import { cmsBadgeTone } from '../lib/lifecycle.js';
 
 /**
  * Screen 6.1 — accounts.
@@ -90,7 +91,7 @@ export function UsersPage() {
           value={pending}
           onChange={(e) => setPending(e.target.value)}
         />
-        <button type="submit" className="cms-secondary">
+        <button type="submit" className="cms-button cms-button--secondary">
           Tìm
         </button>
       </form>
@@ -131,7 +132,7 @@ export function UsersPage() {
                     <td>{row.email ?? <span className="cms-muted">—</span>}</td>
                     <td>
                       <span
-                        className={`cms-badge is-${row.status === 'active' ? 'published' : 'draft'}`}
+                        className="cms-badge" data-tone={cmsBadgeTone(row.status === 'active' ? 'published' : 'draft')}
                       >
                         {row.status === 'active' ? 'Hoạt động' : 'Đã khoá'}
                       </span>
@@ -146,7 +147,7 @@ export function UsersPage() {
           <div className="cms-pager">
             <button
               type="button"
-              className="cms-secondary"
+              className="cms-button cms-button--secondary"
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
             >
@@ -157,7 +158,7 @@ export function UsersPage() {
             </span>
             <button
               type="button"
-              className="cms-secondary"
+              className="cms-button cms-button--secondary"
               disabled={page >= pages}
               onClick={() => setPage((p) => p + 1)}
             >

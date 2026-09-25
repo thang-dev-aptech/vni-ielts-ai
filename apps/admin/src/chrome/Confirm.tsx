@@ -84,13 +84,22 @@ export function Confirm({
         <div className="cms-dialog-body">{body}</div>
 
         <div className="cms-dialog-actions">
-          <button type="button" className="cms-secondary" disabled={busy} onClick={onCancel}>
+          <button
+            type="button"
+            className="cms-button cms-button--secondary"
+            disabled={busy}
+            onClick={onCancel}
+          >
             Huỷ
           </button>
           <button
             ref={confirmRef}
             type="button"
-            className={tone === 'danger' ? 'cms-danger' : 'cms-primary'}
+            className={
+              tone === 'danger'
+                ? 'cms-button cms-button--danger'
+                : 'cms-button cms-button--primary'
+            }
             disabled={busy || disabled}
             onClick={onConfirm}
           >

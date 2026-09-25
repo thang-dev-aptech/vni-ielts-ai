@@ -86,7 +86,7 @@ export function ExamsPage() {
             ))}
           </select>
         </label>
-        <Link className="cms-primary" to={AdminPaths.import}>
+        <Link className="cms-button cms-button--primary" to={AdminPaths.import}>
           Nhập đề mới
         </Link>
       </div>

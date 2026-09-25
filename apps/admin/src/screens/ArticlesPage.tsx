@@ -257,7 +257,7 @@ export function ArticlesPage() {
           onChange={(e) => setQuery(e.target.value)}
         />
         {canWrite && (
-          <button type="button" className="cms-primary" onClick={openCreate}>
+          <button type="button" className="cms-button cms-button--primary" onClick={openCreate}>
             Viết bài mới
           </button>
         )}
@@ -366,7 +366,7 @@ export function ArticlesPage() {
                         {canWrite && (
                           <button
                             type="button"
-                            className="cms-secondary"
+                            className="cms-button cms-button--secondary"
                             disabled={busy}
                             onClick={() => void openEdit(row)}
                           >
@@ -379,10 +379,10 @@ export function ArticlesPage() {
                             type="button"
                             className={
                               t.tone === 'primary'
-                                ? 'cms-primary'
+                                ? 'cms-button cms-button--primary'
                                 : t.tone === 'danger'
-                                  ? 'cms-danger'
-                                  : 'cms-secondary'
+                                  ? 'cms-button cms-button--danger'
+                                  : 'cms-button cms-button--secondary'
                             }
                             disabled={busy}
                             onClick={() => void runTransition(row, t.id)}
@@ -393,7 +393,7 @@ export function ArticlesPage() {
                         {canWrite && canDelete(row.status as LibraryStatus) && (
                           <button
                             type="button"
-                            className="cms-danger"
+                            className="cms-button cms-button--danger"
                             disabled={busy}
                             onClick={() => void remove(row)}
                           >
@@ -547,10 +547,10 @@ function ArticleForm({
       </label>
 
       <div className="cms-panel-actions">
-        <button type="submit" className="cms-primary" disabled={saving}>
+        <button type="submit" className="cms-button cms-button--primary" disabled={saving}>
           {saving ? 'Đang lưu…' : editing ? 'Lưu thay đổi' : 'Tạo bài viết'}
         </button>
-        <button type="button" className="cms-secondary" disabled={saving} onClick={onCancel}>
+        <button type="button" className="cms-button cms-button--secondary" disabled={saving} onClick={onCancel}>
           Huỷ
         </button>
       </div>

@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ApiError } from '@vni/auth';
 import type { AdminExam } from '../lib/adminApi.js';
+import { STATE } from '../lib/lifecycle.js';
 
 /**
  * `ExamDetailPage`, cut over this session from a publish/unpublish-only
@@ -14,7 +15,7 @@ import type { AdminExam } from '../lib/adminApi.js';
  * values the server can actually produce (`"draft"`, `"inreview"`,
  * `"approved"`, `"published"`, `"unpublished"`) through `TransitionBar` via
  * this screen and asserts each renders a known `StatusBadge` face rather than
- * the "is-unknown" fallback a stray `"returned"` would hit.
+ * the unknown fallback a stray `"returned"` would hit.
  */
 
 const permissions = new Set<string>();
@@ -81,15 +82,19 @@ describe('ExamDetailPage · the five real states', () => {
     vi.mocked(submitExamForReview).mockReset();
   });
 
-  it.each(['draft', 'inreview', 'approved', 'published', 'unpublished'])(
-    'renders a known status face for "%s" — never the "is-unknown" fallback',
+  it.each(['draft', 'inreview', 'approved', 'published', 'unpublished'] as const)(
+    'renders a known status face for "%s" — never the unknown fallback',
     async (status) => {
       vi.mocked(listExams).mockResolvedValue({ exams: [exam({ status })] });
       renderAt('d1');
 
       // Title appears in both the crumb trail and the <h1> — match the heading.
       await screen.findByRole('heading', { name: 'Đề mẫu' });
-      expect(document.querySelector('.cms-badge.is-unknown')).toBeNull();
+      const badge = document.querySelector('.cms-badge');
+      expect(badge).not.toBeNull();
+      expect(badge!.getAttribute('data-tone')).toMatch(/^(ok|warning|danger)$/);
+      // Unknown statuses render the raw string; known ones use STATE's Vietnamese label.
+      expect(badge!.textContent).toBe(STATE[status].label);
     },
   );
 

@@ -161,7 +161,7 @@ export function GroupPositionEditor({
     <div className="cms-panel">
       <div className="cms-panel-head">
         <h3>{group.title ?? group.id}</h3>
-        <span className="cms-badge is-hold">
+        <span className="cms-badge" data-tone="warning">
           {placedCount}/{group.options.length} đã đặt
         </span>
       </div>
@@ -173,7 +173,7 @@ export function GroupPositionEditor({
           <button
             key={option.key}
             type="button"
-            className="cms-secondary"
+            className="cms-button cms-button--secondary"
             aria-pressed={armedKey === option.key}
             onClick={() => toggleArm(option.key)}
           >
@@ -213,7 +213,7 @@ export function GroupPositionEditor({
                 top: `${at.y * 100}%`,
                 transform: 'translate(-50%, -50%)',
               }}
-              className="cms-badge is-ready"
+              className="cms-badge" data-tone="ok"
             >
               {key}
             </button>
@@ -226,7 +226,7 @@ export function GroupPositionEditor({
           {Object.entries(pending).map(([key, at]) => (
             <li key={key}>
               <strong>{key}</strong> — {Math.round(at.x * 100)}%, {Math.round(at.y * 100)}%{' '}
-              <button type="button" className="cms-secondary" onClick={() => remove(key)}>
+              <button type="button" className="cms-button cms-button--secondary" onClick={() => remove(key)}>
                 Xoá
               </button>
             </li>
@@ -235,7 +235,7 @@ export function GroupPositionEditor({
       )}
 
       <div className="cms-version-actions">
-        <button type="button" className="cms-primary" disabled={saving} onClick={() => void save()}>
+        <button type="button" className="cms-button cms-button--primary" disabled={saving} onClick={() => void save()}>
           {saving ? 'Đang lưu…' : 'Lưu vị trí'}
         </button>
       </div>

@@ -79,6 +79,51 @@ export interface StateFace {
   hint: string;
 }
 
+/**
+ * The cms-badge / cms-status-pill contract only has three tones. Map every
+ * lifecycle face tone onto one of them — never invent a fourth on the wire.
+ *
+ * | Face tone   | data-tone | Why |
+ * |-------------|-----------|-----|
+ * | live        | ok        | Learner-visible / healthy |
+ * | ready       | ok        | Cleared to proceed |
+ * | hold        | warning   | Waiting, not broken |
+ * | neutral     | warning   | Incomplete / draft |
+ * | muted       | warning   | Withdrawn, not an error |
+ * | attention   | danger    | Needs action / fault |
+ * | (unknown)   | warning   | Unrecognised string — caution, not a false "ok" |
+ *
+ * Legacy CSS suffixes still seen at call sites (`published`, `draft`,
+ * `active`) alias onto the face tones above so a missed rename cannot emit
+ * an invalid `data-tone`.
+ */
+export type CmsBadgeTone = 'ok' | 'warning' | 'danger';
+
+export const BADGE_TONE: Record<StateFace['tone'], CmsBadgeTone> = {
+  live: 'ok',
+  ready: 'ok',
+  hold: 'warning',
+  neutral: 'warning',
+  muted: 'warning',
+  attention: 'danger',
+};
+
+const LEGACY_FACE_ALIAS: Record<string, StateFace['tone']> = {
+  published: 'live',
+  active: 'live',
+  draft: 'neutral',
+};
+
+/** Unknown / unmapped face tones become `warning`, never `ok`. */
+export function cmsBadgeTone(faceTone: StateFace['tone'] | string | undefined): CmsBadgeTone {
+  if (faceTone === undefined || faceTone === 'unknown') return 'warning';
+  const normalized = LEGACY_FACE_ALIAS[faceTone] ?? faceTone;
+  if (normalized in BADGE_TONE) {
+    return BADGE_TONE[normalized as StateFace['tone']];
+  }
+  return 'warning';
+}
+
 export const STATE: Record<ExamState, StateFace> = {
   draft: {
     label: 'Bản nháp',

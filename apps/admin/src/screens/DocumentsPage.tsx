@@ -250,7 +250,7 @@ export function DocumentsPage() {
           onChange={(e) => setQuery(e.target.value)}
         />
         {canWrite && (
-          <button type="button" className="cms-primary" onClick={openCreate}>
+          <button type="button" className="cms-button cms-button--primary" onClick={openCreate}>
             Tạo tài liệu mới
           </button>
         )}
@@ -357,7 +357,7 @@ export function DocumentsPage() {
                         {canWrite && (
                           <button
                             type="button"
-                            className="cms-secondary"
+                            className="cms-button cms-button--secondary"
                             disabled={busy}
                             onClick={() => openEdit(doc)}
                           >
@@ -370,10 +370,10 @@ export function DocumentsPage() {
                             type="button"
                             className={
                               t.tone === 'primary'
-                                ? 'cms-primary'
+                                ? 'cms-button cms-button--primary'
                                 : t.tone === 'danger'
-                                  ? 'cms-danger'
-                                  : 'cms-secondary'
+                                  ? 'cms-button cms-button--danger'
+                                  : 'cms-button cms-button--secondary'
                             }
                             disabled={busy}
                             onClick={() => void runTransition(doc, t.id)}
@@ -384,7 +384,7 @@ export function DocumentsPage() {
                         {canWrite && canDelete(doc.status as LibraryStatus) && (
                           <button
                             type="button"
-                            className="cms-danger"
+                            className="cms-button cms-button--danger"
                             disabled={busy}
                             onClick={() => void remove(doc)}
                           >
@@ -628,10 +628,10 @@ function DocumentForm({
       </label>
 
       <div className="cms-panel-actions">
-        <button type="submit" className="cms-primary" disabled={saving}>
+        <button type="submit" className="cms-button cms-button--primary" disabled={saving}>
           {saving ? 'Đang lưu…' : editing ? 'Lưu thay đổi' : 'Tạo tài liệu'}
         </button>
-        <button type="button" className="cms-secondary" disabled={saving} onClick={onCancel}>
+        <button type="button" className="cms-button cms-button--secondary" disabled={saving} onClick={onCancel}>
           Huỷ
         </button>
       </div>

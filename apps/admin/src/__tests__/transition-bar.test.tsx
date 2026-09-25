@@ -64,7 +64,9 @@ describe('TransitionBar', () => {
     render(<TransitionBar state="inreview" onApply={onApply} />);
     fireEvent.click(screen.getByRole('button', { name: 'Trả lại' }));
 
-    const confirm = screen.getByRole('dialog').querySelector('.cms-danger, .cms-primary');
+    const confirm = screen
+      .getByRole('dialog')
+      .querySelector('.cms-button--danger, .cms-button--primary');
     expect(confirm).toBeDisabled();
 
     fireEvent.change(screen.getByRole('textbox'), {

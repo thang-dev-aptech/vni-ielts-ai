@@ -192,54 +192,7 @@ body {
   line-height: var(--lh-body);
 }
 
-.cms-primary,
-.cms-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding-inline: var(--s-4);
-  border-radius: var(--r-md);
-  font: inherit;
-  font-size: var(--t-14);
-  font-weight: var(--w-emph);
-  line-height: var(--lh-body);
-  text-decoration: none;
-  cursor: pointer;
-}
-
-/* Solid, and white text is now allowed on it.
- *
- * This was a soft green with dark-green text, and the comment said white
- * measured 2.86 on it — true of `#10b050`, which the accent used to resolve
- * to. `palette.css` moved `--acc` to `#06803a`, the same fill the learner app
- * uses for its own primary button: white on it measures 5.05, so the CTA can
- * carry the weight a CTA should. Re-measure before changing the accent again;
- * the two facts are tied together. */
-.cms-primary {
-  border: 1px solid var(--acc);
-  background: var(--acc);
-  color: #fff;
-}
-
-.cms-primary:hover {
-  border-color: var(--acc-700);
-  background: var(--acc-700);
-}
-
-.cms-secondary {
-  border: 1px solid var(--line);
-  background: var(--card);
-  color: var(--ink);
-}
-
-.cms-primary:disabled,
-.cms-secondary:disabled {
-  border-color: var(--line);
-  background: var(--card);
-  color: var(--muted);
-  cursor: not-allowed;
-}
+/* Buttons: cms-button / cms-button--* in cms-components.css (Phase 2). */
 
 /* ── Tiles, panels, tables ──────────────────────────────────────────────── */
 
@@ -403,34 +356,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Three states, each with its own word: a status column read in greyscale, or
-   by someone who cannot separate the hues, still says which rows are live. */
-.cms-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px var(--s-2);
-  border-radius: var(--r-pill);
-  border: 1px solid var(--line);
-  background: var(--sunk);
-  font-size: var(--t-14);
-  font-weight: var(--w-emph);
-  line-height: var(--lh-body);
-  color: var(--ink-2);
-  white-space: nowrap;
-}
-
-.cms-badge.is-published,
-.cms-badge.is-active {
-  border-color: #bfe3cd;
-  background: var(--ok-soft);
-  color: var(--ok);
-}
-
-.cms-badge.is-draft {
-  border-color: #e0c49b;
-  background: var(--warn-soft);
-  color: var(--warn);
-}
+/* Badges: cms-badge[data-tone] in cms-components.css (Phase 2). */
 
 .cms-empty {
   padding: var(--s-6);
@@ -805,34 +731,6 @@ code {
   margin-top: var(--s-5);
 }
 
-/*
- * The destructive action, marked by colour AND by being the thing the sentence
- * above already named. Colour alone is not a signal — a red button in a locale
- * that reads red as auspicious is just a button.
- */
-.cms-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding-inline: var(--s-4);
-  border: 1px solid #edc3bf;
-  border-radius: var(--r-md);
-  background: var(--bad-soft);
-  color: var(--bad);
-  font: inherit;
-  font-size: var(--t-14);
-  font-weight: var(--w-emph);
-  line-height: var(--lh-body);
-  cursor: pointer;
-}
-
-.cms-danger:disabled {
-  border-color: var(--line);
-  background: var(--card);
-  color: var(--muted);
-  cursor: not-allowed;
-}
 
 /* Said once, then gone. A banner that persists becomes furniture. */
 .cms-flash {

@@ -156,7 +156,7 @@ export function FailedMarkingQueuePage() {
             ))}
           </select>
         </label>
-        <button type="submit" className="cms-secondary">
+        <button type="submit" className="cms-button cms-button--secondary">
           Lọc
         </button>
         {filtered && (
@@ -222,7 +222,8 @@ export function FailedMarkingQueuePage() {
                       <span className="cms-sub">{job.rubricVersion}</span>
                     </td>
                     <td>
-                      <span className={`cms-badge ${stateTone(job.state)}`}>
+                      <span className="cms-status-pill" data-tone={stateTone(job.state)}>
+                        <span className="cms-status-pill__dot" aria-hidden="true" />
                         {stateLabel(job.state)}
                       </span>
                     </td>
@@ -242,7 +243,7 @@ export function FailedMarkingQueuePage() {
                       <td>
                         <button
                           type="button"
-                          className="cms-danger"
+                          className="cms-button cms-button--danger"
                           onClick={() => setAsk(job)}
                         >
                           Chạy lại
@@ -258,7 +259,7 @@ export function FailedMarkingQueuePage() {
           <div className="cms-pager">
             <button
               type="button"
-              className="cms-secondary"
+              className="cms-button cms-button--secondary"
               disabled={page <= 1}
               onClick={() => writeFilters(setParams, { ...formOf(filters), page: page - 1 })}
             >
@@ -269,7 +270,7 @@ export function FailedMarkingQueuePage() {
             </span>
             <button
               type="button"
-              className="cms-secondary"
+              className="cms-button cms-button--secondary"
               disabled={page >= pages}
               onClick={() => writeFilters(setParams, { ...formOf(filters), page: page + 1 })}
             >
@@ -355,8 +356,8 @@ function stateLabel(state: string) {
   return state;
 }
 
-function stateTone(state: string) {
-  if (state === 'failed') return 'is-unknown';
-  if (state === 'completed' || state === 'pending') return 'is-published';
-  return 'is-draft';
+function stateTone(state: string): 'ok' | 'warning' | 'danger' {
+  if (state === 'failed') return 'danger';
+  if (state === 'completed' || state === 'pending') return 'ok';
+  return 'warning';
 }

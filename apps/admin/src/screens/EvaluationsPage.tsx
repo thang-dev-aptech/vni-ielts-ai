@@ -135,7 +135,7 @@ export function EvaluationsPage() {
             <option value="false">Đã thay</option>
           </select>
         </label>
-        <button type="submit" className="cms-secondary">
+        <button type="submit" className="cms-button cms-button--secondary">
           Lọc
         </button>
         {filtered && (
@@ -147,7 +147,7 @@ export function EvaluationsPage() {
             Xoá bộ lọc
           </button>
         )}
-        <Link className="cms-secondary" to={AdminPaths.failedEvaluations}>
+        <Link className="cms-button cms-button--secondary" to={AdminPaths.failedEvaluations}>
           Hàng chờ chấm hỏng
         </Link>
       </form>
@@ -213,7 +213,7 @@ export function EvaluationsPage() {
                       {row.reportedBand === null ? '—' : formatBand(row.reportedBand)}
                     </td>
                     <td>
-                      <span className={`cms-badge ${row.isCurrent ? 'is-published' : 'is-draft'}`}>
+                      <span className="cms-badge" data-tone={row.isCurrent  ? "ok" : "warning"}>
                         {row.isCurrent ? 'Đang dùng' : 'Đã thay'}
                       </span>
                       <span className="cms-sub num">v{row.version}</span>
@@ -224,7 +224,7 @@ export function EvaluationsPage() {
                       ) : (
                         <span className="cms-modules">
                           {row.flags.map((flag) => (
-                            <span className="cms-badge is-unknown" key={flag}>
+                            <span className="cms-badge" data-tone="warning" key={flag}>
                               {flagLabel(flag)}
                             </span>
                           ))}
@@ -241,7 +241,7 @@ export function EvaluationsPage() {
           <div className="cms-pager">
             <button
               type="button"
-              className="cms-secondary"
+              className="cms-button cms-button--secondary"
               disabled={page <= 1}
               onClick={() => writeFilters(setParams, { ...formOf(filters), page: page - 1 })}
             >
@@ -252,7 +252,7 @@ export function EvaluationsPage() {
             </span>
             <button
               type="button"
-              className="cms-secondary"
+              className="cms-button cms-button--secondary"
               disabled={page >= pages}
               onClick={() => writeFilters(setParams, { ...formOf(filters), page: page + 1 })}
             >

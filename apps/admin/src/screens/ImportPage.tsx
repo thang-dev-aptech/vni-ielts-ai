@@ -22,6 +22,7 @@ import {
   type ImportWarning,
 } from '../lib/adminApi.js';
 import { reasonOf } from './UserDetailPage.js';
+import { cmsBadgeTone } from '../lib/lifecycle.js';
 
 /**
  * Screen 4.1 — bringing an exam package in.
@@ -531,7 +532,7 @@ export function ImportPage() {
           hình AI.{' '}
           <button
             type="button"
-            className="cms-secondary"
+            className="cms-button cms-button--secondary"
             disabled={templateBusy}
             onClick={() => void downloadTemplate()}
           >
@@ -553,7 +554,7 @@ export function ImportPage() {
         <div className="cms-version-actions">
           <button
             type="button"
-            className="cms-primary"
+            className="cms-button cms-button--primary"
             disabled={file === null || uploading}
             onClick={() => void upload()}
           >
@@ -569,7 +570,11 @@ export function ImportPage() {
           <div className="cms-panel-head">
             <h2>Mã theo dõi {operationId}</h2>
             {job !== null && (
-              <span className={`cms-badge is-${JOB_STATE_BADGE[job.state]}`}>
+              <span
+                className="cms-status-pill"
+                data-tone={cmsBadgeTone(JOB_STATE_BADGE[job.state])}
+              >
+                <span className="cms-status-pill__dot" aria-hidden="true" />
                 {JOB_STATE_LABELS[job.state]}
               </span>
             )}
@@ -609,7 +614,7 @@ export function ImportPage() {
                 <code>{job.draftId}</code> đã được tạo (mã theo dõi <code>{operationId}</code>),
                 nhưng tài khoản đang đăng nhập không tải được nó — {draftLoadFailed} Cần một tài
                 khoản có quyền xem bản nháp nhập kiểm tra tiếp.{' '}
-                <button type="button" className="cms-secondary" onClick={() => void retryCheck()}>
+                <button type="button" className="cms-button cms-button--secondary" onClick={() => void retryCheck()}>
                   Kiểm tra lại
                 </button>
               </div>
@@ -627,7 +632,7 @@ export function ImportPage() {
               Gói vẫn đang chạy ở phía máy chủ — bước phân tích, dịch băng và tạo giải thích cho một
               gói lớn có thể mất nhiều phút. Trang đã ngừng tự động cập nhật; bấm để kiểm tra lại
               bất cứ lúc nào.{' '}
-              <button type="button" className="cms-secondary" onClick={() => void retryCheck()}>
+              <button type="button" className="cms-button cms-button--secondary" onClick={() => void retryCheck()}>
                 Kiểm tra lại
               </button>
             </p>
@@ -645,7 +650,7 @@ export function ImportPage() {
         <section className="cms-panel">
           <div className="cms-panel-head">
             <h2>Bản nháp {draft.draftId}</h2>
-            <span className={`cms-badge is-${alreadyApproved ? 'ready' : 'hold'}`}>
+            <span className="cms-badge" data-tone={cmsBadgeTone(alreadyApproved ? 'ready' : 'hold')}>
               {alreadyApproved ? 'Đã duyệt' : 'Chờ duyệt'}
             </span>
           </div>
@@ -680,7 +685,7 @@ export function ImportPage() {
                 {draft.findings.map((finding, i) => (
                   <li key={`${finding.code}-${i}`}>
                     <span
-                      className={`cms-badge is-${finding.severity === 'error' ? 'attention' : 'muted'}`}
+                      className="cms-badge" data-tone={cmsBadgeTone(finding.severity === 'error' ? 'attention' : 'muted')}
                     >
                       {finding.severity}
                     </span>{' '}
@@ -700,7 +705,7 @@ export function ImportPage() {
               <ul className="cms-notes">
                 {draft.warnings.map((warning) => (
                   <li key={warning.id}>
-                    <span className={`cms-badge is-${warning.resolved ? 'muted' : 'hold'}`}>
+                    <span className="cms-badge" data-tone={cmsBadgeTone(warning.resolved ? 'muted' : 'hold')}>
                       {warning.resolved ? 'đã xử lý' : 'chưa xử lý'}
                     </span>{' '}
                     <strong>{warning.category}</strong>{' '}
@@ -711,7 +716,7 @@ export function ImportPage() {
                     {!warning.resolved && operator.can('exam.review') && (
                       <button
                         type="button"
-                        className="cms-secondary"
+                        className="cms-button cms-button--secondary"
                         onClick={() => {
                           setOverriding(warning);
                           setOverrideReason('');
@@ -768,7 +773,7 @@ export function ImportPage() {
             <div className="cms-version-actions">
               <button
                 type="button"
-                className="cms-primary"
+                className="cms-button cms-button--primary"
                 disabled={!canApprove || approving}
                 onClick={() => void approve()}
               >

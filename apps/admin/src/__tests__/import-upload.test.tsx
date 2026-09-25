@@ -479,7 +479,7 @@ describe('ImportPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Bỏ qua, có lý do' }));
 
-    const confirm = screen.getByRole('dialog').querySelector('.cms-primary');
+    const confirm = screen.getByRole('dialog').querySelector('.cms-button--primary');
     expect(confirm).toBeDisabled();
 
     fireEvent.change(screen.getByRole('textbox'), {

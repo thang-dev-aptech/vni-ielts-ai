@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAdminAuth } from '../lib/AdminAuth.js';
 import { AdminPaths } from '../routes/paths.js';
 import { listAudit, type AuditEntry } from '../lib/adminApi.js';
+import { cmsBadgeTone } from '../lib/lifecycle.js';
 
 /**
  * Screen 9.1 — the record.
@@ -97,7 +98,7 @@ export function AuditPage() {
           </select>
         </label>
 
-        <button type="submit" className="cms-secondary">
+        <button type="submit" className="cms-button cms-button--secondary">
           Lọc
         </button>
 
@@ -154,7 +155,7 @@ export function AuditPage() {
                     <td className="num cms-nowrap">{new Date(entry.at).toLocaleString('vi-VN')}</td>
                     <td>{entry.actorEmail}</td>
                     <td>
-                      <span className={`cms-badge is-${toneOf(entry.action)}`}>
+                      <span className="cms-badge" data-tone={cmsBadgeTone(toneOf(entry.action))}>
                         {actionLabel(entry.action)}
                       </span>
                     </td>
@@ -187,7 +188,7 @@ export function AuditPage() {
           <div className="cms-pager">
             <button
               type="button"
-              className="cms-secondary"
+              className="cms-button cms-button--secondary"
               disabled={previousCursors.length === 0}
               onClick={() => {
                 const prev = [...previousCursors];
@@ -201,7 +202,7 @@ export function AuditPage() {
             </button>
             <button
               type="button"
-              className="cms-secondary"
+              className="cms-button cms-button--secondary"
               disabled={!nextCursor}
               onClick={() => {
                 setPreviousCursors([...previousCursors, cursor]);

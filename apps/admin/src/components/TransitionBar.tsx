@@ -89,10 +89,10 @@ export function TransitionBar({
                 type="button"
                 className={
                   transition.tone === 'primary'
-                    ? 'cms-primary'
+                    ? 'cms-button cms-button--primary'
                     : transition.tone === 'danger'
-                      ? 'cms-danger'
-                      : 'cms-secondary'
+                      ? 'cms-button cms-button--danger'
+                      : 'cms-button cms-button--secondary'
                 }
                 disabled={reason !== null || submitting}
                 onClick={() => {

@@ -5,6 +5,7 @@ import {
   getRuntimeConfiguration,
   type AdminRuntimeConfiguration,
 } from '../lib/adminApi.js';
+import { cmsBadgeTone } from '../lib/lifecycle.js';
 
 /**
  * Live runtime configuration, as an operator is allowed to see it.
@@ -75,7 +76,7 @@ export function ConfigPage() {
         <div className="cms-alert is-bad" role="alert">
           <strong>Không đọc được cấu hình.</strong> {loadError} Các hạn mức nhập không được hiện
           bằng số 0.
-          <button type="button" className="cms-secondary" onClick={() => void load()}>
+          <button type="button" className="cms-button cms-button--secondary" onClick={() => void load()}>
             Thử lại
           </button>
         </div>
@@ -128,7 +129,7 @@ function ProvidersPanel({
                     <span className="cms-sub cms-code">{row.skill}</span>
                   </td>
                   <td>
-                    <span className={`cms-badge is-${configured ? 'published' : 'draft'}`}>
+                    <span className="cms-badge" data-tone={cmsBadgeTone(configured ? 'published' : 'draft')}>
                       {configured ? 'Đã cấu hình' : 'Chưa cấu hình'}
                     </span>
                   </td>

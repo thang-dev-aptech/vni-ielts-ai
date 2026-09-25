@@ -9,6 +9,7 @@ import {
   type PackageImportHistorySummary,
 } from '../lib/adminApi.js';
 import { AdminPaths } from '../routes/paths.js';
+import { cmsBadgeTone } from '../lib/lifecycle.js';
 
 /**
  * Package-upload history: every attempt, including the ones the door refused.
@@ -143,7 +144,7 @@ export function PackagesPage() {
           />
         </label>
 
-        <button type="submit" className="cms-secondary">
+        <button type="submit" className="cms-button cms-button--secondary">
           Lọc
         </button>
 
@@ -172,7 +173,7 @@ export function PackagesPage() {
       {loadError !== null && (
         <div className="cms-alert is-bad" role="alert">
           <strong>Không đọc được lịch sử gói.</strong> {loadError}
-          <button type="button" className="cms-secondary" onClick={() => void load()}>
+          <button type="button" className="cms-button cms-button--secondary" onClick={() => void load()}>
             Thử lại
           </button>
         </div>
@@ -221,7 +222,7 @@ export function PackagesPage() {
                       )}
                     </td>
                     <td>
-                      <span className={`cms-badge is-${resultTone(row.result)}`}>
+                      <span className="cms-badge" data-tone={cmsBadgeTone(resultTone(row.result))}>
                         {resultLabel(row.result)}
                       </span>
                     </td>
@@ -235,7 +236,7 @@ export function PackagesPage() {
           <div className="cms-pager">
             <button
               type="button"
-              className="cms-secondary"
+              className="cms-button cms-button--secondary"
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
             >
@@ -246,7 +247,7 @@ export function PackagesPage() {
             </span>
             <button
               type="button"
-              className="cms-secondary"
+              className="cms-button cms-button--secondary"
               disabled={page >= pages}
               onClick={() => setPage((p) => p + 1)}
             >

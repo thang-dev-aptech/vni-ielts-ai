@@ -123,61 +123,7 @@
   color: var(--acc);
 }
 
-/* ── Badge tones ────────────────────────────────────────────────────────── */
-
-/* Six states, six tints, and none of them red.
- *
- * Red belongs to something that has actually broken — DESIGN.md law L1. The
- * state that tempts is `Trả lại`: it demands the author's attention, which is
- * what amber is for, and it is not a failure. `hold` is blue because waiting
- * for review carries no verdict either way.
- *
- * `ready` and `live` are both green and deliberately different weights:
- * approved is an outline, published is filled. The difference an operator has
- * to see at a glance is "signed off" versus "learners can sit it right now". */
-.cms-badge.is-neutral {
-  border-color: var(--line);
-  background: var(--card);
-  color: var(--ink-2);
-}
-
-.cms-badge.is-hold {
-  border-color: var(--hold-line);
-  background: var(--hold-soft);
-  color: var(--hold);
-}
-
-.cms-badge.is-attention {
-  border-color: var(--warn);
-  background: var(--warn-soft);
-  color: var(--warn);
-}
-
-.cms-badge.is-ready {
-  border-color: var(--acc);
-  background: var(--card);
-  color: var(--acc);
-}
-
-.cms-badge.is-live {
-  border-color: var(--acc-line);
-  background: var(--ok-soft);
-  color: var(--ok);
-}
-
-.cms-badge.is-muted {
-  border-style: dashed;
-  border-color: var(--line);
-  background: var(--sunk);
-  color: var(--muted);
-}
-
-/* A state the client does not know is a real event — the server grew one — so
-   it reads as raw text rather than borrowing a friendly tint. */
-.cms-badge.is-unknown {
-  font-family: var(--mono);
-  font-size: var(--t-13);
-}
+/* Badge is-* suffixes retired — use cms-badge[data-tone] (Phase 2). */
 
 /* ── Actions and confirmation ───────────────────────────────────────────── */
 

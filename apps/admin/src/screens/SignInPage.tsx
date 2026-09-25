@@ -90,7 +90,7 @@ export function SignInPage() {
           />
         </label>
 
-        <button type="submit" className="cms-primary" disabled={busy}>
+        <button type="submit" className="cms-button cms-button--primary" disabled={busy}>
           {busy ? 'Đang đăng nhập…' : 'Đăng nhập'}
         </button>
       </form>

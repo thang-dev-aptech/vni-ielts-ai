@@ -29,6 +29,7 @@ import {
   type MediaAsset,
   type MediaKind,
 } from '../lib/media.js';
+import { cmsBadgeTone } from '../lib/lifecycle.js';
 
 /**
  * Màn D1 — the media library, on the real API.
@@ -310,7 +311,7 @@ export function MediaLibraryPage() {
                       {asset.kind === 'audio' && url === null && (
                         <button
                           type="button"
-                          className="cms-secondary"
+                          className="cms-button cms-button--secondary"
                           onClick={() => void attachPlayback(adminAsset)}
                         >
                           Phát qua máy chủ
@@ -321,7 +322,7 @@ export function MediaLibraryPage() {
                     <td className="num">{formatDuration(asset.durationMs)}</td>
                     <td>
                       <span
-                        className={`cms-badge is-${badgeTone(state)}`}
+                        className="cms-badge" data-tone={cmsBadgeTone(badgeTone(state))}
                         title={ASSET_STATE[state].hint}
                       >
                         {ASSET_STATE[state].label}
@@ -345,7 +346,7 @@ export function MediaLibraryPage() {
                         {mayRetire(asset, versions) && operator.can('media.retire') && (
                           <button
                             type="button"
-                            className="cms-secondary"
+                            className="cms-button cms-button--secondary"
                             onClick={() => setPending({ asset: adminAsset, action: 'retire' })}
                           >
                             Gỡ khỏi bộ chọn
@@ -354,7 +355,7 @@ export function MediaLibraryPage() {
                         {mayDelete(asset, versions) && operator.can('media.retire') && (
                           <button
                             type="button"
-                            className="cms-danger"
+                            className="cms-button cms-button--danger"
                             onClick={() => setPending({ asset: adminAsset, action: 'delete' })}
                           >
                             Xoá
